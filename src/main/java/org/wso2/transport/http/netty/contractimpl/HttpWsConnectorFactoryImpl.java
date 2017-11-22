@@ -74,20 +74,11 @@ public class HttpWsConnectorFactoryImpl implements HttpWsConnectorFactory {
     @Override
     public HttpClientConnector createHttpClientConnector(Map<String, Object> transportProperties,
             SenderConfiguration senderConfiguration) {
-        SSLConfig sslConfig = senderConfiguration.getSslConfig();
-        int socketIdleTimeout = senderConfiguration.getSocketIdleTimeout(60000);
-        boolean httpTraceLogEnabled = senderConfiguration.isHttpTraceLogEnabled();
-        boolean followRedirect = senderConfiguration.isFollowRedirect();
-        int maxRedirectCount = senderConfiguration.getMaxRedirectCount(Constants.MAX_REDIRECT_COUNT);
-        boolean chunkDisabled = senderConfiguration.isChunkDisabled();
-        ProxyServerConfiguration proxyServerConfiguration = senderConfiguration.getProxyServerConfiguration();
-
         ConnectionManager.init(transportProperties);
         ConnectionManager connectionManager = ConnectionManager.getInstance();
         BootstrapConfiguration.createBootStrapConfiguration(transportProperties);
 
-        return new HttpClientConnectorImpl(connectionManager, sslConfig, socketIdleTimeout, httpTraceLogEnabled
-                , chunkDisabled, followRedirect, maxRedirectCount, proxyServerConfiguration);
+        return new HttpClientConnectorImpl(connectionManager, senderConfiguration);
     }
 
     @Override
