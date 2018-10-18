@@ -16,7 +16,6 @@
 
 
 import ballerina/auth;
-import ballerina/io;
 import ballerina/reflect;
 
 # Representation of the Authentication filter.
