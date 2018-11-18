@@ -14,8 +14,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Represents a 'future' that returns as a result of an asynchronous HTTP request submission.
-# This can be used as a reference to fetch the results of the submission.
-public type HttpFuture object {
-    private int value = 0; // dummy value to prevent pattern ordering issue when matching results
+#
+# LoadBalancerRule provides a required interfaces to implement different algorithms.
+#
+public type LoadBalancerRule abstract object {
+
+    # Provides an HTTP client which is choosen according to the algorithm.
+    #
+    # + loadBalanceCallerActionsArray - Array of HTTP clients which needs to be load balanced
+    # + return - Choosen `CallerActions` from the algorithm or an `error`
+    #            for the failure in the algorithm implementation
+    public function getNextCallerActions(CallerActions[] loadBalanceCallerActionsArray) returns CallerActions|error;
 };
