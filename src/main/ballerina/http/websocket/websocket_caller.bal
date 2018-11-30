@@ -14,38 +14,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Represents a WebSocket client endpoint.
+# Represents a WebSocket caller.
 #
 # + id - The connection id
 # + negotiatedSubProtocol - The subprotocols negoriated with the server
 # + isSecure - `true` if the connection is secure
 # + isOpen - `true` if the connection is open
-# + response - Represents the HTTP response
 # + attributes - A map to store connection related attributes
-public type WebSocketClient client object {
+public type WebSocketCaller client object {
 
     public string id = "";
     public string negotiatedSubProtocol = "";
     public boolean isSecure = false;
     public boolean isOpen = false;
-    public Response response = new;
     public map<any> attributes = {};
 
     private WebSocketConnector conn = new;
-    private string url = "";
-    private WebSocketClientEndpointConfig config = {};
-
-    # Gets called when the endpoint is being initialize during module init time.
-    #
-    # + c - The `WebSocketClientEndpointConfig` of the endpoint
-    public function __init(string url, WebSocketClientEndpointConfig? config = ()) {
-        self.url = url;
-        self.config = config ?: {};
-        self.initEndpoint();
-    }
-
-    # Initializes the endpoint.
-    public extern function initEndpoint();
 
     # Push text to the connection.
     #
@@ -94,31 +78,4 @@ public type WebSocketClient client object {
     public remote function close(int? statusCode = 1000, string? reason = (), int timeoutInSecs = 60) returns error? {
         return self.conn.close(statusCode = statusCode, reason = reason, timeoutInSecs = timeoutInSecs);
     }
-
-    # Called when the endpoint is ready to receive messages. Can be called only once per endpoint. For the
-    # WebSocketListener can be called only in upgrade or onOpen resources.
-    #
-    # + return - `error` if an error occurs when sending
-    public remote function ready() returns error? {
-        return self.conn.ready();
-    }
-};
-
-# Configuration struct for WebSocket client endpoint.
-#
-# + callbackService - The callback service for the client. Resources in this service gets called on receipt of messages from the server.
-# + subProtocols - Negotiable sub protocols for the client
-# + customHeaders - Custom headers which should be sent to the server
-# + idleTimeoutInSeconds - Idle timeout of the client. Upon timeout, onIdleTimeout resource in the client service will be triggered (if there is one defined)
-# + readyOnConnect - true if the client is ready to recieve messages as soon as the connection is established. This is true by default. If changed to false the function ready() of the
-#                    `WebSocketClient`needs to be called once to start receiving messages.
-# + secureSocket - SSL/TLS related options
-public type WebSocketClientEndpointConfig record {
-    service? callbackService = ();
-    string[] subProtocols = [];
-    map<string> customHeaders = {};
-    int idleTimeoutInSeconds = -1;
-    boolean readyOnConnect = true;
-    SecureSocket? secureSocket = ();
-    !...
 };
