@@ -16,9 +16,10 @@
  *  under the License.
  */
 
-package org.ballerinalang.net.http;
+package org.ballerinalang.net.http.websocket.server;
 
 import org.ballerinalang.jvm.values.ObjectValue;
+import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.wso2.transport.http.netty.contract.websocket.WebSocketConnection;
 
 /**
@@ -28,42 +29,42 @@ import org.wso2.transport.http.netty.contract.websocket.WebSocketConnection;
 public class WebSocketOpenConnectionInfo {
 
     private final WebSocketService webSocketService;
-    private final ObjectValue webSocketEndpoint;
+    private final ObjectValue webSocketCaller;
     private final WebSocketConnection webSocketConnection;
     private String aggregateString = "";
 
     public WebSocketOpenConnectionInfo(WebSocketService webSocketService, WebSocketConnection webSocketConnection,
-                                       ObjectValue webSocketEndpoint) {
+                                       ObjectValue webSocketCaller) {
         this.webSocketService = webSocketService;
         this.webSocketConnection = webSocketConnection;
-        this.webSocketEndpoint = webSocketEndpoint;
+        this.webSocketCaller = webSocketCaller;
     }
 
     public WebSocketService getService() {
         return webSocketService;
     }
 
-    public ObjectValue getWebSocketEndpoint() {
-        return webSocketEndpoint;
+    public ObjectValue getWebSocketCaller() {
+        return webSocketCaller;
     }
 
     public WebSocketConnection getWebSocketConnection() throws IllegalAccessException {
         if (webSocketConnection != null) {
             return webSocketConnection;
         } else {
-            throw new IllegalAccessException("The WebSocket connection has not been made");
+            throw new IllegalAccessException(WebSocketConstants.THE_WEBSOCKET_CONNECTION_HAS_NOT_BEEN_MADE);
         }
     }
 
-    String getAggregateString() {
+    public String getAggregateString() {
         return aggregateString;
     }
 
-    void appendAggregateString(String aggregateString) {
+    public void appendAggregateString(String aggregateString) {
         this.aggregateString += aggregateString;
     }
 
-    void resetAggregateString() {
+    public void resetAggregateString() {
         this.aggregateString = "";
     }
 }
