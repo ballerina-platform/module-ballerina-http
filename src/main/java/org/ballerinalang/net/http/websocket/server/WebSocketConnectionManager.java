@@ -16,29 +16,28 @@
  *  under the License.
  */
 
-package org.ballerinalang.net.http;
+package org.ballerinalang.net.http.websocket.server;
 
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * This contains the connection information of successfully handshaked connections.
+ * Maintains a map of connectionId and ConnectionInfo objects of a successfully established connection.
  */
 public class WebSocketConnectionManager {
 
-    // Map <sessionId, WebSocketConnectionStruct>
-    private final Map<String, WebSocketOpenConnectionInfo> wsConnectionsMap = new ConcurrentHashMap<>();
+    private final Map<String, WebSocketConnectionInfo> wsConnectionsMap = new ConcurrentHashMap<>();
 
-    public WebSocketOpenConnectionInfo getConnectionInfo(String connectionID) {
+    public WebSocketConnectionInfo getConnectionInfo(String connectionID) {
         return wsConnectionsMap.get(connectionID);
     }
 
-    public void addConnection(String connectionID, WebSocketOpenConnectionInfo wsConnection) {
+    public void addConnection(String connectionID, WebSocketConnectionInfo wsConnection) {
         wsConnectionsMap.put(connectionID, wsConnection);
     }
 
-    public WebSocketOpenConnectionInfo removeConnectionInfo(String connectionID) {
+    public WebSocketConnectionInfo removeConnectionInfo(String connectionID) {
         return wsConnectionsMap.remove(connectionID);
     }
 }

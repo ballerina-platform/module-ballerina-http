@@ -14,12 +14,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//import ballerina/io;
+import ballerina/http;
 
-//function testBase64EncodeByteChannel(io:ReadableByteChannel contentToBeEncoded) returns io:ReadableByteChannel|error {
-//    return contentToBeEncoded.base64Encode();
-//}
 
-//function testBase64DecodeByteChannel(io:ReadableByteChannel contentToBeDecoded) returns io:ReadableByteChannel|error {
-//    return contentToBeDecoded.base64Decode();
-//}
+listener http:Listener wsListener = new http:Listener(9090, { host: "0.0.0.0"});
+
+@http:WebSocketServiceConfig {
+    path: "/{hello}"
+}
+service wsService on wsListener {
+
+    resource function onOpen(http:WebSocketCaller caller) {
+    }
+}
