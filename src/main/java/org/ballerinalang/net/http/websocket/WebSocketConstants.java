@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.ballerinalang.net.http;
+package org.ballerinalang.net.http.websocket;
 
 
 import static org.ballerinalang.jvm.util.BLangConstants.BALLERINA_PACKAGE_PREFIX;
@@ -57,10 +57,18 @@ public class WebSocketConstants {
     public static final String RESOURCE_NAME_ON_CLOSE = "onClose";
     public static final String RESOURCE_NAME_ON_IDLE_TIMEOUT = "onIdleTimeout";
     public static final String RESOURCE_NAME_ON_ERROR = "onError";
+    public static final String RESOURCE_NAME_CLOSE = "close";
+    public static final String RESOURCE_NAME_PING = "ping";
+    public static final String RESOURCE_NAME_PONG = "pong";
+    public static final String RESOURCE_NAME_PUSH_BINARY = "pushBinary";
+    public static final String RESOURCE_NAME_PUSH_TEXT = "pushText";
+    public static final String RESOURCE_NAME_READY = "ready";
+    public static final String RESOURCE_NAME_UPGRADE = "upgrade";
 
-    public static final String WEBSOCKET_MESSAGE = "WEBSOCKET_MESSAGE";
+    public static final String WEBSOCKET_HANDSHAKER = "WEBSOCKET_MESSAGE";
 
     public static final String NATIVE_DATA_WEBSOCKET_CONNECTION_INFO = "NATIVE_DATA_WEBSOCKET_CONNECTION_INFO";
+    public static final String NATIVE_DATA_BASE_PATH = "BASE_PATH";
 
     public static final String CLIENT_URL_CONFIG = "url";
     public static final String CLIENT_SERVICE_CONFIG = "callbackService";
