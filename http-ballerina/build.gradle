@@ -146,13 +146,24 @@ task ballerinaBuild {
         }
 
         // Build and populate caches
+        if (!project.hasProperty("skipBallerinaTests")) {
+            exec {
+                workingDir project.projectDir
+                environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                    commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline --all"
+                } else {
+                    commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline --all"
+                }
+            }
+        }
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat build ${additionalBuildParams} -c ${moduleName}"
+                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat build --offline --skip-tests --code-coverage ${additionalBuildParams} -c ${moduleName}"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/ballerina build ${additionalBuildParams} -c ${moduleName}"
+                commandLine 'sh', '-c', "$distributionBinPath/ballerina build --offline --skip-tests --code-coverage ${additionalBuildParams} -c ${moduleName}"
             }
         }
         copy {
