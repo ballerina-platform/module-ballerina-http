@@ -15,8 +15,8 @@
 // under the License.
 
 import ballerina/auth;
-import ballerina/http;
 import ballerina/test;
+import http;
 
 // Test case for basic auth header interceptor canProcess method, without the basic auth header
 @test:Config {}
