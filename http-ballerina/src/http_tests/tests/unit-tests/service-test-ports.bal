@@ -15,3 +15,4 @@
 // under the License.
 
 const int databindingTest = 9001;
+const int producesConsumesTest = 9002;
