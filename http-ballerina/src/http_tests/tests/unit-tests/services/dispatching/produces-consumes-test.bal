@@ -18,10 +18,10 @@ import ballerina/mime;
 import ballerina/test;
 import http;
 
-listener http:Listener testEP = new(producesConsumesTest);
+listener http:Listener pcEP = new(producesConsumesTest);
 http:Client pcClient = new("http://localhost:" + producesConsumesTest.toString());
 
-service echo66 on testEP {
+service echo66 on pcEP {
     @http:ResourceConfig {
         methods: ["POST"],
         path: "/test1",
@@ -61,7 +61,7 @@ service echo66 on testEP {
     }
 }
 
-service echo67 on testEP {
+service echo67 on pcEP {
     resource function echo1(http:Caller caller, http:Request req) {
         checkpanic caller->respond({ echo33: "echo1" });
     }

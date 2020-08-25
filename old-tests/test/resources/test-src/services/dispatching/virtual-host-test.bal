@@ -14,16 +14,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/test;
+import http;
 
-import ballerina/http;
-
-listener http:MockListener mockEP  = new(9090);
+listener http:Listener vhEP  = new(virtualHostTest);
+http:Client vhClient = new("http://localhost:" + virtualHostTest.toString());
 
 @http:ServiceConfig {
     basePath:"/page",
     host:"abc.com"
 }
-service Host1 on mockEP {
+service Host1 on vhEP {
     @http:ResourceConfig {
         path: "/index"
     }
@@ -39,7 +40,7 @@ service Host1 on mockEP {
     basePath:"/page",
     host:"xyz.org"
 }
-service Host2 on mockEP {
+service Host2 on vhEP {
     @http:ResourceConfig {
         path: "/index"
     }
@@ -54,7 +55,7 @@ service Host2 on mockEP {
 @http:ServiceConfig {
     basePath:"/page"
 }
-service Host3 on mockEP {
+service Host3 on vhEP {
     @http:ResourceConfig {
         path: "/index"
     }
@@ -63,5 +64,29 @@ service Host3 on mockEP {
         json responseJson = { "echo": "no host" };
         res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
+    }
+}
+
+// Need to use separate client to change Host header, as ballerina client does not allow it.
+// @test:Config {}
+function testInvokingTwoServicesWithDifferentHostsAndSameBasePaths() {
+    string hostName1 = "abc.com";
+    http:Request req1 = new;
+    req1.setHeader("Host", hostName1);
+    var response = vhClient->get("/page/index", req1);
+    if (response is http:Response) {
+        assertJsonValue(response.getJsonPayload(), "echo", hostName1);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    string hostName2 = "xyz.org";
+    http:Request req2 = new;
+    req2.setHeader("Host", hostName2);
+    response = vhClient->get("/page/index", req2);
+    if (response is http:Response) {
+        assertJsonValue(response.getJsonPayload(), "echo", hostName2);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
