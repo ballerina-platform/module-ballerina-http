@@ -144,6 +144,3 @@ function assertJsonPayload(json|error payload, json expectValue) {
         test:assertFail(msg = "Found unexpected output type" + payload.message());
     }
 }
-
-
-
