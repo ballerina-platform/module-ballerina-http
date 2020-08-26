@@ -404,8 +404,7 @@ function testXmlBodyPart() {
     if (response is http:Response) {
         var body = response.getXmlPayload();
         if (body is xml) {
-            test:assertEquals(body.toString(), "<name>Ballerina xml file part</name>",
-                    msg = errorMessage);
+            test:assertEquals(body.toString(), "<name>Ballerina xml file part</name>", msg = errorMessage);
         } else {
             test:assertFail(msg = errorMessage + body.message());
         }
@@ -426,8 +425,7 @@ function testXmlBodyPartAsFileUpload() {
     if (response is http:Response) {
         var body = response.getXmlPayload();
         if (body is xml) {
-            test:assertEquals(body.toString(), "<name>Ballerina xml file part</name>",
-                    msg = errorMessage);
+            test:assertEquals(body.toString(), "<name>Ballerina xml file part</name>", msg = errorMessage);
         } else {
             test:assertFail(msg = errorMessage + body.message());
         }
@@ -539,4 +537,3 @@ function close(io:ReadableByteChannel|io:ReadableCharacterChannel ch) {
     } channelResult = ch;
     var cr = channelResult.close();
 }
-
