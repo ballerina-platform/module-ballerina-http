@@ -233,7 +233,7 @@ function testGetCookiesWithEmptyValue() {
     test:assertEquals(cookiesInRequest[0].value, "", msg = "Invalid cookie value");
 }
 
-listener http:Listener requestListner = new(9000);
+listener http:Listener requestListner = new(requestTest);
 
 @http:ServiceConfig { basePath: "/hello" }
 service hello on requestListner {

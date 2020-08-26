@@ -18,7 +18,7 @@ import ballerina/io;
 import ballerina/test;
 import http;
 
-listener http:Listener testEP = new(9093);
+listener http:Listener testEP = new(requestTest2);
 
 @http:ServiceConfig { 
     basePath: "/foo" 
@@ -31,7 +31,6 @@ service MyService on testEP {
     }
     resource function myResource(http:Caller caller, http:Request req) {
         var stringValue = req.getTextPayload();
-        io:println(stringValue.toString());
         if (stringValue is string) {
             string s = stringValue;
         } else {
