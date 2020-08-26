@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/test;
+import http;
 
 // Test case for bearer auth header interceptor canProcess method, without bearer auth header
 @test:Config {}

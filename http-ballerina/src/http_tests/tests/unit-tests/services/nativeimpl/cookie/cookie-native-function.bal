@@ -15,9 +15,9 @@
 // under the License.
 
 import ballerina/file;
-import ballerina/http;
 import ballerina/io;
 import ballerina/test;
+import http;
 
 string filePath = "src/http_tests/tests/resources/";
 
@@ -365,8 +365,9 @@ function testGetSecureCookieFromCookieStore() {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
     }
      // Gets the relevant cookie from the cookie store.
-    http:Cookie[] cookies = cookieStore.getCookies("http://google.com", "/sample");
-    test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
+    http:Cookie[] cookies = cookieStore.getCookies("https://google.com", "/sample");
+    test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
+    test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
 }
 
 // Test to remove a specific session cookie from the cookie store

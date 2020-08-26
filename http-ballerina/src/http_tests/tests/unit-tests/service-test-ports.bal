@@ -25,5 +25,6 @@ const int uriTemplateTest2 = 9005;
 const int uriTemplateDefaultTest1 = 9006;
 const int uriTemplateDefaultTest2 = 9007;
 const int uriTemplateDefaultTest3 = 9008;
+const int uriTemplateMatchingTest = 9009;
 
 const int virtualHostTest = 9010;

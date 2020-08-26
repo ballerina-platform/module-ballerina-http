@@ -15,9 +15,9 @@
 // under the License.
 
 import ballerina/file;
-import ballerina/http;
 import ballerina/io;
 import ballerina/test;
+import http;
 
 // Test to add a cookie with unmatched domain to the cookie store
 @test:Config {}
