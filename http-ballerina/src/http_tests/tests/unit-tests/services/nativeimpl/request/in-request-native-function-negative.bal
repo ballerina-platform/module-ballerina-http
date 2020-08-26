@@ -14,11 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//import ballerina/io;
-import ballerina/http;
 import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
+import http;
 
 // Test when the content length header is not set
 @test:Config {}
