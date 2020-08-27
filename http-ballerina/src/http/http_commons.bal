@@ -335,6 +335,18 @@ function getStatusCodeRange(int statusCode) returns string {
     return statusCode.toString().substring(0,1) + STATUS_CODE_GROUP_SUFFIX;
 }
 
+# Returns a random UUID string.
+#
+# + return - The random string
+function uuid() returns string {
+    var result = java:toString(nativeUuid());
+    if (result is string) {
+        return result;
+    } else {
+        panic error("Error occured when converting the UUID to string.");
+    }
+}
+
 # Add observability information as tags
 #
 # + path - Resource path
@@ -351,6 +363,12 @@ function addObservabilityInformation(string path, string method, int statusCode,
 function resolve(string baseUrl, string path) returns string|ClientError = @java:Method {
     class: "org.ballerinalang.net.uri.nativeimpl.Resolve",
     name: "resolve"
+} external;
+
+//Returns a random UUID string.
+function nativeUuid() returns handle = @java:Method {
+    name: "randomUUID",
+    class: "java.util.UUID"
 } external;
 
 // Non-blocking payload retrieval common external functions

@@ -30,7 +30,6 @@ const string ACCESS_CONTROL_MAX_AGE = "access-control-max-age";
 const string ACCESS_CONTROL_REQUEST_HEADERS = "access-control-request-headers";
 const string ACCESS_CONTROL_REQUEST_METHOD = "access-control-request-method";
 
-
 const string ENCODING_GZIP = "gzip";
 const string ENCODING_DEFLATE = "deflate";
 const string HTTP_TRANSFER_ENCODING_IDENTITY = "identity";
@@ -47,8 +46,6 @@ const string TEXT_PLAIN = "text/plain";
 const string APPLICATION_XML = "application/xml";
 const string APPLICATION_JSON = "application/json";
 const string APPLICATION_FORM = "application/x-www-form-urlencoded";
-
-
 
 function assertJsonValue(json|error payload, string expectKey, json expectValue) {
     if payload is map<json> {

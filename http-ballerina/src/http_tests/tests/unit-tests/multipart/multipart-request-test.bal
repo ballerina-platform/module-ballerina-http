@@ -14,22 +14,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import http;
+import ballerina/io;
 import ballerina/lang.'string as strings;
 import ballerina/mime;
-import ballerina/io;
 import ballerina/test;
+import http;
 
 function setErrorResponse(http:Response response, error err) {
     response.statusCode = 500;
     response.setPayload(<@untainted> err.message());
 }
 
-listener http:Listener mockEP = new(9090);
-http:Client multipartReqClient = new("http://localhost:9090");
+listener http:Listener multipartReqEP = new(multipartRequestTest);
+http:Client multipartReqClient = new("http://localhost:" + multipartRequestTest.toString());
 
 @http:ServiceConfig {basePath:"/test"}
-service test on mockEP {
+service test on multipartReqEP {
 
     @http:ResourceConfig {
         methods:["POST"],

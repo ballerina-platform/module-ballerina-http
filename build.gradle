@@ -23,26 +23,16 @@ plugins {
 }
 
 ext.ballerinaLangVersion = project.ballerinaLangVersion
-ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
 ext.slf4jVersion = project.slf4jVersion
 ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
 ext.commonsLang3Version = project.commonsLang3Version
-
-
-ext.testngVersion = project.testngVersion
-
-
 ext.nettyVersion = project.nettyVersion
 ext.nettyTcnativeVersion = project.nettyTcnativeVersion
 ext.wso2TransportHttpNettyVersion = project.wso2TransportHttpNettyVersion
-ext.ballerinaMessageBrokerVersion = project.ballerinaMessageBrokerVersion
-ext.ballerinaMessageBrokerCoreVersion = project.ballerinaMessageBrokerCoreVersion
 ext.wso2CommonsPoolVersion = project.wso2CommonsPoolVersion
 ext.wso2SnakeYamlVersion = project.wso2SnakeYamlVersion
 ext.bouncycastleVersion = project.bouncycastleVersion
-ext.guavaVersion = project.guavaVersion
 ext.wso2CarbonMetricsVersion = project.wso2CarbonMetricsVersion
-ext.stdlibEncodingVersion = project.stdlibEncodingVersion
 ext.mimepullVersion = project.mimepullVersion
 
 allprojects {
@@ -54,10 +44,6 @@ allprojects {
 
     repositories {
         mavenLocal()
-        maven {
-            url = 'https://mvnrepository.com/artifact/io.ballerina.messaging/broker-core'
-        }
-
         maven {
             url = 'https://maven.wso2.org/nexus/content/repositories/releases/'
         }
@@ -79,29 +65,17 @@ allprojects {
         }
 
         maven {
-            url = 'https://mvnrepository.com/artifact/io.ballerina.messaging/broker-common'
+            url "https://maven.pkg.github.com/ballerina-platform/module-ballerina-http"
+            credentials {
+                username System.getenv("packageUser")
+                password System.getenv("packagePAT")
+            }
         }
-
-//        maven {
-//            url "https://maven.pkg.github.com/ballerina-platform/module-ballerina-http"
-//            credentials {
-//                username System.getenv("packageUser")
-//                password System.getenv("packagePAT")
-//            }
-//        }
     }
 }
 
 subprojects {
     apply plugin: 'java'
-
-//    configurations {
-//        ballerinaStdLibs
-//    }
-//    dependencies {
-//        /* Standard libraries */
-//        ballerinaStdLibs "org.ballerinalang:encoding-ballerina:${stdlibEncodingVersion}"
-//    }
 
     release {
         // Disable check snapshots temporarily
