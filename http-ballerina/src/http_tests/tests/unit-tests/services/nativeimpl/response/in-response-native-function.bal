@@ -206,10 +206,10 @@ function testResposeGetCookies() {
     test:assertEquals(cookiesInResponse[0].name, "SID002", msg = "Invalid cookie name");
 }
 
-listener http:Listener mockEP = new(responseTest);
+listener http:Listener responseEp = new(responseTest);
 
 @http:ServiceConfig {basePath : "/hello"}
-service response on mockEP {
+service response on responseEp {
 
     @http:ResourceConfig {
         path:"/11"
