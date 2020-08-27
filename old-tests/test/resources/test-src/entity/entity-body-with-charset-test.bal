@@ -8,7 +8,7 @@ xml xmlValue = xml `<菜鸟驿站><name>菜鸟驿站</name></菜鸟驿站>`;
 function testSetJsonPayloadWithoutCharset() returns @tainted string[] {
     http:Request request = new;
     request.setJsonPayload({ test: "testValue" });
-    return request.getHeaders("content-type");
+    string[] headers = request.getHeaders("content-type");
 }
 
 function testCharsetWithExistingContentType() returns @tainted string[] {
