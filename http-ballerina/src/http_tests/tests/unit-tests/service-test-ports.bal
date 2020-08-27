@@ -14,6 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
+const int requestTest = 9000;
+const int requestTest2 = 9093;
+
 const int databindingTest = 9001;
 const int producesConsumesTest = 9002;
 const int uriMatrixParamMatchingTest = 9003;
@@ -25,3 +28,8 @@ const int uriTemplateDefaultTest3 = 9008;
 const int uriTemplateMatchingTest = 9009;
 
 const int virtualHostTest = 9010;
+
+const int responseTest = 9094;
+
+const int entityTest = 9097;
+const int mimeTest = 9096;
