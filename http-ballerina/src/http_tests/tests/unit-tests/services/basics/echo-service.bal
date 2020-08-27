@@ -20,12 +20,6 @@ import http;
 
 final string constPath = getConstPath();
 
-// type Person record {
-//     string name;
-//     int age;
-// };
-
-
 listener http:Listener serviceTestEP = new(serviceTest);
 http:Client stClient = new("http://localhost:" + serviceTest.toString());
 

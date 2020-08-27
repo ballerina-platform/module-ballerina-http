@@ -19,7 +19,6 @@ import ballerina/cache;
 import ballerina/crypto;
 import ballerina/lang.'object as lang;
 import ballerina/runtime;
-import ballerina/system;
 
 /////////////////////////////
 /// HTTP Listener Endpoint ///
@@ -79,7 +78,7 @@ public type Listener object {
     # + port - Listening port of the HTTP service listener
     # + config - Configurations for the HTTP service listener
     public function init(int port, public ListenerConfiguration? config = ()) {
-        self.instanceId = system:uuid();
+        self.instanceId = uuid();
         self.config = config ?: {};
         self.port = port;
         ListenerAuth? auth = self.config["auth"];

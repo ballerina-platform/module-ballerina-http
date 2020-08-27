@@ -1,14 +1,14 @@
 [project]
 org-name = "ballerina"
-version = "1.0.0"
+version = "@toml.version@"
 
 [platform]
 target = "java8"
 
     [[platform.libraries]]
     artifactId = "http"
-    version = "1.0.1-SNAPSHOT"
-    path = "../http-native/build/libs/http-native-1.0.1-SNAPSHOT.jar"
+    version = "@project.version@"
+    path = "../http-native/build/libs/http-native-@project.version@.jar"
     groupId = "ballerina"
     modules = ["http"]
 
