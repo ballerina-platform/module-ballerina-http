@@ -18,7 +18,7 @@ import ballerina/test;
 import http;
 
 @test:Config {}
-function testAddHeader() {
+function testPushPromiseAddHeader() {
     string key = "header1";
     string value = "value1";
     http:PushPromise promise = new;
@@ -27,7 +27,7 @@ function testAddHeader() {
 }
 
 @test:Config {}
-function testGetHeader() {
+function testPushPromiseGetHeader() {
     string key = "header1";
     string value = "value1";
     http:PushPromise promise = new;
@@ -36,7 +36,7 @@ function testGetHeader() {
 }
 
 @test:Config {}
-function testHasHeader() {
+function testPushPromiseHasHeader() {
     string headerName = "header1";
     string headerValue = "value1";
 
@@ -47,7 +47,7 @@ function testHasHeader() {
 }
 
 @test:Config {}
-function testGetHeaderNames() {
+function testPushPromiseGetHeaderNames() {
     string headerName1 = "header1";
     string headerName2 = "header2";
 
@@ -61,7 +61,7 @@ function testGetHeaderNames() {
 }
 
 @test:Config {}
-function testGetHeaders() {
+function testPushPromiseGetHeaders() {
     string headerName = "header";
     string headerValue1 = "value1";
     string headerValue2 = "value2";
@@ -76,7 +76,7 @@ function testGetHeaders() {
 }
 
 @test:Config {}
-function testRemoveHeader() {
+function testPushPromiseRemoveHeader() {
     string headerName = "header1";
     string headerValue = "value1";
 
@@ -88,7 +88,7 @@ function testRemoveHeader() {
 }
 
 @test:Config {}
-function testRemoveAllHeaders() {
+function testPushPromiseRemoveAllHeaders() {
     http:PushPromise promise = new;
     string header1Name = "header1";
     string header1Value = "value1";
@@ -103,7 +103,7 @@ function testRemoveAllHeaders() {
 }
 
 @test:Config {}
-function testSetHeader() {
+function testPushPromiseSetHeader() {
     http:PushPromise promise = new;
     string headerName = "header1";
     string headerValue = "value1";

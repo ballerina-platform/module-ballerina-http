@@ -105,7 +105,7 @@ function failureScenario() returns @tainted http:Response|error {
     return response;
 }
 
-public type MockClient client object {
+public type FoMockClient client object {
     public string url = "";
     public http:ClientConfiguration config = {};
     public http:Client httpClient;
@@ -122,37 +122,37 @@ public type MockClient client object {
     public remote function post(string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
                                                                                 returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function head(string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = ())
                                                                                 returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function put(string path,
                                http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
                                                                                 returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function execute(string httpVerb, string path,
                                    http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|()
                                         message) returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function patch(string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
                                                                                 returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function delete(string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
                                                                                 returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function get(string path,
@@ -173,21 +173,21 @@ public type MockClient client object {
     public remote function options(string path,
            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = ())
                                                                                 returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function forward(string path, http:Request req) returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function submit(string httpVerb, string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
                                                                             returns http:HttpFuture|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function getResponse(http:HttpFuture httpFuture)  returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function hasPromise(http:HttpFuture httpFuture) returns boolean {
@@ -195,11 +195,11 @@ public type MockClient client object {
     }
 
     public remote function getNextPromise(http:HttpFuture httpFuture) returns http:PushPromise|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function getPromisedResponse(http:PushPromise promise) returns http:Response|http:ClientError {
-        return getUnsupportedError();
+        return getUnsupportedFOError();
     }
 
     public remote function rejectPromise(http:PushPromise promise) {
@@ -220,11 +220,11 @@ function handleFailoverScenario (int count) returns (http:Response | http:Client
     }
 }
 
-function getUnsupportedError() returns http:ClientError {
+function getUnsupportedFOError() returns http:ClientError {
     return http:GenericClientError("Unsupported fucntion for MockClient");
 }
 
-function createMockClient(string url) returns MockClient {
-    MockClient mockClient = new(url);
+function createMockClient(string url) returns FoMockClient {
+    FoMockClient mockClient = new(url);
     return mockClient;
 }
