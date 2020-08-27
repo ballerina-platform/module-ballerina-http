@@ -236,7 +236,7 @@ function testGetCookiesWithEmptyValue() {
 listener http:Listener requestListner = new(requestTest);
 
 @http:ServiceConfig { basePath: "/hello" }
-service hello on requestListner {
+service RequestHello on requestListner {
 
     @http:ResourceConfig {
         path: "/addheader/{key}/{value}"
