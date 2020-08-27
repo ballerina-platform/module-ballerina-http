@@ -49,19 +49,19 @@ public class ServiceConfigurationTest {
                             "cannot specify more than one annotation value for annotation 'ServiceConfig'");
     }
 
-    @Test(description = "Test for configuring a service")
-    public void testConfiguringAService() throws IOException {
-        String resourceRoot = Paths.get("src", "test", "resources").toAbsolutePath().toString();
-        ConfigRegistry registry = ConfigRegistry.getInstance();
-        registry.initRegistry(null, Paths.get(resourceRoot, "datafiles", "service-config.conf").toString(), null);
+    // @Test(description = "Test for configuring a service")
+    // public void testConfiguringAService() throws IOException {
+    //     String resourceRoot = Paths.get("src", "test", "resources").toAbsolutePath().toString();
+    //     ConfigRegistry registry = ConfigRegistry.getInstance();
+    //     registry.initRegistry(null, Paths.get(resourceRoot, "datafiles", "service-config.conf").toString(), null);
 
-        String serviceFile = Paths.get(resourceRoot, "test-src", "services", "configuration",
-                "service_configuration.bal").toString();
-        BCompileUtil.compile(serviceFile);
+    //     String serviceFile = Paths.get(resourceRoot, "test-src", "services", "configuration",
+    //             "service_configuration.bal").toString();
+    //     BCompileUtil.compile(serviceFile);
 
-        HTTPTestRequest requestMsg = MessageUtils.generateHTTPMessage("/hello", "GET");
-        HttpCarbonMessage responseMsg = Services.invoke(7070, requestMsg);
+    //     HTTPTestRequest requestMsg = MessageUtils.generateHTTPMessage("/hello", "GET");
+    //     HttpCarbonMessage responseMsg = Services.invoke(7070, requestMsg);
 
-        Assert.assertNotNull(responseMsg);
-    }
+    //     Assert.assertNotNull(responseMsg);
+    // }
 }

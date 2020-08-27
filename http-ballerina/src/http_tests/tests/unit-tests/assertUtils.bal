@@ -17,6 +17,39 @@
 import ballerina/stringutils;
 import ballerina/test;
 
+const string CONTENT_ENCODING = "content-encoding";
+const string ACCEPT_ENCODING = "accept-encoding";
+const string ORIGIN = "origin";
+const string ALLOW = "Allow";
+const string ACCESS_CONTROL_ALLOW_ORIGIN = "access-control-allow-origin";
+const string ACCESS_CONTROL_ALLOW_CREDENTIALS = "access-control-allow-credentials";
+const string ACCESS_CONTROL_ALLOW_HEADERS = "access-control-allow-headers";
+const string ACCESS_CONTROL_ALLOW_METHODS = "access-control-allow-methods";
+const string ACCESS_CONTROL_EXPOSE_HEADERS = "access-control-expose-headers";
+const string ACCESS_CONTROL_MAX_AGE = "access-control-max-age";
+const string ACCESS_CONTROL_REQUEST_HEADERS = "access-control-request-headers";
+const string ACCESS_CONTROL_REQUEST_METHOD = "access-control-request-method";
+
+
+const string ENCODING_GZIP = "gzip";
+const string ENCODING_DEFLATE = "deflate";
+const string HTTP_TRANSFER_ENCODING_IDENTITY = "identity";
+
+const string HTTP_METHOD_GET = "GET";
+const string HTTP_METHOD_POST = "POST";
+const string HTTP_METHOD_PUT = "PUT";
+const string HTTP_METHOD_PATCH = "PATCH";
+const string HTTP_METHOD_DELETE = "DELETE";
+const string HTTP_METHOD_OPTIONS = "OPTIONS";
+const string HTTP_METHOD_HEAD = "HEAD";
+
+const string TEXT_PLAIN = "text/plain";
+const string APPLICATION_XML = "application/xml";
+const string APPLICATION_JSON = "application/json";
+const string APPLICATION_FORM = "application/x-www-form-urlencoded";
+
+
+
 function assertJsonValue(json|error payload, string expectKey, json expectValue) {
     if payload is map<json> {
         test:assertEquals(payload[expectKey], expectValue, msg = "Found unexpected output");
@@ -47,4 +80,8 @@ function assertTrueTextPayload(string|error payload, string expectValue) {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + payload.message());
     }
+}
+
+function assertHeaderValue(string headerKey, string expectValue) {
+    test:assertEquals(headerKey, expectValue, msg = "Found unexpected headerValue");
 }

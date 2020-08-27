@@ -151,9 +151,9 @@ task ballerinaBuild {
                 workingDir project.projectDir
                 environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline --all"
+                    commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline --all -- --b7a.config.file=src/http_tests/tests/unit-tests/services/configuration/service-config.conf"
                 } else {
-                    commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline --all"
+                    commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline --all -- --b7a.config.file=src/http_tests/tests/unit-tests/services/configuration/service-config.conf"
                 }
             }
         }

@@ -25,3 +25,14 @@ const int uriTemplateDefaultTest3 = 9008;
 const int uriTemplateMatchingTest = 9009;
 
 const int virtualHostTest = 9010;
+
+const int serviceTest = 9011;
+const int CompressionConfigTest = 9012;
+const int serviceConfigTest = 7070;
+const int corsConfigTest = 9013;
+const int connectionNativeTest = 9014;
+const int serviceDetachTest = 9015;
+const int serviceEndpointTest = 9016;
+const int parseHeaderTest = 9017;
+
+

@@ -1,4 +1,4 @@
-name: Ballerina Websub module build
+name: Ballerina HTTP module build
 
 on: [push, pull_request]
 
