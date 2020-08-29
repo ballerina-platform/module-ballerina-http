@@ -21,8 +21,6 @@ description = 'Ballerina - HTTP/WS Ballerina Generator'
 
 configurations {
     jbalTools
-    httpBallerinaBirDir
-    httpBallerinaJar
     externalJars
 }
 
