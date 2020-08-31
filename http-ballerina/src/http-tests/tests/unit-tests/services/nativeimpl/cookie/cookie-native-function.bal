@@ -19,7 +19,7 @@ import ballerina/io;
 import ballerina/test;
 import http;
 
-string filePath = "src/http_tests/tests/resources/";
+string filePath = "src/http-tests/tests/resources/";
 
 // "Test to add cookie with same domain and path values as in the request url , into cookie store"
 @test:Config {}
