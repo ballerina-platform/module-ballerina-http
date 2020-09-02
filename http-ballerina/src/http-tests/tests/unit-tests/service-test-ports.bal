@@ -16,7 +16,6 @@
 
 const int requestTest = 9000;
 const int requestTest2 = 9093;
-
 const int databindingTest = 9001;
 const int producesConsumesTest = 9002;
 const int uriMatrixParamMatchingTest = 9003;
@@ -36,10 +35,13 @@ const int serviceDetachTest = 9015;
 const int serviceEndpointTest = 9016;
 const int parseHeaderTest = 9017;
 const int multipartRequestTest = 9018;
-
-
-
 const int responseTest = 9094;
-
 const int entityTest = 9097;
 const int mimeTest = 9096;
+
+// Integration test ports
+const int acceptEncodingHeaderTestPort = 9500;
+const int requestLimitsTestPort1 = 9501;
+const int requestLimitsTestPort2 = 9502;
+const int requestLimitsTestPort3 = 9503;
+const int requestLimitsTestPort4 = 9504;
