@@ -35,3 +35,25 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
     compile group: 'org.apache.commons', name: 'commons-lang3', version: "${commonsLang3Version}"
 }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId "http-native"
+            version = project.version
+            artifact jar
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/ballerina-platform/module-ballerina-http")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
