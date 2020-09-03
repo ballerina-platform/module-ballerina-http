@@ -31,7 +31,7 @@ dependencies {
     compile project(':http-native')
     compile group: 'org.ballerinalang', name: 'toml-parser', version: "${ballerinaTomlParserVersion}"
 
-    externalJars (group: 'org.ballerinalang', name: 'ballerina-mime', version: "${ballerinaLangVersion}") {
+    externalJars (group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}") {
         transitive = false
     }
     externalJars (group: 'org.wso2.transport.http', name: 'org.wso2.transport.http.netty', version: "${wso2TransportHttpNettyVersion}") {
@@ -162,6 +162,7 @@ def tomlVersion = project.version.split("-")[0]
 def ballerinaCentralAccessToken = System.getenv('BALLERINA_CENTRAL_ACCESS_TOKEN')
 def targetBallerinaJar = file("$project.projectDir/target/caches/jar_cache/${moduleOrg}/${moduleName}/${tomlVersion}/${moduleOrg}-${moduleName}-${tomlVersion}.jar")
 def targetNativeJar = file("$project.rootDir/${moduleName}-native/build/libs/${moduleName}-native-${project.version}.jar")
+def distributionPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-${ballerinaLangVersion}"
 def originalConfig = ballerinaConfigFile.text
 
 task updateTomlVerions {
@@ -180,6 +181,7 @@ task updateTomlVerions {
 
         def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
+        newConfig = newConfig.replace("@project.path@", distributionPath)
         newConfig = newConfig.replace("@stdlib.io.version@", stdlibDependentIoVersion)
         newConfig = newConfig.replace("@stdlib.log.version@", stdlibDependentLogVersion)
         newConfig = newConfig.replace("@stdlib.stringutils.version@", stdlibDependentStringutilsVersion)
@@ -208,10 +210,6 @@ task ballerinaBuild {
     doLast {
         def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
         def additionalBuildParams = ""
-
-        if (project.hasProperty("skipBallerinaTests")) {
-            additionalBuildParams += "--skip-tests"
-        }
 
         if (project.hasProperty("debugBallerina")) {
             def port = project.getProperty("debugBallerina").toString();

@@ -11,6 +11,7 @@ version = "@toml.version@"
 "ballerina/cache" = "@stdlib.cache.version@"
 "ballerina/time" = "@stdlib.time.version@"
 "ballerina/crypto" = "@stdlib.crypto.version@"
+"ballerina/file" = "@stdlib.file.version@"
 "ballerina/reflect" = "@stdlib.reflect.version@"
 
 [platform]
@@ -24,9 +25,9 @@ target = "java8"
     modules = ["http"]
 
     [[platform.libraries]]
-    artifactId = "mime"
-    version = "2.0.0-Preview4-SNAPSHOT"
-    path = "./lib/ballerina-mime-2.0.0-Preview4-SNAPSHOT.jar"
+    artifactId = "mime-native"
+    version = "@stdlib.mime.version@"
+    path = "@project.path@/bre/lib/mime-native-@stdlib.mime.version@.jar"
     groupId = "ballerina"
     modules = ["http"]
 
