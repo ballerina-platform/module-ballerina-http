@@ -34,6 +34,8 @@ ext.stdlibCryptoVersion = project.stdlibCryptoVersion
 ext.stdlibFileVersion = project.stdlibFileVersion
 ext.stdlibConfigVersion = project.stdlibConfigVersion
 ext.stdlibReflectVersion = project.stdlibReflectVersion
+ext.stdlibSystemVersion = project.stdlibSystemVersion
+ext.stdlibTaskVersion = project.stdlibTaskVersion
 
 ext.slf4jVersion = project.slf4jVersion
 ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
@@ -84,7 +86,7 @@ allprojects {
             }
         }
         maven {
-            url = 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-mime'
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-mime'
             credentials {
                 username System.getenv("packageUser")
                 password System.getenv("packagePAT")
@@ -160,6 +162,20 @@ allprojects {
                 password System.getenv("packagePAT")
             }
         }
+        maven {
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-system'
+            credentials {
+                username System.getenv("packageUser")
+                password System.getenv("packagePAT")
+            }
+        }
+        maven {
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-task'
+            credentials {
+                username System.getenv("packageUser")
+                password System.getenv("packagePAT")
+            }
+        }
     }
 }
 
@@ -182,6 +198,8 @@ subprojects {
         ballerinaStdLibs "org.ballerinalang:file-ballerina:${stdlibFileVersion}"
         ballerinaStdLibs "org.ballerinalang:config-ballerina:${stdlibConfigVersion}"
         ballerinaStdLibs "org.ballerinalang:reflect-ballerina:${stdlibReflectVersion}"
+        ballerinaStdLibs "org.ballerinalang:system-ballerina:${stdlibSystemVersion}"
+        ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
     }
 
     release {

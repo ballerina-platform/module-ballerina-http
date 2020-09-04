@@ -13,6 +13,8 @@ version = "@toml.version@"
 "ballerina/crypto" = "@stdlib.crypto.version@"
 "ballerina/file" = "@stdlib.file.version@"
 "ballerina/reflect" = "@stdlib.reflect.version@"
+"ballerina/system" = "@stdlib.system.version@"
+"ballerina/task" = "@stdlib.task.version@"
 
 [platform]
 target = "java8"
