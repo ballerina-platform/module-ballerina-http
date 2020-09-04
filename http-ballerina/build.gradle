@@ -31,7 +31,7 @@ dependencies {
     compile project(':http-native')
     compile group: 'org.ballerinalang', name: 'toml-parser', version: "${ballerinaTomlParserVersion}"
 
-    externalJars (group: 'org.ballerinalang', name: 'ballerina-mime', version: "${ballerinaLangVersion}") {
+    externalJars (group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}") {
         transitive = false
     }
     externalJars (group: 'org.wso2.transport.http', name: 'org.wso2.transport.http.netty', version: "${wso2TransportHttpNettyVersion}") {
@@ -112,6 +112,46 @@ task copyToLib(type: Copy) {
     from configurations.externalJars
 }
 
+task unpackStdLibs() {
+    doLast {
+        configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            copy {
+                from project.zipTree(artifact.getFile())
+                into new File("${buildDir}/target/extracted-distributions", artifact.name + "-zip")
+            }
+        }
+    }
+}
+
+task copyStdlibs(type: Copy) {
+    def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
+    into ballerinaDist
+
+    /* Standard Libraries */
+    configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        def artifactExtractedPath = "${buildDir}/target/extracted-distributions/" + artifact.name + "-zip"
+        into("bir-cache/") {
+            from "${artifactExtractedPath}/caches/bir"
+        }
+        into("bre/lib/") {
+            from "${artifactExtractedPath}/libs"
+        }
+        into("docs/") {
+            from "${artifactExtractedPath}/docs"
+        }
+        // pack to new cache
+        into("cache/bir/") {
+            from "${artifactExtractedPath}/caches/bir"
+        }
+        into("cache/balo/") {
+            from "${artifactExtractedPath}/caches/balo"
+        }
+        into("cache/jar/") {
+            from "${artifactExtractedPath}/caches/jar"
+        }
+    }
+}
+
 def moduleName = "http"
 def moduleOrg = "ballerina"
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
@@ -122,21 +162,58 @@ def tomlVersion = project.version.split("-")[0]
 def ballerinaCentralAccessToken = System.getenv('BALLERINA_CENTRAL_ACCESS_TOKEN')
 def targetBallerinaJar = file("$project.projectDir/target/caches/jar_cache/${moduleOrg}/${moduleName}/${tomlVersion}/${moduleOrg}-${moduleName}-${tomlVersion}.jar")
 def targetNativeJar = file("$project.rootDir/${moduleName}-native/build/libs/${moduleName}-native-${project.version}.jar")
+def originalConfig = ballerinaConfigFile.text
+
+task updateTomlVerions {
+    doLast {
+        def stdlibDependentIoVersion = project.stdlibIoVersion.split("-")[0]
+        def stdlibDependentLogVersion = project.stdlibLogVersion.split("-")[0]
+        def stdlibDependentStringutilsVersion = project.stdlibStringutilsVersion.split("-")[0]
+        def stdlibDependentMimeVersion = project.stdlibMimeVersion.split("-")[0]
+        def stdlibDependentAuthVersion = project.stdlibAuthVersion.split("-")[0]
+        def stdlibDependentCacheVersion = project.stdlibCacheVersion.split("-")[0]
+        def stdlibDependentTimeVersion = project.stdlibTimeVersion.split("-")[0]
+        def stdlibDependentCryptoVersion = project.stdlibCryptoVersion.split("-")[0]
+        def stdlibDependentFileVersion = project.stdlibFileVersion.split("-")[0]
+        def stdlibDependentConfigVersion = project.stdlibConfigVersion.split("-")[0]
+        def stdlibDependentReflectVersion = project.stdlibReflectVersion.split("-")[0]
+        def stdlibDependentRuntimeVersion = project.stdlibRuntimeVersion.split("-")[0]
+        def stdlibDependentSystemVersion = project.stdlibSystemVersion.split("-")[0]
+        def stdlibDependentTaskVersion = project.stdlibTaskVersion.split("-")[0]
+
+        def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
+        newConfig = newConfig.replace("@toml.version@", tomlVersion)
+        newConfig = newConfig.replace("@stdlib.io.version@", stdlibDependentIoVersion)
+        newConfig = newConfig.replace("@stdlib.log.version@", stdlibDependentLogVersion)
+        newConfig = newConfig.replace("@stdlib.stringutils.version@", stdlibDependentStringutilsVersion)
+        newConfig = newConfig.replace("@stdlib.mime.version@", stdlibDependentMimeVersion)
+        newConfig = newConfig.replace("@stdlib.auth.version@", stdlibDependentAuthVersion)
+        newConfig = newConfig.replace("@stdlib.cache.version@", stdlibDependentCacheVersion)
+        newConfig = newConfig.replace("@stdlib.time.version@", stdlibDependentTimeVersion)
+        newConfig = newConfig.replace("@stdlib.crypto.version@", stdlibDependentCryptoVersion)
+        newConfig = newConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
+        newConfig = newConfig.replace("@stdlib.config.version@", stdlibDependentConfigVersion)
+        newConfig = newConfig.replace("@stdlib.reflect.version@", stdlibDependentReflectVersion)
+        newConfig = newConfig.replace("@stdlib.runtime.version@", stdlibDependentRuntimeVersion)
+        newConfig = newConfig.replace("@stdlib.system.version@", stdlibDependentSystemVersion)
+        newConfig = newConfig.replace("@stdlib.task.version@", stdlibDependentTaskVersion)
+        ballerinaConfigFile.text = newConfig
+    }
+}
+
+task revertTomlFile {
+    doLast {
+        ballerinaConfigFile.text = originalConfig
+    }
+}
 
 task ballerinaBuild {
     inputs.dir file(project.projectDir)
-    doLast {
-        def originalConfig = ballerinaConfigFile.text
-        def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
-        newConfig = newConfig.replace("@toml.version@", tomlVersion)
-        ballerinaConfigFile.text = newConfig
+    finalizedBy(revertTomlFile)
 
+    doLast {
         def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
         def additionalBuildParams = ""
-
-        if (project.hasProperty("skipBallerinaTests")) {
-            additionalBuildParams += "--skip-tests"
-        }
 
         if (project.hasProperty("debugBallerina")) {
             def port = project.getProperty("debugBallerina").toString();
@@ -227,7 +304,6 @@ task ballerinaBuild {
             from file("$project.projectDir/target/apidocs/${moduleName}")
             into file("$project.projectDir/build/docs_parent/docs/${moduleName}")
         }
-        ballerinaConfigFile.text = originalConfig
     }
 
     outputs.dir artifactCacheParent
@@ -259,7 +335,10 @@ publishing {
     }
 }
 
-unpackJballerinaTools.dependsOn copyToLib
-ballerinaBuild.dependsOn unpackJballerinaTools
 ballerinaBuild.dependsOn ":http-native:build"
+unpackJballerinaTools.dependsOn copyToLib
+unpackStdLibs.dependsOn unpackJballerinaTools
+copyStdlibs.dependsOn unpackStdLibs
+updateTomlVerions.dependsOn copyStdlibs
+ballerinaBuild.dependsOn updateTomlVerions
 build.dependsOn ballerinaBuild
