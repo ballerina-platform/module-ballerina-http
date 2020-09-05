@@ -207,7 +207,38 @@ task revertTomlFile {
     }
 }
 
+task ballerinaTest {
+    dependsOn(copyStdlibs)
+    dependsOn(":http-native:build")
+    dependsOn(updateTomlVerions)
+    finalizedBy(revertTomlFile)
+
+    def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
+    def debugParams = ""
+    if (project.hasProperty("debug")) {
+        debugParams = "--debug ${project.findProperty("debug")}"
+    }
+
+    doLast {
+        exec {
+            workingDir project.projectDir
+            environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+            // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf"
+            } else {
+                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf"
+            }
+        }
+    }
+}
+
+test {
+    dependsOn(ballerinaTest)
+}
+
 task ballerinaBuild {
+    dependsOn(test)
     inputs.dir file(project.projectDir)
     finalizedBy(revertTomlFile)
 
@@ -215,23 +246,10 @@ task ballerinaBuild {
         def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
         def additionalBuildParams = ""
 
-        if (project.hasProperty("debugBallerina")) {
-            def port = project.getProperty("debugBallerina").toString();
-            additionalBuildParams += "--debug ${port}"
+        if (project.hasProperty("debug")) {
+            additionalBuildParams = "--debug ${project.findProperty("debug")}"
         }
 
-        // Build and populate caches
-        if (!project.hasProperty("skipBallerinaTests")) {
-            exec {
-                workingDir project.projectDir
-                environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
-                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline --all -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf"
-                } else {
-                    commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline --all -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf"
-                }
-            }
-        }
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
