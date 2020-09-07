@@ -2,6 +2,21 @@
 org-name = "ballerina"
 version = "@toml.version@"
 
+[dependencies]
+"ballerina/io" = "@stdlib.io.version@"
+"ballerina/log" = "@stdlib.log.version@"
+"ballerina/stringutils" = "@stdlib.stringutils.version@"
+"ballerina/mime" = "@stdlib.mime.version@"
+"ballerina/auth" = "@stdlib.auth.version@"
+"ballerina/cache" = "@stdlib.cache.version@"
+"ballerina/time" = "@stdlib.time.version@"
+"ballerina/crypto" = "@stdlib.crypto.version@"
+"ballerina/file" = "@stdlib.file.version@"
+"ballerina/reflect" = "@stdlib.reflect.version@"
+"ballerina/runtime" = "@stdlib.runtime.version@"
+"ballerina/system" = "@stdlib.system.version@"
+"ballerina/task" = "@stdlib.task.version@"
+
 [platform]
 target = "java8"
 
@@ -13,9 +28,9 @@ target = "java8"
     modules = ["http"]
 
     [[platform.libraries]]
-    artifactId = "mime"
-    version = "2.0.0-Preview4-SNAPSHOT"
-    path = "./lib/ballerina-mime-2.0.0-Preview4-SNAPSHOT.jar"
+    artifactId = "mime-native"
+    version = "1.0.0-SNAPSHOT"
+    path = "./lib/mime-native-1.0.0-SNAPSHOT.jar"
     groupId = "ballerina"
     modules = ["http"]
 
