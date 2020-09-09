@@ -219,15 +219,21 @@ task ballerinaTest {
         debugParams = "--debug ${project.findProperty("debug")}"
     }
 
+    def privateKey = "src/http-tests/tests/integration-tests/certsAndKeys/private.key"
+    def publicCert = "src/http-tests/tests/integration-tests/certsAndKeys/public.crt"
+    def keyStore = "src/http-tests/tests/integration-tests/certsAndKeys/ballerinaKeystore.p12"
+    def trustStore = "src/http-tests/tests/integration-tests/certsAndKeys/ballerinaTruststore.p12"
+    def certsAndKeys = "--certificate.key=${privateKey} --public.cert=${publicCert} --keystore=${keyStore} --truststore=${trustStore}"
+
     doLast {
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf"
+                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf ${certsAndKeys}"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf"
+                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf ${certsAndKeys}"
             }
         }
     }
@@ -238,7 +244,7 @@ test {
 }
 
 task ballerinaBuild {
-    dependsOn(test)
+    // dependsOn(test)
     inputs.dir file(project.projectDir)
     finalizedBy(revertTomlFile)
 

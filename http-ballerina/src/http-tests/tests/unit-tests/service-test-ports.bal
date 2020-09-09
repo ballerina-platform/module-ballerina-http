@@ -45,3 +45,13 @@ const int requestLimitsTestPort1 = 9501;
 const int requestLimitsTestPort2 = 9502;
 const int requestLimitsTestPort3 = 9503;
 const int requestLimitsTestPort4 = 9504;
+const int compressionAnnotationTestPort = 9505;
+const int echoServiceTestPort = 9506;
+const int echoHttpsServiceTestPort = 9507;
+const int ecommerceTestPort = 9508;
+const int httpClientActionTestPort1 = 9509;
+const int httpClientActionTestPort2 = 9510;
+const int httpClientContinueTestPort1 = 9511;
+const int httpClientContinueTestPort2 = 9512;
+
+
