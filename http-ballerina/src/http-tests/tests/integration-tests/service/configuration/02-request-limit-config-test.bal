@@ -148,7 +148,7 @@ function getLargeHeader() returns string {
 }
 
 //Tests the behaviour when header size is less than the configured threshold
-//@test:Config {}
+@test:Config {}
 function testValidHeaderLength() {
     http:Client limitClient = new("http://localhost:" + requestLimitsTestPort4.toString());
     var response = limitClient->get("/requestHeaderLimit/validHeaderSize");

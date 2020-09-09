@@ -21,7 +21,7 @@ import ballerina/mime;
 import ballerina/test;
 import http;
 
-const CONTENT_TYPE = "content-length";
+const CONTENT_LENGTH = "content-length";
 
 @test:Config {}
 function testContentType() {
@@ -35,8 +35,8 @@ function testContentType() {
 function testGetContentLength() {
     http:Request req = new;
     string payload = "ballerina";
-    req.setHeader(CONTENT_TYPE, payload.length().toString());
-    test:assertEquals(req.getHeader(CONTENT_TYPE), payload.length().toString(), msg = "Mismatched content length");
+    req.setHeader(CONTENT_LENGTH, payload.length().toString());
+    test:assertEquals(req.getHeader(CONTENT_LENGTH), payload.length().toString(), msg = "Mismatched content length");
 }
 
 @test:Config {}

@@ -17,6 +17,7 @@
 import ballerina/stringutils;
 import ballerina/test;
 
+const string CONTENT_TYPE = "content-type";
 const string CONTENT_ENCODING = "content-encoding";
 const string ACCEPT_ENCODING = "accept-encoding";
 const string ORIGIN = "origin";
