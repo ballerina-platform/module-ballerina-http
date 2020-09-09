@@ -25,7 +25,6 @@ import ballerina/test;
 service failoverServer on new http:Listener(21043) {
 
     resource function onOpen(http:WebSocketCaller caller) {
-        log:printInfo("43");
         log:printInfo("The Connection ID: " + caller.getConnectionId());
     }
 

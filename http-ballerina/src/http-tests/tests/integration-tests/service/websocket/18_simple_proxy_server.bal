@@ -66,7 +66,6 @@ service on new http:Listener(21018) {
 service proxyServer on new http:Listener(21019) {
 
     resource function onOpen(http:WebSocketCaller caller) {
-         log:printInfo("19");
         log:printInfo("The Connection ID: " + caller.getConnectionId());
     }
 

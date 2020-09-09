@@ -58,15 +58,3 @@ public function testIsOpenCloseFrameReceived() {
     runtime:sleep(500);
     test:assertEquals(output, "In onClose isOpen true");
 }
-
-//// Test isOpen in onError resource
-//@test:Config {}
-//public function testCloseInOnError(){
-//    http:WebSocketClient wsClient = new("ws://localhost:21001");
-//    string ping = "pingpingpingpingpingping";
-//    byte[] pingData = ping.toBytes();
-//    checkpanic wsClient->pushBinary(pingData);
-//    runtime:sleep(500);
-//    test:assertEquals(output, "In onError isOpen false");
-//    checkpanic wsClient->close();
-//}

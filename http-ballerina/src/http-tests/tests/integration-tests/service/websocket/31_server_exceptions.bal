@@ -50,18 +50,6 @@ service serverError on new http:Listener(21031) {
     }
 }
 
-//// Corrupted frame error
-//@test:Config {}
-//public function testCorruptedFrameError() {
-//    byte[] pingData = [1];
-//    http:WebSocketClient wsClientEp = new ("ws://localhost:21031/server/errors");
-//    var output = wsClientEp->pushBinary(pingData);
-//    io:println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-//    runtime:sleep(500);
-//     test:assertEquals(serverOutput, "InvalidContinuationFrameError: Cannot interrupt WebSocket" +
-//                    " text frame continuation");
-//}
-
 // Frame continuation error
 @test:Config {}
 public function testContinuationFrameError() {

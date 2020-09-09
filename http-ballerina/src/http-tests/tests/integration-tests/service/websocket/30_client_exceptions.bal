@@ -35,7 +35,6 @@ service errorResourceService = @http:WebSocketServiceConfig {} service {
 service errorServer on new http:Listener(21030) {
 
     resource function onOpen(http:WebSocketCaller caller) {
-         log:printInfo("30");
         log:printInfo("The Connection ID: " + caller.getConnectionId());
     }
 

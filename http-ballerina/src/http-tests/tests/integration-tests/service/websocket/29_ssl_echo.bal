@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/io;
 import ballerina/runtime;
 import ballerina/test;
 
@@ -93,7 +92,7 @@ public function sslTextEcho() {
             }
         });
     checkpanic wsClient->pushText("Hi madam");
-    runtime:sleep(5000);
+    runtime:sleep(500);
     test:assertEquals(expectedString, "Hi madam", msg = "Data mismatched");
     checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
 }

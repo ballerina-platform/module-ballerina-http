@@ -69,7 +69,6 @@ service ErrorCookieService = @http:WebSocketServiceConfig {} service {
     }
 };
 
-
 // Test with incorrect cookie
 @test:Config {}
 public function IncorrectCookieTestCase() {

@@ -110,7 +110,6 @@ service sslProxyServer on new http:Listener(21028, {
     }) {
 
     resource function onOpen(http:WebSocketCaller caller) {
-         log:printInfo("27");
         log:printInfo("The Connection ID: " + caller.getConnectionId());
     }
 
