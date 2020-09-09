@@ -21,8 +21,6 @@ import ballerina/mime;
 import ballerina/test;
 import http;
 
-const CONTENT_LENGTH = "content-length";
-
 @test:Config {}
 function testContentType() {
     http:Request req = new;
