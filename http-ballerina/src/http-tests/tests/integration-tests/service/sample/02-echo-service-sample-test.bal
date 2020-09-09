@@ -19,7 +19,7 @@ import ballerina/log;
 import ballerina/test;
 import http;
 
-listener http:Listener echoServiceTestListenerEP = new(echoServiceTestPort, {server: "Mysql"});
+listener http:Listener echoServiceTestListenerEP = new(echoServiceTestPort);
 http:Client echoServiceClient = new("http://localhost:" + echoServiceTestPort.toString());
 
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {

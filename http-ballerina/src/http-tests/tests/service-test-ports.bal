@@ -53,5 +53,18 @@ const int httpClientActionTestPort1 = 9509;
 const int httpClientActionTestPort2 = 9510;
 const int httpClientContinueTestPort1 = 9511;
 const int httpClientContinueTestPort2 = 9512;
+const int httpServerFieldTestPort1 = 9513;
+const int idleTimeoutTestPort = 9514;
+const int httpHeaderTestPort1 = 9515;
+const int httpHeaderTestPort2 = 9516;
+const int httpOptionsTestPort = 9517;
+const int httpPayloadTestPort1 = 9518;
+const int httpPayloadTestPort2 = 9519;
+const int httpStatusCodeTestPort = 9520;
+const int httpUrlTestPort1 = 9521;
+const int httpUrlTestPort2 = 9522;
+const int httpVerbTestPort = 9523;
+
+
 
 
