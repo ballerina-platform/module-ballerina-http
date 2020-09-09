@@ -17,8 +17,11 @@
 import ballerina/stringutils;
 import ballerina/test;
 
+const string CONTENT_TYPE = "content-type";
 const string CONTENT_ENCODING = "content-encoding";
 const string ACCEPT_ENCODING = "accept-encoding";
+const string CONTENT_LENGTH = "content-length";
+const string LOCATION = "location";
 const string ORIGIN = "origin";
 const string ALLOW = "Allow";
 const string ACCESS_CONTROL_ALLOW_ORIGIN = "access-control-allow-origin";
@@ -29,6 +32,8 @@ const string ACCESS_CONTROL_EXPOSE_HEADERS = "access-control-expose-headers";
 const string ACCESS_CONTROL_MAX_AGE = "access-control-max-age";
 const string ACCESS_CONTROL_REQUEST_HEADERS = "access-control-request-headers";
 const string ACCESS_CONTROL_REQUEST_METHOD = "access-control-request-method";
+
+const string SERVER = "server";
 
 const string ENCODING_GZIP = "gzip";
 const string ENCODING_DEFLATE = "deflate";
