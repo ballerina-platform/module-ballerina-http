@@ -20,7 +20,7 @@ import http;
 
 string data = "";
 string expectedMsg = "{\"name\":\"Riyafa\", \"age\":23}";
-type Person record {|
+type WebSocketPerson record {|
     string name;
     int age;
 |};
@@ -47,7 +47,7 @@ service onTextXML on new http:Listener(21024) {
 
 service onTextRecord on new http:Listener(21025) {
 
-    resource function onText(http:WebSocketCaller caller, Person data) {
+    resource function onText(http:WebSocketCaller caller, WebSocketPerson data) {
         var personData = data.cloneWithType(json);
         if (personData is error) {
             panic personData;

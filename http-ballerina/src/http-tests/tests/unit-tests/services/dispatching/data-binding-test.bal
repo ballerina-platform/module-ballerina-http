@@ -23,6 +23,11 @@ import http;
 listener http:Listener dataBindingEP = new(databindingTest);
 http:Client dataBindingClient = new("http://localhost:" + databindingTest.toString());
 
+type Person record {|
+    string name;
+    int age;
+|};
+
 type Stock record {|
     int id;
     float price;
