@@ -145,7 +145,6 @@ function testContinueActionWithMain() {
     if (response is http:Response) {
         var payload = response.getTextPayload();
         if (payload is string) {
-            // io:print("Payload: " + payload + " Statuscode" + response.statusCode.toString());
             test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
             assertTextPayload(response.getTextPayload(), "Hello World!\n");
         } else {
