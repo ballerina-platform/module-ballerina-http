@@ -15,9 +15,9 @@
 // under the License.
 
 import ballerina/auth;
-import ballerina/http;
 import ballerina/runtime;
 import ballerina/test;
+import http;
 
 @http:WebSocketServiceConfig {
 }

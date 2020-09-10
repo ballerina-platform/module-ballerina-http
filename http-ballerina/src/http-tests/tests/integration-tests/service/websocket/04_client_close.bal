@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/test;
+import http;
 
 int expectedStatusCode = 0;
 @http:WebSocketServiceConfig {

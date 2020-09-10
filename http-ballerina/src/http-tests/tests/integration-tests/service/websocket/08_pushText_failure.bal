@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/runtime;
 import ballerina/test;
+import http;
 
 service pushTextFailureService on new http:Listener(21008) {
     resource function onOpen(http:WebSocketCaller caller) {

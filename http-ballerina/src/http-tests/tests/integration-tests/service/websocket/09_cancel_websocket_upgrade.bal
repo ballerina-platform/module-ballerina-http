@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/runtime;
 import ballerina/test;
+import http;
 
 listener http:Listener ep1 = new (21009);
 string errorMsg = "";
@@ -37,7 +37,7 @@ service simple on ep1 {
     resource function websocketProxy(http:Caller httpEp, http:Request req) {
         var returnVal = httpEp->cancelWebSocketUpgrade(404, "Cannot proceed");
         if (returnVal is http:WebSocketError) {
-            panic             <error>returnVal;
+            panic <error>returnVal;
         }
     }
 }
@@ -53,7 +53,7 @@ service cannotcancel on ep1 {
     resource function websocketProxy(http:Caller httpEp, http:Request req) {
         var returnVal = httpEp->cancelWebSocketUpgrade(200, "Cannot proceed");
         if (returnVal is http:WebSocketError) {
-            panic             <error>returnVal;
+            panic <error>returnVal;
         }
     }
 }

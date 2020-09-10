@@ -14,10 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/log;
 import ballerina/runtime;
 import ballerina/test;
+import http;
 
 final string TRUSTSTORE_PATH = "src/http-tests/tests/integration-tests/certsAndKeys/ballerinaTruststore.p12";
 final string KEYSTORE_PATH = "src/http-tests/tests/integration-tests/certsAndKeys/ballerinaKeystore.p12";

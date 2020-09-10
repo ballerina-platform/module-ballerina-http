@@ -14,10 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/log;
 import ballerina/runtime;
 import ballerina/test;
+import http;
 
 string errMessage = "";
 
@@ -41,14 +41,14 @@ service errorServer on new http:Listener(21030) {
     resource function onPing(http:WebSocketCaller caller, byte[] localData) {
         var returnVal = caller->pong(localData);
         if (returnVal is http:WebSocketError) {
-            panic             <error>returnVal;
+            panic <error>returnVal;
         }
     }
 
     resource function onPong(http:WebSocketCaller caller, byte[] localData) {
         var returnVal = caller->ping(localData);
         if (returnVal is http:WebSocketError) {
-            panic             <error>returnVal;
+            panic <error>returnVal;
         }
     }
 
@@ -62,7 +62,7 @@ service errorServer on new http:Listener(21030) {
     resource function onBinary(http:WebSocketCaller caller, byte[] data) {
         var returnVal = caller->pushBinary(data);
         if (returnVal is http:WebSocketError) {
-            panic             <error>returnVal;
+            panic <error>returnVal;
         }
     }
 

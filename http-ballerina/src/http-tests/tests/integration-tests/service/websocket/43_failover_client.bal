@@ -14,10 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/log;
 import ballerina/runtime;
-import ballerina/test;
+iimport http;
 
 @http:WebSocketServiceConfig {
     path: "/websocket"

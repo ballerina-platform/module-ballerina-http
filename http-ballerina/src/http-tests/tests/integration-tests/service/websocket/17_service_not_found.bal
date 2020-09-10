@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/runtime;
 import ballerina/test;
+import http;
 
 service simpleProxy8 = @http:WebSocketServiceConfig {} service {
 

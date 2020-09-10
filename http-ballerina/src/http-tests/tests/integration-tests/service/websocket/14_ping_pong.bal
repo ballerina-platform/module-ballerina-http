@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/runtime;
 import ballerina/test;
+import http;
 
 byte[] expectedPongData = [];
 byte[] expectedPongData1 = [];
@@ -31,14 +31,14 @@ service server on new http:Listener(21014) {
     resource function onPing(http:WebSocketCaller caller, byte[] localData) {
         var returnVal = caller->pong(localData);
         if (returnVal is http:WebSocketError) {
-            panic             <error>returnVal;
+            panic <error>returnVal;
         }
     }
 
     resource function onPong(http:WebSocketCaller caller, byte[] localData) {
         var returnVal = caller->ping(localData);
         if (returnVal is http:WebSocketError) {
-            panic             <error>returnVal;
+            panic <error>returnVal;
         }
     }
 }

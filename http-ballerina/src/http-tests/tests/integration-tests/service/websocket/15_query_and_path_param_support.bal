@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/runtime;
 import ballerina/test;
+import http;
 
 final string PATH1 = "PATH1";
 final string PATH2 = "PATH2";

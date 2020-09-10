@@ -15,8 +15,8 @@
 // under the License.
 
 import ballerina/auth;
-import ballerina/http;
 import ballerina/io;
+import http;
 
 http:BasicAuthHandler basicAuthHandler = new (new auth:InboundBasicAuthProvider());
 

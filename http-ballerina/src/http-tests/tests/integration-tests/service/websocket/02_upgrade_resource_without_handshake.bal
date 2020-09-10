@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/test;
+import http;
 
 string upgradeServiceExpecteddata = "";
 service upgradeService = @http:WebSocketServiceConfig {} service {
@@ -23,7 +23,7 @@ service upgradeService = @http:WebSocketServiceConfig {} service {
     resource function onOpen(http:WebSocketCaller caller) {
         var returnVal = caller->pushText("Handshake check");
         if (returnVal is http:WebSocketError) {
-            panic             <error>returnVal;
+            panic <error>returnVal;
         }
     }
 };

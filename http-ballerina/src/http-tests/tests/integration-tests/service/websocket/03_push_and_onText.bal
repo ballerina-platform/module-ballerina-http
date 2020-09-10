@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/runtime;
 import ballerina/test;
+import http;
 
 string data = "";
 string expectedMsg = "{\"name\":\"Riyafa\", \"age\":23}";
@@ -54,7 +54,7 @@ service onTextRecord on new http:Listener(21025) {
         } else {
             var returnVal = caller->pushText(personData);
             if (returnVal is http:WebSocketError) {
-                panic                 <error>returnVal;
+                panic <error>returnVal;
             }
         }
     }
@@ -65,7 +65,7 @@ service onTextByteArray on new http:Listener(21026) {
     resource function onText(http:WebSocketCaller caller, byte[] data) {
         var returnVal = caller->pushText(data);
         if (returnVal is http:WebSocketError) {
-            panic             <error>returnVal;
+            panic <error>returnVal;
         }
     }
 }
