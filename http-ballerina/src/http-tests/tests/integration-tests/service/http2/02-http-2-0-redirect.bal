@@ -196,7 +196,7 @@ service testHttp2Redirect on http2RedirectServiceEndpoint1 {
 @http:ServiceConfig {
     basePath: "/redirect1"
 }
-service redirect1 on http2RedirectServiceEndpoint2 {
+service http2redirect1 on http2RedirectServiceEndpoint2 {
 
     @http:ResourceConfig {
         methods: ["GET"],
@@ -288,7 +288,7 @@ service redirect1 on http2RedirectServiceEndpoint2 {
 @http:ServiceConfig {
     basePath: "/redirect2"
 }
-service redirect2 on http2RedirectServiceEndpoint3 {
+service http2redirect2 on http2RedirectServiceEndpoint3 {
 
     @http:ResourceConfig {
         methods: ["GET"],
