@@ -40,6 +40,7 @@ const int entityTest = 9097;
 const int mimeTest = 9096;
 
 // Integration test ports
+// HTTP
 const int acceptEncodingHeaderTestPort = 9500;
 const int requestLimitsTestPort1 = 9501;
 const int requestLimitsTestPort2 = 9502;
@@ -64,7 +65,18 @@ const int httpStatusCodeTestPort = 9520;
 const int httpUrlTestPort1 = 9521;
 const int httpUrlTestPort2 = 9522;
 const int httpVerbTestPort = 9523;
+const int httpRoutingTestPort = 9524;
+const int serviceChainingTestPort = 9525;
+const int trailingHeaderTestPort1 = 9526;
+const int trailingHeaderTestPort2 = 9527;
+const int reuseRequestTestPort = 9528;
 
+//HTTP2
+const int serverPushTestPort1 = 9601;
+const int serverPushTestPort2 = 9602;
+const int http2RedirectTestPort1 = 9603;
+const int http2RedirectTestPort2 = 9604;
+const int http2RedirectTestPort3 = 9605;
 
 
 
