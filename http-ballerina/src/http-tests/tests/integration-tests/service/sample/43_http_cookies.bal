@@ -15,10 +15,10 @@
 // under the License.
 
 import ballerina/file;
-import ballerina/http;
 import ballerina/io;
 import ballerina/stringutils;
 import ballerina/test;
+import http;
 
 @http:ServiceConfig {
     basePath: "/cookie"
