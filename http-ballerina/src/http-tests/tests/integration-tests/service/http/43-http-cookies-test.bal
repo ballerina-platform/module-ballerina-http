@@ -16,7 +16,6 @@
 
 import ballerina/file;
 import ballerina/io;
-import ballerina/stringutils;
 import ballerina/test;
 import http;
 
@@ -298,13 +297,9 @@ public function testSendRequestsByCookieClient() {
     // Third request is with the cookie header including all relevant cookies.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID001=239d4dmnmsddd34; SID003=895gd4dmnmsddd34;" +
-            " SID002=178gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34; SID001=239d4dmnmsddd34; SID002=178gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true); // Removes persistent store file.
 }
@@ -330,12 +325,9 @@ public function testRemoveSessionCookieByClient() {
     // Sends a request again after one session cookie is removed.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID001=239d4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID001=239d4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
 }
@@ -353,12 +345,9 @@ public function testAddSimilarSessionCookies() {
     // Sends second request after replacing the old cookie with the new.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_2", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID002=178gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID002=178gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -377,12 +366,9 @@ public function testRemoveSessionCookieByServer() {
     // Third request after removing the cookie.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_3", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID002=178gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID002=178gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -465,13 +451,9 @@ public function testSendRequestsByClient() {
      // Third request is with the cookie header including all relevant cookies.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID001=239d4dmnmsddd34; SID003=895gd4dmnmsddd34;" +
-            " SID002=178gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34; SID001=239d4dmnmsddd34; SID002=178gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
 }
@@ -497,12 +479,9 @@ public function testRemovePersistentCookieByClient() {
     // Sends a request again after one persistent cookie is removed.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID003=895gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
 }
@@ -521,12 +500,9 @@ public function testAddSimilarPersistentCookies() {
     // Sends the second request after replacing the old cookie with the new.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_4", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID001=895gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID001=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
 }
@@ -545,12 +521,9 @@ public function testSendSimilarPersistentAndSessionCookies_1() {
     // Sends the second request after replacing the session cookie with the new persistent cookie.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_5", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID003=aeaa895gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID003=aeaa895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
 }
@@ -569,12 +542,9 @@ public function testSendSimilarPersistentAndSessionCookies_2() {
     // Sends the second request after replacing the persistent cookie with the new session cookie.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_6", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID003=895gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
 }
@@ -594,12 +564,9 @@ public function testRemovePersistentCookieByServer() {
     // Third request is sent after removing the cookie.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_7", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID002=178gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID002=178gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
 }
@@ -619,12 +586,9 @@ public function testSendPersistentCookiesWithoutPersistentCookieHandler() {
     // Third request is sent with the cookie header including all relevant cookies.
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "SID003=895gd4dmnmsddd34"));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true); // Removes persistent store file.
 }
@@ -635,15 +599,10 @@ public function testCookieValidation() {
     http:Client clientEP = new("http://localhost:9253");
     http:Request req = new;
     req.addHeader("Cookie", "user=John; asd=; =sdsdfsf; =gffg; ");
-    var resp = clientEP->get("/cookie/cookieBackend_13", req);
-    if (resp is http:Response) {
-        var payload = resp.getTextPayload();
-        if (payload is string) {
-            test:assertTrue(stringutils:contains(payload, "Valid cookies: user=John,asd="));
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
+    var response = clientEP->get("/cookie/cookieBackend_13", req);
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "Valid cookies: user=John,asd=,");
     } else {
-        io:print(resp.message());
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
