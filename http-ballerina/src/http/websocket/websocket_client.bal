@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/java;
+import ballerina/lang.array;
 import ballerina/time;
 
 # Represents a WebSocket client endpoint.
@@ -237,7 +238,14 @@ public function addCookies(WebSocketClientConfiguration|WebSocketFailoverClientC
     string cookieHeader = "";
     var cookiesToAdd = config["cookies"];
     if (cookiesToAdd is Cookie[]) {
-        Cookie[] sortedCookies = cookiesToAdd.sort(comparator);
+        Cookie[] sortedCookies = cookiesToAdd.sort(array:ASCENDING, function(Cookie c) returns int {
+            var cookiePath = c.path;
+            int l = 0;
+            if (cookiePath is string) {
+                l = cookiePath.length();
+            }
+            return l;
+        });
         foreach var cookie in sortedCookies {
             var cookieName = cookie.name;
             var cookieValue = cookie.value;
