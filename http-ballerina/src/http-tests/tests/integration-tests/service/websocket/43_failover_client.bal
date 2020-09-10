@@ -16,7 +16,8 @@
 
 import ballerina/log;
 import ballerina/runtime;
-iimport http;
+import ballerina/test;
+import http;
 
 @http:WebSocketServiceConfig {
     path: "/websocket"
