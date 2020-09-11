@@ -662,7 +662,7 @@ public function testWithHTTPs() {
 }
 
 @test:Config {}
-public function testMutlipartRedirect() {
+public function testMultipartRedirect() {
     http:Client httpClient = new("http://localhost:9103");
     var resp = httpClient->get("/service1/testMultipart");
     if (resp is http:Response) {
