@@ -77,6 +77,9 @@ const int serverPushTestPort2 = 9602;
 const int http2RedirectTestPort1 = 9603;
 const int http2RedirectTestPort2 = 9604;
 const int http2RedirectTestPort3 = 9605;
+const int expectContinueTestPort1 = 9606;
+const int expectContinueTestPort2 = 9607;
+
 
 
 
