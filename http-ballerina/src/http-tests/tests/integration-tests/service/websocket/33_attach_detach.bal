@@ -130,7 +130,7 @@ public function detachSuccess() {
     test:assertEquals(serverOutput, "GenericError: Cannot detach service. Service has not been registered");
     http:WebSocketClient attachClient = new ("ws://localhost:21032", {callbackService: attachService});
     runtime:sleep(500);
-    test:assertEquals(expectedErr, "error InvalidHandshakeError: Invalid handshake response getStatus: 404 Not Found");
+    test:assertEquals(expectedErr, "error(\"InvalidHandshakeError: Invalid handshake response getStatus: 404 Not Found\")");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
 

@@ -532,7 +532,7 @@ function getContentDispositionForFormData(string partName, string disposition) r
 }
 
 function close(io:ReadableByteChannel|io:ReadableCharacterChannel ch) {
-    abstract object {
+    object {
         public function close() returns error?;
     } channelResult = ch;
     var cr = channelResult.close();

@@ -34,7 +34,7 @@ public client class HttpCachingClient {
     public HttpCache cache;
     public CacheConfig cacheConfig = {};
 
-    # Takes a service URL, a `CliendEndpointConfig` and a `CacheConfig` and builds an HTTP client capable of
+    # Takes a service URL, a `ClientEndpointConfig` and a `CacheConfig` and builds an HTTP client capable of
     # caching responses. The `CacheConfig` instance is used for initializing a new HTTP cache for the client and
     # the `ClientConfiguration` is used for creating the underlying HTTP client.
     #
@@ -42,6 +42,7 @@ public client class HttpCachingClient {
     # + config - The configurations for the client endpoint associated with the caching client
     # + cacheConfig - The configurations for the HTTP cache to be used with the caching client
     public function init(string url, ClientConfiguration config, CacheConfig cacheConfig) {
+        self.url = url;
         var httpSecureClient = createHttpSecureClient(url, config);
         if (httpSecureClient is HttpClient) {
             self.httpClient = httpSecureClient;

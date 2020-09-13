@@ -128,8 +128,8 @@ function testGetXmlPayloadReturnParserError() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTrueTextPayload(response.getTextPayload(), 
-                "Error occurred while extracting xml data from entity: error failed to create xml");
+        assertTrueTextPayload(response.getTextPayload(),
+                "Error occurred while extracting xml data from entity: error(\"failed to create xml");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
