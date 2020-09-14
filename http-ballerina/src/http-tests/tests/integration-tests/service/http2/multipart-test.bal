@@ -209,12 +209,7 @@ public function testMultipart() {
     req.setHeader("priorKnowledge", "false");
     var resp = clientEP->get("/multiparts/initial", req);
     if (resp is http:Response) {
-        var payload = resp.getTextPayload();
-        if (payload is string) {
-            test:assertEquals(payload, "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-        } else {
-            test:assertFail(msg = "Found unexpected output: " +  payload.message());
-        }
+        assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
@@ -227,12 +222,7 @@ public function testMultipartsWithPriorKnowledge() {
     req.setHeader("priorKnowledge", "true");
     var resp = clientEP->get("/multiparts/initial", req);
     if (resp is http:Response) {
-        var payload = resp.getTextPayload();
-        if (payload is string) {
-            test:assertEquals(payload, "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-        } else {
-            test:assertFail(msg = "Found unexpected output: " +  payload.message());
-        }
+        assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }

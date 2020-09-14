@@ -105,12 +105,7 @@ public function testHttp2MutualSsl() {
     http:Client httpClient = new("https://localhost:9204", http2MutualSslClientConf);
     var resp = httpClient->get("/echo/");
     if (resp is http:Response) {
-        var payload = resp.getTextPayload();
-        if (payload is string) {
-            test:assertEquals(payload, "Passed");
-        } else {
-            test:assertFail(msg = "Found unexpected output: " +  payload.message());
-        }
+        assertTextPayload(resp.getTextPayload(), "Passed");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }

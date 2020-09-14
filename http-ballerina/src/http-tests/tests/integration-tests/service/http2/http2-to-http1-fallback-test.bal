@@ -60,15 +60,9 @@ service helloWorldWithSSL on serviceEndpointWithSSL {
 @test:Config {}
 public function testFallback() {
     http:Client clientEP = new("http://localhost:9101");
-    http:Request req = new;
     var resp = clientEP->get("/hello");
     if (resp is http:Response) {
-        var payload = resp.getTextPayload();
-        if (payload is string) {
-            test:assertEquals(payload, "Version: 1.1");
-        } else {
-            test:assertFail(msg = "Found unexpected output: " +  payload.message());
-        }
+        assertTextPayload(resp.getTextPayload(), "Version: 1.1");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
@@ -86,12 +80,7 @@ public function testFallbackWithSSL() {
     });
     var resp = clientEP->get("/hello");
     if (resp is http:Response) {
-        var payload = resp.getTextPayload();
-        if (payload is string) {
-            test:assertEquals(payload, "Version: 1.1");
-        } else {
-            test:assertFail(msg = "Found unexpected output: " +  payload.message());
-        }
+        assertTextPayload(resp.getTextPayload(), "Version: 1.1");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }

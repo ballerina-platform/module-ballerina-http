@@ -82,15 +82,9 @@ http:ClientConfiguration certsClientConf = {
 @test:Config {}
 public function mutualSslWithCerts() {
     http:Client clientEP = new("https://localhost:9110", certsClientConf);
-    http:Request req = new;
     var resp = clientEP->get("/echo/");
     if (resp is http:Response) {
-        var payload = resp.getTextPayload();
-        if (payload is string) {
-            test:assertEquals(payload, "Response received");
-        } else {
-            test:assertFail(msg = "Found unexpected output: " +  payload.message());
-        }
+        assertTextPayload(resp.getTextPayload(), "Response received");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
