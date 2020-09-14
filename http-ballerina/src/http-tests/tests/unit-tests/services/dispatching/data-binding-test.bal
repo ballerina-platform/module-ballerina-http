@@ -271,7 +271,7 @@ function testDataBindingWithoutPayload() {
     var response = dataBindingClient->get("/echo/body1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error String payload is null");
+        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"String payload is null\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -284,7 +284,7 @@ function testDataBindingIncompatibleXMLPayload() {
     var response = dataBindingClient->post("/echo/body4", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error failed to create xml: Unexpected character");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"failed to create xml: Unexpected character");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -322,8 +322,8 @@ function testDataBindingStructWithNoMatchingContent() {
     var response = dataBindingClient->post("/echo/body6", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error {ballerina/lang.typedesc}" +
-            "ConversionError message='map<json>' value cannot be converted to 'http-tests:Person'");
+        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
+            "ConversionError\",message=\"'map<json>' value cannot be converted to 'http-tests:Person'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -336,8 +336,8 @@ function testDataBindingStructWithInvalidTypes() {
     var response = dataBindingClient->post("/echo/body7", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error {ballerina/lang.typedesc}" +
-            "ConversionError message='map<json>' value cannot be converted to 'http-tests:Stock'");
+        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
+            "ConversionError\",message=\"'map<json>' value cannot be converted to 'http-tests:Stock'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -350,8 +350,8 @@ function testDataBindingWithRecordArrayNegative() {
     var response = dataBindingClient->post("/echo/body8", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error {ballerina/lang.typedesc}" +
-            "ConversionError message='json[]' value cannot be converted to 'http-tests:Person[]'");
+        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
+            "ConversionError\",message=\"'json[]' value cannot be converted to 'http-tests:Person[]'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

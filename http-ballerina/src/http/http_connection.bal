@@ -21,7 +21,7 @@ import ballerina/java;
 # + remoteAddress - The remote address
 # + localAddress - The local address
 # + protocol - The protocol associated with the service endpoint
-public type Caller client object {
+public client class Caller {
 
     private ListenerConfiguration config = {};
     private FilterContext? filterContext = ();
@@ -173,14 +173,14 @@ public type Caller client object {
         return self->respond(response);
     }
 
-# Sends the outbound response to the caller with the status 204 No Content. If the given response contains a body
-# that will be removed.
-# ```ballerina
-# http:ListenerError? err = caller->noContent();
-# ```
-#
-# + message - The outbound response, which is optional
-# + return - An `http:ListenerError` if failed to respond or else `()`
+    # Sends the outbound response to the caller with the status 204 No Content. If the given response contains a body
+    # that will be removed.
+    # ```ballerina
+    # http:ListenerError? err = caller->noContent();
+    # ```
+    #
+    # + message - The outbound response, which is optional
+    # + return - An `http:ListenerError` if failed to respond or else `()`
     public remote function noContent(Response? message = ()) returns ListenerError? {
         Response newResponse = new;
         if message is Response {
@@ -190,67 +190,67 @@ public type Caller client object {
         return self->respond(newResponse);
     }
 
-# Sends the outbound response to the caller with the status 400 Bad Request.
-# ```ballerina
-# http:ListenerError? err = caller->badRequest();
-# ```
-#
-# + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
-#             or `mime:Entity[]`
-# + return - An `http:ListenerError` if failed to respond or else `()`
+    # Sends the outbound response to the caller with the status 400 Bad Request.
+    # ```ballerina
+    # http:ListenerError? err = caller->badRequest();
+    # ```
+    #
+    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
+    #             or `mime:Entity[]`
+    # + return - An `http:ListenerError` if failed to respond or else `()`
     public remote function badRequest(ResponseMessage message = ()) returns ListenerError? {
         Response response = buildResponse(message);
         response.statusCode = STATUS_BAD_REQUEST;
         return self->respond(response);
     }
 
-# Sends the outbound response to the caller with the status 404 Not Found.
-# ```ballerina
-# http:ListenerError? err = caller->notFound();
-# ```
-#
-# + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
-#             or `mime:Entity[]`
-# + return - An `http:ListenerError` if failed to respond or else `()`
+    # Sends the outbound response to the caller with the status 404 Not Found.
+    # ```ballerina
+    # http:ListenerError? err = caller->notFound();
+    # ```
+    #
+    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
+    #             or `mime:Entity[]`
+    # + return - An `http:ListenerError` if failed to respond or else `()`
     public remote function notFound(ResponseMessage message = ()) returns ListenerError? {
         Response response = buildResponse(message);
         response.statusCode = STATUS_NOT_FOUND;
         return self->respond(response);
     }
 
-# Sends the outbound response to the caller with the status 500 Internal Server Error.
-# ```ballerina
-# http:ListenerError? err = caller->internalServerError();
-# ```
-#
-# + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
-#             or `mime:Entity[]`
-# + return - An `http:ListenerError` if failed to respond or else `()`
+    # Sends the outbound response to the caller with the status 500 Internal Server Error.
+    # ```ballerina
+    # http:ListenerError? err = caller->internalServerError();
+    # ```
+    #
+    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
+    #             or `mime:Entity[]`
+    # + return - An `http:ListenerError` if failed to respond or else `()`
     public remote function internalServerError(ResponseMessage message = ()) returns ListenerError? {
         Response response = buildResponse(message);
         response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
         return self->respond(response);
     }
 
-# Gets the hostname from the remote address. This method may trigger a DNS reverse lookup if the address was created
-# with a literal IP address.
-# ```ballerina
-# string? remoteHost = caller.getRemoteHostName();
-# ```
-#
-# + return - The hostname of the address or else `()` if it is unresolved
+    # Gets the hostname from the remote address. This method may trigger a DNS reverse lookup if the address was created
+    # with a literal IP address.
+    # ```ballerina
+    # string? remoteHost = caller.getRemoteHostName();
+    # ```
+    #
+    # + return - The hostname of the address or else `()` if it is unresolved
     public function getRemoteHostName() returns string? {
         return nativeGetRemoteHostName(self);
     }
-};
+}
 
 function nativeRespond(Caller caller, Response response) returns ListenerError? = @java:Method {
-    class: "org.ballerinalang.net.http.nativeimpl.connection.Respond",
+    'class: "org.ballerinalang.net.http.nativeimpl.connection.Respond",
     name: "nativeRespond"
 } external;
 
 function nativeGetRemoteHostName(Caller caller) returns string = @java:Method {
-    class: "org.ballerinalang.net.http.nativeimpl.connection.GetRemoteHostName",
+    'class: "org.ballerinalang.net.http.nativeimpl.connection.GetRemoteHostName",
     name: "nativeGetRemoteHostName"
 } external;
 
@@ -281,25 +281,25 @@ public const REDIRECT_PERMANENT_REDIRECT_308 = 308;
 
 function externPromise(Caller caller, PushPromise promise) returns ListenerError? =
 @java:Method {
-    class: "org.ballerinalang.net.http.nativeimpl.connection.Promise",
+    'class: "org.ballerinalang.net.http.nativeimpl.connection.Promise",
     name: "promise"
 } external;
 
 function externPushPromisedResponse(Caller caller, PushPromise promise, Response response) returns ListenerError? =
 @java:Method {
-    class: "org.ballerinalang.net.http.nativeimpl.connection.PushPromisedResponse",
+    'class: "org.ballerinalang.net.http.nativeimpl.connection.PushPromisedResponse",
     name: "pushPromisedResponse"
 } external;
 
 function externAcceptWebSocketUpgrade(Caller caller, map<string> headers) returns WebSocketCaller | WebSocketError =
 @java:Method {
-    class: "org.ballerinalang.net.http.nativeimpl.connection.AcceptWebSocketUpgrade",
+    'class: "org.ballerinalang.net.http.nativeimpl.connection.AcceptWebSocketUpgrade",
     name: "acceptWebSocketUpgrade"
 } external;
 
 function externCancelWebSocketUpgrade(Caller caller, int status, string reason) returns WebSocketError? =
 @java:Method {
-    class: "org.ballerinalang.net.http.nativeimpl.connection.CancelWebSocketUpgrade",
+    'class: "org.ballerinalang.net.http.nativeimpl.connection.CancelWebSocketUpgrade",
     name: "cancelWebSocketUpgrade",
     paramTypes: ["org.ballerinalang.jvm.values.ObjectValue", "long", "org.ballerinalang.jvm.values.api.BString"]
 } external;
