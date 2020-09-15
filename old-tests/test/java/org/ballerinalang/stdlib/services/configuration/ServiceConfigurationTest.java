@@ -18,19 +18,11 @@
 
 package org.ballerinalang.stdlib.services.configuration;
 
-import org.ballerinalang.config.ConfigRegistry;
-import org.ballerinalang.stdlib.utils.HTTPTestRequest;
-import org.ballerinalang.stdlib.utils.MessageUtils;
-import org.ballerinalang.stdlib.utils.Services;
 import org.ballerinalang.test.util.BCompileUtil;
 import org.ballerinalang.test.util.CompileResult;
 import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
-
-import java.io.IOException;
-import java.nio.file.Paths;
 
 /**
  * Test case for services with multiple http:ServiceConfig annotations.
