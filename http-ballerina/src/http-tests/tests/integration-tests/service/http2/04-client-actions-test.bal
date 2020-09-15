@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/io;
-import ballerina/http;
+import http;
 import ballerina/mime;
 import ballerina/test;
 

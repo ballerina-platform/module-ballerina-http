@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
+import http;
 import ballerina/test;
 
 listener http:Listener ep = new(9099, { httpVersion: "2.0" });
