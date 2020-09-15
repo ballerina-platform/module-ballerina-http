@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.package http2;
 
-import ballerina/http;
+import http;
 import ballerina/test;
 
 listener http:Listener serviceEndpointWithoutSSL = new(9101, { httpVersion: "2.0" });
