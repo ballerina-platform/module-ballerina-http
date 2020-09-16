@@ -39,5 +39,5 @@ public function testClientEndpointFailureInResource() {
         test:assertFail("Couldn't find the expected output");
     }
     runtime:sleep(500);
-    test:assertEquals(expectedErr, "error ConnectionError: IO Error");
+    test:assertEquals(expectedErr, "error(\"ConnectionError: IO Error\")");
 }

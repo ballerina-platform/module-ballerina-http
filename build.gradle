@@ -49,6 +49,7 @@ ext.wso2SnakeYamlVersion = project.wso2SnakeYamlVersion
 ext.bouncycastleVersion = project.bouncycastleVersion
 ext.wso2CarbonMetricsVersion = project.wso2CarbonMetricsVersion
 ext.mimepullVersion = project.mimepullVersion
+ext.testngVersion =project.testngVersion
 
 allprojects {
     group = project.group

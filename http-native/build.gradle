@@ -35,6 +35,7 @@ dependencies {
     compile group: 'org.wso2.transport.http', name: 'org.wso2.transport.http.netty', version: "${wso2TransportHttpNettyVersion}"
     compile group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
     compile group: 'org.apache.commons', name: 'commons-lang3', version: "${commonsLang3Version}"
+    compile group: 'org.testng', name: 'testng', version: "${testngVersion}"
 }
 
 publishing {

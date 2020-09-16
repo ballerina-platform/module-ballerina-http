@@ -17,7 +17,7 @@
 import ballerina/java;
 
 # A WebSocket client endpoint, which provides failover support for multiple WebSocket targets.
-public type WebSocketFailoverClient client object {
+public client class WebSocketFailoverClient {
 
     private string id = "";
     private string? negotiatedSubProtocol = ();
@@ -159,8 +159,7 @@ public type WebSocketFailoverClient client object {
     public function getHttpResponse() returns Response? {
         return self.response;
     }
-
-};
+}
 
 # Configurations for the WebSocket client endpoint.
 #
@@ -185,6 +184,6 @@ public type WebSocketFailoverClientConfiguration record {|
 |};
 
 function externFailoverInit(WebSocketFailoverClient wsClient) = @java:Method {
-    class: "org.ballerinalang.net.http.websocket.client.FailoverInitEndpoint",
+    'class: "org.ballerinalang.net.http.websocket.client.FailoverInitEndpoint",
     name: "initEndpoint"
 } external;

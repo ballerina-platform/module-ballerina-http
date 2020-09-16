@@ -306,7 +306,7 @@ service testRedirectService on serviceEndpoint3 {
     resource function PostMultipart(http:Caller caller, http:Request req) {
         http:Client endPoint3 = new("http://localhost:9103", endPoint3Config );
         mime:Entity jsonBodyPart = new;
-        jsonBodyPart.setContentDisposition(getContentDisposition("json part"));
+        jsonBodyPart.setContentDisposition(getContentDispositionForFormData("json part"));
         jsonBodyPart.setJson({"name": "wso2"});
         mime:Entity[] bodyParts = [jsonBodyPart];
         http:Request request = new;
@@ -520,13 +520,6 @@ service redirect3 on httpsEP {
         checkpanic caller->redirect(res, http:REDIRECT_PERMANENT_REDIRECT_308, [
                 "http://localhost:9103/redirect1/handlePost"]);
     }
-}
-
-function getContentDisposition(string partName) returns mime:ContentDisposition {
-    mime:ContentDisposition contentDisposition = new;
-    contentDisposition.name = partName;
-    contentDisposition.disposition = "form-data";
-    return contentDisposition;
 }
 
 @test:Config {}
