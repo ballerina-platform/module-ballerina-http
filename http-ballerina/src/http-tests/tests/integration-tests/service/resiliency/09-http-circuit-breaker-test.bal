@@ -20,41 +20,44 @@ import ballerina/runtime;
 import ballerina/test;
 import http;
 
-int cbCounter = 1;
+int forceCloseStateCount = 0;
 
-listener http:Listener circuitBreakerEP00 = new(9306);
+listener http:Listener circuitBreakerEP02 = new(9308);
 
-http:ClientConfiguration conf = {
+http:ClientConfiguration conf02 = {
     circuitBreaker: {
         rollingWindow: {
             timeWindowInMillis: 60000,
             bucketSizeInMillis: 20000,
-            requestVolumeThreshold: 0
+            requestVolumeThreshold: 2
         },
-        failureThreshold: 0.3,
-        resetTimeInMillis: 3000,
+        failureThreshold: 0.6,
+        resetTimeInMillis: 1000,
         statusCodes: [501, 502, 503]
     },
     timeoutInMillis: 2000
 };
 
-http:Client backendClientEP00 = new("http://localhost:8086", conf);
+http:Client unhealthyClientEP = new("http://localhost:8088", conf02);
 
 @http:ServiceConfig {
     basePath: "/cb"
 }
-service circuitbreaker00 on circuitBreakerEP00 {
+service circuitbreaker02 on circuitBreakerEP02 {
+
     @http:ResourceConfig {
         methods: ["GET", "POST"],
-        path: "/typical"
+        path: "/forceclose"
     }
-    resource function invokeEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = backendClientEP00->forward("/hello/typical", request);
-        if (cbCounter % 5 == 0) {
-            runtime:sleep(3000);
-        } else {
-            runtime:sleep(1000);
+    resource function invokeForceClose(http:Caller caller, http:Request request) {
+        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>unhealthyClientEP.httpClient;
+        forceCloseStateCount += 1;
+        runtime:sleep(1000);
+        if (forceCloseStateCount == 3) {
+            runtime:sleep(5000);
+            cbClient.forceClose();
         }
+        var backendRes = unhealthyClientEP->forward("/unhealthy", request);
         if (backendRes is http:Response) {
             var responseToCaller = caller->respond(backendRes);
             if (responseToCaller is error) {
@@ -72,45 +75,40 @@ service circuitbreaker00 on circuitBreakerEP00 {
     }
 }
 
-// This sample service is used to mock connection timeouts and service outages.
-// Mock a service outage by stopping/starting this service.
-// This should run separately from the `circuitBreakerDemo` service.
-@http:ServiceConfig { basePath: "/hello" }
-service helloWorld on new http:Listener(8086) {
+@http:ServiceConfig { basePath: "/unhealthy" }
+service unhealthyService on new http:Listener(8088) {
     @http:ResourceConfig {
         methods: ["GET", "POST"],
-        path: "/typical"
+        path: "/"
     }
     resource function sayHello(http:Caller caller, http:Request req) {
-        if (cbCounter % 5 == 3) {
-            cbCounter += 1;
-            runtime:sleep(3000);
+        http:Response res = new;
+        if (forceCloseStateCount <= 3) {
+            runtime:sleep(5000);
         } else {
-            cbCounter += 1;
+            res.setPayload("Hello World!!!");
         }
-        var responseToCaller = caller->respond("Hello World!!!");
+        var responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", responseToCaller);
         }
     }
 }
 
-//Test basic circuit breaker functionality
-http:Client testTypicalBackendTimeoutClient = new("http://localhost:9306");
+//Test for circuit breaker forceClose functionality
+http:Client testForceCloseClient = new("http://localhost:9308");
 
 @test:Config{
-    dataProvider:"responseDataProvider"
+    dataProvider:"forceCloseResponseDataProvider"
 }
-function testTypicalBackendTimeout(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testTypicalBackendTimeoutClient, "/cb/typical", dataFeed);
+function testForceClose(DataFeed dataFeed) {
+    invokeApiAndVerifyResponse(testForceCloseClient, "/cb/forceclose", dataFeed);
 }
 
-function responseDataProvider() returns DataFeed[][] {
+function forceCloseResponseDataProvider() returns DataFeed[][] {
     return [
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
         [{responseCode:SC_INTERNAL_SERVER_ERROR, message:IDLE_TIMEOUT_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}],
+        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:IDLE_TIMEOUT_MESSAGE}],
         [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}],
         [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
         [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}]

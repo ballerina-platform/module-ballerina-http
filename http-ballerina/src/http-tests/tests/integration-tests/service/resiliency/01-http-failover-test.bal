@@ -258,8 +258,6 @@ service failureStatusCodeService00 on backendEP00 {
     }
 }
 
-json requestPayload = {Name:"Ballerina"};
-
 //Test basic failover functionality
 @test:Config {}
 function testSimpleFailover() {
