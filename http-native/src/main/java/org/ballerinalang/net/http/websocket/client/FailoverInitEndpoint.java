@@ -18,11 +18,11 @@
 
 package org.ballerinalang.net.http.websocket.client;
 
-import org.ballerinalang.jvm.StringUtils;
+import org.ballerinalang.jvm.api.BStringUtils;
+import org.ballerinalang.jvm.api.values.BMap;
+import org.ballerinalang.jvm.api.values.BObject;
+import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.MapValue;
-import org.ballerinalang.jvm.values.ObjectValue;
-import org.ballerinalang.jvm.values.api.BString;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.http.websocket.client.listener.ClientConnectorListener;
@@ -43,15 +43,15 @@ import java.util.List;
 public class FailoverInitEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(FailoverInitEndpoint.class);
-    private static final BString FAILOVER_INTERVAL = StringUtils.fromString("failoverIntervalInMillis");
+    private static final BString FAILOVER_INTERVAL = BStringUtils.fromString("failoverIntervalInMillis");
 
-    public static void initEndpoint(ObjectValue failoverClient) {
+    public static void initEndpoint(BObject failoverClient) {
         @SuppressWarnings(WebSocketConstants.UNCHECKED)
-        MapValue<BString, Object> clientEndpointConfig = (MapValue<BString, Object>) failoverClient.getMapValue(
+        BMap<BString, Object> clientEndpointConfig = (BMap<BString, Object>) failoverClient.getMapValue(
                 WebSocketConstants.CLIENT_ENDPOINT_CONFIG);
         List<String> newTargetUrls = getValidUrls(clientEndpointConfig.getArrayValue(WebSocketConstants.TARGET_URLS));
         // Sets the failover config values.
-        failoverClient.set(WebSocketConstants.CLIENT_URL_CONFIG, StringUtils.fromString(newTargetUrls.get(0)));
+        failoverClient.set(WebSocketConstants.CLIENT_URL_CONFIG, BStringUtils.fromString(newTargetUrls.get(0)));
         FailoverContext failoverContext = new FailoverContext();
         populateFailoverContext(clientEndpointConfig, failoverContext, newTargetUrls);
         failoverClient.addNativeData(WebSocketConstants.FAILOVER_CONTEXT, failoverContext);
@@ -67,7 +67,7 @@ public class FailoverInitEndpoint {
      * @param failoverClientConnectorConfig - a failover client connector config
      * @param targetUrls - target URLs
      */
-    private static void populateFailoverContext(MapValue<BString, Object> failoverConfig,
+    private static void populateFailoverContext(BMap<BString, Object> failoverConfig,
                                                 FailoverContext failoverClientConnectorConfig,
                                                 List<String> targetUrls) {
         failoverClientConnectorConfig.setFailoverInterval(WebSocketUtil.getIntValue(failoverConfig, FAILOVER_INTERVAL,
