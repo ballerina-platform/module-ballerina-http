@@ -37,7 +37,7 @@ import java.security.cert.CertificateException;
 /**
  * A utility class for keep payloads.
  */
-public class Payloads {
+public class Utils {
 
     public static final String LARGE_ENTITY = "Lorem ipsum dolor sit amet, libris quaerendum sea ei, in nec fugit " +
             "prodesset. Pro te quas mundi, mel viderer inimicus urbanitas an. No dolor essent timeam mei, exerci " +

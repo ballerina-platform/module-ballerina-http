@@ -86,6 +86,9 @@ dependencies {
     externalJars (group: 'org.wso2.carbon.messaging', name: 'org.wso2.carbon.messaging', version: "${wso2CarbonMetricsVersion}") {
         transitive = false
     }
+    externalJars (group: 'org.testng', name: 'testng', version: "${testngVersion}") {
+        transitive = false
+    }
 }
 
 clean {
@@ -214,6 +217,11 @@ task ballerinaTest {
     finalizedBy(revertTomlFile)
 
     def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
+    def groupParams = ""
+    if (project.hasProperty("groups")) {
+        groupParams = "--groups ${project.findProperty("groups")}"
+    }
+    
     def debugParams = ""
     if (project.hasProperty("debug")) {
         debugParams = "--debug ${project.findProperty("debug")}"
@@ -231,9 +239,9 @@ task ballerinaTest {
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf ${certsAndKeys}"
+                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline ${groupParams} --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf ${certsAndKeys}"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf ${certsAndKeys}"
+                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline ${groupParams} --all ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf ${certsAndKeys}"
             }
         }
     }

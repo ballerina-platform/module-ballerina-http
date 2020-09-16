@@ -33,13 +33,13 @@ function createNestedPartRequest() returns mime:Entity[] {
     mime:Entity parentPart1 = new;
     parentPart1.setText("Parent Part");
     parentPart1.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    parentPart1.setContentDisposition(getContentDispositionForFormData("parent1", "form-data"));
+    parentPart1.setContentDisposition(getContentDispositionForGivenDisposition("parent1", "form-data"));
 
     mime:Entity childPart1 = new;
     childPart1.setText("Child Part 1");
     childPart1.setHeader("Content-Type", "text/plain");
     childPart1.setHeader("Content-Transfer-Encoding", "binary");
-    mime:ContentDisposition childPart1ContentDisposition = getContentDispositionForFormData("", "attachment");
+    mime:ContentDisposition childPart1ContentDisposition = getContentDispositionForGivenDisposition("", "attachment");
     childPart1ContentDisposition.fileName = "file-02.txt";
     childPart1.setContentDisposition(childPart1ContentDisposition);
 
@@ -47,7 +47,7 @@ function createNestedPartRequest() returns mime:Entity[] {
     childPart2.setText("Child Part 2");
     childPart2.setHeader("Content-Type", "text/plain");
     childPart2.setHeader("Content-Transfer-Encoding", "binary");
-    mime:ContentDisposition childPart2contentDisposition = getContentDispositionForFormData("", "attachment");
+    mime:ContentDisposition childPart2contentDisposition = getContentDispositionForGivenDisposition("", "attachment");
     childPart2contentDisposition.fileName = "file-02.txt";
     childPart2.setContentDisposition(childPart2contentDisposition);
 
