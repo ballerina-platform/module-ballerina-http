@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/log;
-// import ballerina/java;
+import ballerina/java;
 import ballerina/mime;
 import ballerina/test;
 import http;
@@ -23,7 +23,6 @@ import http;
 
 listener http:Listener expectContinueListenerEP1 = new(expectContinueTestPort1);
 listener http:Listener expectContinueListenerEP2 = new(expectContinueTestPort2);
-http:Client expectContinueTestClient = new("http://localhost:" + expectContinueTestPort1.toString());
 
 http:Client expectContinueClient = new("http://localhost:" + expectContinueTestPort2.toString());
 
@@ -141,22 +140,38 @@ service backend on expectContinueListenerEP2 {
 //Test 100 continue response and for request with expect:100-continue header
 @test:Config {}
 function test100Continue() {
-
-    // test:assertTrue(externTest100Continue(expectContinueTestPort1));
-
-    // http:Request req = new;
-    // req.setHeader("X-Status", "Positive");
-    // req.setTextPayload(LARGE_ENTITY);
-    // var response = expectContinueTestClient->post("/continue", req);
-    // if (response is http:Response) {
-    //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    //     assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-    //     assertTextPayload(response.getTextPayload(), LARGE_ENTITY);
-    // } else {
-    //     test:assertFail(msg = "Found unexpected output type: " + response.message());
-    // }
+    test:assertTrue(externTest100Continue(expectContinueTestPort1));
 }
 
-// function externTest100Continue(int servicePort) returns boolean = @java:Method {
-//     class: "org.ballerinalang.net.testutil.ExternTestUtils"
-// } external;
+//Test ignoring inbound payload with a 417 response for request with expect:100-continue header
+@test:Config {}
+function test100ContinueNegative() {
+    test:assertTrue(externTest100ContinueNegative(expectContinueTestPort1));
+}
+
+//Test multipart form data request with expect:100-continue header
+@test:Config {}
+function testMultipartWith100ContinueHeader() {
+    test:assertTrue(externTestMultipartWith100ContinueHeader(expectContinueTestPort1));
+}
+
+@test:Config {}
+function test100ContinuePassthrough() {
+    test:assertTrue(externTest100ContinuePassthrough(expectContinueTestPort1));
+}
+
+function externTest100Continue(int servicePort) returns boolean = @java:Method {
+    'class: "org.ballerinalang.net.testutils.ExternExpectContinueTestUtil"
+} external;
+
+function externTest100ContinueNegative(int servicePort) returns boolean = @java:Method {
+    'class: "org.ballerinalang.net.testutils.ExternExpectContinueTestUtil"
+} external;
+
+function externTestMultipartWith100ContinueHeader(int servicePort) returns boolean = @java:Method {
+    'class: "org.ballerinalang.net.testutils.ExternExpectContinueTestUtil"
+} external;
+
+function externTest100ContinuePassthrough(int servicePort) returns boolean = @java:Method {
+    'class: "org.ballerinalang.net.testutils.ExternExpectContinueTestUtil"
+} external;
