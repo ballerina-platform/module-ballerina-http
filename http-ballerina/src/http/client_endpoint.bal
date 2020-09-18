@@ -17,7 +17,7 @@
 import ballerina/java;
 import ballerina/crypto;
 import ballerina/time;
-import ballerina/observe;
+// import ballerina/observe;
 
 ////////////////////////////////
 ///// HTTP Client Endpoint /////
@@ -45,7 +45,7 @@ public client class Client {
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
-    public function init(string url, ClientConfiguration? config = ()) {
+    public isolated function init(string url, ClientConfiguration? config = ()) {
         self.config = config ?: {};
         self.url = url;
         var cookieConfigVal = self.config.cookieConfig;
@@ -68,7 +68,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function post(@untainted string path, RequestMessage message) returns Response|ClientError {
+    public remote isolated function post(@untainted string path, RequestMessage message) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->post(path, req);
         if (observabilityEnabled && response is Response) {
@@ -83,7 +83,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function head(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote isolated function head(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->head(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -98,7 +98,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function put(@untainted string path, RequestMessage message) returns Response|ClientError {
+    public remote isolated function put(@untainted string path, RequestMessage message) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->put(path, req);
         if (observabilityEnabled && response is Response) {
@@ -114,7 +114,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message) returns Response|ClientError {
+    public remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
         if (observabilityEnabled && response is Response) {
@@ -129,7 +129,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function patch(@untainted string path, RequestMessage message) returns Response|ClientError {
+    public remote isolated function patch(@untainted string path, RequestMessage message) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->patch(path, req);
         if (observabilityEnabled && response is Response) {
@@ -144,7 +144,7 @@ public client class Client {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function delete(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote isolated function delete(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->delete(path, req);
         if (observabilityEnabled && response is Response) {
@@ -159,7 +159,7 @@ public client class Client {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function get(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote isolated function get(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -174,7 +174,7 @@ public client class Client {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function options(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote isolated function options(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -188,7 +188,7 @@ public client class Client {
     # + path - Request path
     # + request - An HTTP inbound request message
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function forward(@untainted string path, Request request) returns Response|ClientError {
+    public remote isolated function forward(@untainted string path, Request request) returns Response|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
@@ -205,7 +205,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
-    public remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    public remote isolated function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = buildRequest(message);
         return self.httpClient->submit(httpVerb, path, req);
 
@@ -215,10 +215,10 @@ public client class Client {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http: ClientError` if the invocation fails
-    public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    public remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getResponse(httpFuture);
         if (response is Response) {
-            error? err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(response.statusCode));
+            // error? err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(response.statusCode));
         }
         return response;
     }
@@ -227,7 +227,7 @@ public client class Client {
     #
     # + httpFuture - The `http:HttpFuture` relates to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    public remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    public remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -235,7 +235,7 @@ public client class Client {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    public remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    public remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -243,10 +243,10 @@ public client class Client {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    public remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getPromisedResponse(promise);
         if (observabilityEnabled && response is Response) {
-            addObservabilityInformation(promise.path, promise.method, response.statusCode, self.url);
+            //addObservabilityInformation(promise.path, promise.method, response.statusCode, self.url);
         }
         return response;
     }
@@ -254,14 +254,14 @@ public client class Client {
     # This just pass the request to actual network call.
     #
     # + promise - The Push Promise to be rejected
-    public remote function rejectPromise(PushPromise promise) {
+    public remote isolated function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
 
     # Retrieves the cookie store of the client.
     #
     # + return - The cookie store related to the client
-    public function getCookieStore() returns CookieStore? {
+    public isolated function getCookieStore() returns CookieStore? {
         return self.cookieStore;
     }
 }
@@ -311,7 +311,7 @@ public type ClientHttp1Settings record {|
     ProxyConfig? proxy = ();
 |};
 
-function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig) = @java:Method {
+isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig) = @java:Method {
    'class: "org.ballerinalang.net.http.clientendpoint.CreateSimpleHttpClient",
    name: "createSimpleHttpClient"
 } external;
@@ -424,7 +424,7 @@ public type CookieConfig record {|
      PersistentCookieHandler persistentCookieHandler?;
 |};
 
-function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|error {
+isolated function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|error {
     boolean httpClientRequired = false;
     string url = serviceUrl;
     if (url.endsWith("/")) {
@@ -452,7 +452,7 @@ function initialize(string serviceUrl, ClientConfiguration config, CookieStore? 
     }
 }
 
-function createRedirectClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function createRedirectClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     var redirectConfig = configuration.followRedirects;
     if (redirectConfig is FollowRedirects) {
         if (redirectConfig.enabled) {
@@ -470,7 +470,7 @@ function createRedirectClient(string url, ClientConfiguration configuration, Coo
     }
 }
 
-function checkForRetry(string url, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function checkForRetry(string url, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
     var retryConfigVal = config.retryConfig;
     if (retryConfigVal is RetryConfig) {
         return createRetryClient(url, config, cookieStore);
@@ -479,7 +479,7 @@ function checkForRetry(string url, ClientConfiguration config, CookieStore? cook
     }
 }
 
-function createCircuitBreakerClient(string uri, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function createCircuitBreakerClient(string uri, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     HttpClient cbHttpClient;
     var cbConfig = configuration.circuitBreaker;
     if (cbConfig is CircuitBreakerConfig) {
@@ -531,7 +531,7 @@ function createCircuitBreakerClient(string uri, ClientConfiguration configuratio
     }
 }
 
-function createRetryClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function createRetryClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     var retryConfig = configuration.retryConfig;
     if (retryConfig is RetryConfig) {
         boolean[] statusCodes = populateErrorCodeIndex(retryConfig.statusCodes);
@@ -551,7 +551,7 @@ function createRetryClient(string url, ClientConfiguration configuration, Cookie
     return createCookieClient(url, configuration, cookieStore);
 }
 
-function createCookieClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function createCookieClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     var cookieConfigVal = configuration.cookieConfig;
     if (cookieConfigVal is CookieConfig) {
         if (!cookieConfigVal.enabled) {
@@ -573,7 +573,7 @@ function createCookieClient(string url, ClientConfiguration configuration, Cooki
     return createDefaultClient(url, configuration);
 }
 
-function createDefaultClient(string url, ClientConfiguration configuration) returns HttpClient|ClientError {
+isolated function createDefaultClient(string url, ClientConfiguration configuration) returns HttpClient|ClientError {
     if (configuration.cache.enabled) {
         return createHttpCachingClient(url, configuration, configuration.cache);
     }

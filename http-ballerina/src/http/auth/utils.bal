@@ -52,7 +52,7 @@ public type Scopes string[]|string[][];
 #
 # + req - The `Request` instance
 # + return - Value of the Authorization header
-public function extractAuthorizationHeaderValue(Request req) returns @tainted string {
+public isolated function extractAuthorizationHeaderValue(Request req) returns @tainted string {
     // extract authorization header
     return req.getHeader(AUTH_HEADER);
 }
@@ -61,7 +61,7 @@ public function extractAuthorizationHeaderValue(Request req) returns @tainted st
 #
 # + context - The `FilterContext` instance
 # + return - The status of calling resource is secured or not
-public function isResourceSecured(FilterContext context) returns boolean {
+public isolated function isResourceSecured(FilterContext context) returns boolean {
     ResourceAuth? resourceLevelAuthAnn = getResourceAuthConfig(context);
     ServiceAuth? serviceLevelAuthAnn = getServiceAuthConfig(context);
 
@@ -80,7 +80,7 @@ public function isResourceSecured(FilterContext context) returns boolean {
 #
 # + context - The `FilterContext` instance
 # + return - The authentication handlers or a boolean value indicating whether it is needed to engage listener-level handlers or not
-function getAuthHandlers(FilterContext context) returns InboundAuthHandlers|boolean {
+isolated function getAuthHandlers(FilterContext context) returns InboundAuthHandlers|boolean {
     ResourceAuth? resourceLevelAuthAnn = getResourceAuthConfig(context);
     ServiceAuth? serviceLevelAuthAnn = getServiceAuthConfig(context);
 
@@ -91,7 +91,7 @@ function getAuthHandlers(FilterContext context) returns InboundAuthHandlers|bool
     if (resourceSecured is boolean) {
         // if resource is not secured, no need to check further.
         if (!resourceSecured) {
-            log:printDebug(function () returns string {
+            log:printDebug(isolated function () returns string {
                 return "Resource is not secured. `enabled: false`.";
             });
             return false;
@@ -135,7 +135,7 @@ function getAuthHandlers(FilterContext context) returns InboundAuthHandlers|bool
         }
         // if service is not secured, no need to check further.
         if (!serviceSecured) {
-            log:printDebug(function () returns string {
+            log:printDebug(isolated function () returns string {
                 return "Service is not secured. `enabled: false`.";
             });
             return false;
@@ -156,7 +156,7 @@ function getAuthHandlers(FilterContext context) returns InboundAuthHandlers|bool
 #
 # + context - `FilterContext` instance
 # + return - Authorization scopes or whether it is needed to engage listener level scopes or not
-function getScopes(FilterContext context) returns Scopes|boolean {
+isolated function getScopes(FilterContext context) returns Scopes|boolean {
     ResourceAuth? resourceLevelAuthAnn = getResourceAuthConfig(context);
     ServiceAuth? serviceLevelAuthAnn = getServiceAuthConfig(context);
 
@@ -167,7 +167,7 @@ function getScopes(FilterContext context) returns Scopes|boolean {
     if (resourceSecured is boolean) {
         // if resource is not secured, no need to check further.
         if (!resourceSecured) {
-            log:printDebug(function () returns string {
+            log:printDebug(isolated function () returns string {
                 return "Resource is not secured. `enabled: false`.";
             });
             return false;
@@ -211,7 +211,7 @@ function getScopes(FilterContext context) returns Scopes|boolean {
         }
         // if service is not secured, no need to check further.
         if (!serviceSecured) {
-            log:printDebug(function () returns string {
+            log:printDebug(isolated function () returns string {
                 return "Service is not secured. `enabled: false`.";
             });
             return false;
@@ -231,7 +231,7 @@ function getScopes(FilterContext context) returns Scopes|boolean {
 #
 # + context - The `FilterContext` instance
 # + return - The service-level authentication annotations or else `()`
-function getServiceAuthConfig(FilterContext context) returns ServiceAuth? {
+isolated function getServiceAuthConfig(FilterContext context) returns ServiceAuth? {
     any annData = reflect:getServiceAnnotations(context.getService(), SERVICE_ANN_NAME, ANN_MODULE);
     if (!(annData is ())) {
         HttpServiceConfig serviceConfig = <HttpServiceConfig> annData;
@@ -243,7 +243,7 @@ function getServiceAuthConfig(FilterContext context) returns ServiceAuth? {
 #
 # + context - The `FilterContext` instance
 # + return - The resource-level and service-level authentication annotations
-function getResourceAuthConfig(FilterContext context) returns ResourceAuth? {
+isolated function getResourceAuthConfig(FilterContext context) returns ResourceAuth? {
     any annData = reflect:getResourceAnnotations(context.getService(), context.getResourceName(), RESOURCE_ANN_NAME,
                                                  ANN_MODULE);
     if (!(annData is ())) {
@@ -256,7 +256,7 @@ function getResourceAuthConfig(FilterContext context) returns ResourceAuth? {
 #
 # + context - The `FilterContext` instance
 # + return - Whether the `http:ResourceConfig` has `http:WebSocketUpgradeConfig` or not
-function isWebSocketUpgradeRequest(FilterContext context) returns boolean {
+isolated function isWebSocketUpgradeRequest(FilterContext context) returns boolean {
     any annData = reflect:getResourceAnnotations(context.getService(), context.getResourceName(), RESOURCE_ANN_NAME,
                                                  ANN_MODULE);
     if (annData is ()) {
@@ -273,7 +273,7 @@ function isWebSocketUpgradeRequest(FilterContext context) returns boolean {
 #
 # + serviceAuth - Service auth annotation
 # + return - Whether the service is secured or not
-function isServiceAuthEnabled(ServiceAuth? serviceAuth) returns boolean {
+isolated function isServiceAuthEnabled(ServiceAuth? serviceAuth) returns boolean {
     if (serviceAuth is ServiceAuth) {
         return serviceAuth.enabled;
     }
@@ -284,7 +284,7 @@ function isServiceAuthEnabled(ServiceAuth? serviceAuth) returns boolean {
 #
 # + resourceAuth - Resource auth annotation
 # + return - Whether the resource is secured or not
-function isResourceAuthEnabled(ResourceAuth? resourceAuth) returns boolean? {
+isolated function isResourceAuthEnabled(ResourceAuth? resourceAuth) returns boolean? {
     if (resourceAuth is ResourceAuth) {
         return resourceAuth?.enabled;
     }
@@ -294,7 +294,7 @@ function isResourceAuthEnabled(ResourceAuth? resourceAuth) returns boolean? {
 #
 # + resp - The `Response` instance
 # + return - The map of the response headers
-function createResponseHeaderMap(Response resp) returns @tainted map<anydata> {
+isolated function createResponseHeaderMap(Response resp) returns @tainted map<anydata> {
     map<anydata> headerMap = { STATUS_CODE: resp.statusCode };
     string[] headerNames = resp.getHeaderNames();
     foreach string header in headerNames {
@@ -309,8 +309,9 @@ function createResponseHeaderMap(Response resp) returns @tainted map<anydata> {
 # + message -The error message
 # + err - The `error` instance
 # + return - The prepared `http:AuthenticationError` instance
-function prepareAuthenticationError(string message, error? err = ()) returns AuthenticationError {
-    log:printDebug(function () returns string { return message; });
+isolated function prepareAuthenticationError(string message, error? err = ()) returns AuthenticationError {
+    final string messageValue = message;
+    log:printDebug(isolated function () returns string { return messageValue; });
     if (err is error) {
         return AuthenticationError(message, err);
     }
@@ -322,8 +323,9 @@ function prepareAuthenticationError(string message, error? err = ()) returns Aut
 # + message -The error message
 # + err - The `error` instance
 # + return - The prepared `http:AuthorizationError` instance
-function prepareAuthorizationError(string message, error? err = ()) returns AuthorizationError {
-    log:printDebug(function () returns string { return message; });
+isolated function prepareAuthorizationError(string message, error? err = ()) returns AuthorizationError {
+    final string messageValue = message;
+    log:printDebug(isolated function () returns string { return messageValue; });
     if (err is error) {
         return AuthorizationError(message, err);
     }

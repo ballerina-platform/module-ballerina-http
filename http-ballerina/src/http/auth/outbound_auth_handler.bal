@@ -21,7 +21,7 @@ public type OutboundAuthHandler object {
     #
     # + req - The `http:Request` instance
     # + return - The updated `http:Request` instance or else an `http:AuthenticationError` in case of an error
-    public function prepare(Request req) returns Request|AuthenticationError;
+    public isolated function prepare(Request req) returns Request|AuthenticationError;
 
     # Inspects the request and response and evaluates what is to be done.
     #
@@ -29,5 +29,5 @@ public type OutboundAuthHandler object {
     # + resp - The `http:Response` instance
     # + return - The updated `http:Request` instance, an `http:AuthenticationError` in case of an error,
     #                 or else `()` if nothing is to be returned
-    public function inspect(Request req, Response resp) returns Request|AuthenticationError?;
+    public isolated function inspect(Request req, Response resp) returns Request|AuthenticationError?;
 };

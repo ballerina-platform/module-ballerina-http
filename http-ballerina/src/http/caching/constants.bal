@@ -77,12 +77,12 @@ final string WARNING_111_REVALIDATION_FAILED = "111 " + WARNING_AGENT + " \"Reva
 const string WEAK_VALIDATOR_TAG = "W/";
 const int STALE = 0;
 
-function getWarningAgent() returns string {
+isolated function getWarningAgent() returns string {
     string ballerinaVersion = getProperty("ballerina.version");
     return "ballerina-http-caching-client/" + ballerinaVersion;
 }
 
-function getProperty(@untainted string name) returns string = @java:Method {
+isolated function getProperty(@untainted string name) returns string = @java:Method {
     name: "getProperty",
     'class: "org.ballerinalang.net.http.util.CacheUtils"
 } external;

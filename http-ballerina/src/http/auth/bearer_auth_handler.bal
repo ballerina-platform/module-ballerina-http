@@ -27,7 +27,7 @@ public class BearerAuthHandler {
     # Initializes the `BearerAuthHandler` object.
     #
     # + authProvider - The `auth:InboundAuthProvider` instance or the `auth:OutboundAuthProvider` instance
-    public function init(auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider) {
+    public isolated function init(auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider) {
         self.authProvider = authProvider;
     }
 
@@ -35,7 +35,7 @@ public class BearerAuthHandler {
     #
     # + req - The `http:Request` instance
     # + return - `true` if it can be authenticated or else `false`
-    public function canProcess(Request req) returns @tainted boolean {
+    public isolated function canProcess(Request req) returns @tainted boolean {
         if (req.hasHeader(AUTH_HEADER)) {
             string headerValue = extractAuthorizationHeaderValue(req);
             return headerValue.startsWith(auth:AUTH_SCHEME_BEARER);
@@ -48,7 +48,7 @@ public class BearerAuthHandler {
     # + req - The `http:Request` instance
     # + return - `true` if authenticated successfully, `false` otherwise,
     #                 or else an `http:AuthenticationError` in case of an error
-    public function process(Request req) returns boolean|AuthenticationError {
+    public isolated function process(Request req) returns boolean|AuthenticationError {
         string headerValue = extractAuthorizationHeaderValue(req);
         string credential = headerValue.substring(6, headerValue.length()).trim();
         auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider = self.authProvider;
@@ -68,7 +68,7 @@ public class BearerAuthHandler {
     #
     # + req - The`http:Request` instance
     # + return - The updated `http:Request` instance or else an `http:AuthenticationError` in case of an error
-    public function prepare(Request req) returns Request|AuthenticationError {
+    public isolated function prepare(Request req) returns Request|AuthenticationError {
         auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider = self.authProvider;
         if (authProvider is auth:OutboundAuthProvider) {
             string|auth:Error token = authProvider.generateToken();
@@ -89,7 +89,7 @@ public class BearerAuthHandler {
     # + resp - The `http:Response` instance
     # + return - The updated `http:Request` instance, an `http:AuthenticationError` in case of an error,
     #                 or else `()` if nothing is to be returned
-    public function inspect(Request req, Response resp) returns Request|AuthenticationError? {
+    public isolated function inspect(Request req, Response resp) returns Request|AuthenticationError? {
         auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider = self.authProvider;
         if (authProvider is auth:OutboundAuthProvider) {
             map<anydata> headerMap = createResponseHeaderMap(resp);

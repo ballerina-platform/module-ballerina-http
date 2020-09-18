@@ -19,7 +19,7 @@ import ballerina/log;
 import ballerina/time;
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.2.3
-function calculateCurrentResponseAge(Response cachedResponse) returns @tainted int {
+isolated function calculateCurrentResponseAge(Response cachedResponse) returns @tainted int {
     int ageValue = getResponseAge(cachedResponse);
     int dateValue = getDateValue(cachedResponse);
     int now = time:currentTime().time;
@@ -37,7 +37,7 @@ function calculateCurrentResponseAge(Response cachedResponse) returns @tainted i
     return (correctedInitialAge + residentTime) / 1000;
 }
 
-function getResponseAge(Response cachedResponse) returns @tainted int {
+isolated function getResponseAge(Response cachedResponse) returns @tainted int {
     if (!cachedResponse.hasHeader(AGE)) {
         return 0;
     }
@@ -48,7 +48,7 @@ function getResponseAge(Response cachedResponse) returns @tainted int {
     return (ageValue is int) ? ageValue : 0;
 }
 
-function getDateValue(Response inboundResponse) returns int {
+isolated function getDateValue(Response inboundResponse) returns int {
     if (inboundResponse.hasHeader(DATE)) {
         string dateHeader = inboundResponse.getHeader(DATE); // TODO: May need to handle invalid date headers
         var dateHeaderTime = time:parse(dateHeader, time:TIME_FORMAT_RFC_1123);

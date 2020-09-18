@@ -26,7 +26,7 @@ public class CookieStore {
     Cookie[] allSessionCookies = [];
     PersistentCookieHandler? persistentCookieHandler;
 
-    public function init(PersistentCookieHandler? persistentCookieHandler = ()) {
+    public isolated function init(PersistentCookieHandler? persistentCookieHandler = ()) {
         self.persistentCookieHandler = persistentCookieHandler;
     }
 
