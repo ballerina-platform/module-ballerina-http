@@ -52,7 +52,7 @@ public client class HttpSecureClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The inbound response message or the error if one occurred while attempting to fulfill the HTTP request
-    public remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
+    public remote function post(string path, RequestMessage message) returns Response|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         Response res = check self.httpClient->post(path, req);
@@ -70,7 +70,7 @@ public client class HttpSecureClient {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The inbound response message or the error if one occurred while attempting to fulfill the HTTP request
-    public remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function head(string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         Response res = check self.httpClient->head(path, message = req);
@@ -88,7 +88,7 @@ public client class HttpSecureClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The inbound response message or an error occurred while attempting to fulfill the HTTP request
-    public remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
+    public remote function put(string path, RequestMessage message) returns Response|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         Response res = check self.httpClient->put(path, req);
@@ -107,7 +107,7 @@ public client class HttpSecureClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The inbound response message or an error occurred while attempting to fulfill the HTTP request
-    public remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
+    public remote function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         Response res = check self.httpClient->execute(httpVerb, path, req);
@@ -125,7 +125,7 @@ public client class HttpSecureClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The inbound response message or an error occurred while attempting to fulfill the HTTP request
-    public remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
+    public remote function patch(string path, RequestMessage message) returns Response|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         Response res = check self.httpClient->patch(path, req);
@@ -143,7 +143,7 @@ public client class HttpSecureClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The inbound response message or the error if one occurred while attempting to fulfill the HTTP request
-    public remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         Response res = check self.httpClient->delete(path, req);
@@ -161,7 +161,7 @@ public client class HttpSecureClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The inbound response message or the error if one occurred while attempting to fulfill the HTTP request
-    public remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function get(string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         Response res = check self.httpClient->get(path, message = req);
@@ -179,7 +179,7 @@ public client class HttpSecureClient {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The inbound response message or the error if one  occurred while attempting to fulfill the HTTP request
-    public remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function options(string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         Response res = check self.httpClient->options(path, message = req);
@@ -196,7 +196,7 @@ public client class HttpSecureClient {
     # + path - Request path
     # + request - An HTTP inbound request message
     # + return - The inbound response message or the error if one occurred while attempting to fulfill the HTTP request
-    public remote isolated function forward(string path, Request request) returns Response|ClientError {
+    public remote function forward(string path, Request request) returns Response|ClientError {
         Request req = request;
         req = check prepareSecureRequest(request, self.config);
         Response res = check self.httpClient->forward(path, request);

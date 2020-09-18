@@ -68,7 +68,7 @@ public client class RetryClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function post(string path, RequestMessage message) returns @tainted Response|ClientError {
+    public remote function post(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_POST, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -84,7 +84,7 @@ public client class RetryClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function head(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    public remote function head(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_HEAD, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -100,7 +100,7 @@ public client class RetryClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    public remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_PUT, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -115,7 +115,7 @@ public client class RetryClient {
     # + path - Resource path
     # + request - An HTTP inbound request message
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function forward(string path, Request request) returns @tainted Response|ClientError {
+    public remote function forward(string path, Request request) returns @tainted Response|ClientError {
         var result = performRetryAction(path, request, HTTP_FORWARD, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -133,7 +133,7 @@ public client class RetryClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel`, or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function execute(string httpVerb, string path, RequestMessage message) returns
+    public remote function execute(string httpVerb, string path, RequestMessage message) returns
             @tainted Response|ClientError {
         var result = performRetryClientExecuteAction(path, <Request>message, httpVerb, self);
         if (result is HttpFuture) {
@@ -150,7 +150,7 @@ public client class RetryClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel`, or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    public remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_PATCH, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -166,7 +166,7 @@ public client class RetryClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel`, or `mime:Entity[]`
     # + return - An `http:Response` message, or else an `http:ClientError` if the invocation fails
-    public remote isolated function delete(string path, RequestMessage message = ()) returns
+    public remote function delete(string path, RequestMessage message = ()) returns
             @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_DELETE, self);
         if (result is HttpFuture) {
@@ -183,7 +183,7 @@ public client class RetryClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel`, or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    public remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_GET, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -199,7 +199,7 @@ public client class RetryClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel`, or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function options(string path, RequestMessage message = ()) returns
+    public remote function options(string path, RequestMessage message = ()) returns
             @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_OPTIONS, self);
         if (result is HttpFuture) {

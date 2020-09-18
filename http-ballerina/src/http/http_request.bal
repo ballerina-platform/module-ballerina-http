@@ -533,7 +533,7 @@ public class Request {
     # Adds cookies to the request.
     #
     # + cookiesToAdd - Represents the cookies to be added
-    public isolated function addCookies(Cookie[] cookiesToAdd) {
+    public function addCookies(Cookie[] cookiesToAdd) {
         string cookieheader = "";
         Cookie[] sortedCookies = cookiesToAdd.sort(array:ASCENDING, isolated function(Cookie c) returns int {
             var cookiePath = c.path;

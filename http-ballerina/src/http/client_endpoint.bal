@@ -68,7 +68,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote isolated function post(@untainted string path, RequestMessage message) returns Response|ClientError {
+    public remote function post(@untainted string path, RequestMessage message) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->post(path, req);
         if (observabilityEnabled && response is Response) {
@@ -83,7 +83,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote isolated function head(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function head(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->head(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -98,7 +98,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote isolated function put(@untainted string path, RequestMessage message) returns Response|ClientError {
+    public remote function put(@untainted string path, RequestMessage message) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->put(path, req);
         if (observabilityEnabled && response is Response) {
@@ -114,7 +114,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message) returns Response|ClientError {
+    public remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
         if (observabilityEnabled && response is Response) {
@@ -129,7 +129,7 @@ public client class Client {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote isolated function patch(@untainted string path, RequestMessage message) returns Response|ClientError {
+    public remote function patch(@untainted string path, RequestMessage message) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->patch(path, req);
         if (observabilityEnabled && response is Response) {
@@ -144,7 +144,7 @@ public client class Client {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote isolated function delete(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function delete(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->delete(path, req);
         if (observabilityEnabled && response is Response) {
@@ -159,7 +159,7 @@ public client class Client {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote isolated function get(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function get(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -174,7 +174,7 @@ public client class Client {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote isolated function options(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function options(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -188,7 +188,7 @@ public client class Client {
     # + path - Request path
     # + request - An HTTP inbound request message
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote isolated function forward(@untainted string path, Request request) returns Response|ClientError {
+    public remote function forward(@untainted string path, Request request) returns Response|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);

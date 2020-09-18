@@ -51,7 +51,7 @@ public client class RedirectClient {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`,
     #             `byte[]`, `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    public remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_GET);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -67,7 +67,7 @@ public client class RedirectClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel`, or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function post(string path, RequestMessage message) returns @tainted Response|ClientError {
+    public remote function post(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result =  performRedirectIfEligible(self, path, <Request>message, HTTP_POST);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -83,7 +83,7 @@ public client class RedirectClient {
     # + message - An optional HTTP outbound request message or or any payload of type `string`, `xml`, `json`,
     #             `byte[]`, `io:ReadableByteChannel`, or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function head(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    public remote function head(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_HEAD);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -99,7 +99,7 @@ public client class RedirectClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    public remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PUT);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -113,7 +113,7 @@ public client class RedirectClient {
     # + path - Resource path
     # + request - An HTTP inbound request message
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function forward(string path, Request request) returns Response|ClientError {
+    public remote function forward(string path, Request request) returns Response|ClientError {
         return self.httpClient->forward(path, request);
     }
 
@@ -125,7 +125,7 @@ public client class RedirectClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function execute(string httpVerb, string path, RequestMessage message) returns @tainted
+    public remote function execute(string httpVerb, string path, RequestMessage message) returns @tainted
             Response|ClientError {
         Request request = <Request>message;
         //Redirection is performed only for HTTP methods
@@ -148,7 +148,7 @@ public client class RedirectClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    public remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PATCH);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -164,7 +164,7 @@ public client class RedirectClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function delete(string path, RequestMessage message = ()) returns @tainted
+    public remote function delete(string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_DELETE);
         if (result is HttpFuture) {
@@ -181,7 +181,7 @@ public client class RedirectClient {
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`,
     #             `byte[]`, `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function options(string path, RequestMessage message = ()) returns @tainted
+    public remote function options(string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_OPTIONS);
         if (result is HttpFuture) {

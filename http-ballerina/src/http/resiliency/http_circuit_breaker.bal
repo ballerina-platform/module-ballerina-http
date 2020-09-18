@@ -160,7 +160,7 @@ public client class CircuitBreakerClient {
     #             or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream
     #            server
-    public remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
+    public remote function post(string path, RequestMessage message) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -181,7 +181,7 @@ public client class CircuitBreakerClient {
     #             or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream
     #            server
-    public remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function head(string path, RequestMessage message = ()) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -202,7 +202,7 @@ public client class CircuitBreakerClient {
     #             or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream
     #            server
-    public remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
+    public remote function put(string path, RequestMessage message) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -224,7 +224,7 @@ public client class CircuitBreakerClient {
     #             `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream
     #            server
-    public remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
+    public remote function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -245,7 +245,7 @@ public client class CircuitBreakerClient {
     #             `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream
     #            server
-    public remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
+    public remote function patch(string path, RequestMessage message) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -266,7 +266,7 @@ public client class CircuitBreakerClient {
     #             `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream
     #            server
-    public remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -287,7 +287,7 @@ public client class CircuitBreakerClient {
     #            `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream
     #            server
-    public remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function get(string path, RequestMessage message = ()) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -308,7 +308,7 @@ public client class CircuitBreakerClient {
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream
     #            server
-    public remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
+    public remote function options(string path, RequestMessage message = ()) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -328,7 +328,7 @@ public client class CircuitBreakerClient {
     # + request - A Request struct
     # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream
     #            server
-    public remote isolated function forward(string path, Request request) returns Response|ClientError {
+    public remote function forward(string path, Request request) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
