@@ -17,11 +17,11 @@
 package org.ballerinalang.net.http.nativeimpl.connection;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import org.ballerinalang.jvm.api.BalEnv;
+import org.ballerinalang.jvm.api.BalFuture;
 import org.ballerinalang.jvm.api.values.BMap;
 import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.values.connector.NonBlockingCallback;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
@@ -40,9 +40,9 @@ import org.wso2.transport.http.netty.contract.websocket.WebSocketHandshaker;
 public class AcceptWebSocketUpgrade {
     private static final Logger log = LoggerFactory.getLogger(AcceptWebSocketUpgrade.class);
 
-    public static Object acceptWebSocketUpgrade(BObject httpCaller,
+    public static Object acceptWebSocketUpgrade(BalEnv env, BObject httpCaller,
                                                 BMap<BString, BString> headers) {
-        NonBlockingCallback callback = new NonBlockingCallback(Scheduler.getStrand());
+        BalFuture balFuture = env.markAsync();
         try {
             WebSocketHandshaker webSocketHandshaker =
                     (WebSocketHandshaker) httpCaller.getNativeData(WebSocketConstants.WEBSOCKET_HANDSHAKER);
@@ -53,7 +53,7 @@ public class AcceptWebSocketUpgrade {
 
             if (webSocketHandshaker == null || webSocketService == null || connectionManager == null) {
                 WebSocketUtil.setNotifyFailure("Not a WebSocket upgrade request. Cannot cancel the request",
-                        callback);
+                                               balFuture);
                 return null;
             }
 
@@ -61,11 +61,11 @@ public class AcceptWebSocketUpgrade {
                     webSocketService.getNegotiableSubProtocols(), webSocketService.getIdleTimeoutInSeconds() * 1000,
                     populateAndGetHttpHeaders(headers), webSocketService.getMaxFrameSize());
             future.setHandshakeListener(
-                    new AcceptUpgradeHandshakeListener(webSocketService, connectionManager, callback));
+                    new AcceptUpgradeHandshakeListener(webSocketService, connectionManager, balFuture));
 
         } catch (Exception e) {
             log.error("Error when upgrading to WebSocket", e);
-            callback.notifyFailure(WebSocketUtil.createErrorByType(e));
+            balFuture.complete(WebSocketUtil.createErrorByType(e));
         }
         return null;
     }
@@ -90,29 +90,28 @@ public class AcceptWebSocketUpgrade {
     private static class AcceptUpgradeHandshakeListener implements ServerHandshakeListener {
         private final WebSocketServerService webSocketService;
         private final WebSocketConnectionManager connectionManager;
-        private final NonBlockingCallback callback;
+        private final BalFuture balFuture;
 
         AcceptUpgradeHandshakeListener(
                 WebSocketServerService webSocketService, WebSocketConnectionManager connectionManager,
-                NonBlockingCallback callback) {
+                BalFuture balFuture) {
             this.webSocketService = webSocketService;
             this.connectionManager = connectionManager;
-            this.callback = callback;
+            this.balFuture = balFuture;
         }
 
         @Override
         public void onSuccess(WebSocketConnection webSocketConnection) {
             BObject webSocketEndpoint = WebSocketUtil.createAndPopulateWebSocketCaller(
                     webSocketConnection, webSocketService, connectionManager);
-            callback.setReturnValues(webSocketEndpoint);
-            callback.notifySuccess();
+            balFuture.complete(webSocketEndpoint);
         }
 
         @Override
         public void onError(Throwable throwable) {
             String msg = "WebSocket handshake failed: ";
             log.error(msg, throwable);
-            WebSocketUtil.setNotifyFailure(throwable.getMessage(), callback);
+            WebSocketUtil.setNotifyFailure(throwable.getMessage(), balFuture);
         }
     }
 }
