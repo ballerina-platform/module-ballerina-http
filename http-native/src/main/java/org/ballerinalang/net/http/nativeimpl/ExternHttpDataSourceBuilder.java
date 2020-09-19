@@ -18,10 +18,10 @@
 
 package org.ballerinalang.net.http.nativeimpl;
 
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.BalFuture;
 import org.ballerinalang.jvm.api.values.BError;
 import org.ballerinalang.jvm.api.values.BObject;
+import org.ballerinalang.jvm.scheduling.Scheduler;
+import org.ballerinalang.jvm.values.connector.NonBlockingCallback;
 import org.ballerinalang.mime.nativeimpl.MimeDataSourceBuilder;
 import org.ballerinalang.mime.nativeimpl.MimeEntityBody;
 import org.ballerinalang.mime.util.EntityBodyChannel;
@@ -58,84 +58,84 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(ExternHttpDataSourceBuilder.class);
 
-    public static Object getNonBlockingByteArray(BalEnv env, BObject entityObj) {
+    public static Object getNonBlockingByteArray(BObject entityObj) {
         Object transportMessage = entityObj.getNativeData(TRANSPORT_MESSAGE);
         if (isStreamingRequired(entityObj) || transportMessage == null) {
             return getByteArray(entityObj);
         }
 
         // access payload in non blocking manner
-        BalFuture balFuture = null;
+        NonBlockingCallback callback = null;
         try {
             Object messageDataSource = EntityBodyHandler.getMessageDataSource(entityObj);
             if (messageDataSource != null) {
                 return getAlreadyBuiltByteArray(entityObj, messageDataSource);
             }
-            balFuture = env.markAsync();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.BLOB);
+            callback = new NonBlockingCallback(Scheduler.getStrand());
+            constructNonBlockingDataSource(callback, entityObj, SourceType.BLOB);
         } catch (Exception exception) {
-            notifyError(balFuture, exception, "blob");
+            notifyError(callback, exception, "blob");
         }
         return null;
     }
 
-    public static Object getNonBlockingJson(BalEnv env, BObject entityObj) {
+    public static Object getNonBlockingJson(BObject entityObj) {
         if (isStreamingRequired(entityObj)) {
             return getJson(entityObj);
         }
 
         // access payload in non blocking manner
-        BalFuture balFuture = null;
+        NonBlockingCallback callback = null;
         try {
             Object dataSource = EntityBodyHandler.getMessageDataSource(entityObj);
             if (dataSource != null) {
                 return getAlreadyBuiltJson(dataSource);
             }
-             balFuture = env.markAsync();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.JSON);
+            callback = new NonBlockingCallback(Scheduler.getStrand());
+            constructNonBlockingDataSource(callback, entityObj, SourceType.JSON);
         } catch (Exception exception) {
-            notifyError(balFuture, exception, "json");
+            notifyError(callback, exception, "json");
         }
         return null;
     }
 
-    public static Object getNonBlockingText(BalEnv env, BObject entityObj) {
+    public static Object getNonBlockingText(BObject entityObj) {
         if (isStreamingRequired(entityObj)) {
             return getText(entityObj);
         }
 
         // access payload in non blocking manner
-        BalFuture balFuture = null;
+        NonBlockingCallback callback = null;
         try {
             Object dataSource = EntityBodyHandler.getMessageDataSource(entityObj);
             if (dataSource != null) {
                 return org.ballerinalang.jvm.api.BStringUtils.fromString(MimeUtil.getMessageAsString(dataSource));
             }
-            balFuture = env.markAsync();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.TEXT);
+            callback = new NonBlockingCallback(Scheduler.getStrand());
+            constructNonBlockingDataSource(callback, entityObj, SourceType.TEXT);
         } catch (Exception exception) {
-            notifyError(balFuture, exception, "text");
+            notifyError(callback, exception, "text");
         }
         return null;
     }
 
-    public static Object getNonBlockingXml(BalEnv env, BObject entityObj) {
+    public static Object getNonBlockingXml(BObject entityObj) {
         if (isStreamingRequired(entityObj)) {
             return getXml(entityObj);
         }
 
         // access payload in non blocking manner
-        BalFuture balFuture = null;
+        NonBlockingCallback callback = null;
         try {
             Object dataSource = EntityBodyHandler.getMessageDataSource(entityObj);
             if (dataSource != null) {
                 return getAlreadyBuiltXml(dataSource);
             }
 
-            balFuture = env.markAsync();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.XML);
+            callback = new NonBlockingCallback(Scheduler.getStrand());
+            constructNonBlockingDataSource(callback, entityObj, SourceType.XML);
         } catch (Exception exception) {
-            notifyError(balFuture, exception, "xml");
+            notifyError(callback, exception, "xml");
         }
         return null;
     }
@@ -154,7 +154,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         return MimeEntityBody.getByteChannel(entityObj);
     }
 
-    public static void constructNonBlockingDataSource(BalFuture balFuture, BObject entity,
+    public static void constructNonBlockingDataSource(NonBlockingCallback callback, BObject entity,
                                                       SourceType sourceType) {
         HttpCarbonMessage inboundMessage = extractTransportMessageFromEntity(entity);
         inboundMessage.getFullHttpCarbonMessage().addListener(new FullHttpMessageListener() {
@@ -167,7 +167,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
                     switch (sourceType) {
                         case JSON:
                             dataSource = constructJsonDataSource(entity, inputStream);
-                            updateJsonDataSourceAndNotify(balFuture, entity, dataSource);
+                            updateJsonDataSourceAndNotify(callback, entity, dataSource);
                             return;
                         case TEXT:
                             dataSource = constructStringDataSource(entity, inputStream);
@@ -179,9 +179,9 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
                             dataSource = constructBlobDataSource(inputStream);
                             break;
                     }
-                    updateDataSourceAndNotify(balFuture, entity, dataSource);
+                    updateDataSourceAndNotify(callback, entity, dataSource);
                 } catch (Exception e) {
-                    createErrorAndNotify(balFuture, "Error occurred while extracting " +
+                    createErrorAndNotify(callback, "Error occurred while extracting " +
                             sourceType.toString().toLowerCase(Locale.ENGLISH) + " data from entity: " + getErrorMsg(e));
                 } finally {
                     try {
@@ -194,36 +194,37 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
 
             @Override
             public void onError(Exception ex) {
-                createErrorAndNotify(balFuture, "Error occurred while extracting content from message : " +
+                createErrorAndNotify(callback, "Error occurred while extracting content from message : " +
                         ex.getMessage());
             }
         });
     }
 
-    private static void notifyError(BalFuture balFuture, Exception exception, String type) {
+    private static void notifyError(NonBlockingCallback callback, Exception exception, String type) {
         BError error = (BError) createError(exception, type);
-        setReturnValuesAndNotify(balFuture, error);
+        setReturnValuesAndNotify(callback, error);
     }
 
-    private static void createErrorAndNotify(BalFuture balFuture, String errMsg) {
+    private static void createErrorAndNotify(NonBlockingCallback callback, String errMsg) {
         BError error = MimeUtil.createError(PARSER_ERROR, errMsg);
-        setReturnValuesAndNotify(balFuture, error);
+        setReturnValuesAndNotify(callback, error);
     }
 
-    private static void setReturnValuesAndNotify(BalFuture balFuture, Object result) {
-        balFuture.complete(result);
+    private static void setReturnValuesAndNotify(NonBlockingCallback callback, Object result) {
+        callback.setReturnValues(result);
+        callback.notifySuccess();
     }
 
-    private static void updateDataSourceAndNotify(BalFuture balFuture, BObject entityObj,
+    private static void updateDataSourceAndNotify(NonBlockingCallback callback, BObject entityObj,
                                                   Object result) {
         updateDataSource(entityObj, result);
-        setReturnValuesAndNotify(balFuture, result);
+        setReturnValuesAndNotify(callback, result);
     }
 
-    private static void updateJsonDataSourceAndNotify(BalFuture balFuture, BObject entityObj,
+    private static void updateJsonDataSourceAndNotify(NonBlockingCallback callback, BObject entityObj,
                                                       Object result) {
         updateJsonDataSource(entityObj, result);
-        setReturnValuesAndNotify(balFuture, result);
+        setReturnValuesAndNotify(callback, result);
     }
 
     private static HttpCarbonMessage extractTransportMessageFromEntity(BObject entityObj) {

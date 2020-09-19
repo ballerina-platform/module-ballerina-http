@@ -18,10 +18,10 @@ package org.ballerinalang.net.http.nativeimpl.connection;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.BalFuture;
 import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.api.values.BString;
+import org.ballerinalang.jvm.scheduling.Scheduler;
+import org.ballerinalang.jvm.values.connector.NonBlockingCallback;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.slf4j.Logger;
@@ -36,14 +36,14 @@ import org.wso2.transport.http.netty.contract.websocket.WebSocketHandshaker;
 public class CancelWebSocketUpgrade {
     private static final Logger log = LoggerFactory.getLogger(CancelWebSocketUpgrade.class);
 
-    public static Object cancelWebSocketUpgrade(BalEnv env, BObject connectionObj, long statusCode, BString reason) {
-        BalFuture balFuture = env.markAsync();
+    public static Object cancelWebSocketUpgrade(BObject connectionObj, long statusCode, BString reason) {
+        NonBlockingCallback callback = new NonBlockingCallback(Scheduler.getStrand());
         try {
             WebSocketHandshaker webSocketHandshaker =
                     (WebSocketHandshaker) connectionObj.getNativeData(WebSocketConstants.WEBSOCKET_HANDSHAKER);
             if (webSocketHandshaker == null) {
                 WebSocketUtil.setNotifyFailure("Not a WebSocket upgrade request. " +
-                        "Cannot cancel the request", balFuture);
+                        "Cannot cancel the request", callback);
                 return null;
             }
             ChannelFuture future = webSocketHandshaker.cancelHandshake((int) statusCode, reason.getValue());
@@ -53,14 +53,15 @@ public class CancelWebSocketUpgrade {
                     channelFuture.channel().close();
                 }
                 if (!future.isSuccess() && cause != null) {
-                    balFuture.complete(WebSocketUtil.createErrorByType(cause));
+                    callback.notifyFailure(WebSocketUtil.createErrorByType(cause));
                 } else {
-                    balFuture.complete(null);
+                    callback.setReturnValues(null);
+                    callback.notifySuccess();
                 }
             });
         } catch (Exception e) {
             log.error("Error when cancelling WebsSocket upgrade request", e);
-            balFuture.complete(WebSocketUtil.createErrorByType(e));
+            callback.notifyFailure(WebSocketUtil.createErrorByType(e));
         }
         return null;
     }
