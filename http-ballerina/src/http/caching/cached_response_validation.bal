@@ -104,7 +104,7 @@ function sendValidationRequest(HttpClient httpClient, string path, Request origi
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4
-function handle304Response(Response validationResponse, Response cachedResponse, HttpCache cache, string path,
+isolated function handle304Response(Response validationResponse, Response cachedResponse, HttpCache cache, string path,
                            string httpMethod) returns @tainted Response|ClientError {
     if (validationResponse.hasHeader(ETAG)) {
         string etag = validationResponse.getHeader(ETAG);
@@ -144,12 +144,12 @@ function handle304Response(Response validationResponse, Response cachedResponse,
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4
-function hasAWeakValidator(Response validationResponse, string etag) returns boolean {
+isolated function hasAWeakValidator(Response validationResponse, string etag) returns boolean {
     return (validationResponse.hasHeader(LAST_MODIFIED) || !isAStrongValidator(etag));
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4
-function isAStrongValidator(string etag) returns boolean {
+isolated function isAStrongValidator(string etag) returns boolean {
     // TODO: Consider cases where Last-Modified can also be treated as a strong validator as per
     // https://tools.ietf.org/html/rfc7232#section-2.2.2
     if (!etag.startsWith(WEAK_VALIDATOR_TAG)) {

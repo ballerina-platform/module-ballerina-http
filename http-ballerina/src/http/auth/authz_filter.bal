@@ -29,7 +29,7 @@ public class AuthzFilter {
     #
     # + authzHandler - The `http:AuthzHandler` instance for handling authorization
     # + scopes - An array of scopes or an array consisting of arrays of scopes
-    public function init(AuthzHandler authzHandler, Scopes? scopes) {
+    public isolated function init(AuthzHandler authzHandler, Scopes? scopes) {
         self.authzHandler = authzHandler;
         self.scopes = scopes;
     }
@@ -40,7 +40,7 @@ public class AuthzFilter {
     # + request - An inbound HTTP request message
     # + context - The `http:FilterContext` instance
     # + return - A flag to indicate if the request flow should be continued(true) or aborted(false)
-    public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
+    public isolated function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
         boolean|AuthorizationError authorized = true;
         Scopes|boolean scopes = getScopes(context);
         if (scopes is Scopes) {
@@ -67,7 +67,7 @@ public class AuthzFilter {
     }
 }
 
-function send403(Caller caller, FilterContext context) {
+isolated function send403(Caller caller, FilterContext context) {
     if (isWebSocketUpgradeRequest(context)) {
         error? err = caller->cancelWebSocketUpgrade(403, "Authorization failure.");
         if (err is error) {

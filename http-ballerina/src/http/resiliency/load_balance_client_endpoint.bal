@@ -269,7 +269,7 @@ function performLoadBalanceAction(LoadBalanceClient lb, string path, Request req
 }
 
 // Populates generic error specific to Load Balance connector by including all the errors returned from endpoints.
-function populateGenericLoadBalanceActionError(LoadBalanceActionErrorData loadBalanceActionErrorData)
+isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorData loadBalanceActionErrorData)
                                                     returns ClientError {
     int nErrs = loadBalanceActionErrorData.httpActionErr.length();
     error? lastError = loadBalanceActionErrorData.httpActionErr[nErrs - 1];
@@ -313,7 +313,7 @@ public type LoadBalanceClientConfiguration record {|
     boolean failover = true;
 |};
 
-function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientConfiguration lbConfig,
+isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientConfiguration lbConfig,
                                                      TargetService target) returns ClientConfiguration {
     ClientConfiguration clientEPConfig = {
         http1Settings: lbConfig.http1Settings,

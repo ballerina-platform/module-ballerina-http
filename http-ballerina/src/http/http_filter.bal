@@ -25,7 +25,7 @@ public type RequestFilter object {
     # + request - An inbound HTTP request message
     # + context - A filter context
     # + return - True if the filter succeeds
-    public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean;
+    public isolated function filterRequest(Caller caller, Request request, FilterContext context) returns boolean;
 };
 
 # Abstract Representation of a HTTP Response Filter.
@@ -37,7 +37,7 @@ public type ResponseFilter object {
     # + response - An outbound HTTP response message
     # + context - A filter context
     # + return - True if the filter succeeds
-    public function filterResponse(Response response, FilterContext context) returns boolean;
+    public isolated function filterResponse(Response response, FilterContext context) returns boolean;
 };
 
 # Representation of request filter Context.
@@ -58,7 +58,7 @@ public class FilterContext {
     # + serviceRef - The service to which the context is applied
     # + serviceName - Name of the service
     # + resourceName - Name of the resource function
-    public function init(service serviceRef, string serviceName, string resourceName) {
+    public isolated function init(service serviceRef, string serviceName, string resourceName) {
         self.serviceRef = serviceRef;
         self.serviceName = serviceName;
         self.resourceName = resourceName;
@@ -67,21 +67,21 @@ public class FilterContext {
     # Gets the service to which the `http:FilerContext` is applied.
     #
     # + return  - `service` of the context
-    public function getService() returns service {
+    public isolated function getService() returns service {
         return self.serviceRef;
     }
 
     # Gets the service name to which the `http:FilerContext` is applied.
     #
     # + return  - Name of the `service`
-    public function getServiceName() returns string {
+    public isolated function getServiceName() returns string {
         return self.serviceName;
     }
 
     # Gets the resource function name to which the `http:FilerContext` is applied.
     #
     # + return  - Name of the resource function
-    public function getResourceName() returns string {
+    public isolated function getResourceName() returns string {
         return self.resourceName;
     }
 }

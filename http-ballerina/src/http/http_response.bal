@@ -43,47 +43,47 @@ public class Response {
     int requestTime = 0;
     private mime:Entity? entity = ();
 
-    public function init() {
+    public isolated function init() {
         self.entity = self.createNewEntity();
     }
 
     # Create a new `Entity` and link it with the response.
     #
     # + return - Newly created `Entity` that has been set to the response
-    function createNewEntity() returns mime:Entity {
+    isolated function createNewEntity() returns mime:Entity {
         return externCreateNewResEntity(self);
     }
 
     # Gets the `Entity` associated with the response.
     #
     # + return - The `Entity` of the response. An `http:ClientError` is returned, if entity construction fails
-    public function getEntity() returns mime:Entity|ClientError {
+    public isolated function getEntity() returns mime:Entity|ClientError {
         return externGetResEntity(self);
     }
 
     // Gets the `Entity` from the response without the entity body. This function is exposed only to be used
     // internally.
-    function getEntityWithoutBodyAndHeaders() returns mime:Entity {
+    isolated function getEntityWithoutBodyAndHeaders() returns mime:Entity {
         return externGetResEntityWithoutBodyAndHeaders(self);
     }
 
     // Gets the `Entity` from the response with the body, but without headers. This function is used for Http level
     // functions.
-    function getEntityWithBodyAndWithoutHeaders() returns mime:Entity|ClientError {
+    isolated function getEntityWithBodyAndWithoutHeaders() returns mime:Entity|ClientError {
         return externGetResEntityWithBodyAndWithoutHeaders(self);
     }
 
     # Sets the provided `Entity` to the response.
     #
     # + e - The `Entity` to be set to the response
-    public function setEntity(mime:Entity e) {
+    public isolated function setEntity(mime:Entity e) {
         return externSetResEntity(self, e);
     }
 
     # Sets the provided `Entity` to the request and update only the content type header in the transport message.
     #
     # + e - The `Entity` to be set to the request
-    function setEntityAndUpdateContentTypeHeader(mime:Entity e) {
+    isolated function setEntityAndUpdateContentTypeHeader(mime:Entity e) {
         return externSetResEntityAndUpdateContentTypeHeader(self, e);
     }
 
@@ -92,7 +92,7 @@ public class Response {
     # + headerName - The header name
     # + position - Represents the position of the header as an optional parameter
     # + return - `true` if the specified header key exists
-    public function hasHeader(string headerName, HeaderPosition position = LEADING) returns boolean {
+    public isolated function hasHeader(string headerName, HeaderPosition position = LEADING) returns boolean {
         return externResponseHasHeader(self, headerName, position);
     }
 
@@ -104,7 +104,7 @@ public class Response {
     #              the entity-body of the `Response` must be accessed initially.
     # + return - The first header value for the specified header name. Panic if the header is not found. Use the
     #            `Response.hasHeader()` beforehand to check the existence of a header.
-    public function getHeader(string headerName, HeaderPosition position = LEADING) returns @tainted string {
+    public isolated function getHeader(string headerName, HeaderPosition position = LEADING) returns @tainted string {
         return externResponseGetHeader(self, headerName, position);
     }
 
@@ -114,7 +114,7 @@ public class Response {
     # + headerValue - The header value
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
-    public function addHeader(string headerName, string headerValue, HeaderPosition position = LEADING) {
+    public isolated function addHeader(string headerName, string headerValue, HeaderPosition position = LEADING) {
         return externResponseAddHeader(self, headerName, headerValue, position);
     }
 
@@ -125,7 +125,7 @@ public class Response {
     #              the entity-body of the `Response` must be accessed initially.
     # + return - The header values the specified header key maps to. Panic if the header is not found. Use the
     #            `Response.hasHeader()` beforehand to check the existence of a header.
-    public function getHeaders(string headerName, HeaderPosition position = LEADING) returns @tainted string[] {
+    public isolated function getHeaders(string headerName, HeaderPosition position = LEADING) returns @tainted string[] {
         return externResponseGetHeaders(self, headerName, position);
     }
 
@@ -136,7 +136,7 @@ public class Response {
     # + headerValue - The header value
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
-    public function setHeader(string headerName, string headerValue, HeaderPosition position = LEADING) {
+    public isolated function setHeader(string headerName, string headerValue, HeaderPosition position = LEADING) {
         externResponseSetHeader(self, headerName, headerValue, position);
 
 
@@ -151,7 +151,7 @@ public class Response {
     # + headerName - The header name
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
-    public function removeHeader(string headerName, HeaderPosition position = LEADING) {
+    public isolated function removeHeader(string headerName, HeaderPosition position = LEADING) {
         externResponseRemoveHeader(self, headerName, position);
     }
 
@@ -159,7 +159,7 @@ public class Response {
     #
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
-    public function removeAllHeaders(HeaderPosition position = LEADING) {
+    public isolated function removeAllHeaders(HeaderPosition position = LEADING) {
         externResponseRemoveAllHeaders(self, position);
     }
 
@@ -168,7 +168,7 @@ public class Response {
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
     # + return - An array of all the header names
-    public function getHeaderNames(HeaderPosition position = LEADING) returns @tainted string[] {
+    public isolated function getHeaderNames(HeaderPosition position = LEADING) returns @tainted string[] {
         return externResponseGetHeaderNames(self, position);
     }
 
@@ -176,21 +176,21 @@ public class Response {
     #
     # + contentType - Content type value to be set as the `content-type` header
     # + return - Nil if successful, error in case of invalid content-type
-   public function setContentType(string contentType) returns error? {
+   public isolated function setContentType(string contentType) returns error? {
         return trap self.setHeader(mime:CONTENT_TYPE, contentType);
     }
 
     # Gets the type of the payload of the response (i.e: the `content-type` header value).
     #
     # + return - Returns the `content-type` header value as a string
-    public function getContentType() returns @tainted string {
+    public isolated function getContentType() returns @tainted string {
         return self.getHeader(mime:CONTENT_TYPE);
     }
 
     # Extract `json` payload from the response. If the content type is not JSON, an `http:ClientError` is returned.
     #
     # + return - The `json` payload or `http:ClientError` in case of errors
-    public function getJsonPayload() returns @tainted json|ClientError {
+    public isolated function getJsonPayload() returns @tainted json|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -212,7 +212,7 @@ public class Response {
     # Extracts `xml` payload from the response.
     #
     # + return - The `xml` payload or `http:ClientError` in case of errors
-    public function getXmlPayload() returns @tainted xml|ClientError {
+    public isolated function getXmlPayload() returns @tainted xml|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -234,7 +234,7 @@ public class Response {
     # Extracts `text` payload from the response.
     #
     # + return - The string representation of the message payload or `http:ClientError` in case of errors
-    public function getTextPayload() returns @tainted string|ClientError {
+    public isolated function getTextPayload() returns @tainted string|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -257,7 +257,7 @@ public class Response {
     # `Response.getBodyParts()`.
     #
     # + return - A byte channel from which the message payload can be read or `http:ClientError` in case of errors
-    public function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
+    public isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -275,7 +275,7 @@ public class Response {
     # Gets the response payload as a `byte[]`.
     #
     # + return - The byte[] representation of the message payload or `http:ClientError` in case of errors
-    public function getBinaryPayload() returns @tainted byte[]|ClientError {
+    public isolated function getBinaryPayload() returns @tainted byte[]|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -294,7 +294,7 @@ public class Response {
     #
     # + return - The body parts as an array of entities or else an `http:ClientError` if there were any errors in
     #            constructing the body parts from the response
-    public function getBodyParts() returns mime:Entity[]|ClientError {
+    public isolated function getBodyParts() returns mime:Entity[]|ClientError {
         var result = self.getEntity();
         if (result is ClientError) {
             // TODO: Confirm whether this is actually a ClientError or not.
@@ -310,16 +310,16 @@ public class Response {
         }
     }
 
-    # Sets the `etag` header for the given payload. The ETag is generated using a CRC32 hash function.
+    # Sets the `etag` header for the given payload. The ETag is generated using a CRC32 hash isolated function.
     #
     # + payload - The payload for which the ETag should be set
-    public function setETag(json|xml|string|byte[] payload) {
+    public isolated function setETag(json|xml|string|byte[] payload) {
         string etag = crypto:crc32b(payload.toString().toBytes());
         self.setHeader(ETAG, etag);
     }
 
     # Sets the current time as the `last-modified` header.
-    public function setLastModified() {
+    public isolated function setLastModified() {
         time:Time currentT = time:currentTime();
         var lastModified = time:format(currentT, time:TIME_FORMAT_RFC_1123);
         if (lastModified is string) {
@@ -336,7 +336,7 @@ public class Response {
     # + payload - The `json` payload
     # + contentType - The content type of the payload. Set this to override the default `content-type` header value
     #                 for `json`
-    public function setJsonPayload(json payload, string contentType = "application/json") {
+    public isolated function setJsonPayload(json payload, string contentType = "application/json") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setJson(payload, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
@@ -347,7 +347,7 @@ public class Response {
     # + payload - The `xml` payload
     # + contentType - The content type of the payload. Set this to override the default `content-type` header value
     #                 for `xml`
-    public function setXmlPayload(xml payload, string contentType = "application/xml") {
+    public isolated function setXmlPayload(xml payload, string contentType = "application/xml") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setXml(payload, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
@@ -358,7 +358,7 @@ public class Response {
     # + payload - The `string` payload
     # + contentType - The content type of the payload. Set this to override the default `content-type` header value
     #                 for `string`
-    public function setTextPayload(string payload, string contentType = "text/plain") {
+    public isolated function setTextPayload(string payload, string contentType = "text/plain") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setText(payload, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
@@ -369,7 +369,7 @@ public class Response {
     # + payload - The `byte[]` payload
     # + contentType - The content type of the payload. Set this to override the default `content-type` header value
     #                 for `byte[]`
-    public function setBinaryPayload(byte[] payload, string contentType = "application/octet-stream") {
+    public isolated function setBinaryPayload(byte[] payload, string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setByteArray(payload, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
@@ -380,7 +380,7 @@ public class Response {
     # + bodyParts - The entities which make up the message body
     # + contentType - The content type of the top level message. Set this to override the default
     #                 `content-type` header value
-    public function setBodyParts(mime:Entity[] bodyParts, string contentType = "multipart/form-data") {
+    public isolated function setBodyParts(mime:Entity[] bodyParts, string contentType = "multipart/form-data") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setBodyParts(bodyParts, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
@@ -402,7 +402,7 @@ public class Response {
     # + payload - A `ByteChannel` through which the message payload can be read
     # + contentType - The content type of the payload. Set this to override the default `content-type`
     #                 header value
-    public function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
+    public isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setByteChannel(payload, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
@@ -412,7 +412,7 @@ public class Response {
     #
     # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `ByteChannel` or `Entity[]` (i.e: a set
     #             of body parts)
-    public function setPayload(string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[] payload) {
+    public isolated function setPayload(string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[] payload) {
         if (payload is string) {
             self.setTextPayload(payload);
         } else if (payload is xml) {
@@ -464,84 +464,84 @@ public class Response {
     }
 }
 
-function externCreateNewResEntity(Response response) returns mime:Entity =
+isolated function externCreateNewResEntity(Response response) returns mime:Entity =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternResponse",
     name: "createNewEntity"
 } external;
 
-function externSetResEntity(Response response, mime:Entity entity) =
+isolated function externSetResEntity(Response response, mime:Entity entity) =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternResponse",
     name: "setEntity"
 } external;
 
-function externSetResEntityAndUpdateContentTypeHeader(Response response, mime:Entity entity) =
+isolated function externSetResEntityAndUpdateContentTypeHeader(Response response, mime:Entity entity) =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternResponse",
     name: "setEntityAndUpdateContentTypeHeader"
 } external;
 
-function externGetResEntity(Response response) returns mime:Entity|ClientError =
+isolated function externGetResEntity(Response response) returns mime:Entity|ClientError =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternResponse",
     name: "getEntity"
 } external;
 
-function externGetResEntityWithoutBodyAndHeaders(Response response) returns mime:Entity =
+isolated function externGetResEntityWithoutBodyAndHeaders(Response response) returns mime:Entity =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternResponse",
     name: "getEntityWithoutBodyAndHeaders"
 } external;
 
-function externGetResEntityWithBodyAndWithoutHeaders(Response response) returns mime:Entity =
+isolated function externGetResEntityWithBodyAndWithoutHeaders(Response response) returns mime:Entity =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternResponse",
     name: "getEntityWithBodyAndWithoutHeaders"
 } external;
 
 // HTTP header related external functions
-function externResponseGetHeader(Response response, string headerName, HeaderPosition position)
+isolated function externResponseGetHeader(Response response, string headerName, HeaderPosition position)
                          returns @tainted string = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeader"
 } external;
 
-function externResponseGetHeaders(Response response, string headerName, HeaderPosition position)
+isolated function externResponseGetHeaders(Response response, string headerName, HeaderPosition position)
                           returns @tainted string[] = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaders"
 } external;
 
-function externResponseGetHeaderNames(Response response, HeaderPosition position) returns @tainted string[] =
+isolated function externResponseGetHeaderNames(Response response, HeaderPosition position) returns @tainted string[] =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaderNames"
 } external;
 
-function externResponseAddHeader(Response response, string headerName, string headerValue, HeaderPosition position) =
+isolated function externResponseAddHeader(Response response, string headerName, string headerValue, HeaderPosition position) =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "addHeader"
 } external;
 
-function externResponseSetHeader(Response response, string headerName, string headerValue, HeaderPosition position) =
+isolated function externResponseSetHeader(Response response, string headerName, string headerValue, HeaderPosition position) =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "setHeader"
 } external;
 
-function externResponseRemoveHeader(Response response, string headerName, HeaderPosition position) = @java:Method {
+isolated function externResponseRemoveHeader(Response response, string headerName, HeaderPosition position) = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "removeHeader"
 } external;
 
-function externResponseRemoveAllHeaders(Response response, HeaderPosition position) = @java:Method {
+isolated function externResponseRemoveAllHeaders(Response response, HeaderPosition position) = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "removeAllHeaders"
 } external;
 
-function externResponseHasHeader(Response response, string headerName, HeaderPosition position) returns boolean =
+isolated function externResponseHasHeader(Response response, string headerName, HeaderPosition position) returns boolean =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "hasHeader"

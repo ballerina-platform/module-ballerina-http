@@ -221,7 +221,7 @@ function handleFailoverScenario (int count) returns (http:Response | http:Client
 }
 
 function getUnsupportedFOError() returns http:ClientError {
-    return http:GenericClientError("Unsupported fucntion for MockClient");
+    return http:GenericClientError("Unsupported function for MockClient");
 }
 
 function createMockClient(string url) returns FoMockClient {

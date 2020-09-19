@@ -83,7 +83,7 @@ public class CustomAuthProvider {
 
     *auth:InboundAuthProvider;
 
-    public function authenticate(string credential) returns boolean|auth:Error {
+    public isolated function authenticate(string credential) returns boolean|auth:Error {
         return credential == "aXN1cnU6eHh4";
     }
 }

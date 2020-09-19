@@ -36,21 +36,21 @@ public class Listener {
     # Starts the registered service programmatically.
     #
     # + return - An `error` if an error occurred during the listener starting process
-    public function __start() returns error? {
+    public isolated function __start() returns error? {
         return self.startEndpoint();
     }
 
     # Stops the service listener gracefully. Already-accepted requests will be served before connection closure.
     #
     # + return - An `error` if an error occurred during the listener stopping process
-    public function __gracefulStop() returns error? {
+    public isolated function __gracefulStop() returns error? {
         return self.gracefulStop();
     }
 
     # Stops the service listener immediately. It is not implemented yet.
     #
     # + return - An `error` if an error occurred during the listener stop process
-    public function __immediateStop() returns error? {
+    public isolated function __immediateStop() returns error? {
         error err = error("not implemented");
         return err;
     }
@@ -60,7 +60,7 @@ public class Listener {
     # + s - The service that needs to be attached
     # + name - Name of the service
     # + return - An `error` an error occurred during the service attachment process or else nil
-    public function __attach(service s, string? name = ()) returns error? {
+    public isolated function __attach(service s, string? name = ()) returns error? {
         return self.register(s, name);
     }
 
@@ -69,7 +69,7 @@ public class Listener {
     #
     # + s - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
-    public function __detach(service s) returns error? {
+    public isolated function __detach(service s) returns error? {
         return self.detach(s);
     }
 
@@ -77,7 +77,7 @@ public class Listener {
     #
     # + port - Listening port of the HTTP service listener
     # + config - Configurations for the HTTP service listener
-    public function init(int port, ListenerConfiguration? config = ()) {
+    public isolated function init(int port, ListenerConfiguration? config = ()) {
         self.instanceId = uuid();
         self.config = config ?: {};
         self.port = port;
@@ -99,7 +99,7 @@ public class Listener {
         }
     }
     
-    public function initEndpoint() returns error? {
+    public isolated function initEndpoint() returns error? {
         return externInitEndpoint(self);
     }
 
@@ -108,21 +108,21 @@ public class Listener {
     # + s - The service that needs to be attached
     # + name - Name of the service
     # + return - An `error` if an error occurred during the service attachment process or else nil
-    function register(service s, string? name) returns error? {
+    isolated function register(service s, string? name) returns error? {
         return externRegister(self, s, name);
     }
 
     # Starts the registered service.
     #
     # + return - An `error` if an error occurred during the listener start process
-    function startEndpoint() returns error? {
+    isolated function startEndpoint() returns error? {
         return externStart(self);
     }
 
     # Stops the service listener gracefully.
     #
     # + return - An `error` if an error occurred during the listener stop process
-    function gracefulStop() returns error? {
+    isolated function gracefulStop() returns error? {
         return externGracefulStop(self);
     }
 
@@ -130,32 +130,32 @@ public class Listener {
     #
     # + s - The service that needs to be detached
     # + return - An `error` if an error occurred during the service detachment process or else nil
-    function detach(service s) returns error? {
+    isolated function detach(service s) returns error? {
         return externDetach(self, s);
     }
 }
 
-function externInitEndpoint(Listener listenerObj) returns error? = @java:Method {
+isolated function externInitEndpoint(Listener listenerObj) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.InitEndpoint",
     name: "initEndpoint"
 } external;
 
-function externRegister(Listener listenerObj, service s, string? name) returns error? = @java:Method {
+isolated function externRegister(Listener listenerObj, service s, string? name) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Register",
     name: "register"
 } external;
 
-function externStart(Listener listenerObj) returns error? = @java:Method {
+isolated function externStart(Listener listenerObj) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Start",
     name: "start"
 } external;
 
-function externGracefulStop(Listener listenerObj) returns error? = @java:Method {
+isolated function externGracefulStop(Listener listenerObj) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.GracefulStop",
     name: "gracefulStop"
 } external;
 
-function externDetach(Listener listenerObj, service s) returns error? = @java:Method {
+isolated function externDetach(Listener listenerObj, service s) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Detach",
     name: "detach"
 } external;
@@ -306,7 +306,7 @@ public const REQUEST_METHOD = "REQUEST_METHOD";
 # Adds authentication and authorization filters.
 #
 # + config - `ServiceEndpointConfiguration` instance
-function addAuthFilters(ListenerConfiguration config) {
+isolated function addAuthFilters(ListenerConfiguration config) {
     // Add authentication and authorization filters as the first two filters if there are no any filters specified OR
     // the auth filter position is specified as 0. If there are any filters specified, the authentication and
     // authorization filters should be added into the position specified.
@@ -348,7 +348,7 @@ class AttributeFilter {
 
     *RequestFilter;
 
-    public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
+    public isolated function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
         runtime:InvocationContext ctx = runtime:getInvocationContext();
         ctx.attributes[SERVICE_NAME] = context.getServiceName();
         ctx.attributes[RESOURCE_NAME] = context.getResourceName();
@@ -357,7 +357,7 @@ class AttributeFilter {
     }
 }
 
-function addAttributeFilter(ListenerConfiguration config) {
+isolated function addAttributeFilter(ListenerConfiguration config) {
     AttributeFilter attributeFilter = new;
     config.filters.unshift(attributeFilter);
 }

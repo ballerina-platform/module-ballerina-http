@@ -281,7 +281,7 @@ public function createHttpSecureClient(string url, ClientConfiguration config) r
 # + req - An HTTP outbound request message
 # + config - Client endpoint configurations
 # + return - Prepared HTTP request or `http:ClientError` if an error occurred at auth handler invocation
-function prepareSecureRequest(Request req, ClientConfiguration config) returns Request|ClientError {
+isolated function prepareSecureRequest(Request req, ClientConfiguration config) returns Request|ClientError {
     OutboundAuthConfig? auth = config.auth;
     if (auth is OutboundAuthConfig) {
         OutboundAuthHandler authHandler = auth.authHandler;
@@ -297,13 +297,13 @@ function prepareSecureRequest(Request req, ClientConfiguration config) returns R
 # + res - An HTTP outbound response message
 # + config - Client endpoint configurations
 # + return - Prepared HTTP request or `()` if nothing to be done or `http:ClientError` if an error occurred at auth handler invocation
-function doInspection(Request req, Response res, ClientConfiguration config) returns Request|ClientError? {
+isolated function doInspection(Request req, Response res, ClientConfiguration config) returns Request|ClientError? {
     OutboundAuthConfig? auth = config.auth;
     if (auth is OutboundAuthConfig) {
         OutboundAuthHandler authHandler = auth.authHandler;
         return authHandler.inspect(req, res);
     }
-    log:printDebug(function () returns string {
+    log:printDebug(isolated function () returns string {
         return "Retry is not required for the given request after the inspection.";
     });
     return ();

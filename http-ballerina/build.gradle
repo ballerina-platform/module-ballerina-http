@@ -299,6 +299,11 @@ task ballerinaBuild {
             into file("$artifactLibParent/libs")
         }
 
+        copy {
+            from configurations.externalJars
+            into file("$artifactLibParent/libs")
+        }
+
         // Publish to central
         if (!project.version.endsWith('-SNAPSHOT') && ballerinaCentralAccessToken != null && project.hasProperty("publishToCentral")) {
             println("Publishing to the ballerina central..")

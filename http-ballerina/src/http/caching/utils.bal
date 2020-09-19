@@ -16,7 +16,7 @@
 
 import ballerina/log;
 
-function isNoCacheSet(RequestCacheControl? reqCC, ResponseCacheControl? resCC) returns boolean {
+isolated function isNoCacheSet(RequestCacheControl? reqCC, ResponseCacheControl? resCC) returns boolean {
     if (reqCC is RequestCacheControl && reqCC.noCache) {
         return true;
     }
@@ -28,17 +28,17 @@ function isNoCacheSet(RequestCacheControl? reqCC, ResponseCacheControl? resCC) r
     return false;
 }
 
-function updateResponseTimestamps(Response response, int requestedTime, int receivedTime) {
+isolated function updateResponseTimestamps(Response response, int requestedTime, int receivedTime) {
     response.requestTime = requestedTime;
     response.receivedTime = receivedTime;
 }
 
-function setAgeHeader(Response cachedResponse) {
+isolated function setAgeHeader(Response cachedResponse) {
     cachedResponse.setHeader(AGE, <@untainted>calculateCurrentResponseAge(cachedResponse).toString());
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4
-function updateResponse(Response cachedResponse, Response validationResponse) {
+isolated function updateResponse(Response cachedResponse, Response validationResponse) {
     // 1 - delete warning headers with warn codes 1xx
     // 2 - retain warning headers with warn codes 2xx
     // 3 - use other headers in validation response to replace corresponding headers in cached response
@@ -46,7 +46,7 @@ function updateResponse(Response cachedResponse, Response validationResponse) {
     replaceHeaders(cachedResponse, validationResponse);
 }
 
-function retain2xxWarnings(Response cachedResponse) {
+isolated function retain2xxWarnings(Response cachedResponse) {
     if (cachedResponse.hasHeader(WARNING)) {
         string[] warningHeaders = <@untainted>cachedResponse.getHeaders(WARNING);
         cachedResponse.removeHeader(WARNING);
@@ -62,7 +62,7 @@ function retain2xxWarnings(Response cachedResponse) {
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4
-function replaceHeaders(Response cachedResponse, Response validationResponse) {
+isolated function replaceHeaders(Response cachedResponse, Response validationResponse) {
     string[] headerNames = <@untainted>validationResponse.getHeaderNames();
 
     log:printDebug("Updating response headers using validation response.");

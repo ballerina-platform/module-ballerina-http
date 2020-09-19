@@ -26,7 +26,7 @@ public class AuthnFilter {
     # Initializes the `AuthnFilter` object.
     #
     # + authHandlers - An array of authentication handlers or an array consisting of arrays of authentication handlers
-    public function init(InboundAuthHandlers authHandlers) {
+    public isolated function init(InboundAuthHandlers authHandlers) {
         self.authHandlers = authHandlers;
     }
 
@@ -36,7 +36,7 @@ public class AuthnFilter {
     # + request - An inbound HTTP request message
     # + context - The `http:FilterContext` instance
     # + return - A flag to indicate if the request flow should be continued(true) or aborted(false)
-    public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
+    public isolated function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
         boolean|AuthenticationError authenticated = true;
         InboundAuthHandlers|boolean authHandlers = getAuthHandlers(context);
         if (authHandlers is InboundAuthHandlers) {
@@ -54,7 +54,7 @@ public class AuthnFilter {
     }
 }
 
-function handleAuthRequest(InboundAuthHandlers authHandlers, Request request) returns boolean|AuthenticationError {
+isolated function handleAuthRequest(InboundAuthHandlers authHandlers, Request request) returns boolean|AuthenticationError {
     if (authHandlers is InboundAuthHandler[]) {
         return checkForAuthHandlers(authHandlers, request);
     } else {
@@ -72,7 +72,7 @@ function handleAuthRequest(InboundAuthHandlers authHandlers, Request request) re
     }
 }
 
-function checkForAuthHandlers(InboundAuthHandler[] authHandlers, Request request) returns boolean|AuthenticationError {
+isolated function checkForAuthHandlers(InboundAuthHandler[] authHandlers, Request request) returns boolean|AuthenticationError {
     AuthenticationError? err = ();
     foreach InboundAuthHandler authHandler in authHandlers {
         boolean canProcessResponse = authHandler.canProcess(request);
@@ -96,7 +96,7 @@ function checkForAuthHandlers(InboundAuthHandler[] authHandlers, Request request
     return false;
 }
 
-function send401(Caller caller, FilterContext context) {
+isolated function send401(Caller caller, FilterContext context) {
     if (isWebSocketUpgradeRequest(context)) {
         error? err = caller->cancelWebSocketUpgrade(401, "Authentication failure.");
         if (err is error) {

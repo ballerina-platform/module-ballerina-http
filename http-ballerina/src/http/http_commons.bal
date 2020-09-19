@@ -19,7 +19,7 @@ import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
 
-boolean observabilityEnabled = observe:isObservabilityEnabled();
+final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
 # The types of messages that are accepted by HTTP `client` when sending out the outbound request.
 public type RequestMessage Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|();
@@ -131,12 +131,12 @@ public type CommonClientConfiguration record {|
 # + headerValue - The header value
 # + return - A tuple containing the value and its parameter map or else an `http:ClientError` if the header parsing fails
 //TODO: Make the error nillable
-public function parseHeader(string headerValue) returns [string, map<any>]|ClientError = @java:Method {
+public isolated function parseHeader(string headerValue) returns [string, map<any>]|ClientError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ParseHeader",
     name: "parseHeader"
 } external;
 
-function buildRequest(RequestMessage message) returns Request {
+isolated function buildRequest(RequestMessage message) returns Request {
     Request request = new;
     if (message is ()) {
         request.noEntityBody = true;
@@ -160,7 +160,7 @@ function buildRequest(RequestMessage message) returns Request {
     return request;
 }
 
-function buildResponse(ResponseMessage message) returns Response {
+isolated function buildResponse(ResponseMessage message) returns Response {
     Response response = new;
     if (message is ()) {
         return response;
@@ -226,7 +226,7 @@ public function invokeEndpoint (string path, Request outRequest, HttpOperation r
 }
 
 // Extracts HttpOperation from the Http verb passed in.
-function extractHttpOperation (string httpVerb) returns HttpOperation {
+isolated function extractHttpOperation (string httpVerb) returns HttpOperation {
     HttpOperation inferredConnectorAction = HTTP_NONE;
     if ("GET" == httpVerb) {
         inferredConnectorAction = HTTP_GET;
@@ -252,7 +252,7 @@ function extractHttpOperation (string httpVerb) returns HttpOperation {
 
 // Populate boolean index array by looking at the configured Http status codes to get better performance
 // at runtime.
-function populateErrorCodeIndex (int[] errorCode) returns boolean[] {
+isolated function populateErrorCodeIndex (int[] errorCode) returns boolean[] {
     boolean[] result = [];
     foreach var i in errorCode {
         result[i] = true;
@@ -260,11 +260,11 @@ function populateErrorCodeIndex (int[] errorCode) returns boolean[] {
     return result;
 }
 
-function getError() returns UnsupportedActionError {
+isolated function getError() returns UnsupportedActionError {
     return UnsupportedActionError("Unsupported connector action received.");
 }
 
-function populateRequestFields (Request originalRequest, Request newRequest)  {
+isolated function populateRequestFields (Request originalRequest, Request newRequest)  {
     newRequest.rawPath = originalRequest.rawPath;
     newRequest.method = originalRequest.method;
     newRequest.httpVersion = originalRequest.httpVersion;
@@ -273,7 +273,7 @@ function populateRequestFields (Request originalRequest, Request newRequest)  {
     newRequest.extraPathInfo = originalRequest.extraPathInfo;
 }
 
-function populateMultipartRequest(Request inRequest) returns Request|ClientError {
+isolated function populateMultipartRequest(Request inRequest) returns Request|ClientError {
     if (isMultipartRequest(inRequest)) {
         mime:Entity[] bodyParts = check inRequest.getBodyParts();
         foreach var bodyPart in bodyParts {
@@ -301,17 +301,17 @@ function populateMultipartRequest(Request inRequest) returns Request|ClientError
     return inRequest;
 }
 
-function isMultipartRequest(Request request) returns @tainted boolean {
+isolated function isMultipartRequest(Request request) returns @tainted boolean {
     return request.hasHeader(mime:CONTENT_TYPE) &&
         request.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
 }
 
-function isNestedEntity(mime:Entity entity) returns @tainted boolean {
+isolated function isNestedEntity(mime:Entity entity) returns @tainted boolean {
     return entity.hasHeader(mime:CONTENT_TYPE) &&
         entity.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
 }
 
-function createFailoverRequest(Request request, mime:Entity requestEntity) returns Request|ClientError {
+isolated function createFailoverRequest(Request request, mime:Entity requestEntity) returns Request|ClientError {
     if (isMultipartRequest(request)) {
         return populateMultipartRequest(request);
     } else {
@@ -322,23 +322,23 @@ function createFailoverRequest(Request request, mime:Entity requestEntity) retur
     }
 }
 
-function getInvalidTypeError() returns ClientError {
+isolated function getInvalidTypeError() returns ClientError {
     return GenericClientError("Invalid return type found for the HTTP operation");
 }
 
-function createErrorForNoPayload(mime:Error err) returns GenericClientError {
+isolated function createErrorForNoPayload(mime:Error err) returns GenericClientError {
     string message = "No payload";
     return GenericClientError(message, err);
 }
 
-function getStatusCodeRange(int statusCode) returns string {
+isolated function getStatusCodeRange(int statusCode) returns string {
     return statusCode.toString().substring(0,1) + STATUS_CODE_GROUP_SUFFIX;
 }
 
 # Returns a random UUID string.
 #
 # + return - The random string
-function uuid() returns string {
+isolated function uuid() returns string {
     var result = java:toString(nativeUuid());
     if (result is string) {
         return result;
@@ -352,7 +352,7 @@ function uuid() returns string {
 # + path - Resource path
 # + method - http method of the request
 # + statusCode - status code of the response
-function addObservabilityInformation(string path, string method, int statusCode, string url) {
+isolated function addObservabilityInformation(string path, string method, int statusCode, string url) {
     error? err = observe:addTagToSpan(HTTP_URL, path);
     err = observe:addTagToSpan(HTTP_METHOD, method);
     err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
@@ -360,39 +360,39 @@ function addObservabilityInformation(string path, string method, int statusCode,
 }
 
 //Resolve a given path against a given URI.
-function resolve(string baseUrl, string path) returns string|ClientError = @java:Method {
+isolated function resolve(string baseUrl, string path) returns string|ClientError = @java:Method {
     'class: "org.ballerinalang.net.uri.nativeimpl.Resolve",
     name: "resolve"
 } external;
 
 //Returns a random UUID string.
-function nativeUuid() returns handle = @java:Method {
+isolated function nativeUuid() returns handle = @java:Method {
     name: "randomUUID",
     'class: "java.util.UUID"
 } external;
 
-// Non-blocking payload retrieval common external functions
-function externGetJson(mime:Entity entity) returns @tainted json|mime:ParserError = @java:Method {
+// Non-blocking payload retrieval common external isolated functions
+isolated function externGetJson(mime:Entity entity) returns @tainted json|mime:ParserError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getNonBlockingJson"
 } external;
 
-function externGetXml(mime:Entity entity) returns @tainted xml|mime:ParserError = @java:Method {
+isolated function externGetXml(mime:Entity entity) returns @tainted xml|mime:ParserError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getNonBlockingXml"
 } external;
 
-function externGetText(mime:Entity entity) returns @tainted string|mime:ParserError = @java:Method {
+isolated function externGetText(mime:Entity entity) returns @tainted string|mime:ParserError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getNonBlockingText"
 } external;
 
-function externGetByteArray(mime:Entity entity) returns @tainted byte[]|mime:ParserError = @java:Method {
+isolated function externGetByteArray(mime:Entity entity) returns @tainted byte[]|mime:ParserError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getNonBlockingByteArray"
 } external;
 
-function externGetByteChannel(mime:Entity entity) returns @tainted io:ReadableByteChannel|mime:ParserError =
+isolated function externGetByteChannel(mime:Entity entity) returns @tainted io:ReadableByteChannel|mime:ParserError =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getByteChannel"
