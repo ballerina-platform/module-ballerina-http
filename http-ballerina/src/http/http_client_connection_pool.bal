@@ -32,20 +32,21 @@ public type PoolConfiguration record {
 
 //This is a hack to get the global map initialized, without involving locking.
 class ConnectionManager {
-    public PoolConfiguration poolConfig = {};
-    public function init() {
+    public PoolConfiguration & readonly poolConfig = {};
+    public isolated function init() {
         self.initGlobalPool(self.poolConfig);
     }
-    function initGlobalPool(PoolConfiguration poolConfig) {
+
+    isolated function initGlobalPool(PoolConfiguration poolConfig) {
         return externInitGlobalPool(poolConfig);
     }
 }
 
-function externInitGlobalPool(PoolConfiguration poolConfig) =
+isolated function externInitGlobalPool(PoolConfiguration poolConfig) =
 @java:Method {
     'class: "org.ballerinalang.net.http.clientendpoint.InitGlobalPool",
     name: "initGlobalPool"
 } external;
 
 ConnectionManager connectionManager = new;
-PoolConfiguration globalHttpClientConnPool = connectionManager.poolConfig;
+final PoolConfiguration & readonly globalHttpClientConnPool = connectionManager.poolConfig;

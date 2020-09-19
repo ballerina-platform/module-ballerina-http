@@ -32,7 +32,7 @@ public class AuthzHandler {
     #
     # + positiveAuthzCache - The `cache:Cache` instance, which holds positive authorizations
     # + negativeAuthzCache - The `cache:Cache` instance, which holds negative authorizations
-    public function init(cache:Cache? positiveAuthzCache, cache:Cache? negativeAuthzCache) {
+    public isolated function init(cache:Cache? positiveAuthzCache, cache:Cache? negativeAuthzCache) {
         self.positiveAuthzCache = positiveAuthzCache;
         self.negativeAuthzCache = negativeAuthzCache;
     }
@@ -41,7 +41,7 @@ public class AuthzHandler {
     #
     # + req - The `http:Request` instance
     # + return - `true` if it can be authorized, `false` otherwise, or else an `http:AuthorizationError` if an error occurred
-    function canProcess(Request req) returns boolean|AuthorizationError {
+    isolated function canProcess(Request req) returns boolean|AuthorizationError {
         if (auth:getInvocationContext()?.userId is ()) {
             return prepareAuthorizationError("UserId not set in auth:InvocationContext. Unable to authorize.");
         }
@@ -52,7 +52,7 @@ public class AuthzHandler {
     #
     # + scopes - An array of scopes or an array consisting of arrays of scopes of the listener or resource or service
     # + return - `true` if authorization check is a success, else `false`
-    function process(Scopes scopes) returns boolean {
+    isolated function process(Scopes scopes) returns boolean {
         // since different resources can have different scopes,
         // cache key is <username>-<service>-<resource>-<http-method>-<scopes-separated-by-comma>
         string serviceName = runtime:getInvocationContext().attributes[SERVICE_NAME].toString();
@@ -65,21 +65,22 @@ public class AuthzHandler {
 
         boolean authorized = auth:checkForScopeMatch(scopes, userScopes, authzCacheKey, self.positiveAuthzCache,
                                                      self.negativeAuthzCache);
-
+        final string serviceNameValue = serviceName;
+        final string requestMethodValue = requestMethod;
         if (authorized) {
-            log:printDebug(function () returns string {
-                return "Successfully authorized to access resource: " + serviceName + ", method: " + requestMethod;
+            log:printDebug(isolated function () returns string {
+                return "Successfully authorized to access resource: " + serviceNameValue + ", method: " + requestMethodValue;
             });
         } else {
-            log:printDebug(function () returns string {
-                return "Authorization failure for resource: " + serviceName + ", method: " + requestMethod;
+            log:printDebug(isolated function () returns string {
+                return "Authorization failure for resource: " + serviceNameValue + ", method: " + requestMethodValue;
             });
         }
         return authorized;
     }
 }
 
-function generateAuthzCacheKey(string username, string[] userScopes, string serviceName, string resourceName,
+isolated function generateAuthzCacheKey(string username, string[] userScopes, string serviceName, string resourceName,
                                string requestMethod) returns string {
     string authzCacheKey = username + "-" + serviceName + "-" + resourceName + "-" + requestMethod;
     if (userScopes.length() > 0) {

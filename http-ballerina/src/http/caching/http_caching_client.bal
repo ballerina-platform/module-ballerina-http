@@ -345,7 +345,7 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.4
-function invalidateResponses(HttpCache httpCache, Response inboundResponse, string path) {
+isolated function invalidateResponses(HttpCache httpCache, Response inboundResponse, string path) {
     // TODO: Improve this logic in accordance with the spec
     if (isCacheableStatusCode(inboundResponse.statusCode) &&
                     inboundResponse.statusCode >= 200 && inboundResponse.statusCode < 400) {

@@ -36,7 +36,7 @@ public class RequestCacheControl {
     # Builds the cache control directives string from the current `http:RequestCacheControl` configurations.
     #
     # + return - The cache control directives string to be used in the `cache-control` header
-    public function buildCacheControlDirectives () returns string {
+    public isolated function buildCacheControlDirectives () returns string {
         string[] directives = [];
         int i = 0;
 
@@ -82,7 +82,7 @@ public class RequestCacheControl {
     }
 }
 
-function setRequestCacheControlHeader(Request request) {
+isolated function setRequestCacheControlHeader(Request request) {
     var requestCacheControl = request.cacheControl;
     if (requestCacheControl is RequestCacheControl) {
         if (!request.hasHeader(CACHE_CONTROL)) {

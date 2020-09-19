@@ -16,14 +16,14 @@
 
 import ballerina/time;
 
-function isFreshResponse(Response cachedResponse, boolean isSharedCache) returns @tainted boolean {
+isolated function isFreshResponse(Response cachedResponse, boolean isSharedCache) returns @tainted boolean {
     int currentAge = getResponseAge(cachedResponse);
     int freshnessLifetime = getFreshnessLifetime(cachedResponse, isSharedCache);
     return freshnessLifetime > currentAge;
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.2.1
-function getFreshnessLifetime(Response cachedResponse, boolean isSharedCache) returns int {
+isolated function getFreshnessLifetime(Response cachedResponse, boolean isSharedCache) returns int {
     // TODO: Ensure that duplicate directives are not counted towards freshness lifetime.
     var responseCacheControl = cachedResponse.cacheControl;
     if (responseCacheControl is ResponseCacheControl) {

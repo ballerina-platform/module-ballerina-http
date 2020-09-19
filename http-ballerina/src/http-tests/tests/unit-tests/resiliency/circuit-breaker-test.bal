@@ -465,9 +465,9 @@ public client class MockClient {
     }
 }
 
-function handleBackendFailureScenario(int requesetNo) returns http:Response|http:ClientError {
+function handleBackendFailureScenario(int requestNo) returns http:Response|http:ClientError {
     // Deliberately fail a request
-    if (requesetNo == 3) {
+    if (requestNo == 3) {
         return getErrorStruct();
     }
     http:Response response = getResponse();

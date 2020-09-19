@@ -824,14 +824,16 @@ function testIntegerQueryParam() {
 function testFloatQueryParam() {
     var response = utmClient->get("/hello/echo14?foo=1.11");
     if (response is http:Response) {
-        assertJsonValue(response.getJsonPayload(), "echo14", 1.11);
+        decimal dValue = 1.11;
+        assertJsonValue(response.getJsonPayload(), "echo14", dValue);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/hello/echo14?foo=");
     if (response is http:Response) {
-        assertJsonValue(response.getJsonPayload(), "echo14", 0.0);
+        decimal dValue = 0.0;
+        assertJsonValue(response.getJsonPayload(), "echo14", dValue);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -1104,9 +1106,10 @@ function testTwistedPathSegmentsInTheSignature() {
 function testMultiTypePathSegmentsInTheSignature() {
     var response = utmClient->get("/uri/type/20/ballerina/true/15.6");
     if (response is http:Response) {
+        decimal dValue = 18.55;
         assertJsonValue(response.getJsonPayload(), "Name", "ballerina");
         assertJsonValue(response.getJsonPayload(), "Age", 21);
-        assertJsonValue(response.getJsonPayload(), "Weight", 18.55);
+        assertJsonValue(response.getJsonPayload(), "Weight", dValue);
         assertJsonValue(response.getJsonPayload(), "Status", true);
         assertJsonValue(response.getJsonPayload(), "Lang", "ballerina");
     } else {
@@ -1115,9 +1118,10 @@ function testMultiTypePathSegmentsInTheSignature() {
 
     response = utmClient->get("/uri/type/120/hello/false/15.9");
     if (response is http:Response) {
+        decimal dValue = 18.85;
         assertJsonValue(response.getJsonPayload(), "Name", "hello");
         assertJsonValue(response.getJsonPayload(), "Age", 121);
-        assertJsonValue(response.getJsonPayload(), "Weight", 18.85);
+        assertJsonValue(response.getJsonPayload(), "Weight", dValue);
         assertJsonValue(response.getJsonPayload(), "Status", false);
         assertJsonValue(response.getJsonPayload(), "Lang", "hello false");
     } else {

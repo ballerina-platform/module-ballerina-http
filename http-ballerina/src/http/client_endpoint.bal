@@ -311,7 +311,7 @@ public type ClientHttp1Settings record {|
     ProxyConfig? proxy = ();
 |};
 
-function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig) = @java:Method {
+isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig) = @java:Method {
    'class: "org.ballerinalang.net.http.clientendpoint.CreateSimpleHttpClient",
    name: "createSimpleHttpClient"
 } external;

@@ -336,7 +336,7 @@ function performRetryAction(@untainted string path, Request request, HttpOperati
     return httpConnectorErr;
 }
 
-function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryClient) {
+isolated function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryClient) {
     if (retryClient.retryInferredConfig.backOffFactor <= 0.0) {
         retryClient.retryInferredConfig.backOffFactor = 1.0;
     }
@@ -345,13 +345,13 @@ function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryClient) {
     }
 }
 
-function getWaitTime(float backOffFactor, int maxWaitTime, int interval) returns int {
+isolated function getWaitTime(float backOffFactor, int maxWaitTime, int interval) returns int {
     int waitTime = <int>(interval * backOffFactor);
     waitTime = waitTime > maxWaitTime ? maxWaitTime : waitTime;
     return waitTime;
 }
 
-function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount, int currentDelay)
+isolated function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount, int currentDelay)
                                                  returns [int, int] {
     int interval = currentDelay;
     if (currentRetryCount != 0) {

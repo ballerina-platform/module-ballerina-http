@@ -17,13 +17,13 @@
 */
 package org.ballerinalang.net.http;
 
-import org.ballerinalang.jvm.StringUtils;
+import org.ballerinalang.jvm.api.BStringUtils;
+import org.ballerinalang.jvm.api.BValueCreator;
+import org.ballerinalang.jvm.api.values.BMap;
+import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.transactions.TransactionConstants;
 import org.ballerinalang.jvm.types.AttachedFunction;
 import org.ballerinalang.jvm.types.BType;
-import org.ballerinalang.jvm.values.MapValue;
-import org.ballerinalang.jvm.values.MapValueImpl;
-import org.ballerinalang.jvm.values.api.BString;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +51,13 @@ public class HttpResource {
 
     private static final Logger log = LoggerFactory.getLogger(HttpResource.class);
 
-    private static final BString METHODS_FIELD = StringUtils.fromString("methods");
-    private static final BString PATH_FIELD = StringUtils.fromString("path");
-    private static final BString BODY_FIELD = StringUtils.fromString("body");
-    private static final BString CONSUMES_FIELD = StringUtils.fromString("consumes");
-    private static final BString PRODUCES_FIELD = StringUtils.fromString("produces");
-    private static final BString CORS_FIELD = StringUtils.fromString("cors");
-    private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
+    private static final BString METHODS_FIELD = BStringUtils.fromString("methods");
+    private static final BString PATH_FIELD = BStringUtils.fromString("path");
+    private static final BString BODY_FIELD = BStringUtils.fromString("body");
+    private static final BString CONSUMES_FIELD = BStringUtils.fromString("consumes");
+    private static final BString PRODUCES_FIELD = BStringUtils.fromString("produces");
+    private static final BString CORS_FIELD = BStringUtils.fromString("cors");
+    private static final BString TRANSACTION_INFECTABLE_FIELD = BStringUtils.fromString("transactionInfectable");
 
     private AttachedFunction balResource;
     private List<String> methods;
@@ -191,7 +191,7 @@ public class HttpResource {
 
     public static HttpResource buildHttpResource(AttachedFunction resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
-        MapValue resourceConfigAnnotation = getResourceConfigAnnotation(resource);
+        BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
         httpResource.setInterruptible(httpService.isInterruptible() || hasInterruptibleAnnotation(resource));
 
         setupTransactionAnnotations(resource, httpResource);
@@ -223,7 +223,7 @@ public class HttpResource {
     }
 
     private static void setupTransactionAnnotations(AttachedFunction resource, HttpResource httpResource) {
-        MapValue transactionConfigAnnotation = HttpUtil.getTransactionConfigAnnotation(resource,
+        BMap transactionConfigAnnotation = HttpUtil.getTransactionConfigAnnotation(resource,
                         TransactionConstants.TRANSACTION_PACKAGE_PATH);
         if (transactionConfigAnnotation != null) {
             httpResource.transactionAnnotated = true;
@@ -231,19 +231,19 @@ public class HttpResource {
     }
 
     /**
-     * Get the `MapValue` resource configuration of the given resource.
+     * Get the `BMap` resource configuration of the given resource.
      *
      * @param resource The resource
      * @return the resource configuration of the given resource
      */
-    public static MapValue getResourceConfigAnnotation(AttachedFunction resource) {
-        return (MapValue) resource.getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_RESOURCE_CONFIG);
+    public static BMap getResourceConfigAnnotation(AttachedFunction resource) {
+        return (BMap) resource.getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_RESOURCE_CONFIG);
     }
 
-    protected static MapValue getPathParamOrderMap(AttachedFunction resource) {
+    protected static BMap getPathParamOrderMap(AttachedFunction resource) {
         Object annotation = resource.getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_PARAM_ORDER_CONFIG);
-        return annotation == null ? new MapValueImpl<BString, Object>() :
-                (MapValue<BString, Object>) ((MapValue<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
+        return annotation == null ? BValueCreator.createMapValue() :
+                (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
     }
 
     private static boolean hasInterruptibleAnnotation(AttachedFunction resource) {

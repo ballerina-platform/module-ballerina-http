@@ -16,7 +16,7 @@
 
 // All the functions in this file are based on https://tools.ietf.org/html/rfc7234#section-4.2.4
 
-function isAllowedToBeServedStale(RequestCacheControl? requestCacheControl, Response cachedResponse,
+isolated function isAllowedToBeServedStale(RequestCacheControl? requestCacheControl, Response cachedResponse,
                                   boolean isSharedCache) returns boolean {
     // A cache MUST NOT generate a stale response if it is prohibited by an explicit in-protocol directive
     if (isServingStaleProhibitedInRequestCC(requestCacheControl)) {
@@ -30,7 +30,7 @@ function isAllowedToBeServedStale(RequestCacheControl? requestCacheControl, Resp
     return isStaleResponseAccepted(requestCacheControl, cachedResponse, isSharedCache);
 }
 
-function isServingStaleProhibitedInRequestCC(RequestCacheControl? cacheControl) returns boolean {
+isolated function isServingStaleProhibitedInRequestCC(RequestCacheControl? cacheControl) returns boolean {
     // A cache MUST NOT generate a stale response if it is prohibited by an explicit in-protocol directive
     if (cacheControl is ()) {
         return false;
@@ -40,7 +40,7 @@ function isServingStaleProhibitedInRequestCC(RequestCacheControl? cacheControl) 
     return reqCC.noCache || reqCC.noStore;
 }
 
-function isServingStaleProhibitedInResponseCC(ResponseCacheControl? cacheControl) returns boolean {
+isolated function isServingStaleProhibitedInResponseCC(ResponseCacheControl? cacheControl) returns boolean {
     // A cache MUST NOT generate a stale response if it is prohibited by an explicit in-protocol directive
     if (cacheControl is ()) {
         return false;
@@ -52,7 +52,7 @@ function isServingStaleProhibitedInResponseCC(ResponseCacheControl? cacheControl
     return resCC.noCache || resCC.mustRevalidate || resCC.proxyRevalidate || (resCC.sMaxAge >= 0);
 }
 
-function isStaleResponseAccepted(RequestCacheControl? requestCacheControl, Response cachedResponse,
+isolated function isStaleResponseAccepted(RequestCacheControl? requestCacheControl, Response cachedResponse,
                                  boolean isSharedCache) returns boolean {
     if (requestCacheControl is RequestCacheControl) {
         if (requestCacheControl.maxStale == MAX_STALE_ANY_AGE) {

@@ -26,7 +26,7 @@ public class LoadBalancerRoundRobinRule {
     # + loadBalanceCallerActionsArray - Array of HTTP clients, which needs to be load balanced
     # + return - Chosen `http:Client` from the algorithm or else an `http:ClientError` for a failure in
     #            the algorithm implementation
-    public function getNextClient(Client?[] loadBalanceCallerActionsArray) returns Client|ClientError {
+    public isolated function getNextClient(Client?[] loadBalanceCallerActionsArray) returns Client|ClientError {
         Client httpClient = <Client>loadBalanceCallerActionsArray[self.index];
         lock {
             if (self.index == ((loadBalanceCallerActionsArray.length()) - 1)) {
