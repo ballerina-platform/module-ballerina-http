@@ -47,7 +47,10 @@ service trailerInitiator on new http:Listener(9118) {
     }
 }
 
-service backend on backendEp {
+@http:ServiceConfig {
+    basePath: "/backend"
+}
+service trailerBackend on backendEp {
     resource function echoResponseWithTrailer(http:Caller caller, http:Request request) {
         http:Response response = new;
         var textPayload = request.getTextPayload();

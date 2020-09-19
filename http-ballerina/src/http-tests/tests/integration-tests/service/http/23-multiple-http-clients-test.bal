@@ -22,7 +22,7 @@ listener http:Listener multipleClientListener2 = new(multipleClientTestPort2, { 
 
 http:Client multipleClientTestClient = new("http://localhost:" + multipleClientTestPort1.toString());
 
-http:Client h2WithPriorKnowledge = new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "2.0", http2Settings: {
+http:Client h2WithPriorKnowledgeClient = new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "2.0", http2Settings: {
         http2PriorKnowledge: true }, poolConfig: {} });
 
 http:Client h1Client = new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "1.1", poolConfig: {}});
@@ -50,7 +50,7 @@ service globalClientTest on multipleClientListener1 {
         path: "/h2"
     }
     resource function testH2Client(http:Caller caller, http:Request req) {
-        var response = h2WithPriorKnowledge->post("/backend", "HTTP/2 with prior knowledge");
+        var response = h2WithPriorKnowledgeClient->post("/backend", "HTTP/2 with prior knowledge");
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {

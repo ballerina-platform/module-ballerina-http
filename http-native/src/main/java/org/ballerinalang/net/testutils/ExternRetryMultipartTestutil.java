@@ -21,7 +21,7 @@ package org.ballerinalang.net.testutils;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.internal.PlatformDependent;
 import io.netty.util.internal.StringUtil;
-import org.ballerinalang.jvm.values.api.BString;
+import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.net.testutils.client.HttpUrlClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

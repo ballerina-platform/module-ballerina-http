@@ -238,7 +238,7 @@ public class CustomLoadBalancerRule {
     # + loadBalanceClientsArray - Array of HTTP clients which needs to be load balanced
     # + return - Choosen `CallerActions` from the algorithm or an `error` for a failure in
     #            the algorithm implementation
-    public function getNextClient(http:Client?[] loadBalanceClientsArray) returns http:Client|http:ClientError {
+    public isolated function getNextClient(http:Client?[] loadBalanceClientsArray) returns http:Client|http:ClientError {
         http:Client httpClient = <http:Client>loadBalanceClientsArray[self.index];
         if (self.index >= loadBalanceClientsArray.length()) {
             return http:AllLoadBalanceEndpointsFailedError("Provided index is doesn't match with the targets.");

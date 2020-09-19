@@ -76,7 +76,7 @@ service circuitbreaker00 on circuitBreakerEP00 {
 // Mock a service outage by stopping/starting this service.
 // This should run separately from the `circuitBreakerDemo` service.
 @http:ServiceConfig { basePath: "/hello" }
-service helloWorld on new http:Listener(8086) {
+service cbHelloWorld on new http:Listener(8086) {
     @http:ResourceConfig {
         methods: ["GET", "POST"],
         path: "/typical"
