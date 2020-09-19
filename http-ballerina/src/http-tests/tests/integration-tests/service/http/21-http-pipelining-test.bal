@@ -20,7 +20,6 @@ import ballerina/runtime;
 import ballerina/test;
 import http;
 
-
 listener http:Listener pipeliningListenerEP1 = new(pipeliningTestPort1);
 listener http:Listener pipeliningListenerEP2 = new(pipeliningTestPort2, { timeoutInMillis: 1000 });
 listener http:Listener pipeliningListenerEP3 = new(pipeliningTestPort3, { http1Settings: { maxPipelinedRequests: 2 } });

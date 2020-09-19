@@ -37,7 +37,6 @@ http:Client retryBackendClientEP = new ("http://localhost:" + retryFunctionTestP
     timeoutInMillis: 2000
 });
 
-
 http:Client internalErrorEP = new("http://localhost:" + retryFunctionTestPort2.toString(), {
     retryConfig: {
         intervalInMillis: 3000,
@@ -48,7 +47,6 @@ http:Client internalErrorEP = new("http://localhost:" + retryFunctionTestPort2.t
     },
     timeoutInMillis: 2000
 });
-
 
 @http:ServiceConfig {
     basePath: "/retry"
