@@ -353,10 +353,10 @@ isolated function uuid() returns string {
 # + method - http method of the request
 # + statusCode - status code of the response
 isolated function addObservabilityInformation(string path, string method, int statusCode, string url) {
-    // error? err = observe:addTagToSpan(HTTP_URL, path);
-    // err = observe:addTagToSpan(HTTP_METHOD, method);
-    // err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
-    // err = observe:addTagToSpan(HTTP_BASE_URL, url);
+    error? err = observe:addTagToSpan(HTTP_URL, path);
+    err = observe:addTagToSpan(HTTP_METHOD, method);
+    err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
+    err = observe:addTagToSpan(HTTP_BASE_URL, url);
 }
 
 //Resolve a given path against a given URI.

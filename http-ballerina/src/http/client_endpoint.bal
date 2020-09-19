@@ -17,7 +17,7 @@
 import ballerina/java;
 import ballerina/crypto;
 import ballerina/time;
-// import ballerina/observe;
+import ballerina/observe;
 
 ////////////////////////////////
 ///// HTTP Client Endpoint /////
@@ -218,7 +218,7 @@ public client class Client {
     public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getResponse(httpFuture);
         if (response is Response) {
-            // error? err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(response.statusCode));
+            error? err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(response.statusCode));
         }
         return response;
     }
@@ -246,7 +246,7 @@ public client class Client {
     public remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getPromisedResponse(promise);
         if (observabilityEnabled && response is Response) {
-            //addObservabilityInformation(promise.path, promise.method, response.statusCode, self.url);
+            addObservabilityInformation(promise.path, promise.method, response.statusCode, self.url);
         }
         return response;
     }
