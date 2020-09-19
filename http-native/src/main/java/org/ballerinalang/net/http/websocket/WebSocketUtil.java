@@ -27,7 +27,6 @@ import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
 import org.ballerinalang.jvm.api.BErrorCreator;
 import org.ballerinalang.jvm.api.BStringUtils;
 import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.BalFuture;
 import org.ballerinalang.jvm.api.values.BError;
 import org.ballerinalang.jvm.api.values.BMap;
 import org.ballerinalang.jvm.api.values.BObject;
@@ -36,6 +35,7 @@ import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.jvm.services.ErrorHandlerUtils;
 import org.ballerinalang.jvm.types.BPackage;
 import org.ballerinalang.jvm.types.BType;
+import org.ballerinalang.jvm.values.connector.NonBlockingCallback;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
@@ -116,29 +116,30 @@ public class WebSocketUtil {
         webSocketClient.set(WebSocketConstants.LISTENER_IS_OPEN_FIELD, webSocketConnection.isOpen());
     }
 
-    public static void handleWebSocketCallback(BalFuture balFuture,
+    public static void handleWebSocketCallback(NonBlockingCallback callback,
                                                ChannelFuture webSocketChannelFuture, Logger log,
                                                WebSocketConnectionInfo connectionInfo) {
         webSocketChannelFuture.addListener(future -> {
             Throwable cause = future.cause();
             if (!future.isSuccess() && cause != null) {
                 log.error(ERROR_MESSAGE, cause);
-                setCallbackFunctionBehaviour(connectionInfo, balFuture, cause);
+                setCallbackFunctionBehaviour(connectionInfo, callback, cause);
             } else {
                 // This is needed because since the same strand is used in all actions if an action is called before
                 // this one it will cause this action to return the return value of the previous action.
-                balFuture.complete(null);
+                callback.setReturnValues(null);
+                callback.notifySuccess();
             }
         });
     }
 
     public static void setCallbackFunctionBehaviour(WebSocketConnectionInfo connectionInfo,
-                                                    BalFuture balFuture, Throwable error) {
+                                                    NonBlockingCallback callback, Throwable error) {
         if (hasSupportForResiliency(connectionInfo)) {
             ErrorHandlerUtils.printError(error);
-            balFuture.complete(null);
+            callback.notifySuccess();
         } else {
-            balFuture.complete(WebSocketUtil.createErrorByType(error));
+            callback.notifyFailure(WebSocketUtil.createErrorByType(error));
         }
     }
 
@@ -588,8 +589,8 @@ public class WebSocketUtil {
         return exception;
     }
 
-    public static void setNotifyFailure(String msg, BalFuture balFuture) {
-        balFuture.complete(getWebSocketException(msg, null,
+    public static void setNotifyFailure(String msg, NonBlockingCallback callback) {
+        callback.notifyFailure(getWebSocketException(msg, null,
                 WebSocketConstants.ErrorCode.WsInvalidHandshakeError.errorCode(), null));
     }
 

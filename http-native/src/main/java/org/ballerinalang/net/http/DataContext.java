@@ -19,12 +19,12 @@
 package org.ballerinalang.net.http;
 
 import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.BalFuture;
 import org.ballerinalang.jvm.api.values.BError;
 import org.ballerinalang.jvm.api.values.BMap;
 import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.scheduling.Strand;
+import org.ballerinalang.jvm.values.connector.NonBlockingCallback;
 import org.wso2.transport.http.netty.contract.HttpClientConnector;
 import org.wso2.transport.http.netty.message.HttpCarbonMessage;
 
@@ -38,21 +38,21 @@ public class DataContext {
     private Strand strand;
     private HttpClientConnector clientConnector;
     private BObject requestObj;
-    private BalFuture balFuture;
+    private NonBlockingCallback callback;
     private HttpCarbonMessage correlatedMessage;
 
-    public DataContext(Strand strand, HttpClientConnector clientConnector, BalFuture balFuture,
+    public DataContext(Strand strand, HttpClientConnector clientConnector, NonBlockingCallback callback,
                        BObject requestObj, HttpCarbonMessage outboundRequestMsg) {
         this.strand = strand;
-        this.balFuture = balFuture;
+        this.callback = callback;
         this.clientConnector = clientConnector;
         this.requestObj = requestObj;
         this.correlatedMessage = outboundRequestMsg;
     }
 
-    public DataContext(Strand strand, BalFuture balFuture, HttpCarbonMessage inboundRequestMsg) {
+    public DataContext(Strand strand, NonBlockingCallback callback, HttpCarbonMessage inboundRequestMsg) {
         this.strand = strand;
-        this.balFuture = balFuture;
+        this.callback = callback;
         this.clientConnector = null;
         this.requestObj = null;
         this.correlatedMessage = inboundRequestMsg;
@@ -61,18 +61,20 @@ public class DataContext {
     public void notifyInboundResponseStatus(BObject inboundResponse, BError httpConnectorError) {
         //Make the request associate with this response consumable again so that it can be reused.
         if (inboundResponse != null) {
-            getFuture().complete(inboundResponse);
+            getCallback().setReturnValues(inboundResponse);
         } else if (httpConnectorError != null) {
-            getFuture().complete(httpConnectorError);
+            getCallback().setReturnValues(httpConnectorError);
         } else {
             BMap<BString, Object> err = BValueCreator.createRecordValue(BALLERINA_BUILTIN_PKG_ID,
                                                                               STRUCT_GENERIC_ERROR);
-            getFuture().complete(err);
+            getCallback().setReturnValues(err);
         }
+        getCallback().notifySuccess();
     }
 
     public void notifyOutboundResponseStatus(BError httpConnectorError) {
-        getFuture().complete(httpConnectorError);
+        getCallback().setReturnValues(httpConnectorError);
+        getCallback().notifySuccess();
     }
 
     public HttpCarbonMessage getOutboundRequest() {
@@ -91,7 +93,7 @@ public class DataContext {
         return strand;
     }
 
-    public BalFuture getFuture() {
-        return balFuture;
+    public NonBlockingCallback getCallback() {
+        return callback;
     }
 }

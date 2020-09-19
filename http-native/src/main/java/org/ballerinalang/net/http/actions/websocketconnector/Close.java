@@ -17,14 +17,12 @@
 package org.ballerinalang.net.http.actions.websocketconnector;
 
 import io.netty.channel.ChannelFuture;
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.BalFuture;
 import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.scheduling.Scheduler;
 import org.ballerinalang.jvm.scheduling.Strand;
+import org.ballerinalang.jvm.values.connector.NonBlockingCallback;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
-import org.ballerinalang.net.http.websocket.WebSocketException;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityConstants;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityUtil;
@@ -33,8 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.transport.http.netty.contract.websocket.WebSocketConnection;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -46,26 +42,22 @@ import static org.ballerinalang.net.http.websocket.WebSocketConstants.ErrorCode;
 public class Close {
     private static final Logger log = LoggerFactory.getLogger(Close.class);
 
-    public static Object externClose(BalEnv env, BObject wsConnection, long statusCode, BString reason, long timeoutInSecs) {
+    public static Object externClose(BObject wsConnection, long statusCode, BString reason, long timeoutInSecs) {
         Strand strand = Scheduler.getStrand();
-        BalFuture balFuture = env.markAsync();
+        NonBlockingCallback callback = new NonBlockingCallback(strand);
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
         WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,
                                                              WebSocketConstants.RESOURCE_NAME_CLOSE);
         try {
             CountDownLatch countDownLatch = new CountDownLatch(1);
-            List<WebSocketException> errors = new ArrayList<>(1);
-            ChannelFuture closeFuture = initiateConnectionClosure(errors, (int) statusCode, reason.getValue(),
+            ChannelFuture closeFuture = initiateConnectionClosure(callback, (int) statusCode, reason.getValue(),
                                                                   connectionInfo, countDownLatch);
-            waitForTimeout(errors, (int) timeoutInSecs, countDownLatch, connectionInfo);
+            waitForTimeout(callback, (int) timeoutInSecs, countDownLatch, connectionInfo);
             closeFuture.channel().close().addListener(future -> {
                 WebSocketUtil.setListenerOpenField(connectionInfo);
-                if (errors.isEmpty()) {
-                    balFuture.complete(null);
-                } else {
-                    balFuture.complete(errors.get(errors.size() - 1));
-                }
+                callback.setReturnValues(null);
+                callback.notifySuccess();
             });
             WebSocketObservabilityUtil.observeSend(WebSocketObservabilityConstants.MESSAGE_TYPE_CLOSE,
                                                    connectionInfo);
@@ -75,12 +67,12 @@ public class Close {
                                                     WebSocketObservabilityConstants.ERROR_TYPE_MESSAGE_SENT,
                                                     WebSocketObservabilityConstants.MESSAGE_TYPE_CLOSE,
                                                     e.getMessage());
-            balFuture.complete(WebSocketUtil.createErrorByType(e));
+            callback.notifyFailure(WebSocketUtil.createErrorByType(e));
         }
         return null;
     }
 
-    private static ChannelFuture initiateConnectionClosure(List<WebSocketException> errors, int statusCode, String reason,
+    private static ChannelFuture initiateConnectionClosure(NonBlockingCallback callback, int statusCode, String reason,
                                                            WebSocketConnectionInfo connectionInfo,
                                                            CountDownLatch latch) throws IllegalAccessException {
         WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
@@ -93,16 +85,18 @@ public class Close {
         return closeFuture.addListener(future -> {
             Throwable cause = future.cause();
             if (!future.isSuccess() && cause != null) {
-                addError(cause.getMessage(), errors);
+                setReturnValues(cause.getMessage(), callback);
                 WebSocketObservabilityUtil.observeError(connectionInfo,
                                                         WebSocketObservabilityConstants.ERROR_TYPE_CLOSE,
                                                         cause.getMessage());
+            } else {
+                callback.setReturnValues(null);
             }
             latch.countDown();
         });
     }
 
-    private static void waitForTimeout(List<WebSocketException> errors, int timeoutInSecs,
+    private static void waitForTimeout(NonBlockingCallback callback, int timeoutInSecs,
                                        CountDownLatch latch, WebSocketConnectionInfo connectionInfo) {
         try {
             if (timeoutInSecs < 0) {
@@ -113,22 +107,22 @@ public class Close {
                     String errMsg = String.format(
                             "Could not receive a WebSocket close frame from remote endpoint within %d seconds",
                             timeoutInSecs);
-                    addError(errMsg, errors);
+                    setReturnValues(errMsg, callback);
                     WebSocketObservabilityUtil.observeError(connectionInfo,
                                                             WebSocketObservabilityConstants.ERROR_TYPE_CLOSE, errMsg);
                 }
             }
         } catch (InterruptedException err) {
             String errMsg = "Connection interrupted while closing the connection";
-            addError(errMsg, errors);
+            setReturnValues(errMsg, callback);
             WebSocketObservabilityUtil.observeError(connectionInfo,
                                                     WebSocketObservabilityConstants.ERROR_TYPE_CLOSE, errMsg);
             Thread.currentThread().interrupt();
         }
     }
 
-    private static void addError(String errMsg, List<WebSocketException> errors) {
-        errors.add(WebSocketUtil.getWebSocketException(errMsg, null,
+    private static void setReturnValues(String errMsg, NonBlockingCallback callback) {
+        callback.setReturnValues(WebSocketUtil.getWebSocketException(errMsg, null,
                 ErrorCode.WsConnectionClosureError.errorCode(), null));
     }
 
