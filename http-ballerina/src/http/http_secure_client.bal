@@ -34,7 +34,7 @@ public client class HttpSecureClient {
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
-    public isolated function init(string url, ClientConfiguration config) {
+    public function init(string url, ClientConfiguration config) {
         self.url = url;
         self.config = config;
         HttpClient|ClientError simpleClient = createClient(url, self.config);
@@ -215,7 +215,7 @@ public client class HttpSecureClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel`, or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
-    public remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    public remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         return self.httpClient->submit(httpVerb, path, req);
@@ -225,7 +225,7 @@ public client class HttpSecureClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         return self.httpClient->getResponse(httpFuture);
     }
 
@@ -233,7 +233,7 @@ public client class HttpSecureClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    public remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
+    public remote function hasPromise(HttpFuture httpFuture) returns boolean {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -241,7 +241,7 @@ public client class HttpSecureClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    public remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -249,14 +249,14 @@ public client class HttpSecureClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    public remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return self.httpClient->getPromisedResponse(promise);
     }
 
     # Passes the request to an actual network call.
     #
     # + promise - The Push Promise to be rejected
-    public remote isolated function rejectPromise(PushPromise promise) {
+    public remote function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
 }
@@ -266,7 +266,7 @@ public client class HttpSecureClient {
 # + url - Base URL
 # + config - Client endpoint configurations
 # + return - Created secure HTTP client
-public isolated function createHttpSecureClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
+public function createHttpSecureClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpSecureClient httpSecureClient;
     if (config.auth is OutboundAuthConfig) {
         httpSecureClient = new(url, config);

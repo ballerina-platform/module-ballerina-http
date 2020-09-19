@@ -138,7 +138,7 @@ public client class CircuitBreakerClient {
     # + circuitBreakerInferredConfig - Configurations derived from the `http:CircuitBreakerConfig`
     # + httpClient - The underlying `HttpActions` instance, which will be making the actual network calls
     # + circuitHealth - The circuit health monitor
-    public isolated function init(string url, ClientConfiguration config, CircuitBreakerInferredConfig
+    public function init(string url, ClientConfiguration config, CircuitBreakerInferredConfig
         circuitBreakerInferredConfig, HttpClient httpClient, CircuitHealth circuitHealth) {
         RollingWindow rollingWindow = circuitBreakerInferredConfig.rollingWindow;
         if (rollingWindow.timeWindowInMillis < rollingWindow.bucketSizeInMillis) {
@@ -351,7 +351,7 @@ public client class CircuitBreakerClient {
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
-    public remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    public remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -374,7 +374,7 @@ public client class CircuitBreakerClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         // No need to check for the response as we already check for the response in the submit method
         return self.httpClient->getResponse(httpFuture);
     }
@@ -384,7 +384,7 @@ public client class CircuitBreakerClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    public remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
+    public remote function hasPromise(HttpFuture httpFuture) returns boolean {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -392,7 +392,7 @@ public client class CircuitBreakerClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    public remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -400,7 +400,7 @@ public client class CircuitBreakerClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    public remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return self.httpClient->getPromisedResponse(promise);
     }
 
@@ -408,19 +408,19 @@ public client class CircuitBreakerClient {
     # HTTP remote functions provider.
     #
     # + promise - The `http:PushPromise` to be rejected
-    public remote isolated function rejectPromise(PushPromise promise) {
+    public remote function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
 
     # Force the circuit into a closed state in which it will allow requests regardless of the error percentage
     # until the failure threshold exceeds.
-    public isolated function forceClose() {
+    public function forceClose() {
         self.currentCircuitState = CB_CLOSED_STATE;
     }
 
     # Force the circuit into a open state in which it will suspend all requests
     # until `resetTimeInMillis` interval exceeds.
-    public isolated function forceOpen() {
+    public function forceOpen() {
         self.currentCircuitState = CB_OPEN_STATE;
         self.circuitHealth.lastForcedOpenTime = time:currentTime();
     }
@@ -428,7 +428,7 @@ public client class CircuitBreakerClient {
     # Provides the `http:CircuitState` of the circuit breaker.
     #
     # + return - The current `http:CircuitState` of the circuit breaker
-    public isolated function getCurrentState() returns CircuitState {
+    public function getCurrentState() returns CircuitState {
         return self.currentCircuitState;
     }
 }

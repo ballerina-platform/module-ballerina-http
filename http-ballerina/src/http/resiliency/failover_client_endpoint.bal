@@ -52,7 +52,7 @@ public client class FailoverClient {
     # Failover caller actions which provides failover capabilities to an HTTP client endpoint.
     #
     # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance.
-    public isolated function init(FailoverClientConfiguration failoverClientConfig) {
+    public function init(FailoverClientConfiguration failoverClientConfig) {
         self.failoverClientConfig = failoverClientConfig;
         self.succeededEndpointIndex = 0;
         var failoverHttpClientArray = createFailoverHttpClientArray(failoverClientConfig);
@@ -224,7 +224,7 @@ public client class FailoverClient {
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
-    public remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    public remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = buildRequest(message);
         var result = performExecuteAction(path, req, "SUBMIT", self, verb = httpVerb);
         if (result is Response) {
@@ -238,7 +238,7 @@ public client class FailoverClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Client foClient = getLastSuceededClientEP(self);
         return foClient->getResponse(httpFuture);
     }
@@ -247,7 +247,7 @@ public client class FailoverClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    public remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
+    public remote function hasPromise(HttpFuture httpFuture) returns boolean {
         return false;
     }
 
@@ -255,7 +255,7 @@ public client class FailoverClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    public remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return UnsupportedActionError("Failover client not supported for getNextPromise action");
     }
 
@@ -263,7 +263,7 @@ public client class FailoverClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    public remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return UnsupportedActionError("Failover client not supported for getPromisedResponse action");
     }
 
@@ -271,21 +271,21 @@ public client class FailoverClient {
     # response using the rejected promise.
     #
     # + promise - The Push Promise to be rejected
-    public remote isolated function rejectPromise(PushPromise promise) {
+    public remote function rejectPromise(PushPromise promise) {
     }
 }
 
 // Performs execute action of the Failover connector. extract the corresponding http integer value representation
 // of the http verb and invokes the perform action method.
 // `verb` is used for HTTP `submit()` method.
-isolated function performExecuteAction (string path, Request request, string httpVerb,
+function performExecuteAction (string path, Request request, string httpVerb,
                                    FailoverClient failoverClient, string verb = "") returns HttpResponse|ClientError {
     HttpOperation connectorAction = extractHttpOperation(httpVerb);
     return performFailoverAction(path, request, connectorAction, failoverClient, verb = verb);
 }
 
 // Handles all the actions exposed through the Failover connector.
-isolated function performFailoverAction (string path, Request request, HttpOperation requestAction,
+function performFailoverAction (string path, Request request, HttpOperation requestAction,
                                         FailoverClient failoverClient, string verb = "")
                                         returns HttpResponse|ClientError {
 
@@ -474,7 +474,7 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
     return clientEPConfig;
 }
 
-isolated function createFailoverHttpClientArray(FailoverClientConfiguration failoverClientConfig)
+function createFailoverHttpClientArray(FailoverClientConfiguration failoverClientConfig)
                                                                             returns Client?[]|error {
 
     Client clientEp;

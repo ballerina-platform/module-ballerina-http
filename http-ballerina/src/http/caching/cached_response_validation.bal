@@ -17,7 +17,7 @@
 import ballerina/log;
 import ballerina/time;
 
-isolated function getValidationResponse(HttpClient httpClient, Request req, Response cachedResponse, HttpCache cache,
+function getValidationResponse(HttpClient httpClient, Request req, Response cachedResponse, HttpCache cache,
                                time:Time currentT, string path, string httpMethod, boolean isFreshResponse)
                                                                                 returns @tainted Response|ClientError {
     // If the no-cache directive is set, always validate the response before serving
@@ -74,7 +74,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
 }
 
 // Based https://tools.ietf.org/html/rfc7234#section-4.3.1
-isolated function sendValidationRequest(HttpClient httpClient, string path, Request originalRequest, Response cachedResponse)
+function sendValidationRequest(HttpClient httpClient, string path, Request originalRequest, Response cachedResponse)
                                 returns Response|ClientError {
     // Set the precondition headers only if the user hasn't explicitly set them.
     boolean userProvidedINMHeader = originalRequest.hasHeader(IF_NONE_MATCH);

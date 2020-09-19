@@ -332,7 +332,7 @@ public client class MockClient {
     public http:ClientConfiguration config = {};
     public http:HttpClient httpClient;
 
-    public isolated function init(string url, http:ClientConfiguration? config = ()) {
+    public function init(string url, http:ClientConfiguration? config = ()) {
         http:HttpClient simpleClient = new(url);
         self.url = url;
         self.config = config ?: {};
@@ -439,35 +439,35 @@ public client class MockClient {
         return getUnsupportedError();
     }
 
-    public remote isolated function submit(string httpVerb, string path,
+    public remote function submit(string httpVerb, string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
                                                                             returns http:HttpFuture|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote isolated function getResponse(http:HttpFuture httpFuture)  returns http:Response|http:ClientError {
+    public remote function getResponse(http:HttpFuture httpFuture)  returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote isolated function hasPromise(http:HttpFuture httpFuture) returns boolean {
+    public remote function hasPromise(http:HttpFuture httpFuture) returns boolean {
         return false;
     }
 
-    public remote isolated function getNextPromise(http:HttpFuture httpFuture) returns http:PushPromise|http:ClientError {
+    public remote function getNextPromise(http:HttpFuture httpFuture) returns http:PushPromise|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote isolated function getPromisedResponse(http:PushPromise promise) returns http:Response|http:ClientError {
+    public remote function getPromisedResponse(http:PushPromise promise) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote isolated function rejectPromise(http:PushPromise promise) {
+    public remote function rejectPromise(http:PushPromise promise) {
     }
 }
 
-function handleBackendFailureScenario(int requesetNo) returns http:Response|http:ClientError {
+function handleBackendFailureScenario(int requestNo) returns http:Response|http:ClientError {
     // Deliberately fail a request
-    if (requesetNo == 3) {
+    if (requestNo == 3) {
         return getErrorStruct();
     }
     http:Response response = getResponse();

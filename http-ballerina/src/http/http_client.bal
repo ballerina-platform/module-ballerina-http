@@ -32,7 +32,7 @@ public client class HttpClient {
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
-    public isolated function init(string url, ClientConfiguration? config = ()) {
+    public function init(string url, ClientConfiguration? config = ()) {
         self.config = config ?: {};
         self.url = url;
         createSimpleHttpClient(self, globalHttpClientConnPool);
@@ -137,7 +137,7 @@ public client class HttpClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
-    public remote isolated function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    public remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return externSubmit(self, httpVerb, path, <Request>message);
     }
 
@@ -145,7 +145,7 @@ public client class HttpClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         return externGetResponse(self, httpFuture);
     }
 
@@ -153,7 +153,7 @@ public client class HttpClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    public remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
+    public remote function hasPromise(HttpFuture httpFuture) returns boolean {
         return externHasPromise(self, httpFuture);
     }
 
@@ -161,7 +161,7 @@ public client class HttpClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    public remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return externGetNextPromise(self, httpFuture);
     }
 
@@ -169,7 +169,7 @@ public client class HttpClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    public remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return externGetPromisedResponse(self, promise);
     }
 
@@ -177,7 +177,7 @@ public client class HttpClient {
     # response using the rejected promise.
     #
     # + promise - The Push Promise to be rejected
-    public remote isolated function rejectPromise(PushPromise promise) {
+    public remote function rejectPromise(PushPromise promise) {
         return externRejectPromise(self, promise);
     }
 }
@@ -248,7 +248,7 @@ public type HttpTimeoutError record {|
     int statusCode = 0;
 |};
 
-isolated function createClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
+function createClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpClient simpleClient = new(url, config);
     return simpleClient;
 }
