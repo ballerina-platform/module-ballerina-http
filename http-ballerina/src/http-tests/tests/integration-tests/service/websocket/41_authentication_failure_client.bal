@@ -39,7 +39,7 @@ service on new http:Listener(21041) {
                 }
             }
             );
-        checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+        checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
     }
 }
 

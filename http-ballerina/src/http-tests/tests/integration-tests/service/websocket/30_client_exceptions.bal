@@ -101,7 +101,7 @@ public function testLongFrameError() {
     } else {
         test:assertFail("Mismatched output");
     }
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Close the connection and push text

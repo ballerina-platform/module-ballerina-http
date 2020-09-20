@@ -62,7 +62,7 @@ public function testClientSentCustomHeader() {
         });
     runtime:sleep(500);
     test:assertEquals(expextedValue, "some-header-value");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests the client receiving custom headers from the server.
@@ -80,5 +80,5 @@ public function testClientReceivedCustomHeader() {
     } else {
         test:assertFail("Couldn't find the expected values");
     }
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

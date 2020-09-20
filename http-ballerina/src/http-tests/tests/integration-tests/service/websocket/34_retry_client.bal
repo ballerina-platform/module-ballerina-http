@@ -86,5 +86,5 @@ public function testRetry() {
     checkpanic retryEP.__start();
     runtime:sleep(5000);
     test:assertEquals(expectedOutput, "Hi madam");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

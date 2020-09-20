@@ -46,7 +46,7 @@ public function testClientSuccessWithoutService() {
     http:WebSocketClient wsClient = new ("ws://localhost:21021/client/service");
     runtime:sleep(500);
     test:assertTrue(isClientConnectionOpen);
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests the client initialization with a WebSocketClientService but without any resources.
@@ -57,7 +57,7 @@ public function testClientSuccessWithWebSocketClientService() {
     checkpanic wsClient->pushText("Client worked");
     runtime:sleep(500);
     test:assertTrue(isClientConnectionOpen);
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests the client initialization failure when used with a WebSocketService.

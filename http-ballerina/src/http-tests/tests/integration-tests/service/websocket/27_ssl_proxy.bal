@@ -160,7 +160,7 @@ public function testSslProxySendText() {
     checkpanic wsClient->pushText("Hi");
     runtime:sleep(500);
     test:assertEquals(proxyData, "Hi", msg = "Data mismatched");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests sending and receiving of binary frames in WebSocket.
@@ -179,5 +179,5 @@ public function testSslProxySendBinary() {
     checkpanic wsClient->pushBinary(binaryData);
     runtime:sleep(500);
     test:assertEquals(expectedBinaryData, binaryData, msg = "Data mismatched");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

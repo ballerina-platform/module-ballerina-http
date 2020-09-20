@@ -58,4 +58,5 @@ public function testContinuationFrameError() {
     runtime:sleep(500);
     test:assertEquals(serverOutput, "InvalidContinuationFrameError: Cannot interrupt WebSocket" +
         " text frame continuation");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

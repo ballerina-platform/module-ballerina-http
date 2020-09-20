@@ -1,29 +1,29 @@
 [project]
 org-name = "ballerina"
-version = "@toml.version@"
+version = "1.0.0"
 
 [dependencies]
-"ballerina/io" = "@stdlib.io.version@"
-"ballerina/log" = "@stdlib.log.version@"
-"ballerina/stringutils" = "@stdlib.stringutils.version@"
-"ballerina/mime" = "@stdlib.mime.version@"
-"ballerina/auth" = "@stdlib.auth.version@"
-"ballerina/cache" = "@stdlib.cache.version@"
-"ballerina/time" = "@stdlib.time.version@"
-"ballerina/crypto" = "@stdlib.crypto.version@"
-"ballerina/file" = "@stdlib.file.version@"
-"ballerina/reflect" = "@stdlib.reflect.version@"
-"ballerina/runtime" = "@stdlib.runtime.version@"
-"ballerina/system" = "@stdlib.system.version@"
-"ballerina/task" = "@stdlib.task.version@"
+"ballerina/io" = "0.5.0"
+"ballerina/log" = "1.0.0"
+"ballerina/stringutils" = "0.5.0"
+"ballerina/mime" = "1.0.0"
+"ballerina/auth" = "1.0.0"
+"ballerina/cache" = "2.0.0"
+"ballerina/time" = "1.0.1"
+"ballerina/crypto" = "1.0.0"
+"ballerina/file" = "0.5.1"
+"ballerina/reflect" = "0.5.0"
+"ballerina/runtime" = "0.5.0"
+"ballerina/system" = "0.6.0"
+"ballerina/task" = "1.1.0"
 
 [platform]
 target = "java8"
 
     [[platform.libraries]]
     artifactId = "http"
-    version = "@project.version@"
-    path = "../http-native/build/libs/http-native-@project.version@.jar"
+    version = "1.0.0-SNAPSHOT"
+    path = "../http-native/build/libs/http-native-1.0.0-SNAPSHOT.jar"
     groupId = "ballerina"
     modules = ["http", "http-tests"]
 

@@ -77,5 +77,5 @@ public function testCookieSupport() {
     checkpanic wsClientEp->pushText("Hi");
     runtime:sleep(500);
     test:assertEquals(expectedOutput, "Hello World!");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

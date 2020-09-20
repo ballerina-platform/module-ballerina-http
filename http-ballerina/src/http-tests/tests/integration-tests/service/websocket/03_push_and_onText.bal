@@ -84,7 +84,7 @@ public function testString() {
     checkpanic wsClient->pushText("Hi");
     runtime:sleep(500);
     test:assertEquals(data, "Hi", msg = "Failed pushtext");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests JSON support for pushText and onText
@@ -95,7 +95,7 @@ public function testJson() {
     checkpanic wsClient->pushText("{\"name\":\"Riyafa\", \"age\":23}");
     runtime:sleep(500);
     test:assertEquals(data, expectedMsg, msg = "Failed pushtext");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests XML support for pushText and onText
@@ -106,7 +106,7 @@ public function testXml() {
     var output = wsClient->pushText(msg);
     runtime:sleep(500);
     test:assertEquals(data, msg, msg = "");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests Record support for pushText and onText
@@ -117,7 +117,7 @@ public function testRecord() {
     var output = wsClient->pushText("{\"name\":\"Riyafa\", \"age\":23}");
     runtime:sleep(500);
     test:assertEquals(data, expectedMsg, msg = "");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests byte array support for pushText and onText
@@ -129,5 +129,5 @@ public function testByteArray() {
     var output = wsClient->pushText(msg);
     runtime:sleep(500);
     test:assertEquals(data, msg, msg = "");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

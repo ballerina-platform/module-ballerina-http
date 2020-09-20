@@ -42,5 +42,5 @@ public function testAutoPingPongSupport() {
     checkpanic wsClient->ping(pingData);
     runtime:sleep(500);
     test:assertEquals(expectedAutoPongData, pingData, msg = "Data mismatched");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

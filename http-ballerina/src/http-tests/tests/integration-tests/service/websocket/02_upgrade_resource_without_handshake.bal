@@ -50,6 +50,6 @@ service clientCallbackService = @http:WebSocketServiceConfig {} service {
 public function testUpgradeResourceWithoutHandshake() {
     http:WebSocketClient wsClient = new ("ws://localhost:21002/UpgradeWithoutHandshake",
         {callbackService: clientCallbackService});
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
     test:assertEquals(upgradeServiceExpecteddata, "Handshake check", msg = "Failed handshake");
 }

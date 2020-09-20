@@ -60,5 +60,5 @@ public function testBasicAuthenticationSuccess() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21039");
     runtime:sleep(500);
     test:assertEquals(expectedOutput, "Hello World!");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

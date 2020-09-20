@@ -48,5 +48,5 @@ public function testBinaryContinuation() {
     checkpanic wsClient->pushBinary(data, true);
     runtime:sleep(500);
     test:assertEquals(expectedBinaryData, data, msg = "Data mismatched");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

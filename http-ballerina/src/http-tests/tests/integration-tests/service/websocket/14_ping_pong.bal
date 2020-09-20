@@ -63,7 +63,7 @@ public function testPingToBallerinaServer() {
     checkpanic wsClient->ping(pongData);
     runtime:sleep(500);
     test:assertEquals(expectedPongData, pongData);
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests pong to Ballerina WebSocket server
@@ -75,5 +75,5 @@ public function testPingFromRemoteServerToBallerinaClient() {
     checkpanic wsClient->pong(pongData);
     runtime:sleep(500);
     test:assertEquals(expectedPongData1, pongData);
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }

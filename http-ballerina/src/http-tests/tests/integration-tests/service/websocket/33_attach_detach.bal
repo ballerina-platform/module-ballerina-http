@@ -94,7 +94,7 @@ public function detachFirst() {
     checkpanic wsClientEp->pushText("detach");
     runtime:sleep(500);
     test:assertEquals(serverOutput, "GenericError: Cannot detach service. Service has not been registered");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests echoed text message from the attached servers
@@ -116,9 +116,9 @@ public function attachSuccess() {
     checkpanic attachClient->pushText(msg);
     runtime:sleep(500);
     test:assertEquals(expectedData, msg);
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
-    checkpanic attachClient->close(statusCode = 1000, reason = "Close the connection");
-    checkpanic pathClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
+    checkpanic attachClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
+    checkpanic pathClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Tests detach
@@ -131,7 +131,7 @@ public function detachSuccess() {
     http:WebSocketClient attachClient = new ("ws://localhost:21032", {callbackService: attachService});
     runtime:sleep(500);
     test:assertEquals(expectedErr, "error(\"InvalidHandshakeError: Invalid handshake response getStatus: 404 Not Found\")");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Attach twice to the service
@@ -143,7 +143,7 @@ public function attachTwice() {
     checkpanic wsClientEp->pushText("attach");
     runtime:sleep(500);
     test:assertEquals(serverOutput, "GenericError: Two services have the same addressable URI");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
 
 // Detach from the service twice
@@ -155,5 +155,5 @@ public function detachTwice() {
     checkpanic wsClientEp->pushText("detach");
     runtime:sleep(500);
     test:assertEquals(serverOutput, "GenericError: Cannot detach service. Service has not been registered");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 120);
 }
