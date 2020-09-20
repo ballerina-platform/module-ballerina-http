@@ -281,7 +281,7 @@ public function createHttpSecureClient(string url, ClientConfiguration config) r
 # + req - An HTTP outbound request message
 # + config - Client endpoint configurations
 # + return - Prepared HTTP request or `http:ClientError` if an error occurred at auth handler invocation
-isolated function prepareSecureRequest(Request req, ClientConfiguration config) returns Request|ClientError {
+function prepareSecureRequest(Request req, ClientConfiguration config) returns Request|ClientError {
     OutboundAuthConfig? auth = config.auth;
     if (auth is OutboundAuthConfig) {
         OutboundAuthHandler authHandler = auth.authHandler;
@@ -297,7 +297,7 @@ isolated function prepareSecureRequest(Request req, ClientConfiguration config) 
 # + res - An HTTP outbound response message
 # + config - Client endpoint configurations
 # + return - Prepared HTTP request or `()` if nothing to be done or `http:ClientError` if an error occurred at auth handler invocation
-isolated function doInspection(Request req, Response res, ClientConfiguration config) returns Request|ClientError? {
+function doInspection(Request req, Response res, ClientConfiguration config) returns Request|ClientError? {
     OutboundAuthConfig? auth = config.auth;
     if (auth is OutboundAuthConfig) {
         OutboundAuthHandler authHandler = auth.authHandler;
