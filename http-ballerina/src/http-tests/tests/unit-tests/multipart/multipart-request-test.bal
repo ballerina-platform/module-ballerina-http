@@ -248,12 +248,12 @@ function testMultiplePartsForFormData() {
     mime:Entity textPart1 = new;
     textPart1.setText("Part1");
     textPart1.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    textPart1.setContentDisposition(getContentDispositionForFormData("foo", "form-data"));
+    textPart1.setContentDisposition(getContentDispositionForGivenDisposition("foo", "form-data"));
 
     mime:Entity textPart2 = new;
     textPart2.setText("Part2");
     textPart2.setHeader("Content-Transfer-Encoding", "binary");
-    mime:ContentDisposition contentDisposition = getContentDispositionForFormData("filepart", "form-data");
+    mime:ContentDisposition contentDisposition = getContentDispositionForGivenDisposition("filepart", "form-data");
     contentDisposition.fileName = "file-01.txt";
     textPart2.setContentDisposition(contentDisposition);
 
@@ -273,13 +273,13 @@ function testMultiplePartsForNewSubTypes() {
     mime:Entity textPart1 = new;
     textPart1.setText("Part1");
     textPart1.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    textPart1.setContentDisposition(getContentDispositionForFormData("foo", "form-data"));
+    textPart1.setContentDisposition(getContentDispositionForGivenDisposition("foo", "form-data"));
 
     mime:Entity textPart2 = new;
     textPart2.setText("Part2");
     textPart2.setHeader("Content-Type", "text/plain");
     textPart2.setHeader("Content-Transfer-Encoding", "binary");
-    mime:ContentDisposition contentDisposition = getContentDispositionForFormData("", "inline");
+    mime:ContentDisposition contentDisposition = getContentDispositionForGivenDisposition("", "inline");
     textPart2.setContentDisposition(contentDisposition);
 
     mime:Entity[] bodyParts = [textPart1, textPart2];
@@ -522,7 +522,7 @@ function testTextBodyPartWith8BitEncoding() {
     }
 }
 
-function getContentDispositionForFormData(string partName, string disposition) returns (mime:ContentDisposition) {
+function getContentDispositionForGivenDisposition(string partName, string disposition) returns (mime:ContentDisposition) {
     mime:ContentDisposition contentDisposition = new;
     if (partName != "") {
         contentDisposition.name = partName;

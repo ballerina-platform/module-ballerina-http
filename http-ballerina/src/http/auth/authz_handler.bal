@@ -41,7 +41,7 @@ public class AuthzHandler {
     #
     # + req - The `http:Request` instance
     # + return - `true` if it can be authorized, `false` otherwise, or else an `http:AuthorizationError` if an error occurred
-    isolated function canProcess(Request req) returns boolean|AuthorizationError {
+    function canProcess(Request req) returns boolean|AuthorizationError {
         if (auth:getInvocationContext()?.userId is ()) {
             return prepareAuthorizationError("UserId not set in auth:InvocationContext. Unable to authorize.");
         }
@@ -52,7 +52,7 @@ public class AuthzHandler {
     #
     # + scopes - An array of scopes or an array consisting of arrays of scopes of the listener or resource or service
     # + return - `true` if authorization check is a success, else `false`
-    isolated function process(Scopes scopes) returns boolean {
+    function process(Scopes scopes) returns boolean {
         // since different resources can have different scopes,
         // cache key is <username>-<service>-<resource>-<http-method>-<scopes-separated-by-comma>
         string serviceName = runtime:getInvocationContext().attributes[SERVICE_NAME].toString();

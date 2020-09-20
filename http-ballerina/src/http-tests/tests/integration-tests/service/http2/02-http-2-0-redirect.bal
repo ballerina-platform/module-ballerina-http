@@ -333,3 +333,80 @@ function testHTTP2MaxRedirect() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
+
+//Original request and the final redirect request goes to two different domains and the max redirect count gets equal to current redirect count
+@test:Config {}
+function testHTTP2CrossDomain() {
+    var response = http2RedirectClient->get("/service1/crossDomain");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Redirect is on, but the first response received is not a redirect
+@test:Config {}
+function testHTTP2NoRedirect() {
+    var response = http2RedirectClient->get("/service1/noRedirect");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Include query params in relative path of a redirect location
+@test:Config {}
+function testHTTP2QPWithRelativePath() {
+    var response = http2RedirectClient->get("/service1/qpWithRelativePath");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "value:ballerina:http://localhost:" + http2RedirectTestPort2.toString() + "/redirect1/processQP?key=value&lang=ballerina");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Include query params in absolute path of a redirect location
+@test:Config {}
+function testHTTP2QPWithAbsolutePath() {
+    var response = http2RedirectClient->get("/service1/qpWithAbsolutePath");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "value:ballerina:http://localhost:" + http2RedirectTestPort2.toString() + "/redirect1/processQP?key=value&lang=ballerina");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test original request with query params. NOTE:Query params in the original request should be ignored while resolving redirect url
+@test:Config {}
+function testHTTP2OriginalRequestWithQP() {
+    var response = http2RedirectClient->get("/service1/originalRequestWithQP");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testHTTP2303Status() {
+    var response = http2RedirectClient->get("/service1/test303");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}

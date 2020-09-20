@@ -373,7 +373,9 @@ public function testRemoveSessionCookieByServer() {
 }
 
 // Test to send concurrent requests by cookie client
-@test:Config {}
+@test:Config {
+    enable: false
+}
 public function testSendConcurrentRequests() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-5.csv");
     http:Client cookieClientEndpoint = new ("http://localhost:9253", {

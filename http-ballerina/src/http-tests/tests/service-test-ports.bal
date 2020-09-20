@@ -70,6 +70,27 @@ const int serviceChainingTestPort = 9525;
 const int trailingHeaderTestPort1 = 9526;
 const int trailingHeaderTestPort2 = 9527;
 const int reuseRequestTestPort = 9528;
+const int expectContinueTestPort1 = 9529;
+const int expectContinueTestPort2 = 9530;
+const int pipeliningTestPort1 = 9531;
+const int pipeliningTestPort2 = 9532;
+const int pipeliningTestPort3 = 9533;
+const int keepAliveClientTestPort = 9534;
+const int multipleClientTestPort1 = 9535;
+const int multipleClientTestPort2 = 9536;
+const int resourceFunctionTestPort = 9537;
+const int retryFunctionTestPort1 = 9538;
+const int retryFunctionTestPort2 = 9539;
+const int serializeXmlTestPort = 9540;
+const int cachingTestPort1 = 9541;
+const int cachingTestPort2 = 9542;
+const int cachingTestPort3 = 9543;
+const int cachingTestPort4 = 9544;
+const int callerActionTestPort = 9545;
+const int dirtyResponseTestPort = 9546;
+const int listenerMethodTestPort1 = 9547;
+const int listenerMethodTestPort2 = 9548;
+
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
@@ -77,6 +98,7 @@ const int serverPushTestPort2 = 9602;
 const int http2RedirectTestPort1 = 9603;
 const int http2RedirectTestPort2 = 9604;
 const int http2RedirectTestPort3 = 9605;
+
 
 
 

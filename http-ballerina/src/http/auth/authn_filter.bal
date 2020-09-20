@@ -36,7 +36,7 @@ public class AuthnFilter {
     # + request - An inbound HTTP request message
     # + context - The `http:FilterContext` instance
     # + return - A flag to indicate if the request flow should be continued(true) or aborted(false)
-    public isolated function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
+    public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
         boolean|AuthenticationError authenticated = true;
         InboundAuthHandlers|boolean authHandlers = getAuthHandlers(context);
         if (authHandlers is InboundAuthHandlers) {
@@ -54,7 +54,7 @@ public class AuthnFilter {
     }
 }
 
-isolated function handleAuthRequest(InboundAuthHandlers authHandlers, Request request) returns boolean|AuthenticationError {
+function handleAuthRequest(InboundAuthHandlers authHandlers, Request request) returns boolean|AuthenticationError {
     if (authHandlers is InboundAuthHandler[]) {
         return checkForAuthHandlers(authHandlers, request);
     } else {
@@ -72,7 +72,7 @@ isolated function handleAuthRequest(InboundAuthHandlers authHandlers, Request re
     }
 }
 
-isolated function checkForAuthHandlers(InboundAuthHandler[] authHandlers, Request request) returns boolean|AuthenticationError {
+function checkForAuthHandlers(InboundAuthHandler[] authHandlers, Request request) returns boolean|AuthenticationError {
     AuthenticationError? err = ();
     foreach InboundAuthHandler authHandler in authHandlers {
         boolean canProcessResponse = authHandler.canProcess(request);
