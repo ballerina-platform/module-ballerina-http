@@ -35,7 +35,7 @@ public class BasicAuthHandler {
     #
     # + req - The `http:Request` instance
     # + return - `true` if authentication is successful or else `false`
-    public isolated function canProcess(Request req) returns @tainted boolean {
+    public function canProcess(Request req) returns @tainted boolean {
         if (req.hasHeader(AUTH_HEADER)) {
             string headerValue = extractAuthorizationHeaderValue(req);
             return headerValue.startsWith(auth:AUTH_SCHEME_BASIC);
@@ -48,7 +48,7 @@ public class BasicAuthHandler {
     # + req - The `http:Request` instance
     # + return - `true` if it is possible to authenticate with Basic Auth, `false` otherwise, or else
     #                 an `http:AuthenticationError` in case of an error
-    public isolated function process(Request req) returns boolean|AuthenticationError {
+    public function process(Request req) returns boolean|AuthenticationError {
         string headerValue = extractAuthorizationHeaderValue(req);
         string credential = headerValue.substring(5, headerValue.length());
         credential = credential.trim();
@@ -69,7 +69,7 @@ public class BasicAuthHandler {
     #
     # + req - The `http:Request` instance
     # + return - The updated `http:Request` instance or else an `http:AuthenticationError` in case of an error
-    public isolated function prepare(Request req) returns Request|AuthenticationError {
+    public function prepare(Request req) returns Request|AuthenticationError {
         auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider = self.authProvider;
         if (authProvider is auth:OutboundAuthProvider) {
             string|auth:Error token = authProvider.generateToken();
@@ -90,7 +90,7 @@ public class BasicAuthHandler {
     # + resp - The `http:Response` instance
     # + return - The updated `http:Request` instance or the `http:AuthenticationError` in case of an error
     #                 or else `()` if nothing is to be returned
-    public isolated function inspect(Request req, Response resp) returns Request|AuthenticationError? {
+    public function inspect(Request req, Response resp) returns Request|AuthenticationError? {
         auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider = self.authProvider;
         if (authProvider is auth:OutboundAuthProvider) {
             map<anydata> headerMap = createResponseHeaderMap(resp);

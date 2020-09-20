@@ -25,7 +25,7 @@ public type RequestFilter object {
     # + request - An inbound HTTP request message
     # + context - A filter context
     # + return - True if the filter succeeds
-    public isolated function filterRequest(Caller caller, Request request, FilterContext context) returns boolean;
+    public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean;
 };
 
 # Abstract Representation of a HTTP Response Filter.
