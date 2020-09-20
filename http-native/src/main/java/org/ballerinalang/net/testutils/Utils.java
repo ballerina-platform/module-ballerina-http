@@ -1,105 +1,45 @@
-// Copyright (c) 2020 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-//
-// WSO2 Inc. licenses this file to you under the Apache License,
-// Version 2.0 (the "License"); you may not use this file except
-// in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied. See the License for the
-// specific language governing permissions and limitations
-// under the License.
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-import ballerina/mime;
-import ballerina/stringutils;
-import ballerina/test;
+package org.ballerinalang.net.testutils;
 
-const string CONTENT_TYPE = "content-type";
-const string CONTENT_ENCODING = "content-encoding";
-const string ACCEPT_ENCODING = "accept-encoding";
-const string CONTENT_LENGTH = "content-length";
-const string LOCATION = "location";
-const string ORIGIN = "origin";
-const string ALLOW = "Allow";
-const string ACCESS_CONTROL_ALLOW_ORIGIN = "access-control-allow-origin";
-const string ACCESS_CONTROL_ALLOW_CREDENTIALS = "access-control-allow-credentials";
-const string ACCESS_CONTROL_ALLOW_HEADERS = "access-control-allow-headers";
-const string ACCESS_CONTROL_ALLOW_METHODS = "access-control-allow-methods";
-const string ACCESS_CONTROL_EXPOSE_HEADERS = "access-control-expose-headers";
-const string ACCESS_CONTROL_MAX_AGE = "access-control-max-age";
-const string ACCESS_CONTROL_REQUEST_HEADERS = "access-control-request-headers";
-const string ACCESS_CONTROL_REQUEST_METHOD = "access-control-request-method";
-const string IF_NONE_MATCH = "If-None-Match";
-const string IF_MODIFIED_SINCE = "If-Modified-Since";
-const string SERVER = "server";
+import io.netty.handler.codec.http.FullHttpResponse;
+import org.ballerinalang.util.BLangConstants;
 
-const string ENCODING_GZIP = "gzip";
-const string ENCODING_DEFLATE = "deflate";
-const string HTTP_TRANSFER_ENCODING_IDENTITY = "identity";
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
-const string HTTP_METHOD_GET = "GET";
-const string HTTP_METHOD_POST = "POST";
-const string HTTP_METHOD_PUT = "PUT";
-const string HTTP_METHOD_PATCH = "PATCH";
-const string HTTP_METHOD_DELETE = "DELETE";
-const string HTTP_METHOD_OPTIONS = "OPTIONS";
-const string HTTP_METHOD_HEAD = "HEAD";
+/**
+ * A utility class for keep payloads.
+ */
+public class Utils {
 
-const string TEXT_PLAIN = "text/plain";
-const string APPLICATION_XML = "application/xml";
-const string APPLICATION_JSON = "application/json";
-const string APPLICATION_FORM = "application/x-www-form-urlencoded";
-
-
-function getContentDispositionForFormData(string partName)
-                                    returns (mime:ContentDisposition) {
-    mime:ContentDisposition contentDisposition = new;
-    contentDisposition.name = partName;
-    contentDisposition.disposition = "form-data";
-    return contentDisposition;
-}
-
-function assertJsonValue(json|error payload, string expectKey, json expectValue) {
-    if payload is map<json> {
-        test:assertEquals(payload[expectKey], expectValue, msg = "Found unexpected output");
-    } else if payload is error {
-        test:assertFail(msg = "Found unexpected output type: " + payload.message());
-    }
-}
-
-function assertJsonPayload(json|error payload, json expectValue) {
-    if payload is json {
-        test:assertEquals(payload, expectValue, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + payload.message());
-    }
-}
-
-function assertTextPayload(string|error payload, string expectValue) {
-    if payload is string {
-        test:assertEquals(payload, expectValue, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + payload.message());
-    }
-}
-
-function assertTrueTextPayload(string|error payload, string expectValue) {
-    if payload is string {
-        test:assertTrue(stringutils:contains(payload, expectValue), msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + payload.message());
-    }
-}
-
-function assertHeaderValue(string headerKey, string expectValue) {
-    test:assertEquals(headerKey, expectValue, msg = "Found unexpected headerValue");
-}
-
-const string LARGE_ENTITY = "Lorem ipsum dolor sit amet, libris quaerendum sea ei, in nec fugit " +
+    public static final String LARGE_ENTITY = "Lorem ipsum dolor sit amet, libris quaerendum sea ei, in nec fugit " +
             "prodesset. Pro te quas mundi, mel viderer inimicus urbanitas an. No dolor essent timeam mei, exerci " +
             "virtute nostrum pri ad. Graeco doctus ea eam.\n" +
             "\n" +
@@ -214,3 +154,36 @@ const string LARGE_ENTITY = "Lorem ipsum dolor sit amet, libris quaerendum sea e
             "Eum dicit mentitum at, agam liber aeterno nec ea. Ut sed vide impetus saperet. Sumo utroque menandri eum" +
             " no, te eum cibo molestiae, ea vis oratio tibique denique. Prima tibique commune sed ea, vim choro " +
             "alienum et.\n";
+
+    public static String getEntityBodyFrom(FullHttpResponse httpResponse) {
+        ByteBuffer content = httpResponse.content().nioBuffer();
+        StringBuilder stringContent = new StringBuilder();
+        while (content.hasRemaining()) {
+            stringContent.append((char) content.get());
+        }
+        return stringContent.toString();
+    }
+
+    // TODO: find a better way to run client bal files during integration tests.
+    public static void prepareBalo(Object test) throws URISyntaxException {
+        if (System.getProperty(BLangConstants.BALLERINA_HOME) != null) {
+            return;
+        }
+
+        String path = new File(test.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath())
+                .getAbsolutePath();
+        Path target = Paths.get(path).getParent();
+        System.setProperty(BLangConstants.BALLERINA_HOME, target.toString());
+    }
+
+    public static KeyStore getKeyStore(File keyStore)
+            throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+        KeyStore ks;
+        try (InputStream is = new FileInputStream(keyStore)) {
+            ks = KeyStore.getInstance("PKCS12");
+            ks.load(is, "ballerina".toCharArray());
+        }
+
+        return ks;
+    }
+}

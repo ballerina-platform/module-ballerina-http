@@ -61,7 +61,7 @@ service priorKnowledgeTest on priorEp1 {
 @http:ServiceConfig {
     basePath: "/backend"
 }
-service testBackEnd on priorEp2 {
+service priorKnowledgeTestBackEnd on priorEp2 {
 
     @http:ResourceConfig {
         methods: ["POST"],

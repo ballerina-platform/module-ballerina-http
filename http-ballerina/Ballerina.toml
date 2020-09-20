@@ -25,7 +25,7 @@ target = "java8"
     version = "@project.version@"
     path = "../http-native/build/libs/http-native-@project.version@.jar"
     groupId = "ballerina"
-    modules = ["http"]
+    modules = ["http", "http-tests"]
 
     [[platform.libraries]]
     artifactId = "mime-native"
@@ -152,3 +152,10 @@ target = "java8"
     path = "./lib/org.wso2.carbon.messaging-2.3.7.jar"
     groupId = "org.wso2.carbon.messaging"
     modules = ["http"]
+
+    [[platform.libraries]]
+    artifactId = "org.testng"
+    version = "6.14.3"
+    path = "./lib/testng-6.14.3.jar"
+    groupId = "org.testng"
+    modules = ["http-tests"]
