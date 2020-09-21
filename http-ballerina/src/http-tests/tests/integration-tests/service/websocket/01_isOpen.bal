@@ -47,7 +47,6 @@ public function testIsOpenCloseCalled() {
     checkpanic wsClient->pushText("Hi");
     runtime:sleep(500);
     test:assertEquals(output, "In onText isOpen false");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
 }
 
 // Test isOpen when a close frame is received

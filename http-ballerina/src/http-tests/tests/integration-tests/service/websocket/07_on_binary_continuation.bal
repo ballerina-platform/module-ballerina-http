@@ -19,22 +19,37 @@ import ballerina/test;
 import http;
 
 byte[] content = [];
+byte[] binaryContent = [];
 @http:WebSocketServiceConfig {
     path: "/onBinaryContinuation"
 }
 service onBinaryContinuation on new http:Listener(21007) {
     resource function onBinary(http:WebSocketCaller caller, byte[] data, boolean finalFrame) {
-        var returnVal = caller->pushBinary(data);
-        if (returnVal is http:WebSocketError) {
-            panic <error>returnVal;
+        if (finalFrame) {
+            appendToArray(<@untainted> data, content);
+            var returnVal = caller->pushBinary(content);
+            if (returnVal is http:WebSocketError) {
+                panic <error> returnVal;
+            }
+        } else {
+            appendToArray(<@untainted> data, content);
         }
+    }
+}
+
+function appendToArray(byte[] src, byte[] dest) {
+    int i = 0;
+    int l = src.length();
+    while (i < l) {
+        dest[dest.length()] = src[i];
+        i = i + 1;
     }
 }
 
 service continuationService = @http:WebSocketServiceConfig {} service {
 
     resource function onBinary(http:WebSocketClient caller, byte[] data, boolean finalFrame) {
-        expectedBinaryData = <@untainted>data;
+        binaryContent = <@untainted>data;
     }
 };
 
@@ -42,11 +57,15 @@ service continuationService = @http:WebSocketServiceConfig {} service {
 @test:Config {}
 public function testBinaryContinuation() {
     string msg = "<note><to>Tove</to></note>";
-    byte[] data = msg.toBytes();
+    string[] values = ["<note>", "<to>", "Tove", "</to>"];
     http:WebSocketClient wsClient = new ("ws://localhost:21007/onBinaryContinuation",
         {callbackService: continuationService});
-    checkpanic wsClient->pushBinary(data, true);
+    foreach string value in values {
+        checkpanic wsClient->pushBinary(value.toBytes(), false);
+    }
+    checkpanic wsClient->pushBinary("</note>".toBytes(), true);
     runtime:sleep(500);
-    test:assertEquals(expectedBinaryData, data, msg = "Data mismatched");
+    string|error value = 'string:fromBytes(binaryContent);
+    test:assertEquals(value.toString(), msg, msg = "Data mismatched");
     checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
 }
