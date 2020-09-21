@@ -300,6 +300,5 @@ isolated function externAcceptWebSocketUpgrade(Caller caller, map<string> header
 isolated function externCancelWebSocketUpgrade(Caller caller, int status, string reason) returns WebSocketError? =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.connection.CancelWebSocketUpgrade",
-    name: "cancelWebSocketUpgrade",
-    paramTypes: ["org.ballerinalang.jvm.values.ObjectValue", "long", "org.ballerinalang.jvm.api.values.BString"]
+    name: "cancelWebSocketUpgrade"
 } external;
