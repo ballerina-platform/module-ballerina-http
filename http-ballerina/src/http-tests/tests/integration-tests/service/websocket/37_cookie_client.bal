@@ -20,6 +20,8 @@ import ballerina/runtime;
 import ballerina/test;
 import http;
 
+string expectedOutput37 = "";
+
 http:ClientConfiguration clientEPConfig = {
     cookieConfig: {
         enabled: true
@@ -66,7 +68,7 @@ service on new http:Listener(21037) {
 service CookieService = @http:WebSocketServiceConfig {} service {
 
     resource function onText(http:WebSocketClient conn, string text, boolean finalFrame) {
-        expectedOutput = <@untainted>text;
+        expectedOutput37 = <@untainted>text;
     }
 };
 
@@ -76,6 +78,6 @@ public function testCookieSupport() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21037");
     checkpanic wsClientEp->pushText("Hi");
     runtime:sleep(500);
-    test:assertEquals(expectedOutput, "Hello World!");
+    test:assertEquals(expectedOutput37, "Hello World!");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }

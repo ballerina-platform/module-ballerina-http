@@ -19,6 +19,8 @@ import ballerina/runtime;
 import ballerina/test;
 import http;
 
+string expectedOutput43 = "";
+
 @http:WebSocketServiceConfig {
     path: "/websocket"
 }
@@ -50,7 +52,7 @@ service failoverServer on new http:Listener(21043) {
 service failoverClientCallbackService = @http:WebSocketServiceConfig {} service {
 
     resource function onText(http:WebSocketFailoverClient wsEp, string text) {
-        expectedOutput = <@untainted>text;
+        expectedOutput43 = <@untainted>text;
     }
 
     resource function onBinary(http:WebSocketFailoverClient wsEp, byte[] data) {
@@ -76,7 +78,7 @@ public function testBinaryFrameWithThirdServer() {
     });
     checkpanic wsClientEp->pushText("Hello");
     runtime:sleep(500);
-    test:assertEquals(expectedOutput, "Hello");
+    test:assertEquals(expectedOutput43, "Hello");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
 
@@ -94,7 +96,7 @@ public function testTextFrameWithSecondServer() {
     });
     checkpanic wsClientEp->pushText("Hello");
     runtime:sleep(500);
-    test:assertEquals(expectedOutput, "Hello");
+    test:assertEquals(expectedOutput43, "Hello");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
 
@@ -131,6 +133,6 @@ public function testHandshakeTimeout() {
     });
     checkpanic wsClientEp->pushText("Hello everyone");
     runtime:sleep(500);
-    test:assertEquals(expectedOutput, "Hello everyone");
+    test:assertEquals(expectedOutput43, "Hello everyone");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }

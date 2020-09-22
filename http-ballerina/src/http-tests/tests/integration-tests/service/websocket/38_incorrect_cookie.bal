@@ -20,7 +20,8 @@ import ballerina/runtime;
 import ballerina/test;
 import http;
 
-string expectedError = "";
+string expectedError38 = "";
+
 http:ClientConfiguration clientConfig = {
     cookieConfig: {
         enabled: true
@@ -65,7 +66,7 @@ service on new http:Listener(21038) {
 service ErrorCookieService = @http:WebSocketServiceConfig {} service {
 
     resource function onError(http:WebSocketClient conn, error err) {
-        expectedError = <@untainted>err.message();
+        expectedError38 = <@untainted>err.message();
     }
 };
 
@@ -74,6 +75,6 @@ service ErrorCookieService = @http:WebSocketServiceConfig {} service {
 public function IncorrectCookieTestCase() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21038");
     runtime:sleep(500);
-    test:assertEquals(expectedError, "InvalidHandshakeError: Invalid handshake response getStatus: 401 Unauthorized");
+    test:assertEquals(expectedError38, "InvalidHandshakeError: Invalid handshake response getStatus: 401 Unauthorized");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
