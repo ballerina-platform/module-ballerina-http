@@ -72,7 +72,8 @@ function test500Response() {
 
 // Tests if 408 response is returned when the request times out. In this case a delay is
 // introduced between the first and second chunk.
-@test:Config {}
+// Disabled due to https://github.com/ballerina-platform/module-ballerina-http/issues/62
+@test:Config {enable:false}
 function test408Response() {
     test:assertTrue(externTest408Response(idleTimeoutTestPort));
 }

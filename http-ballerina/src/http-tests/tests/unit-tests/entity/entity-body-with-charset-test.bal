@@ -108,7 +108,8 @@ function testSetHeaderAfterXmlPayload() {
     test:assertEquals(headers[0], "application/xml;charset=\"ISO_8859-1:1987\"");
 }
 
-@test:Config {}
+// Disabled due to https://github.com/ballerina-platform/module-ballerina-http/issues/62
+@test:Config {enable:false}
 function testXmlPayloadWithDefaultCharset() {
     http:Request request = new;
     request.setXmlPayload(xmlValue);
@@ -120,7 +121,8 @@ function testXmlPayloadWithDefaultCharset() {
     }
 }
 
-@test:Config {}
+// Disabled due to https://github.com/ballerina-platform/module-ballerina-http/issues/62
+@test:Config {enable:false}
 function testXmlPayloadWithCharset() {
     http:Request request = new;
     request.setXmlPayload(xmlValue, "application/xml;charset=utf-8");
@@ -303,7 +305,8 @@ service entityService on entityEP {
 http:Client entityClient = new("http://localhost:" + entityTest.toString());
 
 // Test addHeader function within a service
-@test:Config {}
+// Disabled due to https://github.com/ballerina-platform/module-ballerina-http/issues/62
+@test:Config {enable:false}
 function jsonTest() {
     string path = "/test/jsonTest";
     http:Request request = new;
