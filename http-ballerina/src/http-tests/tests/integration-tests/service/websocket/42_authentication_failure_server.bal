@@ -35,7 +35,7 @@ service upgradeServ on httpServ {
     @http:ResourceConfig {
         webSocketUpgrade: {
             upgradePath: "/ws",
-            upgradeService: upgradedService
+            upgradeService: upgradedServ
         }
     }
     resource function upgrader(http:Caller caller, http:Request req) {
