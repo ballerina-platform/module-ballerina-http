@@ -19,7 +19,7 @@ plugins {
     id "com.github.spotbugs" version "4.0.5"
     id "com.github.johnrengelman.shadow" version "5.2.0"
     id "de.undercouch.download" version "4.0.4"
-    id "net.researchgate.release" version "2.6.0"
+    id "net.researchgate.release" version "2.8.0"
 }
 
 ext.ballerinaLangVersion = project.ballerinaLangVersion
@@ -213,18 +213,23 @@ subprojects {
         ballerinaStdLibs "org.ballerinalang:system-ballerina:${stdlibSystemVersion}"
         ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
     }
+}
 
-    release {
-        // Disable check snapshots temporarily
-        buildTasks = []
-        failOnSnapshotDependencies = false
-        failOnCommitNeeded = false
-        versionPropertyFile = 'gradle.properties'
-        tagTemplate = 'v${version}'
-        git {
-            // To release from any branch
-            requireBranch = null
-        }
+def moduleVersion = project.version
+if (moduleVersion.indexOf('-') != -1) {
+    moduleVersion = moduleVersion.substring(0, moduleVersion.indexOf('-'))
+}
+
+release {
+    failOnPublishNeeded = false
+
+    buildTasks = []
+    versionPropertyFile = 'gradle.properties'
+    tagTemplate = 'v$version'
+
+    git {
+        requireBranch = "release-${moduleVersion}"
+        pushToRemote = 'origin'
     }
 }
 
