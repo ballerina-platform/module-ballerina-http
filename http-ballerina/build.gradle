@@ -169,6 +169,7 @@ def originalConfig = ballerinaConfigFile.text
 
 task updateTomlVerions {
     doLast {
+        def stdlibDependentMimeNativeVersion = project.stdlibMimeVersion
         def stdlibDependentIoVersion = project.stdlibIoVersion.split("-")[0]
         def stdlibDependentLogVersion = project.stdlibLogVersion.split("-")[0]
         def stdlibDependentStringutilsVersion = project.stdlibStringutilsVersion.split("-")[0]
@@ -200,6 +201,7 @@ task updateTomlVerions {
         newConfig = newConfig.replace("@stdlib.runtime.version@", stdlibDependentRuntimeVersion)
         newConfig = newConfig.replace("@stdlib.system.version@", stdlibDependentSystemVersion)
         newConfig = newConfig.replace("@stdlib.task.version@", stdlibDependentTaskVersion)
+        newConfig = newConfig.replace("@stdlib.mimenative.version@", stdlibDependentMimeNativeVersion)
         ballerinaConfigFile.text = newConfig
     }
 }

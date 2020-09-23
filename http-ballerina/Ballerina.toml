@@ -29,8 +29,8 @@ target = "java8"
 
     [[platform.libraries]]
     artifactId = "mime-native"
-    version = "1.0.0-SNAPSHOT"
-    path = "./lib/mime-native-1.0.0-SNAPSHOT.jar"
+    version = "@stdlib.mimenative.version@"
+    path = "./lib/mime-native-@stdlib.mimenative.version@.jar"
     groupId = "ballerina"
     modules = ["http"]
 
