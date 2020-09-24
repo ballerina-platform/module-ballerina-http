@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The representation of an outbound authentication handler for HTTP traffic.
+# The representation of an outbound authentication handler object type for HTTP traffic.
 public type OutboundAuthHandler object {
 
     # Prepares the request with the relevant authentication requirements.
