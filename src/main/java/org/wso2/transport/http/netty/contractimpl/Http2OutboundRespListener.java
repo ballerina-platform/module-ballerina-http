@@ -211,7 +211,7 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
             } else if (encoding.contains(ENCODING_DEFLATE) && qValue > deflateQ) {
                 deflateQ = qValue;
             } else {
-                LOG.debug("Server does not support the requested encoding scheme/s");
+                LOG.debug("Server does not support the requested encoding scheme: {}", encoding);
             }
         }
         if (gzipQ > 0.0f || deflateQ > 0.0f) {
