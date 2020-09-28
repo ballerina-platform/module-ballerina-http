@@ -91,19 +91,16 @@ public class ResponseBodyCompressionTestCase {
 
         streamId = streamId + 2;
         responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, null);
-        assertPlainResults(responseHandler.getFullResponse(streamId),
-                           responseHandler.getResponsePayload(streamId));
+        assertPlainResults(responseHandler.getFullResponse(streamId), responseHandler.getResponsePayload(streamId));
 
         streamId = streamId + 2;
         responseHandler = h2ClientWithoutDecompressor
                 .sendPostRequest(PAYLOAD, streamId, HttpHeaderValues.IDENTITY.toString());
-        assertPlainResults(responseHandler.getFullResponse(streamId),
-                responseHandler.getResponsePayload(streamId));
+        assertPlainResults(responseHandler.getFullResponse(streamId), responseHandler.getResponsePayload(streamId));
 
         streamId = streamId + 2;
         responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, "sdch, br");
-        assertPlainResults(responseHandler.getFullResponse(streamId),
-                responseHandler.getResponsePayload(streamId));
+        assertPlainResults(responseHandler.getFullResponse(streamId), responseHandler.getResponsePayload(streamId));
 
         streamId = streamId + 2;
         responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, "sdch, br, deflate");
