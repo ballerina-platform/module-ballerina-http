@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.wso2.carbon.utils:org.wso2.carbon.utils:2.0.2">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/carbon/utils/org.wso2.carbon.utils/2.0.2/org.wso2.carbon.utils-2.0.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/carbon/utils/org.wso2.carbon.utils/2.0.2/org.wso2.carbon.utils-2.0.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/carbon/utils/org.wso2.carbon.utils/2.0.2/org.wso2.carbon.utils-2.0.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

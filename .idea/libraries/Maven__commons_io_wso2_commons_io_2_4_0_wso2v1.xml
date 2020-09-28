@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: commons-io.wso2:commons-io:2.4.0.wso2v1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/commons-io/wso2/commons-io/2.4.0.wso2v1/commons-io-2.4.0.wso2v1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/commons-io/wso2/commons-io/2.4.0.wso2v1/commons-io-2.4.0.wso2v1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/commons-io/wso2/commons-io/2.4.0.wso2v1/commons-io-2.4.0.wso2v1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

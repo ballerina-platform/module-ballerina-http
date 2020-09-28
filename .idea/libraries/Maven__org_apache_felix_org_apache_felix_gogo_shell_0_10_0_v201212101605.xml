@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.apache.felix:org.apache.felix.gogo.shell:0.10.0.v201212101605">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/felix/org.apache.felix.gogo.shell/0.10.0.v201212101605/org.apache.felix.gogo.shell-0.10.0.v201212101605.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/felix/org.apache.felix.gogo.shell/0.10.0.v201212101605/org.apache.felix.gogo.shell-0.10.0.v201212101605-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/felix/org.apache.felix.gogo.shell/0.10.0.v201212101605/org.apache.felix.gogo.shell-0.10.0.v201212101605-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

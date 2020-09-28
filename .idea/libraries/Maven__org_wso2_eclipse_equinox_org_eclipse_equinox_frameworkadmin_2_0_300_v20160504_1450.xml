@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.wso2.eclipse.equinox:org.eclipse.equinox.frameworkadmin:2.0.300.v20160504-1450">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/eclipse/equinox/org.eclipse.equinox.frameworkadmin/2.0.300.v20160504-1450/org.eclipse.equinox.frameworkadmin-2.0.300.v20160504-1450.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/eclipse/equinox/org.eclipse.equinox.frameworkadmin/2.0.300.v20160504-1450/org.eclipse.equinox.frameworkadmin-2.0.300.v20160504-1450-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/eclipse/equinox/org.eclipse.equinox.frameworkadmin/2.0.300.v20160504-1450/org.eclipse.equinox.frameworkadmin-2.0.300.v20160504-1450-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="org.wso2.transport.http.netty.feature" />
+        <module name="org.wso2.transport.http.netty.statistics" />
+        <module name="org.wso2.transport.http.netty" />
+        <module name="org.wso2.transport.http.netty.statistics.feature" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="http-parent" target="1.8" />
+      <module name="org.wso2.transport.http.netty" target="1.8" />
+      <module name="org.wso2.transport.http.netty.feature" target="1.8" />
+      <module name="org.wso2.transport.http.netty.statistics" target="1.8" />
+      <module name="org.wso2.transport.http.netty.statistics.feature" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

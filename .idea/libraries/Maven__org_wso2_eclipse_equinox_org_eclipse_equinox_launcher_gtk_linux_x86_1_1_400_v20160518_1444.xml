@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.wso2.eclipse.equinox:org.eclipse.equinox.launcher.gtk.linux.x86:1.1.400.v20160518-1444">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/eclipse/equinox/org.eclipse.equinox.launcher.gtk.linux.x86/1.1.400.v20160518-1444/org.eclipse.equinox.launcher.gtk.linux.x86-1.1.400.v20160518-1444.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/eclipse/equinox/org.eclipse.equinox.launcher.gtk.linux.x86/1.1.400.v20160518-1444/org.eclipse.equinox.launcher.gtk.linux.x86-1.1.400.v20160518-1444-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/eclipse/equinox/org.eclipse.equinox.launcher.gtk.linux.x86/1.1.400.v20160518-1444/org.eclipse.equinox.launcher.gtk.linux.x86-1.1.400.v20160518-1444-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

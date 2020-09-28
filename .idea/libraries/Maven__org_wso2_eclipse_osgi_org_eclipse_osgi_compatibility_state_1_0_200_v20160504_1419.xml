@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.wso2.eclipse.osgi:org.eclipse.osgi.compatibility.state:1.0.200.v20160504-1419">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/eclipse/osgi/org.eclipse.osgi.compatibility.state/1.0.200.v20160504-1419/org.eclipse.osgi.compatibility.state-1.0.200.v20160504-1419.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/eclipse/osgi/org.eclipse.osgi.compatibility.state/1.0.200.v20160504-1419/org.eclipse.osgi.compatibility.state-1.0.200.v20160504-1419-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/wso2/eclipse/osgi/org.eclipse.osgi.compatibility.state/1.0.200.v20160504-1419/org.eclipse.osgi.compatibility.state-1.0.200.v20160504-1419-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
