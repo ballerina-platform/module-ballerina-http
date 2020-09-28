@@ -80,5 +80,8 @@ public function testCookieSupport() {
     checkpanic wsClientEp->pushText("Hi");
     runtime:sleep(500);
     test:assertEquals(expectedOutput37, "Hello World!");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }

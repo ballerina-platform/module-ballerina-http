@@ -17,6 +17,7 @@
 import ballerina/auth;
 import ballerina/runtime;
 import ballerina/test;
+import ballerina/io;
 import http;
 
 string expectedOutput39 = "";
@@ -64,5 +65,8 @@ public function testBasicAuthenticationSuccess() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21039");
     runtime:sleep(500);
     test:assertEquals(expectedOutput39, "Hello World!");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }

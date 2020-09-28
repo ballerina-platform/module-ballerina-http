@@ -101,14 +101,21 @@ public function testLongFrameError() {
     } else {
         test:assertFail("Mismatched output");
     }
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       log:printError("Error occurred when closing connection", result);
+    }
 }
 
 // Close the connection and push text
 @test:Config {}
 public function testConnectionClosedError() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21030/websocket", {callbackService: errorResourceService});
-    checkpanic wsClientEp->close();
+    error? result = wsClientEp->close();
+    if (result is http:WebSocketError) {
+       log:printError("Error occurred when closing connection", result);
+    }
+    runtime:sleep(2000);
     var err = wsClientEp->pushText("some");
     if (err is error) {
         test:assertEquals(err.message(), "ConnectionClosureError: Close frame already sent. Cannot push text data!");

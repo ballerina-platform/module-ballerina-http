@@ -16,6 +16,7 @@
 
 import ballerina/runtime;
 import ballerina/test;
+import ballerina/io;
 import http;
 
 string expextedValue = "";
@@ -62,7 +63,10 @@ public function testClientSentCustomHeader() {
         });
     runtime:sleep(500);
     test:assertEquals(expextedValue, "some-header-value");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
 
 // Tests the client receiving custom headers from the server.
@@ -80,5 +84,8 @@ public function testClientReceivedCustomHeader() {
     } else {
         test:assertFail("Couldn't find the expected values");
     }
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
