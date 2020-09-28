@@ -77,7 +77,7 @@ public function testBinaryFrameWithThirdServer() {
         failoverIntervalInMillis: 3000
     });
     checkpanic wsClientEp->pushText("Hello");
-    runtime:sleep(500);
+    runtime:sleep(2000);
     test:assertEquals(expectedOutput43, "Hello");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
@@ -95,7 +95,7 @@ public function testTextFrameWithSecondServer() {
         failoverIntervalInMillis: 3000
     });
     checkpanic wsClientEp->pushText("Hello");
-    runtime:sleep(500);
+    runtime:sleep(2000);
     test:assertEquals(expectedOutput43, "Hello");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
@@ -114,7 +114,7 @@ public function testBinaryFrameWithFirstServer() {
     });
     byte[] pingData = [5, 24, 56, 243];
     checkpanic wsClientEp->pushBinary(pingData);
-    runtime:sleep(500);
+    runtime:sleep(2000);
     test:assertEquals(expectedBinaryData, pingData);
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
@@ -132,7 +132,7 @@ public function testHandshakeTimeout() {
         handShakeTimeoutInSeconds: 7
     });
     checkpanic wsClientEp->pushText("Hello everyone");
-    runtime:sleep(500);
+    runtime:sleep(2000);
     test:assertEquals(expectedOutput43, "Hello everyone");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
