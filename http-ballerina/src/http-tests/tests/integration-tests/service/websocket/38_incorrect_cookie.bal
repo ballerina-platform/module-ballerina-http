@@ -71,7 +71,8 @@ service ErrorCookieService = @http:WebSocketServiceConfig {} service {
 };
 
 // Test with incorrect cookie
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function IncorrectCookieTestCase() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21038");
     runtime:sleep(500);

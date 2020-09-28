@@ -65,7 +65,8 @@ service failoverClientCallbackService = @http:WebSocketServiceConfig {} service 
 };
 
 // Tests the failover webSocket client by starting the third server in the target URLs.
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function testBinaryFrameWithThirdServer() {
     http:WebSocketFailoverClient wsClientEp = new ({
         callbackService: failoverClientCallbackService,
@@ -77,13 +78,14 @@ public function testBinaryFrameWithThirdServer() {
         failoverIntervalInMillis: 3000
     });
     checkpanic wsClientEp->pushText("Hello");
-    runtime:sleep(2000);
+    runtime:sleep(500);
     test:assertEquals(expectedOutput43, "Hello");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
 
 // Tests the failover webSocket client by starting the second server in the target URLs.
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function testTextFrameWithSecondServer() {
     http:WebSocketFailoverClient wsClientEp = new ({
         callbackService: failoverClientCallbackService,
@@ -95,13 +97,14 @@ public function testTextFrameWithSecondServer() {
         failoverIntervalInMillis: 3000
     });
     checkpanic wsClientEp->pushText("Hello");
-    runtime:sleep(2000);
+    runtime:sleep(500);
     test:assertEquals(expectedOutput43, "Hello");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
 
 // Tests the failover webSocket client by starting the first server in the target URLs.
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function testBinaryFrameWithFirstServer() {
     http:WebSocketFailoverClient wsClientEp = new ({
         callbackService: failoverClientCallbackService,
@@ -114,13 +117,14 @@ public function testBinaryFrameWithFirstServer() {
     });
     byte[] pingData = [5, 24, 56, 243];
     checkpanic wsClientEp->pushBinary(pingData);
-    runtime:sleep(2000);
+    runtime:sleep(500);
     test:assertEquals(expectedBinaryData, pingData);
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
 
 // Tests the failover client when getting a handshake timeout
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function testHandshakeTimeout() {
     http:WebSocketFailoverClient wsClientEp = new ({
         callbackService: failoverClientCallbackService,
@@ -132,7 +136,7 @@ public function testHandshakeTimeout() {
         handShakeTimeoutInSeconds: 7
     });
     checkpanic wsClientEp->pushText("Hello everyone");
-    runtime:sleep(2000);
+    runtime:sleep(500);
     test:assertEquals(expectedOutput43, "Hello everyone");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }

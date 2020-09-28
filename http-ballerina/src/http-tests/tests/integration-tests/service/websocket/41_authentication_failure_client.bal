@@ -53,9 +53,10 @@ service unAuthenticationService = @http:WebSocketServiceConfig {} service {
 };
 
 // Tests with wrong credential
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function testBasicAuthenticationFailure() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21041");
-    runtime:sleep(2000);
+    runtime:sleep(500);
     test:assertEquals(expectedError41, "InvalidHandshakeError: Invalid handshake response getStatus: 401 Unauthorized");
 }
