@@ -58,7 +58,8 @@ service authenticationService = @http:WebSocketServiceConfig {} service {
 };
 
 // Tests with correct credential
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function testBasicAuthenticationSuccess() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21039");
     runtime:sleep(500);
