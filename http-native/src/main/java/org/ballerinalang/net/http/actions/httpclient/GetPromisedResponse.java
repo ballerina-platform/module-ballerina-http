@@ -25,10 +25,10 @@ import org.ballerinalang.jvm.util.exceptions.BallerinaException;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
-import org.wso2.transport.http.netty.contract.HttpClientConnector;
-import org.wso2.transport.http.netty.contract.HttpClientConnectorListener;
-import org.wso2.transport.http.netty.message.Http2PushPromise;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.contract.HttpClientConnector;
+import org.ballerinalang.net.transport.contract.HttpClientConnectorListener;
+import org.ballerinalang.net.transport.message.Http2PushPromise;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 /**
  * {@code GetPromisedResponse} action can be used to get a push response message associated with a

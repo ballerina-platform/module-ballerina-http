@@ -22,7 +22,7 @@ import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.uri.parser.DataElement;
 import org.ballerinalang.net.uri.parser.DataReturnAgent;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketMessage;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketMessage;
 
 /**
  * Data element for WebSocket URI template.

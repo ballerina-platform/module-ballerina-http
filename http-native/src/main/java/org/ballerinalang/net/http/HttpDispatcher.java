@@ -32,7 +32,7 @@ import org.ballerinalang.jvm.values.XMLValue;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.net.uri.URIUtil;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

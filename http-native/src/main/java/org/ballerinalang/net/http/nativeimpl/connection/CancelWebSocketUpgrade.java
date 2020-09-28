@@ -26,7 +26,7 @@ import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketHandshaker;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
 
 /**
  * {@code CancelWebSocketUpgrade} is the action to cancel a WebSocket upgrade.

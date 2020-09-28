@@ -23,9 +23,9 @@ import org.ballerinalang.jvm.scheduling.Scheduler;
 import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.jvm.util.exceptions.BallerinaException;
 import org.ballerinalang.net.http.HttpConstants;
-import org.wso2.transport.http.netty.contract.HttpClientConnector;
-import org.wso2.transport.http.netty.contract.HttpClientConnectorListener;
-import org.wso2.transport.http.netty.message.ResponseHandle;
+import org.ballerinalang.net.transport.contract.HttpClientConnector;
+import org.ballerinalang.net.transport.contract.HttpClientConnectorListener;
+import org.ballerinalang.net.transport.message.ResponseHandle;
 
 /**
  * {@code HasPromise} action can be used to check whether a push promise is available.

@@ -30,7 +30,7 @@ import org.ballerinalang.net.http.websocket.observability.WebSocketObservability
 import org.ballerinalang.net.http.websocket.server.WebSocketConnectionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketConnection;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

@@ -31,9 +31,9 @@ import org.ballerinalang.mime.util.MimeUtil;
 import org.ballerinalang.net.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.message.FullHttpMessageListener;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
-import org.wso2.transport.http.netty.message.HttpMessageDataStreamer;
+import org.ballerinalang.net.transport.message.FullHttpMessageListener;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 
 import java.io.IOException;
 import java.io.InputStream;

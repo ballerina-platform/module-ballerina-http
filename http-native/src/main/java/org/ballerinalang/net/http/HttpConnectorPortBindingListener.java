@@ -20,7 +20,7 @@ package org.ballerinalang.net.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.contract.PortBindingEventListener;
+import org.ballerinalang.net.transport.contract.PortBindingEventListener;
 
 import java.io.PrintStream;
 
