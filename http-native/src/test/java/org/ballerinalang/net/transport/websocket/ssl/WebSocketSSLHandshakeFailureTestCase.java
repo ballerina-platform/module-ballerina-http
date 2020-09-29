@@ -72,7 +72,8 @@ public class WebSocketSSLHandshakeFailureTestCase {
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         listenerConfiguration.setPort(WEBSOCKET_REMOTE_SERVER_PORT);
         //set PKCS12 keystore to ballerina server.
-        String keyStoreFile = "/simple-test-config/wso2carbon.p12";
+        String keyStoreFile = "/http-native/src/test/resources/simple-test-config/wso2carbon.p12";
+//        String keyStoreFile = "/simple-test-config/wso2carbon.p12";
         listenerConfiguration.setKeyStoreFile(TestUtil.getAbsolutePath(keyStoreFile));
         listenerConfiguration.setScheme("https");
         listenerConfiguration.setKeyStorePass(password);
@@ -83,7 +84,7 @@ public class WebSocketSSLHandshakeFailureTestCase {
     private WebSocketClientConnectorConfig getWebSocketClientConnectorConfigWithSSL() {
         WebSocketClientConnectorConfig clientConnectorConfig =
                 new WebSocketClientConnectorConfig(WEBSOCKET_SECURE_REMOTE_SERVER_URL);
-        String trustStoreFile = "/simple-test-config/cacerts.p12";
+        String trustStoreFile = "/http-native/src/test/resources/simple-test-config/cacerts.p12";
         clientConnectorConfig.setTrustStoreFile(TestUtil.getAbsolutePath(trustStoreFile));
         clientConnectorConfig.setTrustStorePass("cacertspassword");
         clientConnectorConfig.setTLSStoreType(tlsStoreType);
