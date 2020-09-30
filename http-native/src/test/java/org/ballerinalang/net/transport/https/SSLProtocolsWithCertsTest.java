@@ -18,6 +18,7 @@
 
 package org.ballerinalang.net.transport.https;
 
+import org.ballerinalang.net.transport.contract.exceptions.SslException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -140,18 +141,30 @@ public class SSLProtocolsWithCertsTest {
             responseFuture.setHttpConnectorListener(listener);
 
             latch.await(5, TimeUnit.SECONDS);
-
+            System.out.println("----------------------------------------------*****************************");
             HttpCarbonMessage response = listener.getHttpResponseMessage();
             if (hasException) {
                 assertNotNull(listener.getThrowables());
                 boolean hasSSLException = false;
                 for (Throwable throwable : listener.getThrowables()) {
-                    if (throwable.getMessage() != null && (
-                            throwable.getMessage().contains("javax.net.ssl.SSLHandshakeException") || throwable
-                                    .getMessage().contains("handshake_failure"))) {
+                    // The exception message is java version dependent, hence asserting the exception class
+                    if (throwable instanceof SslException) {
                         hasSSLException = true;
                         break;
                     }
+//
+//                    String errorMessage = throwable.getMessage();
+//                    System.out.println("************************" + errorMessage);
+//                    System.out.println("**************");
+//                    throwable.printStackTrace();
+//                    System.out.println("**************");
+//                    if (errorMessage != null && (
+//                            errorMessage.contains("javax.net.ssl.SSLHandshakeException") ||
+//                                    errorMessage.contains("handshake_failure"))) {
+//                        System.out.println("************************hasSSLException = true;");
+//                        hasSSLException = true;
+//                        break;
+//                    }
                 }
                 assertTrue(hasSSLException);
             } else {

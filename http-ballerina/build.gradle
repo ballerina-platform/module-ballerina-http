@@ -40,7 +40,6 @@ dependencies {
     externalJars (group: 'io.netty', name: 'netty-buffer', version: "${nettyVersion}") {
         transitive = false
     }
-
     externalJars (group: 'io.netty', name: 'netty-transport', version: "${nettyVersion}") {
         transitive = false
     }

@@ -40,6 +40,8 @@ import org.ballerinalang.net.transport.websocket.server.WebSocketTestServerConne
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.net.ssl.SSLException;
+
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_REMOTE_SERVER_PORT;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_SECURE_REMOTE_SERVER_URL;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_TEST_IDLE_TIMEOUT;
@@ -116,7 +118,15 @@ public class WebSocketSSLHandshakeFailureTestCase {
 
         Assert.assertNull(webSocketConnectionAtomicReference.get());
         Assert.assertNotNull(throwable);
-        Assert.assertEquals(throwable.getMessage(), "General SSLEngine problem");
+        System.out.println("----------------------------------------------*****************************");
+        String errorMessage = throwable.getMessage();
+        System.out.println("************************" + errorMessage);
+        System.out.println("**************");
+        throwable.printStackTrace();
+        System.out.println("**************");
+//        Assert.assertEquals(throwable.getMessage(), "General SSLEngine problem");
+        // The exception message is java version dependent, hence asserting the exception class
+        Assert.assertTrue(throwable instanceof SSLException);
     }
 
     @AfterClass
