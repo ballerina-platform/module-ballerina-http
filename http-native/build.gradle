@@ -17,15 +17,11 @@
 
 plugins {
     id 'java'
-    id 'checkstyle'
 }
 
 description = 'Ballerina - HTTP/WS Java Utils'
 
 dependencies {
-    checkstyle project(':build-config:checkstyle')
-    checkstyle "com.puppycrawl.tools:checkstyle:$puppycrawlCheckstyleVersion"
-
     compile group: 'org.ballerinalang', name: 'ballerina-lang', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'ballerina-core', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'ballerina-runtime', version: "${ballerinaLangVersion}"
@@ -53,10 +49,6 @@ dependencies {
 
     testCompile group: 'org.mock-server', name: 'mockserver-netty', version:'3.11'
     testCompile group: 'com.mashape.unirest', name: 'unirest-java', version:'1.4.9'
-}
-
-checkstyle {
-    configFile rootProject.file("build-config/checkstyle/build/checkstyle.xml")
 }
 
 test {

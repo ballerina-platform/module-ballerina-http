@@ -37,7 +37,6 @@ ext.stdlibReflectVersion = project.stdlibReflectVersion
 ext.stdlibRuntimeVersion = project.stdlibRuntimeVersion
 ext.stdlibSystemVersion = project.stdlibSystemVersion
 ext.stdlibTaskVersion = project.stdlibTaskVersion
-ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
 
 ext.slf4jVersion = project.slf4jVersion
 ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion

@@ -65,7 +65,8 @@ public class WebSocketPassThroughTestCase {
         connectorFuture.sync();
     }
 
-    @Test
+    // TODO disabled due to https://github.com/ballerina-platform/module-ballerina-http/issues/78
+    @Test(enabled = false)
     public void testTextPassThrough() throws InterruptedException, URISyntaxException {
         CountDownLatch latch = new CountDownLatch(1);
         WebSocketTestClient webSocketClient = new WebSocketTestClient();
