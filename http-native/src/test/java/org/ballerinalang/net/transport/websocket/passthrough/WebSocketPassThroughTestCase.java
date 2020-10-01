@@ -81,7 +81,8 @@ public class WebSocketPassThroughTestCase {
         webSocketClient.sendCloseFrame(1001, "Going away");
     }
 
-    @Test
+    // TODO disabled due to https://github.com/ballerina-platform/module-ballerina-http/issues/78
+    @Test(enabled = false)
     public void testBinaryPassThrough() throws InterruptedException, URISyntaxException {
         CountDownLatch latch = new CountDownLatch(1);
         WebSocketTestClient webSocketClient = new WebSocketTestClient();
@@ -90,8 +91,9 @@ public class WebSocketPassThroughTestCase {
         ByteBuffer sentBuffer = ByteBuffer.wrap(new byte[]{1, 2, 3, 4, 5});
         webSocketClient.sendBinary(sentBuffer);
         latch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, SECONDS);
-
-        Assert.assertEquals(webSocketClient.getBufferReceived(), sentBuffer);
+        ByteBuffer bufferReceived = webSocketClient.getBufferReceived();
+        Assert.assertNotNull(bufferReceived);
+        Assert.assertEquals(bufferReceived, sentBuffer);
 
         webSocketClient.sendCloseFrame(1001, "Going away");
     }

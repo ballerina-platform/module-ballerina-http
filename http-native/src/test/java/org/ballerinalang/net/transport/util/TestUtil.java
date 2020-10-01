@@ -279,11 +279,10 @@ public class TestUtil {
     public static String waitAndGetStringEntity(CountDownLatch latch, DefaultHttpConnectorListener responseListener)
             throws InterruptedException {
         String response;
-        latch.await(10, TimeUnit.SECONDS);
+        latch.await(30, TimeUnit.SECONDS);
         HttpCarbonMessage httpResponse = responseListener.getHttpResponseMessage();
-        response = new BufferedReader(new InputStreamReader(new HttpMessageDataStreamer(httpResponse)
-                .getInputStream()))
-                .lines().collect(Collectors.joining("\n"));
+        InputStream inputStream = new HttpMessageDataStreamer(httpResponse).getInputStream();
+        response = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
         return response;
     }
 

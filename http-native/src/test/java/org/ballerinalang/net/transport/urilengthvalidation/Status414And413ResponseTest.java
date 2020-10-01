@@ -96,16 +96,28 @@ public class Status414And413ResponseTest {
     @Test
     public void largeUriTest() {
         try {
-            HttpResponse<String> response = sendExtraLongUri();
-            assertEquals(HttpResponseStatus.REQUEST_URI_TOO_LONG.code(), response.getStatus());
-            assertEquals(TestUtil.TEST_SERVER, response.getHeaders().getFirst(HttpHeaderNames.SERVER.toString()));
+            HttpClient httpClient = new HttpClient(TestUtil.TEST_HOST, TestUtil.SERVER_CONNECTOR_PORT);
+            FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,
+                                                                     HttpMethod.POST, getUriWithLengthOf(9000),
+                                                                     Unpooled.wrappedBuffer(testValue.getBytes()));
+            FullHttpResponse httpResponse = httpClient.sendRequest(httpRequest);
 
-            response = sendShortUri();
+            assertEquals(HttpResponseStatus.REQUEST_URI_TOO_LONG.code(), httpResponse.status().code());
+            assertEquals(TestUtil.TEST_SERVER, httpResponse.headers().get(HttpHeaderNames.SERVER.toString()));
+        } catch (Exception e) {
+            TestUtil.handleException("IOException occurred while running largeUriTest", e);
+        }
+    }
+
+    @Test
+    public void shortUriTest() {
+        try {
+            HttpResponse<String> response = sendShortUri();
             assertEquals(HttpResponseStatus.OK.code(), response.getStatus());
             assertEquals(TestUtil.TEST_SERVER, response.getHeaders().getFirst(HttpHeaderNames.SERVER.toString()));
             assertEquals(testValue, response.getBody());
         } catch (IOException | UnirestException e) {
-            TestUtil.handleException("IOException occurred while running largeUriTest", e);
+            TestUtil.handleException("IOException occurred while running shortUriTest", e);
         }
     }
 
@@ -180,11 +192,6 @@ public class Status414And413ResponseTest {
 
     private HttpResponse<String> sendShortUri() throws IOException, UnirestException {
         URL url = baseURI.resolve(getUriWithLengthOf(900)).toURL();
-        return sendPostRequest(url);
-    }
-
-    private HttpResponse<String> sendExtraLongUri() throws MalformedURLException, UnirestException {
-        URL url = baseURI.resolve(getUriWithLengthOf(9000)).toURL();
         return sendPostRequest(url);
     }
 

@@ -239,7 +239,9 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
         Assert.assertNull(result.getWebSocketConnection());
         Assert.assertNull(result.getHandshakeResponse());
         Assert.assertNotNull(throwable);
-        Assert.assertEquals(throwable.getMessage(), "Connection refused: localhost/127.0.0.1:14900");
+        String message = throwable.getMessage();
+        Assert.assertTrue(message.contains("Connection refused"));
+        Assert.assertTrue(message.contains("localhost/127.0.0.1:14900"));
     }
 
     @Test
