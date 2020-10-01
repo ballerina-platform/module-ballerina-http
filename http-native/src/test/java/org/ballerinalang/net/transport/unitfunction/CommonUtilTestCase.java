@@ -28,11 +28,11 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contractimpl.common.Util;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * A unit test class for common/Util functions.

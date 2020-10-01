@@ -27,10 +27,10 @@ import org.ballerinalang.jvm.observability.ObserverContext;
 import org.ballerinalang.jvm.runtime.RuntimeConstants;
 import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
 import org.ballerinalang.jvm.util.exceptions.BallerinaException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;

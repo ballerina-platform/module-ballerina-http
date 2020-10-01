@@ -20,8 +20,6 @@
 package org.ballerinalang.net.transport.trailer;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contentaware.listeners.TrailerHeaderListener;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.ServerConnector;
@@ -30,6 +28,8 @@ import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
 import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Test template for HTTP response trailer headers server setup.

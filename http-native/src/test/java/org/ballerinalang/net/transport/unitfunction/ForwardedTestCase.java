@@ -23,11 +23,11 @@ import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contractimpl.sender.ForwardedHeaderUpdater;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * Unit test cases for ForwardedHeaderUpdater class functions.

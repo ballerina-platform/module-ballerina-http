@@ -22,7 +22,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
- * An initializer class for HTTP Server
+ * An initializer class for HTTP Server.
  */
 public class DumbServerInitializer extends HttpServerInitializer {
 

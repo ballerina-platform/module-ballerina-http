@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * SSL connector test listener.
+ */
 public class SSLConnectorListener extends DefaultHttpConnectorListener {
 
     private List<Throwable> throwables = new ArrayList<>();

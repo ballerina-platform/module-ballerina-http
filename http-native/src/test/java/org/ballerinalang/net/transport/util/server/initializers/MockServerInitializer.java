@@ -41,7 +41,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 /**
- * An initializer class for HTTP Server
+ * An initializer class for HTTP Server.
  */
 public class MockServerInitializer extends HttpServerInitializer {
 

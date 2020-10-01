@@ -22,12 +22,12 @@ package org.ballerinalang.net.transport.encoding;
 import com.google.common.io.ByteStreams;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
 import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;

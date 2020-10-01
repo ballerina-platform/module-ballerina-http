@@ -18,10 +18,10 @@
 
 package org.ballerinalang.net.transport.websocket;
 
-import org.junit.Assert;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketBinaryMessage;
 import org.ballerinalang.net.transport.contractimpl.websocket.message.DefaultWebSocketBinaryMessage;
+import org.junit.Assert;
+import org.testng.annotations.Test;
 
 import java.nio.ByteBuffer;
 

@@ -38,11 +38,11 @@ import org.ballerinalang.net.transport.message.HttpConnectorUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
 import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0;
 import static org.ballerinalang.net.transport.contract.Constants.OPTIONAL;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 
 /**
  * Utilities required for HTTP/2 test cases.

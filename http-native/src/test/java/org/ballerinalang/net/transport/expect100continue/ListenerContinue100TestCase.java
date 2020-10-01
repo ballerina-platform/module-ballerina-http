@@ -26,12 +26,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.ServerConnector;
@@ -43,14 +37,20 @@ import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactor
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.util.client.http.HttpClient;
 import org.ballerinalang.net.transport.util.server.listeners.Continue100Listener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 
 /**
- * The responsibility of this tescase it validate the listener side implementation related to handling Expect-Continue
- * header
+ * The responsibility of this testcase it validate the listener side implementation related to handling Expect-Continue
+ * header.
  */
 public class ListenerContinue100TestCase {
 

@@ -18,6 +18,11 @@
 
 package org.ballerinalang.net.transport.contractimpl.listener;
 
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.Constants;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
+import org.ballerinalang.net.transport.contractimpl.common.ssl.SSLConfig;
 import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -27,11 +32,6 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.Constants;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
-import org.ballerinalang.net.transport.contractimpl.common.ssl.SSLConfig;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -18,11 +18,6 @@
 
 package org.ballerinalang.net.transport;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
@@ -38,6 +33,11 @@ import org.ballerinalang.net.transport.util.DefaultHttpConnectorListener;
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.util.server.HttpServer;
 import org.ballerinalang.net.transport.util.server.initializers.BadEchoServerInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

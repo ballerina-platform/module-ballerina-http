@@ -34,9 +34,9 @@ import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.ballerinalang.net.transport.contract.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.contract.Constants;
 
 import java.net.InetSocketAddress;
 import java.util.LinkedList;

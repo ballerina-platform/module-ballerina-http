@@ -27,7 +27,6 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-
 import org.ballerinalang.net.testutils.client.HttpClient;
 import org.ballerinalang.net.testutils.client.HttpUrlClient;
 import org.slf4j.Logger;

@@ -18,11 +18,6 @@
 
 package org.ballerinalang.net.transport.http2.ssl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contentaware.listeners.EchoMessageListener;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
@@ -33,6 +28,11 @@ import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
 import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.HashMap;
 
@@ -40,6 +40,9 @@ import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0;
 import static org.ballerinalang.net.transport.contract.Constants.REQUIRE;
 
+/**
+ * Test HTTP2 Mutual SSL behaviour.
+ */
 public class Http2MutualSslTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http2MutualSslTest.class);

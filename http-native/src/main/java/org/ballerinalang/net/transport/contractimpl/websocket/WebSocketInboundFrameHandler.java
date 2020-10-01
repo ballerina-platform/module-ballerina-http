@@ -33,8 +33,6 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketBinaryMessage;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketCloseMessage;
@@ -47,6 +45,8 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketTextMessage;
 import org.ballerinalang.net.transport.contractimpl.listener.WebSocketMessageQueueHandler;
 import org.ballerinalang.net.transport.contractimpl.websocket.message.DefaultWebSocketCloseMessage;
 import org.ballerinalang.net.transport.contractimpl.websocket.message.DefaultWebSocketControlMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract WebSocket frame handler for WebSocket server and client.

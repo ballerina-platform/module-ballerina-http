@@ -24,10 +24,10 @@ import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contractimpl.common.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Responsible for validating the request before sending it to the application.

@@ -22,19 +22,17 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http2.Http2CodecUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contractimpl.common.states.SenderReqRespStateManager;
 import org.ballerinalang.net.transport.contractimpl.sender.TargetHandler;
 import org.ballerinalang.net.transport.contractimpl.sender.http2.OutboundMsgHolder;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static org.ballerinalang.net.transport.contract.Constants
-        .IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
-import static org.ballerinalang.net.transport.contract.Constants
-        .REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static org.ballerinalang.net.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
 import static org.ballerinalang.net.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 

@@ -27,8 +27,6 @@ import io.netty.handler.codec.http2.Http2FrameListener;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.codec.http2.Http2Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contractimpl.common.http2.Http2ExceptionHandler;
@@ -36,6 +34,8 @@ import org.ballerinalang.net.transport.contractimpl.listener.HttpServerChannelIn
 import org.ballerinalang.net.transport.internal.HttpTransportContextHolder;
 import org.ballerinalang.net.transport.message.Http2DataFrame;
 import org.ballerinalang.net.transport.message.Http2HeadersFrame;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.ballerinalang.net.transport.contract.Constants.ZERO_READABLE_BYTES;
 import static org.ballerinalang.net.transport.contractimpl.common.Util.safelyRemoveHandlers;

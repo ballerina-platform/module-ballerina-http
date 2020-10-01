@@ -19,12 +19,6 @@
 package org.ballerinalang.net.transport.http2.clientchannelclose;
 
 import io.netty.handler.codec.http.HttpMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
@@ -38,16 +32,22 @@ import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.util.DefaultHttpConnectorListener;
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.util.client.http2.MessageGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 import static org.ballerinalang.net.transport.util.Http2Util.getH2ListenerConfigs;
 import static org.ballerinalang.net.transport.util.Http2Util.getTestHttp2Client;
 import static org.ballerinalang.net.transport.util.TestUtil.HTTP_SCHEME;
 import static org.ballerinalang.net.transport.util.TestUtil.SERVER_PORT1;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * When the remote channel close the connection due to a SSL handshake issue, client should be notified of it.

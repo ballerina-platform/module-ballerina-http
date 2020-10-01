@@ -18,8 +18,6 @@
 
 package org.ballerinalang.net.transport.websocket.client;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketBinaryMessage;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketCloseMessage;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
@@ -28,6 +26,8 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketControlMessag
 import org.ballerinalang.net.transport.contract.websocket.WebSocketControlSignal;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketTextMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;

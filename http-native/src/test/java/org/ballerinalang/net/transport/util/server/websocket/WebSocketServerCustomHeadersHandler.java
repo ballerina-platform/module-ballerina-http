@@ -28,6 +28,9 @@ import io.netty.handler.codec.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Simple WebSocket custom header handler for testing.
+ */
 public class WebSocketServerCustomHeadersHandler extends ChannelDuplexHandler {
 
     private final Map<String, String> returningCustomHeaders;

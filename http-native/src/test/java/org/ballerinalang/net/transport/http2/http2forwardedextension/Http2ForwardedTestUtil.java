@@ -19,7 +19,6 @@
 package org.ballerinalang.net.transport.http2.http2forwardedextension;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.testng.annotations.AfterClass;
 import org.ballerinalang.net.transport.contentaware.listeners.EchoMessageListener;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
@@ -34,11 +33,15 @@ import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactor
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.util.DefaultHttpConnectorListener;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.testng.annotations.AfterClass;
 
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Util class for HTTP2 forwarded behaviour tests.
+ */
 public class Http2ForwardedTestUtil {
 
     protected HttpClientConnector clientConnector;

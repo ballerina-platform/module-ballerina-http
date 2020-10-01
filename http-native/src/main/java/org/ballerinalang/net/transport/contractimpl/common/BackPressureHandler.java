@@ -20,10 +20,10 @@ package org.ballerinalang.net.transport.contractimpl.common;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.message.BackPressureObservable;
 import org.ballerinalang.net.transport.message.DefaultBackPressureObservable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handles backpressure.

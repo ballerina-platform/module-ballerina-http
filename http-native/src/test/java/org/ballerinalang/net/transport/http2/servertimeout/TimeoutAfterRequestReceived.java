@@ -19,11 +19,6 @@
 package org.ballerinalang.net.transport.http2.servertimeout;
 
 import io.netty.handler.codec.http.HttpMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
@@ -40,10 +35,15 @@ import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.util.client.http2.MessageGenerator;
 import org.ballerinalang.net.transport.util.client.http2.MessageSender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
+import static org.ballerinalang.net.transport.contract.Constants.HTTP2_SERVER_TIMEOUT_ERROR_MESSAGE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.ballerinalang.net.transport.contract.Constants.HTTP2_SERVER_TIMEOUT_ERROR_MESSAGE;
 
 /**
  * {@code TimeoutAfterRequestReceived} tests server timeout once the request has been received but before

@@ -20,7 +20,7 @@
 package org.ballerinalang.net.transport.contract;
 
 /**
- * Represents the status of the operation
+ * Represents the status of the operation.
  */
 public interface OperationStatus {
 

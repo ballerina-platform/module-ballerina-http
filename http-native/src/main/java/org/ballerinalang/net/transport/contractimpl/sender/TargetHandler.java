@@ -25,8 +25,6 @@ import io.netty.handler.codec.http2.Http2ConnectionPrefaceAndSettingsFrameWritte
 import io.netty.handler.ssl.SslCloseCompletionEvent;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
@@ -40,6 +38,8 @@ import org.ballerinalang.net.transport.internal.HandlerExecutor;
 import org.ballerinalang.net.transport.internal.HttpTransportContextHolder;
 import org.ballerinalang.net.transport.message.ClientRemoteFlowControlListener;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.ballerinalang.net.transport.contractimpl.common.Util.createInboundRespCarbonMsg;
 import static org.ballerinalang.net.transport.contractimpl.common.Util.safelyRemoveHandlers;

@@ -25,8 +25,6 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contract.exceptions.ClientClosedConnectionException;
 import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
@@ -34,11 +32,12 @@ import org.ballerinalang.net.transport.contractimpl.HttpOutboundRespListener;
 import org.ballerinalang.net.transport.contractimpl.common.Util;
 import org.ballerinalang.net.transport.contractimpl.listener.SourceHandler;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
 import static io.netty.handler.codec.http.HttpResponseStatus.REQUEST_TIMEOUT;
-import static org.ballerinalang.net.transport.contract.Constants
-        .IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
 import static org.ballerinalang.net.transport.contractimpl.common.states.StateUtil.CONNECTOR_NOTIFYING_ERROR;
 import static org.ballerinalang.net.transport.contractimpl.common.states.StateUtil.sendRequestTimeoutResponse;

@@ -26,8 +26,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.timeout.IdleStateHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
@@ -36,6 +34,8 @@ import org.ballerinalang.net.transport.contractimpl.common.states.SenderReqRespS
 import org.ballerinalang.net.transport.contractimpl.sender.TargetHandler;
 import org.ballerinalang.net.transport.contractimpl.sender.channel.TargetChannel;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,13 +44,10 @@ import java.util.concurrent.TimeUnit;
 
 import static org.ballerinalang.net.transport.contract.Constants.CLIENT_TO_REMOTE_HOST_CONNECTION_CLOSED;
 import static org.ballerinalang.net.transport.contract.Constants.HEADER_VAL_100_CONTINUE;
-import static org.ballerinalang.net.transport.contract.Constants
-        .IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 import static org.ballerinalang.net.transport.contract.Constants.INBOUND_RESPONSE_ALREADY_RECEIVED;
-import static org.ballerinalang.net.transport.contract.Constants
-        .REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
-import static org.ballerinalang.net.transport.contractimpl.common.Util
-        .checkContentLengthAndTransferEncodingHeaderAllowance;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
+import static org.ballerinalang.net.transport.contractimpl.common.Util.checkContentLengthAndTransferEncodingHeaderAllowance;
 import static org.ballerinalang.net.transport.contractimpl.common.Util.isLastHttpContent;
 import static org.ballerinalang.net.transport.contractimpl.common.Util.setupChunkedRequest;
 import static org.ballerinalang.net.transport.contractimpl.common.Util.setupContentLengthRequest;

@@ -30,9 +30,9 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
+import org.ballerinalang.net.transport.contract.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.contract.Constants;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -42,7 +42,7 @@ import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderNames.TRANSFER_ENCODING;
 
 /**
- * An initializer class for HTTP Server
+ * An initializer class for HTTP Server.
  */
 public class EchoServerInitializer extends HttpServerInitializer {
 

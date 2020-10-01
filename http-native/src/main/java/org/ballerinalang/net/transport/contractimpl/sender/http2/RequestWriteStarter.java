@@ -19,14 +19,14 @@
 
 package org.ballerinalang.net.transport.contractimpl.sender.http2;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.message.DefaultBackPressureListener;
 import org.ballerinalang.net.transport.message.DefaultListener;
 import org.ballerinalang.net.transport.message.Http2InboundContentListener;
 import org.ballerinalang.net.transport.message.Http2PassthroughBackPressureListener;
 import org.ballerinalang.net.transport.message.Listener;
 import org.ballerinalang.net.transport.message.PassthroughBackPressureListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Starts writing HTTP/2 request content.

@@ -38,7 +38,6 @@ import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.AsciiString;
 
-
 /**
  * An initializer class for a Http2 Server.
  */
@@ -68,7 +67,7 @@ public abstract class Http2ServerInitializer extends ChannelInitializer<SocketCh
     }
 
     /**
-     * Configure the pipeline for a cleartext upgrade from HTTP to HTTP/2.0
+     * Configure the pipeline for a cleartext upgrade from HTTP to HTTP/2.0.
      *
      * @param ch represents the socket channel
      */

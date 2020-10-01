@@ -20,12 +20,6 @@ package org.ballerinalang.net.transport.websocket.client;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.CorruptedFrameException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
 import org.ballerinalang.net.transport.contract.websocket.ClientHandshakeFuture;
 import org.ballerinalang.net.transport.contract.websocket.ClientHandshakeListener;
@@ -40,17 +34,22 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketTextMessage;
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.ballerinalang.net.transport.message.HttpCarbonResponse;
 import org.ballerinalang.net.transport.util.server.websocket.WebSocketRemoteServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_REMOTE_SERVER_PORT;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_REMOTE_SERVER_URL;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_TEST_IDLE_TIMEOUT;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Test cases for the WebSocket Client implementation.

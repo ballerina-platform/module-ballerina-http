@@ -18,12 +18,13 @@
 
 package org.ballerinalang.net.transport.contractimpl.common;
 
+import org.ballerinalang.net.transport.contract.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.contract.Constants;
 
 import java.lang.management.ManagementFactory;
 import java.util.Set;
+
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;

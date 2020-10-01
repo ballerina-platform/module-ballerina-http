@@ -19,7 +19,7 @@
 package org.ballerinalang.net.transport.util.server;
 
 /**
- * Test server interface
+ * Test server interface.
  */
 public interface TestServer {
     void start();

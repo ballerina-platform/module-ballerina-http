@@ -24,8 +24,6 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.util.CharsetUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contract.exceptions.ClientClosedConnectionException;
 import org.ballerinalang.net.transport.contract.exceptions.EndpointTimeOutException;
@@ -38,6 +36,8 @@ import org.ballerinalang.net.transport.message.Http2DataFrame;
 import org.ballerinalang.net.transport.message.Http2HeadersFrame;
 import org.ballerinalang.net.transport.message.Http2PushPromise;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 

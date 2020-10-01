@@ -24,26 +24,26 @@ import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
+import org.ballerinalang.net.transport.contractimpl.common.Util;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.util.TestUtil;
 import org.mockserver.integration.ClientAndProxy;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
-import org.ballerinalang.net.transport.contractimpl.common.Util;
-import org.ballerinalang.net.transport.message.HttpCarbonMessage;
-import org.ballerinalang.net.transport.util.TestUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-import static org.mockserver.integration.ClientAndProxy.startClientAndProxy;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_HOST;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_PORT;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_POST_METHOD;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_SCHEME;
 import static org.ballerinalang.net.transport.contract.Constants.IS_PROXY_ENABLED;
 import static org.ballerinalang.net.transport.contract.Constants.PROTOCOL;
+import static org.mockserver.integration.ClientAndProxy.startClientAndProxy;
 
 /**
  * A test for connecting to a proxy server over HTTP.

@@ -20,8 +20,6 @@
 package org.ballerinalang.net.transport.contentaware.listeners;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
@@ -33,6 +31,8 @@ import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactor
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +42,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * A class which read and write content through streams
+ * A class which read and write content through streams.
  */
 public class RequestResponseCreationStreamingListener implements HttpConnectorListener {
 

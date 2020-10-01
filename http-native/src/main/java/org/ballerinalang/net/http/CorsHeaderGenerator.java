@@ -20,10 +20,10 @@ package org.ballerinalang.net.http;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.ballerinalang.logging.BLogManager;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.util.Arrays;
 import java.util.Collections;

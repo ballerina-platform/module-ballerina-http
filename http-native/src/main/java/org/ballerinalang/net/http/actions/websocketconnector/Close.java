@@ -28,9 +28,9 @@ import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityConstants;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityUtil;
 import org.ballerinalang.net.http.websocket.server.WebSocketConnectionInfo;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +41,8 @@ import java.util.concurrent.TimeUnit;
 public class Close {
     private static final Logger log = LoggerFactory.getLogger(Close.class);
 
-    public static Object externClose(BalEnv env, BObject wsConnection, long statusCode, BString reason, long timeoutInSecs) {
+    public static Object externClose(BalEnv env, BObject wsConnection, long statusCode, BString reason,
+                                     long timeoutInSecs) {
         Strand strand = Scheduler.getStrand();
         BalFuture balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection

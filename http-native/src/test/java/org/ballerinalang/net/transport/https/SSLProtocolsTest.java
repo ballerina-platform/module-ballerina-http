@@ -18,12 +18,6 @@
 
 package org.ballerinalang.net.transport.https;
 
-import org.ballerinalang.net.transport.contract.exceptions.SslException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contentaware.listeners.EchoMessageListener;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
@@ -34,10 +28,16 @@ import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
 import org.ballerinalang.net.transport.contract.config.Parameter;
 import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
 import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
+import org.ballerinalang.net.transport.contract.exceptions.SslException;
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -48,10 +48,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 
 /**
  * Tests for SSL protocols.
@@ -76,7 +76,8 @@ public class SSLProtocolsTest {
     }
 
     /**
-     * Set up the client and the server
+     * Set up the client and the server.
+     *
      * @param clientProtocol SSL enabled protocol of client
      * @param serverProtocol SSL enabled protocol of server
      * @param hasException expecting an exception true/false
@@ -145,7 +146,6 @@ public class SSLProtocolsTest {
             responseFuture.setHttpConnectorListener(listener);
 
             latch.await(5, TimeUnit.SECONDS);
-            System.out.println("----------------------------------------------*****************************");
             HttpCarbonMessage response = listener.getHttpResponseMessage();
             if (hasException) {
                 assertNotNull(listener.getThrowables());
@@ -156,18 +156,6 @@ public class SSLProtocolsTest {
                         hasSSLException = true;
                         break;
                     }
-//                    String errorMessage = throwable.getMessage();
-//                    System.out.println("************************" + errorMessage);
-//                    System.out.println("**************");
-//                    throwable.printStackTrace();
-//                    System.out.println("**************");
-//                    if (errorMessage != null &&
-//                            (errorMessage.contains("javax.net.ssl.SSLHandshakeException") ||
-//                                    errorMessage.contains("handshake_failure"))) {
-//                        System.out.println("************************hasSSLException = true;");
-//                        hasSSLException = true;
-//                        break;
-//                    }
                 }
                 assertTrue(hasSSLException);
             } else {

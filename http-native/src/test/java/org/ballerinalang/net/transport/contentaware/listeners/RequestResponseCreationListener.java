@@ -22,8 +22,6 @@ package org.ballerinalang.net.transport.contentaware.listeners;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
@@ -35,6 +33,8 @@ import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactor
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -43,7 +43,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * A Message Processor which creates Request and Response
+ * A Message Processor which creates Request and Response.
  */
 public class RequestResponseCreationListener implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(RequestResponseCreationListener.class);

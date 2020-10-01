@@ -33,8 +33,6 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
@@ -44,6 +42,8 @@ import org.ballerinalang.net.transport.contractimpl.common.Util;
 import org.ballerinalang.net.transport.contractimpl.listener.states.ListenerReqRespStateManager;
 import org.ballerinalang.net.transport.contractimpl.listener.states.SendingHeaders;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;

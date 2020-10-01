@@ -18,11 +18,6 @@
 
 package org.ballerinalang.net.transport.https;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contentaware.listeners.EchoMessageListener;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
@@ -37,6 +32,11 @@ import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactor
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -47,10 +47,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 
 /**
  * Tests for different cipher suites provided by client and server.
@@ -78,7 +78,8 @@ public class CipherSuitesTest {
     }
 
     /**
-     * Set up the client and the server
+     * Set up the client and the server.
+     *
      * @param clientCiphers ciphers given by client
      * @param serverCiphers ciphers supported by server
      * @param hasException expecting an exception true/false

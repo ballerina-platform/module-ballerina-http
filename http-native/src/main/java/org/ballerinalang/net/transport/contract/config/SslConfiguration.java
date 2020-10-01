@@ -18,10 +18,10 @@
 
 package org.ballerinalang.net.transport.contract.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contractimpl.common.Util;
 import org.ballerinalang.net.transport.contractimpl.common.ssl.SSLConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -49,8 +49,6 @@ import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
@@ -78,6 +76,8 @@ import org.ballerinalang.net.transport.message.HttpCarbonResponse;
 import org.ballerinalang.net.transport.message.Listener;
 import org.ballerinalang.net.transport.message.PassthroughBackPressureListener;
 import org.ballerinalang.net.transport.message.PooledDataStreamerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -95,6 +95,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
@@ -114,8 +115,7 @@ import static org.ballerinalang.net.transport.contract.Constants.MUTUAL_SSL_HAND
 import static org.ballerinalang.net.transport.contract.Constants.MUTUAL_SSL_PASSED;
 import static org.ballerinalang.net.transport.contract.Constants.OK_200;
 import static org.ballerinalang.net.transport.contract.Constants.PROTOCOL;
-import static org.ballerinalang.net.transport.contract.Constants
-        .REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
 import static org.ballerinalang.net.transport.contract.Constants.TO;
 import static org.ballerinalang.net.transport.contract.Constants.URL_AUTHORITY;
 import static org.ballerinalang.net.transport.contract.config.KeepAliveConfig.ALWAYS;

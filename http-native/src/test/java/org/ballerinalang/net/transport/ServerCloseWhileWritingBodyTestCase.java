@@ -20,11 +20,6 @@ package org.ballerinalang.net.transport;
 
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpContent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
@@ -37,6 +32,11 @@ import org.ballerinalang.net.transport.util.DefaultHttpConnectorListener;
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.util.server.HttpServer;
 import org.ballerinalang.net.transport.util.server.initializers.CloseWithoutRespondingInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 import static org.testng.Assert.assertEquals;
 
 /**
- * Tests for HTTP client connector timeout
+ * Tests for HTTP client connector timeout.
  */
 public class ServerCloseWhileWritingBodyTestCase {
 

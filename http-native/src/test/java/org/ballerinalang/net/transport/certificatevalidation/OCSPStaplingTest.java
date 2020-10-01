@@ -18,17 +18,17 @@
 
 package org.ballerinalang.net.transport.certificatevalidation;
 
+import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
+import org.ballerinalang.net.transport.contractimpl.listener.OCSPResponseBuilder;
+import org.ballerinalang.net.transport.util.TestUtil;
 import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
 import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
-import org.ballerinalang.net.transport.contractimpl.listener.OCSPResponseBuilder;
-import org.ballerinalang.net.transport.util.TestUtil;
 
 import java.io.File;
 import java.io.IOException;

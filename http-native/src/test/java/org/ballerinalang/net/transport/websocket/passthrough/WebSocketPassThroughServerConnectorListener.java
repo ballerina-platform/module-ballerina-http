@@ -18,9 +18,6 @@
 
 package org.ballerinalang.net.transport.websocket.passthrough;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.websocket.ClientHandshakeFuture;
 import org.ballerinalang.net.transport.contract.websocket.ClientHandshakeListener;
@@ -38,6 +35,9 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketTextMessage;
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.ballerinalang.net.transport.message.HttpCarbonResponse;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 
 /**
  * Server Connector Listener to check WebSocket pass-through scenarios.

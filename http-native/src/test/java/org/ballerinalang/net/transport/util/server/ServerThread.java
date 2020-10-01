@@ -22,7 +22,7 @@ package org.ballerinalang.net.transport.util.server;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Thread that start the back-end server
+ * Thread that start the back-end server.
  */
 public class ServerThread extends Thread {
     CountDownLatch latch;

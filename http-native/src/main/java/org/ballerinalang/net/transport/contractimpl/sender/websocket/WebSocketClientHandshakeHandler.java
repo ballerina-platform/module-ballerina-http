@@ -27,8 +27,6 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameDecoder;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketFrameDecoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorFuture;
 import org.ballerinalang.net.transport.contractimpl.listener.WebSocketMessageQueueHandler;
@@ -37,6 +35,8 @@ import org.ballerinalang.net.transport.contractimpl.websocket.DefaultWebSocketCo
 import org.ballerinalang.net.transport.contractimpl.websocket.WebSocketInboundFrameHandler;
 import org.ballerinalang.net.transport.message.DefaultListener;
 import org.ballerinalang.net.transport.message.HttpCarbonResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * WebSocket client handshake handler to handle incoming handshake response.

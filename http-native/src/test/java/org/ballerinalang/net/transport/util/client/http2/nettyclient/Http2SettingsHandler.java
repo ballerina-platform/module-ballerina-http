@@ -31,7 +31,7 @@ public class Http2SettingsHandler extends SimpleChannelInboundHandler<Http2Setti
     private final ChannelPromise promise;
 
     /**
-     * Create new instance
+     * Create new instance.
      *
      * @param promise Promise object used to notify when first settings are received
      */

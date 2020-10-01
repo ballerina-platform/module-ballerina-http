@@ -18,13 +18,13 @@
 
 package org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.crl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contractimpl.common.MBeanRegistrar;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.cache.CacheController;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.cache.CacheManager;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.cache.ManageableCache;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.cache.ManageableCacheValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.cert.X509CRL;
 import java.util.Date;

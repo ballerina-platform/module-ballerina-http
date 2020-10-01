@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Session manager for WebSocket pass through test
+ * Session manager for WebSocket pass through test.
  */
 public class WebSocketPassThroughTestConnectionManager {
 

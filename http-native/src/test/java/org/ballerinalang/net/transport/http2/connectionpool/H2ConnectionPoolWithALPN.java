@@ -20,11 +20,6 @@
 package org.ballerinalang.net.transport.http2.connectionpool;
 
 import io.netty.handler.codec.http.HttpMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.ServerConnector;
@@ -42,15 +37,20 @@ import org.ballerinalang.net.transport.util.client.http2.MessageGenerator;
 import org.ballerinalang.net.transport.util.client.http2.MessageSender;
 import org.ballerinalang.net.transport.util.server.HttpsServer;
 import org.ballerinalang.net.transport.util.server.initializers.http2.channelidsender.Http2SendChannelIDInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.HashMap;
 
-import static org.testng.Assert.assertNotNull;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0;
 import static org.ballerinalang.net.transport.util.Http2Util.assertResult;
 import static org.ballerinalang.net.transport.util.Http2Util.getH2ListenerConfigs;
 import static org.ballerinalang.net.transport.util.Http2Util.getSenderConfigs;
 import static org.ballerinalang.net.transport.util.TestUtil.SERVER_PORT1;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Test case for H2 client connection pool.

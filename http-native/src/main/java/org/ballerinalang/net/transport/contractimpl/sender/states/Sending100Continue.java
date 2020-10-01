@@ -24,21 +24,20 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.timeout.IdleStateHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.exceptions.ClientConnectorException;
 import org.ballerinalang.net.transport.contractimpl.common.states.SenderReqRespStateManager;
 import org.ballerinalang.net.transport.contractimpl.sender.TargetHandler;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.ballerinalang.net.transport.contract.Constants
-        .REMOTE_SERVER_CLOSED_BEFORE_READING_100_CONTINUE_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_READING_100_CONTINUE_RESPONSE;
 import static org.ballerinalang.net.transport.contractimpl.common.Util.safelyRemoveHandlers;
 
 /**

@@ -19,8 +19,6 @@
 package org.ballerinalang.net.transport.websocket.server;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.websocket.ServerHandshakeFuture;
 import org.ballerinalang.net.transport.contract.websocket.ServerHandshakeListener;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketBinaryMessage;
@@ -30,9 +28,14 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorList
 import org.ballerinalang.net.transport.contract.websocket.WebSocketControlMessage;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketTextMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * WebSocket listener for handshake functionality testing.
+ */
 public class WebSocketServerHandshakeFunctionalityListener implements WebSocketConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebSocketServerHandshakeFunctionalityListener.class);

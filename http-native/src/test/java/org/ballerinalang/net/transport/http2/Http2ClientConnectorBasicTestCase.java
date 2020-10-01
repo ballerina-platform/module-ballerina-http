@@ -19,9 +19,6 @@
 package org.ballerinalang.net.transport.http2;
 
 import io.netty.handler.codec.http.HttpMethod;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
@@ -37,6 +34,9 @@ import org.ballerinalang.net.transport.util.client.http2.MessageGenerator;
 import org.ballerinalang.net.transport.util.client.http2.MessageSender;
 import org.ballerinalang.net.transport.util.server.HttpServer;
 import org.ballerinalang.net.transport.util.server.initializers.http2.Http2EchoServerInitializer;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;

@@ -18,9 +18,6 @@
 
 package org.ballerinalang.net.transport.expect100continue;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
@@ -30,14 +27,17 @@ import org.ballerinalang.net.transport.util.DefaultHttpConnectorListener;
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.util.server.HttpServer;
 import org.ballerinalang.net.transport.util.server.initializers.Abnormal100ContinueServerInitializer;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 
-import static org.testng.Assert.assertEquals;
 import static org.ballerinalang.net.transport.contract.Constants.TEXT_PLAIN;
 import static org.ballerinalang.net.transport.util.TestUtil.sendRequestAsync;
+import static org.testng.Assert.assertEquals;
 
 /**
  * This class is responsible for testing 100 continue response scenario. Ideally 100 continue response should only

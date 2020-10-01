@@ -20,8 +20,6 @@
 package org.ballerinalang.net.transport.contractimpl;
 
 import io.netty.channel.ChannelHandlerContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
 import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
@@ -34,6 +32,8 @@ import org.ballerinalang.net.transport.internal.HandlerExecutor;
 import org.ballerinalang.net.transport.internal.HttpTransportContextHolder;
 import org.ballerinalang.net.transport.message.Http2PushPromise;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
 

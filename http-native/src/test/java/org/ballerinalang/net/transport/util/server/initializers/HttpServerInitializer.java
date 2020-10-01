@@ -30,7 +30,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 /**
- * An initializer class for HTTP Server
+ * An initializer class for HTTP Server.
  */
 public abstract class HttpServerInitializer extends ChannelInitializer {
 

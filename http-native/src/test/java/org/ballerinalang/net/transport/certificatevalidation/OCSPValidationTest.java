@@ -18,10 +18,10 @@
 
 package org.ballerinalang.net.transport.certificatevalidation;
 
+import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
 
 /**
  * A test case for testing OCSP.

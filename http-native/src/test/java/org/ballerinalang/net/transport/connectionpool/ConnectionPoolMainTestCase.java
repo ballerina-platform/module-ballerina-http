@@ -18,9 +18,6 @@
 
 package org.ballerinalang.net.transport.connectionpool;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
@@ -30,14 +27,17 @@ import org.ballerinalang.net.transport.util.DefaultHttpConnectorListener;
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.util.server.HttpServer;
 import org.ballerinalang.net.transport.util.server.initializers.SendChannelIDServerInitializer;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.Assert.assertEquals;
 import static org.ballerinalang.net.transport.util.TestUtil.sendRequestAsync;
+import static org.testng.Assert.assertEquals;
 
 /**
  * Tests for connection pool implementation.

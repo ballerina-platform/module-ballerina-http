@@ -22,8 +22,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.exceptions.EndpointTimeOutException;
@@ -31,9 +29,10 @@ import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorExcept
 import org.ballerinalang.net.transport.contractimpl.common.states.SenderReqRespStateManager;
 import org.ballerinalang.net.transport.contractimpl.sender.TargetHandler;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static org.ballerinalang.net.transport.contract.Constants
-        .IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_RESPONSE;
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
 import static org.ballerinalang.net.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
 

@@ -32,8 +32,6 @@ import io.netty.handler.ssl.SslCloseCompletionEvent;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.concurrent.EventExecutorGroup;
 import org.apache.commons.pool.impl.GenericObjectPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
@@ -45,6 +43,8 @@ import org.ballerinalang.net.transport.contractimpl.listener.states.ReceivingHea
 import org.ballerinalang.net.transport.internal.HandlerExecutor;
 import org.ballerinalang.net.transport.internal.HttpTransportContextHolder;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
 import java.util.Map;

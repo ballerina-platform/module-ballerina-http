@@ -23,6 +23,9 @@ import io.netty.channel.ChannelInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * An initializer for server close.
+ */
 public class ServerCloseTcpConnectionInitializer extends ChannelInitializer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerCloseTcpConnectionInitializer.class);

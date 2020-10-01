@@ -20,8 +20,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.commons.pool.impl.GenericObjectPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
 import org.ballerinalang.net.transport.contractimpl.common.HttpRoute;
 import org.ballerinalang.net.transport.contractimpl.listener.SourceHandler;
@@ -29,6 +27,8 @@ import org.ballerinalang.net.transport.contractimpl.listener.http2.Http2SourceHa
 import org.ballerinalang.net.transport.contractimpl.sender.channel.BootstrapConfiguration;
 import org.ballerinalang.net.transport.contractimpl.sender.channel.TargetChannel;
 import org.ballerinalang.net.transport.contractimpl.sender.http2.Http2ConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.UUID;

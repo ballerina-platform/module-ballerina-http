@@ -29,8 +29,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.concurrent.EventExecutorGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
@@ -40,6 +38,8 @@ import org.ballerinalang.net.transport.contractimpl.listener.SourceHandler;
 import org.ballerinalang.net.transport.internal.HandlerExecutor;
 import org.ballerinalang.net.transport.internal.HttpTransportContextHolder;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;

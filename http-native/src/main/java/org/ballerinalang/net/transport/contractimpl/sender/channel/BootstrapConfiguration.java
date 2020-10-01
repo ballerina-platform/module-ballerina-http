@@ -15,10 +15,10 @@
 
 package org.ballerinalang.net.transport.contractimpl.sender.channel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contractimpl.common.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 

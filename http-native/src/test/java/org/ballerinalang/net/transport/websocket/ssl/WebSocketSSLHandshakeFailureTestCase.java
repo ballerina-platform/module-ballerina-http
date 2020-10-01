@@ -18,10 +18,6 @@
 
 package org.ballerinalang.net.transport.websocket.ssl;
 
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.ServerConnector;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
@@ -36,17 +32,20 @@ import org.ballerinalang.net.transport.message.HttpCarbonResponse;
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.websocket.client.WebSocketTestClientConnectorListener;
 import org.ballerinalang.net.transport.websocket.server.WebSocketTestServerConnectorListener;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLException;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_REMOTE_SERVER_PORT;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_SECURE_REMOTE_SERVER_URL;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_TEST_IDLE_TIMEOUT;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Tests the failure scenario of SSL handshake in WebSocket.
@@ -118,13 +117,6 @@ public class WebSocketSSLHandshakeFailureTestCase {
 
         Assert.assertNull(webSocketConnectionAtomicReference.get());
         Assert.assertNotNull(throwable);
-        System.out.println("----------------------------------------------*****************************");
-        String errorMessage = throwable.getMessage();
-        System.out.println("************************" + errorMessage);
-        System.out.println("**************");
-        throwable.printStackTrace();
-        System.out.println("**************");
-//        Assert.assertEquals(throwable.getMessage(), "General SSLEngine problem");
         // The exception message is java version dependent, hence asserting the exception class
         Assert.assertTrue(throwable instanceof SSLException);
     }

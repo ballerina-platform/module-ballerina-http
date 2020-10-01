@@ -24,9 +24,9 @@ import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
 
 /**
  * {@code CancelWebSocketUpgrade} is the action to cancel a WebSocket upgrade.

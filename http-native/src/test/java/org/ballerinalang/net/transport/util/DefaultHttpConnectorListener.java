@@ -24,7 +24,7 @@ import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * A connector listener for HTTP
+ * A connector listener for HTTP.
  */
 public class DefaultHttpConnectorListener implements HttpConnectorListener {
 

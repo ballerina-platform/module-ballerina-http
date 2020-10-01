@@ -28,9 +28,8 @@ import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contractimpl.listener.HttpServerChannelInitializer;
 
-import static org.ballerinalang.net.transport.contractimpl.common.Util.safelyRemoveHandlers;
-
 import static java.lang.Math.min;
+import static org.ballerinalang.net.transport.contractimpl.common.Util.safelyRemoveHandlers;
 
 /**
  * {@code Http2WithPriorKnowledgeHandler} handles the requests received directly in HTTP/2 without

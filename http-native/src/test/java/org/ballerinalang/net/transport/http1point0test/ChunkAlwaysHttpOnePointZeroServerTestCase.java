@@ -21,12 +21,12 @@ package org.ballerinalang.net.transport.http1point0test;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import org.junit.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.chunkdisable.ChunkServerTemplate;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.junit.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.net.URI;
 

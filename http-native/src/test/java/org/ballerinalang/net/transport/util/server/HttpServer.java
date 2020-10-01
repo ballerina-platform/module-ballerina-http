@@ -25,14 +25,14 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import org.ballerinalang.net.transport.util.TestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.util.TestUtil;
 
 import java.net.InetSocketAddress;
 
 /**
- * A Simple HTTP Server
+ * A Simple HTTP Server.
  */
 public class HttpServer implements TestServer {
 
@@ -58,7 +58,7 @@ public class HttpServer implements TestServer {
     }
 
     /**
-     * Start the HttpServer
+     * Start the HttpServer.
      */
     public void start() {
         bossGroup = new NioEventLoopGroup(this.bossGroupSize);
@@ -80,7 +80,7 @@ public class HttpServer implements TestServer {
     }
 
     /**
-     * Shutdown the HttpServer
+     * Shutdown the HttpServer.
      */
     public void shutdown() throws InterruptedException {
         bossGroup.shutdownGracefully().sync();

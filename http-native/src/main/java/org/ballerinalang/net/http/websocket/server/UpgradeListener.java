@@ -22,10 +22,10 @@ import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketResourceDispatcher;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.websocket.ServerHandshakeListener;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The ServerHandshakeListener that dispatches the onOpen resource onSuccess.

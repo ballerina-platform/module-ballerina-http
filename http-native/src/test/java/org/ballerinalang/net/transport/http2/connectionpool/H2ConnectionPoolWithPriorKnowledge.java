@@ -20,11 +20,6 @@
 package org.ballerinalang.net.transport.http2.connectionpool;
 
 import io.netty.handler.codec.http.HttpMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
@@ -45,14 +40,19 @@ import org.ballerinalang.net.transport.util.client.http2.MessageGenerator;
 import org.ballerinalang.net.transport.util.client.http2.MessageSender;
 import org.ballerinalang.net.transport.util.server.HttpServer;
 import org.ballerinalang.net.transport.util.server.initializers.http2.channelidsender.Http2SendChannelIDInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.HashMap;
 
-import static org.testng.Assert.assertNotNull;
 import static org.ballerinalang.net.transport.util.Http2Util.assertResult;
 import static org.ballerinalang.net.transport.util.Http2Util.getTestHttp2Client;
 import static org.ballerinalang.net.transport.util.TestUtil.HTTP_SCHEME;
 import static org.ballerinalang.net.transport.util.TestUtil.SERVER_CONNECTOR_PORT;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Test case for H2C client connection pool with prior knowledge.

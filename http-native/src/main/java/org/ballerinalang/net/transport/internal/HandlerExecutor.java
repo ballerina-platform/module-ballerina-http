@@ -18,9 +18,9 @@
 
 package org.ballerinalang.net.transport.internal;
 
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.util.HashMap;
 import java.util.Map;

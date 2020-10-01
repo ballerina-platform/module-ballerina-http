@@ -17,8 +17,6 @@
  */
 package org.ballerinalang.net.transport.certificatevalidation;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.RevocationVerifier;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.crl.CRLCache;
@@ -26,6 +24,8 @@ import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.pathvalidation.CertificatePathValidator;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.testng.annotations.Test;
 
 import java.security.Security;
 import java.security.cert.X509Certificate;
@@ -33,6 +33,9 @@ import java.security.cert.X509Certificate;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
+/**
+ * This test is to check for verifying certificates.
+ */
 public class RevocationVerificationTest {
 
     /**

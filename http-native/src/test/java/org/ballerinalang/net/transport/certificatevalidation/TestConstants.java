@@ -17,6 +17,9 @@
  */
 package org.ballerinalang.net.transport.certificatevalidation;
 
+/**
+ * Util class for test constants.
+ */
 public interface TestConstants {
 
     //Validity period of a fake certificate made. 1 day (in milliseconds)

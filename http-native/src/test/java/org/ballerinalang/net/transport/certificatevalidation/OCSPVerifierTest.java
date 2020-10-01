@@ -17,6 +17,10 @@
  */
 package org.ballerinalang.net.transport.certificatevalidation;
 
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.Constants;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.RevocationStatus;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
 import org.bouncycastle.asn1.x509.CRLReason;
@@ -42,10 +46,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.testng.annotations.Test;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.Constants;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.RevocationStatus;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
 
 import java.lang.reflect.Method;
 import java.math.BigInteger;
@@ -58,6 +58,9 @@ import java.util.Date;
 
 import static org.testng.Assert.assertTrue;
 
+/**
+ * This test is to check if a Certificate is revoked or not by its CA using Online Certificate Status Protocol (OCSP).
+ */
 public class OCSPVerifierTest {
 
     /**

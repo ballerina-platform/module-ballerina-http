@@ -31,17 +31,18 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.util.server.initializers.HttpServerInitializer;
 import org.ballerinalang.net.transport.util.server.initializers.http2.Http2ServerInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
@@ -49,7 +50,7 @@ import static org.ballerinalang.net.transport.contract.Constants.JKS;
 import static org.ballerinalang.net.transport.contract.Constants.TLS_PROTOCOL;
 
 /**
- * A Simple HTTPS Server
+ * A Simple HTTPS Server.
  */
 public class HttpsServer implements TestServer {
 
@@ -84,7 +85,7 @@ public class HttpsServer implements TestServer {
     }
 
     /**
-     * Start the HttpsServer
+     * Start the HttpsServer.
      */
     public void start() {
         bossGroup = new NioEventLoopGroup(this.bossGroupSize);
@@ -126,7 +127,7 @@ public class HttpsServer implements TestServer {
     }
 
     /**
-     * Shutdown the HttpsServer
+     * Shutdown the HttpsServer.
      */
     public void shutdown() throws InterruptedException {
         bossGroup.shutdownGracefully().sync();

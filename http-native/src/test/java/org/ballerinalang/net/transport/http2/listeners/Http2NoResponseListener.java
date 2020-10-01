@@ -19,10 +19,10 @@
 
 package org.ballerinalang.net.transport.http2.listeners;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@code Http2NoResponseListener} is a HttpConnectorListener which receives messages and does nothing with it.

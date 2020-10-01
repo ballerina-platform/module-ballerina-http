@@ -19,12 +19,12 @@
 package org.ballerinalang.net.transport.chunkdisable;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
 

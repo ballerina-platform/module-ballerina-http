@@ -18,8 +18,6 @@
 
 package org.ballerinalang.net.transport.proxyserver;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contentaware.listeners.EchoMessageListener;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
@@ -36,6 +34,8 @@ import org.ballerinalang.net.transport.message.HttpConnectorUtil;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.net.transport.util.DefaultHttpConnectorListener;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -46,9 +46,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 import static org.testng.Assert.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 
 /**
  * A util class to use in both http and https proxy scenarios.

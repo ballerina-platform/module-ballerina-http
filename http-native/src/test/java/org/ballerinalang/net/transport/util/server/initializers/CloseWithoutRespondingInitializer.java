@@ -23,7 +23,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
- * An initializer class for HTTP Server
+ * An initializer class for HTTP Server.
  */
 public class CloseWithoutRespondingInitializer extends HttpServerInitializer {
 

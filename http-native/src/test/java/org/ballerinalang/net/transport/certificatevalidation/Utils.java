@@ -17,6 +17,23 @@
  */
 package org.ballerinalang.net.transport.certificatevalidation;
 
+import org.ballerinalang.net.transport.contentaware.listeners.EchoMessageListener;
+import org.ballerinalang.net.transport.contract.HttpClientConnector;
+import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
+import org.ballerinalang.net.transport.contract.ServerConnector;
+import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
+import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
+import org.ballerinalang.net.transport.contract.config.Parameter;
+import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
+import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.Constants;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
+import org.ballerinalang.net.transport.util.DefaultHttpConnectorListener;
+import org.ballerinalang.net.transport.util.TestUtil;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -50,23 +67,6 @@ import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.contentaware.listeners.EchoMessageListener;
-import org.ballerinalang.net.transport.contract.HttpClientConnector;
-import org.ballerinalang.net.transport.contract.HttpResponseFuture;
-import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
-import org.ballerinalang.net.transport.contract.ServerConnector;
-import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
-import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
-import org.ballerinalang.net.transport.contract.config.Parameter;
-import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
-import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.Constants;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
-import org.ballerinalang.net.transport.message.HttpCarbonMessage;
-import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
-import org.ballerinalang.net.transport.util.DefaultHttpConnectorListener;
-import org.ballerinalang.net.transport.util.TestUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -93,10 +93,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 import static org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.Constants.BOUNCY_CASTLE_PROVIDER;
+import static org.testng.Assert.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Contains utility methods used by the test classes.

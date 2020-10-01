@@ -19,11 +19,6 @@
 package org.ballerinalang.net.transport.http2.expect100continue;
 
 import io.netty.handler.codec.http.HttpMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
@@ -34,12 +29,17 @@ import org.ballerinalang.net.transport.util.client.http2.MessageGenerator;
 import org.ballerinalang.net.transport.util.client.http2.MessageSender;
 import org.ballerinalang.net.transport.util.server.HttpServer;
 import org.ballerinalang.net.transport.util.server.initializers.http2.expect100continue.Abnormal100ContinueServerInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 import static org.ballerinalang.net.transport.util.Http2Util.HTTP2_RESPONSE_PAYLOAD;
 import static org.ballerinalang.net.transport.util.Http2Util.getHttp2Client;
 import static org.ballerinalang.net.transport.util.TestUtil.HTTP_SCHEME;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Test whether the HTTP/2 client gracefully handles the 100-continue response when the request doesn't contain the

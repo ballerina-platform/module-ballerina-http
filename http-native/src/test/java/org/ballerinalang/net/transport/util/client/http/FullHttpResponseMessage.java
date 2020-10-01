@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import java.util.List;
 
 /**
- * Holds the content of FullHttpResponse
+ * Holds the content of FullHttpResponse.
  */
 public class FullHttpResponseMessage {
 

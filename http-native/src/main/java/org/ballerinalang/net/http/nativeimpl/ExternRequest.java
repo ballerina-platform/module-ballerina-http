@@ -29,8 +29,8 @@ import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
-import org.ballerinalang.net.uri.URIUtil;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.uri.URIUtil;
 
 import static org.ballerinalang.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.QUERY_PARAM_MAP;

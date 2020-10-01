@@ -23,8 +23,6 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contractimpl.common.states.Http2MessageStateContext;
 import org.ballerinalang.net.transport.contractimpl.sender.http2.Http2ClientChannel;
 import org.ballerinalang.net.transport.contractimpl.sender.http2.Http2ClientTimeoutHandler;
@@ -34,6 +32,8 @@ import org.ballerinalang.net.transport.contractimpl.sender.http2.OutboundMsgHold
 import org.ballerinalang.net.transport.message.Http2DataFrame;
 import org.ballerinalang.net.transport.message.Http2HeadersFrame;
 import org.ballerinalang.net.transport.message.Http2PushPromise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;

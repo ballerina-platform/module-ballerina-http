@@ -44,7 +44,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static org.ballerinalang.net.transport.contract.Constants.TEXT_PLAIN;
 
 /**
- * An initializer class for HTTP Server
+ * An initializer class for HTTP Server.
  */
 public class HalfResponseCloseServerInitializer extends HttpServerInitializer {
 

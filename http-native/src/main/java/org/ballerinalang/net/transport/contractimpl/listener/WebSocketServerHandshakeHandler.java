@@ -34,14 +34,14 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.websocketx.Utf8FrameValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorException;
 import org.ballerinalang.net.transport.contractimpl.common.Util;
 import org.ballerinalang.net.transport.contractimpl.websocket.message.DefaultWebSocketHandshaker;
 import org.ballerinalang.net.transport.message.HttpCarbonRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_OBJECT_AGGREGATOR;
 import static org.ballerinalang.net.transport.contract.Constants.WEBSOCKET_COMPRESSION_HANDLER;

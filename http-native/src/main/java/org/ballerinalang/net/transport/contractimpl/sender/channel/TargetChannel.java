@@ -18,8 +18,6 @@ package org.ballerinalang.net.transport.contractimpl.sender.channel;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contractimpl.common.BackPressureHandler;
 import org.ballerinalang.net.transport.contractimpl.common.HttpRoute;
@@ -33,6 +31,8 @@ import org.ballerinalang.net.transport.contractimpl.sender.http2.Http2ClientChan
 import org.ballerinalang.net.transport.internal.HandlerExecutor;
 import org.ballerinalang.net.transport.internal.HttpTransportContextHolder;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
 

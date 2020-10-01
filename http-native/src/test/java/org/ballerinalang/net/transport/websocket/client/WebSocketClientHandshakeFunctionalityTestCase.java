@@ -19,12 +19,6 @@
 package org.ballerinalang.net.transport.websocket.client;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
 import org.ballerinalang.net.transport.contract.websocket.ClientHandshakeFuture;
 import org.ballerinalang.net.transport.contract.websocket.ClientHandshakeListener;
@@ -35,6 +29,12 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorList
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.ballerinalang.net.transport.message.HttpCarbonResponse;
 import org.ballerinalang.net.transport.util.server.websocket.WebSocketRemoteServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;

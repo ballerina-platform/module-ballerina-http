@@ -18,8 +18,6 @@
 
 package org.ballerinalang.net.transport.websocket.passthrough;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketBinaryMessage;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketCloseMessage;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
@@ -27,6 +25,8 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorList
 import org.ballerinalang.net.transport.contract.websocket.WebSocketControlMessage;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketTextMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Client connector Listener to check WebSocket pass-through scenarios.

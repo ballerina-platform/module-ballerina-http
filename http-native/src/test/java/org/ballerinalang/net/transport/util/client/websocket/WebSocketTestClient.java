@@ -40,9 +40,9 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
+import org.ballerinalang.net.transport.util.TestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ballerinalang.net.transport.util.TestUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * WebSocket client class for test
+ * WebSocket client class for test.
  */
 public class WebSocketTestClient {
 

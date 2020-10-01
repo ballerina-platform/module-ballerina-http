@@ -26,8 +26,6 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.concurrent.EventExecutorGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.ServerConnector;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
@@ -41,8 +39,11 @@ import org.ballerinalang.net.transport.contractimpl.common.ssl.SSLConfig;
 import org.ballerinalang.net.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import org.ballerinalang.net.transport.internal.HandlerExecutor;
 import org.ballerinalang.net.transport.internal.HttpTransportContextHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+
 import javax.net.ssl.SSLContext;
 
 /**

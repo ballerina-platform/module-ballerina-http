@@ -63,9 +63,6 @@ import org.ballerinalang.mime.util.MultipartDecoder;
 import org.ballerinalang.net.http.caching.RequestCacheControlObj;
 import org.ballerinalang.net.http.caching.ResponseCacheControlObj;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
-import org.ballerinalang.stdlib.io.utils.IOConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
@@ -88,6 +85,9 @@ import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.PoolConf
 import org.ballerinalang.net.transport.message.Http2PushPromise;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
+import org.ballerinalang.stdlib.io.utils.IOConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -173,7 +173,6 @@ import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_SSL_VERIFY_CLI
 import static org.ballerinalang.net.http.HttpConstants.SSL_PROTOCOL_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.TRANSPORT_MESSAGE;
 import static org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler.sendPipelinedResponse;
-import static org.ballerinalang.stdlib.io.utils.IOConstants.IO_PACKAGE_ID;
 import static org.ballerinalang.net.transport.contract.Constants.ENCODING_GZIP;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_1_1_VERSION;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0_VERSION;
@@ -193,6 +192,7 @@ import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_C
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
+import static org.ballerinalang.stdlib.io.utils.IOConstants.IO_PACKAGE_ID;
 
 /**
  * Utility class providing utility methods.
@@ -1410,12 +1410,11 @@ public class HttpUtil {
         sslConfiguration.setOcspStaplingEnabled(ocspStaplingEnabled);
         sslConfiguration.setHostNameVerificationEnabled(hostNameVerificationEnabled);
 
-        sslConfiguration
-                .setSslSessionTimeOut((int) (((MapValue)secureSocket)
-                        .getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT)));
+        sslConfiguration.setSslSessionTimeOut(
+                (int) (((MapValue) secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT)));
 
-        sslConfiguration.setSslHandshakeTimeOut(((MapValue)secureSocket)
-                .getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
+        sslConfiguration.setSslHandshakeTimeOut(
+                ((MapValue) secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
 
         Object[] cipherConfigs = secureSocket.getArrayValue(HttpConstants.SSL_CONFIG_CIPHERS).getStringArray();
         if (cipherConfigs != null) {

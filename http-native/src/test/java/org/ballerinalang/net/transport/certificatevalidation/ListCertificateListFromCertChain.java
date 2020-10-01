@@ -18,16 +18,16 @@
 
 package org.ballerinalang.net.transport.certificatevalidation;
 
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contractimpl.common.ssl.SSLConfig;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
 import static org.ballerinalang.net.transport.contractimpl.listener.OCSPResponseBuilder.getCertInfo;
+import static org.testng.Assert.assertEquals;
 
 /**
  * This test is to test retrieving certificate list from certificate chains.

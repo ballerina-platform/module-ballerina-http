@@ -31,8 +31,8 @@ import org.ballerinalang.jvm.values.ArrayValue;
 import org.ballerinalang.jvm.values.XMLValue;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
-import org.ballerinalang.net.uri.URIUtil;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.uri.URIUtil;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

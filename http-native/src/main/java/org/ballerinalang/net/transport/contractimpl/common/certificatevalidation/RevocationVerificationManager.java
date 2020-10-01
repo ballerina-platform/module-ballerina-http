@@ -18,18 +18,19 @@
 
 package org.ballerinalang.net.transport.contractimpl.common.certificatevalidation;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.crl.CRLCache;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.crl.CRLVerifier;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.pathvalidation.CertificatePathValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+
 import javax.security.cert.CertificateEncodingException;
 
 /**

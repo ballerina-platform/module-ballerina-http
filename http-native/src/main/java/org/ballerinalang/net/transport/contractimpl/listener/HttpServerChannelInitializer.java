@@ -39,9 +39,6 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AsciiString;
 import io.netty.util.concurrent.EventExecutorGroup;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
@@ -57,6 +54,9 @@ import org.ballerinalang.net.transport.contractimpl.listener.http2.Http2SourceCo
 import org.ballerinalang.net.transport.contractimpl.listener.http2.Http2ToHttpFallbackHandler;
 import org.ballerinalang.net.transport.contractimpl.listener.http2.Http2WithPriorKnowledgeHandler;
 import org.ballerinalang.net.transport.contractimpl.sender.CertificateValidationHandler;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.KeyStoreException;

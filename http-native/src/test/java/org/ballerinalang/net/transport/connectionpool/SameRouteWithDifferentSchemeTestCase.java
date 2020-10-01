@@ -18,11 +18,6 @@
 
 package org.ballerinalang.net.transport.connectionpool;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
@@ -35,13 +30,18 @@ import org.ballerinalang.net.transport.util.TestUtil;
 import org.ballerinalang.net.transport.util.server.HttpServer;
 import org.ballerinalang.net.transport.util.server.HttpsServer;
 import org.ballerinalang.net.transport.util.server.initializers.SendChannelIDServerInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 
-import static org.testng.Assert.assertNotEquals;
 import static org.ballerinalang.net.transport.util.TestUtil.sendRequestAsync;
 import static org.ballerinalang.net.transport.util.TestUtil.sendRequestAsyncWithGivenPort;
+import static org.testng.Assert.assertNotEquals;
 
 /**
  * Test that when two different clients have the same route with different schemes that they do not share the connection

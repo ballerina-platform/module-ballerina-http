@@ -18,11 +18,6 @@
 
 package org.ballerinalang.net.transport.https;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.ballerinalang.net.transport.contentaware.listeners.EchoMessageListener;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
@@ -33,15 +28,19 @@ import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
 import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.ballerinalang.net.transport.util.TestUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.HashMap;
 
 import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 
 /**
- * Tests for mutual ssl
+ * Tests for mutual ssl.
  */
-
 public class MutualSSLTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(MutualSSLTestCase.class);

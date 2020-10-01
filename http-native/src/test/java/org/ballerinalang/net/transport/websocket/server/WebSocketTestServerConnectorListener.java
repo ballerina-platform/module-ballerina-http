@@ -19,9 +19,6 @@
 package org.ballerinalang.net.transport.websocket.server;
 
 import io.netty.channel.ChannelFuture;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.ballerinalang.net.transport.contract.websocket.ServerHandshakeFuture;
 import org.ballerinalang.net.transport.contract.websocket.ServerHandshakeListener;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketBinaryMessage;
@@ -32,6 +29,9 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketControlMessag
 import org.ballerinalang.net.transport.contract.websocket.WebSocketControlSignal;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketTextMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;

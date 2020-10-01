@@ -44,7 +44,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 /**
- * An intializer for redirect server
+ * An initializer for redirect server.
  */
 public class RedirectServerInitializer extends HttpServerInitializer {
 

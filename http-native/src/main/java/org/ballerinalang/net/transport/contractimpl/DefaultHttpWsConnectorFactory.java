@@ -44,6 +44,7 @@ import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.Connecti
 import org.ballerinalang.net.transport.contractimpl.websocket.DefaultWebSocketClientConnector;
 
 import java.util.Map;
+
 import javax.net.ssl.SSLException;
 
 import static org.ballerinalang.net.transport.contract.Constants.PIPELINING_THREAD_COUNT;

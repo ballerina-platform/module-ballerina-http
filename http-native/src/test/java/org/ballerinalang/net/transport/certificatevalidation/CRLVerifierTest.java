@@ -17,6 +17,10 @@
  */
 package org.ballerinalang.net.transport.certificatevalidation;
 
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.Constants;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.RevocationStatus;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.crl.CRLCache;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.crl.CRLVerifier;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.CRLNumber;
@@ -28,10 +32,6 @@ import org.bouncycastle.jce.PrincipalUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.testng.annotations.Test;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.Constants;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.RevocationStatus;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.crl.CRLCache;
-import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.crl.CRLVerifier;
 
 import java.lang.reflect.Method;
 import java.math.BigInteger;
@@ -45,6 +45,10 @@ import java.util.List;
 
 import static org.testng.Assert.assertTrue;
 
+/**
+ * This test is to verify a certificate is revoked or not by using the Certificate Revocation List published
+ * by the CA.
+ */
 public class CRLVerifierTest {
 
     /**
