@@ -22,7 +22,7 @@ import ballerina/mime;
 # + loadBalanceClientsArray - Array of HTTP clients for load balancing
 # + lbRule - Load balancing rule
 # + failover - Whether to fail over in case of a failure
-public type LoadBalanceClient client object {
+public client class LoadBalanceClient {
 
     public LoadBalanceClientConfiguration loadBalanceClientConfig;
     public Client?[] loadBalanceClientsArray;
@@ -197,7 +197,7 @@ public type LoadBalanceClient client object {
     #
     # + promise - The Push Promise to be rejected
     public remote function rejectPromise(PushPromise promise) {}
-};
+}
 
 # Represents the error attributes in addition to the message and the cause of the `LoadBalanceActionError`.
 #
@@ -269,7 +269,7 @@ function performLoadBalanceAction(LoadBalanceClient lb, string path, Request req
 }
 
 // Populates generic error specific to Load Balance connector by including all the errors returned from endpoints.
-function populateGenericLoadBalanceActionError(LoadBalanceActionErrorData loadBalanceActionErrorData)
+isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorData loadBalanceActionErrorData)
                                                     returns ClientError {
     int nErrs = loadBalanceActionErrorData.httpActionErr.length();
     error? lastError = loadBalanceActionErrorData.httpActionErr[nErrs - 1];
@@ -313,7 +313,7 @@ public type LoadBalanceClientConfiguration record {|
     boolean failover = true;
 |};
 
-function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientConfiguration lbConfig,
+isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientConfiguration lbConfig,
                                                      TargetService target) returns ClientConfiguration {
     ClientConfiguration clientEPConfig = {
         http1Settings: lbConfig.http1Settings,

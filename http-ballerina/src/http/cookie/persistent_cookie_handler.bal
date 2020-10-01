@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The representation of a persistent cookie handler for managing persistent cookies.
-public type PersistentCookieHandler abstract object {
+# The representation of a persistent cookie handler object type for managing persistent cookies.
+public type PersistentCookieHandler object {
 
     # Adds a persistent cookie to the cookie store.
     #

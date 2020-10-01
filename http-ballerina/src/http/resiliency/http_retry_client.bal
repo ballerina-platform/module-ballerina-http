@@ -39,7 +39,7 @@ public type RetryInferredConfig record {|
 # + retryInferredConfig - Derived set of configurations associated with retry
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner.
-public type RetryClient client object {
+public client class RetryClient {
 
     public string url;
     public ClientConfiguration config;
@@ -268,7 +268,7 @@ public type RetryClient client object {
     public remote function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
-};
+}
 
 
 // Performs execute remote function of the retry client. extract the corresponding http integer value representation
@@ -336,7 +336,7 @@ function performRetryAction(@untainted string path, Request request, HttpOperati
     return httpConnectorErr;
 }
 
-function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryClient) {
+isolated function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryClient) {
     if (retryClient.retryInferredConfig.backOffFactor <= 0.0) {
         retryClient.retryInferredConfig.backOffFactor = 1.0;
     }
@@ -345,13 +345,13 @@ function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryClient) {
     }
 }
 
-function getWaitTime(float backOffFactor, int maxWaitTime, int interval) returns int {
+isolated function getWaitTime(float backOffFactor, int maxWaitTime, int interval) returns int {
     int waitTime = <int>(interval * backOffFactor);
     waitTime = waitTime > maxWaitTime ? maxWaitTime : waitTime;
     return waitTime;
 }
 
-function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount, int currentDelay)
+isolated function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount, int currentDelay)
                                                  returns [int, int] {
     int interval = currentDelay;
     if (currentRetryCount != 0) {

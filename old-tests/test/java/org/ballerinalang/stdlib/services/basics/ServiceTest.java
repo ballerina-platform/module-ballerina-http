@@ -18,35 +18,11 @@
 
 package org.ballerinalang.stdlib.services.basics;
 
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.DefaultHttpHeaders;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
-import org.ballerinalang.jvm.JSONParser;
-import org.ballerinalang.jvm.values.MapValue;
-import org.ballerinalang.jvm.values.MapValueImpl;
-import org.ballerinalang.jvm.values.api.BString;
-import org.ballerinalang.model.util.JsonParser;
-import org.ballerinalang.model.util.StringUtils;
-import org.ballerinalang.model.values.BMap;
-import org.ballerinalang.model.values.BValue;
-import org.ballerinalang.stdlib.utils.HTTPTestRequest;
-import org.ballerinalang.stdlib.utils.MessageUtils;
-import org.ballerinalang.stdlib.utils.ResponseReader;
-import org.ballerinalang.stdlib.utils.Services;
 import org.ballerinalang.test.util.BAssertUtil;
 import org.ballerinalang.test.util.BCompileUtil;
 import org.ballerinalang.test.util.CompileResult;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
-import org.wso2.transport.http.netty.message.HttpMessageDataStreamer;
-
-import static org.ballerinalang.mime.util.MimeConstants.APPLICATION_FORM;
-import static org.ballerinalang.mime.util.MimeConstants.APPLICATION_JSON;
-import static org.ballerinalang.mime.util.MimeConstants.TEXT_PLAIN;
 
 /**
  * Service/Resource dispatchers test class.
@@ -210,10 +186,10 @@ public class ServiceTest {
 
     //     Assert.assertNotNull(responseMsg, "responseMsg message not found");
     //     Object bJson = JSONParser.parse(new HttpMessageDataStreamer(responseMsg).getInputStream());
-    //     Assert.assertTrue(bJson instanceof MapValue);
+    //     Assert.assertTrue(bJson instanceof BMap);
 
-    //     Assert.assertTrue(((MapValueImpl<BString, BString>) bJson).get(
-    //             org.ballerinalang.jvm.StringUtils.fromString("Team")).toString().isEmpty(),
+    //     Assert.assertTrue(((BMap<BString, BString>) bJson).get(
+    //             org.ballerinalang.jvm.api.BStringUtils.fromString("Team")).toString().isEmpty(),
     //                       "Team variable not set properly");
     // }
 

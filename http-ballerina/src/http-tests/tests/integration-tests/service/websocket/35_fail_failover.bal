@@ -18,10 +18,12 @@ import ballerina/runtime;
 import ballerina/test;
 import http;
 
+string expectedError35 = "";
+
 service failFailoverCallbackService = @http:WebSocketServiceConfig {} service {
 
     resource function onError(http:WebSocketFailoverClient conn, error err) {
-        expectedError = <@untainted>err.message();
+        expectedError35 = <@untainted>err.message();
     }
 };
 
@@ -40,7 +42,7 @@ public function testFailingFailover() {
     });
     var out = trap wsClientEp->ready();
     runtime:sleep(500);
-    test:assertEquals(expectedError, "ConnectionError: IO Error");
+    test:assertEquals(expectedError35, "ConnectionError: IO Error");
     if (out is error) {
         test:assertEquals(out.message(), "ConnectionError: The WebSocket connection has not been made");
     } else {

@@ -43,7 +43,7 @@ public type FailoverInferredConfig record {|
 # + failoverClientConfig - The configurations for the failover client endpoint
 # + failoverInferredConfig - Configurations derived from `FailoverConfig`
 # + succeededEndpointIndex - Index of the `CallerActions[]` array which given a successful response
-public type FailoverClient client object {
+public client class FailoverClient {
 
     public FailoverClientConfiguration failoverClientConfig;
     public FailoverInferredConfig failoverInferredConfig;
@@ -273,7 +273,7 @@ public type FailoverClient client object {
     # + promise - The Push Promise to be rejected
     public remote function rejectPromise(PushPromise promise) {
     }
-};
+}
 
 // Performs execute action of the Failover connector. extract the corresponding http integer value representation
 // of the http verb and invokes the perform action method.
@@ -393,7 +393,7 @@ function performFailoverAction (string path, Request request, HttpOperation requ
 }
 
 // Populates an error specific to the Failover connector by including all the errors returned from endpoints.
-function populateGenericFailoverActionError (ClientError?[] failoverActionErr, ClientError httpActionErr, int index)
+isolated function populateGenericFailoverActionError (ClientError?[] failoverActionErr, ClientError httpActionErr, int index)
                                                                             returns FailoverAllEndpointsFailedError {
 
     failoverActionErr[index] = httpActionErr;
@@ -405,14 +405,14 @@ function populateGenericFailoverActionError (ClientError?[] failoverActionErr, C
 
 // If leaf endpoint returns a response with status code configured to retry in the failover connector, failover error
 // will be generated with last response status code and generic failover response.
-function populateFailoverErrorHttpStatusCodes (Response inResponse, ClientError?[] failoverActionErr, int index) {
+isolated function populateFailoverErrorHttpStatusCodes (Response inResponse, ClientError?[] failoverActionErr, int index) {
     string failoverMessage = "Endpoint " + index.toString() + " returned response is: " +
                                 inResponse.statusCode.toString() + " " + inResponse.reasonPhrase;
     FailoverActionFailedError httpActionErr = FailoverActionFailedError(failoverMessage);
     failoverActionErr[index] = httpActionErr;
 }
 
-function populateErrorsFromLastResponse (Response inResponse, ClientError?[] failoverActionErr, int index)
+isolated function populateErrorsFromLastResponse (Response inResponse, ClientError?[] failoverActionErr, int index)
                                                                             returns (ClientError) {
     string message = "Last endpoint returned response: " + inResponse.statusCode.toString() + " " +
                         inResponse.reasonPhrase;
@@ -454,7 +454,7 @@ public type FailoverClientConfiguration record {|
     int intervalInMillis = 0;
 |};
 
-function createClientEPConfigFromFailoverEPConfig(FailoverClientConfiguration foConfig,
+isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfiguration foConfig,
                                                   TargetService target) returns ClientConfiguration {
     ClientConfiguration clientEPConfig = {
         http1Settings: foConfig.http1Settings,
@@ -490,7 +490,7 @@ function createFailoverHttpClientArray(FailoverClientConfiguration failoverClien
     return httpClients;
 }
 
-function getLastSuceededClientEP(FailoverClient failoverClient) returns Client {
+isolated function getLastSuceededClientEP(FailoverClient failoverClient) returns Client {
     var lastSuccessClient = failoverClient.failoverInferredConfig
                                             .failoverClientsArray[failoverClient.succeededEndpointIndex];
     if (lastSuccessClient is Client) {
@@ -503,7 +503,7 @@ function getLastSuceededClientEP(FailoverClient failoverClient) returns Client {
     }
 }
 
-function handleResponseWithErrorCode(Response response, int initialIndex, int noOfEndpoints, int index,
+isolated function handleResponseWithErrorCode(Response response, int initialIndex, int noOfEndpoints, int index,
                                                         ClientError?[] failoverActionErrData) returns [int, ClientError?] {
 
     ClientError? resultError = ();
@@ -547,7 +547,7 @@ function handleResponseWithErrorCode(Response response, int initialIndex, int no
     return [currentIndex, resultError];
 }
 
-function handleError(ClientError err, int initialIndex, int noOfEndpoints, int index, ClientError?[] failoverActionErrData)
+isolated function handleError(ClientError err, int initialIndex, int noOfEndpoints, int index, ClientError?[] failoverActionErrData)
                                                                                         returns [int, ClientError?] {
     ClientError? httpConnectorErr = ();
 

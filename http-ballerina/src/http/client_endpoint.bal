@@ -32,7 +32,7 @@ import ballerina/observe;
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner
 # + cookieStore - Stores the cookies of the client
-public type Client client object {
+public client class Client {
 
     public string url;
     public ClientConfiguration config = {};
@@ -264,7 +264,7 @@ public type Client client object {
     public function getCookieStore() returns CookieStore? {
         return self.cookieStore;
     }
-};
+}
 
 # Represents a single service and its related configurations.
 #
@@ -311,8 +311,8 @@ public type ClientHttp1Settings record {|
     ProxyConfig? proxy = ();
 |};
 
-function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig) = @java:Method {
-   class: "org.ballerinalang.net.http.clientendpoint.CreateSimpleHttpClient",
+isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig) = @java:Method {
+   'class: "org.ballerinalang.net.http.clientendpoint.CreateSimpleHttpClient",
    name: "createSimpleHttpClient"
 } external;
 

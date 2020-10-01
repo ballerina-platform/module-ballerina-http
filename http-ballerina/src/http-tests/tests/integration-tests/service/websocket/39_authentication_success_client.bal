@@ -19,6 +19,9 @@ import ballerina/runtime;
 import ballerina/test;
 import http;
 
+string expectedOutput39 = "";
+string expectedError39 = "";
+
 @http:WebSocketServiceConfig {
 }
 service on new http:Listener(21039) {
@@ -46,19 +49,20 @@ service on new http:Listener(21039) {
 service authenticationService = @http:WebSocketServiceConfig {} service {
 
     resource function onText(http:WebSocketClient conn, string text, boolean finalFrame) {
-        expectedOutput = <@untainted>text;
+        expectedOutput39 = <@untainted>text;
     }
 
     resource function onError(http:WebSocketClient conn, error err) {
-        expectedError = <@untainted>err.message();
+        expectedError39 = <@untainted>err.message();
     }
 };
 
 // Tests with correct credential
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function testBasicAuthenticationSuccess() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21039");
     runtime:sleep(500);
-    test:assertEquals(expectedOutput, "Hello World!");
+    test:assertEquals(expectedOutput39, "Hello World!");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }

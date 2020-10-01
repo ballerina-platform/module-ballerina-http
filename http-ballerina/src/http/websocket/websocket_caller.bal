@@ -15,7 +15,7 @@
 // under the License.
 
 # Represents a WebSocket caller.
-public type WebSocketCaller client object {
+public client class WebSocketCaller {
 
     private string id = "";
     private string? negotiatedSubProtocol = ();
@@ -25,7 +25,7 @@ public type WebSocketCaller client object {
 
     private WebSocketConnector conn = new;
 
-    function init() {
+    isolated function init() {
         // package private function to prevent object creation
     }
 
@@ -35,7 +35,7 @@ public type WebSocketCaller client object {
     # + data - Data to be sent. If it is a byte[], it is converted to a UTF-8 string for sending
     # + finalFrame - Set to `true` if this is a final frame of a (long) message
     # + return  - An `error` if an error occurs when sending
-    public remote function pushText(string|json|xml|boolean|int|float|byte|byte[] data,
+    public remote isolated function pushText(string|json|xml|boolean|int|float|byte|byte[] data,
         boolean finalFrame = true) returns WebSocketError? {
         return self.conn.pushText(data, finalFrame);
     }
@@ -46,7 +46,7 @@ public type WebSocketCaller client object {
     # + data - Binary data to be sent
     # + finalFrame - Set to `true` if this is a final frame of a (long) message
     # + return  - An `error` if an error occurs when sending
-    public remote function pushBinary(byte[] data, boolean finalFrame = true) returns WebSocketError? {
+    public remote isolated function pushBinary(byte[] data, boolean finalFrame = true) returns WebSocketError? {
         return self.conn.pushBinary(data, finalFrame);
     }
 
@@ -54,7 +54,7 @@ public type WebSocketCaller client object {
     #
     # + data - Binary data to be sent
     # + return  - An `error` if an error occurs when sending
-    public remote function ping(byte[] data) returns WebSocketError? {
+    public remote isolated function ping(byte[] data) returns WebSocketError? {
         return self.conn.ping(data);
     }
 
@@ -63,7 +63,7 @@ public type WebSocketCaller client object {
     #
     # + data - Binary data to be sent
     # + return  - An `error` if an error occurs when sending
-    public remote function pong(byte[] data) returns WebSocketError? {
+    public remote isolated function pong(byte[] data) returns WebSocketError? {
         return self.conn.pong(data);
     }
 
@@ -77,7 +77,7 @@ public type WebSocketCaller client object {
     #                   until a close frame is received. If WebSocket frame is received from the remote endpoint
     #                   within the waiting period, the connection is terminated immediately.
     # + return - An `error` if an error occurs when sending
-    public remote function close(int? statusCode = 1000, string? reason = (),
+    public remote isolated function close(int? statusCode = 1000, string? reason = (),
         int timeoutInSeconds = 60) returns WebSocketError? {
         return self.conn.close(statusCode, reason, timeoutInSeconds);
     }
@@ -86,7 +86,7 @@ public type WebSocketCaller client object {
     #
     # + key - The key, which identifies the attribute
     # + value - The value of the attribute
-    public function setAttribute(string key, any value) {
+    public isolated function setAttribute(string key, any value) {
         self.attributes[key] = value;
     }
 
@@ -94,7 +94,7 @@ public type WebSocketCaller client object {
     #
     # + key - The key to identify the attribute
     # + return - The attribute related to the given key or `nil`
-    public function getAttribute(string key) returns any {
+    public isolated function getAttribute(string key) returns any {
         return self.attributes[key];
     }
 
@@ -102,35 +102,35 @@ public type WebSocketCaller client object {
     #
     # + key - The key to identify the attribute
     # + return - The attribute related to the given key or `nil`
-    public function removeAttribute(string key) returns any {
+    public isolated function removeAttribute(string key) returns any {
         return self.attributes.remove(key);
     }
 
     # Gives the connection id associated with this connection.
     #
     # + return - The unique ID associated with the connection
-    public function getConnectionId() returns string {
+    public isolated function getConnectionId() returns string {
         return self.id;
     }
 
     # Gives the subprotocol if any that is negotiated with the client.
     #
     # + return - The subprotocol if any negotiated with the client or `nil`
-    public function getNegotiatedSubProtocol() returns string? {
+    public isolated function getNegotiatedSubProtocol() returns string? {
         return self.negotiatedSubProtocol;
     }
 
     # Gives the secured status of the connection.
     #
     # + return - `true` if the connection is secure
-    public function isSecure() returns boolean {
+    public isolated function isSecure() returns boolean {
         return self.secure;
     }
 
     # Gives the open or closed status of the connection.
     #
     # + return - `true` if the connection is open
-    public function isOpen() returns boolean {
+    public isolated function isOpen() returns boolean {
         return self.open;
     }
-};
+}

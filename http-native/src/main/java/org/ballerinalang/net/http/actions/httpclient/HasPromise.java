@@ -16,11 +16,12 @@
 
 package org.ballerinalang.net.http.actions.httpclient;
 
+import org.ballerinalang.jvm.api.BalEnv;
+import org.ballerinalang.jvm.api.BalFuture;
+import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.scheduling.Scheduler;
 import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.jvm.util.exceptions.BallerinaException;
-import org.ballerinalang.jvm.values.ObjectValue;
-import org.ballerinalang.jvm.values.connector.NonBlockingCallback;
 import org.ballerinalang.net.http.HttpConstants;
 import org.wso2.transport.http.netty.contract.HttpClientConnector;
 import org.wso2.transport.http.netty.contract.HttpClientConnectorListener;
@@ -31,7 +32,7 @@ import org.wso2.transport.http.netty.message.ResponseHandle;
  */
 public class HasPromise extends AbstractHTTPAction {
 
-    public static boolean hasPromise(ObjectValue clientObj, ObjectValue handleObj) {
+    public static boolean hasPromise(BalEnv env, BObject clientObj, BObject handleObj) {
         Strand strand = Scheduler.getStrand();
         ResponseHandle responseHandle = (ResponseHandle) handleObj.getNativeData(HttpConstants.TRANSPORT_HANDLE);
         if (responseHandle == null) {
@@ -39,22 +40,21 @@ public class HasPromise extends AbstractHTTPAction {
         }
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
         clientConnector.hasPushPromise(responseHandle).
-                setPromiseAvailabilityListener(new PromiseAvailabilityCheckListener(new NonBlockingCallback(strand)));
+                setPromiseAvailabilityListener(new PromiseAvailabilityCheckListener(env.markAsync()));
         return false;
     }
 
     private static class PromiseAvailabilityCheckListener implements HttpClientConnectorListener {
 
-        private NonBlockingCallback callback;
+        private BalFuture balFuture;
 
-        PromiseAvailabilityCheckListener(NonBlockingCallback callback) {
-            this.callback = callback;
+        PromiseAvailabilityCheckListener(BalFuture balFuture) {
+            this.balFuture = balFuture;
         }
 
         @Override
         public void onPushPromiseAvailability(boolean isPromiseAvailable) {
-            callback.setReturnValues(isPromiseAvailable);
-            callback.notifySuccess();
+            balFuture.complete(isPromiseAvailable);
         }
     }
 }

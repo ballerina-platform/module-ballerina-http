@@ -28,7 +28,7 @@
 #                   must be validated with the origin server.
 # + privateFields - Optional fields for the `private` directive. A cache can omit the fields specified and store
 #                   the rest of the response.
-public type ResponseCacheControl object {
+public class ResponseCacheControl {
 
     public boolean mustRevalidate = false;
     public boolean noCache = false;
@@ -44,7 +44,7 @@ public type ResponseCacheControl object {
     # Builds the cache control directives string from the current `http:ResponseCacheControl` configurations.
     #
     # + return - The cache control directives string to be used in the `cache-control` header
-    public function buildCacheControlDirectives () returns string {
+    public isolated function buildCacheControlDirectives () returns string {
         string[] directives = [];
         int i = 0;
 
@@ -92,9 +92,9 @@ public type ResponseCacheControl object {
 
         return buildCommaSeparatedString(directives);
     }
-};
+}
 
-function setResponseCacheControlHeader(Response response) {
+isolated function setResponseCacheControlHeader(Response response) {
     var responseCacheControl = response.cacheControl;
     if (responseCacheControl is ResponseCacheControl) {
         if (!response.hasHeader(CACHE_CONTROL)) {

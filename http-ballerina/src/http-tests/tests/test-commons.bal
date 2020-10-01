@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/mime;
 import ballerina/stringutils;
 import ballerina/test;
 
@@ -32,7 +33,8 @@ const string ACCESS_CONTROL_EXPOSE_HEADERS = "access-control-expose-headers";
 const string ACCESS_CONTROL_MAX_AGE = "access-control-max-age";
 const string ACCESS_CONTROL_REQUEST_HEADERS = "access-control-request-headers";
 const string ACCESS_CONTROL_REQUEST_METHOD = "access-control-request-method";
-
+const string IF_NONE_MATCH = "If-None-Match";
+const string IF_MODIFIED_SINCE = "If-Modified-Since";
 const string SERVER = "server";
 
 const string ENCODING_GZIP = "gzip";
@@ -51,6 +53,15 @@ const string TEXT_PLAIN = "text/plain";
 const string APPLICATION_XML = "application/xml";
 const string APPLICATION_JSON = "application/json";
 const string APPLICATION_FORM = "application/x-www-form-urlencoded";
+
+
+function getContentDispositionForFormData(string partName)
+                                    returns (mime:ContentDisposition) {
+    mime:ContentDisposition contentDisposition = new;
+    contentDisposition.name = partName;
+    contentDisposition.disposition = "form-data";
+    return contentDisposition;
+}
 
 function assertJsonValue(json|error payload, string expectKey, json expectValue) {
     if payload is map<json> {

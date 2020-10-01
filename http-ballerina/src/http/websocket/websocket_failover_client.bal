@@ -17,7 +17,7 @@
 import ballerina/java;
 
 # A WebSocket client endpoint, which provides failover support for multiple WebSocket targets.
-public type WebSocketFailoverClient client object {
+public client class WebSocketFailoverClient {
 
     private string id = "";
     private string? negotiatedSubProtocol = ();
@@ -33,7 +33,7 @@ public type WebSocketFailoverClient client object {
     # Initializes the   failover client, which provides failover capabilities to a WebSocket client endpoint.
     #
     # + config - The `WebSocketFailoverClientConfiguration` of the endpoint
-    public function init(WebSocketFailoverClientConfiguration config) {
+    public isolated function init(WebSocketFailoverClientConfiguration config) {
         self.url = config.targetUrls[0];
         addCookies(config);
         self.config = config;
@@ -46,7 +46,7 @@ public type WebSocketFailoverClient client object {
     # + data - Data to be sent. If it is a byte[], it is converted to a UTF-8 string for sending
     # + finalFrame - Set to `true` if this is a final frame of a (long) message
     # + return  - An `error` if an error occurs when sending
-    public remote function pushText(string|json|xml|boolean|int|float|byte|byte[] data,
+    public remote isolated function pushText(string|json|xml|boolean|int|float|byte|byte[] data,
     boolean finalFrame = true) returns WebSocketError? {
         return self.conn.pushText(data, finalFrame);
     }
@@ -57,7 +57,7 @@ public type WebSocketFailoverClient client object {
     # + data - Binary data to be sent
     # + finalFrame - Set to `true` if this is a final frame of a (long) message
     # + return  - An `error` if an error occurs when sending
-    public remote function pushBinary(byte[] data, boolean finalFrame = true) returns WebSocketError? {
+    public remote isolated function pushBinary(byte[] data, boolean finalFrame = true) returns WebSocketError? {
         return self.conn.pushBinary(data, finalFrame);
     }
 
@@ -65,7 +65,7 @@ public type WebSocketFailoverClient client object {
     #
     # + data - Binary data to be sent
     # + return  - An `error` if an error occurs when sending
-    public remote function ping(byte[] data) returns WebSocketError? {
+    public remote isolated function ping(byte[] data) returns WebSocketError? {
         return self.conn.ping(data);
     }
 
@@ -74,7 +74,7 @@ public type WebSocketFailoverClient client object {
     #
     # + data - Binary data to be sent
     # + return  - An `error` if an error occurs when sending
-    public remote function pong(byte[] data) returns WebSocketError? {
+    public remote isolated function pong(byte[] data) returns WebSocketError? {
         return self.conn.pong(data);
     }
 
@@ -88,7 +88,7 @@ public type WebSocketFailoverClient client object {
     #                   waits until a close frame is received. If the WebSocket frame is received from the remote
     #                   endpoint within the waiting period, the connection is terminated immediately.
     # + return - An `error` if an error occurs while closing the webSocket connection
-    public remote function close(int? statusCode = 1000, string? reason = (),
+    public remote isolated function close(int? statusCode = 1000, string? reason = (),
     int timeoutInSeconds = 60) returns WebSocketError? {
         return self.conn.close(statusCode, reason, timeoutInSeconds);
     }
@@ -97,7 +97,7 @@ public type WebSocketFailoverClient client object {
     # WebSocketListener, it can be called only in the `upgrade` or `onOpen` resources.
     #
     # + return - An `error` if an error occurs while checking the connection state
-    public remote function ready() returns WebSocketError? {
+    public remote isolated function ready() returns WebSocketError? {
         return self.conn.ready();
     }
 
@@ -105,7 +105,7 @@ public type WebSocketFailoverClient client object {
     #
     # + key - The key to identify the attribute
     # + value - The value of the attribute
-    public function setAttribute(string key, any value) {
+    public isolated function setAttribute(string key, any value) {
         self.attributes[key] = value;
     }
 
@@ -113,7 +113,7 @@ public type WebSocketFailoverClient client object {
     #
     # + key - The key to identify the attribute
     # + return - The attribute related to the given key or `nil`
-    public function getAttribute(string key) returns any {
+    public isolated function getAttribute(string key) returns any {
         return self.attributes[key];
     }
 
@@ -121,46 +121,45 @@ public type WebSocketFailoverClient client object {
     #
     # + key - The key to identify the attribute
     # + return - The attribute related to the given key or `nil`
-    public function removeAttribute(string key) returns any {
+    public isolated function removeAttribute(string key) returns any {
         return self.attributes.remove(key);
     }
 
     # Gives the connection ID associated with this connection.
     #
     # + return - The unique ID associated with the connection
-    public function getConnectionId() returns string {
+    public isolated function getConnectionId() returns string {
         return self.id;
     }
 
     # Gives the subprotocol if any that is negotiated with the client.
     #
     # + return - Returns the subprotocol if any that is negotiated with the client or `nil`
-    public function getNegotiatedSubProtocol() returns string? {
+    public isolated function getNegotiatedSubProtocol() returns string? {
         return self.negotiatedSubProtocol;
     }
 
     # Gives the secured status of the connection.
     #
     # + return - Returns `true` if the connection is secure
-    public function isSecure() returns boolean {
+    public isolated function isSecure() returns boolean {
         return self.secure;
     }
 
     # Gives the open or closed status of the connection.
     #
     # + return - Returns `true` if the connection is open
-    public function isOpen() returns boolean {
+    public isolated function isOpen() returns boolean {
         return self.open;
     }
 
     # Gives any HTTP response of     the client handshake request if received.
     #
     # + return - Returns the HTTP response received for the client handshake request
-    public function getHttpResponse() returns Response? {
+    public isolated function getHttpResponse() returns Response? {
         return self.response;
     }
-
-};
+}
 
 # Configurations for the WebSocket client endpoint.
 #
@@ -184,7 +183,7 @@ public type WebSocketFailoverClientConfiguration record {|
     int failoverIntervalInMillis = 1000;
 |};
 
-function externFailoverInit(WebSocketFailoverClient wsClient) = @java:Method {
-    class: "org.ballerinalang.net.http.websocket.client.FailoverInitEndpoint",
+isolated function externFailoverInit(WebSocketFailoverClient wsClient) = @java:Method {
+    'class: "org.ballerinalang.net.http.websocket.client.FailoverInitEndpoint",
     name: "initEndpoint"
 } external;

@@ -105,7 +105,7 @@ function failureScenario() returns @tainted http:Response|error {
     return response;
 }
 
-public type FoMockClient client object {
+public client class FoMockClient {
     public string url = "";
     public http:ClientConfiguration config = {};
     public http:Client httpClient;
@@ -208,7 +208,7 @@ public type FoMockClient client object {
     public function getCookieStore() returns http:CookieStore? {
         return self.cookieStore;
     }
-};
+}
 
 function handleFailoverScenario (int count) returns (http:Response | http:ClientError) {
     if (count == 0) {
@@ -221,7 +221,7 @@ function handleFailoverScenario (int count) returns (http:Response | http:Client
 }
 
 function getUnsupportedFOError() returns http:ClientError {
-    return http:GenericClientError("Unsupported fucntion for MockClient");
+    return http:GenericClientError("Unsupported function for MockClient");
 }
 
 function createMockClient(string url) returns FoMockClient {

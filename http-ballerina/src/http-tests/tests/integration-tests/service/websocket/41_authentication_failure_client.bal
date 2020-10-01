@@ -19,6 +19,8 @@ import ballerina/runtime;
 import ballerina/test;
 import http;
 
+string expectedError41 = "";
+
 @http:WebSocketServiceConfig {
 }
 service on new http:Listener(21041) {
@@ -33,7 +35,7 @@ service on new http:Listener(21041) {
 
         http:WebSocketClient wsClient = new ("ws://localhost:21042/auth/ws",
                 config = {
-                callbackService: authenticationService,
+                callbackService: unAuthenticationService,
                 customHeaders: {
                     [http:AUTH_HEADER]: string `Basic ${token}`
                 }
@@ -46,15 +48,15 @@ service on new http:Listener(21041) {
 service unAuthenticationService = @http:WebSocketServiceConfig {} service {
 
     resource function onError(http:WebSocketClient conn, error err) {
-        expectedError = <@untainted>err.message();
+        expectedError41 = <@untainted>err.message();
     }
 };
 
 // Tests with wrong credential
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function testBasicAuthenticationFailure() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21041");
     runtime:sleep(500);
-    test:assertEquals(expectedError, "InvalidHandshakeError: Invalid handshake response getStatus: 401 Unauthorized");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    test:assertEquals(expectedError41, "InvalidHandshakeError: Invalid handshake response getStatus: 401 Unauthorized");
 }

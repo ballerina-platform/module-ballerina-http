@@ -25,7 +25,7 @@ import ballerina/log;
 #            `CACHE_CONTROL_AND_VALIDATORS`. The default behaviour is to allow caching only when the `cache-control`
 #            header and either the `etag` or `last-modified` header are present.
 # + isShared - Specifies whether the HTTP caching layer should behave as a public cache or a private cache
-public type HttpCache object {
+public class HttpCache {
 
     public cache:Cache cache;
     public CachingPolicy policy = CACHE_CONTROL_AND_VALIDATORS;
@@ -34,7 +34,7 @@ public type HttpCache object {
     # Creates the HTTP cache.
     #
     # + cacheConfig - The configurations for the HTTP cache
-    public function init(CacheConfig cacheConfig) {
+    public isolated function init(CacheConfig cacheConfig) {
         cache:CacheConfig config = {
             capacity: cacheConfig.capacity,
             evictionFactor: cacheConfig.evictionFactor
@@ -44,7 +44,7 @@ public type HttpCache object {
         self.isShared = cacheConfig.isShared;
     }
 
-    function isAllowedToCache(Response response) returns boolean {
+    isolated function isAllowedToCache(Response response) returns boolean {
         if (self.policy == CACHE_CONTROL_AND_VALIDATORS) {
             return response.hasHeader(CACHE_CONTROL) && (response.hasHeader(ETAG) || response.hasHeader(LAST_MODIFIED));
         }
@@ -52,7 +52,7 @@ public type HttpCache object {
         return true;
     }
 
-    function put(string key, RequestCacheControl? requestCacheControl, Response inboundResponse) {
+    isolated function put(string key, RequestCacheControl? requestCacheControl, Response inboundResponse) {
         if (self.isNonCacheableResponse(requestCacheControl, inboundResponse.cacheControl)) {
             return;
         }
@@ -67,7 +67,7 @@ public type HttpCache object {
     }
 
     // TODO: Need to consider https://tools.ietf.org/html/rfc7234#section-3.2 as well here
-    private function isNonCacheableResponse(RequestCacheControl? reqCC, ResponseCacheControl? resCC) returns boolean {
+    private isolated function isNonCacheableResponse(RequestCacheControl? reqCC, ResponseCacheControl? resCC) returns boolean {
         if (resCC is ResponseCacheControl) {
             if (resCC.noStore || (self.isShared && resCC.isPrivate)) {
                 return true;
@@ -79,7 +79,7 @@ public type HttpCache object {
 
     // Based on https://tools.ietf.org/html/rfc7234#page-6
     // TODO: Consider cache control extensions as well here
-    private function isCacheableResponse(Response inboundResp) returns boolean {
+    private isolated function isCacheableResponse(Response inboundResp) returns boolean {
         ResponseCacheControl? respCC = inboundResp.cacheControl;
         boolean allowedByCacheControl = false;
 
@@ -92,16 +92,16 @@ public type HttpCache object {
         return allowedByCacheControl || inboundResp.hasHeader(EXPIRES) || isCacheableStatusCode(inboundResp.statusCode);
     }
 
-    function hasKey(string key) returns boolean {
+    isolated function hasKey(string key) returns boolean {
         return self.cache.hasKey(key);
     }
 
-    function get(string key) returns Response {
+    isolated function get(string key) returns Response {
         Response[] cacheEntry = <Response[]> self.cache.get(key);
         return cacheEntry[cacheEntry.length() - 1];
     }
 
-    function getAll(string key) returns Response[]|() {
+    isolated function getAll(string key) returns Response[]|() {
         var cacheEntry = trap <Response[]> self.cache.get(key);
         if (cacheEntry is Response[]) {
             return cacheEntry;
@@ -109,7 +109,7 @@ public type HttpCache object {
         return ();
     }
 
-    function getAllByETag(string key, string etag) returns Response[] {
+    isolated function getAllByETag(string key, string etag) returns Response[] {
         Response[] cachedResponses = [];
         Response[] matchingResponses = [];
         int i = 0;
@@ -129,7 +129,7 @@ public type HttpCache object {
         return matchingResponses;
     }
 
-    function getAllByWeakETag(string key, string etag) returns Response[] {
+    isolated function getAllByWeakETag(string key, string etag) returns Response[] {
         Response[] cachedResponses = [];
         Response[] matchingResponses = [];
         int i = 0;
@@ -149,15 +149,15 @@ public type HttpCache object {
         return matchingResponses;
     }
 
-    function remove(string key) {
+    isolated function remove(string key) {
         cache:Error? result = self.cache.invalidate(key);
         if (result is cache:Error) {
             log:printDebug(() => "Failed to remove the key: " + key + " from the HTTP cache.");
         }
     }
-};
+}
 
-function isCacheableStatusCode(int statusCode) returns boolean {
+isolated function isCacheableStatusCode(int statusCode) returns boolean {
     return statusCode == STATUS_OK || statusCode == STATUS_NON_AUTHORITATIVE_INFORMATION ||
            statusCode == STATUS_NO_CONTENT || statusCode == STATUS_PARTIAL_CONTENT ||
            statusCode == STATUS_MULTIPLE_CHOICES || statusCode == STATUS_MOVED_PERMANENTLY ||
@@ -166,7 +166,7 @@ function isCacheableStatusCode(int statusCode) returns boolean {
            statusCode == STATUS_NOT_IMPLEMENTED;
 }
 
-function addEntry(cache:Cache cache, string key, Response inboundResponse) {
+isolated function addEntry(cache:Cache cache, string key, Response inboundResponse) {
     if (cache.hasKey(key)) {
         Response[] existingResponses = <Response[]>cache.get(key);
         existingResponses.push(inboundResponse);
@@ -179,13 +179,13 @@ function addEntry(cache:Cache cache, string key, Response inboundResponse) {
     }
 }
 
-function weakValidatorEquals(string etag1, string etag2) returns boolean {
+isolated function weakValidatorEquals(string etag1, string etag2) returns boolean {
     string validatorPortion1 = etag1.startsWith(WEAK_VALIDATOR_TAG) ? etag1.substring(2, etag1.length()) : etag1;
     string validatorPortion2 = etag2.startsWith(WEAK_VALIDATOR_TAG) ? etag2.substring(2, etag2.length()) : etag2;
 
     return validatorPortion1 == validatorPortion2;
 }
 
-function getCacheKey(string httpMethod, string url) returns string {
+isolated function getCacheKey(string httpMethod, string url) returns string {
     return string `${httpMethod} ${url}`;
 }

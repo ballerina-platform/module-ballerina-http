@@ -17,14 +17,14 @@
 import ballerina/lang.'int;
 import ballerina/stringutils;
 
-function appendFields (string[] fields) returns string {
+isolated function appendFields (string[] fields) returns string {
     if (fields.length() > 0) {
         return "=\"" + buildCommaSeparatedString(fields) + "\"";
     }
     return "";
 }
 
-function buildCommaSeparatedString (string[] values) returns string {
+isolated function buildCommaSeparatedString (string[] values) returns string {
     string delimitedValues = values[0];
     int arrLength = values.length();
 
@@ -37,7 +37,7 @@ function buildCommaSeparatedString (string[] values) returns string {
     return delimitedValues;
 }
 
-function getDirectiveValue (string directive) returns int {
+isolated function getDirectiveValue (string directive) returns int {
     string[] directiveParts = stringutils:split(directive, "=");
 
     // Disregarding the directive if a value isn't provided

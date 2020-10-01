@@ -17,7 +17,7 @@
 import ballerina/auth;
 
 # Representation of the Bearer Auth header handler for both inbound and outbound HTTP traffic.
-public type BearerAuthHandler object {
+public class BearerAuthHandler {
 
     *InboundAuthHandler;
     *OutboundAuthHandler;
@@ -27,7 +27,7 @@ public type BearerAuthHandler object {
     # Initializes the `BearerAuthHandler` object.
     #
     # + authProvider - The `auth:InboundAuthProvider` instance or the `auth:OutboundAuthProvider` instance
-    public function init(auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider) {
+    public isolated function init(auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider) {
         self.authProvider = authProvider;
     }
 
@@ -105,4 +105,4 @@ public type BearerAuthHandler object {
             return prepareAuthenticationError("Inbound auth provider is configured for outbound authentication.");
         }
     }
-};
+}

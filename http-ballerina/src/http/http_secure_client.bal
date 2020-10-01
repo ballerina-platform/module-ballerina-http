@@ -22,7 +22,7 @@ import ballerina/log;
 # + url - The URL of the remote HTTP endpoint
 # + config - The configurations of the client endpoint associated with this `HttpActions` instance
 # + httpClient - The underlying `HttpActions` instance, which will make the actual network calls
-public type HttpSecureClient client object {
+public client class HttpSecureClient {
     //These properties are populated from the init call and sent to the client connector as these will be needed at a
     //later stage for retrying and in other few places.
     public string url = "";
@@ -259,7 +259,7 @@ public type HttpSecureClient client object {
     public remote function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
-};
+}
 
 # Creates an HTTP client capable of securing HTTP requests with authentication.
 #
@@ -303,7 +303,7 @@ function doInspection(Request req, Response res, ClientConfiguration config) ret
         OutboundAuthHandler authHandler = auth.authHandler;
         return authHandler.inspect(req, res);
     }
-    log:printDebug(function () returns string {
+    log:printDebug(isolated function () returns string {
         return "Retry is not required for the given request after the inspection.";
     });
     return ();

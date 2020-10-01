@@ -18,7 +18,7 @@
 #
 # + authzHandler - `AuthzHandler` instance for handling authorization
 # + scopes - An array of scopes or an array consisting of arrays of scopes
-public type AuthzFilter object {
+public class AuthzFilter {
 
     *RequestFilter;
 
@@ -29,7 +29,7 @@ public type AuthzFilter object {
     #
     # + authzHandler - The `http:AuthzHandler` instance for handling authorization
     # + scopes - An array of scopes or an array consisting of arrays of scopes
-    public function init(AuthzHandler authzHandler, Scopes? scopes) {
+    public isolated function init(AuthzHandler authzHandler, Scopes? scopes) {
         self.authzHandler = authzHandler;
         self.scopes = scopes;
     }
@@ -65,9 +65,9 @@ public type AuthzFilter object {
         send403(caller, context);
         return false;
     }
-};
+}
 
-function send403(Caller caller, FilterContext context) {
+isolated function send403(Caller caller, FilterContext context) {
     if (isWebSocketUpgradeRequest(context)) {
         error? err = caller->cancelWebSocketUpgrade(403, "Authorization failure.");
         if (err is error) {

@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The representation of an inbound authentication handler for HTTP traffic.
-public type InboundAuthHandler abstract object {
+# The representation of an inbound authentication handler object type for HTTP traffic.
+public type InboundAuthHandler object {
 
     # Checks if the request can be authenticated with the relevant `InboundAuthHandler` implementation.
     #

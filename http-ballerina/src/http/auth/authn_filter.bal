@@ -17,7 +17,7 @@
 # Representation of the Authentication filter.
 #
 # + authHandlers - An array of authentication handlers or an array consisting of arrays of authentication handlers
-public type AuthnFilter object {
+public class AuthnFilter {
 
     *RequestFilter;
 
@@ -26,7 +26,7 @@ public type AuthnFilter object {
     # Initializes the `AuthnFilter` object.
     #
     # + authHandlers - An array of authentication handlers or an array consisting of arrays of authentication handlers
-    public function init(InboundAuthHandlers authHandlers) {
+    public isolated function init(InboundAuthHandlers authHandlers) {
         self.authHandlers = authHandlers;
     }
 
@@ -52,7 +52,7 @@ public type AuthnFilter object {
         send401(caller, context);
         return false;
     }
-};
+}
 
 function handleAuthRequest(InboundAuthHandlers authHandlers, Request request) returns boolean|AuthenticationError {
     if (authHandlers is InboundAuthHandler[]) {
@@ -96,7 +96,7 @@ function checkForAuthHandlers(InboundAuthHandler[] authHandlers, Request request
     return false;
 }
 
-function send401(Caller caller, FilterContext context) {
+isolated function send401(Caller caller, FilterContext context) {
     if (isWebSocketUpgradeRequest(context)) {
         error? err = caller->cancelWebSocketUpgrade(401, "Authentication failure.");
         if (err is error) {

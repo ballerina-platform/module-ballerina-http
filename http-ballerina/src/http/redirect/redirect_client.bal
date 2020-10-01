@@ -23,7 +23,7 @@ import ballerina/log;
 # + redirectConfig - Configurations associated with redirect
 # + httpClient - HTTP client for outbound HTTP requests
 # + currentRedirectCount - Current redirect count of the HTTP client
-public type RedirectClient client object {
+public client class RedirectClient {
 
     public string url;
     public ClientConfiguration config;
@@ -243,13 +243,13 @@ public type RedirectClient client object {
     public remote function rejectPromise(PushPromise promise) {
         self.httpClient->rejectPromise(promise);
     }
-};
+}
 
 //Invoke relevant HTTP client action and check the response for redirect eligibility.
 function performRedirectIfEligible(RedirectClient redirectClient, string path, Request request,
                                    HttpOperation httpOperation) returns @tainted HttpResponse|ClientError {
-    string originalUrl = redirectClient.url + path;
-    log:printDebug(function() returns string {
+    final string originalUrl = redirectClient.url + path;
+    log:printDebug(isolated function() returns string {
         return "Checking redirect eligibility for original request " + originalUrl;
     });
 
@@ -283,9 +283,10 @@ function checkRedirectEligibility(HttpResponse|ClientError response, string reso
 }
 
 //Check the response status for redirect eligibility.
-function isRedirectResponse(int statusCode) returns boolean {
-    log:printDebug(function() returns string {
-        return "Response Code : " + statusCode.toString();
+isolated function isRedirectResponse(int statusCode) returns boolean {
+    final string statusCodeValue = statusCode.toString();
+    log:printDebug(isolated function() returns string {
+        return "Response Code : " + statusCodeValue;
     });
     return (statusCode == 300 || statusCode == 301 || statusCode == 302 || statusCode == 303 || statusCode == 305 ||
         statusCode == 307 || statusCode == 308);
@@ -301,15 +302,16 @@ function redirect(Response response, HttpOperation httpVerb, Request request,
         setCountAndResolvedURL(redirectClient, response, resolvedRequestedURI);
     } else {
         currentCount += 1;
-        log:printDebug(function() returns string {
-            return "Redirect count : " + currentCount.toString();
+        final string currentCountValue = currentCount.toString();
+        log:printDebug(isolated function() returns string {
+            return "Redirect count : " + currentCountValue;
         });
         redirectClient.currentRedirectCount = currentCount;
         var redirectMethod = getRedirectMethod(httpVerb, response);
         if (redirectMethod is HttpOperation) {
             if (response.hasHeader(LOCATION)) {
-                string location = response.getHeader(LOCATION);
-                log:printDebug(function() returns string {
+                final string location = response.getHeader(LOCATION);
+                log:printDebug(isolated function() returns string {
                     return "Location header value: " + location;
                 });
                 if (!isAbsolute(location)) {
@@ -346,8 +348,9 @@ function performRedirection(string location, RedirectClient redirectClient, Http
     }
     var retryClient = createRetryClient(location, createNewEndpointConfig(redirectClient.config), cookieStore);
     if (retryClient is HttpClient) {
-        log:printDebug(function() returns string {
-                return "Redirect using new clientEP : " + location;
+        final string locationValue = location;
+        log:printDebug(isolated function() returns string {
+                return "Redirect using new clientEP : " + locationValue;
             });
         HttpResponse|ClientError result = invokeEndpoint("",
             createRedirectRequest(request, redirectClient.redirectConfig.allowAuthHeaders),
@@ -359,7 +362,7 @@ function performRedirection(string location, RedirectClient redirectClient, Http
 }
 
 //Create a new HTTP client endpoint configuration with a given location as the url.
-function createNewEndpointConfig(ClientConfiguration config) returns ClientConfiguration {
+isolated function createNewEndpointConfig(ClientConfiguration config) returns ClientConfiguration {
     ClientConfiguration newEpConfig = {
         http1Settings: config.http1Settings,
         http2Settings: config.http2Settings,
@@ -388,7 +391,7 @@ function createNewEndpointConfig(ClientConfiguration config) returns ClientConfi
 // | Does not allow changing the request       | 308       | 307       |
 // | method from POST to GET                   |           |           |
 // +-------------------------------------------+-----------+-----------+
-function getRedirectMethod(HttpOperation httpVerb, Response response) returns HttpOperation|() {
+isolated function getRedirectMethod(HttpOperation httpVerb, Response response) returns HttpOperation|() {
     int statusCode = response.statusCode;
     if (statusCode == STATUS_MOVED_PERMANENTLY || statusCode == STATUS_FOUND || statusCode == STATUS_SEE_OTHER) {
         return HTTP_GET;
@@ -397,13 +400,14 @@ function getRedirectMethod(HttpOperation httpVerb, Response response) returns Ht
                statusCode == STATUS_MULTIPLE_CHOICES || statusCode == STATUS_USE_PROXY) {
         return httpVerb;
     }
-    log:printDebug(function() returns string {
-        return "unsupported redirect status code" + statusCode.toString();
+    final string statusCodeValue = statusCode.toString();
+    log:printDebug(isolated function() returns string {
+        return "unsupported redirect status code" + statusCodeValue;
     });
     return ();
 }
 
-function createRedirectRequest(Request request, boolean allowAuthHeaders) returns Request {
+isolated function createRedirectRequest(Request request, boolean allowAuthHeaders) returns Request {
     if (allowAuthHeaders) {
         return request;
     }
@@ -412,14 +416,15 @@ function createRedirectRequest(Request request, boolean allowAuthHeaders) return
     return request;
 }
 
-function isAbsolute(string locationUrl) returns boolean {
+isolated function isAbsolute(string locationUrl) returns boolean {
     return (locationUrl.startsWith(HTTP_SCHEME) || locationUrl.startsWith(HTTPS_SCHEME));
 }
 
 //Reset the current redirect count to 0 and set the resolved requested URI.
-function setCountAndResolvedURL(RedirectClient redirectClient, Response response, string resolvedRequestedURI) {
-    log:printDebug(function() returns string {
-        return "Ultimate response coming from the request: " + resolvedRequestedURI;
+isolated function setCountAndResolvedURL(RedirectClient redirectClient, Response response, string resolvedRequestedURI) {
+    final string resolvedRequestedURIValue = resolvedRequestedURI;
+    log:printDebug(isolated function() returns string {
+        return "Ultimate response coming from the request: " + resolvedRequestedURIValue;
     });
     redirectClient.currentRedirectCount = 0;
     response.resolvedRequestedURI = resolvedRequestedURI;

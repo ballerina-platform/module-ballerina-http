@@ -122,7 +122,7 @@ public type CircuitBreakerInferredConfig record {|
 # + httpClient - The underlying `HttpActions` instance which will be making the actual network calls
 # + circuitHealth - The circuit health monitor
 # + currentCircuitState - The current state the circuit is in
-public type CircuitBreakerClient client object {
+public client class CircuitBreakerClient {
 
     public string url;
     public ClientConfiguration config;
@@ -431,7 +431,7 @@ public type CircuitBreakerClient client object {
     public function getCurrentState() returns CircuitState {
         return self.currentCircuitState;
     }
-};
+}
 
 
 # Updates the circuit state.
@@ -440,7 +440,7 @@ public type CircuitBreakerClient client object {
 # + currentStateValue - Circuit Breaker current state value
 # + circuitBreakerInferredConfig - Configurations derived from `CircuitBreakerConfig`
 # + return - State of the circuit
-function updateCircuitState(CircuitHealth circuitHealth, CircuitState currentStateValue,
+isolated function updateCircuitState(CircuitHealth circuitHealth, CircuitState currentStateValue,
                             CircuitBreakerInferredConfig circuitBreakerInferredConfig) returns CircuitState {
     lock {
         CircuitState currentState = currentStateValue;
@@ -485,7 +485,7 @@ function updateCircuitState(CircuitHealth circuitHealth, CircuitState currentSta
     }
 }
 
-function updateCircuitHealthAndRespond(Response|ClientError serviceResponse, CircuitHealth circuitHealth,
+isolated function updateCircuitHealthAndRespond(Response|ClientError serviceResponse, CircuitHealth circuitHealth,
                                CircuitBreakerInferredConfig circuitBreakerInferredConfig) returns Response|ClientError {
     if (serviceResponse is Response) {
         if (circuitBreakerInferredConfig.statusCodes[serviceResponse.statusCode]) {
@@ -499,7 +499,7 @@ function updateCircuitHealthAndRespond(Response|ClientError serviceResponse, Cir
     return serviceResponse;
 }
 
-function updateCircuitHealthFailure(CircuitHealth circuitHealth,
+isolated function updateCircuitHealthFailure(CircuitHealth circuitHealth,
                                     CircuitBreakerInferredConfig circuitBreakerInferredConfig) {
     lock {
         int currentBucketId = getCurrentBucketId(circuitHealth, circuitBreakerInferredConfig);
@@ -520,7 +520,7 @@ function updateCircuitHealthFailure(CircuitHealth circuitHealth,
     }
 }
 
-function updateCircuitHealthSuccess(CircuitHealth circuitHealth,
+isolated function updateCircuitHealthSuccess(CircuitHealth circuitHealth,
                                     CircuitBreakerInferredConfig circuitBreakerInferredConfig) {
     lock {
         int currentBucketId = getCurrentBucketId(circuitHealth, circuitBreakerInferredConfig);
@@ -539,7 +539,7 @@ function updateCircuitHealthSuccess(CircuitHealth circuitHealth,
 }
 
 // Handles open circuit state.
-function handleOpenCircuit(CircuitHealth circuitHealth, CircuitBreakerInferredConfig circuitBreakerInferredConfig)
+isolated function handleOpenCircuit(CircuitHealth circuitHealth, CircuitBreakerInferredConfig circuitBreakerInferredConfig)
              returns (ClientError) {
     time:Time effectiveErrorTime = getEffectiveErrorTime(circuitHealth);
     int timeDif = time:currentTime().time - effectiveErrorTime.time;
@@ -551,7 +551,7 @@ function handleOpenCircuit(CircuitHealth circuitHealth, CircuitBreakerInferredCo
 }
 
 // Validates the struct configurations passed to create circuit breaker.
-function validateCircuitBreakerConfiguration(CircuitBreakerConfig circuitBreakerConfig) {
+isolated function validateCircuitBreakerConfiguration(CircuitBreakerConfig circuitBreakerConfig) {
     float failureThreshold = circuitBreakerConfig.failureThreshold;
     if (failureThreshold < 0 || failureThreshold > 1) {
         string errorMessage = "Invalid failure threshold. Failure threshold value"
@@ -564,7 +564,7 @@ function validateCircuitBreakerConfiguration(CircuitBreakerConfig circuitBreaker
 #
 # + circuitHealth - Circuit Breaker health status
 # + return - Current failure ratio
-function getCurrentFailureRatio(CircuitHealth circuitHealth) returns float {
+isolated function getCurrentFailureRatio(CircuitHealth circuitHealth) returns float {
     int totalCount = 0;
     int totalFailures = 0;
 
@@ -585,7 +585,7 @@ function getCurrentFailureRatio(CircuitHealth circuitHealth) returns float {
 #
 # + circuitHealth - Circuit Breaker health status
 # + return - Total requests count
-function getTotalRequestsCount(CircuitHealth circuitHealth) returns int {
+isolated function getTotalRequestsCount(CircuitHealth circuitHealth) returns int {
     int totalCount = 0;
 
     foreach var bucket in circuitHealth.totalBuckets {
@@ -600,7 +600,7 @@ function getTotalRequestsCount(CircuitHealth circuitHealth) returns int {
 # + circuitHealth - Circuit Breaker health status
 # + circuitBreakerInferredConfig - Configurations derived from `CircuitBreakerConfig`
 # + return - Current bucket id
-function getCurrentBucketId(CircuitHealth circuitHealth, CircuitBreakerInferredConfig circuitBreakerInferredConfig)
+isolated function getCurrentBucketId(CircuitHealth circuitHealth, CircuitBreakerInferredConfig circuitBreakerInferredConfig)
              returns int {
     int elapsedTime = (time:currentTime().time - circuitHealth.startTime.time) % circuitBreakerInferredConfig.
         rollingWindow.timeWindowInMillis;
@@ -613,7 +613,7 @@ function getCurrentBucketId(CircuitHealth circuitHealth, CircuitBreakerInferredC
 #
 # + circuitHealth - Circuit Breaker health status
 # + circuitBreakerInferredConfig - Configurations derived from `CircuitBreakerConfig`
-function updateRejectedRequestCount(CircuitHealth circuitHealth,
+isolated function updateRejectedRequestCount(CircuitHealth circuitHealth,
                                                 CircuitBreakerInferredConfig circuitBreakerInferredConfig) {
 
     int currentBucketId = getCurrentBucketId(circuitHealth, circuitBreakerInferredConfig);
@@ -626,11 +626,11 @@ function updateRejectedRequestCount(CircuitHealth circuitHealth,
 #
 # + circuitHealth - - Circuit Breaker health status.
 # + bucketId - - Id of the bucket should reset.
-function resetBucketStats(CircuitHealth circuitHealth, int bucketId) {
+isolated function resetBucketStats(CircuitHealth circuitHealth, int bucketId) {
     circuitHealth.totalBuckets[bucketId] = {};
 }
 
-function getEffectiveErrorTime(CircuitHealth circuitHealth) returns time:Time {
+isolated function getEffectiveErrorTime(CircuitHealth circuitHealth) returns time:Time {
     time:Time? lastErrorTime = circuitHealth?.lastErrorTime;
     time:Time? lastForcedOpenTime = circuitHealth?.lastForcedOpenTime;
     if (lastErrorTime is time:Time && lastForcedOpenTime is time:Time) {
@@ -645,7 +645,7 @@ function getEffectiveErrorTime(CircuitHealth circuitHealth) returns time:Time {
 #
 # + circuitHealth - Circuit Breaker health status
 # + circuitBreakerInferredConfig - Configurations derived from `CircuitBreakerConfig`
-function prepareRollingWindow(CircuitHealth circuitHealth, CircuitBreakerInferredConfig circuitBreakerInferredConfig) {
+isolated function prepareRollingWindow(CircuitHealth circuitHealth, CircuitBreakerInferredConfig circuitBreakerInferredConfig) {
 
     int currentTime = time:currentTime().time;
     time:Time? lastRequestTime = circuitHealth?.lastRequestTime;
@@ -693,7 +693,7 @@ function prepareRollingWindow(CircuitHealth circuitHealth, CircuitBreakerInferre
 # Reinitializes the Buckets to the default state.
 #
 # + circuitHealth - Circuit Breaker health status
-function reInitializeBuckets(CircuitHealth circuitHealth) {
+isolated function reInitializeBuckets(CircuitHealth circuitHealth) {
     Bucket?[] bucketArray = [];
     int bucketIndex = 0;
     while (bucketIndex < circuitHealth.totalBuckets.length()) {
@@ -707,7 +707,7 @@ function reInitializeBuckets(CircuitHealth circuitHealth) {
 #
 # + bucketId - Possition of the currrently used bucket
 # + circuitHealth - Circuit Breaker health status
-function updateLastUsedBucketId(int bucketId, CircuitHealth circuitHealth) {
+isolated function updateLastUsedBucketId(int bucketId, CircuitHealth circuitHealth) {
     if (bucketId != circuitHealth.lastUsedBucketId) {
         resetBucketStats(circuitHealth, bucketId);
         circuitHealth.lastUsedBucketId = bucketId;
@@ -720,7 +720,7 @@ function updateLastUsedBucketId(int bucketId, CircuitHealth circuitHealth) {
 # + circuitHealth - Circuit Breaker health status
 # + currentState - current state of the circuit
 # + return - Calculated state value of the circuit
-function switchCircuitStateOpenToHalfOpenOnResetTime(CircuitBreakerInferredConfig circuitBreakerInferredConfig,
+isolated function switchCircuitStateOpenToHalfOpenOnResetTime(CircuitBreakerInferredConfig circuitBreakerInferredConfig,
                                         CircuitHealth circuitHealth, CircuitState currentState) returns CircuitState {
     CircuitState currentCircuitState = currentState;
     if (currentState == CB_OPEN_STATE) {

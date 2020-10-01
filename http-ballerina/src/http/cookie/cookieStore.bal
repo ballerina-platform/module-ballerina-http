@@ -21,12 +21,12 @@ import ballerina/time;
 #
 # + allSessionCookies - Array to store all the session cookies
 # + persistentCookieHandler - Persistent cookie handler to manage persistent cookies
-public type CookieStore object {
+public class CookieStore {
 
     Cookie[] allSessionCookies = [];
     PersistentCookieHandler? persistentCookieHandler;
 
-    public function init(PersistentCookieHandler? persistentCookieHandler = ()) {
+    public isolated function init(PersistentCookieHandler? persistentCookieHandler = ()) {
         self.persistentCookieHandler = persistentCookieHandler;
     }
 
@@ -288,7 +288,7 @@ public type CookieStore object {
             }
         }
     }
-};
+}
 
 const string HTTP = "http";
 const string HTTPS = "https";

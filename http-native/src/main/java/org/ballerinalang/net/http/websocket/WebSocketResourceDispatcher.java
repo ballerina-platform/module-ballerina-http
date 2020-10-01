@@ -22,9 +22,14 @@ import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.CorruptedFrameException;
 import org.ballerinalang.jvm.JSONParser;
 import org.ballerinalang.jvm.JSONUtils;
-import org.ballerinalang.jvm.StringUtils;
 import org.ballerinalang.jvm.XMLFactory;
 import org.ballerinalang.jvm.XMLNodeType;
+import org.ballerinalang.jvm.api.BExecutor;
+import org.ballerinalang.jvm.api.BStringUtils;
+import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
+import org.ballerinalang.jvm.api.values.BMap;
+import org.ballerinalang.jvm.api.values.BObject;
+import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.observability.ObservabilityConstants;
 import org.ballerinalang.jvm.observability.ObserveUtils;
 import org.ballerinalang.jvm.scheduling.StrandMetadata;
@@ -35,13 +40,7 @@ import org.ballerinalang.jvm.types.BStructureType;
 import org.ballerinalang.jvm.types.BType;
 import org.ballerinalang.jvm.types.TypeTags;
 import org.ballerinalang.jvm.values.ArrayValueImpl;
-import org.ballerinalang.jvm.values.ErrorValue;
-import org.ballerinalang.jvm.values.MapValue;
-import org.ballerinalang.jvm.values.ObjectValue;
 import org.ballerinalang.jvm.values.XMLValue;
-import org.ballerinalang.jvm.values.api.BString;
-import org.ballerinalang.jvm.values.connector.CallableUnitCallback;
-import org.ballerinalang.jvm.values.connector.Executor;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpDispatcher;
 import org.ballerinalang.net.http.HttpResource;
@@ -92,7 +91,7 @@ public class WebSocketResourceDispatcher {
     }
 
     public static void dispatchUpgrade(WebSocketHandshaker webSocketHandshaker, WebSocketServerService wsService,
-                                       MapValue<BString, Object> httpEndpointConfig,
+                                       BMap<BString, Object> httpEndpointConfig,
                                        WebSocketConnectionManager connectionManager) {
         HttpResource onUpgradeResource = wsService.getUpgradeResource();
         webSocketHandshaker.getHttpCarbonRequest().setProperty(HttpConstants.RESOURCES_CORS,
@@ -101,18 +100,18 @@ public class WebSocketResourceDispatcher {
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(onUpgradeResource, webSocketHandshaker
                 .getHttpCarbonRequest(), httpEndpointConfig);
 
-        ObjectValue httpCaller = (ObjectValue) signatureParams[0];
+        BObject httpCaller = (BObject) signatureParams[0];
         httpCaller.addNativeData(WebSocketConstants.WEBSOCKET_HANDSHAKER, webSocketHandshaker);
         httpCaller.addNativeData(WebSocketConstants.WEBSOCKET_SERVICE, wsService);
         httpCaller.addNativeData(HttpConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_MANAGER, connectionManager);
 
-        Executor.submit(wsService.getScheduler(), onUpgradeResource.getParentService().getBalService(),
+        BExecutor.submit(wsService.getScheduler(), onUpgradeResource.getParentService().getBalService(),
                         balResource.getName(), null, ON_OPEN_METADATA,
                         new OnUpgradeResourceCallback(webSocketHandshaker, wsService, connectionManager),
                         new HashMap<>(), signatureParams);
     }
 
-    public static void dispatchOnOpen(WebSocketConnection webSocketConnection, ObjectValue webSocketCaller,
+    public static void dispatchOnOpen(WebSocketConnection webSocketConnection, BObject webSocketCaller,
                                        WebSocketServerService wsService) {
         AttachedFunction onOpenResource = wsService.getResourceByName(RESOURCE_NAME_ON_OPEN);
         if (onOpenResource != null) {
@@ -123,7 +122,7 @@ public class WebSocketResourceDispatcher {
     }
 
     private static void executeOnOpenResource(WebSocketService wsService, AttachedFunction onOpenResource,
-                                              ObjectValue webSocketEndpoint, WebSocketConnection webSocketConnection) {
+                                              BObject webSocketEndpoint, WebSocketConnection webSocketConnection) {
         BType[] parameterTypes = onOpenResource.getParameterType();
         Object[] bValues = new Object[parameterTypes.length * 2];
         bValues[0] = webSocketEndpoint;
@@ -137,7 +136,7 @@ public class WebSocketResourceDispatcher {
             }
 
             @Override
-            public void notifyFailure(ErrorValue error) {
+            public void notifyFailure(org.ballerinalang.jvm.api.values.BError error) {
                 ErrorHandlerUtils.printError("error: " + error.getPrintableStackTrace());
                 WebSocketUtil.closeDuringUnexpectedCondition(webSocketConnection);
                 WebSocketObservabilityUtil.observeError(connectionInfo,
@@ -168,7 +167,7 @@ public class WebSocketResourceDispatcher {
             BType dataType = parameterTypes[1];
             int dataTypeTag = dataType.getTag();
             if (dataTypeTag == TypeTags.STRING_TAG) {
-                bValues[2] = StringUtils.fromString(textMessage.getText());
+                bValues[2] = BStringUtils.fromString(textMessage.getText());
                 bValues[3] = true;
                 if (parameterTypes.length == 3) {
                     bValues[4] = finalFragment;
@@ -382,7 +381,7 @@ public class WebSocketResourceDispatcher {
             bValues[1] = true;
             bValues[2] = closeCode;
             bValues[3] = true;
-            bValues[4] = closeReason == null ? StringUtils.fromString("") : StringUtils.fromString(closeReason);
+            bValues[4] = closeReason == null ? BStringUtils.fromString("") : BStringUtils.fromString(closeReason);
             bValues[5] = true;
             CallableUnitCallback onCloseCallback = new CallableUnitCallback() {
                 @Override
@@ -391,7 +390,7 @@ public class WebSocketResourceDispatcher {
                 }
 
                 @Override
-                public void notifyFailure(ErrorValue error) {
+                public void notifyFailure(org.ballerinalang.jvm.api.values.BError error) {
                     ErrorHandlerUtils.printError(error.getPrintableStackTrace());
                     finishConnectionClosureIfOpen(webSocketConnection, closeCode, connectionInfo);
                     //Observe error
@@ -456,7 +455,7 @@ public class WebSocketResourceDispatcher {
             }
 
             @Override
-            public void notifyFailure(ErrorValue error) {
+            public void notifyFailure(org.ballerinalang.jvm.api.values.BError error) {
                 ErrorHandlerUtils.printError(error.getPrintableStackTrace());
                 WebSocketObservabilityUtil.observeError(
                         connectionInfo, WebSocketObservabilityConstants.ERROR_TYPE_RESOURCE_INVOCATION,
@@ -493,7 +492,7 @@ public class WebSocketResourceDispatcher {
                 }
 
                 @Override
-                public void notifyFailure(ErrorValue error) {
+                public void notifyFailure(org.ballerinalang.jvm.api.values.BError error) {
                     ErrorHandlerUtils.printError(error.getPrintableStackTrace());
                     WebSocketUtil.closeDuringUnexpectedCondition(webSocketConnection);
                 }
@@ -528,10 +527,10 @@ public class WebSocketResourceDispatcher {
             Map<String, Object> properties = new HashMap<>();
             WebSocketObserverContext observerContext = new WebSocketObserverContext(connectionInfo);
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
-            Executor.submit(wsService.getScheduler(), wsService.getBalService(), resource, null, metaData, callback,
+            BExecutor.submit(wsService.getScheduler(), wsService.getBalService(), resource, null, metaData, callback,
                             properties, bValues);
         } else {
-            Executor.submit(wsService.getScheduler(), wsService.getBalService(), resource, null, metaData, callback,
+            BExecutor.submit(wsService.getScheduler(), wsService.getBalService(), resource, null, metaData, callback,
                             null, bValues);
         }
         WebSocketObservabilityUtil.observeResourceInvocation(connectionInfo, resource);

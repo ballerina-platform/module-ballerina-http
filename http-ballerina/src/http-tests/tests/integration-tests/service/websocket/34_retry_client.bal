@@ -19,7 +19,7 @@ import ballerina/runtime;
 import ballerina/test;
 import http;
 
-string expectedOutput = "";
+string expectedOutput34 = "";
 
 listener http:Listener retryEP = new (21034);
 
@@ -46,7 +46,7 @@ service wsUpgradeRetryService = @http:WebSocketServiceConfig {} service {
 
 service retryClientCallbackService = @http:WebSocketServiceConfig {} service {
     resource function onText(http:WebSocketClient wsEp, string text) {
-        expectedOutput = <@untainted>text;
+        expectedOutput34 = <@untainted>text;
     }
 };
 
@@ -85,6 +85,6 @@ public function testRetry() {
     runtime:sleep(1500);
     checkpanic retryEP.__start();
     runtime:sleep(5000);
-    test:assertEquals(expectedOutput, "Hi madam");
+    test:assertEquals(expectedOutput34, "Hi madam");
     checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
 }
