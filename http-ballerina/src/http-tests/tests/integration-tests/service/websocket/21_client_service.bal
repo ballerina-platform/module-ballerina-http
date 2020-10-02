@@ -16,6 +16,7 @@
 
 import ballerina/runtime;
 import ballerina/test;
+import ballerina/io;
 import http;
 
 string arrivedData = "";
@@ -46,7 +47,10 @@ public function testClientSuccessWithoutService() {
     http:WebSocketClient wsClient = new ("ws://localhost:21021/client/service");
     runtime:sleep(500);
     test:assertTrue(isClientConnectionOpen);
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
 
 // Tests the client initialization with a WebSocketClientService but without any resources.
@@ -57,7 +61,10 @@ public function testClientSuccessWithWebSocketClientService() {
     checkpanic wsClient->pushText("Client worked");
     runtime:sleep(500);
     test:assertTrue(isClientConnectionOpen);
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
 
 // Tests the client initialization failure when used with a WebSocketService.

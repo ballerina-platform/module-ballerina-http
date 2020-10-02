@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/test;
+import ballerina/log;
 import http;
 
 int expectedStatusCode = 0;
@@ -32,7 +33,10 @@ service clientClose on new http:Listener(21004) {
 @test:Config {}
 public function testCloseWithCloseCode() {
     http:WebSocketClient wsClient = new ("ws://localhost:21004");
-    checkpanic wsClient->close(1001, "Close the connection");
+    error? result = wsClient->close(1001, "Close the connection");
+    if (result is http:WebSocketError) {
+       log:printError("Error occurred when closing connection", result);
+    }
     test:assertEquals(expectedStatusCode, 1001, msg = "status code mismatched");
 }
 
@@ -40,6 +44,9 @@ public function testCloseWithCloseCode() {
 @test:Config {}
 public function testCloseWithoutCloseCode() {
     http:WebSocketClient wsClient = new ("ws://localhost:21004");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       log:printError("Error occurred when closing connection", result);
+    }
     test:assertEquals(expectedStatusCode, 1000, msg = "status code mismatched");
 }

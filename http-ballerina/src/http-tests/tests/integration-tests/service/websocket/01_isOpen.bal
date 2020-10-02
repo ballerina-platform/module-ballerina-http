@@ -53,7 +53,7 @@ public function testIsOpenCloseCalled() {
 @test:Config {}
 public function testIsOpenCloseFrameReceived() {
     http:WebSocketClient wsClient = new ("ws://localhost:21001");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 300);
     runtime:sleep(500);
     test:assertEquals(output, "In onClose isOpen true");
 }
