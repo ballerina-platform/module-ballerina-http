@@ -80,7 +80,10 @@ public function testBinaryFrameWithThirdServer() {
     checkpanic wsClientEp->pushText("Hello");
     runtime:sleep(500);
     test:assertEquals(expectedOutput43, "Hello");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       log:printError("Error occurred when closing connection", result);
+    }
 }
 
 // Tests the failover webSocket client by starting the second server in the target URLs.
@@ -99,7 +102,10 @@ public function testTextFrameWithSecondServer() {
     checkpanic wsClientEp->pushText("Hello");
     runtime:sleep(500);
     test:assertEquals(expectedOutput43, "Hello");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       log:printError("Error occurred when closing connection", result);
+    }
 }
 
 // Tests the failover webSocket client by starting the first server in the target URLs.
@@ -119,7 +125,10 @@ public function testBinaryFrameWithFirstServer() {
     checkpanic wsClientEp->pushBinary(pingData);
     runtime:sleep(500);
     test:assertEquals(expectedBinaryData, pingData);
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       log:printError("Error occurred when closing connection", result);
+    }
 }
 
 // Tests the failover client when getting a handshake timeout
@@ -138,5 +147,8 @@ public function testHandshakeTimeout() {
     checkpanic wsClientEp->pushText("Hello everyone");
     runtime:sleep(500);
     test:assertEquals(expectedOutput43, "Hello everyone");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       log:printError("Error occurred when closing connection", result);
+    }
 }
