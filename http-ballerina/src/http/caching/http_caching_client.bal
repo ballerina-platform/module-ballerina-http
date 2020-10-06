@@ -59,8 +59,12 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function post(string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function post(string path, RequestMessage message, TargetType targetType = Response)
+            returns Response|PayloadType|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -77,8 +81,9 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function head(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    public remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
+            Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
         return getCachedResponse(self.cache, self.httpClient, req, HTTP_HEAD, path, self.cacheConfig.isShared, false);
@@ -90,8 +95,12 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function put(string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function put(string path, RequestMessage message, TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -109,9 +118,12 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function execute(string httpMethod, string path, RequestMessage message)
-                                                            returns @tainted Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function execute(string httpMethod, string path, RequestMessage message,
+            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
         Request request = <Request>message;
         setRequestCacheControlHeader(request);
 
@@ -133,8 +145,12 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function patch(string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function patch(string path, RequestMessage message, TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -151,8 +167,12 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function delete(string path, RequestMessage message = ()) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -169,8 +189,12 @@ public client class HttpCachingClient {
     # + path - Request path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
         return getCachedResponse(self.cache, self.httpClient, req, HTTP_GET, path, self.cacheConfig.isShared, false);
@@ -182,8 +206,12 @@ public client class HttpCachingClient {
     # + path - Request path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function options(string path, RequestMessage message = ()) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -199,8 +227,12 @@ public client class HttpCachingClient {
     #
     # + path - Request path
     # + request - The HTTP request to be forwarded
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function forward(string path, @tainted Request request) returns @tainted Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function forward(string path, @tainted Request request, TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         if (request.method == HTTP_GET || request.method == HTTP_HEAD) {
             return getCachedResponse(self.cache, self.httpClient, request, request.method, path,
                                      self.cacheConfig.isShared, true);
@@ -340,8 +372,12 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
             response.receivedTime = time:currentTime().time;
             cache.put(<@untainted> getCacheKey(httpMethod, path), <@untainted> req.cacheControl, <@untainted> response);
         }
+        return response;
+    } else if (response is PayloadType) {
+        panic getIllegalDataBindingStateError();
+    } else {
+        return response;
     }
-    return response;
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.4
@@ -368,7 +404,7 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
 }
 
 function sendNewRequest(HttpClient httpClient, Request request, string path, string httpMethod, boolean forwardRequest)
-                                                                                returns Response|ClientError {
+                                                                returns @tainted Response|PayloadType|ClientError {
     if (forwardRequest) {
         return httpClient->forward(path, request);
     }

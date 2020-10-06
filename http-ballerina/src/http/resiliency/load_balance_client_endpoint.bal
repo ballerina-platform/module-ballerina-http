@@ -55,8 +55,12 @@ public client class LoadBalanceClient {
     # + path - Resource path
     # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response or an `http:ClientError` if failed to fulfill the request
-    public remote function post(string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
+                returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_POST);
     }
@@ -66,8 +70,9 @@ public client class LoadBalanceClient {
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response or an `http:ClientError` if failed to fulfill the request
-    public remote function head(string path, RequestMessage message = ()) returns Response|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    public remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
+            Response|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_HEAD);
     }
@@ -77,8 +82,12 @@ public client class LoadBalanceClient {
     # + path - Resource path
     # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response or an `http:ClientError` if failed to fulfill the request
-    public remote function patch(string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function patch(string path, RequestMessage message, TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_PATCH);
     }
@@ -88,8 +97,12 @@ public client class LoadBalanceClient {
     # + path - Resource path
     # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response or an `http:ClientError` if failed to fulfill the request
-    public remote function put(string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function put(string path, RequestMessage message, TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_PUT);
     }
@@ -99,8 +112,12 @@ public client class LoadBalanceClient {
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response or an `http:ClientError` if failed to fulfill the request
-    public remote function options(string path, RequestMessage message = ()) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_OPTIONS);
     }
@@ -109,8 +126,12 @@ public client class LoadBalanceClient {
     #
     # + path - Resource path
     # + request - An optional HTTP request
-    # + return - The response or an `http:ClientError` if failed to fulfill the request
-    public remote function forward(string path, Request request) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function forward(string path, Request request, TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         return performLoadBalanceAction(self, path, request, HTTP_FORWARD);
     }
 
@@ -121,8 +142,12 @@ public client class LoadBalanceClient {
     # + path - Resource path
     # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response or an `http:ClientError` if failed to fulfill the request
-    public remote function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceExecuteAction(self, path, req, httpVerb);
     }
@@ -132,8 +157,12 @@ public client class LoadBalanceClient {
     # + path - Resource path
     # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
-    # + return - The response or an `http:ClientError` if failed to fulfill the request
-    public remote function delete(string path, RequestMessage message = ()) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_DELETE);
     }
@@ -143,8 +172,12 @@ public client class LoadBalanceClient {
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response or an `http:ClientError` if failed to fulfill the request
-    public remote function get(string path, RequestMessage message = ()) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_GET);
     }
@@ -212,7 +245,7 @@ public type LoadBalanceActionError distinct error<LoadBalanceActionErrorData>;
 // Performs execute action of the Load Balance connector. extract the corresponding http integer value representation
 // of the http verb and invokes the perform action method.
 function performLoadBalanceExecuteAction(LoadBalanceClient lb, string path, Request request,
-                                         string httpVerb) returns Response|ClientError {
+                                         string httpVerb) returns @tainted Response|ClientError {
     HttpOperation connectorAction = extractHttpOperation(httpVerb);
     if (connectorAction != HTTP_NONE) {
         return performLoadBalanceAction(lb, path, request, connectorAction);
@@ -223,7 +256,7 @@ function performLoadBalanceExecuteAction(LoadBalanceClient lb, string path, Requ
 
 // Handles all the actions exposed through the Load Balance connector.
 function performLoadBalanceAction(LoadBalanceClient lb, string path, Request request, HttpOperation requestAction)
-             returns Response|ClientError {
+             returns @tainted Response|ClientError {
     int loadBalanceTermination = 0; // Tracks at which point failover within the load balancing should be terminated.
     //TODO: workaround to initialize a type inside a function. Change this once fix is available.
     LoadBalanceActionErrorData loadBalanceActionErrorData = {httpActionErr:[]};
