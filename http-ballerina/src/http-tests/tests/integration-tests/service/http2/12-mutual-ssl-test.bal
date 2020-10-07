@@ -106,7 +106,7 @@ public function testHttp2MutualSsl() {
     var resp = httpClient->get("/echo/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Passed");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

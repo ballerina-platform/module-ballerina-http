@@ -85,7 +85,7 @@ public function mutualSslWithCerts() {
     var resp = clientEP->get("/echo/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Response received");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

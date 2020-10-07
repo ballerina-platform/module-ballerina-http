@@ -48,10 +48,10 @@ service keepAliveTest on keepAliveListenerEP {
         path: "/h1_1"
     }
     resource function h1_1_test(http:Caller caller, http:Request req) {
-        var res1 = checkpanic http_1_1_default->post("/test", { "name": "Ballerina" });
-        var res2 = checkpanic http_1_1_auto->post("/test", { "name": "Ballerina" });
-        var res3 = checkpanic http_1_1_always->post("/test", { "name": "Ballerina" });
-        var res4 = checkpanic http_1_1_never->post("/test", { "name": "Ballerina" });
+        var res1 = <http:Response> checkpanic http_1_1_default->post("/test", { "name": "Ballerina" });
+        var res2 = <http:Response> checkpanic http_1_1_auto->post("/test", { "name": "Ballerina" });
+        var res3 = <http:Response> checkpanic http_1_1_always->post("/test", { "name": "Ballerina" });
+        var res4 = <http:Response> checkpanic http_1_1_never->post("/test", { "name": "Ballerina" });
 
         http:Response[] resArr = [res1, res2, res3, res4];
         string result = processResponse("http_1_1", resArr);
@@ -62,10 +62,10 @@ service keepAliveTest on keepAliveListenerEP {
         path: "/h1_0"
     }
     resource function h1_0_test(http:Caller caller, http:Request req) {
-        var res1 = checkpanic http_1_0_default->post("/test", { "name": "Ballerina" });
-        var res2 = checkpanic http_1_0_auto->post("/test", { "name": "Ballerina" });
-        var res3 = checkpanic http_1_0_always->post("/test", { "name": "Ballerina" });
-        var res4 = checkpanic http_1_0_never->post("/test", { "name": "Ballerina" });
+        var res1 = <http:Response> checkpanic http_1_0_default->post("/test", { "name": "Ballerina" });
+        var res2 = <http:Response> checkpanic http_1_0_auto->post("/test", { "name": "Ballerina" });
+        var res3 = <http:Response> checkpanic http_1_0_always->post("/test", { "name": "Ballerina" });
+        var res4 = <http:Response> checkpanic http_1_0_never->post("/test", { "name": "Ballerina" });
 
         http:Response[] resArr = [res1, res2, res3, res4];
         string result = processResponse("http_1_0", resArr);
@@ -108,7 +108,7 @@ function testWithHttp_1_1() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "http_1_1--keep-alive--keep-alive--keep-alive--close");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -120,7 +120,7 @@ function testWithHttp_1_0() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "http_1_0--close--close--keep-alive--close");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

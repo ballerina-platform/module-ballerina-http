@@ -541,7 +541,7 @@ function testMostSpecificMatchWithQueryParam() {
     var response = utmClient->get("/hello/world/echo2?regid=abc");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo1", "echo1");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -552,7 +552,7 @@ function testMostSpecificMatchWithWildCard() {
     var response = utmClient->get("/hello/world/echo2/bar");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo2", "echo2");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -563,7 +563,7 @@ function testMostSpecificMatch() {
     var response = utmClient->get("/hello/world/echo2/foo/bar");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo3", "echo3");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -574,7 +574,7 @@ function testMostSpecificServiceDispatch() {
     var response = utmClient->get("/hello/echo2?regid=abc");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo5", "echo5");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -584,7 +584,7 @@ function testSubPathEndsWithPathParam() {
     var response = utmClient->get("/hello/echo2/shafreen");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo3", "shafreen");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -595,14 +595,14 @@ function testMostSpecificWithPathParam() {
     var response = utmClient->get("/hello/echo2/shafreen-anfar");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo3", "shafreen-anfar");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/hello/echo2/shafreen+anfar");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo3", "shafreen anfar");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -614,7 +614,7 @@ function testSubPathEndsWithBar() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "first", "shafreen anfar");
         assertJsonValue(response.getJsonPayload(), "echo4", "echo4");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -625,7 +625,7 @@ function testLeastSpecificURITemplate() {
     var response = utmClient->get("/hello/echo2/shafreen+anfar/foo/bar");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo5", "any");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -637,7 +637,7 @@ function testParamDefaultValues() {
         assertJsonValue(response.getJsonPayload(), "first", "shafreen anfar");
         assertJsonValue(response.getJsonPayload(), "second", "bar");
         assertJsonValue(response.getJsonPayload(), "echo9", "echo9");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -647,7 +647,7 @@ function testPathParamWithSuffix() {
     var response = utmClient->get("/hello/echo2/suffix.id");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo6", "suffix");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -657,7 +657,7 @@ function testBestMatchWhenPathLiteralHasSameSuffix() {
     var response = utmClient->get("/hello/echo2/literal.id");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo6", "literal invoked");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -667,7 +667,7 @@ function testSpecificMatchForPathParamWithSuffix() {
     var response = utmClient->get("/hello/echo2/ballerina.id/foo");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo6", "specific path invoked");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -677,7 +677,7 @@ function testPathParamWithInvalidSuffix() {
     var response = utmClient->get("/hello/echo2/suffix.hello");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo3", "suffix.hello");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -687,7 +687,7 @@ function testPathSegmentContainsBothLeadingDotsAndSuffix() {
     var response = utmClient->get("/hello/echo2/Rs.654.58.id");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo6", "Rs.654.58");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -697,7 +697,7 @@ function testSpecificPathParamSuffix() {
     var response = utmClient->get("/hello/echo2/hello.identity");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo6", "identity");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -708,7 +708,7 @@ function testRootPathDefaultValues() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "third", "zzz");
         assertJsonValue(response.getJsonPayload(), "echo10", "echo10");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -719,7 +719,7 @@ function testDefaultPathDefaultValues() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "third", "zzz");
         assertJsonValue(response.getJsonPayload(), "echo11", "echo11");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -730,7 +730,7 @@ function testServiceRoot() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "third", "zzz");
         assertJsonValue(response.getJsonPayload(), "echo33", "echo1");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -741,7 +741,7 @@ function testAllDefaultValues() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "first", "zzz");
         assertJsonValue(response.getJsonPayload(), "echo44", "echo1");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -751,7 +751,7 @@ function testWrongGETMethod() {
     var response = utmClient->get("/hello/so2");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -761,7 +761,7 @@ function testWrongPOSTMethod() {
     var response = utmClient->post("/hello/echo2", "hi");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -771,7 +771,7 @@ function testValueWithNextSegmentStartCharacter() {
     var response = utmClient->get("/hello/echo12/bar/bar");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo12", "bar");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -781,14 +781,14 @@ function testStringQueryParam() {
     var response = utmClient->get("/hello/echo125?foo=hello");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo125", "hello");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/hello/echo125?foo=");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo125", "");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -798,7 +798,7 @@ function testGetQueryParamNegative() {
     var response = utmClient->get("/hello/paramNeg");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo125", "");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -808,14 +808,14 @@ function testIntegerQueryParam() {
     var response = utmClient->get("/hello/echo13?foo=1");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo13", 1);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/hello/echo13?foo=");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo13", 0);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -826,7 +826,7 @@ function testFloatQueryParam() {
     if (response is http:Response) {
         decimal dValue = 1.11;
         assertJsonValue(response.getJsonPayload(), "echo14", dValue);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -834,7 +834,7 @@ function testFloatQueryParam() {
     if (response is http:Response) {
         decimal dValue = 0.0;
         assertJsonValue(response.getJsonPayload(), "echo14", dValue);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -844,14 +844,14 @@ function testBooleanQueryParam() {
     var response = utmClient->get("/hello/echo15?foo=true");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo15", true);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/hello/echo15?foo=");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo15", false);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -862,7 +862,7 @@ function testSameNameQueryParam() {
     if (response is http:Response) {
         json expected = {name1:"a", name2:"b", name3:"c", name4:"d"};
         assertJsonPayload(response.getJsonPayload(), expected);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -870,7 +870,7 @@ function testSameNameQueryParam() {
     if (response is http:Response) {
         json expected = {name1:"a", name2:"b", name3:null, name4:"d"};
         assertJsonValue(response.getJsonPayload(), "name3", ());
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -880,21 +880,21 @@ function testQueryParamWithSpecialChars() {
     var response = utmClient->get("/hello/echo125?foo=%25aaa");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo125", "%aaa");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/hello/echo125?foo=abc%21");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo125", "abc!");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/hello/echo125?foo=Owner%20IN%20%28%27owner1%27%2C%27owner2%27%29,Owner%20OUT");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo125", "Owner IN ('owner1','owner2')");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -904,7 +904,7 @@ function testGetQueryParamValueNegative() {
     var response = utmClient->get("/hello?bar=");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "third", "go");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -914,7 +914,7 @@ function testGetQueryParamValuesNegative() {
     var response = utmClient->get("/hello/paramNeg?bar=xxx,zzz");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo125", "");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -925,7 +925,7 @@ function testAllInOneQueryParamAPIs() {
     if (response is http:Response) {
         json expected = {'map:"c", array:"c", value:"c", map_:"a", array_:"d"};
         assertJsonPayload(response.getJsonPayload(), expected);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -933,7 +933,7 @@ function testAllInOneQueryParamAPIs() {
     if (response is http:Response) {
         json expected = {'map:"x", array:"x", value:"x", map_:"", array_:"X"};
         assertJsonPayload(response.getJsonPayload(), expected);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -943,35 +943,35 @@ function testResourceWithoutMethod() {
     var response = utmClient->post("/echo44/echo2", "hi");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "first", "zzz");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->head("/echo44/echo2");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->put("/echo44/echo2", "hi");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "first", "zzz");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->delete("/echo44/echo2");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "first", "zzz");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->options("/echo44/echo2");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "first", "zzz");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -981,7 +981,7 @@ function testBestMatchingResource() {
     var response = utmClient->get("/echo44/echo2");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "first", "bar");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -991,28 +991,28 @@ function testDefaultResourceSupport() {
     var response = utmClient->post("/echo55/hello", "Test");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo55", "default");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/echo55/foo");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo55", "default");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/echo55/foo/");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo55", "default");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/echo55/foo/abc");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo55", "/foo/*");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -1022,21 +1022,21 @@ function testRestUriPostFix() {
     var response = utmClient->get("/echo69/a/b/c");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo66", "/b/c");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/echo69/a/c");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo66", "/c");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/echo69/a");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo66", "empty");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -1046,7 +1046,7 @@ function testMatchWithWildCard() {
     var response = utmClient->get("/uri/123");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "message", "Wildcard Params Resource is invoked.");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -1056,7 +1056,7 @@ function testBestMatchWithWildCard() {
     var response = utmClient->post("/uri/123", "hi");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "message", "Path Params Resource is invoked.");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -1068,7 +1068,7 @@ function testDifferentLengthPathParams() {
         assertJsonValue(response.getJsonPayload(), "aaa", "wso2");
         assertJsonValue(response.getJsonPayload(), "bbb", "ballerina");
         assertJsonValue(response.getJsonPayload(), "ccc", "http");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -1076,7 +1076,7 @@ function testDifferentLengthPathParams() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "xxx", "123");
         assertJsonValue(response.getJsonPayload(), "yyy", "456");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -1086,7 +1086,7 @@ function testBestMatchWithCapitalizedPathSegments() {
     var response = utmClient->post("/uri/Go", "POST");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "value", "capitalized");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -1097,7 +1097,7 @@ function testTwistedPathSegmentsInTheSignature() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Name", "john");
         assertJsonValue(response.getJsonPayload(), "Age", "20");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -1112,7 +1112,7 @@ function testMultiTypePathSegmentsInTheSignature() {
         assertJsonValue(response.getJsonPayload(), "Weight", dValue);
         assertJsonValue(response.getJsonPayload(), "Status", true);
         assertJsonValue(response.getJsonPayload(), "Lang", "ballerina");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -1124,7 +1124,7 @@ function testMultiTypePathSegmentsInTheSignature() {
         assertJsonValue(response.getJsonPayload(), "Weight", dValue);
         assertJsonValue(response.getJsonPayload(), "Status", false);
         assertJsonValue(response.getJsonPayload(), "Lang", "hello false");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -1136,7 +1136,7 @@ function testEncodedPathParams() {
         assertJsonValue(response.getJsonPayload(), "aaa", "1/1");
         assertJsonValue(response.getJsonPayload(), "bbb", "ballerina");
         assertJsonValue(response.getJsonPayload(), "ccc", "1/3");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -1144,7 +1144,7 @@ function testEncodedPathParams() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "xxx", "123");
         assertJsonValue(response.getJsonPayload(), "yyy", "456");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

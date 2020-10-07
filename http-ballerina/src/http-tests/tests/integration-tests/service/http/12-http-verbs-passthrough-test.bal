@@ -36,7 +36,7 @@ service headQuoteService on httpVerbListenerEP {
 
         var response = endPoint -> execute(<@untainted> method, "/getQuote/stocks", clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
+            checkpanic caller->respond(<@untainted> response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -49,7 +49,7 @@ service headQuoteService on httpVerbListenerEP {
     resource function forwardRes11 (http:Caller caller, http:Request req) {
         var response = endPoint -> forward("/getQuote/stocks", req);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
+            checkpanic caller->respond(<@untainted> response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -62,7 +62,7 @@ service headQuoteService on httpVerbListenerEP {
     resource function forwardRes22 (http:Caller caller, http:Request req) {
         var response = endPoint -> forward("/getQuote/stocks", req);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
+            checkpanic caller->respond(<@untainted> response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -76,7 +76,7 @@ service headQuoteService on httpVerbListenerEP {
         http:Request clientRequest = new;
         var response = endPoint -> execute(<@untainted> method, "/getQuote/stocks", clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
+            checkpanic caller->respond(<@untainted> response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -97,7 +97,7 @@ service testClientConHEAD on httpVerbListenerEP {
         http:Request clientRequest = new;
         var response = endPoint -> get("/getQuote/stocks", clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
+            checkpanic caller->respond(<@untainted> response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -172,7 +172,7 @@ function testPassthroughSampleForGET() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "wso2");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -185,7 +185,7 @@ function testPassthroughSampleForPOST() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "ballerina");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -210,7 +210,7 @@ function testOutboundPUT() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader("Method"), "any");
         assertTextPayload(response.getTextPayload(), "default");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -222,7 +222,7 @@ function testForwardActionWithGET() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "wso2");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -234,7 +234,7 @@ function testForwardActionWithPOST() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "ballerina");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -247,7 +247,7 @@ function testDataBindingJsonPayload() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonPayload(response.getJsonPayload(), payload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -260,7 +260,7 @@ function testDataBindingWithIncompatiblePayload() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "data binding failed: unrecognized token 'name:WSO2,team:ballerina'");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

@@ -65,7 +65,7 @@ function test500Response() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 408, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

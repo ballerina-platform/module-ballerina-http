@@ -111,11 +111,11 @@ service helloContinue on expectContinueListenerEP1 {
         }
         var res = expectContinueClient->forward("/backend/hello", <@untainted> req);
         if (res is http:Response) {
-            var responseError = caller->respond(res);
+            var responseError = caller->respond(<@untainted> res);
             if (responseError is error) {
                 log:printError("Error sending response", responseError);
             }
-        } else {
+        } else if (res is error) {
             log:printError(res.message(), res);
         }
     }

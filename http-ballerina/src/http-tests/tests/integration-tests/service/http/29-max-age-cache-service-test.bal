@@ -36,9 +36,9 @@ service maxAgeProxyService on cachingProxyListener {
                 responsePayload = response.getHeader("cache-control");
                 checkpanic caller->respond(<@untainted> responsePayload);
             } else {
-                checkpanic caller->respond(response);
+                checkpanic caller->respond(<@untainted> response);
             }
-        } else {
+        } else if (response is error) {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted> response.message());
@@ -82,7 +82,7 @@ function testMaxAgeCacheControl() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "public,max-age=5");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -91,7 +91,7 @@ function testMaxAgeCacheControl() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "public,max-age=5");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -103,7 +103,7 @@ function testMaxAgeCacheControl() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"after cache expiration"});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

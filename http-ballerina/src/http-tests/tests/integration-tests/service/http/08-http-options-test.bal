@@ -56,7 +56,7 @@ function testOptionsContentLengthHeader() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_LENGTH), "0");
         assertHeaderValue(response.getHeader(ALLOW), "POST, OPTIONS");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -72,7 +72,7 @@ function testOptionsResourceWithPayload() {
         assertHeaderValue(response.getHeader(CONTENT_LENGTH), "13");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello Options");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

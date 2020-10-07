@@ -62,7 +62,7 @@ service multipartDemoService on new http:Listener(9100, { httpVersion: "2.0" }) 
         path: "/initial"
     }
     resource function requestInitializer(http:Caller caller, http:Request request) {
-        http:Response|error finalResponse;
+        http:Response|http:PayloadType|error finalResponse;
         http:Request req = new;
         if (request.getHeader("priorKnowledge") == "true") {
             req.setHeader("priorKnowledge", "true");
@@ -73,7 +73,7 @@ service multipartDemoService on new http:Listener(9100, { httpVersion: "2.0" }) 
         }
         if (finalResponse is error) {
             log:printError("Error sending response", finalResponse);
-        } else {
+        } else if (finalResponse is http:Response) {
             var respBodyParts = finalResponse.getBodyParts();
             string finalMessage = "";
             if (respBodyParts is mime:Entity[]) {
@@ -102,14 +102,14 @@ service multipartDemoService on new http:Listener(9100, { httpVersion: "2.0" }) 
         mime:Entity[] bodyParts = [jsonBodyPart, xmlFilePart, textPart];
         http:Request request = new;
         request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-        http:Response|error returnResponse;
+        http:Response|http:PayloadType|error returnResponse;
         if (req.getHeader("priorKnowledge") == "true") {
             returnResponse = priorKnowclientEP1->post("/multiparts/decode", request);
         } else {
             returnResponse = mimeClientEP1->post("/multiparts/decode", request);
         }
         if (returnResponse is http:Response) {
-            var result = caller->respond(returnResponse);
+            var result = caller->respond(<@untainted> returnResponse);
             if (result is error) {
                 log:printError("Error sending response", result);
             }
@@ -210,7 +210,7 @@ public function testMultipart() {
     var resp = clientEP->get("/multiparts/initial", req);
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -223,7 +223,7 @@ public function testMultipartsWithPriorKnowledge() {
     var resp = clientEP->get("/multiparts/initial", req);
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

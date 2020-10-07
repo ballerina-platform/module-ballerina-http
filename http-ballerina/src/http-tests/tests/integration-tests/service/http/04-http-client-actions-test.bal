@@ -190,7 +190,7 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
             } else {
                 value = returnValue.message();
             }
-        } else  {
+        } else if (clientResponse is error) {
             value = clientResponse.message();
         }
 
@@ -263,8 +263,8 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
       http:Request req = new;
       string payload = "a" + "\n" + "b" + "\n";
       req.setJsonPayload(payload);
-      http:Response response = checkpanic clientEP2->post("/test1/_bulk", req);
-      checkpanic caller->respond(checkpanic <@untainted> response.getTextPayload());
+      string backendPayload = <string> checkpanic clientEP2->post("/test1/_bulk", req, string);
+      checkpanic caller->respond(<@untainted> backendPayload);
     }
 
     @http:ResourceConfig {
@@ -275,8 +275,8 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
         http:Request req = new;
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "application/json");
-        http:Response response = checkpanic clientEP2->post("/test1/_bulk", req);
-        checkpanic caller->respond(checkpanic <@untainted> response.getTextPayload());
+        string backendPayload = <string> checkpanic clientEP2->post("/test1/_bulk", req, string);
+        checkpanic caller->respond(<@untainted> backendPayload);
     }
 
     @http:ResourceConfig {
@@ -287,8 +287,8 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
         http:Request req = new;
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "text/xml");
-        http:Response response = checkpanic clientEP2->post("/test1/_bulk", req);
-        checkpanic caller->respond(checkpanic <@untainted> response.getTextPayload());
+        string backendPayload = <string> checkpanic clientEP2->post("/test1/_bulk", req, string);
+        checkpanic caller->respond(<@untainted> backendPayload);
     }
 
     @http:ResourceConfig {
@@ -300,8 +300,8 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "application/json");
         req.setJsonPayload(payload);
-        http:Response response = checkpanic clientEP2->post("/test1/_bulk", req);
-        checkpanic caller->respond(checkpanic <@untainted> response.getTextPayload());
+        string backendPayload = <string> checkpanic clientEP2->post("/test1/_bulk", req, string);
+        checkpanic caller->respond(<@untainted> backendPayload);
     }
 
     @http:ResourceConfig {
@@ -313,8 +313,8 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
       string payload = "a" + "\n" + "b" + "\n";
       req.setJsonPayload(payload);
       req.setTextPayload(payload, contentType = "application/json");
-      http:Response response = checkpanic clientEP2->post("/test1/_bulk", req);
-      checkpanic caller->respond(checkpanic <@untainted> response.getTextPayload());
+      string backendPayload = <string> checkpanic clientEP2->post("/test1/_bulk", req, string);
+      checkpanic caller->respond(<@untainted> backendPayload);
     }
 
     @http:ResourceConfig {
@@ -333,7 +333,7 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
                 } else {
                     value = result.message();
                 }
-            } else {
+            } else if (res is error) {
                 value = res.message();
             }
         } else {
@@ -385,7 +385,7 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
             } else {
                 value = returnParts.message();
             }
-        } else {
+        } else if (res is error) {
             value = res.message();
         }
         checkpanic caller->respond(<@untainted> value);
@@ -395,8 +395,8 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
         methods: ["GET"],
         path: "/literal"
     }
-    resource function testPathWithWhitespacesForLiteral(http:Caller caller, http:Request request) returns error? {
-        http:Response response = check clientEP2->get("/test1/a/b c/d ");
+    resource function testPathWithWhitespacesForLiteral(http:Caller caller, http:Request request) returns @tainted error? {
+        http:Response response = <http:Response> check clientEP2->get("/test1/a/b c/d ");
         var res = caller->respond(<@untainted> response);
     }
 
@@ -404,8 +404,8 @@ service httpClientActionTestService on httpClientActionListenerEP2 {
         methods: ["GET"],
         path: "/expression"
     }
-    resource function testClientPathWithWhitespacesForExpression(http:Caller caller, http:Request request) returns error? {
-        http:Response response = check clientEP2->get("/test1/dispatched to white_spaced expression ");
+    resource function testClientPathWithWhitespacesForExpression(http:Caller caller, http:Request request) returns @tainted error? {
+        http:Response response = <http:Response> check clientEP2->get("/test1/dispatched to white_spaced expression ");
         var res = caller->respond(<@untainted> response);
     }
 }
@@ -417,7 +417,7 @@ function testGetAction() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "HelloHelloHello");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -429,7 +429,7 @@ function testPostAction() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No payload");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -441,7 +441,7 @@ function testPostActionWithBody() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample TextSample Xml{\"name\":\"apple\", \"color\":\"red\"}");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -453,7 +453,7 @@ function testPostWithBlob() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -465,7 +465,7 @@ function testPostWithByteChannel() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -477,7 +477,7 @@ function testPostWithBodyParts() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"name\":\"wso2\"}Hello");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -490,7 +490,7 @@ function testPostWithStringJson() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "\"a\\nb\\n\"");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -503,7 +503,7 @@ function testPostWithTextAndJsonContent() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -516,7 +516,7 @@ function testPostWithTextAndXmlContent() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -529,7 +529,7 @@ function testPostWithTextAndJsonAlternateContent() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "\"a\\nb\\n\"");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -542,7 +542,7 @@ function testPostWithStringJsonAlternate() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -555,7 +555,7 @@ function testClientPathWithWhitespaces() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "dispatched to white_spaced literal");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -564,7 +564,7 @@ function testClientPathWithWhitespaces() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "dispatched to white_spaced expression");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

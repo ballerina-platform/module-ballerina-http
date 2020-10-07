@@ -34,8 +34,8 @@ service cachingProxyService on cachingProxyListener {
     resource function cacheableProxyResource(http:Caller caller, http:Request req) {
         var response = cachingEP1->forward("/nocachebackend", req);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
-        } else {
+            checkpanic caller->respond(<@untainted> response);
+        } else if (response is error) {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted> response.message());
@@ -81,7 +81,7 @@ function testNoCacheCacheControl() {
         assertHeaderValue(response.getHeader(serviceHitCount), "1");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"1st response"});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -91,7 +91,7 @@ function testNoCacheCacheControl() {
         assertHeaderValue(response.getHeader(serviceHitCount), "2");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"2nd response"});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -101,7 +101,7 @@ function testNoCacheCacheControl() {
         assertHeaderValue(response.getHeader(serviceHitCount), "3");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"2nd response"});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

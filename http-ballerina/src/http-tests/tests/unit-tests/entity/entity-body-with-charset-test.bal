@@ -315,7 +315,7 @@ function jsonTest() {
     var response = entityClient->post(path, request);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {test: "菜鸟驿站"});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
