@@ -24,8 +24,8 @@ import org.ballerinalang.jvm.scheduling.Scheduler;
 import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
-import org.wso2.transport.http.netty.contract.HttpClientConnector;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.contract.HttpClientConnector;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;

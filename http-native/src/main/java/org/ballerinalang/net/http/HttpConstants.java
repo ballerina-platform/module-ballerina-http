@@ -347,7 +347,8 @@ public class HttpConstants {
     public static final BString ENDPOINT_CONFIG_KEY = BStringUtils.fromString("keyFile");
     public static final BString ENDPOINT_CONFIG_KEY_PASSWORD = BStringUtils.fromString("keyPassword");
     public static final BString ENDPOINT_CONFIG_TRUST_CERTIFICATES = BStringUtils.fromString("trustedCertFile");
-    public static final BString ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT = BStringUtils.fromString("handshakeTimeoutInSeconds");
+    public static final BString ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT =
+            BStringUtils.fromString("handshakeTimeoutInSeconds");
     public static final BString ENDPOINT_CONFIG_SESSION_TIMEOUT = BStringUtils.fromString("sessionTimeoutInSeconds");
     public static final BString ENDPOINT_CONFIG_DISABLE_SSL = BStringUtils.fromString("disable");
 

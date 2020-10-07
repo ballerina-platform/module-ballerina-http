@@ -27,8 +27,8 @@ import org.ballerinalang.jvm.util.exceptions.BallerinaException;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
-import org.wso2.transport.http.netty.contract.HttpClientConnector;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.contract.HttpClientConnector;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.util.Locale;
 

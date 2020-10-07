@@ -24,7 +24,7 @@ import org.ballerinalang.jvm.api.values.BMap;
 import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
 import org.ballerinalang.net.http.HttpConstants;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;

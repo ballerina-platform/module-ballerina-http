@@ -34,16 +34,12 @@ dependencies {
     externalJars (group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}") {
         transitive = false
     }
-    externalJars (group: 'org.wso2.transport.http', name: 'org.wso2.transport.http.netty', version: "${wso2TransportHttpNettyVersion}") {
-        transitive = false
-    }
     externalJars (group: 'io.netty', name: 'netty-common', version: "${nettyVersion}") {
         transitive = false
     }
     externalJars (group: 'io.netty', name: 'netty-buffer', version: "${nettyVersion}") {
         transitive = false
     }
-
     externalJars (group: 'io.netty', name: 'netty-transport', version: "${nettyVersion}") {
         transitive = false
     }
@@ -81,9 +77,6 @@ dependencies {
         transitive = false
     }
     externalJars (group: 'org.jvnet.mimepull', name: 'mimepull', version: "${mimepullVersion}") {
-        transitive = false
-    }
-    externalJars (group: 'org.wso2.carbon.messaging', name: 'org.wso2.carbon.messaging', version: "${wso2CarbonMetricsVersion}") {
         transitive = false
     }
     externalJars (group: 'org.testng', name: 'testng', version: "${testngVersion}") {

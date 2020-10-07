@@ -35,13 +35,6 @@ target = "java8"
     modules = ["http"]
 
     [[platform.libraries]]
-    artifactId = "org.wso2.transport.http.netty"
-    version = "6.3.11"
-    path = "./lib/org.wso2.transport.http.netty-6.3.11.jar"
-    groupId = "org.wso2.transport.http"
-    modules = ["http"]
-
-    [[platform.libraries]]
     artifactId = "netty-common"
     version = "4.1.39.Final"
     path = "./lib/netty-common-4.1.39.Final.jar"
@@ -144,13 +137,6 @@ target = "java8"
     version = "1.9.11"
     path = "./lib/mimepull-1.9.11.jar"
     groupId = "org.jvnet.mimepull"
-    modules = ["http"]
-
-    [[platform.libraries]]
-    artifactId = "org.wso2.carbon.messaging"
-    version = "2.3.7"
-    path = "./lib/org.wso2.carbon.messaging-2.3.7.jar"
-    groupId = "org.wso2.carbon.messaging"
     modules = ["http"]
 
     [[platform.libraries]]

@@ -4,7 +4,7 @@ import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.net.http.HTTPServicesRegistry;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.websocket.server.WebSocketServicesRegistry;
-import org.wso2.transport.http.netty.contract.ServerConnector;
+import org.ballerinalang.net.transport.contract.ServerConnector;
 
 /**
  * Includes common functions to all the actions.
