@@ -73,6 +73,8 @@ public client class Client {
     #            establish the communication with the upstream server or a data binding failure
     public remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
+        // TODO improve signature once issue https://github.com/ballerina-platform/ballerina-spec/issues/386 is resolved
+        // Dependently typed function signature support for ballerina function is required.
         Request req = buildRequest(message);
         Response|PayloadType|ClientError response = self.httpClient->post(path, req);
         if (observabilityEnabled && response is Response) {
@@ -620,12 +622,12 @@ function processResponse(Response|PayloadType|ClientError result, TargetType tar
     }
     Response response = <Response> result;
     int statusCode = response.statusCode;
-    if (400 <= statusCode && statusCode < 500) {
+    if (400 <= statusCode && statusCode <= 499) {
         string errorPayload = check response.getTextPayload();
         ClientRequestError err = ClientRequestError(errorPayload, statusCode = statusCode);
         return err;
     }
-    if (500 <= statusCode && statusCode < 600) {
+    if (500 <= statusCode && statusCode <= 599) {
         string errorPayload = check response.getTextPayload();
         RemoteServerError err = RemoteServerError(errorPayload, statusCode = statusCode);
         return err;
