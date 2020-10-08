@@ -23,6 +23,8 @@ import http;
 listener http:Listener utmTestEP = new(uriTemplateMatchingTest);
 http:Client utmClient = new("http://localhost:" + uriTemplateMatchingTest.toString());
 
+const string pathAsConst = "/{foo}/info/{prodId}";
+
 @http:ServiceConfig {
     basePath:"/hello"
 }
@@ -43,7 +45,7 @@ service echo11 on utmTestEP {
         methods:["GET"],
         path:"/echo2/{abc}"
     }
-    resource function echo4(http:Caller caller, http:Request req, string abc) {
+    resource function echo4(http:Caller caller, http:Request req, @http:PathParam string abc) {
         http:Response res = new;
         json responseJson = {"echo3":abc};
         res.setJsonPayload(<@untainted json> responseJson);
@@ -54,7 +56,7 @@ service echo11 on utmTestEP {
         methods:["GET"],
         path:"/echo2/{abc}/bar"
     }
-    resource function echo5(http:Caller caller, http:Request req, string abc) {
+    resource function echo5(http:Caller caller, http:Request req, @http:PathParam string abc) {
         http:Response res = new;
         json responseJson = {"first":abc, "echo4":"echo4"};
         res.setJsonPayload(<@untainted json> responseJson);
@@ -65,7 +67,7 @@ service echo11 on utmTestEP {
         methods:["GET"],
         path:"/echo2/{xyz}.id"
     }
-    resource function echo6(http:Caller caller, http:Request req, string xyz) {
+    resource function echo6(http:Caller caller, http:Request req, @http:PathParam string xyz) {
         http:Response res = new;
         json responseJson = {"echo6":xyz};
         res.setJsonPayload(<@untainted json> responseJson);
@@ -87,7 +89,7 @@ service echo11 on utmTestEP {
         methods:["GET"],
         path:"/echo2/{zz}.id/foo"
     }
-    resource function echo6_2(http:Caller caller, http:Request req, string zz) {
+    resource function echo6_2(http:Caller caller, http:Request req, @http:PathParam string zz) {
         http:Response res = new;
         json responseJson = {"echo6":"specific path invoked"};
         res.setJsonPayload(<@untainted json> responseJson);
@@ -98,7 +100,7 @@ service echo11 on utmTestEP {
         methods:["GET"],
         path:"/echo2/{xyz}.identity"
     }
-    resource function echo6_3(http:Caller caller, http:Request req, string xyz) {
+    resource function echo6_3(http:Caller caller, http:Request req, @http:PathParam string xyz) {
         http:Response res = new;
         json responseJson = {"echo6":"identity"};
         res.setJsonPayload(<@untainted json> responseJson);
@@ -120,12 +122,10 @@ service echo11 on utmTestEP {
         methods:["GET"],
         path:"/echo3/{abc}"
     }
-    resource function echo9(http:Caller caller, http:Request req, string abc) {
-        map<string[]> params = req.getQueryParams();
-        string[]? foo = params["foo"];
-        json responseJson = {"first":abc, "second":(foo is string[] ? foo[0] : "go"), "echo9":"echo9"};
-
+    resource function echo9(http:Caller caller, http:Request req, @http:PathParam string abc,
+                            @http:QueryParam string foo) {
         http:Response res = new;
+        json responseJson = {first:abc, second:foo, echo9:"echo9"};
         res.setJsonPayload(<@untainted json> responseJson);
         checkpanic caller->respond(res);
     }
@@ -134,12 +134,23 @@ service echo11 on utmTestEP {
         methods:["GET"],
         path:"/"
     }
-    resource function echo10(http:Caller caller, http:Request req) {
+    resource function echo10SafeCoding(http:Caller caller, http:Request req) {
         map<string[]> params = req.getQueryParams();
         string[]? foo = params["foo"];
         json responseJson = {"third":(foo is string[] ? foo[0] : "go"), "echo10":"echo10"};
 
         http:Response res = new;
+        res.setJsonPayload(<@untainted json> responseJson);
+        checkpanic caller->respond(res);
+    }
+
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/unsafe"
+    }
+    resource function echo10UnsafeCoding(http:Caller caller, http:Request req, @http:QueryParam string foo) {
+        http:Response res = new;
+        json responseJson = {third: foo, echo10: "echo10UnsafeCoding"};
         res.setJsonPayload(<@untainted json> responseJson);
         checkpanic caller->respond(res);
     }
@@ -158,7 +169,7 @@ service echo11 on utmTestEP {
         methods:["GET"],
         path:"/echo12/{abc}/bar"
     }
-    resource function echo12(http:Caller caller, http:Request req, string abc) {
+    resource function echo12(http:Caller caller, http:Request req, @http:PathParam string abc) {
         http:Response res = new;
         json responseJson = {"echo12":abc};
         res.setJsonPayload(<@untainted json> responseJson);
@@ -262,20 +273,41 @@ service echo11 on utmTestEP {
 
     @http:ResourceConfig {
         methods:["GET"],
+        path:"/echo155unsafe"
+    }
+    resource function sameNameUnsafe(http:Caller caller, http:Request req, @http:QueryParam string[] foo,
+                               @http:QueryParam string[] bar) {
+        http:Response res = new;
+        json responseJson = {name1: foo[0] , name2: foo[1] , name3: bar[0], name4: foo[2]};
+        res.setJsonPayload(<@untainted json> responseJson);
+        checkpanic caller->respond(res);
+    }
+
+    @http:ResourceConfig {
+        methods:["GET"],
         path:"/echo156/{key}"
     }
-    resource function allApis(http:Caller caller, http:Request req, string key) {
+    resource function allApis(http:Caller caller, http:Request req, @http:PathParam string key) {
         map<string[]> paramMap = req.getQueryParams();
-        string[] valueArray = req.getQueryParamValues(<@untainted> key) ?: ["array not found"];
-        string value = req.getQueryParamValue(<@untainted> key) ?: "value not found";
+
         string[]? paramVals = paramMap[key];
         string mapVal = paramVals is string[] ? paramVals[0] : "";
+
         string[]? paramVals2 = paramMap["foo"];
         string mapVal2 = paramVals2 is string[] ? paramVals2[0] : "";
-        json responseJson = {"map":mapVal , "array":valueArray[0], "value":value,
-                                "map_":mapVal2, "array_":valueArray[1] };
-        //http:Response res = new;
-        //res.setJsonPayload(<@untainted json> responseJson);
+
+        string mapVal3 = paramVals is string[] ? paramVals[1] : "";
+        json responseJson = {"map": mapVal , "map_":mapVal2, "array_":mapVal3 };
+        checkpanic caller->respond(<@untainted> responseJson);
+    }
+
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/echo156unsafe/{key}"
+    }
+    resource function allApisUnsafe(http:Caller caller, http:Request req, @http:PathParam string key,
+                              @http:QueryParam string[] bar, @http:QueryParam string foo) {
+        json responseJson = {"arr_0": bar[0] , "arr_1":bar[1], "string":foo };
         checkpanic caller->respond(<@untainted> responseJson);
     }
 
@@ -467,7 +499,8 @@ service WildcardService on utmTestEP {
     @http:ResourceConfig {
         path:"/go/{aaa}/{bbb}/{ccc}"
     }
-    resource function threePathParams(http:Caller caller, http:Request req, string aaa, string bbb, string ccc) {
+    resource function threePathParams(http:Caller caller, http:Request req, @http:PathParam string aaa,
+                                      @http:PathParam string bbb, @http:PathParam string ccc) {
         http:Response res = new;
         json responseJson = {aaa:aaa, bbb:bbb, ccc:ccc};
         res.setJsonPayload(<@untainted json> responseJson);
@@ -477,7 +510,8 @@ service WildcardService on utmTestEP {
     @http:ResourceConfig {
         path:"/go/{xxx}/{yyy}"
     }
-    resource function twoPathParams(http:Caller caller, http:Request req, string xxx, string yyy) {
+    resource function twoPathParams(http:Caller caller, http:Request req, @http:PathParam string xxx,
+                                    @http:PathParam string yyy) {
         http:Response res = new;
         json responseJson = {xxx:xxx, yyy:yyy};
         res.setJsonPayload(<@untainted json> responseJson);
@@ -497,7 +531,8 @@ service WildcardService on utmTestEP {
     @http:ResourceConfig {
         path:"/twisted/{age}/{name}"
     }
-    resource function twistedPathParams(http:Caller caller, http:Request req, string name, string age) {
+    resource function twistedPathParams(http:Caller caller, http:Request req, @http:PathParam string name,
+                                        @http:PathParam string age) {
         http:Response res = new;
         json responseJson = { Name:name, Age:age };
         checkpanic caller->respond(<@untainted> responseJson);
@@ -506,8 +541,9 @@ service WildcardService on utmTestEP {
     @http:ResourceConfig {
         path:"/type/{age}/{name}/{status}/{weight}"
     }
-    resource function MultiTypedPathParams(http:Caller caller, http:Request req, string name, int age,
-                                            float weight, boolean status) {
+    resource function MultiTypedPathParams(http:Caller caller, http:Request req, @http:PathParam string name,
+                                           @http:PathParam int age, @http:PathParam float weight, @http:PathParam
+                                           boolean status) {
         http:Response res = new;
         int balAge = age + 1;
         float balWeight = weight + 2.95;
@@ -516,6 +552,16 @@ service WildcardService on utmTestEP {
             balName = name;
         }
         json responseJson = { Name:name, Age:balAge, Weight:balWeight, Status:status, Lang: balName};
+        checkpanic caller->respond(<@untainted> responseJson);
+    }
+
+    @http:ResourceConfig {
+        path: pathAsConst
+    }
+    resource function allin1(http:Caller caller, http:Request req, @http:PathParam string foo,
+                             @http:BodyParam string payload, @http:QueryParam string bar, @http:QueryParam string[] baz,
+                             @http:PathParam int prodId) {
+        json responseJson = { path1 : foo, path2 : prodId, body : payload, query1 : bar, query2: baz[0], query3 : baz[0] };
         checkpanic caller->respond(<@untainted> responseJson);
     }
 }
@@ -527,7 +573,8 @@ service URLEncodeService on utmTestEP {
     @http:ResourceConfig {
         path:"/test/{aaa}/{bbb}/{ccc}"
     }
-    resource function encodedPath(http:Caller caller, http:Request req, string aaa, string bbb, string ccc) {
+    resource function encodedPath(http:Caller caller, http:Request req, @http:PathParam string aaa,
+                                  @http:PathParam string bbb, @http:PathParam string ccc) {
         http:Response res = new;
         json responseJson = {aaa:aaa, bbb:bbb, ccc:ccc};
         res.setJsonPayload(<@untainted json> responseJson);

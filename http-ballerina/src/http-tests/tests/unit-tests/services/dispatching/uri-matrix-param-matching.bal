@@ -29,7 +29,8 @@ service testService on matrixEP {
         methods:["GET"],
         path:"/t1/{person}/bar/{yearParam}/foo"
     }
-    resource function test1(http:Caller caller, http:Request req, string person, string yearParam) {
+    resource function test1(http:Caller caller, http:Request req, @http:PathParam string person,
+                            @http:PathParam string yearParam) {
         http:Response res = new;
         map<json> outJson = {};
         outJson["pathParams"] = string `${person}, ${yearParam}`;
@@ -64,7 +65,7 @@ service testService on matrixEP {
         methods:["GET"],
         path:"/t2/{person}/foo%3Ba%3D5%3Bb%3D10"
     }
-    resource function testEncoded(http:Caller caller, http:Request req, string person) {
+    resource function testEncoded(http:Caller caller, http:Request req, @http:PathParam string person) {
         http:Response res = new;
         map<json> outJson = {};
         outJson["person"] = person;

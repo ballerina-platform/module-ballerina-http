@@ -34,9 +34,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.ballerinalang.net.http.HttpConstants.ANN_FIELD_PATH_PARAM_ORDER;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_INTERRUPTIBLE;
-import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PARAM_ORDER_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.PACKAGE_BALLERINA_BUILTIN;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
@@ -210,7 +208,7 @@ public class HttpResource {
                     .setTransactionInfectable(resourceConfigAnnotation.getBooleanValue(TRANSACTION_INFECTABLE_FIELD));
 
             processResourceCors(httpResource, httpService);
-            httpResource.prepareAndValidateSignatureParams();
+            httpResource.populateSignatureParams();
             return httpResource;
         }
 
@@ -218,7 +216,7 @@ public class HttpResource {
             log.debug("resourceConfig not specified in the Resource instance, using default sub path");
         }
         httpResource.setPath(resource.getName());
-        httpResource.prepareAndValidateSignatureParams();
+        httpResource.populateSignatureParams();
         return httpResource;
     }
 
@@ -238,12 +236,6 @@ public class HttpResource {
      */
     public static BMap getResourceConfigAnnotation(AttachedFunction resource) {
         return (BMap) resource.getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_RESOURCE_CONFIG);
-    }
-
-    protected static BMap getPathParamOrderMap(AttachedFunction resource) {
-        Object annotation = resource.getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_PARAM_ORDER_CONFIG);
-        return annotation == null ? BValueCreator.createMapValue() :
-                (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
     }
 
     private static boolean hasInterruptibleAnnotation(AttachedFunction resource) {
@@ -284,9 +276,8 @@ public class HttpResource {
         corsHeaders.setAllowMethods(DispatcherUtil.addAllMethods());
     }
 
-    private void prepareAndValidateSignatureParams() {
-        signatureParams = new SignatureParams(this);
-        signatureParams.validate();
+    private void populateSignatureParams() {
+        signatureParams = new SignatureParams(this.getParamTypes(), this.balResource);
     }
 
     public List<BType> getParamTypes() {

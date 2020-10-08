@@ -214,7 +214,7 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/11"
     }
-    resource function echo1 (http:Caller caller, http:Request req) {
+    resource function echo1(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->respond(res);
     }
@@ -222,7 +222,7 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/12/{phase}"
     }
-    resource function echo2 (http:Caller caller, http:Request req, string phase) {
+    resource function echo2(http:Caller caller, http:Request req, @http:PathParam string phase) {
         http:Response res = new;
         res.reasonPhrase = phase;
         checkpanic caller->respond(<@untainted http:Response> res);
@@ -231,7 +231,7 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/13"
     }
-    resource function echo3 (http:Caller caller, http:Request req) {
+    resource function echo3(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.statusCode = 203;
         checkpanic caller->respond(res);
@@ -240,7 +240,8 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/addheader/{key}/{value}"
     }
-    resource function addheader (http:Caller caller, http:Request req, string key, string value) {
+    resource function addheader(http:Caller caller, http:Request req, @http:PathParam string key,
+                                @http:PathParam string value) {
         http:Response res = new;
         res.addHeader(<@untainted string> key, value);
         string result = <@untainted string> res.getHeader(<@untainted string> key);
@@ -251,7 +252,8 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/getHeader/{header}/{value}"
     }
-    resource function getHeader (http:Caller caller, http:Request req, string header, string value) {
+    resource function getHeader(http:Caller caller, http:Request req, @http:PathParam string header,
+                                @http:PathParam string value) {
         http:Response res = new;
         res.setHeader(<@untainted string> header, value);
         string result = <@untainted string> res.getHeader(<@untainted string> header);
@@ -262,7 +264,7 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/getJsonPayload/{value}"
     }
-    resource function getJsonPayload(http:Caller caller, http:Request req, string value) {
+    resource function getJsonPayload(http:Caller caller, http:Request req, @http:PathParam string value) {
         http:Response res = new;
         json jsonStr = {lang:value};
         res.setJsonPayload(<@untainted json> jsonStr);
@@ -279,7 +281,7 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/GetTextPayload/{valueStr}"
     }
-    resource function getTextPayload(http:Caller caller, http:Request req, string valueStr) {
+    resource function getTextPayload(http:Caller caller, http:Request req, @http:PathParam string valueStr) {
         http:Response res = new;
         res.setTextPayload(<@untainted string> valueStr);
         var returnResult = res.getTextPayload();
@@ -313,7 +315,8 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/RemoveHeader/{key}/{value}"
     }
-    resource function removeHeader (http:Caller caller, http:Request req, string key, string value) {
+    resource function removeHeader(http:Caller caller, http:Request req, @http:PathParam string key,
+                                   @http:PathParam string value) {
         http:Response res = new;
         res.setHeader(<@untainted string> key, value);
         res.removeHeader(<@untainted string> key);
@@ -328,7 +331,7 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/RemoveAllHeaders"
     }
-    resource function removeAllHeaders (http:Caller caller, http:Request req) {
+    resource function removeAllHeaders(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setHeader("Expect", "100-continue");
         res.setHeader("Range", "bytes=500-999");
@@ -344,7 +347,7 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/addCookie"
     }
-    resource function addCookie (http:Caller caller, http:Request req) {
+    resource function addCookie(http:Caller caller, http:Request req) {
         http:Response res = new;
         http:Cookie cookie = new("SID3", "31d4d96e407aad42");
         cookie.domain = "google.com";
@@ -362,7 +365,7 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/removeCookieByServer"
     }
-    resource function removeCookieByServer (http:Caller caller, http:Request req) {
+    resource function removeCookieByServer(http:Caller caller, http:Request req) {
         http:Response res = new;
         http:Cookie cookie = new("SID3", "31d4d96e407aad42");
         cookie.expires="2017-06-26 05:46:22";
@@ -375,7 +378,7 @@ service response on responseEp {
     @http:ResourceConfig {
         path:"/getCookies"
     }
-    resource function getCookies (http:Caller caller, http:Request req) {
+    resource function getCookies(http:Caller caller, http:Request req) {
         http:Response res = new;
         http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
         cookie1.path = "/sample";
