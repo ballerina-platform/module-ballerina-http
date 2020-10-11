@@ -21,21 +21,14 @@ module io.ballerina.stdlib.http {
     requires io.ballerina.lang;
     requires io.ballerina.lang.value;
     requires io.ballerina.logging;
+    requires io.ballerina.config;
     requires io.ballerina.stdlib.mime;
     requires io.ballerina.stdlib.io;
-    requires io.ballerina.config;
-//    requires io.netty.codec.http;
-//    requires io.netty.buffer;
-//    requires io.netty.codec;
-//    requires io.netty.transport;
-//    requires io.netty.common;
-//    requires org.apache.commons.lang3;
     requires org.bouncycastle.provider;
     requires org.bouncycastle.pkix;
     requires java.xml.bind;
     requires java.management;
     requires org.slf4j;
-
     exports org.ballerinalang.net.http;
     exports org.ballerinalang.net.uri;
     exports org.ballerinalang.net.http.websocket.server;
