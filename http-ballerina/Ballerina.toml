@@ -18,7 +18,7 @@ version = "@toml.version@"
 "ballerina/task" = "@stdlib.task.version@"
 
 [platform]
-target = "java8"
+target = "java11"
 
     [[platform.libraries]]
     artifactId = "http"
