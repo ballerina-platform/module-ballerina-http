@@ -90,7 +90,7 @@ public class ServerCloseConnectionDuringSslTest {
                 "Exception is not an instance of ClientConnectorException");
         String result = response.getMessage();
 
-        assertEquals("Remote host: localhost/127.0.0.1:9000 closed the connection while SSL handshake", result);
+        assertTrue(result.contains("closed the connection while SSL handshake"));
     }
 
     private void whenANormalHttpsRequestSent() throws InterruptedException {
