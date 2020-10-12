@@ -40,7 +40,8 @@ public class ChunkAlwaysHttpOnePointZeroClientTestCase extends ChunkClientTempla
         super.setUp();
     }
 
-    @Test
+    // TODO disabled due to https://github.com/ballerina-platform/module-ballerina-http/issues/90
+    @Test(enabled = false)
     public void postTest() {
         try {
             HttpCarbonMessage response = sendRequest(TestUtil.largeEntity);
