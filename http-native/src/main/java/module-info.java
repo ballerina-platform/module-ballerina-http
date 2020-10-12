@@ -31,7 +31,10 @@ module io.ballerina.stdlib.http {
     requires org.slf4j;
     exports org.ballerinalang.net.http;
     exports org.ballerinalang.net.transport.contract;
+    exports org.ballerinalang.net.transport.contract.exceptions;
+    exports org.ballerinalang.net.transport.contract.config;
     exports org.ballerinalang.net.transport.contractimpl;
+    exports org.ballerinalang.net.transport.contractimpl.sender.channel.pool;
     exports org.ballerinalang.net.transport.internal;
     exports org.ballerinalang.net.transport.message;
     exports org.ballerinalang.net.uri;
