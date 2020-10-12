@@ -648,6 +648,9 @@ function performDataBinding(Response response, TargetType targetType) returns @t
     } else if (targetType is typedesc<CustomRecordType[]>) {
         json payload = check response.getJsonPayload();
         return <CustomRecordType[]> payload.cloneWithType(targetType);
+    } else if (targetType is typedesc<map<json>>) {
+        json payload = check response.getJsonPayload();
+        return <map<json>> payload;
     } else if (targetType is typedesc<json>) {
         return response.getJsonPayload();
     }

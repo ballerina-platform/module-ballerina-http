@@ -34,6 +34,7 @@ int clientDBCounter = 0;
 // Need to define a type due to https://github.com/ballerina-platform/ballerina-lang/issues/26253
 type ByteArray byte[];
 type ClientDBPersonArray ClientDBPerson[];
+type MapOfJson map<json>;
 
 @http:ServiceConfig {
     basePath: "/call"
@@ -43,12 +44,17 @@ service passthrough on clientDBProxyListener {
         methods: ["GET"],
         path: "/allTypes"
     }
-    resource function checkAllDataBindingTypes(http:Caller caller, http:Request request) returns error? {
+    resource function checkAllDataBindingTypes(http:Caller caller, http:Request request) returns @tainted error? {
         string payload = "";
 
         var res = clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
         json p = <json>res;
         payload = payload + p.toJsonString();
+
+        res = clientDBBackendClient->post("/backend/getJson", "want json", MapOfJson);
+        map<json> p1 = <map<json>>res;
+        json name = check p1.id;
+        payload = payload + " | " + name.toJsonString();
 
         res = clientDBBackendClient->post("/backend/getXml", "want xml", xml);
         xml q = <xml>res;
@@ -298,8 +304,8 @@ function testAllBindingDataTypes() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
-                 "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | <name>Ballerina</name> | This is my @4491*&&#$^($@ | " +
-                 "BinaryPayload is textVal | chamil | wso2 | 3 | data-binding");
+                 "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | chamil | <name>Ballerina</name> | " +
+                 "This is my @4491*&&#$^($@ | BinaryPayload is textVal | chamil | wso2 | 3 | data-binding");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
