@@ -141,10 +141,9 @@ service quoteService2 on httpVerbListenerEP {
     }
 
     @http:ResourceConfig {
-        methods:["POST"],
-        body:"person"
+        methods:["POST"]
     }
-    resource function employee (http:Caller caller, http:Request req, json person) {
+    resource function employee (http:Caller caller, http:Request req, @http:BodyParam json person) {
         http:Response res = new;
         res.setJsonPayload(<@untainted> person);
         checkpanic caller->respond(res);

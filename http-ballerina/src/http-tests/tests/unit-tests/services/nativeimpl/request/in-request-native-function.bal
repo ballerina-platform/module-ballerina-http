@@ -239,7 +239,8 @@ service RequestHello on requestListner {
     @http:ResourceConfig {
         path: "/addheader/{key}/{value}"
     }
-    resource function addheader(http:Caller caller, http:Request inReq, string key, string value) {
+    resource function addHeader(http:Caller caller, http:Request inReq, @http:PathParam string key,
+                                @http:PathParam string value) {
         http:Request req = new;
         req.addHeader(<@untainted string> key, value);
         string result = <@untainted string> req.getHeader(<@untainted string> key);
@@ -407,7 +408,8 @@ service RequestHello on requestListner {
     @http:ResourceConfig {
         path: "/setHeader/{key}/{value}"
     }
-    resource function setHeader(http:Caller caller, http:Request inReq, string key, string value) {
+    resource function setHeader(http:Caller caller, http:Request inReq, @http:PathParam string key,
+                                @http:PathParam string value) {
         http:Request req = new;
         req.setHeader(<@untainted string> key, "abc");
         req.setHeader(<@untainted string> key, value);
@@ -421,7 +423,7 @@ service RequestHello on requestListner {
     @http:ResourceConfig {
         path: "/SetJsonPayload/{value}"
     }
-    resource function setJsonPayload(http:Caller caller, http:Request inReq, string value) {
+    resource function setJsonPayload(http:Caller caller, http:Request inReq, @http:PathParam string value) {
         http:Request req = new;
         json jsonStr = { lang: value };
         req.setJsonPayload(<@untainted json> jsonStr);
@@ -439,7 +441,7 @@ service RequestHello on requestListner {
     @http:ResourceConfig {
         path: "/SetStringPayload/{value}"
     }
-    resource function setStringPayload(http:Caller caller, http:Request inReq, string value) {
+    resource function setStringPayload(http:Caller caller, http:Request inReq, @http:PathParam string value) {
         http:Request req = new;
         req.setTextPayload(<@untainted string> value);
         http:Response res = new;

@@ -23,7 +23,7 @@ import http;
 listener http:Listener dataBindingEP = new(databindingTest);
 http:Client dataBindingClient = new("http://localhost:" + databindingTest.toString());
 
-type Person record {|
+type DataBindingPerson record {|
     string name;
     int age;
 |};
@@ -36,7 +36,7 @@ type Stock record {|
 service echo on dataBindingEP {
 
     resource function body1(http:Caller caller, http:Request req, @http:BodyParam string person) {
-        json responseJson = { "Person": person };
+        json responseJson = { "DataBindingPerson": person };
         checkpanic caller->respond(<@untainted json> responseJson);
     }
 
@@ -46,7 +46,7 @@ service echo on dataBindingEP {
     }
     resource function body2(http:Caller caller, http:Request req, @http:PathParam string key,
                             @http:BodyParam string person) {
-        json responseJson = { Key: key, Person: person };
+        json responseJson = { Key: key, DataBindingPerson: person };
         checkpanic caller->respond(<@untainted json> responseJson);
     }
 
@@ -89,7 +89,7 @@ service echo on dataBindingEP {
     @http:ResourceConfig {
         methods: ["POST"]
     }
-    resource function body6(http:Caller caller, http:Request req, @http:BodyParam Person person) {
+    resource function body6(http:Caller caller, http:Request req, @http:BodyParam DataBindingPerson person) {
         string name = <@untainted string> person.name;
         int age = <@untainted int> person.age;
         checkpanic caller->respond({ Key: name, Age: age });
@@ -105,7 +105,7 @@ service echo on dataBindingEP {
     @http:ResourceConfig {
         methods: ["POST"]
     }
-    resource function body8(http:Caller caller, http:Request req, @http:BodyParam Person[] persons) {
+    resource function body8(http:Caller caller, http:Request req, @http:BodyParam DataBindingPerson[] persons) {
         var jsonPayload = persons.cloneWithType(json);
         if (jsonPayload is json) {
             checkpanic caller->respond(<@untainted json> jsonPayload);
@@ -122,7 +122,7 @@ function testDataBindingWithStringPayload() {
     req.setTextPayload("WSO2");
     var response = dataBindingClient->post("/echo/body1", req);
     if (response is http:Response) {
-        assertJsonPayload(response.getJsonPayload(), {Person:"WSO2"});
+        assertJsonPayload(response.getJsonPayload(), {DataBindingPerson:"WSO2"});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -136,7 +136,7 @@ function testDataBindingWhenPathParamExist() {
     var response = dataBindingClient->post("/echo/body2/hello", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Key", "hello");
-        assertJsonValue(response.getJsonPayload(), "Person", "WSO2");
+        assertJsonValue(response.getJsonPayload(), "DataBindingPerson", "WSO2");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -219,7 +219,7 @@ function testDataBindingWithoutContentType() {
     req.setTextPayload("WSO2");
     var response = dataBindingClient->post("/echo/body1", req);
     if (response is http:Response) {
-        assertJsonValue(response.getJsonPayload(), "Person", "WSO2");
+        assertJsonValue(response.getJsonPayload(), "DataBindingPerson", "WSO2");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -314,7 +314,7 @@ function testDataBindingStructWithNoMatchingContent() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
-            "ConversionError\",message=\"'map<json>' value cannot be converted to 'http-tests:Person'\")");
+            "ConversionError\",message=\"'map<json>' value cannot be converted to 'http-tests:DataBindingPerson'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -342,7 +342,7 @@ function testDataBindingWithRecordArrayNegative() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
-            "ConversionError\",message=\"'json[]' value cannot be converted to 'http-tests:Person[]'\")");
+            "ConversionError\",message=\"'json[]' value cannot be converted to 'http-tests:DataBindingPerson[]'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

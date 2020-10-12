@@ -922,6 +922,26 @@ function testSameNameQueryParam() {
     }
 }
 
+// Test suitable method with URL. /echo155?foo=a,b&bar=c&foo=d
+@test:Config {}
+function testSameNameQueryParamViaAnnotations() {
+    var response = utmClient->get("/hello/echo155unsafe?foo=a,b&bar=c&foo=d");
+    if (response is http:Response) {
+        json expected = {name1:"a", name2:"b", name3:"c", name4:"d"};
+        assertJsonPayload(response.getJsonPayload(), expected);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = utmClient->get("/hello/echo155unsafe?foo=a,b,c");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "query param retrieval failed : no query value found for `bar`");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
 @test:Config {}
 function testQueryParamWithSpecialChars() {
     var response = utmClient->get("/hello/echo125?foo=%25aaa");
@@ -956,6 +976,18 @@ function testGetQueryParamValueNegative() {
     }
 }
 
+// Test GetQueryParamValue via annotation when params are not set with URL. //hello/unsafe?bar=
+@test:Config {}
+function testGetQueryParamValueNegativeUnsafeCoding() {
+    var response = utmClient->get("/hello/unsafe?bar=");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "query param retrieval failed : no query value found for `foo`");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
 @test:Config {}
 function testGetQueryParamValuesNegative() {
     var response = utmClient->get("/hello/paramNeg?bar=xxx,zzz");
@@ -970,7 +1002,7 @@ function testGetQueryParamValuesNegative() {
 function testAllInOneQueryParamAPIs() {
     var response = utmClient->get("/hello/echo156/bar?foo=a,b&bar=c&bar=d");
     if (response is http:Response) {
-        json expected = {'map:"c", array:"c", value:"c", map_:"a", array_:"d"};
+        json expected = {'map:"c", map_:"a", array_:"d"};
         assertJsonPayload(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -978,7 +1010,23 @@ function testAllInOneQueryParamAPIs() {
 
     response = utmClient->get("/hello/echo156/zzz?zzz=x,X&bar=x&foo=");
     if (response is http:Response) {
-        json expected = {'map:"x", array:"x", value:"x", map_:"", array_:"X"};
+        json expected = {'map:"x", map_:"", array_:"X"};
+        assertJsonPayload(response.getJsonPayload(), expected);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = utmClient->get("/hello/echo156unsafe/bar?foo=a,b&bar=c&bar=d");
+    if (response is http:Response) {
+        json expected = {arr_0:"c", arr_1:"d", 'string:"a"};
+        assertJsonPayload(response.getJsonPayload(), expected);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = utmClient->get("/hello/echo156unsafe/bar?bar=x,X&zzz=x&foo=z");
+    if (response is http:Response) {
+        json expected = {arr_0:"x", arr_1:"X", 'string:"z"};
         assertJsonPayload(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -1191,6 +1239,19 @@ function testEncodedPathParams() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "xxx", "123");
         assertJsonValue(response.getJsonPayload(), "yyy", "456");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+// Test multiple params along with path param
+@test:Config {}
+function testAllParams() {
+    var response = utmClient->post("/uri/thisIsMyPathParam/info/321?bar=ballerina&baz=wso2,cmb", "This is my string payload");
+    if (response is http:Response) {
+        json expected = {path1:"thisIsMyPathParam", path2:321, body:"This is my string payload",
+                          query1:"ballerina", query2:"wso2", query3:"wso2"};
+        assertJsonPayload(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
