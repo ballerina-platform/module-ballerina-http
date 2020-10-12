@@ -18,7 +18,7 @@ version = "@toml.version@"
 "ballerina/task" = "@stdlib.task.version@"
 
 [platform]
-target = "java8"
+target = "java11"
 
     [[platform.libraries]]
     artifactId = "http"
@@ -36,64 +36,64 @@ target = "java8"
 
     [[platform.libraries]]
     artifactId = "netty-common"
-    version = "4.1.39.Final"
-    path = "./lib/netty-common-4.1.39.Final.jar"
+    version = "@netty.version@"
+    path = "./lib/netty-common-@netty.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "netty-buffer"
-    version = "4.1.39.Final"
-    path = "./lib/netty-buffer-4.1.39.Final.jar"
+    version = "@netty.version@"
+    path = "./lib/netty-buffer-@netty.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "netty-transport"
-    version = "4.1.39.Final"
-    path = "./lib/netty-transport-4.1.39.Final.jar"
+    version = "@netty.version@"
+    path = "./lib/netty-transport-@netty.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "netty-resolver"
-    version = "4.1.39.Final"
-    path = "./lib/netty-resolver-4.1.39.Final.jar"
+    version = "@netty.version@"
+    path = "./lib/netty-resolver-@netty.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "netty-handler"
-    version = "4.1.39.Final"
-    path = "./lib/netty-handler-4.1.39.Final.jar"
+    version = "@netty.version@"
+    path = "./lib/netty-handler-@netty.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "netty-codec-http"
-    version = "4.1.39.Final"
-    path = "./lib/netty-codec-http-4.1.39.Final.jar"
+    version = "@netty.version@"
+    path = "./lib/netty-codec-http-@netty.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "netty-codec"
-    version = "4.1.39.Final"
-    path = "./lib/netty-codec-4.1.39.Final.jar"
+    version = "@netty.version@"
+    path = "./lib/netty-codec-@netty.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "netty-handler-proxy"
-    version = "4.1.39.Final"
-    path = "./lib/netty-handler-proxy-4.1.39.Final.jar"
+    version = "@netty.version@"
+    path = "./lib/netty-handler-proxy-@netty.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "netty-codec-http2"
-    version = "4.1.39.Final"
-    path = "./lib/netty-codec-http2-4.1.39.Final.jar"
+    version = "@netty.version@"
+    path = "./lib/netty-codec-http2-@netty.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
