@@ -50,7 +50,8 @@ public function testIsOpenCloseCalled() {
 }
 
 // Test isOpen when a close frame is received
-@test:Config {}
+// Disable due to https://github.com/ballerina-platform/module-ballerina-http/issues/71#issuecomment-707017984
+@test:Config {enable : false}
 public function testIsOpenCloseFrameReceived() {
     http:WebSocketClient wsClient = new ("ws://localhost:21001");
     checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 300);
