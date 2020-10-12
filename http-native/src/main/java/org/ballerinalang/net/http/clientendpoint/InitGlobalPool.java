@@ -20,8 +20,8 @@ package org.ballerinalang.net.http.clientendpoint;
 
 import org.ballerinalang.jvm.api.values.BMap;
 import org.ballerinalang.jvm.api.values.BString;
-import org.wso2.transport.http.netty.contractimpl.sender.channel.pool.ConnectionManager;
-import org.wso2.transport.http.netty.contractimpl.sender.channel.pool.PoolConfiguration;
+import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.ConnectionManager;
+import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_MANAGER;
 import static org.ballerinalang.net.http.HttpUtil.populatePoolingConfig;

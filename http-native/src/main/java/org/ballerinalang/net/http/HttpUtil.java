@@ -63,31 +63,31 @@ import org.ballerinalang.mime.util.MultipartDecoder;
 import org.ballerinalang.net.http.caching.RequestCacheControlObj;
 import org.ballerinalang.net.http.caching.ResponseCacheControlObj;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
+import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
+import org.ballerinalang.net.transport.contract.config.ChunkConfig;
+import org.ballerinalang.net.transport.contract.config.ForwardedExtensionConfig;
+import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
+import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
+import org.ballerinalang.net.transport.contract.config.Parameter;
+import org.ballerinalang.net.transport.contract.config.ProxyServerConfiguration;
+import org.ballerinalang.net.transport.contract.config.RequestSizeValidationConfig;
+import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
+import org.ballerinalang.net.transport.contract.config.SslConfiguration;
+import org.ballerinalang.net.transport.contract.exceptions.ClientConnectorException;
+import org.ballerinalang.net.transport.contract.exceptions.ConnectionTimedOutException;
+import org.ballerinalang.net.transport.contract.exceptions.EndpointTimeOutException;
+import org.ballerinalang.net.transport.contract.exceptions.PromiseRejectedException;
+import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
+import org.ballerinalang.net.transport.contract.exceptions.SslException;
+import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.ConnectionManager;
+import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import org.ballerinalang.net.transport.message.Http2PushPromise;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.stdlib.io.utils.IOConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.contract.HttpResponseFuture;
-import org.wso2.transport.http.netty.contract.HttpWsConnectorFactory;
-import org.wso2.transport.http.netty.contract.config.ChunkConfig;
-import org.wso2.transport.http.netty.contract.config.ForwardedExtensionConfig;
-import org.wso2.transport.http.netty.contract.config.KeepAliveConfig;
-import org.wso2.transport.http.netty.contract.config.ListenerConfiguration;
-import org.wso2.transport.http.netty.contract.config.Parameter;
-import org.wso2.transport.http.netty.contract.config.ProxyServerConfiguration;
-import org.wso2.transport.http.netty.contract.config.RequestSizeValidationConfig;
-import org.wso2.transport.http.netty.contract.config.SenderConfiguration;
-import org.wso2.transport.http.netty.contract.config.SslConfiguration;
-import org.wso2.transport.http.netty.contract.exceptions.ClientConnectorException;
-import org.wso2.transport.http.netty.contract.exceptions.ConnectionTimedOutException;
-import org.wso2.transport.http.netty.contract.exceptions.EndpointTimeOutException;
-import org.wso2.transport.http.netty.contract.exceptions.PromiseRejectedException;
-import org.wso2.transport.http.netty.contract.exceptions.ServerConnectorException;
-import org.wso2.transport.http.netty.contract.exceptions.SslException;
-import org.wso2.transport.http.netty.contractimpl.sender.channel.pool.ConnectionManager;
-import org.wso2.transport.http.netty.contractimpl.sender.channel.pool.PoolConfiguration;
-import org.wso2.transport.http.netty.message.Http2PushPromise;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
-import org.wso2.transport.http.netty.message.HttpMessageDataStreamer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -173,26 +173,26 @@ import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_SSL_VERIFY_CLI
 import static org.ballerinalang.net.http.HttpConstants.SSL_PROTOCOL_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.TRANSPORT_MESSAGE;
 import static org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler.sendPipelinedResponse;
+import static org.ballerinalang.net.transport.contract.Constants.ENCODING_GZIP;
+import static org.ballerinalang.net.transport.contract.Constants.HTTP_1_1_VERSION;
+import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0_VERSION;
+import static org.ballerinalang.net.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
+import static org.ballerinalang.net.transport.contract.Constants.PROMISED_STREAM_REJECTED_ERROR;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_INBOUND_REQUEST;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_BODY;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_100_CONTINUE_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 import static org.ballerinalang.stdlib.io.utils.IOConstants.IO_PACKAGE_ID;
-import static org.wso2.transport.http.netty.contract.Constants.ENCODING_GZIP;
-import static org.wso2.transport.http.netty.contract.Constants.HTTP_1_1_VERSION;
-import static org.wso2.transport.http.netty.contract.Constants.HTTP_2_0_VERSION;
-import static org.wso2.transport.http.netty.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
-import static org.wso2.transport.http.netty.contract.Constants.PROMISED_STREAM_REJECTED_ERROR;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_INBOUND_REQUEST;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_BODY;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_HEADERS;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_100_CONTINUE_RESPONSE;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 
 /**
  * Utility class providing utility methods.
@@ -507,7 +507,7 @@ public class HttpUtil {
 
     private static void setHttpStatusCodes(int statusCode, HttpCarbonMessage response) {
         HttpHeaders httpHeaders = response.getHeaders();
-        httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, org.wso2.transport.http.netty.contract.Constants.TEXT_PLAIN);
+        httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, org.ballerinalang.net.transport.contract.Constants.TEXT_PLAIN);
 
         response.setHttpStatusCode(statusCode);
     }
@@ -1410,12 +1410,11 @@ public class HttpUtil {
         sslConfiguration.setOcspStaplingEnabled(ocspStaplingEnabled);
         sslConfiguration.setHostNameVerificationEnabled(hostNameVerificationEnabled);
 
-        sslConfiguration
-                .setSslSessionTimeOut((int) (((MapValue)secureSocket)
-                        .getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT)));
+        sslConfiguration.setSslSessionTimeOut(
+                (int) (((MapValue) secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT)));
 
-        sslConfiguration.setSslHandshakeTimeOut(((MapValue)secureSocket)
-                .getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
+        sslConfiguration.setSslHandshakeTimeOut(
+                ((MapValue) secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
 
         Object[] cipherConfigs = secureSocket.getArrayValue(HttpConstants.SSL_CONFIG_CIPHERS).getStringArray();
         if (cipherConfigs != null) {

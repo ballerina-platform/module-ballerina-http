@@ -21,7 +21,7 @@ package org.ballerinalang.net.http.util;
 import org.ballerinalang.jvm.api.BStringUtils;
 import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.types.BTypes;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
