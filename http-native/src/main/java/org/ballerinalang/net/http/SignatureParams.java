@@ -30,6 +30,7 @@ import org.ballerinalang.jvm.values.MapValueImpl;
 import org.ballerinalang.net.uri.URIUtil;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class SignatureParams {
 
     SignatureParams(List<BType> paramTypes, AttachedFunction resource) {
         this.signatureParamTypes = paramTypes;
-        List<BString> paramAnnotationKeys = resource.getParamAnnotationKeys();
+        List<BString> paramAnnotationKeys = getParamAnnotationKeys(resource);
         // params annotated
         int paramIndex = COMPULSORY_PARAM_COUNT;
         for (BString paramName : paramAnnotationKeys) {
@@ -78,6 +79,16 @@ public class SignatureParams {
                                                    HttpErrorType.GENERIC_LISTENER_ERROR);
             }
         }
+    }
+
+    private List<BString> getParamAnnotationKeys(AttachedFunction resource) {
+        List<BString> list = new ArrayList<>();
+        for (BString key : resource.getAnnotationKeys()) {
+            if (key.getValue().startsWith(PARAM)) {
+                list.add(key);
+            }
+        }
+        return list;
     }
 
     /**
