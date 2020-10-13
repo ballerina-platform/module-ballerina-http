@@ -18,9 +18,9 @@
 
 package org.ballerinalang.net.http.serviceendpoint;
 
+import org.ballerinalang.jvm.api.BRuntime;
+import org.ballerinalang.jvm.api.BalEnv;
 import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.jvm.types.AttachedFunction;
 import org.ballerinalang.jvm.types.BType;
 import org.ballerinalang.net.http.HTTPServicesRegistry;
@@ -38,13 +38,13 @@ import org.ballerinalang.net.http.websocket.server.WebSocketServicesRegistry;
  * @since 0.966
  */
 public class Register extends AbstractHttpNativeFunction {
-    public static Object register(BObject serviceEndpoint, BObject service,
+    public static Object register(BalEnv env, BObject serviceEndpoint, BObject service,
                                   Object annotationData) {
 
         HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
         WebSocketServicesRegistry webSocketServicesRegistry = getWebSocketServicesRegistry(serviceEndpoint);
-        Strand strand = Scheduler.getStrand();
-        httpServicesRegistry.setScheduler(strand.scheduler);
+        BRuntime runtime = env.getRuntime();
+        httpServicesRegistry.setRuntime(runtime);
 
         BType param;
         AttachedFunction[] resourceList = service.getType().getAttachedFunctions();
@@ -53,9 +53,9 @@ public class Register extends AbstractHttpNativeFunction {
                 String callerType = param.getQualifiedName();
                 if (HttpConstants.HTTP_CALLER_NAME.equals(callerType)) {
                     // TODO fix should work with equals - rajith
-                    httpServicesRegistry.registerService(service);
+                    httpServicesRegistry.registerService(service, runtime);
                 } else if (WebSocketConstants.WEBSOCKET_CALLER_NAME.equals(callerType)) {
-                    webSocketServicesRegistry.registerService(new WebSocketServerService(service, strand.scheduler));
+                    webSocketServicesRegistry.registerService(new WebSocketServerService(service, runtime));
                 } else if (WebSocketConstants.FULL_WEBSOCKET_CLIENT_NAME.equals(callerType)) {
                     return WebSocketUtil.getWebSocketException("Client service cannot be attached to the Listener",
                             null, WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
@@ -63,7 +63,7 @@ public class Register extends AbstractHttpNativeFunction {
                     return HttpUtil.createHttpError("Invalid http Service");
                 }
             } else {
-                httpServicesRegistry.registerService(service);
+                httpServicesRegistry.registerService(service, runtime);
             }
         } catch (WebSocketException ex) {
             return ex;
