@@ -56,7 +56,7 @@ public client class HttpSecureClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     public remote function post(string path, RequestMessage message, TargetType targetType = Response)
-            returns Response|PayloadType|ClientError {
+            returns Response|Payload|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         var result = check self.httpClient->post(path, req);
@@ -98,7 +98,7 @@ public client class HttpSecureClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     public remote function put(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+            returns @tainted Response|Payload|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         var result = check self.httpClient->put(path, req);
@@ -122,7 +122,7 @@ public client class HttpSecureClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     public remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+            returns @tainted Response|Payload|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         var result = check self.httpClient->execute(httpVerb, path, req);
@@ -145,7 +145,7 @@ public client class HttpSecureClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     public remote function patch(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+            returns @tainted Response|Payload|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         var result = check self.httpClient->patch(path, req);
@@ -168,7 +168,7 @@ public client class HttpSecureClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     public remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+            returns @tainted Response|Payload|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         var result = check self.httpClient->delete(path, req);
@@ -191,7 +191,7 @@ public client class HttpSecureClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     public remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+            returns @tainted Response|Payload|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         var result = check self.httpClient->get(path, message = req);
@@ -214,7 +214,7 @@ public client class HttpSecureClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     public remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+            returns @tainted Response|Payload|ClientError {
         Request req = <Request>message;
         req = check prepareSecureRequest(req, self.config);
         var result = check self.httpClient->options(path, message = req);
@@ -236,7 +236,7 @@ public client class HttpSecureClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     public remote function forward(string path, Request request, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+            returns @tainted Response|Payload|ClientError {
         Request req = request;
         req = check prepareSecureRequest(request, self.config);
         var result = check self.httpClient->forward(path, request);

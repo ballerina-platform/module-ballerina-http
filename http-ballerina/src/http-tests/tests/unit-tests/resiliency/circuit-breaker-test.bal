@@ -340,7 +340,7 @@ public client class MockClient {
     }
 
     public remote function post(@untainted string path, http:RequestMessage message,
-            http:TargetType targetType = http:Response) returns http:Response|http:PayloadType|http:ClientError {
+            http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
@@ -351,27 +351,27 @@ public client class MockClient {
     }
 
     public remote function put(@untainted string path, http:RequestMessage message,
-            http:TargetType targetType = http:Response) returns http:Response|http:PayloadType|http:ClientError {
+            http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
     public remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message,
-           http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+           http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
     public remote function patch(@untainted string path, http:RequestMessage message, http:TargetType targetType = http:Response)
-                                             returns @tainted http:Response|http:PayloadType|http:ClientError {
+                                             returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
     public remote function delete(@untainted string path, http:RequestMessage message = (),
-          http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+          http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
     public remote function get(@untainted string path, http:RequestMessage message = (),
-           http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+           http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         http:Request req = buildRequest(message);
         http:Response response = new;
         actualRequestNumber = actualRequestNumber + 1;
@@ -424,13 +424,13 @@ public client class MockClient {
     }
 
     public remote function options(@untainted string path, http:RequestMessage message = (),
-           http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+           http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
     public remote function forward(@untainted string path, http:Request request, http:TargetType targetType =
     http:Response)
-                                               returns @tainted http:Response|http:PayloadType|http:ClientError {
+                                               returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 

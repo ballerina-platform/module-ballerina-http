@@ -27,10 +27,10 @@ public type ResponseMessage Response|string|xml|json|byte[]|io:ReadableByteChann
 type CustomRecordType record {| anydata...; |};
 
 # The types of the response payload that are returned by the HTTP `client` after the data binding operation
-public type PayloadType string|xml|json|map<json>|byte[]|CustomRecordType|CustomRecordType[];
+public type Payload string|xml|json|map<json>|byte[]|CustomRecordType|CustomRecordType[];
 
 # The types of data values that are expected by the HTTP `client` to return after the data binding operation
-public type TargetType typedesc<Response|string|xml|json|map<json>|byte[]|CustomRecordType| CustomRecordType[]>;
+public type TargetType typedesc<Response|Payload>;
 
 # Defines the HTTP operations related to circuit breaker, failover and load balancer.
 #
