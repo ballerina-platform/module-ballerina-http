@@ -17,12 +17,12 @@
  */
 package org.ballerinalang.net.http.websocket;
 
-import org.ballerinalang.jvm.services.ErrorHandlerUtils;
 import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
+import org.ballerinalang.jvm.services.ErrorHandlerUtils;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityConstants;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityUtil;
 import org.ballerinalang.net.http.websocket.server.WebSocketConnectionInfo;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketConnection;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 
 /**
  * Callback impl for web socket.

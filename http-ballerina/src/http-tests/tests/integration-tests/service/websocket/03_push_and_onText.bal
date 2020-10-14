@@ -16,6 +16,7 @@
 
 import ballerina/runtime;
 import ballerina/test;
+import ballerina/io;
 import http;
 
 string data = "";
@@ -95,7 +96,10 @@ public function testJson() {
     checkpanic wsClient->pushText("{\"name\":\"Riyafa\", \"age\":23}");
     runtime:sleep(500);
     test:assertEquals(data, expectedMsg, msg = "Failed pushtext");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
 
 // Tests XML support for pushText and onText
@@ -106,7 +110,10 @@ public function testXml() {
     var output = wsClient->pushText(msg);
     runtime:sleep(500);
     test:assertEquals(data, msg, msg = "");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
 
 // Tests Record support for pushText and onText
@@ -117,7 +124,10 @@ public function testRecord() {
     var output = wsClient->pushText("{\"name\":\"Riyafa\", \"age\":23}");
     runtime:sleep(500);
     test:assertEquals(data, expectedMsg, msg = "");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
 
 // Tests byte array support for pushText and onText
@@ -129,5 +139,8 @@ public function testByteArray() {
     var output = wsClient->pushText(msg);
     runtime:sleep(500);
     test:assertEquals(data, msg, msg = "");
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }

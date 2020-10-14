@@ -43,11 +43,9 @@ ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
 ext.commonsLang3Version = project.commonsLang3Version
 ext.nettyVersion = project.nettyVersion
 ext.nettyTcnativeVersion = project.nettyTcnativeVersion
-ext.wso2TransportHttpNettyVersion = project.wso2TransportHttpNettyVersion
 ext.wso2CommonsPoolVersion = project.wso2CommonsPoolVersion
 ext.wso2SnakeYamlVersion = project.wso2SnakeYamlVersion
 ext.bouncycastleVersion = project.bouncycastleVersion
-ext.wso2CarbonMetricsVersion = project.wso2CarbonMetricsVersion
 ext.mimepullVersion = project.mimepullVersion
 ext.testngVersion =project.testngVersion
 
@@ -65,15 +63,7 @@ allprojects {
         }
 
         maven {
-            url = 'https://maven.wso2.org/nexus/content/repositories/snapshots/'
-        }
-
-        maven {
             url = 'https://maven.wso2.org/nexus/content/groups/wso2-public/'
-        }
-
-        maven {
-            url = 'https://maven.wso2.org/nexus/content/repositories/orgballerinalang-1614'
         }
 
         maven {
@@ -81,12 +71,13 @@ allprojects {
         }
 
         maven {
-            url "https://maven.pkg.github.com/ballerina-platform/module-ballerina-http"
+            url = 'https://maven.pkg.github.com/ballerina-platform/ballerina-lang'
             credentials {
                 username System.getenv("packageUser")
                 password System.getenv("packagePAT")
             }
         }
+
         maven {
             url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-mime'
             credentials {

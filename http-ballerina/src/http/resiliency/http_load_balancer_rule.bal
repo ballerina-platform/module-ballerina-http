@@ -15,7 +15,7 @@
 // under the License.
 
 #
-# LoadBalancerRule provides a required interfaces to implement different algorithms.
+# LoadBalancerRule object type provides a required abstraction to implement different algorithms.
 #
 public type LoadBalancerRule object {
 

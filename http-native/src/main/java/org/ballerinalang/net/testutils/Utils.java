@@ -19,7 +19,6 @@
 package org.ballerinalang.net.testutils;
 
 import io.netty.handler.codec.http.FullHttpResponse;
-import org.ballerinalang.util.BLangConstants;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -166,14 +165,14 @@ public class Utils {
 
     // TODO: find a better way to run client bal files during integration tests.
     public static void prepareBalo(Object test) throws URISyntaxException {
-        if (System.getProperty(BLangConstants.BALLERINA_HOME) != null) {
+        if (System.getProperty(TestConstant.BALLERINA_HOME) != null) {
             return;
         }
 
         String path = new File(test.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath())
                 .getAbsolutePath();
         Path target = Paths.get(path).getParent();
-        System.setProperty(BLangConstants.BALLERINA_HOME, target.toString());
+        System.setProperty(TestConstant.BALLERINA_HOME, target.toString());
     }
 
     public static KeyStore getKeyStore(File keyStore)

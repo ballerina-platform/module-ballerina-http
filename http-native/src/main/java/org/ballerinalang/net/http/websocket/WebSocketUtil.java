@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.websocketx.CorruptedWebSocketFrameException;
 import io.netty.handler.codec.http.websocketx.WebSocketCloseStatus;
 import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
 import org.ballerinalang.jvm.api.BErrorCreator;
+import org.ballerinalang.jvm.api.BRuntime;
 import org.ballerinalang.jvm.api.BStringUtils;
 import org.ballerinalang.jvm.api.BValueCreator;
 import org.ballerinalang.jvm.api.BalFuture;
@@ -32,7 +33,6 @@ import org.ballerinalang.jvm.api.values.BError;
 import org.ballerinalang.jvm.api.values.BMap;
 import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.jvm.services.ErrorHandlerUtils;
 import org.ballerinalang.jvm.types.BPackage;
 import org.ballerinalang.jvm.types.BType;
@@ -51,14 +51,14 @@ import org.ballerinalang.net.http.websocket.observability.WebSocketObservability
 import org.ballerinalang.net.http.websocket.server.WebSocketConnectionInfo;
 import org.ballerinalang.net.http.websocket.server.WebSocketConnectionManager;
 import org.ballerinalang.net.http.websocket.server.WebSocketServerService;
+import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
+import org.ballerinalang.net.transport.contract.websocket.ClientHandshakeFuture;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnector;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnectorConfig;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 import org.ballerinalang.stdlib.io.utils.IOConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.contract.HttpWsConnectorFactory;
-import org.wso2.transport.http.netty.contract.websocket.ClientHandshakeFuture;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketClientConnector;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketClientConnectorConfig;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketConnection;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -543,10 +543,10 @@ public class WebSocketUtil {
      * Validate and create the webSocket service.
      *
      * @param clientEndpointConfig - a client endpoint config
-     * @param strand - a strand
+     * @param runtime - ballerina runtime
      * @return webSocketService
      */
-    public static WebSocketService validateAndCreateWebSocketService(Strand strand,
+    public static WebSocketService validateAndCreateWebSocketService(BRuntime runtime,
                                                                      BMap<BString, Object> clientEndpointConfig) {
         Object clientService = clientEndpointConfig.get(WebSocketConstants.CLIENT_SERVICE_CONFIG);
         if (clientService != null) {
@@ -556,9 +556,9 @@ public class WebSocketUtil {
                 throw WebSocketUtil.getWebSocketException("The callback service should be a WebSocket Client Service",
                         null, WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
             }
-            return new WebSocketService((BObject) clientService, strand.scheduler);
+            return new WebSocketService((BObject) clientService, runtime);
         } else {
-            return new WebSocketService(strand.scheduler);
+            return new WebSocketService(runtime);
         }
     }
 

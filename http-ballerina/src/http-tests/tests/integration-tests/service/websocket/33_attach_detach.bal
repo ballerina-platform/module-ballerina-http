@@ -17,6 +17,7 @@
 import ballerina/runtime;
 import ballerina/test;
 import http;
+import ballerina/io;
 
 string msg = "message";
 
@@ -94,7 +95,10 @@ public function detachFirst() {
     checkpanic wsClientEp->pushText("detach");
     runtime:sleep(500);
     test:assertEquals(serverOutput, "GenericError: Cannot detach service. Service has not been registered");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
 
 // Tests echoed text message from the attached servers
@@ -116,9 +120,18 @@ public function attachSuccess() {
     checkpanic attachClient->pushText(msg);
     runtime:sleep(500);
     test:assertEquals(expectedData, msg);
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
-    checkpanic attachClient->close(statusCode = 1000, reason = "Close the connection");
-    checkpanic pathClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result1 = wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 180);
+    if (result1 is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result1);
+    }
+    error? result2 = attachClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result2 is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result2);
+    }
+    error? result3 = pathClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result3 is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result3);
+    }
 }
 
 // Tests detach
@@ -131,7 +144,10 @@ public function detachSuccess() {
     http:WebSocketClient attachClient = new ("ws://localhost:21032", {callbackService: attachService});
     runtime:sleep(500);
     test:assertEquals(expectedErr, "error(\"InvalidHandshakeError: Invalid handshake response getStatus: 404 Not Found\")");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
 
 // Attach twice to the service
@@ -143,7 +159,10 @@ public function attachTwice() {
     checkpanic wsClientEp->pushText("attach");
     runtime:sleep(500);
     test:assertEquals(serverOutput, "GenericError: Two services have the same addressable URI");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }
 
 // Detach from the service twice
@@ -155,5 +174,8 @@ public function detachTwice() {
     checkpanic wsClientEp->pushText("detach");
     runtime:sleep(500);
     test:assertEquals(serverOutput, "GenericError: Cannot detach service. Service has not been registered");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }

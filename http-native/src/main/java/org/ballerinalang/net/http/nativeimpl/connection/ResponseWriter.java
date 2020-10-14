@@ -30,11 +30,11 @@ import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
-import org.wso2.transport.http.netty.contract.HttpConnectorListener;
-import org.wso2.transport.http.netty.contract.HttpResponseFuture;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
-import org.wso2.transport.http.netty.message.HttpMessageDataStreamer;
-import org.wso2.transport.http.netty.message.PooledDataStreamerFactory;
+import org.ballerinalang.net.transport.contract.HttpConnectorListener;
+import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
+import org.ballerinalang.net.transport.message.PooledDataStreamerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -348,7 +348,8 @@ public class HttpConstants {
     public static final BString ENDPOINT_CONFIG_KEY = BStringUtils.fromString("keyFile");
     public static final BString ENDPOINT_CONFIG_KEY_PASSWORD = BStringUtils.fromString("keyPassword");
     public static final BString ENDPOINT_CONFIG_TRUST_CERTIFICATES = BStringUtils.fromString("trustedCertFile");
-    public static final BString ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT = BStringUtils.fromString("handshakeTimeoutInSeconds");
+    public static final BString ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT =
+            BStringUtils.fromString("handshakeTimeoutInSeconds");
     public static final BString ENDPOINT_CONFIG_SESSION_TIMEOUT = BStringUtils.fromString("sessionTimeoutInSeconds");
     public static final BString ENDPOINT_CONFIG_DISABLE_SSL = BStringUtils.fromString("disable");
 
@@ -451,7 +452,7 @@ public class HttpConstants {
 
     public static final String HTTP_VERSION_1_1 = "1.1";
 
-    public static final String HTTP_MODULE_VERSION = "1.0.0";
+    public static final String HTTP_MODULE_VERSION = "1.0.1";
     public static final String REASON_RECORD = "Reason";
     public static final String PACKAGE = "ballerina";
     public static final String MODULE = "http";

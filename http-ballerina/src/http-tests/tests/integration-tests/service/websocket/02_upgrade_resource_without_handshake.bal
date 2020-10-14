@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/test;
+import ballerina/log;
 import http;
 
 string upgradeServiceExpecteddata = "";
@@ -50,6 +51,9 @@ service clientCallbackService = @http:WebSocketServiceConfig {} service {
 public function testUpgradeResourceWithoutHandshake() {
     http:WebSocketClient wsClient = new ("ws://localhost:21002/UpgradeWithoutHandshake",
         {callbackService: clientCallbackService});
-    checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       log:printError("Error occurred when closing connection", result);
+    }
     test:assertEquals(upgradeServiceExpecteddata, "Handshake check", msg = "Failed handshake");
 }

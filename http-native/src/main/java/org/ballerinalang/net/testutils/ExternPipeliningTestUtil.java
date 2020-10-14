@@ -145,7 +145,8 @@ public class ExternPipeliningTestUtil {
      * @param pipelinedRequests Represent pipelined requests
      * @throws IOException when IO error occurs
      */
-    private static void writePipelinedRequests(SocketChannel socketChannel, String pipelinedRequests) throws IOException {
+    private static void writePipelinedRequests(SocketChannel socketChannel, String pipelinedRequests)
+            throws IOException {
         int i = 0;
         ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE);
         byte[] data = pipelinedRequests.getBytes();

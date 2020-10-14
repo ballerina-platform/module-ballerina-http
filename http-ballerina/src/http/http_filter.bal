@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Abstract Representation of a HTTP Request Filter.
+# The representation of a HTTP Request Filter Object type.
 # This filter will be applied before the request is dispatched to the relevant resource.
 # Any RequestFilter implementation should be structurally similar to or implement the RequestFilter object.
 public type RequestFilter object {
@@ -28,7 +28,7 @@ public type RequestFilter object {
     public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean;
 };
 
-# Abstract Representation of a HTTP Response Filter.
+# The representation of a HTTP Response Filter Object type.
 # This filter will be applied in the response path.
 # Any ResponseFilter implementation should be structurally similar to or implement the ResponseFilter object.
 public type ResponseFilter object {

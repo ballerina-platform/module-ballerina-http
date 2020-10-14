@@ -25,8 +25,8 @@ import org.ballerinalang.jvm.api.values.BMap;
 import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.scheduling.Strand;
-import org.wso2.transport.http.netty.contract.HttpClientConnector;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.contract.HttpClientConnector;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import static org.ballerinalang.jvm.util.BLangConstants.BALLERINA_BUILTIN_PKG_ID;
 import static org.ballerinalang.net.http.HttpConstants.STRUCT_GENERIC_ERROR;

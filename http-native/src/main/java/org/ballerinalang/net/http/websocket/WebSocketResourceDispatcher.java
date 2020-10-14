@@ -24,7 +24,6 @@ import org.ballerinalang.jvm.JSONParser;
 import org.ballerinalang.jvm.JSONUtils;
 import org.ballerinalang.jvm.XMLFactory;
 import org.ballerinalang.jvm.XMLNodeType;
-import org.ballerinalang.jvm.api.BExecutor;
 import org.ballerinalang.jvm.api.BStringUtils;
 import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
 import org.ballerinalang.jvm.api.values.BMap;
@@ -51,15 +50,15 @@ import org.ballerinalang.net.http.websocket.server.OnUpgradeResourceCallback;
 import org.ballerinalang.net.http.websocket.server.WebSocketConnectionInfo;
 import org.ballerinalang.net.http.websocket.server.WebSocketConnectionManager;
 import org.ballerinalang.net.http.websocket.server.WebSocketServerService;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketBinaryMessage;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketCloseMessage;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketControlMessage;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketControlSignal;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketTextMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketBinaryMessage;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketCloseMessage;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketConnection;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketControlMessage;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketControlSignal;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketHandshaker;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketTextMessage;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -105,7 +104,7 @@ public class WebSocketResourceDispatcher {
         httpCaller.addNativeData(WebSocketConstants.WEBSOCKET_SERVICE, wsService);
         httpCaller.addNativeData(HttpConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_MANAGER, connectionManager);
 
-        BExecutor.submit(wsService.getScheduler(), onUpgradeResource.getParentService().getBalService(),
+        wsService.getRuntime().invokeMethodAsync(onUpgradeResource.getParentService().getBalService(),
                         balResource.getName(), null, ON_OPEN_METADATA,
                         new OnUpgradeResourceCallback(webSocketHandshaker, wsService, connectionManager),
                         new HashMap<>(), signatureParams);
@@ -527,10 +526,10 @@ public class WebSocketResourceDispatcher {
             Map<String, Object> properties = new HashMap<>();
             WebSocketObserverContext observerContext = new WebSocketObserverContext(connectionInfo);
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
-            BExecutor.submit(wsService.getScheduler(), wsService.getBalService(), resource, null, metaData, callback,
+            wsService.getRuntime().invokeMethodAsync(wsService.getBalService(), resource, null, metaData, callback,
                             properties, bValues);
         } else {
-            BExecutor.submit(wsService.getScheduler(), wsService.getBalService(), resource, null, metaData, callback,
+            wsService.getRuntime().invokeMethodAsync(wsService.getBalService(), resource, null, metaData, callback,
                             null, bValues);
         }
         WebSocketObservabilityUtil.observeResourceInvocation(connectionInfo, resource);

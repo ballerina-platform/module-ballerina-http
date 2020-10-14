@@ -22,9 +22,9 @@ import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
 import org.ballerinalang.jvm.services.ErrorHandlerUtils;
 import org.ballerinalang.net.http.websocket.WebSocketResourceDispatcher;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
-import org.wso2.transport.http.netty.contract.websocket.ServerHandshakeFuture;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketConnection;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketHandshaker;
+import org.ballerinalang.net.transport.contract.websocket.ServerHandshakeFuture;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
 
 /**
  * The onUpgrade resource callback.

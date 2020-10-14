@@ -73,11 +73,15 @@ service CookieService = @http:WebSocketServiceConfig {} service {
 };
 
 // Test the cookie support
-@test:Config {}
+// https://github.com/ballerina-platform/module-ballerina-http/issues/71
+@test:Config {enable : false}
 public function testCookieSupport() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21037");
     checkpanic wsClientEp->pushText("Hi");
     runtime:sleep(500);
     test:assertEquals(expectedOutput37, "Hello World!");
-    checkpanic wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
+    if (result is http:WebSocketError) {
+       io:println("Error occurred when closing connection", result);
+    }
 }

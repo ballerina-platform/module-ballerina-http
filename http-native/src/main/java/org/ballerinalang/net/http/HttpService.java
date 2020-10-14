@@ -24,13 +24,13 @@ import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.types.AttachedFunction;
 import org.ballerinalang.jvm.util.Flags;
 import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.ballerinalang.net.uri.URITemplate;
 import org.ballerinalang.net.uri.URITemplateException;
 import org.ballerinalang.net.uri.parser.Literal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
