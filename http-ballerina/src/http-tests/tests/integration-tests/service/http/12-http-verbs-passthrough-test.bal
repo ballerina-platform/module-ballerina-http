@@ -72,7 +72,7 @@ service headQuoteService on httpVerbListenerEP {
     @http:ResourceConfig {
         path:"/getStock/{method}"
     }
-    resource function commonResource (http:Caller caller, http:Request req, string method) {
+    resource function commonResource (http:Caller caller, http:Request req, @http:PathParam string method) {
         http:Request clientRequest = new;
         var response = endPoint -> execute(<@untainted> method, "/getQuote/stocks", clientRequest);
         if (response is http:Response) {

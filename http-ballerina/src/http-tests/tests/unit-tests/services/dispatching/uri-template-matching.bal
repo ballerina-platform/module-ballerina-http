@@ -479,7 +479,7 @@ service WildcardService on utmTestEP {
         path:"/{id}",
         methods:["POST"]
     }
-    resource function pathParamResource(http:Caller caller, http:Request req) {
+    resource function pathParamResource(http:Caller caller, http:Request req, @http:PathParam string id) {
         http:Response res = new;
         json responseJson = {message:"Path Params Resource is invoked."};
         res.setJsonPayload(responseJson);

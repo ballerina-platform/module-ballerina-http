@@ -27,7 +27,8 @@ service initiator on trailingHeaderListenerEP1 {
     @http:ResourceConfig {
         path: "{svc}/{rsc}"
     }
-    resource function echoResponse(http:Caller caller, http:Request request, string svc, string rsc) {
+    resource function echoResponse(http:Caller caller, http:Request request, @http:PathParam string svc,
+                                    @http:PathParam string rsc) {
         var responseFromBackend = clientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
         if (responseFromBackend is http:Response) {
             var textPayload = responseFromBackend.getTextPayload();

@@ -51,7 +51,6 @@ public class HttpResource {
 
     private static final BString METHODS_FIELD = BStringUtils.fromString("methods");
     private static final BString PATH_FIELD = BStringUtils.fromString("path");
-    private static final BString BODY_FIELD = BStringUtils.fromString("body");
     private static final BString CONSUMES_FIELD = BStringUtils.fromString("consumes");
     private static final BString PRODUCES_FIELD = BStringUtils.fromString("produces");
     private static final BString CORS_FIELD = BStringUtils.fromString("cors");
@@ -202,7 +201,6 @@ public class HttpResource {
                     getAsStringList(resourceConfigAnnotation.getArrayValue(CONSUMES_FIELD).getStringArray()));
             httpResource.setProduces(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(PRODUCES_FIELD).getStringArray()));
-            httpResource.setEntityBodyAttributeValue(resourceConfigAnnotation.getStringValue(BODY_FIELD).getValue());
             httpResource.setCorsHeaders(CorsHeaders.buildCorsHeaders(resourceConfigAnnotation.getMapValue(CORS_FIELD)));
             httpResource
                     .setTransactionInfectable(resourceConfigAnnotation.getBooleanValue(TRANSACTION_INFECTABLE_FIELD));

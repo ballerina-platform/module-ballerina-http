@@ -32,7 +32,8 @@ service pathQuery on new http:Listener(21015) {
             upgradeService: simpleProxy6
         }
     }
-    resource function websocketProxy(http:Caller httpEp, http:Request req, string path1, string path2) {
+    resource function websocketProxy(http:Caller httpEp, http:Request req, @http:PathParam string path1,
+                                        @http:PathParam string path2) {
         data = <@untainted>textMessage;
     }
 }

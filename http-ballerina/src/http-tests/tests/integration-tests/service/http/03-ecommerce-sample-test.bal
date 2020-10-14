@@ -56,7 +56,7 @@ service EcommerceService on ecommerceListenerEP {
         methods:["GET"],
         path:"/products/{prodId}"
     }
-    resource function productsInfo(http:Caller caller, http:Request req, string prodId) {
+    resource function productsInfo(http:Caller caller, http:Request req, @http:PathParam string prodId) {
         string reqPath = "/productsservice/" + <@untainted> prodId;
         http:Request clientRequest = new;
         var clientResponse = productsService->get(<@untainted> reqPath, clientRequest);
@@ -181,7 +181,7 @@ service productmgt on ecommerceListenerEP {
         methods:["GET"],
         path:"/{prodId}"
     }
-    resource function product(http:Caller caller, http:Request req, string prodId) {
+    resource function product(http:Caller caller, http:Request req, @http:PathParam string prodId) {
         http:Response res = new;
         var result = productsMap[prodId].cloneWithType(json);
         if (result is json) {

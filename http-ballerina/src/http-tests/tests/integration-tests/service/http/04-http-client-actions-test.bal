@@ -114,7 +114,7 @@ service httpClientActionBackEndService on httpClientActionListenerEP1 {
     @http:ResourceConfig {
             path: "/{id}"
     }
-    resource function withWhitespacedExpression(http:Caller caller, http:Request request, string id) {
+    resource function withWhitespacedExpression(http:Caller caller, http:Request request, @http:PathParam string id) {
         var res = caller->respond(<@untainted> id);
     }
 
