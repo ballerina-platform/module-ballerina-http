@@ -78,9 +78,9 @@ service testRedirectService on serviceEndpoint3 {
         var response = endPoint1->get("/redirect1");
         http:Response finalResponse = new;
         if (response is http:Response) {
-            finalResponse.setPayload(response.resolvedRequestedURI);
-            checkpanic caller->respond(finalResponse);
-        } else {
+            finalResponse.setPayload(<@untainted> response.resolvedRequestedURI);
+            checkpanic caller->respond(<@untainted> finalResponse);
+        } else if (response is error) {
             io:println("Connector error!");
         }
     }
@@ -98,7 +98,7 @@ service testRedirectService on serviceEndpoint3 {
             }
             value = value + ":" + response.resolvedRequestedURI;
             checkpanic caller->respond(<@untainted> value);
-        } else {
+        } else if (response is error) {
             io:println("Connector error!");
         }
     }
@@ -117,7 +117,7 @@ service testRedirectService on serviceEndpoint3 {
             } else {
                 io:println("Payload error!");
             }
-        } else {
+        } else if (response is error) {
             io:println("Connector error!");
         }
     }
@@ -136,7 +136,7 @@ service testRedirectService on serviceEndpoint3 {
             } else {
                 io:println("Payload error!");
             }
-        } else {
+        } else if (response is error) {
             io:println("Connector error!");
         }
     }
@@ -155,7 +155,7 @@ service testRedirectService on serviceEndpoint3 {
             } else  {
                 io:println("Payload error!");
             }
-        } else {
+        } else if (response is error) {
             io:println("Connector error!");
         }
     }
@@ -174,7 +174,7 @@ service testRedirectService on serviceEndpoint3 {
             } else {
                 io:println("Payload error!");
             }
-        } else {
+        } else if (response is error) {
             io:println("Connector error!");
         }
     }
@@ -528,7 +528,7 @@ public function testHttpRedirects() {
     var resp = httpClient->get("/service1/");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "http://localhost:9102/redirect2");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -539,7 +539,7 @@ public function testMaxRedirect() {
     var resp = httpClient->get("/service1/maxRedirect");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "/redirect1/round5:http://localhost:9103/redirect1/round4");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -550,7 +550,7 @@ public function testCrossDomain() {
     var resp = httpClient->get("/service1/noRedirect");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -561,7 +561,7 @@ public function testNoRedirect() {
     var resp = httpClient->get("/service1/crossDomain");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -572,7 +572,7 @@ public function testRedirectOff() {
     var resp = httpClient->get("/service1/redirectOff");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "/redirect1/round2:");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -583,7 +583,7 @@ public function testQPWithRelativePath() {
     var resp = httpClient->get("/service1/qpWithRelativePath");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -594,7 +594,7 @@ public function testQPWithAbsolutePath() {
     var resp = httpClient->get("/service1/qpWithAbsolutePath");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -605,7 +605,7 @@ public function testOriginalRequestWithQP() {
     var resp = httpClient->get("/service1/originalRequestWithQP");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -616,7 +616,7 @@ public function test303Status() {
     var resp = httpClient->get("/service1/test303");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -627,7 +627,7 @@ public function testRedirectWithHTTPs() {
     var resp = httpClient->get("/service1/httpsRedirect");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "HTTPs Result:https://localhost:9104/redirect3/result");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -638,7 +638,7 @@ public function testRedirectWithPOST() {
     var resp = httpClient->get("/service1/doPost");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -649,7 +649,7 @@ public function testWithHTTPs() {
     var resp = httpClient->get("/service1/doSecurePut");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "Received:Secure payload:No Proxy:http://localhost:9102/redirect2/echo");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -660,7 +660,7 @@ public function testMultipartRedirect() {
     var resp = httpClient->get("/service1/testMultipart");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "{\"name\":\"wso2\"}:http://localhost:9102/redirect2/echo");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

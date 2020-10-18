@@ -69,7 +69,7 @@ public function testSslProtocol() {
     var resp = clientEP->get("/protocol/protocolResource");
     if (resp is http:Response) {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
-    } else {
+    } else if (resp is error) {
         test:assertTrue(stringutils:contains(resp.message(), "SSL connection failed"));
     }
 }

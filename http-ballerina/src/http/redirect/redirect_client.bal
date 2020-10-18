@@ -50,8 +50,12 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`,
     #             `byte[]`, `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
+            returns @tainted Response|Payload|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_GET);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -61,13 +65,17 @@ public client class RedirectClient {
     }
 
     # If the received response for the `RedirectClient.post()` remote function is redirect eligible, redirect will
-    # be performed automaticallyby this `RedirectClient.post()` function.
+    # be performed automatically by this `RedirectClient.post()` function.
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel`, or `mime:Entity[]`
-    # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function post(string path, RequestMessage message) returns @tainted Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function post(string path, RequestMessage message, TargetType targetType = Response)
+            returns @tainted Response|Payload|ClientError {
         var result =  performRedirectIfEligible(self, path, <Request>message, HTTP_POST);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -82,8 +90,9 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request message or or any payload of type `string`, `xml`, `json`,
     #             `byte[]`, `io:ReadableByteChannel`, or `mime:Entity[]`
-    # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function head(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    public remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
+            Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_HEAD);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -98,8 +107,12 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function put(string path, RequestMessage message, TargetType targetType = Response)
+            returns @tainted Response|Payload|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PUT);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -112,8 +125,12 @@ public client class RedirectClient {
     #
     # + path - Resource path
     # + request - An HTTP inbound request message
-    # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function forward(string path, Request request) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function forward(string path, Request request, TargetType targetType = Response)
+            returns @tainted Response|Payload|ClientError {
         return self.httpClient->forward(path, request);
     }
 
@@ -124,9 +141,12 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function execute(string httpVerb, string path, RequestMessage message) returns @tainted
-            Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function execute(string httpVerb, string path, RequestMessage message,
+            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
         Request request = <Request>message;
         //Redirection is performed only for HTTP methods
         if (HTTP_NONE == extractHttpOperation(httpVerb)) {
@@ -147,8 +167,12 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function patch(string path, RequestMessage message, TargetType targetType = Response)
+            returns @tainted Response|Payload|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PATCH);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -163,9 +187,12 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function delete(string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
+            returns @tainted Response|Payload|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_DELETE);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -180,9 +207,12 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`,
     #             `byte[]`, `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function options(string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
+            returns @tainted Response|Payload|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_OPTIONS);
         if (result is HttpFuture) {
             return getInvalidTypeError();

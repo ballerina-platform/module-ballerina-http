@@ -68,7 +68,7 @@ function testUrlDoubleSlash() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

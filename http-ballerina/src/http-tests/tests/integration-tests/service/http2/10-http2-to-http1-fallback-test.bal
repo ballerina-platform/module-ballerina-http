@@ -63,7 +63,7 @@ public function testFallback() {
     var resp = clientEP->get("/hello");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -81,7 +81,7 @@ public function testFallbackWithSSL() {
     var resp = clientEP->get("/hello");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

@@ -57,11 +57,11 @@ service circuitbreaker06 on circuitBreakerEP06 {
         }
         var backendRes = backendClientEP06->forward("/hello06", request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(backendRes);
+            var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (backendRes is error) {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());

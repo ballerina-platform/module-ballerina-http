@@ -75,7 +75,7 @@ function getValidationResponse(HttpClient httpClient, Request req, Response cach
 
 // Based https://tools.ietf.org/html/rfc7234#section-4.3.1
 function sendValidationRequest(HttpClient httpClient, string path, Request originalRequest, Response cachedResponse)
-                                returns Response|ClientError {
+                                returns @tainted Response|ClientError {
     // Set the precondition headers only if the user hasn't explicitly set them.
     boolean userProvidedINMHeader = originalRequest.hasHeader(IF_NONE_MATCH);
     if (!userProvidedINMHeader && cachedResponse.hasHeader(ETAG)) {
@@ -89,7 +89,7 @@ function sendValidationRequest(HttpClient httpClient, string path, Request origi
 
     // TODO: handle cases where neither of the above 2 headers are present
 
-    Response|ClientError resp = httpClient->forward(path, originalRequest);
+    var resp = httpClient->forward(path, originalRequest);
 
     // Have to remove the precondition headers from the request if they weren't user provided.
     if (!userProvidedINMHeader) {
@@ -100,7 +100,11 @@ function sendValidationRequest(HttpClient httpClient, string path, Request origi
         originalRequest.removeHeader(IF_MODIFIED_SINCE);
     }
 
-    return resp;
+    if (resp is Response|ClientError) {
+        return resp;
+    } else {
+        panic getIllegalDataBindingStateError();
+    }
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4

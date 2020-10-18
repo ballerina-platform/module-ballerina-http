@@ -76,11 +76,11 @@ service failoverDemoService03 on failoverEP03 {
     resource function invokeAllFailureEndpoint03(http:Caller caller, http:Request request) {
         var backendRes = foBackendEP03->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(backendRes);
+            var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (backendRes is error) {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
@@ -98,11 +98,11 @@ service failoverDemoService03 on failoverEP03 {
     resource function invokeAllFailureEndpoint(http:Caller caller, http:Request request) {
         var backendRes = foBackendFailureEP03->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(backendRes);
+            var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (backendRes is error) {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
@@ -120,11 +120,11 @@ service failoverDemoService03 on failoverEP03 {
     resource function invokeAllFailureStatusCodesEndpoint(http:Caller caller, http:Request request) {
         var backendRes = foStatusCodesEP03->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(backendRes);
+            var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (backendRes is error) {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
@@ -144,11 +144,11 @@ service failoverDemoService03 on failoverEP03 {
         var backendRes = foBackendEP03->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             string responseMessage = "Failover start index is : " + startIndex;
-            var responseToCaller = caller->respond(responseMessage);
+            var responseToCaller = caller->respond(<@untainted> responseMessage);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (backendRes is error) {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
@@ -270,7 +270,7 @@ function testAllEndpointFailure() {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), expectedMessage);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

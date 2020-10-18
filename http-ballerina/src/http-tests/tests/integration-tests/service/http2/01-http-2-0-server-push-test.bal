@@ -217,7 +217,7 @@ function testPushPromise() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {status:"successful"});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

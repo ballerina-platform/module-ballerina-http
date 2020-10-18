@@ -64,14 +64,14 @@ service ATMLocator on serviceChainingListenerEP {
             io:println("Error occurred while reading branch locator response");
         }
 
-        http:Response infomationResponse = new;
+        http:Response informationResponse = new;
         var infoRes = bankInfoService -> post("", backendServiceReq);
         if (infoRes is http:Response) {
-            infomationResponse = infoRes;
+            informationResponse = infoRes;
         } else {
             io:println("Error occurred while writing info response");
         }
-        checkpanic caller->respond(infomationResponse);
+        checkpanic caller->respond(<@untainted> informationResponse);
     }
 }
 
@@ -142,7 +142,7 @@ function testServiceChaining() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseMessage);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

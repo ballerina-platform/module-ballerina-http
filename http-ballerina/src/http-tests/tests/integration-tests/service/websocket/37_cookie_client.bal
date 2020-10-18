@@ -59,7 +59,7 @@ service on new http:Listener(21037) {
                     io:println(err);
                 }
             }
-        } else {
+        } else if (loginResp is error) {
             log:printError(loginResp.message());
         }
     }

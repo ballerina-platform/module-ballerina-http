@@ -56,7 +56,7 @@ function testHeaderServerFromSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -71,7 +71,7 @@ function testSetServerHeaderManuallyFromSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -83,7 +83,7 @@ function testHeaderServerFromUnSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -97,7 +97,7 @@ function testHeaderServerFromUnSuccessResponse1() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -112,7 +112,7 @@ function testDefaultHeaderServerFromSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -124,7 +124,7 @@ function testDefaultHeaderServerFromUnSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -139,7 +139,7 @@ function testDefaultHeaderServerFromUnSuccessResponse1() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

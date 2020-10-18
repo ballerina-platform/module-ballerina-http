@@ -48,11 +48,11 @@ service circuitbreaker05 on circuitBreakerEP05 {
     resource function getState(http:Caller caller, http:Request request) {
         var backendRes = backendClientEP05->forward("/statuscode", request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(backendRes);
+            var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (backendRes is error) {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());

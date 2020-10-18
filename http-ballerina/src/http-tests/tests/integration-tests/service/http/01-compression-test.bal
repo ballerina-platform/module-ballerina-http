@@ -81,7 +81,7 @@ function testCompressionAnnotAutoCompress() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -97,7 +97,7 @@ function testCompressionAnnotAutoCompressWithAcceptEncoding() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertHeaderValue(response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -112,7 +112,7 @@ function testAcceptEncodingWithQValueZero() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -126,7 +126,7 @@ function testCompressionAnnotAlwaysCompress() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertHeaderValue(response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -142,7 +142,7 @@ function testCompressionAnnotAlwaysCompressWithAcceptEncoding() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertHeaderValue(response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -155,7 +155,7 @@ function testCompressionAnnotNeverCompress() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -170,7 +170,7 @@ function testCompressionAnnotNeverCompressWithAcceptEncoding() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -186,7 +186,7 @@ function testCompressionAnnotNeverCompressWithUserOverridenValue() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertHeaderValue(response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

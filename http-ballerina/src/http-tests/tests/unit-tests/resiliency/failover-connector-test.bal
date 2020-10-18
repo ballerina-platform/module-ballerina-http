@@ -50,7 +50,7 @@ function testSuccessScenario() {
         var serviceResponse = backendClientEP->get("/hello", request);
         if (serviceResponse is http:Response) {
             clientResponse = serviceResponse;
-        } else {
+        } else if (serviceResponse is error) {
             // Ignore the error to verify failover scenario
         }
         counter = counter + 1;
@@ -97,7 +97,7 @@ function failureScenario() returns @tainted http:Response|error {
         if (serviceResponse is http:Response) {
             counter = counter + 1;
             response = serviceResponse;
-        } else {
+        } else if (serviceResponse is error) {
             counter = counter + 1;
             return serviceResponse;
         }
@@ -120,44 +120,43 @@ public client class FoMockClient {
     }
 
     public remote function post(string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
-                                                                                returns http:Response|http:ClientError {
+                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message,
+                           http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedFOError();
     }
 
-    public remote function head(string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = ())
-                                                                                returns http:Response|http:ClientError {
+    public remote function head(string path, http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|()
+            message = ()) returns http:Response|http:ClientError {
         return getUnsupportedFOError();
     }
 
-    public remote function put(string path,
-                               http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
-                                                                                returns http:Response|http:ClientError {
+    public remote function put(string path, http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|()
+            message, http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError
+             {
         return getUnsupportedFOError();
     }
 
     public remote function execute(string httpVerb, string path,
                                    http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|()
-                                        message) returns http:Response|http:ClientError {
+                                        message, http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedFOError();
     }
 
     public remote function patch(string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
-                                                                                returns http:Response|http:ClientError {
+                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message, http:TargetType targetType = http:Response)
+                                                                                returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedFOError();
     }
 
     public remote function delete(string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
-                                                                                returns http:Response|http:ClientError {
+                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message, http:TargetType targetType = http:Response)
+                                                                                returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedFOError();
     }
 
     public remote function get(string path,
-                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
-                                                                                returns http:Response|http:ClientError {
+                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message, http:TargetType targetType = http:Response)
+                                                                                returns http:Response|http:Payload|http:ClientError {
         http:Response response = new;
         var result = handleFailoverScenario(counter);
         if (result is http:Response) {
@@ -171,12 +170,12 @@ public client class FoMockClient {
     }
 
     public remote function options(string path,
-           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = ())
-                                                                                returns http:Response|http:ClientError {
+           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = (), http:TargetType targetType = http:Response)
+                                                                                returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedFOError();
     }
 
-    public remote function forward(string path, http:Request req) returns http:Response|http:ClientError {
+    public remote function forward(string path, http:Request req, http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedFOError();
     }
 

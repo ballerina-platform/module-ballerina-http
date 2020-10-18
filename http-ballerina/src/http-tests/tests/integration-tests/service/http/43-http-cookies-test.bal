@@ -298,7 +298,7 @@ public function testSendRequestsByCookieClient() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34; SID001=239d4dmnmsddd34; SID002=178gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true); // Removes persistent store file.
@@ -326,7 +326,7 @@ public function testRemoveSessionCookieByClient() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID001=239d4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
@@ -346,7 +346,7 @@ public function testAddSimilarSessionCookies() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_2", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID002=178gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -367,7 +367,7 @@ public function testRemoveSessionCookieByServer() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_3", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID002=178gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -454,7 +454,7 @@ public function testSendRequestsByClient() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34; SID001=239d4dmnmsddd34; SID002=178gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
@@ -482,7 +482,7 @@ public function testRemovePersistentCookieByClient() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
@@ -503,7 +503,7 @@ public function testAddSimilarPersistentCookies() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_4", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID001=895gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
@@ -524,7 +524,7 @@ public function testSendSimilarPersistentAndSessionCookies_1() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_5", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=aeaa895gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
@@ -545,7 +545,7 @@ public function testSendSimilarPersistentAndSessionCookies_2() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_6", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
@@ -567,7 +567,7 @@ public function testRemovePersistentCookieByServer() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_7", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID002=178gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true);
@@ -589,7 +589,7 @@ public function testSendPersistentCookiesWithoutPersistentCookieHandler() {
     response = cookieClientEndpoint->get("/cookie/cookieBackend_1", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", true); // Removes persistent store file.
@@ -604,7 +604,7 @@ public function testCookieValidation() {
     var response = clientEP->get("/cookie/cookieBackend_13", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Valid cookies: user=John,asd=,");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

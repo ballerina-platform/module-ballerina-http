@@ -90,7 +90,7 @@ function testMatrixParamsAndQueryParamsMatching() {
         assertJsonValue(response.getJsonPayload(), "yearMatrix", "month=may;day=12");
         assertJsonValue(response.getJsonPayload(), "fooMatrix", "a=5;b=10");
         assertJsonValue(response.getJsonPayload(), "queryParams", "x=10&y=5");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -103,7 +103,7 @@ function testEncodedPathDispatching() {
         assertJsonValue(response.getJsonPayload(), "person", "john");
         assertJsonValue(response.getJsonPayload(), "personParamSize", 2);
         assertJsonValue(response.getJsonPayload(), "fooParamSize", 0);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -116,7 +116,7 @@ function testEncodedPathParamDispatching() {
         assertJsonValue(response.getJsonPayload(), "person", "john;age=2;color=white");
         assertJsonValue(response.getJsonPayload(), "personParamSize", 0);
         assertJsonValue(response.getJsonPayload(), "fooParamSize", 0);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -128,7 +128,7 @@ function testNonEncodedUrlDispatching() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /hello/t2/john/foo , method : GET");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -140,7 +140,7 @@ function testErrorReportInURI() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "found non-matrix parameter 'age' in path 'hello/t2/john;age;color=white/foo;a=5;b=10'");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

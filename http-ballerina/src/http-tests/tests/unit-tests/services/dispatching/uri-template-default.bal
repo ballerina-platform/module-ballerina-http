@@ -99,7 +99,7 @@ function testServiceNameDispatchingWhenBasePathUndefined() {
     var response = utdClient1->get("/serviceName/test1");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to service name");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -110,7 +110,7 @@ function testServiceNameDispatchingWithEmptyBasePath() {
     var response = utdClient1->get("/test1");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to empty service name");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -121,7 +121,7 @@ function testServiceNameDispatchingWhenAnnotationUnavailable() {
     var response = utdClient1->get("/serviceWithNoAnnotation/test1");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to a service without an annotation");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -131,7 +131,7 @@ function testPureProxyService() {
     var response = utdClient1->get("/");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to a proxy service");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -142,7 +142,7 @@ function testDispatchingToDefault() {
     var response = utdClient1->get("/serviceEmptyName/hello");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to a proxy service");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -154,7 +154,7 @@ function testServiceWithNoNameAndNoConfig() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", 
                     "dispatched to the service that neither has an explicitly defined basepath nor a name");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -166,7 +166,7 @@ function testServiceWithNoName() {
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), 
                     "dispatched to the service that doesn't have a name but has a config without a basepath");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

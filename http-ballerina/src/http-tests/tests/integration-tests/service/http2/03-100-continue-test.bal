@@ -89,7 +89,7 @@ public function testUnexpected100ContinueResponse() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

@@ -34,8 +34,8 @@ service mustRevalidateProxyService on cachingProxyListener {
         var response = cachingEP3->forward("/mustRevalidateBE", req);
         if (response is http:Response) {
             response.setHeader("x-proxy-hit-count", numberOfProxyHits.toString());
-            checkpanic caller->respond(response);
-        } else {
+            checkpanic caller->respond(<@untainted> response);
+        } else if (response is error) {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted> response.message());
@@ -79,7 +79,7 @@ function testMustRevalidateCacheControl() {
         assertHeaderValue(response.getHeader(proxyHitCount), "1");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -90,7 +90,7 @@ function testMustRevalidateCacheControl() {
         assertHeaderValue(response.getHeader(proxyHitCount), "2");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -104,7 +104,7 @@ function testMustRevalidateCacheControl() {
         assertHeaderValue(response.getHeader(proxyHitCount), "3");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

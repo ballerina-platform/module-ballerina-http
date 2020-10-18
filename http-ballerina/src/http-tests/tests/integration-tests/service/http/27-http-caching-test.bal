@@ -40,8 +40,8 @@ service cachingProxy on cachingListener1 { //new http:Listener(9239) {
         if (response is http:Response) {
             cachingProxyHitcount += 1;
             response.setHeader("x-proxy-hit-count", cachingProxyHitcount.toString());
-            checkpanic caller->respond(response);
-        } else {
+            checkpanic caller->respond(<@untainted> response);
+        } else if (response is error) {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted> response.message());
@@ -94,7 +94,7 @@ function testBasicCachingBehaviour() {
         assertHeaderValue(response.getHeader(proxyHitCount), "1");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -105,7 +105,7 @@ function testBasicCachingBehaviour() {
         assertHeaderValue(response.getHeader(proxyHitCount), "2");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -119,7 +119,7 @@ function testBasicCachingBehaviour() {
         assertHeaderValue(response.getHeader(proxyHitCount), "3");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
