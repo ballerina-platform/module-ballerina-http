@@ -16,12 +16,12 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.BalFuture;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
@@ -40,9 +40,9 @@ import org.slf4j.LoggerFactory;
 public class AcceptWebSocketUpgrade {
     private static final Logger log = LoggerFactory.getLogger(AcceptWebSocketUpgrade.class);
 
-    public static Object acceptWebSocketUpgrade(BalEnv env, BObject httpCaller,
+    public static Object acceptWebSocketUpgrade(Environment env, BObject httpCaller,
                                                 BMap<BString, BString> headers) {
-        BalFuture balFuture = env.markAsync();
+        Future balFuture = env.markAsync();
         try {
             WebSocketHandshaker webSocketHandshaker =
                     (WebSocketHandshaker) httpCaller.getNativeData(WebSocketConstants.WEBSOCKET_HANDSHAKER);
@@ -90,11 +90,11 @@ public class AcceptWebSocketUpgrade {
     private static class AcceptUpgradeHandshakeListener implements ServerHandshakeListener {
         private final WebSocketServerService webSocketService;
         private final WebSocketConnectionManager connectionManager;
-        private final BalFuture balFuture;
+        private final Future balFuture;
 
         AcceptUpgradeHandshakeListener(
                 WebSocketServerService webSocketService, WebSocketConnectionManager connectionManager,
-                BalFuture balFuture) {
+                Future balFuture) {
             this.webSocketService = webSocketService;
             this.connectionManager = connectionManager;
             this.balFuture = balFuture;

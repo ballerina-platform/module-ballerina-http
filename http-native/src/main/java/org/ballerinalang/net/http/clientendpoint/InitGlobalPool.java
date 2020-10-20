@@ -18,8 +18,8 @@
 
 package org.ballerinalang.net.http.clientendpoint;
 
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BString;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 

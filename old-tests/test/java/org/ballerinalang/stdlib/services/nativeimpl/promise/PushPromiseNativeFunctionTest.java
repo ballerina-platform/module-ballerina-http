@@ -17,8 +17,8 @@
 //  */
 // package org.ballerinalang.stdlib.services.nativeimpl.promise;
 
-// import org.ballerinalang.jvm.api.BStringUtils;
-// import org.ballerinalang.jvm.api.values.BObject;
+// import io.ballerina.runtime.api.StringUtils;
+// import io.ballerina.runtime.api.values.BObject;
 // import org.ballerinalang.model.values.BBoolean;
 // import org.ballerinalang.model.values.BMap;
 // import org.ballerinalang.model.values.BValue;
@@ -56,8 +56,8 @@
 //     //     String headerName = "header1";
 //     //     String headerValue = "value1";
 //     //     BValue[] returnVal = BRunUtil.invoke(result, "testAddHeader",
-//     //                                          new Object[]{promise, BStringUtils.fromString(headerName),
-//     //                                                  BStringUtils.fromString(headerValue)});
+//     //                                          new Object[]{promise, StringUtils.fromString(headerName),
+//     //                                                  StringUtils.fromString(headerValue)});
 
 //     //     Assert.assertFalse(returnVal.length == 0 || returnVal[0] == null, "Invalid Return Values.");
 //     //     Assert.assertTrue(returnVal[0] instanceof BMap);
@@ -77,7 +77,7 @@
 //     //     HttpUtil.populatePushPromiseStruct(promise, http2PushPromise);
 
 //     //     BValue[] returnVal = BRunUtil.invoke(result, "testGetHeader",
-//     //                                          new Object[]{promise, BStringUtils.fromString(headerName)});
+//     //                                          new Object[]{promise, StringUtils.fromString(headerName)});
 
 //     //     Assert.assertFalse(returnVal.length == 0 || returnVal[0] == null, "Invalid Return Values.");
 //     //     Assert.assertEquals(returnVal[0].stringValue(), headerValue);
@@ -96,7 +96,7 @@
 //     //     HttpUtil.populatePushPromiseStruct(promise, http2PushPromise);
 
 //     //     BValue[] returnVal = BRunUtil.invoke(result, "testGetHeaders",
-//     //                                          new Object[]{promise, BStringUtils.fromString(headerName)});
+//     //                                          new Object[]{promise, StringUtils.fromString(headerName)});
 
 //     //     Assert.assertFalse(returnVal.length == 0 || returnVal[0] == null, "Invalid Return Values.");
 //     //     Assert.assertEquals(((BValueArray) returnVal[0]).getString(0), headerValue1);
@@ -114,7 +114,7 @@
 //     //     HttpUtil.populatePushPromiseStruct(promise, http2PushPromise);
 
 //     //     BValue[] returnVal = BRunUtil.invoke(result, "testRemoveHeader",
-//     //                                          new Object[]{promise, BStringUtils.fromString(headerName)});
+//     //                                          new Object[]{promise, StringUtils.fromString(headerName)});
 //     //     Assert.assertFalse(returnVal.length == 0 || returnVal[0] == null, "Invalid Return Values.");
 
 //     //     Assert.assertTrue(returnVal[0] instanceof BMap);
@@ -158,8 +158,8 @@
 
 //     //     String targetHeaderValue = "value2";
 //     //     BValue[] returnVal = BRunUtil.invoke(result, "testSetHeader",
-//     //                                          new Object[]{ promise, BStringUtils.fromString(headerName),
-//     //                                                  BStringUtils.fromString(targetHeaderValue) });
+//     //                                          new Object[]{ promise, StringUtils.fromString(headerName),
+//     //                                                  StringUtils.fromString(targetHeaderValue) });
 
 //     //     Assert.assertFalse(returnVal.length == 0 || returnVal[0] == null, "Invalid Return Values.");
 //     //     Assert.assertTrue(returnVal[0] instanceof BMap);
@@ -179,7 +179,7 @@
 //     //     HttpUtil.populatePushPromiseStruct(promise, http2PushPromise);
 
 //     //     BValue[] returnVal = BRunUtil.invoke(result, "testHasHeader",
-//     //                                          new Object[]{promise, BStringUtils.fromString(headerName)});
+//     //                                          new Object[]{promise, StringUtils.fromString(headerName)});
 
 //     //     Assert.assertFalse(returnVal.length == 0 || returnVal[0] == null, "Invalid Return Values.");
 //     //     Assert.assertTrue(((BBoolean) returnVal[0]).booleanValue(), "hasHeader function failed");

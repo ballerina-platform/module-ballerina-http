@@ -17,14 +17,14 @@
  */
 package org.ballerinalang.stdlib.services.nativeimpl.request;
 
+import io.ballerina.runtime.XMLFactory;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.util.exceptions.BallerinaException;
+import io.ballerina.runtime.values.ArrayValue;
+import io.ballerina.runtime.values.XMLValue;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
-import org.ballerinalang.jvm.XMLFactory;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.util.exceptions.BallerinaException;
-import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.XMLValue;
 import org.ballerinalang.mime.util.MimeConstants;
 import org.ballerinalang.mime.util.MimeUtil;
 import org.ballerinalang.model.util.JsonParser;
@@ -98,7 +98,7 @@ public class RequestNativeFunctionSuccessTest {
     @Test
     public void testContentType() {
         BObject inRequest = createRequestObject();
-        Object[] inputArg = {inRequest, org.ballerinalang.jvm.api.BStringUtils.fromString("application/x-custom-type+json")};
+        Object[] inputArg = {inRequest, io.ballerina.runtime.api.StringUtils.fromString("application/x-custom-type+json")};
         BValue[] returnVals = BRunUtil.invoke(compileResult, "testContentType", inputArg);
         Assert.assertNotNull(returnVals[0]);
         Assert.assertEquals(((BString) returnVals[0]).value(), "application/x-custom-type+json");
@@ -188,7 +188,7 @@ public class RequestNativeFunctionSuccessTest {
         HttpUtil.populateInboundRequest(inRequest, entity, inRequestMsg);
 
         BValue[] returnVals = BRunUtil.invoke(compileResult, "testGetHeader", new Object[]{inRequest,
-                org.ballerinalang.jvm.api.BStringUtils.fromString(HttpHeaderNames.CONTENT_TYPE.toString())});
+                io.ballerina.runtime.api.StringUtils.fromString(HttpHeaderNames.CONTENT_TYPE.toString())});
         Assert.assertFalse(returnVals.length == 0 || returnVals[0] == null, "Invalid Return Values.");
         Assert.assertEquals(returnVals[0].stringValue(), APPLICATION_FORM);
     }
@@ -218,7 +218,7 @@ public class RequestNativeFunctionSuccessTest {
         HttpUtil.populateInboundRequest(inRequest, entity, inRequestMsg);
 
         BValue[] returnVals = BRunUtil.invoke(compileResult, "testGetHeaders", new Object[]{inRequest,
-                org.ballerinalang.jvm.api.BStringUtils.fromString("test-header")});
+                io.ballerina.runtime.api.StringUtils.fromString("test-header")});
         Assert.assertFalse(returnVals.length == 0 || returnVals[0] == null, "Invalid Return Values.");
         Assert.assertEquals(((BValueArray) returnVals[0]).getString(0), APPLICATION_FORM);
         Assert.assertEquals(((BValueArray) returnVals[0]).getString(1), TEXT_PLAIN);
@@ -501,7 +501,7 @@ public class RequestNativeFunctionSuccessTest {
                 (BMap<String, BValue>) ((BMap<String, BValue>) returnVals[0]).get(REQUEST_ENTITY_FIELD.getValue());
         BMap<BString, Object> bJson = (BMap<BString, Object>) TestEntityUtils.getMessageDataSource(
                 entity);
-        Assert.assertEquals(bJson.get(org.ballerinalang.jvm.api.BStringUtils.fromString("name")).toString(), "wso2",
+        Assert.assertEquals(bJson.get(io.ballerina.runtime.api.StringUtils.fromString("name")).toString(), "wso2",
                             "Payload is not set properly");
     }
 
@@ -548,7 +548,7 @@ public class RequestNativeFunctionSuccessTest {
 
     @Test
     public void testSetXmlPayload() {
-        XMLValue value = XMLFactory.parse("<name>Ballerina</name>");
+        XMLValue value = (XMLValue) XMLFactory.parse("<name>Ballerina</name>");
         BValue[] returnVals = BRunUtil.invoke(compileResult, "testSetXmlPayload", new Object[]{ value });
 
         Assert.assertFalse(returnVals == null || returnVals.length == 0 || returnVals[0] == null,

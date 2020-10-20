@@ -17,7 +17,7 @@
  */
 
 module io.ballerina.stdlib.http {
-    requires io.ballerina.jvm;
+    requires io.ballerina.runtime;
     requires io.ballerina.lang;
     requires io.ballerina.lang.value;
     requires io.ballerina.logging;

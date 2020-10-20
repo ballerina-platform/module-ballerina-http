@@ -17,13 +17,14 @@
 */
 package org.ballerinalang.net.http;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.types.AttachedFunction;
-import org.ballerinalang.jvm.util.Flags;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.types.BAnnotatableType;
+import io.ballerina.runtime.util.Flags;
+import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.ballerinalang.net.uri.URITemplate;
@@ -59,11 +60,11 @@ public class HttpService implements Cloneable {
 
     private static final Logger log = LoggerFactory.getLogger(HttpService.class);
 
-    protected static final BString BASE_PATH_FIELD = BStringUtils.fromString("basePath");
+    protected static final BString BASE_PATH_FIELD = StringUtils.fromString("basePath");
     private static final String COMPRESSION_FIELD = "compression";
-    private static final BString CORS_FIELD = BStringUtils.fromString("cors");
-    private static final BString VERSIONING_FIELD = BStringUtils.fromString("versioning");
-    private static final BString HOST_FIELD = BStringUtils.fromString("host");
+    private static final BString CORS_FIELD = StringUtils.fromString("cors");
+    private static final BString VERSIONING_FIELD = StringUtils.fromString("versioning");
+    private static final BString HOST_FIELD = StringUtils.fromString("host");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -258,8 +259,8 @@ public class HttpService implements Cloneable {
     private static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
         List<HttpResource> upgradeToWebSocketResources = new ArrayList<>();
-        for (AttachedFunction resource : httpService.getBalService().getType().getAttachedFunctions()) {
-            if (!Flags.isFlagOn(resource.flags, Flags.RESOURCE)) {
+        for (AttachedFunctionType resource : httpService.getBalService().getType().getAttachedFunctions()) {
+            if (!Flags.isFlagOn(resource.getFlags(), Flags.RESOURCE)) {
                 continue;
             }
             BMap resourceConfigAnnotation = HttpResource.getResourceConfigAnnotation(resource);
@@ -332,13 +333,14 @@ public class HttpService implements Cloneable {
     }
 
     protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
-                                                         String annotationName) {
-        return (BMap) service.getType().getAnnotation(packagePath.replaceAll(HttpConstants.REGEX,
-                HttpConstants.SINGLE_SLASH), annotationName);
+                                                     String annotationName) {
+        return (BMap) ((BAnnotatableType) service.getType())
+                .getAnnotation(packagePath.replaceAll(HttpConstants.REGEX,HttpConstants.SINGLE_SLASH), annotationName);
     }
 
     private static boolean hasInterruptibleAnnotation(BObject service) {
-        return service.getType().getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
+        return ((BAnnotatableType)service.getType())
+                .getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
     }
 
     private String urlDecode(String basePath) {

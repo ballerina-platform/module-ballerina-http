@@ -18,11 +18,11 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
-import org.ballerinalang.jvm.api.BErrorCreator;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.values.ArrayValue;
+import io.ballerina.runtime.api.ErrorCreator;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.values.ArrayValue;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.mime.util.HeaderUtil;
 import org.ballerinalang.mime.util.MultipartDataSource;
@@ -105,8 +105,8 @@ public class ResponseWriter {
                 HttpUtil.closeMessageOutputStream(messageOutputStream);
             }
         } catch (IOException ex) {
-            throw BErrorCreator.createError(BStringUtils.fromString(SERIALIZATION_ERROR),
-                                            BStringUtils.fromString(
+            throw ErrorCreator.createError(StringUtils.fromString(SERIALIZATION_ERROR),
+                                            StringUtils.fromString(
                                                     "error occurred while serializing byte channel content : " +
                                                             ex.getMessage()));
         }
@@ -130,8 +130,8 @@ public class ResponseWriter {
                 HttpUtil.closeMessageOutputStream(messageOutputStream);
             }
         } catch (IOException ex) {
-            throw BErrorCreator.createError(BStringUtils.fromString(SERIALIZATION_ERROR),
-                                            BStringUtils.fromString(
+            throw ErrorCreator.createError(StringUtils.fromString(SERIALIZATION_ERROR),
+                                            StringUtils.fromString(
                                                     "error occurred while serializing message data source : " +
                                                             ex.getMessage()));
         }

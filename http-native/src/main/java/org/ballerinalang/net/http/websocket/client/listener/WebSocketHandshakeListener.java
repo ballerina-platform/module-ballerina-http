@@ -18,9 +18,9 @@
 
 package org.ballerinalang.net.http.websocket.client.listener;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.values.BObject;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
@@ -68,7 +68,7 @@ public class WebSocketHandshakeListener implements ExtendedHandshakeListener {
         if (isFirstConnectionEstablished(webSocketClient)) {
             webSocketConnector = (BObject) webSocketClient.get(WebSocketConstants.CLIENT_CONNECTOR_FIELD);
             webSocketClient.set(WebSocketConstants.LISTENER_ID_FIELD,
-                                BStringUtils.fromString(webSocketConnection.getChannelId()));
+                                StringUtils.fromString(webSocketConnection.getChannelId()));
         } else {
             webSocketConnector = createWebSocketConnector(readyOnConnect);
             WebSocketUtil.populateWebSocketEndpoint(webSocketConnection, webSocketClient);
@@ -89,7 +89,7 @@ public class WebSocketHandshakeListener implements ExtendedHandshakeListener {
         if (response != null) {
             webSocketClient.set(WebSocketConstants.CLIENT_RESPONSE_FIELD, HttpUtil.createResponseStruct(response));
         }
-        BObject webSocketConnector = BValueCreator.createObjectValue(WebSocketConstants.PROTOCOL_HTTP_PKG_ID,
+        BObject webSocketConnector = ValueCreator.createObjectValue(WebSocketConstants.PROTOCOL_HTTP_PKG_ID,
                 WebSocketConstants.WEBSOCKET_CONNECTOR);
         setWebSocketOpenConnectionInfo(null, webSocketConnector, webSocketClient, wsService);
         webSocketConnector.addNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO, connectionInfo);
@@ -116,7 +116,7 @@ public class WebSocketHandshakeListener implements ExtendedHandshakeListener {
     }
 
     private static BObject createWebSocketConnector(boolean readyOnConnect) {
-        BObject webSocketConnector = BValueCreator.createObjectValue(HttpConstants.PROTOCOL_HTTP_PKG_ID,
+        BObject webSocketConnector = ValueCreator.createObjectValue(HttpConstants.PROTOCOL_HTTP_PKG_ID,
                 WebSocketConstants.WEBSOCKET_CONNECTOR);
         // Sets the value of `readyOnConnect` to the created `isReady' field of the webSocketConnector.
         // It checks whether the `readNextFrame` function is already called or not when the `ready()` function
