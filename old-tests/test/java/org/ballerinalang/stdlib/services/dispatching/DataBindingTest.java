@@ -19,10 +19,10 @@
 //package org.ballerinalang.stdlib.services.dispatching;
 //
 //import io.netty.handler.codec.http.HttpHeaderNames;
-//import org.ballerinalang.jvm.JSONParser;
-//import org.ballerinalang.jvm.api.BStringUtils;
-//import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
-//import org.ballerinalang.jvm.api.values.BMap;
+//import io.ballerina.runtime.JSONParser;
+//import io.ballerina.runtime.api.StringUtils;
+//import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
+//import io.ballerina.runtime.api.values.BMap;
 //import org.ballerinalang.model.util.JsonParser;
 //import org.ballerinalang.model.values.BMap;
 //import org.ballerinalang.model.values.BString;
@@ -233,9 +233,9 @@
 //        HttpCarbonMessage responseMsg = Services.invoke(TEST_EP_PORT, requestMsg);
 //        Assert.assertNotNull(responseMsg, "responseMsg message not found");
 //        Object bJson = JSONParser.parse(new HttpMessageDataStreamer(responseMsg).getInputStream());
-//        Assert.assertNull(((BMap<BString, Object>) bJson).get(BStringUtils.fromString("Key")),
+//        Assert.assertNull(((BMap<BString, Object>) bJson).get(StringUtils.fromString("Key")),
 //                          "Key variable not set properly.");
-//        Assert.assertNull(((BMap<BString, Object>) bJson).get(BStringUtils.fromString("Team")),
+//        Assert.assertNull(((BMap<BString, Object>) bJson).get(StringUtils.fromString("Team")),
 //                          "Team variable not set properly.");
 //    }
 //

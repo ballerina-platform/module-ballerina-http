@@ -17,13 +17,14 @@
 */
 package org.ballerinalang.net.http;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.transactions.TransactionConstants;
-import org.ballerinalang.jvm.types.AttachedFunction;
-import org.ballerinalang.jvm.types.BType;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.transactions.TransactionConstants;
+import io.ballerina.runtime.types.AttachedFunction;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,15 +52,15 @@ public class HttpResource {
 
     private static final Logger log = LoggerFactory.getLogger(HttpResource.class);
 
-    private static final BString METHODS_FIELD = BStringUtils.fromString("methods");
-    private static final BString PATH_FIELD = BStringUtils.fromString("path");
-    private static final BString BODY_FIELD = BStringUtils.fromString("body");
-    private static final BString CONSUMES_FIELD = BStringUtils.fromString("consumes");
-    private static final BString PRODUCES_FIELD = BStringUtils.fromString("produces");
-    private static final BString CORS_FIELD = BStringUtils.fromString("cors");
-    private static final BString TRANSACTION_INFECTABLE_FIELD = BStringUtils.fromString("transactionInfectable");
+    private static final BString METHODS_FIELD = StringUtils.fromString("methods");
+    private static final BString PATH_FIELD = StringUtils.fromString("path");
+    private static final BString BODY_FIELD = StringUtils.fromString("body");
+    private static final BString CONSUMES_FIELD = StringUtils.fromString("consumes");
+    private static final BString PRODUCES_FIELD = StringUtils.fromString("produces");
+    private static final BString CORS_FIELD = StringUtils.fromString("cors");
+    private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
 
-    private AttachedFunction balResource;
+    private AttachedFunctionType balResource;
     private List<String> methods;
     private String path;
     private String entityBodyAttribute;
@@ -74,7 +75,7 @@ public class HttpResource {
 
     private boolean transactionAnnotated = false;
 
-    protected HttpResource(AttachedFunction resource, HttpService parentService) {
+    protected HttpResource(AttachedFunctionType resource, HttpService parentService) {
         this.balResource = resource;
         this.parentService = parentService;
         this.producesSubTypes = new ArrayList<>();
@@ -89,7 +90,7 @@ public class HttpResource {
     }
 
     public String getServiceName() {
-        return balResource.parent.getName();
+        return balResource.getParentObjectType().getName();
     }
 
     public SignatureParams getSignatureParams() {
@@ -100,7 +101,7 @@ public class HttpResource {
         return parentService;
     }
 
-    public AttachedFunction getBalResource() {
+    public AttachedFunctionType getBalResource() {
         return balResource;
     }
 
@@ -189,7 +190,7 @@ public class HttpResource {
         this.entityBodyAttribute = entityBodyAttribute;
     }
 
-    public static HttpResource buildHttpResource(AttachedFunction resource, HttpService httpService) {
+    public static HttpResource buildHttpResource(AttachedFunctionType resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
         httpResource.setInterruptible(httpService.isInterruptible() || hasInterruptibleAnnotation(resource));
@@ -222,7 +223,7 @@ public class HttpResource {
         return httpResource;
     }
 
-    private static void setupTransactionAnnotations(AttachedFunction resource, HttpResource httpResource) {
+    private static void setupTransactionAnnotations(AttachedFunctionType resource, HttpResource httpResource) {
         BMap transactionConfigAnnotation = HttpUtil.getTransactionConfigAnnotation(resource,
                         TransactionConstants.TRANSACTION_PACKAGE_PATH);
         if (transactionConfigAnnotation != null) {
@@ -236,18 +237,19 @@ public class HttpResource {
      * @param resource The resource
      * @return the resource configuration of the given resource
      */
-    public static BMap getResourceConfigAnnotation(AttachedFunction resource) {
-        return (BMap) resource.getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_RESOURCE_CONFIG);
+    public static BMap getResourceConfigAnnotation(AttachedFunctionType resource) {
+        return (BMap) ((AttachedFunction) resource).getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_RESOURCE_CONFIG);
     }
 
-    protected static BMap getPathParamOrderMap(AttachedFunction resource) {
-        Object annotation = resource.getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_PARAM_ORDER_CONFIG);
-        return annotation == null ? BValueCreator.createMapValue() :
+    protected static BMap getPathParamOrderMap(AttachedFunctionType resource) {
+        Object annotation =
+                ((AttachedFunction) resource).getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_PARAM_ORDER_CONFIG);
+        return annotation == null ? ValueCreator.createMapValue() :
                 (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
     }
 
-    private static boolean hasInterruptibleAnnotation(AttachedFunction resource) {
-        return resource.getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
+    private static boolean hasInterruptibleAnnotation(AttachedFunctionType resource) {
+        return ((AttachedFunction)resource).getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
     }
 
     private static List<String> getAsStringList(Object[] values) {
@@ -289,9 +291,9 @@ public class HttpResource {
         signatureParams.validate();
     }
 
-    public List<BType> getParamTypes() {
-        List<BType> paramTypes = new ArrayList<>();
-        paramTypes.addAll(Arrays.asList(this.balResource.getParameterType()));
+    public List<Type> getParamTypes() {
+        List<Type> paramTypes = new ArrayList<>();
+        paramTypes.addAll(Arrays.asList(this.balResource.getParameterTypes()));
         return paramTypes;
     }
 }

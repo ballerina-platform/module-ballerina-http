@@ -18,12 +18,12 @@
 
 package org.ballerinalang.stdlib.utils;
 
+import io.ballerina.runtime.api.BExecutor;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.scheduling.Scheduler;
+import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
+import io.ballerina.runtime.util.exceptions.BallerinaException;
 import io.netty.handler.codec.http.HttpContent;
-import org.ballerinalang.jvm.api.BExecutor;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
-import org.ballerinalang.jvm.util.exceptions.BallerinaException;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpDispatcher;
 import org.ballerinalang.net.http.HttpResource;
@@ -70,7 +70,7 @@ public class Services {
         if (registryHolder == null) {
             return null;
         }
-        TestCallableUnitCallback callback = new TestCallableUnitCallback(request);
+        TestCallback callback = new TestCallback(request);
         request.setCallback(callback);
         HttpResource resource = null;
         try {

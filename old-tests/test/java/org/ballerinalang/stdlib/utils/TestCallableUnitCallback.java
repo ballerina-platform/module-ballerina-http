@@ -17,9 +17,9 @@
  */
 package org.ballerinalang.stdlib.utils;
 
-import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.services.ErrorHandlerUtils;
+import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.services.ErrorHandlerUtils;
 import org.ballerinalang.net.http.HttpUtil;
 import org.wso2.transport.http.netty.message.HttpCarbonMessage;
 
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Test callback implementation for service tests.
  */
-public class TestCallableUnitCallback implements CallableUnitCallback {
+public class TestCallback implements Callback {
 
     private volatile Semaphore executionWaitSem;
     private HttpCarbonMessage requestMessage;
@@ -38,7 +38,7 @@ public class TestCallableUnitCallback implements CallableUnitCallback {
     private HttpCarbonMessage responseMsg;
     private int timeOut = 120;
 
-    public TestCallableUnitCallback(HttpCarbonMessage requestMessage) {
+    public TestCallback(HttpCarbonMessage requestMessage) {
         executionWaitSem = new Semaphore(0);
         this.requestMessage = requestMessage;
     }
@@ -49,7 +49,7 @@ public class TestCallableUnitCallback implements CallableUnitCallback {
     }
 
     @Override
-    public void notifyFailure(org.ballerinalang.jvm.api.values.BError error) {
+    public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
         Integer carbonStatusCode = requestMessage.getHttpStatusCode();
         int statusCode = (carbonStatusCode == null) ? 500 : carbonStatusCode;
         String errorMsg = getAggregatedRootErrorMessages(error);

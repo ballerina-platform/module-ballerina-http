@@ -18,6 +18,28 @@
 
 package org.ballerinalang.net.http;
 
+import io.ballerina.runtime.JSONGenerator;
+import io.ballerina.runtime.api.ErrorCreator;
+import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.observability.ObserveUtils;
+import io.ballerina.runtime.observability.ObserverContext;
+import io.ballerina.runtime.scheduling.Strand;
+import io.ballerina.runtime.services.ErrorHandlerUtils;
+import io.ballerina.runtime.transactions.TransactionConstants;
+import io.ballerina.runtime.types.AttachedFunction;
+import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
+import io.ballerina.runtime.values.ArrayValue;
+import io.ballerina.runtime.values.ArrayValueImpl;
+import io.ballerina.runtime.values.MapValue;
+import io.ballerina.runtime.values.RefValue;
+import io.ballerina.runtime.values.StreamingJsonValue;
+import io.ballerina.runtime.values.XMLItem;
+import io.ballerina.runtime.values.XMLSequence;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
@@ -28,30 +50,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import org.apache.commons.lang3.StringUtils;
 import org.ballerinalang.config.ConfigRegistry;
-import org.ballerinalang.jvm.JSONGenerator;
-import org.ballerinalang.jvm.api.BErrorCreator;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.observability.ObserveUtils;
-import org.ballerinalang.jvm.observability.ObserverContext;
-import org.ballerinalang.jvm.scheduling.Strand;
-import org.ballerinalang.jvm.services.ErrorHandlerUtils;
-import org.ballerinalang.jvm.transactions.TransactionConstants;
-import org.ballerinalang.jvm.types.AttachedFunction;
-import org.ballerinalang.jvm.types.BPackage;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
-import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.ArrayValueImpl;
-import org.ballerinalang.jvm.values.MapValue;
-import org.ballerinalang.jvm.values.RefValue;
-import org.ballerinalang.jvm.values.StreamingJsonValue;
-import org.ballerinalang.jvm.values.XMLItem;
-import org.ballerinalang.jvm.values.XMLSequence;
 import org.ballerinalang.mime.util.EntityBodyChannel;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.mime.util.EntityHeaderHandler;
@@ -104,14 +103,18 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static io.ballerina.runtime.api.StringUtils.fromString;
+import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_HOST;
+import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_PORT;
+import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
+import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
+import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
+import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
+import static io.ballerina.runtime.util.RuntimeConstants.BALLERINA_VERSION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.PROPERTY_HTTP_HOST;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.PROPERTY_HTTP_PORT;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
-import static org.ballerinalang.jvm.runtime.RuntimeConstants.BALLERINA_VERSION;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.ballerinalang.mime.util.EntityBodyHandler.checkEntityBodyAvailability;
 import static org.ballerinalang.mime.util.MimeConstants.BOUNDARY;
 import static org.ballerinalang.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
@@ -329,15 +332,15 @@ public class HttpUtil {
         HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
         for (String key : httpHeaders.names()) {
             String[] values = httpHeaders.getAll(key).toArray(new String[0]);
-            headers.put(org.ballerinalang.jvm.api.BStringUtils.fromString(key.toLowerCase()),
-                        new ArrayValueImpl(org.ballerinalang.jvm.api.BStringUtils.fromStringArray(values)));
+            headers.put(fromString(key.toLowerCase()),
+                        new ArrayValueImpl(io.ballerina.runtime.api.StringUtils.fromStringArray(values)));
         }
         entity.set(HEADERS_MAP_FIELD, headers);
 
         Set<String> distinctNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         distinctNames.addAll(httpHeaders.names());
         entity.set(HEADER_NAMES_ARRAY_FIELD, new ArrayValueImpl(
-                org.ballerinalang.jvm.api.BStringUtils.fromStringSet(distinctNames)));
+                io.ballerina.runtime.api.StringUtils.fromStringSet(distinctNames)));
     }
 
     /**
@@ -558,13 +561,13 @@ public class HttpUtil {
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType) {
-        return BErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
-                                                 BStringUtils.fromString(message));
+        return ErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
+                                                fromString(message));
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType, BError cause) {
-        return BErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
-                                                 BStringUtils.fromString(message), cause);
+        return ErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
+                                                fromString(message), cause);
     }
 
     // TODO: Find a better way to get the error type than String matching.
@@ -610,8 +613,9 @@ public class HttpUtil {
         }
     }
 
-    private static BError createErrorCause(String message, String errorTypeId, BPackage packageName) {
-        return BErrorCreator.createDistinctError(errorTypeId, packageName, BStringUtils.fromString(message));
+    private static BError createErrorCause(String message, String errorTypeId, Module packageName) {
+        return ErrorCreator.createDistinctError(errorTypeId, packageName,
+                                                fromString(message));
     }
 
     public static HttpCarbonMessage getCarbonMsg(BObject objectValue, HttpCarbonMessage defaultMsg) {
@@ -648,10 +652,8 @@ public class HttpUtil {
     public static void populatePushPromiseStruct(BObject pushPromiseObj,
                                                  Http2PushPromise pushPromise) {
         pushPromiseObj.addNativeData(HttpConstants.TRANSPORT_PUSH_PROMISE, pushPromise);
-        pushPromiseObj.set(HttpConstants.PUSH_PROMISE_PATH_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                .fromString(pushPromise.getPath()));
-        pushPromiseObj.set(HttpConstants.PUSH_PROMISE_METHOD_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                .fromString(pushPromise.getMethod()));
+        pushPromiseObj.set(HttpConstants.PUSH_PROMISE_PATH_FIELD, fromString(pushPromise.getPath()));
+        pushPromiseObj.set(HttpConstants.PUSH_PROMISE_METHOD_FIELD, fromString(pushPromise.getMethod()));
     }
 
     /**
@@ -685,10 +687,9 @@ public class HttpUtil {
         BMap<BString, Object> mutualSslRecord = ValueCreatorUtils.createHTTPRecordValue(
                 MUTUAL_SSL_HANDSHAKE_RECORD);
         mutualSslRecord.put(REQUEST_MUTUAL_SSL_HANDSHAKE_STATUS,
-                            org.ballerinalang.jvm.api.BStringUtils.fromString(
-                                    (String) inboundRequestMsg.getProperty(HttpConstants.MUTUAL_SSL_RESULT)));
-        mutualSslRecord.put(MUTUAL_SSL_CERTIFICATE, org.ballerinalang.jvm.api.BStringUtils
-                .fromString((String) inboundRequestMsg.getProperty(HttpConstants.BASE_64_ENCODED_CERT)));
+                            fromString((String) inboundRequestMsg.getProperty(HttpConstants.MUTUAL_SSL_RESULT)));
+        mutualSslRecord.put(MUTUAL_SSL_CERTIFICATE,
+                            fromString((String) inboundRequestMsg.getProperty(HttpConstants.BASE_64_ENCODED_CERT)));
         inboundRequest.set(REQUEST_MUTUAL_SSL_HANDSHAKE_FIELD, mutualSslRecord);
 
         enrichWithInboundRequestInfo(inboundRequest, inboundRequestMsg);
@@ -710,7 +711,7 @@ public class HttpUtil {
     private static void enrichWithInboundRequestHeaders(BObject inboundRequestObj,
                                                         HttpCarbonMessage inboundRequestMsg) {
         if (inboundRequestMsg.getHeader(HttpHeaderNames.USER_AGENT.toString()) != null) {
-            BString agent = org.ballerinalang.jvm.api.BStringUtils.fromString(
+            BString agent = fromString(
                     inboundRequestMsg.getHeader(HttpHeaderNames.USER_AGENT.toString()));
             inboundRequestObj.set(HttpConstants.REQUEST_USER_AGENT_FIELD, agent);
             inboundRequestMsg.removeHeader(HttpHeaderNames.USER_AGENT.toString());
@@ -720,16 +721,16 @@ public class HttpUtil {
     private static void enrichWithInboundRequestInfo(BObject inboundRequestObj,
                                                      HttpCarbonMessage inboundRequestMsg) {
         inboundRequestObj.set(HttpConstants.REQUEST_RAW_PATH_FIELD,
-                              org.ballerinalang.jvm.api.BStringUtils.fromString(inboundRequestMsg.getRequestUrl()));
+                              fromString(inboundRequestMsg.getRequestUrl()));
         inboundRequestObj.set(HttpConstants.REQUEST_METHOD_FIELD,
-                              org.ballerinalang.jvm.api.BStringUtils.fromString(inboundRequestMsg.getHttpMethod()));
+                              fromString(inboundRequestMsg.getHttpMethod()));
         inboundRequestObj.set(HttpConstants.REQUEST_VERSION_FIELD,
-                              org.ballerinalang.jvm.api.BStringUtils.fromString(inboundRequestMsg.getHttpVersion()));
+                              fromString(inboundRequestMsg.getHttpVersion()));
         HttpResourceArguments resourceArgValues = (HttpResourceArguments) inboundRequestMsg.getProperty(
                 HttpConstants.RESOURCE_ARGS);
         if (resourceArgValues != null && resourceArgValues.getMap().get(HttpConstants.EXTRA_PATH_INFO) != null) {
             inboundRequestObj.set(
-                    HttpConstants.REQUEST_EXTRA_PATH_INFO_FIELD, org.ballerinalang.jvm.api.BStringUtils.fromString(
+                    HttpConstants.REQUEST_EXTRA_PATH_INFO_FIELD, fromString(
                             resourceArgValues.getMap().get(HttpConstants.EXTRA_PATH_INFO)));
         }
     }
@@ -762,7 +763,7 @@ public class HttpUtil {
         Object remoteSocketAddress = inboundMsg.getProperty(HttpConstants.REMOTE_ADDRESS);
         if (remoteSocketAddress instanceof InetSocketAddress) {
             InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteSocketAddress;
-            BString remoteHost = org.ballerinalang.jvm.api.BStringUtils.fromString(inetSocketAddress.getHostString());
+            BString remoteHost = fromString(inetSocketAddress.getHostString());
             long remotePort = inetSocketAddress.getPort();
             remote.put(HttpConstants.REMOTE_HOST_FIELD, remoteHost);
             remote.put(HttpConstants.REMOTE_PORT_FIELD, remotePort);
@@ -774,12 +775,11 @@ public class HttpUtil {
             InetSocketAddress inetSocketAddress = (InetSocketAddress) localSocketAddress;
             String localHost = inetSocketAddress.getHostName();
             long localPort = inetSocketAddress.getPort();
-            local.put(HttpConstants.LOCAL_HOST_FIELD, org.ballerinalang.jvm.api.BStringUtils.fromString(localHost));
+            local.put(HttpConstants.LOCAL_HOST_FIELD, fromString(localHost));
             local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
         }
         httpCaller.set(HttpConstants.LOCAL_STRUCT_INDEX, local);
-        httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                .fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
+        httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD, fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_CONFIG_FIELD, config);
         httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, httpResource.getParentService());
         httpCaller.addNativeData(HttpConstants.REMOTE_SOCKET_ADDRESS, remoteSocketAddress);
@@ -796,18 +796,15 @@ public class HttpUtil {
         inboundResponse.addNativeData(TRANSPORT_MESSAGE, inboundResponseMsg);
         int statusCode = inboundResponseMsg.getHttpStatusCode();
         inboundResponse.set(RESPONSE_STATUS_CODE_FIELD, (long) statusCode);
-        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                .fromString(HttpResponseStatus.valueOf(statusCode).reasonPhrase()));
+        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD, fromString(HttpResponseStatus.valueOf(statusCode).reasonPhrase()));
 
         if (inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) != null) {
-            inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                    .fromString(inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString())));
+            inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD, fromString(inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString())));
             inboundResponseMsg.removeHeader(HttpHeaderNames.SERVER.toString());
         }
 
         if (inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI) != null) {
-            inboundResponse.set(RESOLVED_REQUESTED_URI_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                    .fromString(inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI).toString()));
+            inboundResponse.set(RESOLVED_REQUESTED_URI_FIELD, fromString(inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI).toString()));
         }
 
         String cacheControlHeader = inboundResponseMsg.getHeader(CACHE_CONTROL.toString());
@@ -1116,9 +1113,9 @@ public class HttpUtil {
                 reqMsg.getHeader(HttpHeaderNames.EXPECT.toString())) || statusCode == 100;
     }
 
-    public static BMap getTransactionConfigAnnotation(AttachedFunction resource, String transactionPackagePath) {
-        return (BMap) resource.getAnnotation(transactionPackagePath,
-                                                 TransactionConstants.ANN_NAME_TRX_PARTICIPANT_CONFIG);
+    public static BMap getTransactionConfigAnnotation(AttachedFunctionType resource, String transactionPackagePath) {
+        return (BMap) ((AttachedFunction) resource).getAnnotation(transactionPackagePath,
+                                                                  TransactionConstants.ANN_NAME_TRX_PARTICIPANT_CONFIG);
     }
 
     private static int getIntValue(long val) {
@@ -1333,45 +1330,45 @@ public class HttpUtil {
         if (disableSslValidation) {
             sslConfiguration.disableSsl();
             return;
-        } else if (StringUtils.isEmpty(trustCerts) && trustStore == null) {
+        } else if (isEmpty(trustCerts) && trustStore == null) {
             sslConfiguration.useJavaDefaults();
             return;
         }
-        if (trustStore != null && StringUtils.isNotBlank(trustCerts)) {
+        if (trustStore != null && isNotBlank(trustCerts)) {
             throw createHttpError("Cannot configure both trustStore and trustCerts at the same time.",
                     HttpErrorType.SSL_ERROR);
         }
         if (trustStore != null) {
             String trustStoreFile = trustStore.getStringValue(FILE_PATH).getValue();
-            if (StringUtils.isNotBlank(trustStoreFile)) {
+            if (isNotBlank(trustStoreFile)) {
                 sslConfiguration.setTrustStoreFile(trustStoreFile);
             }
             String trustStorePassword = trustStore.getStringValue(PASSWORD).getValue();
-            if (StringUtils.isNotBlank(trustStorePassword)) {
+            if (isNotBlank(trustStorePassword)) {
                 sslConfiguration.setTrustStorePass(trustStorePassword);
             }
-        } else if (StringUtils.isNotBlank(trustCerts)) {
+        } else if (isNotBlank(trustCerts)) {
             sslConfiguration.setClientTrustCertificates(trustCerts);
         }
-        if (keyStore != null && StringUtils.isNotBlank(keyFile)) {
+        if (keyStore != null && isNotBlank(keyFile)) {
             throw createHttpError("Cannot configure both keyStore and keyFile.", HttpErrorType.SSL_ERROR);
-        } else if (StringUtils.isNotBlank(keyFile) && StringUtils.isBlank(certFile)) {
+        } else if (isNotBlank(keyFile) && isBlank(certFile)) {
             throw createHttpError("Need to configure certFile containing client ssl certificates.",
                     HttpErrorType.SSL_ERROR);
         }
         if (keyStore != null) {
             String keyStoreFile = keyStore.getStringValue(FILE_PATH).getValue();
-            if (StringUtils.isNotBlank(keyStoreFile)) {
+            if (isNotBlank(keyStoreFile)) {
                 sslConfiguration.setKeyStoreFile(keyStoreFile);
             }
             String keyStorePassword = keyStore.getStringValue(PASSWORD).getValue();
-            if (StringUtils.isNotBlank(keyStorePassword)) {
+            if (isNotBlank(keyStorePassword)) {
                 sslConfiguration.setKeyStorePass(keyStorePassword);
             }
-        } else if (StringUtils.isNotBlank(keyFile)) {
+        } else if (isNotBlank(keyFile)) {
             sslConfiguration.setClientKeyFile(keyFile);
             sslConfiguration.setClientCertificates(certFile);
-            if (StringUtils.isNotBlank(keyPassword)) {
+            if (isNotBlank(keyPassword)) {
                 sslConfiguration.setClientKeyPassword(keyPassword);
             }
         }
@@ -1386,7 +1383,7 @@ public class HttpUtil {
             }
 
             String sslProtocol = protocols.getStringValue(SSL_PROTOCOL_VERSION).getValue();
-            if (StringUtils.isNotBlank(sslProtocol)) {
+            if (isNotBlank(sslProtocol)) {
                 sslConfiguration.setSSLProtocol(sslProtocol);
             }
         }
@@ -1629,21 +1626,21 @@ public class HttpUtil {
         String trustCerts = sslConfig.getStringValue(ENDPOINT_CONFIG_TRUST_CERTIFICATES).getValue();
         String keyPassword = sslConfig.getStringValue(ENDPOINT_CONFIG_KEY_PASSWORD).getValue();
 
-        if (keyStore != null && StringUtils.isNotBlank(keyFile)) {
+        if (keyStore != null && isNotBlank(keyFile)) {
             throw createHttpError("Cannot configure both keyStore and keyFile at the same time.",
                                   HttpErrorType.SSL_ERROR);
-        } else if (keyStore == null && (StringUtils.isBlank(keyFile) || StringUtils.isBlank(certFile))) {
+        } else if (keyStore == null && (isBlank(keyFile) || isBlank(certFile))) {
             throw createHttpError("Either keystore or certificateKey and server certificates must be provided "
                                           + "for secure connection", HttpErrorType.SSL_ERROR);
         }
         if (keyStore != null) {
             String keyStoreFile = keyStore.getStringValue(FILE_PATH).getValue();
-            if (StringUtils.isBlank(keyStoreFile)) {
+            if (isBlank(keyStoreFile)) {
                 throw createHttpError("Keystore file location must be provided for secure connection.",
                         HttpErrorType.SSL_ERROR);
             }
             String keyStorePassword = keyStore.getStringValue(PASSWORD).getValue();
-            if (StringUtils.isBlank(keyStorePassword)) {
+            if (isBlank(keyStorePassword)) {
                 throw createHttpError("Keystore password must be provided for secure connection",
                         HttpErrorType.SSL_ERROR);
             }
@@ -1652,7 +1649,7 @@ public class HttpUtil {
         } else {
             listenerConfiguration.setServerKeyFile(keyFile);
             listenerConfiguration.setServerCertificates(certFile);
-            if (StringUtils.isNotBlank(keyPassword)) {
+            if (isNotBlank(keyPassword)) {
                 listenerConfiguration.setServerKeyPassword(keyPassword);
             }
         }
@@ -1664,24 +1661,24 @@ public class HttpUtil {
         listenerConfiguration
                 .setSslHandshakeTimeOut(((MapValue) sslConfig)
                                                 .getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
-        if (trustStore == null && StringUtils.isNotBlank(sslVerifyClient) && StringUtils.isBlank(trustCerts)) {
+        if (trustStore == null && isNotBlank(sslVerifyClient) && isBlank(trustCerts)) {
             throw createHttpError("Truststore location or trustCertificates must be provided to enable Mutual SSL",
                     HttpErrorType.SSL_ERROR);
         }
         if (trustStore != null) {
             String trustStoreFile = trustStore.getStringValue(FILE_PATH).getValue();
             String trustStorePassword = trustStore.getStringValue(PASSWORD).getValue();
-            if (StringUtils.isBlank(trustStoreFile) && StringUtils.isNotBlank(sslVerifyClient)) {
+            if (isBlank(trustStoreFile) && isNotBlank(sslVerifyClient)) {
                 throw createHttpError("Truststore location must be provided to enable Mutual SSL",
                                       HttpErrorType.SSL_ERROR);
             }
-            if (StringUtils.isBlank(trustStorePassword) && StringUtils.isNotBlank(sslVerifyClient)) {
+            if (isBlank(trustStorePassword) && isNotBlank(sslVerifyClient)) {
                 throw createHttpError("Truststore password value must be provided to enable Mutual SSL",
                                       HttpErrorType.SSL_ERROR);
             }
             listenerConfiguration.setTrustStoreFile(trustStoreFile);
             listenerConfiguration.setTrustStorePass(trustStorePassword);
-        } else if (StringUtils.isNotBlank(trustCerts)) {
+        } else if (isNotBlank(trustCerts)) {
             listenerConfiguration.setServerTrustCertificates(trustCerts);
         }
         List<Parameter> serverParamList = new ArrayList<>();
@@ -1697,7 +1694,7 @@ public class HttpUtil {
             }
 
             String sslProtocol = protocols.getStringValue(SSL_PROTOCOL_VERSION).getValue();
-            if (StringUtils.isNotBlank(sslProtocol)) {
+            if (isNotBlank(sslProtocol)) {
                 listenerConfiguration.setSSLProtocol(sslProtocol);
             }
         }

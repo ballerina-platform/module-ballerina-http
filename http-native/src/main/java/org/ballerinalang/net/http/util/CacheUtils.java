@@ -18,9 +18,9 @@
 
 package org.ballerinalang.net.http.util;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.types.BTypes;
+import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.time.ZonedDateTime;
@@ -119,9 +119,9 @@ public class CacheUtils {
     public static BString getProperty(BString name) {
         String value = System.getProperty(name.getValue());
         if (value == null) {
-            return BTypes.typeString.getZeroValue();
+            return PredefinedTypes.TYPE_STRING.getZeroValue();
         }
-        return BStringUtils.fromString(value);
+        return StringUtils.fromString(value);
     }
 
     private CacheUtils() {

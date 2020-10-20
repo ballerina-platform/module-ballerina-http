@@ -18,30 +18,30 @@
 
 package org.ballerinalang.net.http;
 
-import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.BalFuture;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.scheduling.Strand;
+import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.scheduling.Strand;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
-import static org.ballerinalang.jvm.util.BLangConstants.BALLERINA_BUILTIN_PKG_ID;
+import static io.ballerina.runtime.util.BLangConstants.BALLERINA_BUILTIN_PKG_ID;
 import static org.ballerinalang.net.http.HttpConstants.STRUCT_GENERIC_ERROR;
 
 /**
- * {@code DataContext} is the wrapper to hold {@code Context} and {@code CallableUnitCallback}.
+ * {@code DataContext} is the wrapper to hold {@code Context} and {@code Callback}.
  */
 public class DataContext {
     private Strand strand;
     private HttpClientConnector clientConnector;
     private BObject requestObj;
-    private BalFuture balFuture;
+    private Future balFuture;
     private HttpCarbonMessage correlatedMessage;
 
-    public DataContext(Strand strand, HttpClientConnector clientConnector, BalFuture balFuture,
+    public DataContext(Strand strand, HttpClientConnector clientConnector, Future balFuture,
                        BObject requestObj, HttpCarbonMessage outboundRequestMsg) {
         this.strand = strand;
         this.balFuture = balFuture;
@@ -50,7 +50,7 @@ public class DataContext {
         this.correlatedMessage = outboundRequestMsg;
     }
 
-    public DataContext(Strand strand, BalFuture balFuture, HttpCarbonMessage inboundRequestMsg) {
+    public DataContext(Strand strand, Future balFuture, HttpCarbonMessage inboundRequestMsg) {
         this.strand = strand;
         this.balFuture = balFuture;
         this.clientConnector = null;
@@ -65,7 +65,7 @@ public class DataContext {
         } else if (httpConnectorError != null) {
             getFuture().complete(httpConnectorError);
         } else {
-            BMap<BString, Object> err = BValueCreator.createRecordValue(BALLERINA_BUILTIN_PKG_ID,
+            BMap<BString, Object> err = ValueCreator.createRecordValue(BALLERINA_BUILTIN_PKG_ID,
                                                                               STRUCT_GENERIC_ERROR);
             getFuture().complete(err);
         }
@@ -91,7 +91,7 @@ public class DataContext {
         return strand;
     }
 
-    public BalFuture getFuture() {
+    public Future getFuture() {
         return balFuture;
     }
 }

@@ -17,18 +17,18 @@
 */
 package org.ballerinalang.net.http;
 
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.types.BArrayType;
+import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
+import io.ballerina.runtime.values.ArrayValue;
+import io.ballerina.runtime.values.XMLValue;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.types.BArrayType;
-import org.ballerinalang.jvm.types.BType;
-import org.ballerinalang.jvm.types.TypeTags;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
-import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.XMLValue;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
@@ -180,7 +180,7 @@ public class HttpDispatcher {
             }
             int actualSignatureParamIndex = ((Long) pathParamOrder.get(paramName)).intValue();
             paramIndex = actualSignatureParamIndex * 2;
-            BType signatureParamType = signatureParams.getPathParamTypes().get(
+            Type signatureParamType = signatureParams.getPathParamTypes().get(
                     actualSignatureParamIndex - COMPULSORY_PARAM_COUNT);
             try {
                 switch (signatureParamType.getTag()) {
@@ -194,7 +194,7 @@ public class HttpDispatcher {
                         paramValues[paramIndex++] = Boolean.parseBoolean(argumentValue);
                         break;
                     default:
-                        paramValues[paramIndex++] = BStringUtils.fromString(argumentValue);
+                        paramValues[paramIndex++] = StringUtils.fromString(argumentValue);
                 }
                 paramValues[paramIndex] = true;
             } catch (Exception ex) {
@@ -217,7 +217,7 @@ public class HttpDispatcher {
     }
 
     private static Object populateAndGetEntityBody(BObject inRequest, BObject inRequestEntity,
-                                                   org.ballerinalang.jvm.types.BType entityBodyType)
+                                                   io.ballerina.runtime.api.types.Type entityBodyType)
             throws IOException {
         HttpUtil.populateEntityBody(inRequest, inRequestEntity, true, true);
         try {
@@ -256,7 +256,7 @@ public class HttpDispatcher {
         return null;
     }
 
-    private static Object getRecordEntity(BObject inRequestEntity, BType entityBodyType) {
+    private static Object getRecordEntity(BObject inRequestEntity, Type entityBodyType) {
         Object result = getRecord(entityBodyType, getBJsonValue(inRequestEntity));
         if (result instanceof BError) {
             throw (BError) result;
@@ -271,7 +271,7 @@ public class HttpDispatcher {
      * @param bjson          Represents the json value that needs to be converted
      * @return the relevant ballerina record or object
      */
-    private static Object getRecord(BType entityBodyType, Object bjson) {
+    private static Object getRecord(Type entityBodyType, Object bjson) {
         try {
             return CloneWithType.convert(entityBodyType, bjson);
         } catch (NullPointerException ex) {

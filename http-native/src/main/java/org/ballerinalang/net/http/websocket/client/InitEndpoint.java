@@ -18,10 +18,10 @@
 
 package org.ballerinalang.net.http.websocket.client;
 
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketService;
@@ -41,7 +41,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class InitEndpoint {
 
-    public static void initEndpoint(BalEnv env, BObject webSocketClient) {
+    public static void initEndpoint(Environment env, BObject webSocketClient) {
         @SuppressWarnings(WebSocketConstants.UNCHECKED)
         BMap<BString, Object> clientEndpointConfig =  webSocketClient.getMapValue(
                 WebSocketConstants.CLIENT_ENDPOINT_CONFIG);

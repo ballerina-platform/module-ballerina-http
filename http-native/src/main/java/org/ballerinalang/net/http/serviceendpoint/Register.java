@@ -18,11 +18,11 @@
 
 package org.ballerinalang.net.http.serviceendpoint;
 
-import org.ballerinalang.jvm.api.BRuntime;
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.types.AttachedFunction;
-import org.ballerinalang.jvm.types.BType;
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.HTTPServicesRegistry;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
@@ -38,18 +38,18 @@ import org.ballerinalang.net.http.websocket.server.WebSocketServicesRegistry;
  * @since 0.966
  */
 public class Register extends AbstractHttpNativeFunction {
-    public static Object register(BalEnv env, BObject serviceEndpoint, BObject service,
+    public static Object register(Environment env, BObject serviceEndpoint, BObject service,
                                   Object annotationData) {
 
         HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
         WebSocketServicesRegistry webSocketServicesRegistry = getWebSocketServicesRegistry(serviceEndpoint);
-        BRuntime runtime = env.getRuntime();
+        Runtime runtime = env.getRuntime();
         httpServicesRegistry.setRuntime(runtime);
 
-        BType param;
-        AttachedFunction[] resourceList = service.getType().getAttachedFunctions();
+        Type param;
+        AttachedFunctionType[] resourceList = service.getType().getAttachedFunctions();
         try {
-            if (resourceList.length > 0 && (param = resourceList[0].getParameterType()[0]) != null) {
+            if (resourceList.length > 0 && (param = resourceList[0].getParameterTypes()[0]) != null) {
                 String callerType = param.getQualifiedName();
                 if (HttpConstants.HTTP_CALLER_NAME.equals(callerType)) {
                     // TODO fix should work with equals - rajith

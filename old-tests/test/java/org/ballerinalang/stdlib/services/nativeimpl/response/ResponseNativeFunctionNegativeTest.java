@@ -17,10 +17,10 @@
  */
 package org.ballerinalang.stdlib.services.nativeimpl.response;
 
+import io.ballerina.runtime.api.values.BObject;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
-import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.model.values.BError;
 import org.ballerinalang.model.values.BMap;
 import org.ballerinalang.model.values.BValue;
@@ -60,7 +60,7 @@ public class ResponseNativeFunctionNegativeTest {
     public void testGetHeader() {
         try {
             BValue[] returnVals = BRunUtil.invoke(result, "testGetHeader", new Object[]{createResponseObject(),
-                    org.ballerinalang.jvm.api.BStringUtils.fromString(HttpHeaderNames.CONTENT_TYPE.toString())});
+                    io.ballerina.runtime.api.StringUtils.fromString(HttpHeaderNames.CONTENT_TYPE.toString())});
             Assert.assertNull(returnVals[0]);
         } catch (Exception exception) {
             String errorMessage = exception.getMessage();
@@ -163,7 +163,7 @@ public class ResponseNativeFunctionNegativeTest {
         outResponse.addNativeData(HTTP_HEADERS, httpHeaders);
         outResponse.set(RESPONSE_ENTITY_FIELD, entity);
         BValue[] returnVals = BRunUtil.invoke(result, "testRemoveHeader", new Object[]{outResponse,
-                org.ballerinalang.jvm.api.BStringUtils.fromString(range)});
+                io.ballerina.runtime.api.StringUtils.fromString(range)});
 
         Assert.assertFalse(returnVals.length == 0 || returnVals[0] == null, "Invalid Return Values.");
         Assert.assertTrue(returnVals[0] instanceof BMap);

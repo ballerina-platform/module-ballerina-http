@@ -16,12 +16,12 @@
 
 package org.ballerinalang.net.http.actions.httpclient;
 
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.BalFuture;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.Strand;
-import org.ballerinalang.jvm.util.exceptions.BallerinaException;
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.scheduling.Scheduler;
+import io.ballerina.runtime.scheduling.Strand;
+import io.ballerina.runtime.util.exceptions.BallerinaException;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpClientConnectorListener;
@@ -32,7 +32,7 @@ import org.ballerinalang.net.transport.message.ResponseHandle;
  */
 public class HasPromise extends AbstractHTTPAction {
 
-    public static boolean hasPromise(BalEnv env, BObject clientObj, BObject handleObj) {
+    public static boolean hasPromise(Environment env, BObject clientObj, BObject handleObj) {
         Strand strand = Scheduler.getStrand();
         ResponseHandle responseHandle = (ResponseHandle) handleObj.getNativeData(HttpConstants.TRANSPORT_HANDLE);
         if (responseHandle == null) {
@@ -46,9 +46,9 @@ public class HasPromise extends AbstractHTTPAction {
 
     private static class PromiseAvailabilityCheckListener implements HttpClientConnectorListener {
 
-        private BalFuture balFuture;
+        private Future balFuture;
 
-        PromiseAvailabilityCheckListener(BalFuture balFuture) {
+        PromiseAvailabilityCheckListener(Future balFuture) {
             this.balFuture = balFuture;
         }
 

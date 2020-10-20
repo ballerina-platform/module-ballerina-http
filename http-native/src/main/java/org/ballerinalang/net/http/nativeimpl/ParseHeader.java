@@ -17,13 +17,13 @@
  */
 package org.ballerinalang.net.http.nativeimpl;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.values.BArray;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.types.BTupleType;
-import org.ballerinalang.jvm.types.BTypes;
+import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.types.BTupleType;
 import org.ballerinalang.mime.util.HeaderUtil;
 import org.ballerinalang.net.http.HttpUtil;
 
@@ -42,7 +42,7 @@ import static org.ballerinalang.net.http.HttpErrorType.GENERIC_CLIENT_ERROR;
 public class ParseHeader {
 
     private static final BTupleType parseHeaderTupleType = new BTupleType(
-            Arrays.asList(BTypes.typeString, BTypes.typeMap));
+            Arrays.asList(PredefinedTypes.TYPE_STRING, PredefinedTypes.TYPE_MAP));
 
     public static Object parseHeader(BString headerValue) {
         if (headerValue == null) {
@@ -58,8 +58,8 @@ public class ParseHeader {
             if (headerValue.getValue().contains(SEMICOLON)) {
                 value = HeaderUtil.getHeaderValue(value);
             }
-            BArray contentTuple = BValueCreator.createTupleValue(parseHeaderTupleType);
-            contentTuple.add(0, BStringUtils.fromString(value));
+            BArray contentTuple = ValueCreator.createTupleValue(parseHeaderTupleType);
+            contentTuple.add(0, StringUtils.fromString(value));
             contentTuple.add(1, HeaderUtil.getParamMap(headerValue.getValue()));
             return contentTuple;
         } catch (Exception ex) {

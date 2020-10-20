@@ -17,8 +17,8 @@
  */
 package org.ballerinalang.net.http.websocket;
 
-import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
-import org.ballerinalang.jvm.services.ErrorHandlerUtils;
+import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.services.ErrorHandlerUtils;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityConstants;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityUtil;
 import org.ballerinalang.net.http.websocket.server.WebSocketConnectionInfo;
@@ -27,7 +27,7 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 /**
  * Callback impl for web socket.
  */
-public class WebSocketResourceCallback implements CallableUnitCallback {
+public class WebSocketResourceCallback implements Callback {
 
     private final WebSocketConnection webSocketConnection;
     private final WebSocketConnectionInfo connectionInfo;
@@ -46,7 +46,7 @@ public class WebSocketResourceCallback implements CallableUnitCallback {
     }
 
     @Override
-    public void notifyFailure(org.ballerinalang.jvm.api.values.BError error) {
+    public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
         ErrorHandlerUtils.printError(error.getPrintableStackTrace());
         WebSocketUtil.closeDuringUnexpectedCondition(webSocketConnection);
         //Observe error
