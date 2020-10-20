@@ -108,7 +108,7 @@ public class SignatureTest {
 
         Assert.assertEquals(compileResult.getErrorCount(), 1);
         Assert.assertEquals(compileResult.getErrorAndWarnDiagnostics().clone()[0].getMessage(), "invalid resource function return" +
-                " type 'int', expected a subType of 'error?' containing '()'");
+                " type 'int', expected  of 'error?' containing '()'");
     }
 
     @Test
