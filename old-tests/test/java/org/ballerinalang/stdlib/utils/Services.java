@@ -70,7 +70,7 @@ public class Services {
         if (registryHolder == null) {
             return null;
         }
-        TestCallback callback = new TestCallback(request);
+        TestCallableUnitCallback callback = new TestCallableUnitCallback(request);
         request.setCallback(callback);
         HttpResource resource = null;
         try {

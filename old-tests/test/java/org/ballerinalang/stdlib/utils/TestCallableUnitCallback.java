@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Test callback implementation for service tests.
  */
-public class TestCallback implements Callback {
+public class TestCallableUnitCallback implements Callback {
 
     private volatile Semaphore executionWaitSem;
     private HttpCarbonMessage requestMessage;
@@ -38,7 +38,7 @@ public class TestCallback implements Callback {
     private HttpCarbonMessage responseMsg;
     private int timeOut = 120;
 
-    public TestCallback(HttpCarbonMessage requestMessage) {
+    public TestCallableUnitCallback(HttpCarbonMessage requestMessage) {
         executionWaitSem = new Semaphore(0);
         this.requestMessage = requestMessage;
     }
