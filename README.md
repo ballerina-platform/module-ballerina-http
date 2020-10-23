@@ -14,7 +14,7 @@ For more information go to [The HTTP Module](https://ballerina.io/swan-lake/lear
 
 For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/swan-lake/learn/by-example/).
 
-## `Issues` and `Projects` 
+## Issues and Projects Tabs 
 
 `Issues` and `Project` tabs are disabled for this repository as this is one of the Ballerina Standard Libraries. To report bugs, request new features, start new discussions, view project boards, etc. please visit Ballerina Standard Library [parent repository](https://github.com/ballerina-platform/ballerina-standard-library). 
 
