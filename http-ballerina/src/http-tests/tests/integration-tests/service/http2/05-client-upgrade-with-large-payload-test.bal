@@ -44,7 +44,6 @@ service http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
         path: "/initial"
     }
     resource function requestInitializer(http:Caller caller, http:Request request) {
-        http:Response|error finalResponse;
         http:Request req = new;
         json jsonPayload = {
              "web-app":{
@@ -147,11 +146,11 @@ service http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
              }
          };
         req.setPayload(jsonPayload);
-        finalResponse = eP1->post("/echo/http2service", req);
+        var finalResponse = eP1->post("/echo/http2service", req);
         if (finalResponse is error) {
             log:printError("Error sending response", finalResponse);
-        } else {
-            var result = caller->respond(finalResponse);
+        } else if (finalResponse is http:Response) {
+            var result = caller->respond(<@untainted> finalResponse);
         }
     }
 }
@@ -200,7 +199,7 @@ public function testClientUpgradewithLargePayload() {
                         + "\"cofax.tld\", \"taglib-location\":\"/WEB-INF/tlds/cofax.tld\"}}}";
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), expectedPayload);
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

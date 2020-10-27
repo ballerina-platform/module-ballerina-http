@@ -18,6 +18,11 @@
 
 package org.ballerinalang.stdlib.utils;
 
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.values.ArrayValue;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -29,11 +34,6 @@ import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.util.internal.StringUtil;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.values.ArrayValue;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.mime.util.EntityHeaderHandler;
 import org.ballerinalang.mime.util.HeaderUtil;
@@ -299,8 +299,8 @@ public class MultipartUtils {
         if (!contentDisposition.isEmpty()) {
             BMap paramMap = HeaderUtil.getParamMap(contentDisposition);
             if (paramMap != null) {
-                BString bodyPartName = paramMap.get(BStringUtils.fromString(CONTENT_DISPOSITION_NAME)) != null ?
-                        (BString) paramMap.get(BStringUtils.fromString(CONTENT_DISPOSITION_NAME)) : null;
+                BString bodyPartName = paramMap.get(StringUtils.fromString(CONTENT_DISPOSITION_NAME)) != null ?
+                        (BString) paramMap.get(StringUtils.fromString(CONTENT_DISPOSITION_NAME)) : null;
                 if (bodyPartName != null) {
                     return bodyPartName.toString();
                 } else {
@@ -319,6 +319,6 @@ public class MultipartUtils {
     }
 
     public static BObject getByteChannelStruct() {
-        return BValueCreator.createObjectValue(PROTOCOL_IO_PKG_ID, READABLE_BYTE_CHANNEL_STRUCT);
+        return ValueCreator.createObjectValue(PROTOCOL_IO_PKG_ID, READABLE_BYTE_CHANNEL_STRUCT);
     }
 }

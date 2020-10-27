@@ -117,7 +117,7 @@ function testContinueAction() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!\n");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -129,7 +129,7 @@ function testNegativeContinueAction() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -150,7 +150,7 @@ function testContinueActionWithMain() {
         } else {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());
         }
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

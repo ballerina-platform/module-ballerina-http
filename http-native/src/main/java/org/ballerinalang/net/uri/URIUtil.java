@@ -18,11 +18,11 @@
 
 package org.ballerinalang.net.uri;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
@@ -89,21 +89,21 @@ public class URIUtil {
 
         for (Map.Entry<String, List<String>> entry : tempParamMap.entrySet()) {
             List<String> entryValue = entry.getValue();
-            queryParamsMap.put(BStringUtils.fromString(entry.getKey()), BValueCreator
-                    .createArrayValue(BStringUtils.fromStringArray(entryValue.toArray(new String[0]))));
+            queryParamsMap.put(StringUtils.fromString(entry.getKey()), ValueCreator
+                    .createArrayValue(StringUtils.fromStringArray(entryValue.toArray(new String[0]))));
         }
     }
 
     @SuppressWarnings("unchecked")
     public static BMap<BString, Object> getMatrixParamsMap(String path, HttpCarbonMessage carbonMessage) {
-        BMap<BString, Object> matrixParamsBMap = BValueCreator.createMapValue();
+        BMap<BString, Object> matrixParamsBMap = ValueCreator.createMapValue();
         Map<String, Map<String, String>> pathToMatrixParamMap =
                 (Map<String, Map<String, String>>) carbonMessage.getProperty(HttpConstants.MATRIX_PARAMS);
         Map<String, String> matrixParamsMap = pathToMatrixParamMap.get(path);
         if (matrixParamsMap != null) {
             for (Map.Entry<String, String> matrixParamEntry : matrixParamsMap.entrySet()) {
-                matrixParamsBMap.put(BStringUtils.fromString(matrixParamEntry.getKey()),
-                                     BStringUtils.fromString(matrixParamEntry.getValue()));
+                matrixParamsBMap.put(StringUtils.fromString(matrixParamEntry.getKey()),
+                                     StringUtils.fromString(matrixParamEntry.getValue()));
             }
         }
         return matrixParamsBMap;

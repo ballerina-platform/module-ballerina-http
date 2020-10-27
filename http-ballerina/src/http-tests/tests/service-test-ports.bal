@@ -90,6 +90,9 @@ const int callerActionTestPort = 9545;
 const int dirtyResponseTestPort = 9546;
 const int listenerMethodTestPort1 = 9547;
 const int listenerMethodTestPort2 = 9548;
+const int clientDatabindingTestPort1 = 9549;
+const int clientDatabindingTestPort2 = 9550;
+const int clientDatabindingTestPort3 = 9551;
 
 
 //HTTP2

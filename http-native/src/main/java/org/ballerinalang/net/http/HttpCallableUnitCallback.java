@@ -16,7 +16,7 @@
 
 package org.ballerinalang.net.http;
 
-import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
+import io.ballerina.runtime.api.async.Callback;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 /**
@@ -24,7 +24,7 @@ import org.ballerinalang.net.transport.message.HttpCarbonMessage;
  *
  * @since 0.94
  */
-public class HttpCallableUnitCallback implements CallableUnitCallback {
+public class HttpCallableUnitCallback implements Callback {
     private HttpCarbonMessage requestMessage;
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage) {
@@ -37,7 +37,7 @@ public class HttpCallableUnitCallback implements CallableUnitCallback {
     }
 
     @Override
-    public void notifyFailure(org.ballerinalang.jvm.api.values.BError error) {
+    public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
         HttpUtil.handleFailure(requestMessage, error);
         requestMessage.waitAndReleaseAllEntities();
     }

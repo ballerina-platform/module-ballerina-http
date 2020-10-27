@@ -63,7 +63,7 @@ function testAcceptEncodingEnabled() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "acceptEncoding", "deflate, gzip");
         assertHeaderValue(response.server, "Mysql");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -77,7 +77,7 @@ function testAcceptEncodingDisabled() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "acceptEncoding", "Accept-Encoding header not present.");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -91,7 +91,7 @@ function testAcceptEncodingAuto() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "acceptEncoding", "Accept-Encoding header not present.");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

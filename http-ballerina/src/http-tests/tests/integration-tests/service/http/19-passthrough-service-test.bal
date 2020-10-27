@@ -31,8 +31,8 @@ service passthroughService on passthroughEP1 {
         http:Client nyseEP1 = new("http://localhost:9113");
         var response = nyseEP1->get("/nyseStock/stocks", <@untainted> clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
-        } else {
+            checkpanic caller->respond(<@untainted> response);
+        } else if (response is error) {
             checkpanic caller->respond({ "error": "error occurred while invoking the service" });
         }
     }
@@ -45,8 +45,8 @@ service passthroughService on passthroughEP1 {
         http:Client nyseEP1 = new("http://localhost:9113");
         var response = nyseEP1->forward("/nyseStock/stocksAsMultiparts", clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
-        } else {
+            checkpanic caller->respond(<@untainted> response);
+        } else if (response is error) {
             checkpanic caller->respond({ "error": "error occurred while invoking the service" });
         }
     }
@@ -137,7 +137,7 @@ public function testPassthroughServiceByBasePath() {
         } else {
             test:assertFail(msg = "Found unexpected output: " + body.message());
         } 
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -155,7 +155,7 @@ public function testPassthroughServiceWithMimeEntity() {
         } else {
             test:assertFail(msg = "Found unexpected output: " + body.message());
         } 
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -194,7 +194,7 @@ public function testPassthroughWithMultiparts() {
                 test:assertFail(msg = errorMessage + txtPart2.message());
             }
         }         
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

@@ -14,6 +14,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+# Holds the details of an HTTP error
+# 
+# + statusCode - The status code, if the inbound error response exists
+public type Detail record {
+    int statusCode?;
+};
+
 // Ballerina HTTP Client Error Types
 
 // Resiliency errors
@@ -117,6 +124,15 @@ public type SslError distinct error;
 # Represents a cookie error that occurred when using the cookies
 public type CookieHandlingError distinct error;
 
+# Represents an illegal data-binding  state error
+public type IllegalDataBindingStateError distinct error<Detail>;
+
+# Represents an error, which occurred due to bad syntax or incomplete info in the client request(4xx HTTP response)
+public type ClientRequestError distinct error<Detail>;
+
+# Represents an error, which occurred due to a failure of the remote server(5xx HTTP response)
+public type RemoteServerError distinct error<Detail>;
+
 // Ballerina HTTP Union Errors
 # Defines the resiliency error types that returned from client
 public type ResiliencyError FailoverAllEndpointsFailedError|FailoverActionFailedError|
@@ -146,7 +162,8 @@ public type OutboundResponseError InitializingOutboundResponseError|WritingOutbo
 # Defines the possible client error types
 public type ClientError ResiliencyError|ClientAuthError|OutboundRequestError|
                             InboundResponseError|UnsupportedActionError|Http2ClientError|
-                            MaximumWaitTimeExceededError|SslError|GenericClientError|CookieHandlingError;
+                            MaximumWaitTimeExceededError|SslError|GenericClientError|CookieHandlingError|
+                            RemoteServerError|ClientRequestError|IllegalDataBindingStateError;
 
 # Defines the possible listener error types
 public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError;

@@ -16,12 +16,12 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.BalFuture;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketHandshaker;
@@ -36,8 +36,8 @@ import org.slf4j.LoggerFactory;
 public class CancelWebSocketUpgrade {
     private static final Logger log = LoggerFactory.getLogger(CancelWebSocketUpgrade.class);
 
-    public static Object cancelWebSocketUpgrade(BalEnv env, BObject connectionObj, long statusCode, BString reason) {
-        BalFuture balFuture = env.markAsync();
+    public static Object cancelWebSocketUpgrade(Environment env, BObject connectionObj, long statusCode, BString reason) {
+        Future balFuture = env.markAsync();
         try {
             WebSocketHandshaker webSocketHandshaker =
                     (WebSocketHandshaker) connectionObj.getNativeData(WebSocketConstants.WEBSOCKET_HANDSHAKER);

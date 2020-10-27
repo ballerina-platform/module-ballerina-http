@@ -73,11 +73,11 @@ service loadBalancerDemoService on new http:Listener(9313) {
         json requestPayload = { "name": "Ballerina" };
         var response = lbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            var responseToCaller = caller->respond(response);
+            var responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (response is error) {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
@@ -95,11 +95,11 @@ service loadBalancerDemoService on new http:Listener(9313) {
         json requestPayload = { "name": "Ballerina" };
         var response = lbFailoverBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            var responseToCaller = caller->respond(response);
+            var responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (response is error) {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
@@ -117,11 +117,11 @@ service loadBalancerDemoService on new http:Listener(9313) {
         json requestPayload = { "name": "Ballerina" };
         var response = delayedBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            var responseToCaller = caller->respond(response);
+            var responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (response is error) {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
@@ -139,11 +139,11 @@ service loadBalancerDemoService on new http:Listener(9313) {
         json requestPayload = { "name": "Ballerina" };
         var response = customLbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            var responseToCaller = caller->respond(response);
+            var responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", responseToCaller);
             }
-        } else {
+        } else if (response is error) {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
@@ -301,7 +301,7 @@ function testAllLbEndpointFailure() {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), expectedMessage);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

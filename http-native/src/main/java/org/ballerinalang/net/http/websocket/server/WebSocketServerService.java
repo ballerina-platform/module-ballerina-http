@@ -18,10 +18,11 @@
 
 package org.ballerinalang.net.http.websocket.server;
 
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.scheduling.Scheduler;
+import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.types.BAnnotatableType;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpResource;
 import org.ballerinalang.net.http.HttpUtil;
@@ -40,14 +41,14 @@ public class WebSocketServerService extends WebSocketService {
     private int idleTimeoutInSeconds = 0;
     private HttpResource upgradeResource;
 
-    public WebSocketServerService(BObject service, Scheduler scheduler) {
-        super(service, scheduler);
+    public WebSocketServerService(BObject service, Runtime runtime) {
+        super(service, runtime);
         populateConfigs();
     }
 
     public WebSocketServerService(String httpBasePath, HttpResource upgradeResource, BObject service,
-                                  Scheduler scheduler) {
-        this(service, scheduler);
+                                  Runtime runtime) {
+        this(service, runtime);
         setBasePathWithUpgradePath(httpBasePath, upgradeResource);
         this.upgradeResource = upgradeResource;
     }
@@ -74,7 +75,7 @@ public class WebSocketServerService extends WebSocketService {
 
     @SuppressWarnings(WebSocketConstants.UNCHECKED)
     private BMap<BString, Object> getServiceConfigAnnotation() {
-        return (BMap<BString, Object>) service.getType().getAnnotation(
+        return (BMap<BString, Object>) ((BAnnotatableType)service.getType()).getAnnotation(
                 HttpConstants.PROTOCOL_PACKAGE_HTTP, WebSocketConstants.WEBSOCKET_ANNOTATION_CONFIGURATION);
     }
 

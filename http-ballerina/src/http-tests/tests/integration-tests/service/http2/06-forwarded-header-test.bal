@@ -26,7 +26,7 @@ service initiatingService on new http:Listener(9107) {
         var responseFromForwardBackend = forwadingClient->get(
                                         "/forwardedBackend/forwardedResource", <@untainted> request);
         if (responseFromForwardBackend is http:Response) {
-            var resultSentToClient = caller->respond(responseFromForwardBackend);
+            var resultSentToClient = caller->respond(<@untainted> responseFromForwardBackend);
         }
     }
 }
@@ -48,7 +48,7 @@ public function testForwardHeader() {
     var resp = clientEP->get("/initiatingService/initiatingResource");
     if (resp is http:Response) {
         assertHeaderValue(resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");
-    } else {
+    } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

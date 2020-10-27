@@ -15,14 +15,14 @@
  */
 package org.ballerinalang.net.http.actions.websocketconnector;
 
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.scheduling.Scheduler;
+import io.ballerina.runtime.scheduling.Strand;
+import io.ballerina.runtime.values.ArrayValue;
 import io.netty.channel.ChannelFuture;
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.BalFuture;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.Strand;
-import org.ballerinalang.jvm.values.ArrayValue;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityConstants;
@@ -39,9 +39,9 @@ import java.nio.ByteBuffer;
 public class WebSocketConnector {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConnector.class);
 
-    public static Object externPushText(BalEnv env, BObject wsConnection, BString text, boolean finalFrame) {
+    public static Object externPushText(Environment env, BObject wsConnection, BString text, boolean finalFrame) {
         Strand strand = Scheduler.getStrand();
-        BalFuture balFuture = env.markAsync();
+        Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
         WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,
@@ -62,10 +62,10 @@ public class WebSocketConnector {
         return null;
     }
 
-    public static Object pushBinary(BalEnv env, BObject wsConnection, ArrayValue binaryData,
+    public static Object pushBinary(Environment env, BObject wsConnection, ArrayValue binaryData,
                                     boolean finalFrame) {
         Strand strand = Scheduler.getStrand();
-        BalFuture balFuture = env.markAsync();
+        Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
         WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,
@@ -87,9 +87,9 @@ public class WebSocketConnector {
         return null;
     }
 
-    public static Object ping(BalEnv env, BObject wsConnection, ArrayValue binaryData) {
+    public static Object ping(Environment env, BObject wsConnection, ArrayValue binaryData) {
         Strand strand = Scheduler.getStrand();
-        BalFuture balFuture = env.markAsync();
+        Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
         WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,
@@ -110,9 +110,9 @@ public class WebSocketConnector {
         return null;
     }
 
-    public static Object pong(BalEnv env, BObject wsConnection, ArrayValue binaryData) {
+    public static Object pong(Environment env, BObject wsConnection, ArrayValue binaryData) {
         Strand strand = Scheduler.getStrand();
-        BalFuture balFuture = env.markAsync();
+        Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
         WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,

@@ -45,7 +45,7 @@ service testService_1 on reuseRequestListenerEP {
             } else {
                 firstVal = result.message();
             }
-        } else  {
+        } else if (firstResponse is error) {
             firstVal = firstResponse.message();
         }
 
@@ -57,12 +57,12 @@ service testService_1 on reuseRequestListenerEP {
             } else {
                 secondVal = result.message();
             }
-        } else {
+        } else if (secondResponse is error) {
             secondVal = secondResponse.message();
         }
         http:Response testResponse = new;
-        testResponse.setPayload(firstVal + secondVal);
-        checkpanic caller->respond(testResponse);
+        testResponse.setPayload(<@untainted> firstVal + <@untainted> secondVal);
+        checkpanic caller->respond(<@untainted> testResponse);
     }
 
     @http:ResourceConfig {
@@ -85,7 +85,7 @@ service testService_1 on reuseRequestListenerEP {
             } else {
                 firstVal = result.message();
             }
-        } else {
+        } else if (firstResponse is error) {
             firstVal = firstResponse.message();
         }
 
@@ -97,12 +97,12 @@ service testService_1 on reuseRequestListenerEP {
             } else {
                 secondVal = result.message();
             }
-        } else {
+        } else if (secondResponse is error) {
             secondVal = secondResponse.message();
         }
         http:Response testResponse = new;
-        testResponse.setPayload(firstVal + secondVal);
-        checkpanic caller->respond(testResponse);
+        testResponse.setPayload(<@untainted> firstVal + <@untainted> secondVal);
+        checkpanic caller->respond(<@untainted> testResponse);
     }
 
     @http:ResourceConfig {
@@ -138,10 +138,10 @@ service testService_1 on reuseRequestListenerEP {
                     } else {
                         secondVal = result2.message();
                     }
-                } else {
+                } else if (secondResponse is error) {
                     log:printError(secondResponse.message(), secondResponse);
                 }
-            } else {
+            } else if (firstResponse is error) {
                 log:printError(firstResponse.message(), firstResponse);
             }
         } else {
@@ -159,8 +159,8 @@ service testService_1 on reuseRequestListenerEP {
         http:Request clientReq = new;
         clientReq.setTextPayload("String datasource");
 
-        string firstVal;
-        string secondVal;
+        string firstVal = "";
+        string secondVal = "";
         var firstResponse = clientEP1 -> post("/datasource", clientReq);
         if (firstResponse is http:Response) {
             var result = <@untainted> firstResponse.getTextPayload();
@@ -169,7 +169,7 @@ service testService_1 on reuseRequestListenerEP {
             } else {
                 firstVal = result.message();
             }
-        } else {
+        } else if (firstResponse is error) {
             firstVal = firstResponse.message();
         }
 
@@ -181,12 +181,12 @@ service testService_1 on reuseRequestListenerEP {
             } else {
                 secondVal = result.message();
             }
-        } else {
+        } else if (secondResponse is error) {
             secondVal = secondResponse.message();
         }
         http:Response testResponse = new;
-        testResponse.setPayload(firstVal + secondVal);
-        checkpanic caller->respond(testResponse);
+        testResponse.setPayload(<@untainted> firstVal + <@untainted> secondVal);
+        checkpanic caller->respond(<@untainted> testResponse);
     }
 
     @http:ResourceConfig {
@@ -202,8 +202,8 @@ service testService_1 on reuseRequestListenerEP {
             if (firstResponse is http:Response) {
                 var secondResponse = clientEP1 -> post("/consumeChannel", clientReq);
                 http:Response testResponse = new;
-                string firstVal;
-                string secondVal;
+                string firstVal = "";
+                string secondVal = "";
                 if (secondResponse is http:Response) {
                     var result1 = secondResponse.getTextPayload();
                     if  (result1 is string) {
@@ -211,9 +211,8 @@ service testService_1 on reuseRequestListenerEP {
                     } else {
                         secondVal = "Error in parsing payload";
                     }
-                } else {
-                    error err = secondResponse;
-                    secondVal = <string> err.detail()["message"];
+                } else if (secondResponse is error) {
+                    secondVal = secondResponse.message();
                 }
 
                 var result2 = firstResponse.getTextPayload();
@@ -225,7 +224,7 @@ service testService_1 on reuseRequestListenerEP {
 
                 testResponse.setTextPayload(<@untainted> firstVal + <@untainted> secondVal);
                 checkpanic caller->respond(testResponse);
-            } else {
+            } else if (firstResponse is error) {
                 log:printError(firstResponse.message(), firstResponse);
             }
         } else {
@@ -280,7 +279,7 @@ function reuseRequestWithoutEntity() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -292,7 +291,7 @@ function reuseRequestWithEmptyEntity() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -304,7 +303,7 @@ function twoRequestsSameEntity() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -316,7 +315,7 @@ function sameRequestWithADatasource() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!Hello from POST!");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -328,7 +327,7 @@ function sameRequestWithByteChannel() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!No payload");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

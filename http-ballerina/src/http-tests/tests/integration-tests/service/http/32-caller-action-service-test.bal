@@ -64,7 +64,7 @@ function testNonBlockingRespondAction() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "sample value");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -77,7 +77,7 @@ function testExecutionAfterRespondAction() {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     //     assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     //     assertTextPayload(response.getTextPayload(), "respond");
-    // } else {
+    // } else if (response is error) {
     //     test:assertFail(msg = "Found unexpected output type: " + response.message());
     // }
 }
@@ -87,7 +87,7 @@ function testNonBlockingRedirectAction() {
     var response = callerActionTestClient->get("/listener/redirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 308, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -100,7 +100,7 @@ function testExecutionAfterRedirectAction() {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     //     assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     //     assertTextPayload(response.getTextPayload(), "redirect");
-    // } else {
+    // } else if (response is error) {
     //     test:assertFail(msg = "Found unexpected output type: " + response.message());
     // }
 }

@@ -57,7 +57,7 @@ service on new http:Listener(21038) {
                 http:WebSocketClient wsClientEp = new ("ws://localhost:21036/cookie-demo/ws",
                     config = {callbackService: ErrorCookieService, cookies: cookies});
             }
-        } else {
+        } else if (loginResp is error) {
             log:printError(loginResp.message());
         }
     }

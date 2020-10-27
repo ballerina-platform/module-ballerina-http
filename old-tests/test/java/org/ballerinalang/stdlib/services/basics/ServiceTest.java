@@ -189,7 +189,7 @@ public class ServiceTest {
     //     Assert.assertTrue(bJson instanceof BMap);
 
     //     Assert.assertTrue(((BMap<BString, BString>) bJson).get(
-    //             org.ballerinalang.jvm.api.BStringUtils.fromString("Team")).toString().isEmpty(),
+    //             io.ballerina.runtime.api.StringUtils.fromString("Team")).toString().isEmpty(),
     //                       "Team variable not set properly");
     // }
 

@@ -16,12 +16,12 @@
 
 package org.ballerinalang.net.http.actions.httpclient;
 
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.Strand;
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.scheduling.Scheduler;
+import io.ballerina.runtime.scheduling.Strand;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
@@ -35,7 +35,7 @@ import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_SERVICE_U
  */
 public class Submit extends Execute {
     @SuppressWarnings("unchecked")
-    public static Object submit(BalEnv env, BObject httpClient, BString httpVerb, BString path, BObject requestObj) {
+    public static Object submit(Environment env, BObject httpClient, BString httpVerb, BString path, BObject requestObj) {
         Strand strand = Scheduler.getStrand();
         String url = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue();
         BMap<BString, Object> config = (BMap<BString, Object>) httpClient.get(CLIENT_ENDPOINT_CONFIG);

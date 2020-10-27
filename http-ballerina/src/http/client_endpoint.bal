@@ -67,14 +67,20 @@ public client class Client {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function post(@untainted string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
+            returns @tainted Response|Payload|ClientError {
+        // TODO improve signature once issue https://github.com/ballerina-platform/ballerina-spec/issues/386 is resolved
+        // Dependently typed function signature support for ballerina function is required.
         Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->post(path, req);
+        Response|Payload|ClientError response = self.httpClient->post(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
         }
-        return response;
+        return processResponse(response, targetType);
     }
 
     # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
@@ -82,8 +88,9 @@ public client class Client {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function head(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    public remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
+            Response|ClientError {
         Request req = buildRequest(message);
         Response|ClientError response = self.httpClient->head(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -97,14 +104,18 @@ public client class Client {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function put(@untainted string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function put(@untainted string path, RequestMessage message, TargetType targetType = Response) 
+            returns @tainted Response|Payload|ClientError {
         Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->put(path, req);
+        Response|Payload|ClientError response = self.httpClient->put(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
         }
-        return response;
+        return processResponse(response, targetType);
     }
 
     # Invokes an HTTP call with the specified HTTP verb.
@@ -113,14 +124,18 @@ public client class Client {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
         Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
+        Response|Payload|ClientError response = self.httpClient->execute(httpVerb, path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
-        return response;
+        return processResponse(response, targetType);
     }
 
     # The `Client.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
@@ -128,14 +143,18 @@ public client class Client {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function patch(@untainted string path, RequestMessage message) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function patch(@untainted string path, RequestMessage message, TargetType targetType = Response) 
+            returns @tainted Response|Payload|ClientError {
         Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->patch(path, req);
+        Response|Payload|ClientError response = self.httpClient->patch(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
         }
-        return response;
+        return processResponse(response, targetType);
     }
 
     # The `Client.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.
@@ -143,14 +162,18 @@ public client class Client {
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function delete(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function delete(@untainted string path, RequestMessage message = (), 
+            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
         Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->delete(path, req);
+        Response|Payload|ClientError response = self.httpClient->delete(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
         }
-        return response;
+        return processResponse(response, targetType);
     }
 
     # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
@@ -158,14 +181,18 @@ public client class Client {
     # + path - Request path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function get(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function get(@untainted string path, RequestMessage message = (),
+            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
         Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->get(path, message = req);
+        Response|Payload|ClientError response = self.httpClient->get(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
         }
-        return response;
+        return processResponse(response, targetType);
     }
 
     # The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
@@ -173,27 +200,35 @@ public client class Client {
     # + path - Request path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function options(@untainted string path, RequestMessage message = ()) returns Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function options(@untainted string path, RequestMessage message = (),
+            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
         Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->options(path, message = req);
+        Response|Payload|ClientError response = self.httpClient->options(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
         }
-        return response;
+        return processResponse(response, targetType);
     }
 
     # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
     #
     # + path - Request path
     # + request - An HTTP inbound request message
-    # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-    public remote function forward(@untainted string path, Request request) returns Response|ClientError {
-        Response|ClientError response = self.httpClient->forward(path, request);
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    public remote function forward(@untainted string path, Request request,
+            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
+        Response|Payload|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
-        return response;
+        return processResponse(response, targetType);
     }
 
     # Submits an HTTP request to a service with the specified HTTP verb.
@@ -578,4 +613,45 @@ function createDefaultClient(string url, ClientConfiguration configuration) retu
         return createHttpCachingClient(url, configuration, configuration.cache);
     }
     return createHttpSecureClient(url, configuration);
+}
+
+function processResponse(Response|Payload|ClientError result, TargetType targetType) returns @tainted
+        Response|Payload|ClientError {
+    if (targetType is typedesc<Response> || result is ClientError) {
+        return result;
+    }
+    Response response = <Response> result;
+    int statusCode = response.statusCode;
+    if (400 <= statusCode && statusCode <= 499) {
+        string errorPayload = check response.getTextPayload();
+        ClientRequestError err = ClientRequestError(errorPayload, statusCode = statusCode);
+        return err;
+    }
+    if (500 <= statusCode && statusCode <= 599) {
+        string errorPayload = check response.getTextPayload();
+        RemoteServerError err = RemoteServerError(errorPayload, statusCode = statusCode);
+        return err;
+    }
+    return performDataBinding(response, targetType);
+}
+
+function performDataBinding(Response response, TargetType targetType) returns @tainted Payload|ClientError {
+    if (targetType is typedesc<string>) {
+        return response.getTextPayload();
+    } else if (targetType is typedesc<xml>) {
+        return response.getXmlPayload();
+    } else if (targetType is typedesc<byte[]>) {
+        return response.getBinaryPayload();
+    } else if (targetType is typedesc<CustomRecordType>) {
+        json payload = check response.getJsonPayload();
+        return <CustomRecordType> payload.cloneWithType(targetType);
+    } else if (targetType is typedesc<CustomRecordType[]>) {
+        json payload = check response.getJsonPayload();
+        return <CustomRecordType[]> payload.cloneWithType(targetType);
+    } else if (targetType is typedesc<map<json>>) {
+        json payload = check response.getJsonPayload();
+        return <map<json>> payload;
+    } else if (targetType is typedesc<json>) {
+        return response.getJsonPayload();
+    }
 }

@@ -131,7 +131,7 @@ function testSmallPayloadResponseTrailers() {
         assertHeaderValue(response.getHeader("response-trailer"), "foo, baz");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for chunked payload", baz:"The second " +
                 "trailer", count:2});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -145,7 +145,7 @@ function testLargePayloadResponseTrailers() {
         assertHeaderValue(response.getHeader("response-trailer"), "foo, baz");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for chunked payload", baz:"The second " +
                 "trailer", count:2});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -159,7 +159,7 @@ function testEmptyPayloadResponseTrailers() {
         assertHeaderValue(response.getHeader("response-trailer"), "foo, baz");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for empty payload", baz:"The second " +
                 "trailer for empty payload", count:2});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -172,7 +172,7 @@ function testSmallPayloadForNonChunkedResponse() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader("response-trailer"), "No trailer header");
         assertJsonPayload(response.getJsonPayload(), {foo:"No trailer header foo", baz:"No trailer header baz", count:0});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -185,7 +185,7 @@ function testLargePayloadForNonChunkedResponse() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader("response-trailer"), "No trailer header");
         assertJsonPayload(response.getJsonPayload(), {foo:"No trailer header foo", baz:"No trailer header baz", count:0});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -199,7 +199,7 @@ function testProxiedTrailers() {
         assertHeaderValue(response.getHeader("response-trailer"), "foo, baz");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for chunked payload", baz:"The second " +
                 "trailer", count:2});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -213,7 +213,7 @@ function testPassThroughButBuildPayload() {
         assertHeaderValue(response.getHeader("response-trailer"), "foo, baz, barr");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for chunked payload", baz:"this trailer " +
                 "will get replaced", count:3});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

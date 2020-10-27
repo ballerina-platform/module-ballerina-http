@@ -16,13 +16,13 @@
 
 package org.ballerinalang.net.http.actions.websocketconnector;
 
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.scheduling.Scheduler;
+import io.ballerina.runtime.scheduling.Strand;
 import io.netty.channel.ChannelFuture;
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.BalFuture;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketException;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
@@ -44,10 +44,10 @@ import java.util.concurrent.TimeUnit;
 public class Close {
     private static final Logger log = LoggerFactory.getLogger(Close.class);
 
-    public static Object externClose(BalEnv env, BObject wsConnection, long statusCode, BString reason,
+    public static Object externClose(Environment env, BObject wsConnection, long statusCode, BString reason,
                                      long timeoutInSecs) {
         Strand strand = Scheduler.getStrand();
-        BalFuture balFuture = env.markAsync();
+        Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
         WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,

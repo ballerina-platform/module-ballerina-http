@@ -52,7 +52,7 @@ service failoverDemoService06 on failoverEP06 {
             var response = foBackendEP06->getResponse(backendRes);
             if (response is http:Response) {
                 string responseMessage = "Failover start index is : " + startIndex;
-                var responseToCaller = caller->respond(responseMessage);
+                var responseToCaller = caller->respond(<@untainted> responseMessage);
                 handleResponseToCaller(responseToCaller);
             } else {
                 sendErrorResponse(caller, <error>response);
@@ -142,7 +142,7 @@ function testBasicHttp2Failover() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 0");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -151,7 +151,7 @@ function testBasicHttp2Failover() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 2");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

@@ -36,7 +36,7 @@ const int CB_CLIENT_TOP_MOST_SUCCESS_INDEX = 2;
 const int CB_CLIENT_FAILURE_CASE_ERROR_INDEX = 5;
 const int CB_CLIENT_FORCE_OPEN_INDEX = 4;
 
-function testTypicalScenario() returns [http:Response[], error?[]] {
+function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
     MockClient mockClient = new("http://localhost:8080");
     http:Client backendClientEP = new("http://localhost:8080", {
@@ -64,7 +64,7 @@ function testTypicalScenario() returns [http:Response[], error?[]] {
             var serviceResponse = backendClientEP->get("/hello", request);
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
-            } else {
+            } else if (serviceResponse is error) {
                 errs[counter] = serviceResponse;
             }
             counter = counter + 1;
@@ -76,7 +76,7 @@ function testTypicalScenario() returns [http:Response[], error?[]] {
     return [responses, errs];
 }
 
-function testTrialRunFailure() returns [http:Response[], error?[]] {
+function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
     MockClient mockClient = new("http://localhost:8080");
     http:Client backendClientEP = new("http://localhost:8080", {
@@ -105,7 +105,7 @@ function testTrialRunFailure() returns [http:Response[], error?[]] {
             var serviceResponse = backendClientEP->get("/hello", request);
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
-            } else {
+            } else if (serviceResponse is error) {
                 errs[counter] = serviceResponse;
             }
             counter = counter + 1;
@@ -117,7 +117,7 @@ function testTrialRunFailure() returns [http:Response[], error?[]] {
     return [responses, errs];
 }
 
-function testHttpStatusCodeFailure() returns [http:Response[], error?[]] {
+function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
     MockClient mockClient = new("http://localhost:8080");
     http:Client backendClientEP = new("http://localhost:8080", {
@@ -145,7 +145,7 @@ function testHttpStatusCodeFailure() returns [http:Response[], error?[]] {
             var serviceResponse = backendClientEP->get("/hello", request);
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
-            } else {
+            } else if (serviceResponse is error) {
                 errs[counter] = serviceResponse;
             }
             counter = counter + 1;
@@ -153,7 +153,7 @@ function testHttpStatusCodeFailure() returns [http:Response[], error?[]] {
     return [responses, errs];
 }
 
-function testForceOpenScenario() returns [http:Response[], error?[]] {
+function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
     MockClient mockClient = new("http://localhost:8080");
     http:Client backendClientEP = new("http://localhost:8080", {
@@ -184,7 +184,7 @@ function testForceOpenScenario() returns [http:Response[], error?[]] {
         var serviceResponse = backendClientEP->get("/hello", request);
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
-        } else {
+        } else if (serviceResponse is error) {
             errs[counter] = serviceResponse;
         }
         counter = counter + 1;
@@ -192,7 +192,7 @@ function testForceOpenScenario() returns [http:Response[], error?[]] {
     return [responses, errs];
 }
 
-function testForceCloseScenario() returns [http:Response[], error?[]] {
+function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
     MockClient mockClient = new("http://localhost:8080");
     http:Client backendClientEP = new("http://localhost:8080", {
@@ -224,7 +224,7 @@ function testForceCloseScenario() returns [http:Response[], error?[]] {
         var serviceResponse = backendClientEP->get("/hello", request);
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
-        } else {
+        } else if (serviceResponse is error) {
             errs[counter] = serviceResponse;
         }
         counter = counter + 1;
@@ -232,7 +232,7 @@ function testForceCloseScenario() returns [http:Response[], error?[]] {
     return [responses, errs];
 }
 
-function testRequestVolumeThresholdSuccessResponseScenario() returns [http:Response[], error?[]] {
+function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
     MockClient mockClient = new("http://localhost:8080");
     http:Client backendClientEP = new("http://localhost:8080", {
@@ -261,7 +261,7 @@ function testRequestVolumeThresholdSuccessResponseScenario() returns [http:Respo
         var serviceResponse = backendClientEP->get("/hello", request);
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
-        } else {
+        } else if (serviceResponse is error) {
             errs[counter] = serviceResponse;
         }
         counter = counter + 1;
@@ -269,7 +269,7 @@ function testRequestVolumeThresholdSuccessResponseScenario() returns [http:Respo
     return [responses, errs];
 }
 
-function testRequestVolumeThresholdFailureResponseScenario() returns [http:Response[], error?[]] {
+function testRequestVolumeThresholdFailureResponseScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
     MockClient mockClient = new("http://localhost:8080");
     http:Client backendClientEP = new("http://localhost:8080", {
@@ -298,7 +298,7 @@ function testRequestVolumeThresholdFailureResponseScenario() returns [http:Respo
         var serviceResponse = backendClientEP->get("/hello", request);
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
-        } else {
+        } else if (serviceResponse is error) {
             errs[counter] = serviceResponse;
         }
         counter = counter + 1;
@@ -339,9 +339,8 @@ public client class MockClient {
         self.httpClient = simpleClient;
     }
 
-    public remote function post(string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
-                                                                                returns http:Response|http:ClientError {
+    public remote function post(@untainted string path, http:RequestMessage message,
+            http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
@@ -351,33 +350,28 @@ public client class MockClient {
         return getUnsupportedError();
     }
 
-    public remote function put(string path,
-                               http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
-                                                                                returns http:Response|http:ClientError {
+    public remote function put(@untainted string path, http:RequestMessage message,
+            http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function execute(string httpVerb, string path,
-                                   http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|()
-                                        message) returns http:Response|http:ClientError {
+    public remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message,
+           http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function patch(string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
-                                                                                returns http:Response|http:ClientError {
+    public remote function patch(@untainted string path, http:RequestMessage message, http:TargetType targetType = http:Response)
+                                             returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function delete(string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = ())
-                                                                                returns http:Response|http:ClientError {
+    public remote function delete(@untainted string path, http:RequestMessage message = (),
+          http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function get(string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = ())
-                                                                                returns http:Response|http:ClientError {
+    public remote function get(@untainted string path, http:RequestMessage message = (),
+           http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         http:Request req = buildRequest(message);
         http:Response response = new;
         actualRequestNumber = actualRequestNumber + 1;
@@ -429,13 +423,14 @@ public client class MockClient {
         return response;
     }
 
-    public remote function options(string path,
-           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = ())
-                                                                                returns http:Response|http:ClientError {
+    public remote function options(@untainted string path, http:RequestMessage message = (),
+           http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function forward(string path, http:Request req) returns http:Response|http:ClientError {
+    public remote function forward(@untainted string path, http:Request request, http:TargetType targetType =
+    http:Response)
+                                               returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
@@ -533,7 +528,7 @@ function getMockErrorStruct() returns http:ClientError {
 }
 
 function getUnsupportedError() returns http:ClientError {
-    return http:GenericClientError("Unsupported fucntion for MockClient");
+    return http:GenericClientError("Unsupported function for MockClient");
 }
 
 function buildRequest(http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message) returns
@@ -758,7 +753,7 @@ function cBGetCurrentStatausScenarioTest() {
         } else {
             test:assertFail(msg = body.message());
         }
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Didn't receive an http response" + response.message());
     }
 }

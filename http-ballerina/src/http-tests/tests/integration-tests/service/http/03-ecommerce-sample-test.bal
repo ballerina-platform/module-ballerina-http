@@ -61,7 +61,7 @@ service EcommerceService on ecommerceListenerEP {
         http:Request clientRequest = new;
         var clientResponse = productsService->get(<@untainted> reqPath, clientRequest);
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+            checkpanic caller->respond(<@untainted>clientResponse);
         } else {
             io:println("Error occurred while reading product response");
         }
@@ -87,7 +87,7 @@ service EcommerceService on ecommerceListenerEP {
         } else {
             io:println("Error occurred while reading locator response");
         }
-        checkpanic caller->respond(clientResponse);
+        checkpanic caller->respond(<@untainted>clientResponse);
     }
 
     @http:ResourceConfig {
@@ -98,7 +98,7 @@ service EcommerceService on ecommerceListenerEP {
         http:Request clientRequest = new;
         var clientResponse = productsService->get("/orderservice/orders", clientRequest);
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+            checkpanic caller->respond(<@untainted>clientResponse);
         } else {
             io:println("Error occurred while reading orders response");
         }
@@ -112,9 +112,9 @@ service EcommerceService on ecommerceListenerEP {
         http:Request clientRequest = new;
         var clientResponse = productsService->post("/orderservice/orders", clientRequest);
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+            checkpanic caller->respond(<@untainted>clientResponse);
         } else {
-            io:println("Error occurred while writing orders respons");
+            io:println("Error occurred while writing orders response");
         }
     }
 
@@ -126,7 +126,7 @@ service EcommerceService on ecommerceListenerEP {
         http:Request clientRequest = new;
         var clientResponse = productsService->get("/customerservice/customers", clientRequest);
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+            checkpanic caller->respond(<@untainted>clientResponse);
         } else {
             io:println("Error occurred while reading customers response");
         }
@@ -140,7 +140,7 @@ service EcommerceService on ecommerceListenerEP {
         http:Request clientRequest = new;
         var clientResponse = productsService->post("/customerservice/customers", clientRequest);
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+            checkpanic caller->respond(<@untainted>clientResponse);
         } else {
             io:println("Error occurred while writing customers response");
         }
@@ -232,7 +232,7 @@ function testGetProducts() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Product:{ID:"123001", Name:"ABC_2", Description:"Sample product."}});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -245,7 +245,7 @@ function testGetOrders() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Order:{ID:"111999", Name:"ABC123", Description:"Sample order."}});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -258,7 +258,7 @@ function testGetCustomers() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Customer:{ID:"987654", Name:"ABC PQR", Description:"Sample Customer."}});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -273,7 +273,7 @@ function testPostOrder() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Status:"Order is successfully added."});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -288,7 +288,7 @@ function testPostProduct() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Status:"Product is successfully added."});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -303,7 +303,7 @@ function testPostCustomers() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Status:"Customer is successfully added."});
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

@@ -76,7 +76,7 @@ function testConsumesAnnotation() {
     var response = pcClient->post("/echo66/test1", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso2");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -90,7 +90,7 @@ function testIncorrectConsumesAnnotation() {
     var response = pcClient->post("/echo66/test1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 415, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -104,7 +104,7 @@ function testBogusConsumesAnnotation() {
     var response = pcClient->post("/echo66/test1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 415, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -117,7 +117,7 @@ function testProducesAnnotation() {
     var response = pcClient->get("/echo66/test2", message = req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -128,7 +128,7 @@ function testProducesAnnotationWithNoHeaders() {
     var response = pcClient->get("/echo66/test2");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -142,7 +142,7 @@ function testProducesAnnotationWithWildCard() {
     var response = pcClient->get("/echo66/test2", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -155,7 +155,7 @@ function testProducesAnnotationWithSubTypeWildCard() {
     var response = pcClient->get("/echo66/test2", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -168,7 +168,7 @@ function testIncorrectProducesAnnotation() {
     var response = pcClient->get("/echo66/test2", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -181,7 +181,7 @@ function testBogusProducesAnnotation() {
     var response = pcClient->get("/echo66/test2", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -196,7 +196,7 @@ function testProducesConsumeAnnotation() {
     var response = pcClient->post("/echo66/test3", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso222");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -211,7 +211,7 @@ function testIncorrectProducesConsumeAnnotation() {
     var response = pcClient->post("/echo66/test3", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -225,7 +225,7 @@ function testWithoutProducesConsumeAnnotation() {
     var response = pcClient->get("/echo67/echo1", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo33", "echo1");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -241,7 +241,7 @@ function testCaseInSensitivityOfProduceAndConsume() {
     var response = pcClient->post("/echo66/test4", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso222");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

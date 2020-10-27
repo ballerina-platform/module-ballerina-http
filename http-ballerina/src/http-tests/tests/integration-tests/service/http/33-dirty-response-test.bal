@@ -50,7 +50,7 @@ function testDirtyResponse() {
     var response = dirtyResponseTestClient->get("/hello");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -62,7 +62,7 @@ function testDirtyResponse() {
                         " been already used.");
         test:assertEquals(dirtyErrorLog, "Couldn't complete the respond operation as the response has" +
                         " been already used.");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

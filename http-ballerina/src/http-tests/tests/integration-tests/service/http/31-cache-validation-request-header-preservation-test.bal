@@ -31,12 +31,12 @@ service cachingProxy2 on cachingProxyListener {
     resource function cacheableProxyResource(http:Caller caller, http:Request req) {
         var response = cachingEP4->forward("/validation-req-be", req);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
-        } else {
+            checkpanic caller->respond(<@untainted> response);
+        } else if (response is error) {
             http:Response res = new;
             res.statusCode = 500;
-            res.setPayload(response.message());
-            checkpanic caller->respond(res);
+            res.setPayload(<@untainted> response.message());
+            checkpanic caller->respond(<@untainted> res);
         }
     }
 }
@@ -77,7 +77,7 @@ function testCallerRequestHeaderPreservation() {
         test:assertFalse(response.hasHeader(IF_MODIFIED_SINCE));
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -92,7 +92,7 @@ function testCallerRequestHeaderPreservation() {
         test:assertFalse(response.hasHeader(IF_MODIFIED_SINCE));
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -109,7 +109,7 @@ function testCallerRequestHeaderPreservation() {
         test:assertFalse(response.hasHeader(IF_MODIFIED_SINCE));
         assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -123,7 +123,7 @@ function testCallerRequestHeaderPreservation2() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 304, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Hello from POST!Hello from POST!");
-    } else {
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
