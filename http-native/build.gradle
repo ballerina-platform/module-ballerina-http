@@ -17,11 +17,16 @@
 
 plugins {
     id 'java'
+    id 'checkstyle'
+    id 'com.github.spotbugs'
 }
 
 description = 'Ballerina - HTTP/WS Java Utils'
 
 dependencies {
+    checkstyle project(':build-config:checkstyle')
+    checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
+
     compile group: 'org.ballerinalang', name: 'ballerina-lang', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'ballerina-core', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'ballerina-runtime', version: "${ballerinaLangVersion}"
@@ -37,19 +42,19 @@ dependencies {
     compile group: 'org.testng', name: 'testng', version: "${testngVersion}"
 
     // Transport related dependencies
-    compile group: 'io.netty', name: 'netty-codec-http2', version:'4.1.45.Final'
-    compile group: 'io.netty', name: 'netty-handler-proxy', version:'4.1.45.Final'
-    compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:'2.0.25.Final'
+    compile group: 'io.netty', name: 'netty-codec-http2', version:"${nettyVersion}"
+    compile group: 'io.netty', name: 'netty-handler-proxy', version:"${nettyVersion}"
+    compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:"${nettyTcnativeVersion}"
 
-    compile group: 'org.wso2.eclipse.osgi', name: 'org.eclipse.osgi', version:'3.10.2.v20150203-1939'
-    compile group: 'org.wso2.orbit.org.yaml', name: 'snakeyaml', version:'1.16.0.wso2v1'
-    compile group: 'commons-pool.wso2', name: 'commons-pool', version:'1.5.6.wso2v1'
+    compile group: 'org.wso2.eclipse.osgi', name: 'org.eclipse.osgi', version:"${wso2EclipseOsgiVersion}"
+    compile group: 'org.wso2.orbit.org.yaml', name: 'snakeyaml', version:"${wso2SnakeYamlVersion}"
+    compile group: 'commons-pool.wso2', name: 'commons-pool', version:"${wso2CommonsPoolVersion}"
     compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}"
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}"
     compile group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: "${jakartaXmlBindVersion}"
 
-    testCompile group: 'org.mock-server', name: 'mockserver-netty', version:'3.11'
-    testCompile group: 'com.mashape.unirest', name: 'unirest-java', version:'1.4.9'
+    testCompile group: 'org.mock-server', name: 'mockserver-netty', version:"${mockserverNettyVersion}"
+    testCompile group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
 }
 
 test {
@@ -60,6 +65,37 @@ test {
     testLogging {
         events "PASSED", "FAILED", "SKIPPED"
     }
+}
+
+checkstyle {
+    toolVersion '7.8.2'
+    configFile rootProject.file("build-config/checkstyle/build/checkstyle.xml")
+    configProperties = ["suppressionFile" : file("${rootDir}/build-config/checkstyle/build/suppressions.xml")]
+}
+
+def excludePattern = '**/module-info.java'
+tasks.withType(Checkstyle) {
+    exclude excludePattern
+}
+
+checkstyleMain.dependsOn(":build-config:checkstyle:downloadMultipleFiles")
+
+spotbugsMain {
+    effort "max"
+    reportLevel "low"
+    reportsDir = file("$project.buildDir/reports/spotbugs")
+    reports {
+        html.enabled true
+        text.enabled = true
+    }
+    def excludeFile = file("${rootDir}/spotbugs-exclude.xml")
+    if(excludeFile.exists()) {
+        excludeFilter = excludeFile
+    }
+}
+
+spotbugsTest {
+    enabled = false
 }
 
 publishing {
