@@ -224,6 +224,7 @@ public final class Constants {
     public static final String HTTP2_PATH = ":path";
     public static final String HTTP2_AUTHORITY = ":authority";
     public static final String HTTP2_SCHEME = ":scheme";
+    public static final String HTTP2_STATUS = ":status";
 
     public static final String HTTP_SOURCE_HANDLER = "SourceHandler";
     public static final String HTTP_ENCODER = "encoder";
