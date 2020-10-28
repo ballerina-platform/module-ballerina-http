@@ -39,7 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.REQUEST_TIMEOUT;
-import static org.ballerinalang.net.transport.contract.Constants.HTTP2_STATUS;
+import static org.ballerinalang.net.transport.contract.Constants.HTTP2_METHOD;
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_HEADERS;
 import static org.ballerinalang.net.transport.contractimpl.common.Util.is100ContinueRequest;
 import static org.ballerinalang.net.transport.contractimpl.common.states.Http2StateUtil.notifyRequestListener;
@@ -73,7 +73,7 @@ public class ReceivingHeaders implements ListenerState {
             HttpCarbonMessage sourceReqCMsg =
                     inboundMessageHolder != null ? inboundMessageHolder.getInboundMsg() : null;
 
-            if (headersFrame.getHeaders().contains(HTTP2_STATUS)) {
+            if (headersFrame.getHeaders().contains(HTTP2_METHOD)) {
                 // if the header frame is an initial header frame and also it has endOfStream
                 sourceReqCMsg = setupHttp2CarbonMsg(headersFrame.getHeaders(), streamId);
 
