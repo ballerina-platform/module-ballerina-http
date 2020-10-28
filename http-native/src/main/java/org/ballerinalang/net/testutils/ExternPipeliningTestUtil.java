@@ -20,6 +20,7 @@ package org.ballerinalang.net.testutils;
 
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.util.CharsetUtil;
 import org.ballerinalang.net.testutils.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,7 +150,7 @@ public class ExternPipeliningTestUtil {
             throws IOException {
         int i = 0;
         ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE);
-        byte[] data = pipelinedRequests.getBytes();
+        byte[] data = pipelinedRequests.getBytes(CharsetUtil.UTF_8);
         while (i != data.length) {
             buf.clear();
             for (; data.length > i; i++) {

@@ -249,7 +249,7 @@ public class HttpResource {
     }
 
     private static boolean hasInterruptibleAnnotation(AttachedFunctionType resource) {
-        return ((AttachedFunction)resource).getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
+        return ((AttachedFunction) resource).getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
     }
 
     private static List<String> getAsStringList(Object[] values) {
