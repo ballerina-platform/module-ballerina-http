@@ -18,8 +18,8 @@
 
 package org.ballerinalang.net.http.compiler.websocket;
 
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
-import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
@@ -63,7 +63,7 @@ public abstract class WebSocketResourceValidator {
             validateEndpointParameter();
             validationMap.get(name).run();
         } else {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos,
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos,
                                "Invalid resource name " + resource.getName().getValue() + " in service ");
         }
     }
@@ -77,7 +77,7 @@ public abstract class WebSocketResourceValidator {
     private void validateOnTextResource() {
         validateParamDetailsSize();
         if (paramDetails.size() < 2) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                     + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                     ": A second parameter needs to be specified");
         }
@@ -87,16 +87,16 @@ public abstract class WebSocketResourceValidator {
                 secondParamTypeTag != TypeTags.XML && secondParamTypeTag != TypeTags.RECORD &&
                 (secondParamTypeTag != TypeTags.ARRAY || (secondParamType instanceof BArrayType &&
                         ((BArrayType) secondParamType).getElementType().tag != TypeTags.BYTE))) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                     + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                     ": The second parameter should be a string, json, xml, byte[] or a record type");
         } else if (paramDetails.size() == 3) {
             if (!"string".equals(secondParamType.toString())) {
-                dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+                dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                         + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                         ": Final fragment is not valid if the second parameter is not a string");
             } else if (!"boolean".equals(paramDetails.get(2).type.toString())) {
-                dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+                dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                         + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                         ": The third parameter should be a boolean");
             }
@@ -106,12 +106,12 @@ public abstract class WebSocketResourceValidator {
     private void validateOnBinaryResource() {
         validateParamDetailsSize();
         if (paramDetails.size() < 2 || !"byte[]".equals(paramDetails.get(1).type.toString())) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                     + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                     ": The second parameter should be a byte[]");
         }
         if (paramDetails.size() == 3 && !"boolean".equals(paramDetails.get(2).type.toString())) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                     + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                     ": The third parameter should be a boolean");
         }
@@ -120,7 +120,7 @@ public abstract class WebSocketResourceValidator {
     private void validateOnPingPongResource() {
         validateParamDetailsSize(2);
         if (paramDetails.size() < 2 || !"byte[]".equals(paramDetails.get(1).type.toString())) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                     + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                     ": The second parameter should be a byte[]");
         }
@@ -129,12 +129,12 @@ public abstract class WebSocketResourceValidator {
     private void validateOnCloseResource() {
         validateParamDetailsSize(3);
         if (paramDetails.size() < 2 || TypeTags.INT != paramDetails.get(1).type.tag) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR +
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR +
                     resource.getName().getValue() + RESOURCE_IN_SERVICE +
                     ": The second parameter should be an int");
         }
         if (paramDetails.size() < 3 || TypeTags.STRING != paramDetails.get(2).type.tag) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                     + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                     ": The third parameter should be a string");
         }
@@ -143,7 +143,7 @@ public abstract class WebSocketResourceValidator {
     private void validateOnErrorResource() {
         validateParamDetailsSize(2);
         if (paramDetails.size() < 2 || !"error".equals(paramDetails.get(1).type.toString())) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, String.format(
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, String.format(
                     "Invalid resource signature for %s resource in service : The second parameter should be an error",
                     resource.getName().getValue()));
         }
@@ -151,7 +151,7 @@ public abstract class WebSocketResourceValidator {
 
     private void validateParamDetailsSize(int expectedSize) {
         if (paramDetails == null || paramDetails.size() != expectedSize) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                     + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                     ": Expected parameter count = " + expectedSize);
         }
@@ -159,7 +159,7 @@ public abstract class WebSocketResourceValidator {
 
     private void validateParamDetailsSize() {
         if (paramDetails == null || paramDetails.size() < 2 || paramDetails.size() > 3) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                     + resource.getName().getValue() + RESOURCE_IN_SERVICE + ": Unexpected parameter count");
         }
     }
