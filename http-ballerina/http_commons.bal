@@ -254,7 +254,8 @@ isolated function uuid() returns string {
 isolated function addObservabilityInformation(string path, string method, int statusCode, string url) {
     error? err = observe:addTagToSpan(HTTP_URL, path);
     err = observe:addTagToSpan(HTTP_METHOD, method);
-    err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
+    err = observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
+    err = observe:addTagToSpan(HTTP_STATUS_CODE, statusCode.toString());
     err = observe:addTagToSpan(HTTP_BASE_URL, url);
 }
 
