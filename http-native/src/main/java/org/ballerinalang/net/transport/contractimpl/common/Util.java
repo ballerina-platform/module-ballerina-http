@@ -40,6 +40,8 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.HttpConversionUtil;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
 import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
 import io.netty.handler.ssl.SslContext;
@@ -416,6 +418,23 @@ public class Util {
                 .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
         SslHandler sslHandler = sslContext.newHandler(socketChannel.alloc(), host, port);
         return sslHandler.engine();
+    }
+
+    /**
+     * Creates an insecure ssl engine for clients connecting over HTTP2
+     *
+     * @return insecure ssl context
+     * @throws SSLException if any error occurs in the SSL connection
+     */
+    public static SslContext createInsecureSslEngineForHttp2() throws SSLException {
+        SslContextBuilder sslContextBuilder = SslContextBuilder.forClient().sslProvider(SslProvider.OPENSSL)
+                .trustManager(InsecureTrustManagerFactory.INSTANCE);
+        sslContextBuilder.applicationProtocolConfig(
+                new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
+                        ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                        ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                        ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1));
+        return sslContextBuilder.build();
     }
 
     /**
