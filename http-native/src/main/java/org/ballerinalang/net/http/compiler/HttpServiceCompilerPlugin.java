@@ -16,6 +16,7 @@
  */
 package org.ballerinalang.net.http.compiler;
 
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import org.ballerinalang.compiler.plugins.AbstractCompilerPlugin;
 import org.ballerinalang.compiler.plugins.SupportedResourceParamTypes;
 import org.ballerinalang.mime.util.MimeUtil;
@@ -24,7 +25,6 @@ import org.ballerinalang.model.tree.ServiceNode;
 import org.ballerinalang.model.tree.expressions.ExpressionNode;
 import org.ballerinalang.model.tree.expressions.RecordLiteralNode;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
-import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangAnnotationAttachment;
 import org.wso2.ballerinalang.compiler.tree.BLangFunction;
@@ -80,7 +80,7 @@ public class HttpServiceCompilerPlugin extends AbstractCompilerPlugin {
             }
         }
         if (serviceConfigCount > 1) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, serviceNode.getPosition(),
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, serviceNode.getPosition(),
                                "multiple service configuration annotations found in service : " +
                                        serviceNode.getName().getValue());
         }
@@ -105,7 +105,7 @@ public class HttpServiceCompilerPlugin extends AbstractCompilerPlugin {
             // Validate compression configuration
             if (checkMatchingConfigKey(keyValue, ANN_CONFIG_ATTR_COMPRESSION.getValue())) {
                 if (compressionConfigCount++ == 1) {
-                    dlog.logDiagnostic(Diagnostic.Kind.ERROR, serviceNode.getPosition(),
+                    dlog.logDiagnostic(DiagnosticSeverity.ERROR, serviceNode.getPosition(),
                                        "Invalid multiple configurations for compression");
                     return;
                 }
@@ -121,7 +121,7 @@ public class HttpServiceCompilerPlugin extends AbstractCompilerPlugin {
                         for (ExpressionNode expressionNode : valueArray.getExpressions()) {
                             String contentType = expressionNode.toString();
                             if (!MimeUtil.isValidateContentType(contentType)) {
-                                dlog.logDiagnostic(Diagnostic.Kind.ERROR, serviceNode.getPosition(),
+                                dlog.logDiagnostic(DiagnosticSeverity.ERROR, serviceNode.getPosition(),
                                                    "Invalid Content-Type value for compression: '" + contentType + "'");
                                 return;
                             }
