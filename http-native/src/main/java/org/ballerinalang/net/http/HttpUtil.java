@@ -50,6 +50,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.CharsetUtil;
 import org.ballerinalang.config.ConfigRegistry;
 import org.ballerinalang.mime.util.EntityBodyChannel;
 import org.ballerinalang.mime.util.EntityBodyHandler;
@@ -97,6 +98,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -332,7 +334,7 @@ public class HttpUtil {
         HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
         for (String key : httpHeaders.names()) {
             String[] values = httpHeaders.getAll(key).toArray(new String[0]);
-            headers.put(fromString(key.toLowerCase()),
+            headers.put(fromString(key.toLowerCase(Locale.getDefault())),
                         new ArrayValueImpl(io.ballerina.runtime.api.StringUtils.fromStringArray(values)));
         }
         entity.set(HEADERS_MAP_FIELD, headers);
@@ -490,7 +492,8 @@ public class HttpUtil {
         response.waitAndReleaseAllEntities();
         if (payload != null) {
             payload = lowerCaseTheFirstLetter(payload);
-            response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(payload.getBytes())));
+            response.addHttpContent(
+                    new DefaultLastHttpContent(Unpooled.wrappedBuffer(payload.getBytes(CharsetUtil.UTF_8))));
         } else {
             response.addHttpContent(new DefaultLastHttpContent());
         }
@@ -779,7 +782,8 @@ public class HttpUtil {
             local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
         }
         httpCaller.set(HttpConstants.LOCAL_STRUCT_INDEX, local);
-        httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD, fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
+        httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD,
+                       fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_CONFIG_FIELD, config);
         httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, httpResource.getParentService());
         httpCaller.addNativeData(HttpConstants.REMOTE_SOCKET_ADDRESS, remoteSocketAddress);
@@ -796,15 +800,18 @@ public class HttpUtil {
         inboundResponse.addNativeData(TRANSPORT_MESSAGE, inboundResponseMsg);
         int statusCode = inboundResponseMsg.getHttpStatusCode();
         inboundResponse.set(RESPONSE_STATUS_CODE_FIELD, (long) statusCode);
-        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD, fromString(HttpResponseStatus.valueOf(statusCode).reasonPhrase()));
+        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD,
+                            fromString(HttpResponseStatus.valueOf(statusCode).reasonPhrase()));
 
         if (inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) != null) {
-            inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD, fromString(inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString())));
+            inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD,
+                                fromString(inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString())));
             inboundResponseMsg.removeHeader(HttpHeaderNames.SERVER.toString());
         }
 
         if (inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI) != null) {
-            inboundResponse.set(RESOLVED_REQUESTED_URI_FIELD, fromString(inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI).toString()));
+            inboundResponse.set(RESOLVED_REQUESTED_URI_FIELD,
+                                fromString(inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI).toString()));
         }
 
         String cacheControlHeader = inboundResponseMsg.getHeader(CACHE_CONTROL.toString());
@@ -1010,7 +1017,8 @@ public class HttpUtil {
     }
 
     private static boolean isContentTypeMatched(List<String> contentTypes, String contentType) {
-        return contentType != null && contentTypes.stream().anyMatch(contentType.toLowerCase()::contains);
+        return contentType != null && contentTypes.stream().anyMatch(
+                contentType.toLowerCase(Locale.getDefault())::contains);
     }
 
     private static List<String> getAsStringList(Object[] values) {
@@ -1019,7 +1027,7 @@ public class HttpUtil {
             return valuesList;
         }
         for (Object val : values) {
-            valuesList.add(val.toString().trim().toLowerCase());
+            valuesList.add(val.toString().trim().toLowerCase(Locale.getDefault()));
         }
         return valuesList;
     }

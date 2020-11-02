@@ -122,7 +122,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             httpResource = tryMatchingToDefaultVerb(resources);
         }
         if (httpResource == null) {
-            isOptionsRequest = setAllowHeadersIfOPTIONS(httpMethod, carbonMessage);
+            isOptionsRequest = setAllowHeadersIfOPTIONS(resources, httpMethod, carbonMessage);
         }
         if (httpResource != null) {
             return httpResource;
@@ -144,18 +144,18 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         return null;
     }
 
-    private boolean setAllowHeadersIfOPTIONS(String httpMethod, HttpCarbonMessage cMsg) {
+    private boolean setAllowHeadersIfOPTIONS(List<HttpResource> resources, String httpMethod, HttpCarbonMessage cMsg) {
         if (httpMethod.equals(HttpConstants.HTTP_METHOD_OPTIONS)) {
-            cMsg.setHeader(HttpHeaderNames.ALLOW.toString(), getAllowHeaderValues(cMsg));
+            cMsg.setHeader(HttpHeaderNames.ALLOW.toString(), getAllowHeaderValues(resources, cMsg));
             return true;
         }
         return false;
     }
 
-    private String getAllowHeaderValues(HttpCarbonMessage cMsg) {
+    private String getAllowHeaderValues(List<HttpResource> resources, HttpCarbonMessage cMsg) {
         List<String> methods = new ArrayList<>();
         List<HttpResource> resourceInfos = new ArrayList<>();
-        for (HttpResource resourceInfo : this.resource) {
+        for (HttpResource resourceInfo : resources) {
             if (resourceInfo.getMethods() != null) {
                 methods.addAll(resourceInfo.getMethods());
             }

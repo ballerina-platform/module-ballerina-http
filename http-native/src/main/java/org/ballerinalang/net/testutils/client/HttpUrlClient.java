@@ -29,7 +29,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
@@ -85,13 +84,8 @@ public class HttpUrlClient {
         try {
             urlConnection = getURLConnection(endpoint);
             setHeadersAndMethod(urlConnection, headers, TestConstant.HTTP_METHOD_POST);
-            OutputStream out = urlConnection.getOutputStream();
-            try {
-                Writer writer = new OutputStreamWriter(out, TestConstant.CHARSET_NAME);
+            try (Writer writer = new OutputStreamWriter(urlConnection.getOutputStream(), TestConstant.CHARSET_NAME)) {
                 writer.write(postBody);
-                writer.close();
-            } finally {
-                out.close();
             }
             return buildResponse(urlConnection);
         } finally {
@@ -124,8 +118,7 @@ public class HttpUrlClient {
             urlConnection.setRequestProperty(HttpHeaderNames.CONTENT_TYPE.toString(),
                                              HttpHeaderValues.MULTIPART_FORM_DATA + "; boundary=" + boundary);
 
-            try (OutputStream out = urlConnection.getOutputStream()) {
-                Writer writer = new OutputStreamWriter(out, TestConstant.CHARSET_NAME);
+            try (Writer writer = new OutputStreamWriter(urlConnection.getOutputStream(), TestConstant.CHARSET_NAME)) {
                 for (Map.Entry<String, String> data : formData.entrySet()) {
                     writer.append("--" + boundary).append(lineFeed);
                     writer.append("Content-Disposition: form-data; name=\"" + data.getKey() + "\"")
@@ -138,7 +131,6 @@ public class HttpUrlClient {
                 }
                 writer.append(lineFeed).flush();
                 writer.append("--" + boundary + "--").append(lineFeed);
-                writer.close();
             }
             return buildResponse(urlConnection);
         } finally {
@@ -201,12 +193,9 @@ public class HttpUrlClient {
     private static HttpResponse buildResponse(HttpURLConnection conn,
                                               CheckedFunction<BufferedReader, String> responseBuilder,
                                               boolean throwError) throws IOException {
-        HttpResponse httpResponse;
-        BufferedReader rd = null;
         String responseData;
-        try {
-            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()
-                    , Charset.defaultCharset()));
+        try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream(),
+                                                                          Charset.defaultCharset()))) {
             responseData = responseBuilder.apply(rd);
         } catch (IOException ex) {
             if (conn.getErrorStream() == null) {
@@ -220,21 +209,18 @@ public class HttpUrlClient {
                     return null;
                 }
             }
-            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()
-                    , Charset.defaultCharset()));
-            String line;
-            StringBuilder sb = new StringBuilder();
-            while ((line = rd.readLine()) != null) {
-                sb.append(line);
-            }
-            responseData = sb.toString();
-        } finally {
-            if (rd != null) {
-                rd.close();
+            try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream(),
+                                                                              Charset.defaultCharset()))) {
+                String line;
+                StringBuilder sb = new StringBuilder();
+                while ((line = rd.readLine()) != null) {
+                    sb.append(line);
+                }
+                responseData = sb.toString();
             }
         }
         Map<String, String> responseHeaders = readHeaders(conn);
-        httpResponse = new HttpResponse(responseData, conn.getResponseCode(), responseHeaders);
+        HttpResponse httpResponse = new HttpResponse(responseData, conn.getResponseCode(), responseHeaders);
         httpResponse.setResponseMessage(conn.getResponseMessage());
         return httpResponse;
     }

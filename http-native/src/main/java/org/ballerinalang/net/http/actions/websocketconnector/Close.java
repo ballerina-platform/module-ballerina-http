@@ -79,8 +79,8 @@ public class Close {
         return null;
     }
 
-    private static ChannelFuture initiateConnectionClosure(List<WebSocketException> errors, int statusCode, String reason,
-                                                           WebSocketConnectionInfo connectionInfo,
+    private static ChannelFuture initiateConnectionClosure(List<WebSocketException> errors, int statusCode,
+                                                           String reason, WebSocketConnectionInfo connectionInfo,
                                                            CountDownLatch latch) throws IllegalAccessException {
         WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
         ChannelFuture closeFuture;

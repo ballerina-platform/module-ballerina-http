@@ -51,13 +51,15 @@ public class WebSocketException extends ErrorValue {
     }
 
     public WebSocketException(String message, BMap<BString, Object> details, String typeIdName) {
-        super(new BErrorType(TypeConstants.ERROR, PredefinedTypes.TYPE_ERROR.getPackage(), TypeChecker.getType(details)),
+        super(new BErrorType(TypeConstants.ERROR, PredefinedTypes.TYPE_ERROR.getPackage(),
+                             TypeChecker.getType(details)),
               StringUtils.fromString(message), null, details, typeIdName, WebSocketConstants.PROTOCOL_HTTP_PKG_ID);
         this.message = message;
     }
 
     public WebSocketException(String message, BError cause, BMap<BString, Object> details, String typeIdName) {
-        super(new BErrorType(TypeConstants.ERROR, PredefinedTypes.TYPE_ERROR.getPackage(), TypeChecker.getType(details)),
+        super(new BErrorType(TypeConstants.ERROR, PredefinedTypes.TYPE_ERROR.getPackage(),
+                             TypeChecker.getType(details)),
               StringUtils.fromString(message), cause, details, typeIdName, WebSocketConstants.PROTOCOL_HTTP_PKG_ID);
         this.message = message;
     }

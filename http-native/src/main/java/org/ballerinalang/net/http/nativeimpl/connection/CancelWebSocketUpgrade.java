@@ -36,14 +36,15 @@ import org.slf4j.LoggerFactory;
 public class CancelWebSocketUpgrade {
     private static final Logger log = LoggerFactory.getLogger(CancelWebSocketUpgrade.class);
 
-    public static Object cancelWebSocketUpgrade(Environment env, BObject connectionObj, long statusCode, BString reason) {
+    public static Object cancelWebSocketUpgrade(Environment env, BObject connectionObj, long statusCode,
+                                                BString reason) {
         Future balFuture = env.markAsync();
         try {
             WebSocketHandshaker webSocketHandshaker =
                     (WebSocketHandshaker) connectionObj.getNativeData(WebSocketConstants.WEBSOCKET_HANDSHAKER);
             if (webSocketHandshaker == null) {
                 WebSocketUtil.setNotifyFailure("Not a WebSocket upgrade request. " +
-                        "Cannot cancel the request", balFuture);
+                                                       "Cannot cancel the request", balFuture);
                 return null;
             }
             ChannelFuture future = webSocketHandshaker.cancelHandshake((int) statusCode, reason.getValue());
