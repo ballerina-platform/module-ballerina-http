@@ -421,7 +421,7 @@ public class Util {
     }
 
     /**
-     * Creates an insecure ssl engine for clients connecting over HTTP2
+     * Creates an insecure ssl engine for clients connecting over HTTP2.
      *
      * @return insecure ssl context
      * @throws SSLException if any error occurs in the SSL connection
