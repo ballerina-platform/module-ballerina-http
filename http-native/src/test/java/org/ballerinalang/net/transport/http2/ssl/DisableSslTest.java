@@ -39,6 +39,9 @@ import static org.ballerinalang.net.transport.contract.Constants.HTTPS_SCHEME;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0;
 import static org.ballerinalang.net.transport.util.Http2Util.getH2ListenerConfigs;
 
+/**
+ * Tests the behavior of HTTP2 client with disabled SSL.
+ */
 public class DisableSslTest {
     private static final Logger LOG = LoggerFactory.getLogger(DisableSslTest.class);
     private ServerConnector serverConnector;
