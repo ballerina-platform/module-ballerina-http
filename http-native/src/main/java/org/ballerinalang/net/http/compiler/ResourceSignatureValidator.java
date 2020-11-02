@@ -56,7 +56,8 @@ public class ResourceSignatureValidator {
         }
 
         if (!isValidResourceParam(signatureParams.get(1), HTTP_REQUEST_TYPE)) {
-            dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos, "second parameter should be of type " + HTTP_REQUEST_TYPE);
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos,
+                               "second parameter should be of type " + HTTP_REQUEST_TYPE);
         }
 
         validateResourceAnnotation(resourceNode, dlog);
