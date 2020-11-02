@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -169,7 +170,8 @@ public class HTTPServicesRegistry {
     public String findTheMostSpecificBasePath(String requestURIPath, Map<String, HttpService> services,
                                               List<String> sortedServiceURIs) {
         for (Object key : sortedServiceURIs) {
-            if (!requestURIPath.toLowerCase().contains(key.toString().toLowerCase())) {
+            if (!requestURIPath.toLowerCase(Locale.getDefault()).contains(
+                    key.toString().toLowerCase(Locale.getDefault()))) {
                 continue;
             }
             if (requestURIPath.length() <= key.toString().length()) {
@@ -196,7 +198,7 @@ public class HTTPServicesRegistry {
     /**
      * Holds both serviceByBasePath map and sorted Service basePath list.
      */
-    protected class ServicesMapHolder {
+    protected static class ServicesMapHolder {
         private Map<String, HttpService> servicesByBasePath;
         private List<String> sortedServiceURIs;
 

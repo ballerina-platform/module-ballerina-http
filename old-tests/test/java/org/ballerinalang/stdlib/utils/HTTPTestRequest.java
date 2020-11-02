@@ -28,7 +28,7 @@ import org.wso2.transport.http.netty.message.HttpCarbonMessage;
  */
 public class HTTPTestRequest extends HttpCarbonMessage {
 
-    private TestCallback callback;
+    private TestCallableUnitCallback callback;
     private HttpCarbonMessage httpCarbonMessage;
     private TestHttpResponseStatusFuture testHttpResponseStatusFuture;
 
@@ -47,7 +47,7 @@ public class HTTPTestRequest extends HttpCarbonMessage {
         return testHttpResponseStatusFuture;
     }
 
-    public void setCallback(TestCallback callback) {
+    public void setCallback(TestCallableUnitCallback callback) {
         this.callback = callback;
         if (httpCarbonMessage != null) {
             this.callback.setResponseMsg(httpCarbonMessage);

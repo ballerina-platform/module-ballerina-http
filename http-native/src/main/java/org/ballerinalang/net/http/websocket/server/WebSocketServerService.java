@@ -75,7 +75,7 @@ public class WebSocketServerService extends WebSocketService {
 
     @SuppressWarnings(WebSocketConstants.UNCHECKED)
     private BMap<BString, Object> getServiceConfigAnnotation() {
-        return (BMap<BString, Object>) ((BAnnotatableType)service.getType()).getAnnotation(
+        return (BMap<BString, Object>) ((BAnnotatableType) service.getType()).getAnnotation(
                 HttpConstants.PROTOCOL_PACKAGE_HTTP, WebSocketConstants.WEBSOCKET_ANNOTATION_CONFIGURATION);
     }
 

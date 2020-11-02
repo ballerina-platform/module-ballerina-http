@@ -99,49 +99,49 @@ target = "java11"
 
     [[platform.libraries]]
     artifactId = "commons-pool"
-    version = "1.5.6.wso2v1"
-    path = "./lib/commons-pool-1.5.6.wso2v1.jar"
+    version = "@commmon.pool.version@"
+    path = "./lib/commons-pool-@commmon.pool.version@.jar"
     groupId = "commons-pool.wso2"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "snakeyaml"
-    version = "1.16.0.wso2v1"
-    path = "./lib/snakeyaml-1.16.0.wso2v1.jar"
+    version = "@snakeyaml.version@"
+    path = "./lib/snakeyaml-@snakeyaml.version@.jar"
     groupId = "org.wso2.orbit.org.yaml"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "bcprov-jdk15on"
-    version = "1.61"
-    path = "./lib/bcprov-jdk15on-1.61.jar"
+    version = "@bouncycastle.version@"
+    path = "./lib/bcprov-jdk15on-@bouncycastle.version@.jar"
     groupId = "org.bouncycastle"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "bcpkix-jdk15on"
-    version = "1.61"
-    path = "./lib/bcpkix-jdk15on-1.61.jar"
+    version = "@bouncycastle.version@"
+    path = "./lib/bcpkix-jdk15on-@bouncycastle.version@.jar"
     groupId = "org.bouncycastle"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "netty-tcnative-boringssl-static"
-    version = "2.0.25.Final"
-    path = "./lib/netty-tcnative-boringssl-static-2.0.25.Final.jar"
+    version = "@tcnative.version@"
+    path = "./lib/netty-tcnative-boringssl-static-@tcnative.version@.jar"
     groupId = "io.netty"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "mimepull"
-    version = "1.9.11"
-    path = "./lib/mimepull-1.9.11.jar"
+    version = "@mimepull.version@"
+    path = "./lib/mimepull-@mimepull.version@.jar"
     groupId = "org.jvnet.mimepull"
     modules = ["http"]
 
     [[platform.libraries]]
     artifactId = "org.testng"
-    version = "6.14.3"
-    path = "./lib/testng-6.14.3.jar"
+    version = "@testng.version@"
+    path = "./lib/testng-@testng.version@.jar"
     groupId = "org.testng"
     modules = ["http-tests"]

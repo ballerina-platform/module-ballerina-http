@@ -35,7 +35,8 @@ import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_SERVICE_U
  */
 public class Submit extends Execute {
     @SuppressWarnings("unchecked")
-    public static Object submit(Environment env, BObject httpClient, BString httpVerb, BString path, BObject requestObj) {
+    public static Object submit(Environment env, BObject httpClient, BString httpVerb, BString path,
+                                BObject requestObj) {
         Strand strand = Scheduler.getStrand();
         String url = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue();
         BMap<BString, Object> config = (BMap<BString, Object>) httpClient.get(CLIENT_ENDPOINT_CONFIG);

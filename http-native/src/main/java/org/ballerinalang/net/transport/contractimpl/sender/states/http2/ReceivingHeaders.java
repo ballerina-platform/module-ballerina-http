@@ -50,7 +50,7 @@ import static io.netty.handler.codec.http.HttpHeaderNames.TRAILER;
 import static org.ballerinalang.net.transport.contract.Constants.DIRECTION;
 import static org.ballerinalang.net.transport.contract.Constants.DIRECTION_RESPONSE;
 import static org.ballerinalang.net.transport.contract.Constants.EXECUTOR_WORKER_POOL;
-import static org.ballerinalang.net.transport.contract.Constants.HTTP2_METHOD;
+import static org.ballerinalang.net.transport.contract.Constants.HTTP2_STATUS;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_VERSION_2_0;
 import static org.ballerinalang.net.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static org.ballerinalang.net.transport.contract.Constants.INBOUND_RESPONSE;
@@ -161,10 +161,10 @@ public class ReceivingHeaders implements SenderState {
             HttpCarbonResponse responseMessage = outboundMsgHolder.getPushResponse(streamId);
             if (responseMessage != null) {
                 onTrailersRead(streamId, http2Headers, outboundMsgHolder, responseMessage);
-            } else if (http2Headers.contains(HTTP2_METHOD)) {
+            } else if (http2Headers.contains(HTTP2_STATUS)) {
                 // if the header frame is an initial header frame and also it has endOfStream
                 responseMessage = setupResponseCarbonMessage(ctx, streamId, http2Headers, outboundMsgHolder);
-                responseMessage.addHttpContent(new DefaultLastHttpContent());
+                onTrailersRead(streamId, http2Headers, outboundMsgHolder, responseMessage);
                 outboundMsgHolder.addPushResponse(streamId, responseMessage);
             }
             http2ClientChannel.removePromisedMessage(streamId);
@@ -186,10 +186,10 @@ public class ReceivingHeaders implements SenderState {
             HttpCarbonResponse responseMessage = outboundMsgHolder.getResponse();
             if (responseMessage != null) {
                 onTrailersRead(streamId, http2Headers, outboundMsgHolder, responseMessage);
-            } else if (http2Headers.contains(HTTP2_METHOD)) {
+            } else if (http2Headers.contains(HTTP2_STATUS)) {
                 // if the header frame is an initial header frame and also it has endOfStream
                 responseMessage = setupResponseCarbonMessage(ctx, streamId, http2Headers, outboundMsgHolder);
-                responseMessage.addHttpContent(new DefaultLastHttpContent());
+                onTrailersRead(streamId, http2Headers, outboundMsgHolder, responseMessage);
                 outboundMsgHolder.setResponse(responseMessage);
             }
             http2ClientChannel.removeInFlightMessage(streamId);
