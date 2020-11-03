@@ -18,8 +18,8 @@
 
 package org.ballerinalang.net.http.compiler.websocket;
 
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
-import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangFunction;
 
@@ -39,7 +39,7 @@ class WebSocketServiceResourceValidator extends WebSocketResourceValidator {
     void validateEndpointParameter() {
         if (paramDetails != null && !paramDetails.isEmpty() && !WebSocketConstants.WEBSOCKET_CALLER_NAME.equals(
                 paramDetails.get(0).type.toString())) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resource.pos, INVALID_RESOURCE_SIGNATURE_FOR
                     + resource.getName().getValue() + RESOURCE_IN_SERVICE +
                     ": The first parameter should be a " + WebSocketConstants.WEBSOCKET_CALLER_NAME);
         }

@@ -17,6 +17,7 @@
 
 package org.ballerinalang.net.http.compiler.websocket;
 
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import org.ballerinalang.compiler.plugins.AbstractCompilerPlugin;
 import org.ballerinalang.compiler.plugins.SupportedResourceParamTypes;
 import org.ballerinalang.model.tree.AnnotationAttachmentNode;
@@ -24,7 +25,6 @@ import org.ballerinalang.model.tree.ServiceNode;
 import org.ballerinalang.model.tree.expressions.RecordLiteralNode;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
-import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangFunction;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangExpression;
@@ -85,7 +85,7 @@ public class WebSocketServiceCompilerPlugin extends AbstractCompilerPlugin {
             }
         }
         if (count > 1) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, serviceNode.getPosition(),
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, serviceNode.getPosition(),
                                "There cannot be more than one " + WebSocketConstants.WEBSOCKET_SERVICE +
                                        " annotations");
         }
@@ -103,7 +103,7 @@ public class WebSocketServiceCompilerPlugin extends AbstractCompilerPlugin {
             BLangExpression valueExpr = pathPair.get().valueExpr;
             String pathParam = valueExpr.toString();
             if (pathParam.contains("{") || pathParam.contains("}")) {
-                dlog.logDiagnostic(Diagnostic.Kind.ERROR, valueExpr.getPosition(),
+                dlog.logDiagnostic(DiagnosticSeverity.ERROR, valueExpr.getPosition(),
                                    "Path params are not supported in service path");
             }
         }
