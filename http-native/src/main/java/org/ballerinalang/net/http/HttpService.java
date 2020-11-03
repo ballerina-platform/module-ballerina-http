@@ -34,10 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -298,7 +297,7 @@ public class HttpService implements Cloneable {
             matchMajorVersionAnnotValue = versioningConfig.getBooleanValue(
                     HttpConstants.ANN_CONFIG_ATTR_MATCH_MAJOR_VERSION);
         }
-        patternAnnotValue = patternAnnotValue.toLowerCase();
+        patternAnnotValue = patternAnnotValue.toLowerCase(Locale.getDefault());
         basePathList.add(replaceServiceVersion(basePath, packageVersion, patternAnnotValue));
 
         if (allowNoVersionAnnotValue) {
@@ -313,7 +312,7 @@ public class HttpService implements Cloneable {
     }
 
     private static String replaceServiceVersion(String basePath, String version, String pattern) {
-        pattern = pattern.toLowerCase();
+        pattern = pattern.toLowerCase(Locale.getDefault());
         String[] versionElements = version.split("\\.");
         String majorVersion = versionElements[0];
         String minorVersion = versionElements.length > 1 ? versionElements[1] : "";
@@ -335,20 +334,11 @@ public class HttpService implements Cloneable {
     protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
                                                      String annotationName) {
         return (BMap) ((BAnnotatableType) service.getType())
-                .getAnnotation(packagePath.replaceAll(HttpConstants.REGEX,HttpConstants.SINGLE_SLASH), annotationName);
+                .getAnnotation(packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH), annotationName);
     }
 
     private static boolean hasInterruptibleAnnotation(BObject service) {
-        return ((BAnnotatableType)service.getType())
+        return ((BAnnotatableType) service.getType())
                 .getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
-    }
-
-    private String urlDecode(String basePath) {
-        try {
-            basePath = URLDecoder.decode(basePath, StandardCharsets.UTF_8.name());
-        } catch (UnsupportedEncodingException e) {
-            throw new BallerinaConnectorException(e.getMessage());
-        }
-        return basePath;
     }
 }

@@ -365,7 +365,8 @@ public class WebSocketResourceDispatcher {
             WebSocketUtil.setListenerOpenField(connectionInfo);
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            AttachedFunctionType onCloseResource = wsService.getResourceByName(WebSocketConstants.RESOURCE_NAME_ON_CLOSE);
+            AttachedFunctionType onCloseResource = wsService.getResourceByName(
+                    WebSocketConstants.RESOURCE_NAME_ON_CLOSE);
             int closeCode = closeMessage.getCloseCode();
             String closeReason = closeMessage.getCloseReason();
 

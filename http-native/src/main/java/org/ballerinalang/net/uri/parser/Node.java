@@ -113,10 +113,6 @@ public abstract class Node<DataType, InboundMsgType> {
         return false;
     }
 
-    private boolean hasDataElement(DataElement<DataType, InboundMsgType> dataElement) {
-        return dataElement != null && dataElement.hasData();
-    }
-
     private void setUriPostFix(HttpResourceArguments variables, String subUriFragment) {
         variables.getMap().putIfAbsent(HttpConstants.EXTRA_PATH_INFO, "/" + subUriFragment);
     }

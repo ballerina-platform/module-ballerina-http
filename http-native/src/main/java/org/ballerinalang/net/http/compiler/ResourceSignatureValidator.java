@@ -1,18 +1,18 @@
 package org.ballerinalang.net.http.compiler;
 
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.tools.diagnostics.Location;
 import org.ballerinalang.model.tree.AnnotationAttachmentNode;
 import org.ballerinalang.model.tree.FunctionNode;
 import org.ballerinalang.model.tree.SimpleVariableNode;
 import org.ballerinalang.model.tree.expressions.LiteralNode;
 import org.ballerinalang.model.tree.expressions.RecordLiteralNode;
 import org.ballerinalang.net.http.HttpConstants;
-import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangSimpleVariable;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangExpression;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangRecordLiteral;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangSimpleVarRef;
-import org.wso2.ballerinalang.compiler.util.diagnotic.DiagnosticPos;
 import org.wso2.ballerinalang.util.Lists;
 
 import java.util.ArrayList;
@@ -41,22 +41,23 @@ public class ResourceSignatureValidator {
     private static final String HTTP_REQUEST_TYPE = PROTOCOL_PACKAGE_HTTP + ":" + REQUEST;
 
     @SuppressWarnings("unchecked")
-    public static void validate(FunctionNode resourceNode, DiagnosticLog dlog, DiagnosticPos pos) {
+    public static void validate(FunctionNode resourceNode, DiagnosticLog dlog, Location pos) {
         List<BLangSimpleVariable> signatureParams = (List<BLangSimpleVariable>) resourceNode.getParameters();
         final int nParams = signatureParams.size();
 
         if (nParams < COMPULSORY_PARAM_COUNT) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos, "resource signature parameter count should be >= 2");
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos, "resource signature parameter count should be >= 2");
             return;
         }
 
         if (!isValidResourceParam(signatureParams.get(0), CALLER_TYPE)) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos, "first parameter should be of type " + CALLER_TYPE);
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos, "first parameter should be of type " + CALLER_TYPE);
             return;
         }
 
         if (!isValidResourceParam(signatureParams.get(1), HTTP_REQUEST_TYPE)) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos, "second parameter should be of type " + HTTP_REQUEST_TYPE);
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos,
+                               "second parameter should be of type " + HTTP_REQUEST_TYPE);
         }
 
         validateResourceAnnotation(resourceNode, dlog);
@@ -106,11 +107,11 @@ public class ResourceSignatureValidator {
                     // Data binding param should be placed as the last signature param
                     String signatureBodyParam = parameters.get(parameters.size() - 1).getName().getValue();
                     if (bodyFieldValue.isEmpty()) {
-                        dlog.logDiagnostic(Diagnostic.Kind.ERROR, keyValue.getValue().getPosition(),
+                        dlog.logDiagnostic(DiagnosticSeverity.ERROR, keyValue.getValue().getPosition(),
                                            "Empty data binding param value");
 
                     } else if (!signatureBodyParam.equals(bodyFieldValue)) {
-                        dlog.logDiagnostic(Diagnostic.Kind.ERROR, keyValue.getValue().getPosition(),
+                        dlog.logDiagnostic(DiagnosticSeverity.ERROR, keyValue.getValue().getPosition(),
                                            "Invalid data binding param in the signature : expected '" +
                                                    bodyFieldValue + "', but found '" + signatureBodyParam + "'");
                     }
@@ -129,7 +130,7 @@ public class ResourceSignatureValidator {
                                                  List<String> paramSegments,
                                                  BLangRecordLiteral.BLangRecordKeyValueField keyValue) {
         if (annVals.size() > 1) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resourceNode.getPosition(),
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resourceNode.getPosition(),
                                "Invalid configurations for WebSocket upgrade resource");
             return;
         }
@@ -139,13 +140,13 @@ public class ResourceSignatureValidator {
         }
 
         if (upgradeFields.isEmpty()) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resourceNode.getPosition(),
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resourceNode.getPosition(),
                                "An upgradeService need to be specified for the WebSocket upgrade " +
                                        "resource");
             return;
         }
         if (upgradeFields.size() == 1 && !(getAnnotationFieldKey(upgradeFields.get(0)).equals("upgradeService"))) {
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resourceNode.getPosition(),
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resourceNode.getPosition(),
                                "An upgradeService need to be specified for the WebSocket upgrade " +
                                        "resource");
             return;
@@ -160,7 +161,7 @@ public class ResourceSignatureValidator {
 
     private static void validateResourcePath(DiagnosticLog dlog, List<String> paramSegments,
                                              BLangRecordLiteral.BLangRecordKeyValueField keyValue) {
-        DiagnosticPos position = keyValue.getValue().getPosition();
+        Location position = keyValue.getValue().getPosition();
         List<String> segments = new ArrayList<>();
         BLangExpression valueExpr = keyValue.getValue();
         if (valueExpr instanceof LiteralNode) {
@@ -172,7 +173,7 @@ public class ResourceSignatureValidator {
         }
     }
 
-    private static void validatePathSegment(String segment, DiagnosticPos pos, DiagnosticLog dlog,
+    private static void validatePathSegment(String segment, Location pos, DiagnosticLog dlog,
                                             List<String> pathParamSegments) {
         boolean expression = false;
         int startIndex = 0;
@@ -183,28 +184,28 @@ public class ResourceSignatureValidator {
             switch (ch) {
                 case '{':
                     if (expression) {
-                        dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos,
+                        dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos,
                                            "Illegal open brace character in resource path config");
                         break;
                     }
                     if (pointerIndex + 1 >= maxIndex) {
-                        dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos,
+                        dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos,
                                            "Invalid param expression in resource path config");
                     }
                     if (pointerIndex != startIndex) {
-                        dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos, "Illegal expression in resource path config");
+                        dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos, "Illegal expression in resource path config");
                     }
                     expression = true;
                     startIndex++;
                     break;
                 case '}':
                     if (!expression) {
-                        dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos,
+                        dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos,
                                            "Illegal closing brace detected in resource path config");
                         break;
                     }
                     if (pointerIndex <= startIndex) {
-                        dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos,
+                        dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos,
                                            "Illegal empty expression in resource path config");
                     }
                     pathParamSegments.add(segment.substring(startIndex, pointerIndex));
@@ -214,11 +215,11 @@ public class ResourceSignatureValidator {
                 default:
                     if (pointerIndex == maxIndex) {
                         if (expression) {
-                            dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos, "Incomplete path param expression");
+                            dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos, "Incomplete path param expression");
                             break;
                         }
                         if (startIndex != 0 && pointerIndex == startIndex) {
-                            dlog.logDiagnostic(Diagnostic.Kind.ERROR, pos,
+                            dlog.logDiagnostic(DiagnosticSeverity.ERROR, pos,
                                                "Illegal expression in resource path config");
                         }
                     }
@@ -235,7 +236,7 @@ public class ResourceSignatureValidator {
                 .anyMatch(parameter -> signatureParam.getName().getValue().equals(parameter)))) {
             String errorMsg = "invalid resource parameter(s): cannot specify > 2 parameters without specifying " +
                     "path config and/or body config in the resource annotation";
-            dlog.logDiagnostic(Diagnostic.Kind.ERROR, resourceNode.getAnnotationAttachments().get(0).getPosition(),
+            dlog.logDiagnostic(DiagnosticSeverity.ERROR, resourceNode.getAnnotationAttachments().get(0).getPosition(),
                                errorMsg);
         }
     }

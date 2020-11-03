@@ -235,9 +235,9 @@ public client class LoadBalanceClient {
 # Represents the error attributes in addition to the message and the cause of the `LoadBalanceActionError`.
 #
 # + httpActionErr - Array of errors occurred at each endpoint
-public type LoadBalanceActionErrorData record {|
+public type LoadBalanceActionErrorData record {
     error?[] httpActionErr = [];
-|};
+};
 
 # Represents an error occurred in an remote function of the Load Balance connector.
 public type LoadBalanceActionError distinct error<LoadBalanceActionErrorData>;
