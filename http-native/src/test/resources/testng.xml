@@ -171,6 +171,7 @@
             <class name="org.ballerinalang.net.transport.http2.ssl.Http2ALPNwithCertsTest"/>
             <class name="org.ballerinalang.net.transport.http2.ssl.TestHttp2WithALPN"/>
             <class name="org.ballerinalang.net.transport.http2.ssl.Http2MutualSslTest"/>
+            <class name="org.ballerinalang.net.transport.http2.ssl.DisableSslTest"/>
             <class name="org.ballerinalang.net.transport.disablessl.SslDisabledClientTest"/>
             <class name="org.ballerinalang.net.transport.https.ServerCloseConnectionDuringSslTest"/>
         </classes>

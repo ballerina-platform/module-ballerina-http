@@ -181,6 +181,10 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
                 ch.pipeline().addLast(sslHandler);
                 ch.pipeline().addLast(new OCSPStaplingHandler(engine));
             }
+        } else if (sslConfig.isDisableSsl()) {
+            SslContext sslCtx = Util.createInsecureSslEngineForHttp2();
+            SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), httpRoute.getHost(), httpRoute.getPort());
+            clientPipeline.addLast(sslHandler);
         } else {
             sslHandlerFactory.createSSLContextFromKeystores(false);
             SslContext sslCtx = sslHandlerFactory.createHttp2TLSContextForClient(false);
