@@ -52,13 +52,8 @@ public class WebSocketObserverContext extends ObserverContext {
      */
     public void setTags(WebSocketConnectionInfo connectionInfo) {
         String clientOrServerContext = WebSocketObservabilityUtil.getClientOrServerContext(connectionInfo);
-        if (WebSocketObservabilityConstants.CONTEXT_SERVER.equals(clientOrServerContext)) {
-            addMainTag(WebSocketObservabilityConstants.TAG_CONTEXT, clientOrServerContext);
-            addMainTag(WebSocketObservabilityConstants.TAG_SERVICE, servicePathOrClientUrl);
-        } else {
-            addTag(WebSocketObservabilityConstants.TAG_CONTEXT, clientOrServerContext);
-            addTag(WebSocketObservabilityConstants.TAG_SERVICE, servicePathOrClientUrl);
-        }
+        addTag(WebSocketObservabilityConstants.TAG_CONTEXT, clientOrServerContext);
+        addTag(WebSocketObservabilityConstants.TAG_SERVICE, servicePathOrClientUrl);
     }
 
     String getConnectionId() {
