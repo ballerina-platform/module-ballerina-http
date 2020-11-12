@@ -253,8 +253,9 @@ public client class Client {
     public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getResponse(httpFuture);
         if (response is Response) {
-            error? metricErr = observe:addTagToSpan(HTTP_STATUS_CODE,response.statusCode.toString());
-            error? traceErr = observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(response.statusCode));
+            string statusCode = response.statusCode.toString();
+            error? metricErr = observe:addTagToSpan(HTTP_STATUS_CODE, statusCode);
+            error? traceErr = observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
 
         }
         return response;
