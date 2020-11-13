@@ -19,7 +19,7 @@
 package org.ballerinalang.net.http.websocket.server;
 
 import io.ballerina.runtime.api.async.Callback;
-import io.ballerina.runtime.services.ErrorHandlerUtils;
+import io.ballerina.runtime.api.values.BError;
 import org.ballerinalang.net.http.websocket.WebSocketResourceDispatcher;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.transport.contract.websocket.ServerHandshakeFuture;
@@ -67,8 +67,8 @@ public class OnUpgradeResourceCallback implements Callback {
     }
 
     @Override
-    public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
-        ErrorHandlerUtils.printError(error.getPrintableStackTrace());
+    public void notifyFailure(BError error) {
+        error.printStackTrace();
         WebSocketConnectionInfo connectionInfo =
                 connectionManager.getConnectionInfo(webSocketHandshaker.getChannelId());
         if (connectionInfo != null) {

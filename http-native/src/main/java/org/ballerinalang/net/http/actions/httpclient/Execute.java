@@ -20,8 +20,6 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
@@ -40,26 +38,23 @@ public class Execute extends AbstractHTTPAction {
     @SuppressWarnings("unchecked")
     public static Object execute(Environment env, BObject httpClient, BString verb, BString path, BObject requestObj) {
         String url = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue();
-        Strand strand = Scheduler.getStrand();
         BMap<BString, Object> config = (BMap<BString, Object>) httpClient.get(CLIENT_ENDPOINT_CONFIG);
         HttpClientConnector clientConnector = (HttpClientConnector) httpClient.getNativeData(HttpConstants.CLIENT);
-        HttpCarbonMessage outboundRequestMsg = createOutboundRequestMsg(strand, config, url, verb.getValue(),
-                                                                        path.getValue(), requestObj);
-        DataContext dataContext = new DataContext(strand, clientConnector, env.markAsync(), requestObj,
-                                                  outboundRequestMsg);
+        HttpCarbonMessage outboundRequestMsg = createOutboundRequestMsg(config, url, verb.getValue(), path.getValue(),
+                                                                        requestObj);
+        DataContext dataContext = new DataContext(env, clientConnector, requestObj, outboundRequestMsg);
         executeNonBlockingAction(dataContext, false);
         return null;
     }
 
-    protected static HttpCarbonMessage createOutboundRequestMsg(Strand strand, BMap<BString, Object> config,
-                                                                String serviceUri, String httpVerb, String path,
-                                                                BObject requestObj) {
+    protected static HttpCarbonMessage createOutboundRequestMsg(BMap<BString, Object> config, String serviceUri,
+                                                                String httpVerb, String path, BObject requestObj) {
         HttpCarbonMessage outboundRequestMsg = HttpUtil
                 .getCarbonMsg(requestObj, HttpUtil.createHttpCarbonMessage(true));
 
         HttpUtil.checkEntityAvailability(requestObj);
         HttpUtil.enrichOutboundMessage(outboundRequestMsg, requestObj);
-        prepareOutboundRequest(strand, serviceUri, path, outboundRequestMsg, isNoEntityBodyRequest(requestObj));
+        prepareOutboundRequest(serviceUri, path, outboundRequestMsg, isNoEntityBodyRequest(requestObj));
 
         // If the verb is not specified, use the verb in incoming message
         if (httpVerb == null || httpVerb.isEmpty()) {

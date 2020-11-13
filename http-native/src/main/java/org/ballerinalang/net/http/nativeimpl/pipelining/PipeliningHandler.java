@@ -18,8 +18,8 @@
 
 package org.ballerinalang.net.http.nativeimpl.pipelining;
 
-import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
 import io.netty.channel.ChannelHandlerContext;
+import org.ballerinalang.net.http.BallerinaConnectorException;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;

@@ -18,8 +18,8 @@
 
 package org.ballerinalang.net.http.actions.websocketconnector;
 
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.scheduling.Scheduler;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityConstants;
@@ -34,10 +34,10 @@ import org.slf4j.LoggerFactory;
 public class Ready {
     private static final Logger log = LoggerFactory.getLogger(Ready.class);
 
-    public static Object ready(BObject wsConnector) {
+    public static Object ready(Environment env, BObject wsConnector) {
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnector
                     .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
-        WebSocketObservabilityUtil.observeResourceInvocation(Scheduler.getStrand(), connectionInfo,
+        WebSocketObservabilityUtil.observeResourceInvocation(env, connectionInfo,
                 WebSocketConstants.RESOURCE_NAME_READY);
         try {
             boolean isReady = wsConnector.getBooleanValue(WebSocketConstants.CONNECTOR_IS_READY_FIELD);
@@ -46,8 +46,8 @@ public class Ready {
                 connectionInfo.getWebSocketEndpoint().getMapValue(WebSocketConstants.CLIENT_ENDPOINT_CONFIG).
                         put(WebSocketConstants.CLIENT_READY_ON_CONNECT, true);
             } else {
-                return WebSocketUtil.getWebSocketException("Already started reading frames", null,
-                        WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
+                return WebSocketUtil.getWebSocketError("Already started reading frames", null,
+                                                       WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
             }
         } catch (Exception e) {
             log.error("Error occurred when calling ready", e);

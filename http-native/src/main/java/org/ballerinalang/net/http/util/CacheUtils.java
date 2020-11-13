@@ -19,7 +19,7 @@
 package org.ballerinalang.net.http.util;
 
 import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 

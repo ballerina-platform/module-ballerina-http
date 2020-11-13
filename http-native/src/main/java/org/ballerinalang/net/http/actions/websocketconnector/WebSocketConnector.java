@@ -17,11 +17,9 @@ package org.ballerinalang.net.http.actions.websocketconnector;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
-import io.ballerina.runtime.values.ArrayValue;
 import io.netty.channel.ChannelFuture;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
@@ -40,11 +38,10 @@ public class WebSocketConnector {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConnector.class);
 
     public static Object externPushText(Environment env, BObject wsConnection, BString text, boolean finalFrame) {
-        Strand strand = Scheduler.getStrand();
         Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
-        WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,
+        WebSocketObservabilityUtil.observeResourceInvocation(env, connectionInfo,
                                                              WebSocketConstants.RESOURCE_NAME_PUSH_TEXT);
         try {
             ChannelFuture future = connectionInfo.getWebSocketConnection().pushText(text.getValue(), finalFrame);
@@ -62,13 +59,12 @@ public class WebSocketConnector {
         return null;
     }
 
-    public static Object pushBinary(Environment env, BObject wsConnection, ArrayValue binaryData,
+    public static Object pushBinary(Environment env, BObject wsConnection, BArray binaryData,
                                     boolean finalFrame) {
-        Strand strand = Scheduler.getStrand();
         Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
-        WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,
+        WebSocketObservabilityUtil.observeResourceInvocation(env, connectionInfo,
                                                              WebSocketConstants.RESOURCE_NAME_PUSH_BINARY);
         try {
             ChannelFuture webSocketChannelFuture = connectionInfo.getWebSocketConnection().pushBinary(
@@ -87,12 +83,11 @@ public class WebSocketConnector {
         return null;
     }
 
-    public static Object ping(Environment env, BObject wsConnection, ArrayValue binaryData) {
-        Strand strand = Scheduler.getStrand();
+    public static Object ping(Environment env, BObject wsConnection, BArray binaryData) {
         Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
-        WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,
+        WebSocketObservabilityUtil.observeResourceInvocation(env, connectionInfo,
                                                              WebSocketConstants.RESOURCE_NAME_PING);
         try {
             ChannelFuture future = connectionInfo.getWebSocketConnection().ping(ByteBuffer.wrap(binaryData.getBytes()));
@@ -110,12 +105,11 @@ public class WebSocketConnector {
         return null;
     }
 
-    public static Object pong(Environment env, BObject wsConnection, ArrayValue binaryData) {
-        Strand strand = Scheduler.getStrand();
+    public static Object pong(Environment env, BObject wsConnection, BArray binaryData) {
         Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
-        WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,
+        WebSocketObservabilityUtil.observeResourceInvocation(env, connectionInfo,
                                                              WebSocketConstants.RESOURCE_NAME_PONG);
         try {
             ChannelFuture future = connectionInfo.getWebSocketConnection().pong(ByteBuffer.wrap(binaryData.getBytes()));

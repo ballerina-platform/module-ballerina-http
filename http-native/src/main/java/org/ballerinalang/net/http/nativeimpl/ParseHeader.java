@@ -18,12 +18,13 @@
 package org.ballerinalang.net.http.nativeimpl;
 
 import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.StringUtils;
-import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.creators.TypeCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.TupleType;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.types.BTupleType;
 import org.ballerinalang.mime.util.HeaderUtil;
 import org.ballerinalang.net.http.HttpUtil;
 
@@ -41,7 +42,7 @@ import static org.ballerinalang.net.http.HttpErrorType.GENERIC_CLIENT_ERROR;
  */
 public class ParseHeader {
 
-    private static final BTupleType parseHeaderTupleType = new BTupleType(
+    private static final TupleType parseHeaderTupleType = TypeCreator.createTupleType(
             Arrays.asList(PredefinedTypes.TYPE_STRING, PredefinedTypes.TYPE_MAP));
 
     public static Object parseHeader(BString headerValue) {

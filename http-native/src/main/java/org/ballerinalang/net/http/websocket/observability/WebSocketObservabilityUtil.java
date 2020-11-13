@@ -18,8 +18,8 @@
 
 package org.ballerinalang.net.http.websocket.observability;
 
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.scheduling.Strand;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketService;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
@@ -149,16 +149,16 @@ public class WebSocketObservabilityUtil {
     }
 
     /**
-     * Observes when a new resource is invoked. In addition to metrics and logging, relevant tags are added to the
-     * span in the trace as well.
+     * Observes when a new resource is invoked. In addition to metrics and logging, relevant tags are added to the span
+     * in the trace as well.
      *
-     * @param strand            current strand
-     * @param connectionInfo    information regarding the connection.
-     * @param resource          name of the resource invoked.
+     * @param environment    the environment of the resource invoked
+     * @param connectionInfo information regarding the connection.
+     * @param resource       name of the resource invoked.
      */
-    public static void observeResourceInvocation(Strand strand, WebSocketConnectionInfo connectionInfo,
+    public static void observeResourceInvocation(Environment environment, WebSocketConnectionInfo connectionInfo,
                                                  String resource) {
-        WebSocketTracingUtil.traceResourceInvocation(strand, connectionInfo);
+        WebSocketTracingUtil.traceResourceInvocation(environment, connectionInfo);
         observeResourceInvocation(connectionInfo, resource);
     }
 

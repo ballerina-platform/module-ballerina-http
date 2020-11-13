@@ -18,8 +18,7 @@
 
 package org.ballerinalang.net.uri.parser;
 
-
-import io.ballerina.runtime.util.exceptions.BallerinaException;
+import org.ballerinalang.net.http.BallerinaConnectorException;
 
 /**
  * This class is use to set and return data in the template tree.
@@ -28,7 +27,7 @@ import io.ballerina.runtime.util.exceptions.BallerinaException;
 public class DataReturnAgent<DataType> {
 
     private DataType data;
-    private BallerinaException ballerinaException;
+    private BallerinaConnectorException ballerinaException;
 
     /**
      * Set data.
@@ -50,7 +49,7 @@ public class DataReturnAgent<DataType> {
      * Set Error.
      * @param ballerinaException the error to be set.
      */
-    public void setError(BallerinaException ballerinaException) {
+    public void setError(BallerinaConnectorException ballerinaException) {
         this.ballerinaException = ballerinaException;
     }
 
@@ -58,7 +57,7 @@ public class DataReturnAgent<DataType> {
      * Get Error.
      * @return the Throwable which caused the error.
      */
-    public BallerinaException getError() {
+    public BallerinaConnectorException getError() {
         return ballerinaException;
     }
 }

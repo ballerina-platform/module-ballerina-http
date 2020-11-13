@@ -17,14 +17,12 @@
 */
 package org.ballerinalang.net.http;
 
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.types.BAnnotatableType;
-import io.ballerina.runtime.util.Flags;
-import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.ballerinalang.net.uri.URITemplate;
@@ -203,7 +201,7 @@ public class HttpService implements Cloneable {
         List<HttpService> serviceList = new ArrayList<>();
         List<String> basePathList = new ArrayList<>();
         HttpService httpService = new HttpService(service);
-        BMap<BString, Object> serviceConfig = getHttpServiceConfigAnnotation(service);
+        BMap serviceConfig = getHttpServiceConfigAnnotation(service);
         httpService.setInterruptible(hasInterruptibleAnnotation(service));
 
         if (checkConfigAnnotationAvailability(serviceConfig)) {
@@ -259,7 +257,7 @@ public class HttpService implements Cloneable {
         List<HttpResource> httpResources = new ArrayList<>();
         List<HttpResource> upgradeToWebSocketResources = new ArrayList<>();
         for (AttachedFunctionType resource : httpService.getBalService().getType().getAttachedFunctions()) {
-            if (!Flags.isFlagOn(resource.getFlags(), Flags.RESOURCE)) {
+            if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
             BMap resourceConfigAnnotation = HttpResource.getResourceConfigAnnotation(resource);
@@ -333,12 +331,12 @@ public class HttpService implements Cloneable {
 
     protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
                                                      String annotationName) {
-        return (BMap) ((BAnnotatableType) service.getType())
-                .getAnnotation(packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH), annotationName);
+        String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
+        return (BMap) (service.getType()).getAnnotation(StringUtils.fromString(key + ":" + annotationName));
     }
 
     private static boolean hasInterruptibleAnnotation(BObject service) {
-        return ((BAnnotatableType) service.getType())
-                .getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
+        return (service.getType()).getAnnotation(
+                StringUtils.fromString(PACKAGE_BALLERINA_BUILTIN + ":" + ANN_NAME_INTERRUPTIBLE)) != null;
     }
 }

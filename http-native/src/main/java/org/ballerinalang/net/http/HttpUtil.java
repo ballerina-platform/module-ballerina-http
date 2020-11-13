@@ -18,28 +18,24 @@
 
 package org.ballerinalang.net.http;
 
-import io.ballerina.runtime.JSONGenerator;
-import io.ballerina.runtime.api.ErrorCreator;
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.utils.JsonUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BRefValue;
+import io.ballerina.runtime.api.values.BStreamingJson;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BXmlItem;
+import io.ballerina.runtime.api.values.BXmlSequence;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.runtime.scheduling.Strand;
-import io.ballerina.runtime.services.ErrorHandlerUtils;
 import io.ballerina.runtime.transactions.TransactionConstants;
-import io.ballerina.runtime.types.AttachedFunction;
-import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
-import io.ballerina.runtime.values.ArrayValue;
-import io.ballerina.runtime.values.ArrayValueImpl;
-import io.ballerina.runtime.values.MapValue;
-import io.ballerina.runtime.values.RefValue;
-import io.ballerina.runtime.values.StreamingJsonValue;
-import io.ballerina.runtime.values.XMLItem;
-import io.ballerina.runtime.values.XMLSequence;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
@@ -100,19 +96,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static io.ballerina.runtime.api.StringUtils.fromString;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
+import static io.ballerina.runtime.api.utils.StringUtils.fromString;
+import static io.ballerina.runtime.api.utils.StringUtils.fromStringArray;
+import static io.ballerina.runtime.api.utils.StringUtils.fromStringSet;
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_HOST;
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_PORT;
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
-import static io.ballerina.runtime.util.RuntimeConstants.BALLERINA_VERSION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -334,15 +331,13 @@ public class HttpUtil {
         HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
         for (String key : httpHeaders.names()) {
             String[] values = httpHeaders.getAll(key).toArray(new String[0]);
-            headers.put(fromString(key.toLowerCase(Locale.getDefault())),
-                        new ArrayValueImpl(io.ballerina.runtime.api.StringUtils.fromStringArray(values)));
+            headers.put(fromString(key.toLowerCase(Locale.getDefault())), fromStringArray(values));
         }
         entity.set(HEADERS_MAP_FIELD, headers);
 
         Set<String> distinctNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         distinctNames.addAll(httpHeaders.names());
-        entity.set(HEADER_NAMES_ARRAY_FIELD, new ArrayValueImpl(
-                io.ballerina.runtime.api.StringUtils.fromStringSet(distinctNames)));
+        entity.set(HEADER_NAMES_ARRAY_FIELD, fromStringSet(distinctNames));
     }
 
     /**
@@ -456,8 +451,7 @@ public class HttpUtil {
         return responseFuture;
     }
 
-    public static void handleFailure(HttpCarbonMessage requestMessage, BallerinaConnectorException ex) {
-        String errorMsg = ex.getMessage();
+    public static void handleFailure(HttpCarbonMessage requestMessage, String errorMsg) {
         int statusCode = getStatusCode(requestMessage, errorMsg);
         sendPipelinedResponse(requestMessage, createErrorMessage(errorMsg, statusCode));
     }
@@ -465,7 +459,7 @@ public class HttpUtil {
     static void handleFailure(HttpCarbonMessage requestMessage, BError error) {
         String errorMsg = getErrorMessage(error);
         int statusCode = getStatusCode(requestMessage, errorMsg);
-        ErrorHandlerUtils.printError("error: " + error.getPrintableStackTrace());
+        error.printStackTrace();
         sendPipelinedResponse(requestMessage, createErrorMessage(errorMsg, statusCode));
     }
 
@@ -525,7 +519,7 @@ public class HttpUtil {
      * @return Error struct
      */
     public static BError getError(Throwable throwable) {
-        if (throwable instanceof ClientConnectorException) {
+        if (throwable.getCause() instanceof ClientConnectorException) {
             return createHttpError(throwable);
         }
         if (throwable.getMessage() == null) {
@@ -889,7 +883,7 @@ public class HttpUtil {
         BMap<BString, Object> entityHeaders = EntityHeaderHandler.getEntityHeaderMap(entityObj);
 
         for (BString entryKey : entityHeaders.getKeys()) {
-            ArrayValueImpl entryValues = (ArrayValueImpl) entityHeaders.get(entryKey);
+            BArray entryValues = (BArray) entityHeaders.get(entryKey);
             if (entryValues.size() > 1) {
                 Iterator<String> valueIterator = Arrays.stream(entryValues.getStringArray()).map(String::valueOf)
                         .iterator();
@@ -1122,8 +1116,8 @@ public class HttpUtil {
     }
 
     public static BMap getTransactionConfigAnnotation(AttachedFunctionType resource, String transactionPackagePath) {
-        return (BMap) ((AttachedFunction) resource).getAnnotation(transactionPackagePath,
-                                                                  TransactionConstants.ANN_NAME_TRX_PARTICIPANT_CONFIG);
+        return (BMap) resource.getAnnotation(StringUtils.fromString(
+                transactionPackagePath + ":" + TransactionConstants.ANN_NAME_TRX_PARTICIPANT_CONFIG));
     }
 
     private static int getIntValue(long val) {
@@ -1177,21 +1171,22 @@ public class HttpUtil {
         return DefaultHttpWsConnectorFactoryHolder.getHttpConnectorFactory();
     }
 
-    public static void checkAndObserveHttpRequest(Strand strand, HttpCarbonMessage message) {
-        Optional<ObserverContext> observerContext = ObserveUtils.getObserverContextOfCurrentFrame(strand);
-        observerContext.ifPresent(ctx -> {
-            HttpUtil.injectHeaders(message, ObserveUtils.getContextProperties(ctx));
-            ctx.addTag(TAG_KEY_HTTP_METHOD, message.getHttpMethod());
-            ctx.addTag(TAG_KEY_HTTP_URL, String.valueOf(message.getProperty(HttpConstants.TO)));
-            ctx.addTag(TAG_KEY_PEER_ADDRESS,
+    public static void checkAndObserveHttpRequest(Environment environment, HttpCarbonMessage message) {
+        ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(environment);
+
+        if (observerContext != null) {
+            HttpUtil.injectHeaders(message, ObserveUtils.getContextProperties(observerContext));
+            observerContext.addTag(TAG_KEY_HTTP_METHOD, message.getHttpMethod());
+            observerContext.addTag(TAG_KEY_HTTP_URL, String.valueOf(message.getProperty(HttpConstants.TO)));
+            observerContext.addTag(TAG_KEY_PEER_ADDRESS,
                        message.getProperty(PROPERTY_HTTP_HOST) + ":" + message.getProperty(PROPERTY_HTTP_PORT));
             // Add HTTP Status Code tag. The HTTP status code will be set using the response message.
             // Sometimes the HTTP status code will not be set due to errors etc. Therefore, it's very important to set
             // some value to HTTP Status Code to make sure that tags will not change depending on various
             // circumstances.
             // HTTP Status code must be a number.
-            ctx.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, 0);
-        });
+            observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, 0);
+        }
     }
 
     public static void injectHeaders(HttpCarbonMessage msg, Map<String, String> headers) {
@@ -1416,10 +1411,10 @@ public class HttpUtil {
         sslConfiguration.setHostNameVerificationEnabled(hostNameVerificationEnabled);
 
         sslConfiguration.setSslSessionTimeOut(
-                (int) (((MapValue) secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT)));
+                (int) ((secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT)));
 
         sslConfiguration.setSslHandshakeTimeOut(
-                ((MapValue) secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
+                (secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
 
         Object[] cipherConfigs = secureSocket.getArrayValue(HttpConstants.SSL_CONFIG_CIPHERS).getStringArray();
         if (cipherConfigs != null) {
@@ -1470,9 +1465,7 @@ public class HttpUtil {
     public static void serializeDataSource(Object outboundMessageSource, BObject entity,
                                            OutputStream messageOutputStream) throws IOException {
         if (MimeUtil.generateAsJSON(outboundMessageSource, entity)) {
-            JSONGenerator gen = new JSONGenerator(messageOutputStream);
-            gen.serialize(outboundMessageSource);
-            gen.flush();
+            JsonUtils.serialize(outboundMessageSource, messageOutputStream);
         } else {
             serialize(outboundMessageSource, messageOutputStream);
         }
@@ -1482,25 +1475,25 @@ public class HttpUtil {
         //TODO check the possibility of value being null
         if (value == null) {
             throw createHttpError("error occurred while serializing null data");
-        } else if (value instanceof ArrayValue) {
-            if (value instanceof StreamingJsonValue) {
-                ((StreamingJsonValue) value).serialize(outputStream);
+        } else if (value instanceof BArray) {
+            if (value instanceof BStreamingJson) {
+                ((BStreamingJson) value).serialize(outputStream);
             } else {
-                ((ArrayValue) value).serialize(outputStream);
+                ((BArray) value).serialize(outputStream);
             }
         } else if (value instanceof MultipartDataSource) {
             ((MultipartDataSource) value).serialize(outputStream);
-        } else if (value instanceof XMLItem) {
-            ((XMLItem) value).serialize(outputStream);
-        } else if (value instanceof XMLSequence) {
-            ((XMLSequence) value).serialize(outputStream);
+        } else if (value instanceof BXmlItem) {
+            ((BXmlItem) value).serialize(outputStream);
+        } else if (value instanceof BXmlSequence) {
+            ((BXmlSequence) value).serialize(outputStream);
         } else if (value instanceof Long || value instanceof String ||
                 value instanceof Double || value instanceof Integer || value instanceof Boolean) {
             outputStream.write(value.toString().getBytes(Charset.defaultCharset()));
         } else if (value instanceof BString) {
             outputStream.write(((BString) value).getValue().getBytes(Charset.defaultCharset()));
         } else {
-            ((RefValue) value).serialize(outputStream);
+            ((BRefValue) value).serialize(outputStream);
         }
     }
 
@@ -1664,11 +1657,9 @@ public class HttpUtil {
         String sslVerifyClient = sslConfig.getStringValue(SSL_CONFIG_SSL_VERIFY_CLIENT).getValue();
         listenerConfiguration.setVerifyClient(sslVerifyClient);
         listenerConfiguration
-                .setSslSessionTimeOut((int) ((MapValue) sslConfig)
-                        .getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT));
+                .setSslSessionTimeOut((int) (sslConfig).getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT));
         listenerConfiguration
-                .setSslHandshakeTimeOut(((MapValue) sslConfig)
-                                                .getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
+                .setSslHandshakeTimeOut((sslConfig).getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
         if (trustStore == null && isNotBlank(sslVerifyClient) && isBlank(trustCerts)) {
             throw createHttpError("Truststore location or trustCertificates must be provided to enable Mutual SSL",
                     HttpErrorType.SSL_ERROR);

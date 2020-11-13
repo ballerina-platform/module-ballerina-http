@@ -18,13 +18,11 @@ package org.ballerinalang.net.http.actions.websocketconnector;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
 import io.netty.channel.ChannelFuture;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
-import org.ballerinalang.net.http.websocket.WebSocketException;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityConstants;
 import org.ballerinalang.net.http.websocket.observability.WebSocketObservabilityUtil;
@@ -46,15 +44,14 @@ public class Close {
 
     public static Object externClose(Environment env, BObject wsConnection, long statusCode, BString reason,
                                      long timeoutInSecs) {
-        Strand strand = Scheduler.getStrand();
         Future balFuture = env.markAsync();
         WebSocketConnectionInfo connectionInfo = (WebSocketConnectionInfo) wsConnection
                 .getNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO);
-        WebSocketObservabilityUtil.observeResourceInvocation(strand, connectionInfo,
+        WebSocketObservabilityUtil.observeResourceInvocation(env, connectionInfo,
                                                              WebSocketConstants.RESOURCE_NAME_CLOSE);
         try {
             CountDownLatch countDownLatch = new CountDownLatch(1);
-            List<WebSocketException> errors = new ArrayList<>(1);
+            List<BError> errors = new ArrayList<>(1);
             ChannelFuture closeFuture = initiateConnectionClosure(errors, (int) statusCode, reason.getValue(),
                                                                   connectionInfo, countDownLatch);
             waitForTimeout(errors, (int) timeoutInSecs, countDownLatch, connectionInfo);
@@ -79,7 +76,7 @@ public class Close {
         return null;
     }
 
-    private static ChannelFuture initiateConnectionClosure(List<WebSocketException> errors, int statusCode,
+    private static ChannelFuture initiateConnectionClosure(List<BError> errors, int statusCode,
                                                            String reason, WebSocketConnectionInfo connectionInfo,
                                                            CountDownLatch latch) throws IllegalAccessException {
         WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
@@ -101,7 +98,7 @@ public class Close {
         });
     }
 
-    private static void waitForTimeout(List<WebSocketException> errors, int timeoutInSecs,
+    private static void waitForTimeout(List<BError> errors, int timeoutInSecs,
                                        CountDownLatch latch, WebSocketConnectionInfo connectionInfo) {
         try {
             if (timeoutInSecs < 0) {
@@ -126,9 +123,9 @@ public class Close {
         }
     }
 
-    private static void addError(String errMsg, List<WebSocketException> errors) {
-        errors.add(WebSocketUtil.getWebSocketException(errMsg, null,
-                WebSocketConstants.ErrorCode.WsConnectionClosureError.errorCode(), null));
+    private static void addError(String errMsg, List<BError> errors) {
+        errors.add(WebSocketUtil.getWebSocketError(
+                errMsg, null, WebSocketConstants.ErrorCode.WsConnectionClosureError.errorCode(), null));
     }
 
     private Close() {

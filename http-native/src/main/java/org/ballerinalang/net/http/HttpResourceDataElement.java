@@ -18,7 +18,6 @@
 
 package org.ballerinalang.net.http;
 
-import io.ballerina.runtime.util.exceptions.BallerinaException;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.DispatcherUtil;
@@ -96,7 +95,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             validateProduces(httpResource, carbonMessage);
             dataReturnAgent.setData(httpResource);
             return true;
-        } catch (BallerinaException e) {
+        } catch (BallerinaConnectorException e) {
             dataReturnAgent.setError(e);
             return false;
         }
@@ -129,7 +128,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         }
         if (!isOptionsRequest) {
             carbonMessage.setHttpStatusCode(405);
-            throw new BallerinaException("Method not allowed");
+            throw new BallerinaConnectorException("Method not allowed");
         }
         return null;
     }
@@ -181,7 +180,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             }
         }
         cMsg.setHttpStatusCode(415);
-        throw new BallerinaException();
+        throw new BallerinaConnectorException();
     }
 
     private String extractContentMediaType(String header) {
@@ -224,7 +223,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             }
         }
         cMsg.setHttpStatusCode(406);
-        throw new BallerinaException();
+        throw new BallerinaConnectorException();
     }
 
     private List<String> extractAcceptMediaTypes(String header) {

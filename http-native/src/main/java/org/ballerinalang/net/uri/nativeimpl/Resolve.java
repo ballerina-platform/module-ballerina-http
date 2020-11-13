@@ -18,7 +18,7 @@
 
 package org.ballerinalang.net.uri.nativeimpl;
 
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HttpUtil;
 

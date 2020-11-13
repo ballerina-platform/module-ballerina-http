@@ -109,7 +109,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         try {
             Object dataSource = EntityBodyHandler.getMessageDataSource(entityObj);
             if (dataSource != null) {
-                return io.ballerina.runtime.api.StringUtils.fromString(MimeUtil.getMessageAsString(dataSource));
+                return io.ballerina.runtime.api.utils.StringUtils.fromString(MimeUtil.getMessageAsString(dataSource));
             }
             balFuture = env.markAsync();
             constructNonBlockingDataSource(balFuture, entityObj, SourceType.TEXT);

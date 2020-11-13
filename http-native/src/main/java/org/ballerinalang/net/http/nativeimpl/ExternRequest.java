@@ -19,12 +19,12 @@
 package org.ballerinalang.net.http.nativeimpl;
 
 import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.creators.TypeCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.types.BArrayType;
-import io.ballerina.runtime.types.BMapType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
@@ -44,7 +44,8 @@ import static org.ballerinalang.net.http.HttpUtil.checkRequestBodySizeHeadersAva
  */
 public class ExternRequest {
 
-    private static final BMapType mapType = new BMapType(new BArrayType(PredefinedTypes.TYPE_STRING));
+    private static final MapType mapType = TypeCreator.createMapType(
+            TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
 
     public static BObject createNewEntity(BObject requestObj) {
         return HttpUtil.createNewEntity(requestObj);

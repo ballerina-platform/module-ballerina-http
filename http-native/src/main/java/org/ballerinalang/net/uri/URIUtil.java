@@ -18,11 +18,11 @@
 
 package org.ballerinalang.net.uri;
 
-import io.ballerina.runtime.api.StringUtils;
-import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
+import org.ballerinalang.net.http.BallerinaConnectorException;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
@@ -89,8 +89,8 @@ public class URIUtil {
 
         for (Map.Entry<String, List<String>> entry : tempParamMap.entrySet()) {
             List<String> entryValue = entry.getValue();
-            queryParamsMap.put(StringUtils.fromString(entry.getKey()), ValueCreator
-                    .createArrayValue(StringUtils.fromStringArray(entryValue.toArray(new String[0]))));
+            queryParamsMap.put(StringUtils.fromString(entry.getKey()),
+                               StringUtils.fromStringArray(entryValue.toArray(new String[0])));
         }
     }
 

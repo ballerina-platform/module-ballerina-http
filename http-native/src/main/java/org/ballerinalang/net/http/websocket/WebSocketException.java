@@ -18,24 +18,22 @@
 
 package org.ballerinalang.net.http.websocket;
 
-import io.ballerina.runtime.TypeChecker;
 import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.StringUtils;
-import io.ballerina.runtime.api.TypeConstants;
-import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.types.BErrorType;
-import io.ballerina.runtime.values.ErrorValue;
 
 /**
  * Exceptions that could occur in WebSocket.
  *
  * @since 0.995
  */
-public class WebSocketException extends ErrorValue {
+public class WebSocketException extends RuntimeException {
     private final String message;
+    private BError wsError;
 
     public WebSocketException(Throwable ex, String typeIdName) {
         this(WebSocketConstants.ErrorCode.WsGenericError.errorCode().substring(2) + ":" +
@@ -47,24 +45,22 @@ public class WebSocketException extends ErrorValue {
     }
 
     public WebSocketException(String message, BError cause, String typeIdName) {
-        this(message, cause, ValueCreator.createMapValue(PredefinedTypes.TYPE_ERROR_DETAIL), typeIdName);
+        this.message = message;
+        this.wsError = ErrorCreator.createDistinctError(typeIdName, WebSocketConstants.PROTOCOL_HTTP_PKG_ID,
+                                                        StringUtils.fromString(message), cause);
     }
 
     public WebSocketException(String message, BMap<BString, Object> details, String typeIdName) {
-        super(new BErrorType(TypeConstants.ERROR, PredefinedTypes.TYPE_ERROR.getPackage(),
-                             TypeChecker.getType(details)),
-              StringUtils.fromString(message), null, details, typeIdName, WebSocketConstants.PROTOCOL_HTTP_PKG_ID);
         this.message = message;
-    }
-
-    public WebSocketException(String message, BError cause, BMap<BString, Object> details, String typeIdName) {
-        super(new BErrorType(TypeConstants.ERROR, PredefinedTypes.TYPE_ERROR.getPackage(),
-                             TypeChecker.getType(details)),
-              StringUtils.fromString(message), cause, details, typeIdName, WebSocketConstants.PROTOCOL_HTTP_PKG_ID);
-        this.message = message;
+        this.wsError = ErrorCreator.createDistinctError(typeIdName, WebSocketConstants.PROTOCOL_HTTP_PKG_ID,
+                                                        StringUtils.fromString(message), details);
     }
 
     public String detailMessage() {
         return message;
+    }
+
+    public BError getWsError() {
+        return wsError;
     }
 }
