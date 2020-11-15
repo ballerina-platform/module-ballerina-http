@@ -18,7 +18,7 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HttpConstants;

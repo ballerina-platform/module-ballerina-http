@@ -297,7 +297,7 @@ function testDataBindingIncompatibleStructPayload() {
     var response = dataBindingClient->post("/echo/body6", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: unrecognized token 'ballerina'");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'ballerina'");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

@@ -18,13 +18,10 @@
 
 package org.ballerinalang.net.http.nativeimpl;
 
-import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.types.BArrayType;
-import io.ballerina.runtime.values.ArrayValue;
-import io.ballerina.runtime.values.ArrayValueImpl;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.transport.message.Http2PushPromise;
 
@@ -38,8 +35,6 @@ import java.util.TreeSet;
  */
 public class ExternPushPromise {
 
-    private static final BArrayType bArrayType = new BArrayType(PredefinedTypes.TYPE_HANDLE);
-
     public static void addHeader(BObject pushPromiseObj, BString headerName, BString headerValue) {
         Http2PushPromise http2PushPromise =
                 HttpUtil.getPushPromise(pushPromiseObj, HttpUtil.createHttpPushPromise(pushPromiseObj));
@@ -52,23 +47,23 @@ public class ExternPushPromise {
         return StringUtils.fromString(http2PushPromise.getHeader(headerName.getValue()));
     }
 
-    public static ArrayValue getHeaderNames(BObject pushPromiseObj) {
+    public static BArray getHeaderNames(BObject pushPromiseObj) {
         Http2PushPromise http2PushPromise =
                 HttpUtil.getPushPromise(pushPromiseObj, HttpUtil.createHttpPushPromise(pushPromiseObj));
         Set<String> httpHeaderNames = http2PushPromise.getHttpRequest().headers().names();
         if (httpHeaderNames == null || httpHeaderNames.isEmpty()) {
-            return new ArrayValueImpl(new BString[0]);
+            return StringUtils.fromStringArray(new String[0]);
         }
         Set<String> distinctNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         distinctNames.addAll(httpHeaderNames);
-        return new ArrayValueImpl(StringUtils.fromStringSet(distinctNames));
+        return StringUtils.fromStringSet(distinctNames);
     }
 
-    public static ArrayValue getHeaders(BObject pushPromiseObj, BString headerName) {
+    public static BArray getHeaders(BObject pushPromiseObj, BString headerName) {
         Http2PushPromise http2PushPromise =
                 HttpUtil.getPushPromise(pushPromiseObj, HttpUtil.createHttpPushPromise(pushPromiseObj));
         String[] headers = http2PushPromise.getHeaders(headerName.getValue());
-        return new ArrayValueImpl(StringUtils.fromStringArray(headers));
+        return StringUtils.fromStringArray(headers);
     }
 
     public static boolean hasHeader(BObject pushPromiseObj, BString headerName) {

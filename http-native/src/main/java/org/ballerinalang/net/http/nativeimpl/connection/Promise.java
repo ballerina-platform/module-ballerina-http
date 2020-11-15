@@ -20,8 +20,6 @@ package org.ballerinalang.net.http.nativeimpl.connection;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
@@ -34,8 +32,7 @@ import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 public class Promise extends ConnectionAction {
     public static Object promise(Environment env, BObject connectionObj, BObject pushPromiseObj) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        Strand strand = Scheduler.getStrand();
-        DataContext dataContext = new DataContext(strand, env.markAsync(), inboundRequestMsg);
+        DataContext dataContext = new DataContext(env, inboundRequestMsg);
         HttpUtil.serverConnectionStructCheck(inboundRequestMsg);
 
         Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj,

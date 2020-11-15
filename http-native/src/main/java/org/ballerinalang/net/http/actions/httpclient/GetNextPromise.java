@@ -17,12 +17,9 @@
 package org.ballerinalang.net.http.actions.httpclient;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.StringUtils;
-import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
-import io.ballerina.runtime.util.exceptions.BallerinaException;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
@@ -38,13 +35,11 @@ import org.ballerinalang.net.transport.message.ResponseHandle;
 public class GetNextPromise extends AbstractHTTPAction {
 
     public static Object getNextPromise(Environment env, BObject clientObj, BObject handleObj) {
-        Strand strand = Scheduler.getStrand();
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
-        DataContext dataContext = new DataContext(strand, clientConnector, env.markAsync(), handleObj,
-                                                  null);
+        DataContext dataContext = new DataContext(env, clientConnector, handleObj, null);
         ResponseHandle responseHandle = (ResponseHandle) handleObj.getNativeData(HttpConstants.TRANSPORT_HANDLE);
         if (responseHandle == null) {
-            throw new BallerinaException("invalid http handle");
+            throw HttpUtil.createHttpError("invalid http handle");
         }
         clientConnector.getNextPushPromise(responseHandle).setPushPromiseListener(new PromiseListener(dataContext));
         return null;

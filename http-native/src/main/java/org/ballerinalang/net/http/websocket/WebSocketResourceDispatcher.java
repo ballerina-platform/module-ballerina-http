@@ -18,26 +18,26 @@
 
 package org.ballerinalang.net.http.websocket;
 
-import io.ballerina.runtime.JSONParser;
-import io.ballerina.runtime.JSONUtils;
-import io.ballerina.runtime.XMLFactory;
-import io.ballerina.runtime.XMLNodeType;
-import io.ballerina.runtime.api.StringUtils;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.async.StrandMetadata;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.types.StructureType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.XmlNodeType;
+import io.ballerina.runtime.api.utils.JsonUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.XmlUtils;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
-import io.ballerina.runtime.services.ErrorHandlerUtils;
-import io.ballerina.runtime.types.BArrayType;
-import io.ballerina.runtime.types.BStructureType;
-import io.ballerina.runtime.values.ArrayValueImpl;
-import io.ballerina.runtime.values.XMLValue;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.CorruptedFrameException;
 import org.ballerinalang.net.http.HttpConstants;
@@ -135,8 +135,8 @@ public class WebSocketResourceDispatcher {
             }
 
             @Override
-            public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
-                ErrorHandlerUtils.printError("error: " + error.getPrintableStackTrace());
+            public void notifyFailure(BError error) {
+                error.getPrintableStackTrace();
                 WebSocketUtil.closeDuringUnexpectedCondition(webSocketConnection);
                 WebSocketObservabilityUtil.observeError(connectionInfo,
                                                         WebSocketObservabilityConstants.ERROR_TYPE_RESOURCE_INVOCATION,
@@ -214,27 +214,29 @@ public class WebSocketResourceDispatcher {
         try {
             switch (dataType.getTag()) {
                 case TypeTags.JSON_TAG:
-                    return JSONParser.parse(aggregateString);
+                    return JsonUtils.parse(aggregateString);
                 case TypeTags.XML_TAG:
-                    XMLValue bxml = (XMLValue) XMLFactory.parse(aggregateString);
-                    if (bxml.getNodeType() != XMLNodeType.SEQUENCE) {
-                        throw WebSocketUtil.getWebSocketException("Invalid XML data", null,
+                    BXml bxml = (BXml) XmlUtils.parse(aggregateString);
+                    if (bxml.getNodeType() != XmlNodeType.SEQUENCE) {
+                        throw WebSocketUtil.getWebSocketError(
+                                "Invalid XML data", null,
                                 WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
                     }
                     return bxml;
                 case TypeTags.RECORD_TYPE_TAG:
-                    return JSONUtils.convertJSONToRecord(JSONParser.parse(aggregateString),
-                                                         (BStructureType) dataType);
+                    return JsonUtils.convertJSONToRecord(JsonUtils.parse(aggregateString),
+                                                         (StructureType) dataType);
                 case TypeTags.ARRAY_TAG:
-                    if (((BArrayType) dataType).getElementType().getTag() == TypeTags.BYTE_TAG) {
-                        return new ArrayValueImpl(
+                    if (((ArrayType) dataType).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                        return ValueCreator.createArrayValue(
                                 aggregateString.getBytes(StandardCharsets.UTF_8));
                     }
                     break;
                 default:
                     //Throw an exception because a different type is invalid.
                     //Cannot reach here because of compiler plugin validation.
-                    throw WebSocketUtil.getWebSocketException("Invalid resource signature.", null,
+                    throw WebSocketUtil.getWebSocketError(
+                            "Invalid resource signature.", null,
                             WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
             }
         } catch (WebSocketException ex) {
@@ -274,7 +276,7 @@ public class WebSocketResourceDispatcher {
             Object[] bValues = new Object[paramDetails.length * 2];
             bValues[0] = connectionInfo.getWebSocketEndpoint();
             bValues[1] = true;
-            bValues[2] = new ArrayValueImpl(binaryMessage.getByteArray());
+            bValues[2] = ValueCreator.createArrayValue(binaryMessage.getByteArray());
             bValues[3] = true;
             if (paramDetails.length == 3) {
                 bValues[4] = binaryMessage.isFinalFragment();
@@ -315,7 +317,7 @@ public class WebSocketResourceDispatcher {
             Object[] bValues = new Object[paramTypes.length * 2];
             bValues[0] = connectionInfo.getWebSocketEndpoint();
             bValues[1] = true;
-            bValues[2] = new ArrayValueImpl(controlMessage.getByteArray());
+            bValues[2] = ValueCreator.createArrayValue(controlMessage.getByteArray());
             bValues[3] = true;
             executeResource(wsService, new WebSocketResourceCallback(
                     connectionInfo, WebSocketConstants.RESOURCE_NAME_ON_PING),
@@ -345,7 +347,7 @@ public class WebSocketResourceDispatcher {
             Object[] bValues = new Object[paramDetails.length * 2];
             bValues[0] = connectionInfo.getWebSocketEndpoint();
             bValues[1] = true;
-            bValues[2] = new ArrayValueImpl(controlMessage.getByteArray());
+            bValues[2] = ValueCreator.createArrayValue(controlMessage.getByteArray());
             bValues[3] = true;
             executeResource(wsService, new WebSocketResourceCallback(
                     connectionInfo, WebSocketConstants.RESOURCE_NAME_ON_PONG),
@@ -390,8 +392,8 @@ public class WebSocketResourceDispatcher {
                 }
 
                 @Override
-                public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
-                    ErrorHandlerUtils.printError(error.getPrintableStackTrace());
+                public void notifyFailure(BError error) {
+                    error.printStackTrace();
                     finishConnectionClosureIfOpen(webSocketConnection, closeCode, connectionInfo);
                     //Observe error
                     WebSocketObservabilityUtil.observeError(
@@ -440,7 +442,7 @@ public class WebSocketResourceDispatcher {
                                                     "Unexpected error");
         }
         if (onErrorResource == null) {
-            ErrorHandlerUtils.printError(throwable.getCause());
+            ErrorCreator.createError(throwable.getCause()).printStackTrace();
             return;
         }
         Object[] bValues = new Object[onErrorResource.getParameterTypes().length * 2];
@@ -455,8 +457,8 @@ public class WebSocketResourceDispatcher {
             }
 
             @Override
-            public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
-                ErrorHandlerUtils.printError(error.getPrintableStackTrace());
+            public void notifyFailure(BError error) {
+                error.printStackTrace();
                 WebSocketObservabilityUtil.observeError(
                         connectionInfo, WebSocketObservabilityConstants.ERROR_TYPE_RESOURCE_INVOCATION,
                         WebSocketConstants.RESOURCE_NAME_ON_ERROR,
@@ -492,8 +494,8 @@ public class WebSocketResourceDispatcher {
                 }
 
                 @Override
-                public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
-                    ErrorHandlerUtils.printError(error.getPrintableStackTrace());
+                public void notifyFailure(BError error) {
+                    error.printStackTrace();
                     WebSocketUtil.closeDuringUnexpectedCondition(webSocketConnection);
                 }
             };
@@ -514,7 +516,7 @@ public class WebSocketResourceDispatcher {
         webSocketConnection.pong(controlMessage.getByteBuffer()).addListener(future -> {
             Throwable cause = future.cause();
             if (!future.isSuccess() && cause != null) {
-                ErrorHandlerUtils.printError(cause);
+                ErrorCreator.createError(cause).printStackTrace();
             }
             webSocketConnection.readNextFrame();
         });

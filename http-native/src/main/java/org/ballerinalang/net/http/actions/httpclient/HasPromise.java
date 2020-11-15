@@ -19,8 +19,8 @@ package org.ballerinalang.net.http.actions.httpclient;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.util.exceptions.BallerinaException;
 import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpClientConnectorListener;
 import org.ballerinalang.net.transport.message.ResponseHandle;
@@ -33,7 +33,7 @@ public class HasPromise extends AbstractHTTPAction {
     public static boolean hasPromise(Environment env, BObject clientObj, BObject handleObj) {
         ResponseHandle responseHandle = (ResponseHandle) handleObj.getNativeData(HttpConstants.TRANSPORT_HANDLE);
         if (responseHandle == null) {
-            throw new BallerinaException("invalid http handle");
+            throw HttpUtil.createHttpError("invalid http handle");
         }
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
         clientConnector.hasPushPromise(responseHandle).

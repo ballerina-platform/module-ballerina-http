@@ -23,9 +23,6 @@ import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.State;
-import io.ballerina.runtime.scheduling.Strand;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ballerinalang.net.http.DataContext;
@@ -38,8 +35,6 @@ import org.ballerinalang.net.http.util.CacheUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL_FIELD;
@@ -60,17 +55,17 @@ public class Respond extends ConnectionAction {
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
 
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        Strand strand = Scheduler.getStrand();
-        DataContext dataContext = new DataContext(strand, env.markAsync(), inboundRequestMsg);
+        DataContext dataContext = new DataContext(env, inboundRequestMsg);
         if (isDirtyResponse(outboundResponseObj)) {
             String errorMessage = "Couldn't complete the respond operation as the response has been already used.";
             HttpUtil.sendOutboundResponse(inboundRequestMsg, HttpUtil.createErrorMessage(errorMessage, 500));
-            unBlockStrand(strand);
             if (log.isDebugEnabled()) {
                 log.debug("Couldn't complete the respond operation for the sequence id of the request: {} " +
-                        "as the response has been already used.", inboundRequestMsg.getSequenceId());
+                                  "as the response has been already used.", inboundRequestMsg.getSequenceId());
             }
-            return HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
+            BError httpError = HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
+            dataContext.getFuture().complete(httpError);
+            return null;
         }
         outboundResponseObj.addNativeData(HttpConstants.DIRTY_RESPONSE, true);
         HttpCarbonMessage outboundResponseMsg = HttpUtil.getCarbonMsg(outboundResponseObj, HttpUtil.
@@ -92,9 +87,11 @@ public class Respond extends ConnectionAction {
             outboundResponseMsg.completeMessage();
         }
 
-        Optional<ObserverContext> observerContext = ObserveUtils.getObserverContextOfCurrentFrame(strand);
+        ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(env);
         int statusCode = (int) outboundResponseObj.getIntValue(RESPONSE_STATUS_CODE_FIELD);
-        observerContext.ifPresent(ctx -> ctx.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode));
+        if (observerContext != null) {
+            observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
+        }
         try {
             if (pipeliningRequired(inboundRequestMsg)) {
                 if (log.isDebugEnabled()) {
@@ -109,24 +106,16 @@ public class Respond extends ConnectionAction {
                 sendOutboundResponseRobust(dataContext, inboundRequestMsg, outboundResponseObj, outboundResponseMsg);
             }
         } catch (BError e) {
-            unBlockStrand(strand);
             log.debug(e.getPrintableStackTrace(), e);
-            return e;
+            dataContext.getFuture().complete(e);
         } catch (Throwable e) {
-            unBlockStrand(strand);
             //Exception is already notified by http transport.
             String errorMessage = "Couldn't complete outbound response";
             log.debug(errorMessage, e);
-            return HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
+            dataContext.getFuture().complete(
+                    HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR));
         }
         return null;
-    }
-
-    // Please refer #18763. This should be done through a JBallerina API which provides the capability
-    // of high level strand state handling - There is no such API ATM.
-    private static void unBlockStrand(Strand strand) {
-        strand.setState(State.RUNNABLE);
-        strand.blockedOnExtern = false;
     }
 
     private static void setCacheControlHeader(BObject outboundRespObj, HttpCarbonMessage outboundResponse) {

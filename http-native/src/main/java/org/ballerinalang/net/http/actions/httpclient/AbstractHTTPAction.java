@@ -18,18 +18,16 @@
 
 package org.ballerinalang.net.http.actions.httpclient;
 
-import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.runtime.scheduling.Strand;
 import io.ballerina.runtime.transactions.TransactionLocalContext;
-import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
-import io.ballerina.runtime.util.exceptions.BallerinaException;
-import io.ballerina.runtime.values.ArrayValue;
+import io.ballerina.runtime.transactions.TransactionResourceManager;
 import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -37,6 +35,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.mime.util.HeaderUtil;
 import org.ballerinalang.mime.util.MultipartDataSource;
+import org.ballerinalang.net.http.BallerinaConnectorException;
 import org.ballerinalang.net.http.CompressionConfigState;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
@@ -59,9 +58,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Optional;
 
-import static io.ballerina.runtime.util.RuntimeConstants.BALLERINA_VERSION;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
 import static io.netty.handler.codec.http.HttpHeaderNames.ACCEPT_ENCODING;
 import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION;
 import static org.ballerinalang.net.http.HttpUtil.extractEntity;
@@ -82,8 +80,8 @@ public abstract class AbstractHTTPAction {
         CACHE_BALLERINA_VERSION = System.getProperty(BALLERINA_VERSION);
     }
 
-    protected static HttpCarbonMessage createOutboundRequestMsg(Strand strand, String serviceUri, BMap config,
-                                                                String path, BObject request) {
+    protected static HttpCarbonMessage createOutboundRequestMsg(String serviceUri, BMap config, String path,
+                                                                BObject request) {
         if (request == null) {
             request = ValueCreatorUtils.createRequestObject();
         }
@@ -91,7 +89,7 @@ public abstract class AbstractHTTPAction {
         HttpCarbonMessage requestMsg = HttpUtil.getCarbonMsg(request, HttpUtil.createHttpCarbonMessage(true));
         HttpUtil.checkEntityAvailability(request);
         HttpUtil.enrichOutboundMessage(requestMsg, request);
-        prepareOutboundRequest(strand, serviceUri, path, requestMsg, isNoEntityBodyRequest(request));
+        prepareOutboundRequest(serviceUri, path, requestMsg, isNoEntityBodyRequest(request));
         handleAcceptEncodingHeader(requestMsg, getCompressionConfigFromEndpointConfig(config));
         return requestMsg;
     }
@@ -112,10 +110,11 @@ public abstract class AbstractHTTPAction {
         }
     }
 
-    static void prepareOutboundRequest(Strand strand, String serviceUri, String path, HttpCarbonMessage outboundRequest,
+    static void prepareOutboundRequest(String serviceUri, String path, HttpCarbonMessage outboundRequest,
                                        Boolean nonEntityBodyReq) {
-        if (strand.isInTransaction()) {
-            TransactionLocalContext transactionLocalContext = strand.currentTrxContext;
+        TransactionResourceManager trxResourceManager = TransactionResourceManager.getInstance();
+        if (trxResourceManager.isInTransaction()) {
+            TransactionLocalContext transactionLocalContext = trxResourceManager.getCurrentTransactionContext();
             outboundRequest.setHeader(HttpConstants.HEADER_X_XID, transactionLocalContext.getGlobalTransactionId());
             outboundRequest.setHeader(HttpConstants.HEADER_X_REGISTER_AT_URL, transactionLocalContext.getURL());
         }
@@ -229,20 +228,20 @@ public abstract class AbstractHTTPAction {
         if (sourceHandler == null) {
 
             outboundRequestMsg.setProperty(HttpConstants.SRC_HANDLER,
-                    dataContext.getStrand().getProperty(HttpConstants.SRC_HANDLER));
+                    dataContext.getEnvironment().getStrandLocal(HttpConstants.SRC_HANDLER));
         }
         Object poolableByteBufferFactory = outboundRequestMsg.getProperty(HttpConstants.POOLED_BYTE_BUFFER_FACTORY);
         if (poolableByteBufferFactory == null) {
             outboundRequestMsg.setProperty(HttpConstants.POOLED_BYTE_BUFFER_FACTORY,
-                    dataContext.getStrand().getProperty(HttpConstants.POOLED_BYTE_BUFFER_FACTORY));
+                    dataContext.getEnvironment().getStrandLocal(HttpConstants.POOLED_BYTE_BUFFER_FACTORY));
         }
         Object remoteAddress = outboundRequestMsg.getProperty(HttpConstants.REMOTE_ADDRESS);
         if (remoteAddress == null) {
             outboundRequestMsg.setProperty(HttpConstants.REMOTE_ADDRESS,
-                    dataContext.getStrand().getProperty(HttpConstants.REMOTE_ADDRESS));
+                    dataContext.getEnvironment().getStrandLocal(HttpConstants.REMOTE_ADDRESS));
         }
         outboundRequestMsg.setProperty(HttpConstants.ORIGIN_HOST,
-                dataContext.getStrand().getProperty(HttpConstants.ORIGIN_HOST));
+                dataContext.getEnvironment().getStrandLocal(HttpConstants.ORIGIN_HOST));
         sendOutboundRequest(dataContext, outboundRequestMsg, async);
     }
 
@@ -290,8 +289,8 @@ public abstract class AbstractHTTPAction {
         } catch (BallerinaConnectorException e) {
             dataContext.notifyInboundResponseStatus(null, HttpUtil.createHttpError(e.getMessage()));
         } catch (Exception e) {
-            BallerinaException exception = new BallerinaException("Failed to send outboundRequestMsg to the backend",
-                    e);
+            BallerinaConnectorException exception =
+                    new BallerinaConnectorException("Failed to send outboundRequestMsg to the backend", e);
             dataContext.notifyInboundResponseStatus(null, HttpUtil.getError(exception));
         }
     }
@@ -315,7 +314,7 @@ public abstract class AbstractHTTPAction {
             boundaryString = HttpUtil.addBoundaryIfNotExist(outboundRequestMsg, contentType);
         }
 
-        HttpUtil.checkAndObserveHttpRequest(dataContext.getStrand(), outboundRequestMsg);
+        HttpUtil.checkAndObserveHttpRequest(dataContext.getEnvironment(), outboundRequestMsg);
 
         final HTTPClientConnectorListener httpClientConnectorLister = ObserveUtils.isObservabilityEnabled() ?
                 new ObservableHttpClientConnectorListener(dataContext) :
@@ -385,7 +384,7 @@ public abstract class AbstractHTTPAction {
      */
     private static void serializeMultiparts(BObject entityObj, OutputStream messageOutputStream,
                                             String boundaryString) throws IOException {
-        ArrayValue bodyParts = EntityBodyHandler.getBodyPartArray(entityObj);
+        BArray bodyParts = EntityBodyHandler.getBodyPartArray(entityObj);
         if (bodyParts != null && bodyParts.size() > 0) {
             serializeMultipartDataSource(messageOutputStream, boundaryString, entityObj);
         } else { //If the content is in a byte channel
@@ -483,22 +482,21 @@ public abstract class AbstractHTTPAction {
             if (throwable instanceof ClientConnectorException) {
                 ClientConnectorException clientConnectorException = (ClientConnectorException) throwable;
                 addHttpStatusCode(clientConnectorException.getHttpStatusCode());
-                Optional<ObserverContext> observerContext =
-                        ObserveUtils.getObserverContextOfCurrentFrame(context.getStrand());
-                observerContext.ifPresent(ctx -> {
-                    ctx.addTag(ObservabilityConstants.TAG_KEY_ERROR, ObservabilityConstants.TAG_TRUE_VALUE);
-                    ctx.addProperty(ObservabilityConstants.PROPERTY_ERROR_MESSAGE, throwable.getMessage());
-                });
-
+                ObserverContext observerContext =
+                        ObserveUtils.getObserverContextOfCurrentFrame(context.getEnvironment());
+                if (observerContext != null) {
+                    observerContext.addTag(ObservabilityConstants.TAG_KEY_ERROR, ObservabilityConstants.TAG_TRUE_VALUE);
+                    observerContext.addProperty(ObservabilityConstants.PROPERTY_ERROR_MESSAGE, throwable.getMessage());
+                }
             }
             super.onError(throwable);
         }
 
         private void addHttpStatusCode(int statusCode) {
-            Optional<ObserverContext> observerContext =
-                    ObserveUtils.getObserverContextOfCurrentFrame(context.getStrand());
-            observerContext.ifPresent(ctx -> ctx.addProperty(ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE,
-                    statusCode));
+            ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(context.getEnvironment());
+            if (observerContext != null) {
+                observerContext.addProperty(ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
+            }
         }
     }
 }

@@ -17,17 +17,16 @@
 */
 package org.ballerinalang.net.http;
 
-import io.ballerina.runtime.api.StringUtils;
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.types.BArrayType;
-import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
-import io.ballerina.runtime.values.ArrayValue;
-import io.ballerina.runtime.values.XMLValue;
+import io.ballerina.runtime.api.values.BXml;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
@@ -231,19 +230,19 @@ public class HttpDispatcher {
                     EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
                     return bjson;
                 case TypeTags.XML_TAG:
-                    XMLValue bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
+                    BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
                     EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
                     return bxml;
                 case TypeTags.ARRAY_TAG:
-                    if (((BArrayType) entityBodyType).getElementType().getTag() == TypeTags.BYTE_TAG) {
-                        ArrayValue blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
+                    if (((ArrayType) entityBodyType).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                        BArray blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
                         EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
                         return blobDataSource;
-                    } else if (((BArrayType) entityBodyType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
+                    } else if (((ArrayType) entityBodyType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
                         return getRecordEntity(inRequestEntity, entityBodyType);
                     } else {
                         throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
-                                ((BArrayType) entityBodyType).getElementType().getName());
+                                ((ArrayType) entityBodyType).getElementType().getName());
                     }
                 case TypeTags.RECORD_TYPE_TAG:
                     return getRecordEntity(inRequestEntity, entityBodyType);

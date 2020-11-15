@@ -19,13 +19,12 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.Module;
-import io.ballerina.runtime.api.StringUtils;
 import io.ballerina.runtime.api.async.StrandMetadata;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
 
-import static io.ballerina.runtime.util.BLangConstants.BALLERINA_BUILTIN_PKG;
-import static io.ballerina.runtime.util.BLangConstants.BALLERINA_BUILTIN_PKG_PREFIX;
-import static io.ballerina.runtime.util.BLangConstants.ORG_NAME_SEPARATOR;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_BUILTIN_PKG_PREFIX;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
 
 /**
  * Constants for HTTP.
@@ -161,7 +160,7 @@ public class HttpConstants {
     public static final String PREFLIGHT_RESOURCES = "PREFLIGHT_RESOURCES";
     public static final String RESOURCES_CORS = "RESOURCES_CORS";
     public static final String LISTENER_INTERFACE_ID = "listener.interface.id";
-    public static final String PACKAGE_BALLERINA_BUILTIN = BALLERINA_BUILTIN_PKG;
+    public static final String PACKAGE_BALLERINA_BUILTIN = "ballerina/builtin";
 
     public static final String CLIENT = "Client";
     public static final String HTTP_CLIENT = "HttpClient";

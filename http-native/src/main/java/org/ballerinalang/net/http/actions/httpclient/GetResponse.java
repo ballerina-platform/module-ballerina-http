@@ -19,9 +19,6 @@ package org.ballerinalang.net.http.actions.httpclient;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
-import io.ballerina.runtime.util.exceptions.BallerinaException;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
@@ -36,13 +33,12 @@ import org.ballerinalang.net.transport.message.ResponseHandle;
 public class GetResponse extends AbstractHTTPAction {
 
     public static Object getResponse(Environment env, BObject clientObj, BObject handleObj) {
-        Strand strand = Scheduler.getStrand();
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
-        DataContext dataContext = new DataContext(strand, clientConnector, env.markAsync(), handleObj,
+        DataContext dataContext = new DataContext(env, clientConnector, handleObj,
                                                   null);
         ResponseHandle responseHandle = (ResponseHandle) handleObj.getNativeData(HttpConstants.TRANSPORT_HANDLE);
         if (responseHandle == null) {
-            throw new BallerinaException("invalid http handle");
+            throw HttpUtil.createHttpError("invalid http handle");
         }
         clientConnector.getResponse(responseHandle).
                 setHttpConnectorListener(new ResponseListener(dataContext));

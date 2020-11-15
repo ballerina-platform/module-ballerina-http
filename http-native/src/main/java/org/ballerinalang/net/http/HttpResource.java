@@ -17,14 +17,13 @@
 */
 package org.ballerinalang.net.http;
 
-import io.ballerina.runtime.api.StringUtils;
-import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.AttachedFunctionType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.transactions.TransactionConstants;
-import io.ballerina.runtime.types.AttachedFunction;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,18 +237,20 @@ public class HttpResource {
      * @return the resource configuration of the given resource
      */
     public static BMap getResourceConfigAnnotation(AttachedFunctionType resource) {
-        return (BMap) ((AttachedFunction) resource).getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_RESOURCE_CONFIG);
+        return (BMap) resource.getAnnotation(
+                StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_RESOURCE_CONFIG));
     }
 
     protected static BMap getPathParamOrderMap(AttachedFunctionType resource) {
-        Object annotation =
-                ((AttachedFunction) resource).getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_PARAM_ORDER_CONFIG);
+        Object annotation = resource.getAnnotation(
+                StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_PARAM_ORDER_CONFIG));
         return annotation == null ? ValueCreator.createMapValue() :
                 (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
     }
 
     private static boolean hasInterruptibleAnnotation(AttachedFunctionType resource) {
-        return ((AttachedFunction) resource).getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
+        return resource.getAnnotation(
+                StringUtils.fromString(PACKAGE_BALLERINA_BUILTIN + ":" + ANN_NAME_INTERRUPTIBLE)) != null;
     }
 
     private static List<String> getAsStringList(Object[] values) {

@@ -18,12 +18,10 @@
 
 package org.ballerinalang.net.http.websocket.observability;
 
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.runtime.scheduling.Strand;
 import org.ballerinalang.net.http.websocket.server.WebSocketConnectionInfo;
-
-import java.util.Optional;
 
 /**
  * Providing tracing functionality to WebSockets.
@@ -36,21 +34,20 @@ public class WebSocketTracingUtil {
     /**
      * Obtains the current observer context of new resource that was invoked and sets the necessary tags to it.
      *
-     * @param strand         Strand of the new resource invoked
+     * @param environment    the environment of the resource invoked
      * @param connectionInfo information regarding connection.
      */
-    static void traceResourceInvocation(Strand strand, WebSocketConnectionInfo connectionInfo) {
+    static void traceResourceInvocation(Environment environment, WebSocketConnectionInfo connectionInfo) {
         if (!ObserveUtils.isTracingEnabled()) {
             return;
         }
-        ObserverContext observerContext;
-        Optional<ObserverContext> observerContextOptional = ObserveUtils.getObserverContextOfCurrentFrame(strand);
-        if (observerContextOptional.isPresent()) {
-            observerContext = observerContextOptional.get();
-        } else {
-            observerContext = new ObserverContext();
-            ObserveUtils.setObserverContextToCurrentFrame(strand, observerContext);
+        ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(environment);
+        if (observerContext != null) {
+            setTags(observerContext, connectionInfo);
+            return;
         }
+        observerContext = new ObserverContext();
+        ObserveUtils.setObserverContextToCurrentFrame(environment, observerContext);
         setTags(observerContext, connectionInfo);
     }
 

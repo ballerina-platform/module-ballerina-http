@@ -18,11 +18,10 @@
 
 package org.ballerinalang.net.http.nativeimpl;
 
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.values.ArrayValue;
-import io.ballerina.runtime.values.ArrayValueImpl;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -68,17 +67,17 @@ public class ExternHeaders {
         }
     }
 
-    public static ArrayValue getHeaderNames(BObject messageObj, Object position) {
+    public static BArray getHeaderNames(BObject messageObj, Object position) {
         HttpHeaders httpHeaders = getHeadersBasedOnPosition(messageObj, position);
         if (httpHeaders == null || httpHeaders.isEmpty()) {
-            return new ArrayValueImpl(new BString[0]);
+            return StringUtils.fromStringArray(new String[0]);
         }
         Set<String> distinctNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         distinctNames.addAll(httpHeaders.names());
-        return new ArrayValueImpl(StringUtils.fromStringArray(distinctNames.toArray(new String[0])));
+        return StringUtils.fromStringArray(distinctNames.toArray(new String[0]));
     }
 
-    public static ArrayValue getHeaders(BObject messageObj, BString headerName, Object position) {
+    public static BArray getHeaders(BObject messageObj, BString headerName, Object position) {
         HttpHeaders httpHeaders = getHeadersBasedOnPosition(messageObj, position);
         if (httpHeaders == null) {
             throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
@@ -87,7 +86,7 @@ public class ExternHeaders {
         if (headerValueList == null) {
             throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
         }
-        return new ArrayValueImpl(StringUtils.fromStringArray(headerValueList.toArray(new String[0])));
+        return StringUtils.fromStringArray(headerValueList.toArray(new String[0]));
     }
 
     public static boolean hasHeader(BObject messageObj, BString headerName, Object position) {

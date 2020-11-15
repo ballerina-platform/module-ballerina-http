@@ -18,18 +18,17 @@
 
 package org.ballerinalang.net.http.websocket;
 
-import io.ballerina.runtime.api.ErrorCreator;
 import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.StringUtils;
-import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.services.ErrorHandlerUtils;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.CodecException;
 import io.netty.handler.codec.TooLongFrameException;
@@ -135,7 +134,7 @@ public class WebSocketUtil {
     public static void setCallbackFunctionBehaviour(WebSocketConnectionInfo connectionInfo,
                                                     Future balFuture, Throwable error) {
         if (hasSupportForResiliency(connectionInfo)) {
-            ErrorHandlerUtils.printError(error);
+            ErrorCreator.createError(error).printStackTrace();
             balFuture.complete(null);
         } else {
             balFuture.complete(WebSocketUtil.createErrorByType(error));
@@ -212,11 +211,11 @@ public class WebSocketUtil {
      * Creates the appropriate ballerina errors using for the given throwable.
      *
      * @param throwable - the throwable to be represented in Ballerina.
-     * @return the relevant WebSocketException with proper error code.
+     * @return the relevant WebSocketError with proper error code.
      */
-    public static WebSocketException createErrorByType(Throwable throwable) {
+    public static BError createErrorByType(Throwable throwable) {
         if (throwable instanceof WebSocketException) {
-            return (WebSocketException) throwable;
+            return ((WebSocketException) throwable).getWsError();
         }
         String errorCode = WebSocketConstants.ErrorCode.WsGenericError.errorCode();
         BError cause = null;
@@ -256,7 +255,7 @@ public class WebSocketUtil {
                     IOConstants.IO_PACKAGE_ID);
             message = "IO Error";
         }
-        return getWebSocketException(message, null, errorCode, cause);
+        return getWebSocketError(message, null, errorCode, cause);
     }
 
     private static BError createErrorCause(String message, String errorIdName, Module packageName) {
@@ -410,16 +409,16 @@ public class WebSocketUtil {
                 } else if (isFailoverClient(webSocketClient)) {
                     WebSocketUtil.failover(webSocketClient, wsService);
                 } else {
-                    throw getWebSocketException("Waiting for WebSocket handshake has not been successful", null,
-                            WebSocketConstants.ErrorCode.WsInvalidHandshakeError.errorCode(),
-                            WebSocketUtil.createErrorCause("Connection timeout",
+                    throw getWebSocketError("Waiting for WebSocket handshake has not been successful", null,
+                                            WebSocketConstants.ErrorCode.WsInvalidHandshakeError.errorCode(),
+                                            WebSocketUtil.createErrorCause("Connection timeout",
                                     IOConstants.ErrorCode.ConnectionTimedOut.errorCode(), IOConstants.IO_PACKAGE_ID));
                 }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw WebSocketUtil.getWebSocketException(ERROR_MESSAGE + e.getMessage(), null,
-                    WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
+            throw WebSocketUtil.getWebSocketError(ERROR_MESSAGE + e.getMessage(), null,
+                                                  WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
         }
     }
 
@@ -436,8 +435,8 @@ public class WebSocketUtil {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw WebSocketUtil.getWebSocketException(ERROR_MESSAGE + e.getMessage(), null,
-                    WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
+            throw WebSocketUtil.getWebSocketError(ERROR_MESSAGE + e.getMessage(), null,
+                                                  WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
         }
     }
 
@@ -520,8 +519,8 @@ public class WebSocketUtil {
             countDownLatch.await();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw getWebSocketException(ERROR_MESSAGE + e.getMessage(), null,
-                    WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
+            throw getWebSocketError(ERROR_MESSAGE + e.getMessage(), null,
+                                    WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
         }
     }
 
@@ -553,8 +552,9 @@ public class WebSocketUtil {
             Type param = ((BObject) clientService).getType().getAttachedFunctions()[0].getParameterTypes()[0];
             if (param == null || !(WebSocketConstants.WEBSOCKET_CLIENT_NAME.equals(param.toString()) ||
                     WEBSOCKET_FAILOVER_CLIENT_NAME.equals(param.toString()))) {
-                throw WebSocketUtil.getWebSocketException("The callback service should be a WebSocket Client Service",
-                        null, WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
+                throw WebSocketUtil.getWebSocketError(
+                        "The callback service should be a WebSocket Client Service", null,
+                        WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
             }
             return new WebSocketService((BObject) clientService, runtime);
         } else {
@@ -574,8 +574,8 @@ public class WebSocketUtil {
         }
     }
 
-    public static WebSocketException getWebSocketException(String msg, Throwable throwable, String errorCode,
-                                                           BError cause) {
+    public static BError getWebSocketError(String msg, Throwable throwable, String errorCode,
+                                           BError cause) {
         WebSocketException exception;
         String message = errorCode.substring(2) + ": " + msg;
         if (throwable != null) {
@@ -585,12 +585,12 @@ public class WebSocketUtil {
         } else {
             exception = new WebSocketException(message, errorCode);
         }
-        return exception;
+        return exception.getWsError();
     }
 
     public static void setNotifyFailure(String msg, Future balFuture) {
-        balFuture.complete(getWebSocketException(msg, null,
-                WebSocketConstants.ErrorCode.WsInvalidHandshakeError.errorCode(), null));
+        balFuture.complete(getWebSocketError(msg, null,
+                                             WebSocketConstants.ErrorCode.WsInvalidHandshakeError.errorCode(), null));
     }
 
     private WebSocketUtil() {

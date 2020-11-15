@@ -18,41 +18,41 @@
 
 package org.ballerinalang.net.http;
 
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
-import io.ballerina.runtime.api.ValueCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.scheduling.Strand;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
-import static io.ballerina.runtime.util.BLangConstants.BALLERINA_BUILTIN_PKG_ID;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_BUILTIN_PKG_ID;
 import static org.ballerinalang.net.http.HttpConstants.STRUCT_GENERIC_ERROR;
 
 /**
  * {@code DataContext} is the wrapper to hold {@code Context} and {@code Callback}.
  */
 public class DataContext {
-    private Strand strand;
+    private Environment environment;
     private HttpClientConnector clientConnector;
     private BObject requestObj;
     private Future balFuture;
     private HttpCarbonMessage correlatedMessage;
 
-    public DataContext(Strand strand, HttpClientConnector clientConnector, Future balFuture,
+    public DataContext(Environment environment, HttpClientConnector clientConnector,
                        BObject requestObj, HttpCarbonMessage outboundRequestMsg) {
-        this.strand = strand;
-        this.balFuture = balFuture;
+        this.environment = environment;
+        this.balFuture = environment.markAsync();
         this.clientConnector = clientConnector;
         this.requestObj = requestObj;
         this.correlatedMessage = outboundRequestMsg;
     }
 
-    public DataContext(Strand strand, Future balFuture, HttpCarbonMessage inboundRequestMsg) {
-        this.strand = strand;
-        this.balFuture = balFuture;
+    public DataContext(Environment environment, HttpCarbonMessage inboundRequestMsg) {
+        this.environment = environment;
+        this.balFuture = environment.markAsync();
         this.clientConnector = null;
         this.requestObj = null;
         this.correlatedMessage = inboundRequestMsg;
@@ -87,8 +87,8 @@ public class DataContext {
         return requestObj;
     }
 
-    public Strand getStrand() {
-        return strand;
+    public Environment getEnvironment() {
+        return environment;
     }
 
     public Future getFuture() {

@@ -18,14 +18,12 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.constants.RuntimeConstants;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.runtime.util.RuntimeConstants;
-import io.ballerina.runtime.util.exceptions.BallerinaConnectorException;
-import io.ballerina.runtime.util.exceptions.BallerinaException;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
@@ -79,11 +77,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 if (httpResource != null) {
                     extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
                 }
-            } catch (BallerinaException ex) {
-                HttpUtil.handleFailure(inboundMessage, new BallerinaConnectorException(ex.getMessage(), ex.getCause()));
+            } catch (BallerinaConnectorException ex) {
+                HttpUtil.handleFailure(inboundMessage, ex.getMessage());
             }
         } catch (Exception ex) {
-            HttpUtil.handleFailure(inboundMessage, new BallerinaConnectorException(ex.getMessage(), ex.getCause()));
+            HttpUtil.handleFailure(inboundMessage, ex.getMessage());
         }
     }
 

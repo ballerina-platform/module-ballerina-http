@@ -17,11 +17,12 @@
  */
 package org.ballerinalang.net.http;
 
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.values.ValueCreator;
 
 import static org.ballerinalang.mime.util.MimeConstants.MEDIA_TYPE;
 import static org.ballerinalang.mime.util.MimeConstants.PROTOCOL_MIME_PKG_ID;
@@ -41,40 +42,37 @@ import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL;
  */
 public class ValueCreatorUtils {
 
-    private static final ValueCreator httpValueCreator = ValueCreator.getValueCreator(PROTOCOL_HTTP_PKG_ID.toString());
-    private static final ValueCreator mimeValueCreator = ValueCreator.getValueCreator(PROTOCOL_MIME_PKG_ID.toString());
-
     public static BObject createRequestObject() {
-        return createObjectValue(httpValueCreator, REQUEST);
+        return createObjectValue(PROTOCOL_HTTP_PKG_ID, REQUEST);
     }
 
     public static BObject createResponseObject() {
-        return createObjectValue(httpValueCreator, RESPONSE);
+        return createObjectValue(PROTOCOL_HTTP_PKG_ID, RESPONSE);
     }
 
     public static BObject createEntityObject() {
-        return createObjectValue(mimeValueCreator, ENTITY);
+        return createObjectValue(PROTOCOL_MIME_PKG_ID, ENTITY);
     }
 
     public static BObject createMediaTypeObject() {
-        return createObjectValue(mimeValueCreator, MEDIA_TYPE);
+        return createObjectValue(PROTOCOL_MIME_PKG_ID, MEDIA_TYPE);
     }
 
     public static BObject createPushPromiseObject() {
-        return createObjectValue(httpValueCreator, PUSH_PROMISE, StringUtils.fromString("/"),
+        return createObjectValue(PROTOCOL_HTTP_PKG_ID, PUSH_PROMISE, StringUtils.fromString("/"),
                                  StringUtils.fromString("GET"));
     }
 
     public static BObject createRequestCacheControlObject() {
-        return createObjectValue(httpValueCreator, REQUEST_CACHE_CONTROL);
+        return createObjectValue(PROTOCOL_HTTP_PKG_ID, REQUEST_CACHE_CONTROL);
     }
 
     public static BObject createResponseCacheControlObject() {
-        return createObjectValue(httpValueCreator, RESPONSE_CACHE_CONTROL);
+        return createObjectValue(PROTOCOL_HTTP_PKG_ID, RESPONSE_CACHE_CONTROL);
     }
 
     public static BObject createCallerObject() {
-        return createObjectValue(httpValueCreator, CALLER);
+        return createObjectValue(PROTOCOL_HTTP_PKG_ID, CALLER);
     }
     
     /**
@@ -84,19 +82,19 @@ public class ValueCreatorUtils {
      * @return value of the record.
      */
     public static BMap<BString, Object> createHTTPRecordValue(String recordTypeName) {
-        return httpValueCreator.createRecordValue(recordTypeName);
+        return ValueCreator.createRecordValue(PROTOCOL_HTTP_PKG_ID, recordTypeName);
     }
 
     /**
      * Method that creates a runtime object value using the given package id and object type name.
      *
-     * @param valueCreator value creator specific for the package.
+     * @param module value creator specific for the package.
      * @param objectTypeName name of the object type.
      * @param fieldValues values to be used for fields when creating the object value instance.
      * @return value of the object.
      */
-    private static BObject createObjectValue(ValueCreator valueCreator, String objectTypeName,
-                                                 Object... fieldValues) {
+    private static BObject createObjectValue(Module module, String objectTypeName,
+                                             Object... fieldValues) {
 
         Object[] fields = new Object[fieldValues.length * 2];
 
@@ -107,6 +105,6 @@ public class ValueCreatorUtils {
         }
 
         // passing scheduler, strand and properties as null for the moment, but better to expose them via this method
-        return valueCreator.createObjectValue(objectTypeName, null, null, null, fields);
+        return ValueCreator.createObjectValue(module, objectTypeName, null, null, null, fields);
     }
 }

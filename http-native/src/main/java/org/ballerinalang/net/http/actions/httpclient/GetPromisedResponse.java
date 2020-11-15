@@ -19,9 +19,6 @@ package org.ballerinalang.net.http.actions.httpclient;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
-import io.ballerina.runtime.util.exceptions.BallerinaException;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
@@ -37,13 +34,12 @@ import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 public class GetPromisedResponse extends AbstractHTTPAction {
 
     public static Object getPromisedResponse(Environment env, BObject clientObj, BObject pushPromiseObj) {
-        Strand strand = Scheduler.getStrand();
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
-        DataContext dataContext = new DataContext(strand, clientConnector, env.markAsync(),
+        DataContext dataContext = new DataContext(env, clientConnector,
                                                   pushPromiseObj, null);
         Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj, null);
         if (http2PushPromise == null) {
-            throw new BallerinaException("invalid push promise");
+            throw HttpUtil.createHttpError("invalid push promise");
         }
         clientConnector.getPushResponse(http2PushPromise).
                 setPushResponseListener(new PushResponseListener(dataContext), http2PushPromise.getPromisedStreamId());

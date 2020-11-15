@@ -19,11 +19,11 @@
 package org.ballerinalang.net.http.websocket.client;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.values.ArrayValue;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
 import org.ballerinalang.net.http.websocket.client.listener.ClientConnectorListener;
@@ -50,8 +50,7 @@ public class FailoverInitEndpoint {
         @SuppressWarnings(WebSocketConstants.UNCHECKED)
         BMap<BString, Object> clientEndpointConfig = (BMap<BString, Object>) failoverClient.getMapValue(
                 WebSocketConstants.CLIENT_ENDPOINT_CONFIG);
-        List<String> newTargetUrls = getValidUrls(
-                (ArrayValue) clientEndpointConfig.getArrayValue(WebSocketConstants.TARGET_URLS));
+        List<String> newTargetUrls = getValidUrls(clientEndpointConfig.getArrayValue(WebSocketConstants.TARGET_URLS));
         // Sets the failover config values.
         failoverClient.set(WebSocketConstants.CLIENT_URL_CONFIG, StringUtils.fromString(newTargetUrls.get(0)));
         FailoverContext failoverContext = new FailoverContext();
@@ -83,7 +82,7 @@ public class FailoverInitEndpoint {
      * @param targets - target URLs array
      * @return - validated target URLs array
      */
-    private static List<String> getValidUrls(ArrayValue targets) {
+    private static List<String> getValidUrls(BArray targets) {
         List<String> newTargetUrls = new ArrayList<>();
         int index = 0;
         for (int i = 0; i < targets.size(); i++) {
@@ -106,8 +105,8 @@ public class FailoverInitEndpoint {
             }
         }
         if (newTargetUrls.isEmpty()) {
-            throw WebSocketUtil.getWebSocketException("TargetUrls should have at least one valid URL.",
-                    null, WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
+            throw WebSocketUtil.getWebSocketError("TargetUrls should have at least one valid URL.",
+                                                  null, WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
         }
         if (logger.isDebugEnabled()) {
             logger.debug("New targetUrls: {}", newTargetUrls);

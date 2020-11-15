@@ -20,8 +20,6 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
@@ -37,15 +35,12 @@ public class Submit extends Execute {
     @SuppressWarnings("unchecked")
     public static Object submit(Environment env, BObject httpClient, BString httpVerb, BString path,
                                 BObject requestObj) {
-        Strand strand = Scheduler.getStrand();
         String url = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue();
         BMap<BString, Object> config = (BMap<BString, Object>) httpClient.get(CLIENT_ENDPOINT_CONFIG);
         HttpClientConnector clientConnector = (HttpClientConnector) httpClient.getNativeData(HttpConstants.CLIENT);
-        HttpCarbonMessage outboundRequestMsg = createOutboundRequestMsg(strand, url, config, path.getValue(),
-                                                                        requestObj);
+        HttpCarbonMessage outboundRequestMsg = createOutboundRequestMsg(url, config, path.getValue(), requestObj);
         outboundRequestMsg.setHttpMethod(httpVerb.getValue());
-        DataContext dataContext = new DataContext(strand, clientConnector, env.markAsync(), requestObj,
-                                                  outboundRequestMsg);
+        DataContext dataContext = new DataContext(env, clientConnector, requestObj, outboundRequestMsg);
         executeNonBlockingAction(dataContext, true);
         return null;
     }
