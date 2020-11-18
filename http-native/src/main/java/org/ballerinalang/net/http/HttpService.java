@@ -40,11 +40,9 @@ import java.util.stream.Stream;
 
 import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_CHUNKING;
 import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION;
-import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_INTERRUPTIBLE;
 import static org.ballerinalang.net.http.HttpConstants.DEFAULT_BASE_PATH;
 import static org.ballerinalang.net.http.HttpConstants.DEFAULT_HOST;
 import static org.ballerinalang.net.http.HttpConstants.DOLLAR;
-import static org.ballerinalang.net.http.HttpConstants.PACKAGE_BALLERINA_BUILTIN;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
 import static org.ballerinalang.net.http.HttpUtil.checkConfigAnnotationAvailability;
 
@@ -58,7 +56,6 @@ public class HttpService implements Cloneable {
     private static final Logger log = LoggerFactory.getLogger(HttpService.class);
 
     protected static final BString BASE_PATH_FIELD = StringUtils.fromString("basePath");
-    private static final String COMPRESSION_FIELD = "compression";
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
     private static final BString VERSIONING_FIELD = StringUtils.fromString("versioning");
     private static final BString HOST_FIELD = StringUtils.fromString("host");
@@ -73,7 +70,6 @@ public class HttpService implements Cloneable {
     private boolean keepAlive = true; //default behavior
     private BMap<BString, Object> compression;
     private String hostName;
-    private boolean interruptible;
     private String chunkingConfig;
 
     protected HttpService(BObject service) {
@@ -144,14 +140,6 @@ public class HttpService implements Cloneable {
         return hostName;
     }
 
-    public boolean isInterruptible() {
-        return interruptible;
-    }
-
-    public void setInterruptible(boolean interruptible) {
-        this.interruptible = interruptible;
-    }
-
     public String getBasePath() {
         return basePath;
     }
@@ -202,7 +190,6 @@ public class HttpService implements Cloneable {
         List<String> basePathList = new ArrayList<>();
         HttpService httpService = new HttpService(service);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
-        httpService.setInterruptible(hasInterruptibleAnnotation(service));
 
         if (checkConfigAnnotationAvailability(serviceConfig)) {
 
@@ -333,10 +320,5 @@ public class HttpService implements Cloneable {
                                                      String annotationName) {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
         return (BMap) (service.getType()).getAnnotation(StringUtils.fromString(key + ":" + annotationName));
-    }
-
-    private static boolean hasInterruptibleAnnotation(BObject service) {
-        return (service.getType()).getAnnotation(
-                StringUtils.fromString(PACKAGE_BALLERINA_BUILTIN + ":" + ANN_NAME_INTERRUPTIBLE)) != null;
     }
 }
