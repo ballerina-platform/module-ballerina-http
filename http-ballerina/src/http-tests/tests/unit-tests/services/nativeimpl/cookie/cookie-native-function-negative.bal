@@ -319,7 +319,7 @@ function testRemovePersistentCookieFromCookieStore_1() {
         }
         cookies = cookieStore.getAllCookies();
     }
-    error? removeResults = file:remove(filePath, true);
+    error? removeResults = file:remove(filePath, file:RECURSIVE);
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
 }
