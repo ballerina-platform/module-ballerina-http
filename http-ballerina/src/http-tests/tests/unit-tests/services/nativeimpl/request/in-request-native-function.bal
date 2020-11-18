@@ -93,11 +93,11 @@ function testSetBinaryPayload()  {
 
 @test:Config {}
 function testSetEntityBody() {
-    string|error createFileResults = file:createFile("test.json");
+    error? createFileResults = file:create("test.json");
     string value = "{\"name\":\"wso2\"}";
     string filePath = "";
-    if (createFileResults is string) {
-        filePath = createFileResults;
+    if (createFileResults is ()) {
+        filePath = checkpanic file:getAbsolutePath("test.json");
     }
     io:WritableByteChannel writableFileResult = checkpanic io:openWritableFile("test.json");
     io:WritableCharacterChannel destinationChannel = new (writableFileResult, "UTF-8");

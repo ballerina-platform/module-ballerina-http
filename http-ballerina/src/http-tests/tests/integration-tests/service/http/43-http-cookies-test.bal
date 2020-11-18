@@ -301,7 +301,7 @@ public function testSendRequestsByCookieClient() {
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    error? removeResults = file:remove("./cookie-test-data", true); // Removes persistent store file.
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
 }
 
 // Test to remove a session cookie by client
@@ -329,7 +329,7 @@ public function testRemoveSessionCookieByClient() {
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    error? removeResults = file:remove("./cookie-test-data", true);
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
 }
 
 // Test sending similar session cookies in the response by server,old cookie is replaced by new
@@ -416,7 +416,7 @@ public function testSendConcurrentRequests() {
     } else {
         test:assertFail(msg = "Found unexpected output");
     }
-    error? removeResults = file:remove("./cookie-test-data", true);
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
 }
 
 // Test to send requests by a client with Circuit Breaker, Retry and Cookie configurations are enabled
@@ -457,7 +457,7 @@ public function testSendRequestsByClient() {
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    error? removeResults = file:remove("./cookie-test-data", true);
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
 }
 
 // Test to remove a persistent cookie by the client
@@ -485,7 +485,7 @@ public function testRemovePersistentCookieByClient() {
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    error? removeResults = file:remove("./cookie-test-data", true);
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
 }
 
 // Test to send similar persistent cookies in the response by server. The old cookie is
@@ -506,7 +506,7 @@ public function testAddSimilarPersistentCookies() {
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    error? removeResults = file:remove("./cookie-test-data", true);
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
 }
 
 // Test to send a session cookie and a similar persistent cookie in the response by server.
@@ -527,7 +527,7 @@ public function testSendSimilarPersistentAndSessionCookies_1() {
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    error? removeResults = file:remove("./cookie-test-data", true);
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
 }
 
 // Test to send a persistent cookie and a similar session cookie in the response by the server.
@@ -548,7 +548,7 @@ public function testSendSimilarPersistentAndSessionCookies_2() {
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    error? removeResults = file:remove("./cookie-test-data", true);
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
 }
 
 // Test to remove a persistent cookie by the server
@@ -570,7 +570,7 @@ public function testRemovePersistentCookieByServer() {
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    error? removeResults = file:remove("./cookie-test-data", true);
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
 }
 
 // Test to send persistent cookies when the persistentCookieHandler is not configured
@@ -592,7 +592,7 @@ public function testSendPersistentCookiesWithoutPersistentCookieHandler() {
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    error? removeResults = file:remove("./cookie-test-data", true); // Removes persistent store file.
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
 }
 
 // Test the cookie validation when using the getCookies()

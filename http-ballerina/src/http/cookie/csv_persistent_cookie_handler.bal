@@ -55,7 +55,7 @@ public class CsvPersistentCookieHandler {
     # + cookie - Cookie to be added
     # + return - An error will be returned if there is any error occurred during the storing process of the cookie or else nil is returned
     public function storeCookie(Cookie cookie) returns @tainted CookieHandlingError? {
-        if (file:exists(self.fileName) && self.cookiesTable.length() == 0) {
+        if (fileExist(self.fileName) && self.cookiesTable.length() == 0) {
             var tblResult = readFile(self.fileName);
             if (tblResult is table<myCookie> key(name, domain, path)) {
                 self.cookiesTable = tblResult;
@@ -81,7 +81,7 @@ public class CsvPersistentCookieHandler {
     # + return - Array of persistent cookies stored in the cookie store or else an error is returned if one occurred during the retrieval of the cookies
     public function getAllCookies() returns @tainted Cookie[]|CookieHandlingError {
         Cookie[] cookies = [];
-        if (file:exists(self.fileName)) {
+        if (fileExist(self.fileName)) {
             var tblResult = readFile(self.fileName);
             if (tblResult is table<myCookie> key(name, domain, path)) {
                 foreach var rec in tblResult {
@@ -121,7 +121,7 @@ public class CsvPersistentCookieHandler {
         cookieNameToRemove = name;
         cookieDomainToRemove = domain;
         cookiePathToRemove = path;
-        if (file:exists(self.fileName)) {
+        if (fileExist(self.fileName)) {
             if(self.cookiesTable.length() == 0) {
                 var tblResult = readFile(self.fileName);
                 if (tblResult is table<myCookie> key(name, domain, path)) {
@@ -231,4 +231,12 @@ function closeWritableCSVChannel(io:WritableCSVChannel csvChannel) {
     if (result is error) {
         log:printError("Error occurred while closing the channel: ", result);
     }
+}
+
+function fileExist(string fileName) returns boolean {
+    boolean|error fileTestResult = file:test(fileName, file:EXISTS);
+    if (fileTestResult is boolean) {
+        return fileTestResult;
+    }
+    return false;
 }

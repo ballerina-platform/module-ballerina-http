@@ -417,7 +417,7 @@ function testRemoveAllCookiesInCookieStore() {
         }
         cookies = cookieStore.getAllCookies();
     }
-    error? removeResults = file:remove(filePath, true);
+    error? removeResults = file:remove(filePath, file:RECURSIVE);
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
 }
 
@@ -438,7 +438,7 @@ function testAddPersistentCookieToCookieStore() {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         cookies = cookieStore.getAllCookies();
     }
-    error? removeResults = file:remove(filePath, true);
+    error? removeResults = file:remove(filePath, file:RECURSIVE);
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
 }
@@ -459,7 +459,7 @@ function testAddPersistentCookieToCookieStore_2() {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         cookies = cookieStore.getAllCookies();
     }
-    error? removeResults = file:remove(filePath, true);
+    error? removeResults = file:remove(filePath, file:RECURSIVE);
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
 }
@@ -480,7 +480,7 @@ function testGetPersistentCookieFromCookieStore() {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         cookies = cookieStore.getCookies("http://google.com", "/sample");
     }
-    error? removeResults = file:remove(filePath, true);
+    error? removeResults = file:remove(filePath, file:RECURSIVE);
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
 }
@@ -505,7 +505,7 @@ function testRemovePersistentCookieFromCookieStore() {
         }
         cookies = cookieStore.getAllCookies();
     }
-    error? removeResults = file:remove(filePath, true);
+    error? removeResults = file:remove(filePath, file:RECURSIVE);
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
 }
 
