@@ -61,8 +61,7 @@ public class HttpCache {
             // IMPT: The call to getBinaryPayload() builds the payload from the stream. If this is not done, the stream
             // will be read by the client and the response will be after the first cache hit.
             var binaryPayload = inboundResponse.getBinaryPayload();
-            final string finalKey = key;
-            log:printDebug(() => "Adding new cache entry for: " + finalKey);
+            log:printDebug("Adding new cache entry for: " + key);
             addEntry(self.cache, key, inboundResponse);
         }
     }
@@ -153,10 +152,7 @@ public class HttpCache {
     isolated function remove(string key) {
         cache:Error? result = self.cache.invalidate(key);
         if (result is cache:Error) {
-            final string finalKey = key;
-            log:printDebug(isolated function() returns string {
-                return "Failed to remove the key: " + finalKey + " from the HTTP cache.";
-                });
+            log:printDebug("Failed to remove the key: " + key + " from the HTTP cache.");
         }
     }
 }
@@ -178,8 +174,7 @@ isolated function addEntry(cache:Cache cache, string key, Response inboundRespon
         Response[] cachedResponses = [inboundResponse];
         cache:Error? result = cache.put(key, cachedResponses);
         if (result is cache:Error) {
-            final string finalKey = key;
-            log:printDebug(() => "Failed to add cached response with the key: " + finalKey + " to the HTTP cache.");
+            log:printDebug("Failed to add cached response with the key: " + key + " to the HTTP cache.");
         }
     }
 }
