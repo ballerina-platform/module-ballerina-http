@@ -136,7 +136,7 @@ public class WebSocketResourceDispatcher {
 
             @Override
             public void notifyFailure(BError error) {
-                error.getPrintableStackTrace();
+                error.printStackTrace();
                 WebSocketUtil.closeDuringUnexpectedCondition(webSocketConnection);
                 WebSocketObservabilityUtil.observeError(connectionInfo,
                                                         WebSocketObservabilityConstants.ERROR_TYPE_RESOURCE_INVOCATION,

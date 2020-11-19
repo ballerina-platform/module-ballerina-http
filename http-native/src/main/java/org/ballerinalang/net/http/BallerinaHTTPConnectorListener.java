@@ -93,9 +93,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     protected void extractPropertiesAndStartResourceExecution(HttpCarbonMessage inboundMessage,
                                                               HttpResource httpResource) {
         boolean isTransactionInfectable = httpResource.isTransactionInfectable();
-        boolean isInterruptible = httpResource.isInterruptible();
         Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable,
-                isInterruptible, httpResource.isTransactionAnnotated());
+                                                                  httpResource.isTransactionAnnotated());
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig);
 
         if (ObserveUtils.isObservabilityEnabled()) {
@@ -120,7 +119,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     }
 
     private Map<String, Object> collectRequestProperties(HttpCarbonMessage inboundMessage, boolean isInfectable,
-                                                         boolean isInterruptible, boolean isTransactionAnnotated) {
+                                                         boolean isTransactionAnnotated) {
         Map<String, Object> properties = new HashMap<>();
         if (inboundMessage.getProperty(HttpConstants.SRC_HANDLER) != null) {
             Object srcHandler = inboundMessage.getProperty(HttpConstants.SRC_HANDLER);
@@ -143,7 +142,6 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         properties.put(HttpConstants.ORIGIN_HOST, inboundMessage.getHeader(HttpConstants.ORIGIN_HOST));
         properties.put(HttpConstants.POOLED_BYTE_BUFFER_FACTORY,
                        inboundMessage.getHeader(HttpConstants.POOLED_BYTE_BUFFER_FACTORY));
-        properties.put(RuntimeConstants.IS_INTERRUPTIBLE, isInterruptible);
         return properties;
     }
 }

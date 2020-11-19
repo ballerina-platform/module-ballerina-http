@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/cache;
+import ballerina/io;
 import ballerina/log;
 import ballerina/time;
 
@@ -306,7 +307,7 @@ public client class HttpCachingClient {
 public function createHttpCachingClient(string url, ClientConfiguration config, CacheConfig cacheConfig)
                                                                                       returns HttpClient|ClientError {
     HttpCachingClient httpCachingClient = new(url, config, cacheConfig);
-    log:printDebug(() => "Created HTTP caching client");
+    log:printDebug("Created HTTP caching client: " + io:sprintf("%s", httpCachingClient));
     return httpCachingClient;
 }
 
@@ -314,13 +315,11 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
                            boolean isShared, boolean forwardRequest) returns @tainted Response|ClientError {
     time:Time currentT = time:currentTime();
     req.parseCacheControlHeader();
-    final string finalHttpMethod = httpMethod;
-    final string finalPath = path;
 
     if (cache.hasKey(getCacheKey(httpMethod, path))) {
         Response cachedResponse = cache.get(getCacheKey(httpMethod, path));
 
-        log:printDebug(() => "Cached response found for: '" + finalHttpMethod + " " + finalPath + "'");
+        log:printDebug("Cached response found for: '" + httpMethod + " " + path + "'");
 
         // Based on https://tools.ietf.org/html/rfc7234#section-4
 
@@ -352,7 +351,7 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
             return cachedResponse;
         }
 
-        log:printDebug(() => "Validating a stale response for '" + finalPath + "' with the origin server.");
+        log:printDebug("Validating a stale response for '" + path + "' with the origin server.");
 
         var validatedResponse = getValidationResponse(httpClient, req, cachedResponse, cache, currentT, path,
                                                             httpMethod, false);
@@ -363,8 +362,8 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
         return validatedResponse;
     }
 
-    log:printDebug(() => "Cached response not found for: '" + finalHttpMethod + " " + finalPath + "'");
-    log:printDebug(() => "Sending new request to: " + finalPath);
+    log:printDebug("Cached response not found for: '" + httpMethod + " " + path + "'");
+    log:printDebug("Sending new request to: " + path);
 
     var response = sendNewRequest(httpClient, req, path, httpMethod, forwardRequest);
     if (response is Response) {
@@ -386,19 +385,19 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
     // TODO: Improve this logic in accordance with the spec
     if (isCacheableStatusCode(inboundResponse.statusCode) &&
                     inboundResponse.statusCode >= 200 && inboundResponse.statusCode < 400) {
-        final string getMethodCacheKey = getCacheKey(HTTP_GET, path);
+        string getMethodCacheKey = getCacheKey(HTTP_GET, path);
         if (httpCache.cache.hasKey(getMethodCacheKey)) {
             cache:Error? result = httpCache.cache.invalidate(getMethodCacheKey);
             if (result is cache:Error) {
-                log:printDebug(() => "Failed to remove the key: " + getMethodCacheKey + " from the cache.");
+                log:printDebug("Failed to remove the key: " + getMethodCacheKey + " from the cache.");
             }
         }
 
-        final string headMethodCacheKey = getCacheKey(HTTP_HEAD, path);
+        string headMethodCacheKey = getCacheKey(HTTP_HEAD, path);
         if (httpCache.cache.hasKey(headMethodCacheKey)) {
             cache:Error? result = httpCache.cache.invalidate(headMethodCacheKey);
             if (result is cache:Error) {
-                log:printDebug(() => "Failed to remove the key: " + headMethodCacheKey + " from the cache.");
+                log:printDebug("Failed to remove the key: " + headMethodCacheKey + " from the cache.");
             }
         }
     }

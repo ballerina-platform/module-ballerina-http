@@ -47,7 +47,7 @@ public class WebSocketResourceCallback implements Callback {
 
     @Override
     public void notifyFailure(BError error) {
-        error.getPrintableStackTrace();
+        error.printStackTrace();
         WebSocketUtil.closeDuringUnexpectedCondition(webSocketConnection);
         //Observe error
         WebSocketObservabilityUtil.observeError(connectionInfo,

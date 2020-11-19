@@ -35,10 +35,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.ballerinalang.net.http.HttpConstants.ANN_FIELD_PATH_PARAM_ORDER;
-import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_INTERRUPTIBLE;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PARAM_ORDER_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
-import static org.ballerinalang.net.http.HttpConstants.PACKAGE_BALLERINA_BUILTIN;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
 import static org.ballerinalang.net.http.HttpUtil.checkConfigAnnotationAvailability;
 
@@ -58,6 +56,10 @@ public class HttpResource {
     private static final BString PRODUCES_FIELD = StringUtils.fromString("produces");
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
     private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
+    private static final BString HTTP_RESOURCE_CONFIG =
+            StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_RESOURCE_CONFIG);
+    private static final BString HTTP_PARAM_ORDER_CONFIG =
+            StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_PARAM_ORDER_CONFIG);
 
     private AttachedFunctionType balResource;
     private List<String> methods;
@@ -70,8 +72,6 @@ public class HttpResource {
     private SignatureParams signatureParams;
     private HttpService parentService;
     private boolean transactionInfectable = true; //default behavior
-    private boolean interruptible;
-
     private boolean transactionAnnotated = false;
 
     protected HttpResource(AttachedFunctionType resource, HttpService parentService) {
@@ -173,14 +173,6 @@ public class HttpResource {
         this.transactionInfectable = transactionInfectable;
     }
 
-    public boolean isInterruptible() {
-        return interruptible;
-    }
-
-    public void setInterruptible(boolean interruptible) {
-        this.interruptible = interruptible;
-    }
-
     public String getEntityBodyAttributeValue() {
         return entityBodyAttribute;
     }
@@ -192,7 +184,6 @@ public class HttpResource {
     public static HttpResource buildHttpResource(AttachedFunctionType resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
-        httpResource.setInterruptible(httpService.isInterruptible() || hasInterruptibleAnnotation(resource));
 
         setupTransactionAnnotations(resource, httpResource);
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
@@ -237,20 +228,13 @@ public class HttpResource {
      * @return the resource configuration of the given resource
      */
     public static BMap getResourceConfigAnnotation(AttachedFunctionType resource) {
-        return (BMap) resource.getAnnotation(
-                StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_RESOURCE_CONFIG));
+        return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
     }
 
     protected static BMap getPathParamOrderMap(AttachedFunctionType resource) {
-        Object annotation = resource.getAnnotation(
-                StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_PARAM_ORDER_CONFIG));
+        Object annotation = resource.getAnnotation(HTTP_PARAM_ORDER_CONFIG);
         return annotation == null ? ValueCreator.createMapValue() :
                 (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
-    }
-
-    private static boolean hasInterruptibleAnnotation(AttachedFunctionType resource) {
-        return resource.getAnnotation(
-                StringUtils.fromString(PACKAGE_BALLERINA_BUILTIN + ":" + ANN_NAME_INTERRUPTIBLE)) != null;
     }
 
     private static List<String> getAsStringList(Object[] values) {
