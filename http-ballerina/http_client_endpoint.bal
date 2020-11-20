@@ -252,7 +252,7 @@ public client class Client {
     # + return - An `http:Response` message or else an `http: ClientError` if the invocation fails
     public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getResponse(httpFuture);
-        if (response is Response) {
+        if (response is Response && observabilityEnabled) {
             string statusCode = response.statusCode.toString();
             error? metricErr = observe:addTagToSpan(HTTP_STATUS_CODE, statusCode);
             error? traceErr = observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
