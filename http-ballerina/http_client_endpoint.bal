@@ -254,8 +254,8 @@ public client class Client {
         Response|ClientError response = self.httpClient->getResponse(httpFuture);
         if (response is Response && observabilityEnabled) {
             string statusCode = response.statusCode.toString();
-            error? metricErr = observe:addTagToSpan(HTTP_STATUS_CODE, statusCode);
-            error? traceErr = observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
+            _ = checkpanic observe:addTagToSpan(HTTP_STATUS_CODE, statusCode);
+            _ = checkpanic observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
 
         }
         return response;
