@@ -337,7 +337,7 @@ function testTextBodyPart() {
 @test:Config {}
 function testTextBodyPartAsFileUpload() {
     mime:Entity filePart = new;
-    filePart.setFileAsEntityBody("src/http-tests/tests/unit-tests/resources/datafiles/testFile.txt",
+    filePart.setFileAsEntityBody("tests/datafiles/testFile.txt",
                         contentType = mime:TEXT_PLAIN);
     http:Request request = new;
     mime:Entity[] bodyParts = [filePart];
@@ -374,7 +374,7 @@ function testJsonBodyPart() {
 @test:Config {}
 function testJsonBodyPartAsFileUpload() {
     mime:Entity jsonFilePart = new;
-    jsonFilePart.setFileAsEntityBody("src/http-tests/tests/unit-tests/resources/datafiles/testJson.json",
+    jsonFilePart.setFileAsEntityBody("tests/datafiles/testJson.json",
                             contentType = mime:APPLICATION_JSON);
     http:Request request = new;
     mime:Entity[] bodyParts = [jsonFilePart];
@@ -416,7 +416,7 @@ function testXmlBodyPart() {
 @test:Config {}
 function testXmlBodyPartAsFileUpload() {
     mime:Entity xmlFilePart = new;
-    xmlFilePart.setFileAsEntityBody("src/http-tests/tests/unit-tests/resources/datafiles/file.xml",
+    xmlFilePart.setFileAsEntityBody("tests/datafiles/file.xml",
                             contentType = mime:APPLICATION_XML);
     http:Request request = new;
     mime:Entity[] bodyParts = [xmlFilePart];
@@ -437,7 +437,7 @@ function testXmlBodyPartAsFileUpload() {
 @test:Config {}
 function testBinaryBodyPartAsFileUpload() returns @tainted error? {
     io:ReadableByteChannel byteChannel = check io:openReadableFile
-                                ("src/http-tests/tests/unit-tests/resources/datafiles/test.tmp");
+                                ("tests/datafiles/test.tmp");
     mime:Entity binaryFilePart = new;
     binaryFilePart.setByteChannel(byteChannel);
     http:Request request = new;
@@ -472,7 +472,7 @@ function testMultiplePartsWithMultipleBodyTypes() returns @tainted error? {
     textPart.setText("Ballerina text body part", contentType = mime:TEXT_PLAIN);
 
     io:ReadableByteChannel readableByteChannel = check io:openReadableFile
-                                ("src/http-tests/tests/unit-tests/resources/datafiles/test.tmp");
+                                ("tests/datafiles/test.tmp");
     mime:Entity binaryFilePart = new;
     binaryFilePart.setByteChannel(readableByteChannel);
 

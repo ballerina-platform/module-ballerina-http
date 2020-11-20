@@ -19,9 +19,9 @@ import ballerina/test;
 
 http:ListenerConfiguration sslConf = {
     secureSocket: {
-        keyFile: "tests/resources/certsandkeys/private.key",
-        certFile: "tests/resources/certsandkeys/public.crt",
-        trustedCertFile: "tests/resources/certsandkeys/public.crt",
+        keyFile: "tests/certsandkeys/private.key",
+        certFile: "tests/certsandkeys/public.crt",
+        trustedCertFile: "tests/certsandkeys/public.crt",
         sslVerifyClient: "require"
     },
     httpVersion: "2.0"
@@ -73,9 +73,9 @@ service mutualSslService on mutualSslistener {
 
 http:ClientConfiguration certsClientConf = {
     secureSocket:{
-        keyFile: "tests/resources/certsandkeys/private.key",
-        certFile: "tests/resources/certsandkeys/public.crt",
-        trustedCertFile: "tests/resources/certsandkeys/public.crt"
+        keyFile: "tests/certsandkeys/private.key",
+        certFile: "tests/certsandkeys/public.crt",
+        trustedCertFile: "tests/certsandkeys/public.crt"
     }
 };
 

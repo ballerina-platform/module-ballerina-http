@@ -19,8 +19,8 @@ import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
-final string TRUSTSTORE_PATH = "tests/integration-tests/certsAndKeys/ballerinaTruststore.p12";
-final string KEYSTORE_PATH = "tests/resources/certsandkeys/ballerinaKeystore.p12";
+final string TRUSTSTORE_PATH = "tests/certsandkeys/ballerinaTruststore.p12";
+final string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
 
 @http:WebSocketServiceConfig {
     path: "/sslEcho"

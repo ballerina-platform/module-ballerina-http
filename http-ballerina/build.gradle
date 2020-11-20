@@ -29,7 +29,6 @@ dependencies {
         transitive = false
     }
     compile project(':http-native')
-    compile project(':http-ballerina-tests')
     compile group: 'org.ballerinalang', name: 'toml-parser', version: "${ballerinaTomlParserVersion}"
 
     externalJars (group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}") {
@@ -145,8 +144,6 @@ def artifactCacheParent = file("$project.projectDir/build/cache_parent/")
 def artifactLibParent = file("$project.projectDir/build/lib_parent/")
 def tomlVersion = project.version.split("-")[0]
 def ballerinaCentralAccessToken = System.getenv('BALLERINA_CENTRAL_ACCESS_TOKEN')
-//def targetBallerinaJar = file("$project.projectDir/target/caches/jar_cache/${moduleOrg}/${moduleName}/${tomlVersion}/${moduleOrg}-${moduleName}-${tomlVersion}.jar")
-//def targetNativeJar = file("$project.rootDir/${moduleName}-native/build/libs/${moduleName}-native-${project.version}.jar")
 def originalConfig = ballerinaConfigFile.text
 
 task updateTomlVerions {
@@ -208,51 +205,11 @@ task revertTomlFile {
     }
 }
 
-//task ballerinaTest {
-//    dependsOn(copyStdlibs)
-//    dependsOn(":http-native:build")
-//    dependsOn(updateTomlVerions)
-//    finalizedBy(revertTomlFile)
-//
-//    def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
-//    def groupParams = ""
-//    if (project.hasProperty("groups")) {
-//        groupParams = "--groups ${project.findProperty("groups")}"
-//    }
-//
-//    def debugParams = ""
-//    if (project.hasProperty("debug")) {
-//        debugParams = "--debug ${project.findProperty("debug")}"
-//    }
-//
-//    def privateKey = "src/http-tests/tests/integration-tests/certsAndKeys/private.key"
-//    def publicCert = "src/http-tests/tests/integration-tests/certsAndKeys/public.crt"
-//    def keyStore = "src/http-tests/tests/integration-tests/certsAndKeys/ballerinaKeystore.p12"
-//    def trustStore = "src/http-tests/tests/integration-tests/certsAndKeys/ballerinaTruststore.p12"
-//    def certsAndKeys = "--certificate.key=${privateKey} --public.cert=${publicCert} --keystore=${keyStore} --truststore=${trustStore}"
-//
-//    doLast {
-//        exec {
-//            workingDir project.projectDir
-//            environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
-//            // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
-//            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-//                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline ${groupParams} ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf ${certsAndKeys} && exit %%ERRORLEVEL%%"
-//            } else {
-//                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline ${groupParams} ${debugParams} -- --b7a.config.file=src/http-tests/tests/unit-tests/services/configuration/service-config.conf ${certsAndKeys}"
-//            }
-//        }
-//    }
-//}
-
-test {
-//    dependsOn(ballerinaTest)
-}
-
 task ballerinaBuild {
     inputs.dir file(project.projectDir)
     finalizedBy(revertTomlFile)
     finalizedBy(':http-ballerina-tests:build')
+
     doLast {
         def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
         def additionalBuildParams = ""
@@ -295,7 +252,7 @@ task ballerinaBuild {
             }
 
         }
-//TODO: enable once the issue is fixed
+        //TODO: enable once the issue is fixed
         // Doc creation and packing
 //        exec {
 //            workingDir project.projectDir

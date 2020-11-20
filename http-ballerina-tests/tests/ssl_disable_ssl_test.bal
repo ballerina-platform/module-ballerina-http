@@ -20,7 +20,7 @@ import ballerina/test;
 http:ListenerConfiguration serviceConf = {
     secureSocket: {
         keyStore: {
-            path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }
     }

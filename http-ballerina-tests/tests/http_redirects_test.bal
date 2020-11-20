@@ -26,7 +26,7 @@ listener http:Listener serviceEndpoint3 = new(9103);
 http:ListenerConfiguration httpsEPConfig = {
     secureSocket: {
         keyStore: {
-            path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }
     }
@@ -54,7 +54,7 @@ http:ClientConfiguration endPoint5Config = {
     followRedirects: { enabled: true },
     secureSocket: {
         trustStore: {
-            path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+            path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         }
     }

@@ -36,7 +36,7 @@ service test2 on mockEP2 {
 
         //Create another body part with a xml file.
         mime:Entity bodyPart2 = new;
-        bodyPart2.setFileAsEntityBody("src/http-tests/tests/unit-tests/resources/datafiles/file.xml", mime:TEXT_XML);
+        bodyPart2.setFileAsEntityBody("tests/datafiles/file.xml", mime:TEXT_XML);
 
         //Create a text body part.
         mime:Entity bodyPart3 = new;
@@ -44,7 +44,7 @@ service test2 on mockEP2 {
 
         //Create another body part with a text file.
         mime:Entity bodyPart4 = new;
-        bodyPart4.setFileAsEntityBody("src/http-tests/tests/unit-tests/resources/datafiles/test.tmp");
+        bodyPart4.setFileAsEntityBody("tests/datafiles/test.tmp");
 
         //Create an array to hold all the body parts.
         mime:Entity[] bodyParts = [bodyPart1, bodyPart2, bodyPart3, bodyPart4];

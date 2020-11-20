@@ -20,11 +20,11 @@ import ballerina/test;
 http:ListenerConfiguration http2MutualSslServiceConf = {
     secureSocket: {
         keyStore: {
-            path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
         trustStore: {
-            path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+            path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
         protocol: {
@@ -83,11 +83,11 @@ service http2Service on http2Listener {
 http:ClientConfiguration http2MutualSslClientConf = {
     secureSocket:{
         keyStore:{
-            path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
         trustStore:{
-            path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+            path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
         protocol:{

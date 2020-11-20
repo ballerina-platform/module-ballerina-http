@@ -20,11 +20,11 @@ import ballerina/test;
 http:ListenerConfiguration strongCipherConfig = {
     secureSocket: {
         keyStore: {
-            path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
         trustStore: {
-            path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+            path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         }
         // Service will start with the strong cipher suites. No need to specify.
@@ -52,11 +52,11 @@ service strongService on strongCipher {
 http:ListenerConfiguration weakCipherConfig = {
     secureSocket: {
         keyStore: {
-            path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
         trustStore: {
-            path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+            path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
         ciphers: ["TLS_RSA_WITH_AES_128_CBC_SHA"]
@@ -86,11 +86,11 @@ public function testWithStrongClientWithWeakService() {
     http:Client clientEP = new("https://localhost:9227", {
         secureSocket: {
             keyStore: {
-                path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+                path: "tests/certsandkeys/ballerinaKeystore.p12",
                 password: "ballerina"
             },
             trustStore: {
-                path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+                path: "tests/certsandkeys/ballerinaTruststore.p12",
                 password: "ballerina"
             },
             ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
@@ -110,11 +110,11 @@ public function testWithStrongClientWithStrongService() {
     http:Client clientEP = new("https://localhost:9226", {
         secureSocket: {
             keyStore: {
-                path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+                path: "tests/certsandkeys/ballerinaKeystore.p12",
                 password: "ballerina"
             },
             trustStore: {
-                path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+                path: "tests/certsandkeys/ballerinaTruststore.p12",
                 password: "ballerina"
             },
             ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]

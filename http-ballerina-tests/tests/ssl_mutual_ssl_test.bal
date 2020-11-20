@@ -20,11 +20,11 @@ import ballerina/test;
 http:ListenerConfiguration mutualSslServiceConf = {
     secureSocket: {
         keyStore: {
-            path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
         trustStore: {
-            path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+            path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
         protocol: {
@@ -105,11 +105,11 @@ service echoDummyService15 on echoDummy15 {
 http:ClientConfiguration mutualSslClientConf = {
     secureSocket:{
         keyStore:{
-            path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
         trustStore:{
-            path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+            path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
         protocol:{

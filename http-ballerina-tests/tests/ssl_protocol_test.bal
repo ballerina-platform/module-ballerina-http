@@ -22,7 +22,7 @@ import ballerina/test;
 http:ListenerConfiguration sslProtocolServiceConfig = {
     secureSocket: {
         keyStore: {
-            path: "tests/resources/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
          },
          protocol: {
@@ -53,7 +53,7 @@ service sslProtocolService on sslProtocolListener {
 http:ClientConfiguration sslProtocolClientConfig = {
     secureSocket: {
         trustStore: {
-            path: "tests/resources/certsandkeys/ballerinaTruststore.p12",
+            path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
         protocol: {

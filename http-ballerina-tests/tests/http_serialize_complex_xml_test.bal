@@ -37,7 +37,7 @@ service serializer on serializeXmlListener {
         mime:Entity xmlFilePart = new;
         xmlFilePart.setContentDisposition(
                        getContentDispositionForFormData("xml file part"));
-        xmlFilePart.setFileAsEntityBody("tests/integration-tests/resources/ComplexTestXmlSample.xml",
+        xmlFilePart.setFileAsEntityBody("tests/datafiles/ComplexTestXmlSample.xml",
                                         contentType = mime:APPLICATION_XML);
         // Create an array to hold all the body parts.
         mime:Entity[] bodyParts = [xmlFilePart];

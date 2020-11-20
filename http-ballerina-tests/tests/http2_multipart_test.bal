@@ -95,7 +95,7 @@ service multipartDemoService on new http:Listener(9100, { httpVersion: "2.0" }) 
         jsonBodyPart.setJson({"name": "wso2"});
         mime:Entity xmlFilePart = new;
         xmlFilePart.setContentDisposition(getContDisposition("xml file part"));
-        xmlFilePart.setFileAsEntityBody("tests/resources/http2_test.xml",
+        xmlFilePart.setFileAsEntityBody("tests/datafiles/http2_test.xml",
                                         contentType = mime:APPLICATION_XML);
         mime:Entity textPart = new;
         textPart.setText("text content", contentType = "text/plain");

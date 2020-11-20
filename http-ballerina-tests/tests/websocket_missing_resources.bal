@@ -57,6 +57,7 @@ service callbackService = @http:WebSocketServiceConfig {} service {
 @test:Config {}
 public function testMissingOnText() {
     http:WebSocketClient wsClient = new ("ws://localhost:21005/onlyOnBinary", {callbackService: callbackService});
+    expectedData = "";
     byte[] binaryData = [5, 24, 56, 243];
     checkpanic wsClient->pushText("Hi");
     runtime:sleep(500);
