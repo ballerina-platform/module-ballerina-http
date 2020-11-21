@@ -1,6 +1,6 @@
 [package]
 org = "ballerina"
-name = "ballerina_tests"
+name = "http_tests"
 version = "@toml.version@"
 
 [[dependency]]

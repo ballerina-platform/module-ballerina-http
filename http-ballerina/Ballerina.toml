@@ -50,11 +50,6 @@ version = "@stdlib.log.version@"
 
 [[dependency]]
 org = "ballerina"
-name = "system"
-version = "@stdlib.system.version@"
-
-[[dependency]]
-org = "ballerina"
 name = "reflect"
 version = "@stdlib.reflect.version@"
 
@@ -62,11 +57,6 @@ version = "@stdlib.reflect.version@"
 org = "ballerina"
 name = "stringutils"
 version = "@stdlib.stringutils.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "task"
-version = "@stdlib.task.version@"
 
 [[platform.java11.dependency]]
 path = "../http-native/build/libs/http-native-@project.version@.jar"

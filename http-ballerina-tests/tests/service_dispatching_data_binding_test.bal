@@ -323,7 +323,7 @@ function testDataBindingStructWithNoMatchingContent() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
-            "ConversionError\",message=\"'map<json>' value cannot be converted to 'ballerina_tests:Person'\")");
+            "ConversionError\",message=\"'map<json>' value cannot be converted to 'http_tests:Person'\")");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -337,7 +337,7 @@ function testDataBindingStructWithInvalidTypes() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
-            "ConversionError\",message=\"'map<json>' value cannot be converted to 'ballerina_tests:Stock'\")");
+            "ConversionError\",message=\"'map<json>' value cannot be converted to 'http_tests:Stock'\")");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -351,7 +351,7 @@ function testDataBindingWithRecordArrayNegative() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
-            "ConversionError\",message=\"'json[]' value cannot be converted to 'ballerina_tests:Person[]'\")");
+            "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]'\")");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

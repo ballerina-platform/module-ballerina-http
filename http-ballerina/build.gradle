@@ -161,8 +161,6 @@ task updateTomlVerions {
         def stdlibDependentConfigVersion = project.stdlibConfigVersion.split("-")[0]
         def stdlibDependentReflectVersion = project.stdlibReflectVersion.split("-")[0]
         def stdlibDependentRuntimeVersion = project.stdlibRuntimeVersion.split("-")[0]
-        def stdlibDependentSystemVersion = project.stdlibSystemVersion.split("-")[0]
-        def stdlibDependentTaskVersion = project.stdlibTaskVersion.split("-")[0]
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
         def stdlibDependentWso2SnakeYamlVersion = project.wso2SnakeYamlVersion
@@ -185,8 +183,6 @@ task updateTomlVerions {
         newConfig = newConfig.replace("@stdlib.config.version@", stdlibDependentConfigVersion)
         newConfig = newConfig.replace("@stdlib.reflect.version@", stdlibDependentReflectVersion)
         newConfig = newConfig.replace("@stdlib.runtime.version@", stdlibDependentRuntimeVersion)
-        newConfig = newConfig.replace("@stdlib.system.version@", stdlibDependentSystemVersion)
-        newConfig = newConfig.replace("@stdlib.task.version@", stdlibDependentTaskVersion)
         newConfig = newConfig.replace("@stdlib.mimenative.version@", stdlibDependentMimeNativeVersion)
         newConfig = newConfig.replace("@netty.version@", stdlibDependentNettyVersion)
         newConfig = newConfig.replace("@commmon.pool.version@", stdlibDependentWso2CommonsPoolVersion)
