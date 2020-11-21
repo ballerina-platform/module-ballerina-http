@@ -1,0 +1,166 @@
+/*
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+description = 'Ballerina - HTTP/WS Ballerina Tests'
+
+configurations {
+    jbalTools
+}
+
+dependencies {
+    jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+        transitive = false
+    }
+    compile group: 'org.ballerinalang', name: 'toml-parser', version: "${ballerinaTomlParserVersion}"
+}
+
+clean {
+    delete "$project.projectDir/target"
+}
+
+jar {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                'Implementation-Version': project.version)
+    }
+}
+
+task unpackJballerinaTools(type: Copy) {
+    configurations.jbalTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        from zipTree(artifact.getFile())
+        into new File("${buildDir}/target/extracted-distributions", "jballerina-tools-zip")
+    }
+}
+
+task unpackStdLibs() {
+    doLast {
+        configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            copy {
+                from project.zipTree(artifact.getFile())
+                into new File("${buildDir}/target/extracted-distributions", artifact.name + "-zip")
+            }
+        }
+    }
+}
+
+
+def packageOrg = "ballerina"
+def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
+def tomlVersion = project.version.split("-")[0]
+def originalConfig = ballerinaConfigFile.text
+
+task copyStdlibs(type: Copy) {
+    def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
+    into ballerinaDist
+
+    /* Standard Libraries */
+    configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        def artifactExtractedPath = "${buildDir}/target/extracted-distributions/" + artifact.name + "-zip"
+        into("repo/balo") {
+            from "${artifactExtractedPath}/balo/"
+        }
+//        into("repo/cache") {
+//            from "${artifactExtractedPath}/cache"
+//        }
+    }
+    /* Copy HTTP module */
+    into("repo/balo/${packageOrg}/http/${tomlVersion}") {
+        from "../http-ballerina/target/balo"
+    }
+}
+
+task updateTomlVerions {
+    doLast {
+        def stdlibDependentIoVersion = project.stdlibIoVersion.split("-")[0]
+        def stdlibDependentLogVersion = project.stdlibLogVersion.split("-")[0]
+        def stdlibDependentStringutilsVersion = project.stdlibStringutilsVersion.split("-")[0]
+        def stdlibDependentMimeVersion = project.stdlibMimeVersion.split("-")[0]
+        def stdlibDependentAuthVersion = project.stdlibAuthVersion.split("-")[0]
+        def stdlibDependentFileVersion = project.stdlibFileVersion.split("-")[0]
+        def stdlibDependentConfigVersion = project.stdlibConfigVersion.split("-")[0]
+        def stdlibDependentRuntimeVersion = project.stdlibRuntimeVersion.split("-")[0]
+
+        def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
+        newConfig = newConfig.replace("@toml.version@", tomlVersion)
+        newConfig = newConfig.replace("@stdlib.io.version@", stdlibDependentIoVersion)
+        newConfig = newConfig.replace("@stdlib.log.version@", stdlibDependentLogVersion)
+        newConfig = newConfig.replace("@stdlib.stringutils.version@", stdlibDependentStringutilsVersion)
+        newConfig = newConfig.replace("@stdlib.mime.version@", stdlibDependentMimeVersion)
+        newConfig = newConfig.replace("@stdlib.auth.version@", stdlibDependentAuthVersion)
+        newConfig = newConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
+        newConfig = newConfig.replace("@stdlib.config.version@", stdlibDependentConfigVersion)
+        newConfig = newConfig.replace("@stdlib.runtime.version@", stdlibDependentRuntimeVersion)
+        ballerinaConfigFile.text = newConfig
+    }
+}
+
+task revertTomlFile {
+    doLast {
+        ballerinaConfigFile.text = originalConfig
+    }
+}
+
+task ballerinaTest {
+    inputs.dir file(project.projectDir)
+    dependsOn(copyStdlibs)
+    dependsOn(":http-ballerina:build")
+    dependsOn(updateTomlVerions)
+    finalizedBy(revertTomlFile)
+
+    def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
+    def groupParams = ""
+    if (project.hasProperty("groups")) {
+        groupParams = "--groups ${project.findProperty("groups")}"
+    }
+    
+    def debugParams = ""
+    if (project.hasProperty("debug")) {
+        debugParams = "--debug ${project.findProperty("debug")}"
+    }
+
+    def privateKey = "tests/certsandkeys/private.key"
+    def publicCert = "tests/certsandkeys/public.crt"
+    def keyStore = "tests/certsandkeys/ballerinaKeystore.p12"
+    def trustStore = "tests/certsandkeys/ballerinaTruststore.p12"
+    def certsAndKeys = "--certificate.key=${privateKey} --public.cert=${publicCert} --keystore=${keyStore} --truststore=${trustStore}"
+
+    doLast {
+        exec {
+            workingDir project.projectDir
+            environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+            // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys} && exit %%ERRORLEVEL%%"
+            } else {
+                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys}"
+            }
+        }
+    }
+}
+
+test {
+    dependsOn(ballerinaTest)
+}
+
+ballerinaTest.dependsOn ":http-ballerina:build"
+unpackStdLibs.dependsOn unpackJballerinaTools
+copyStdlibs.dependsOn unpackStdLibs
+updateTomlVerions.dependsOn copyStdlibs
+ballerinaTest.dependsOn updateTomlVerions
+build.dependsOn test

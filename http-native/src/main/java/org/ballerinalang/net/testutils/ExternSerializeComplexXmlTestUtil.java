@@ -54,7 +54,7 @@ public class ExternSerializeComplexXmlTestUtil {
     }
 
     private static InputStream getInputStream() throws IOException {
-        String filePath = Paths.get("src/http-tests/tests/integration-tests/resources/ComplexTestXmlSample.xml")
+        String filePath = Paths.get("tests/datafiles/ComplexTestXmlSample.xml")
                 .toAbsolutePath().toString();
         return new FileInputStream(filePath);
     }
