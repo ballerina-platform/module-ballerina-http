@@ -81,7 +81,8 @@ service weakService on weakCipher {
     }
 }
 
-@test:Config {}
+// Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
+@test:Config {enable:false}
 public function testWithStrongClientWithWeakService() {
     http:Client clientEP = new("https://localhost:9227", {
         secureSocket: {
