@@ -98,7 +98,9 @@ service cbHelloWorld on new http:Listener(8086) {
 //Test basic circuit breaker functionality
 http:Client testTypicalBackendTimeoutClient = new("http://localhost:9306");
 
-@test:Config{
+// Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
+@test:Config {
+    enable:false,
     dataProvider:"responseDataProvider"
 }
 function testTypicalBackendTimeout(DataFeed dataFeed) {
