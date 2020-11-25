@@ -39,7 +39,8 @@ public class ChunkAutoClientTestCase extends ChunkClientTemplate {
         super.setUp();
     }
 
-    @Test
+    //https://github.com/ballerina-platform/ballerina-standard-library/issues/317
+    //@Test
     public void postTest() {
         try {
             HttpCarbonMessage response = sendRequest(TestUtil.largeEntity);
