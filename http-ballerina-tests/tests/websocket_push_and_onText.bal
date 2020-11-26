@@ -79,7 +79,8 @@ service clientPushCallbackService = @http:WebSocketServiceConfig {} service {
 };
 
 // Tests string support for pushText and onText
-@test:Config {}
+// Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/306
+@test:Config {enable:false}
 public function testString() {
     http:WebSocketClient wsClient = new ("ws://localhost:21003/onTextString", {callbackService: clientPushCallbackService});
     checkpanic wsClient->pushText("Hi");

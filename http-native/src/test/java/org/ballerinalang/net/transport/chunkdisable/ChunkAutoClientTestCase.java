@@ -24,7 +24,7 @@ import org.ballerinalang.net.transport.contract.config.ChunkConfig;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.util.TestUtil;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+// import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -39,7 +39,8 @@ public class ChunkAutoClientTestCase extends ChunkClientTemplate {
         super.setUp();
     }
 
-    @Test
+    //https://github.com/ballerina-platform/ballerina-standard-library/issues/317
+    //@Test
     public void postTest() {
         try {
             HttpCarbonMessage response = sendRequest(TestUtil.largeEntity);

@@ -35,7 +35,8 @@ service pongService = @http:WebSocketServiceConfig {} service {
 };
 
 // Tests the auto ping pong support in Ballerina if there is no onPing resource
-@test:Config {}
+// Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/306
+@test:Config {enable:false}
 public function testAutoPingPongSupport() {
     http:WebSocketClient wsClient = new ("ws://localhost:21020", {callbackService: pongService});
     byte[] pingData = [5, 24, 56, 243];
