@@ -18,9 +18,10 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.types.MemberFunctionType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.transactions.TransactionConstants;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.ballerinalang.net.http.HttpConstants.ANN_FIELD_ALL_PARAM_ORDER;
 import static org.ballerinalang.net.http.HttpConstants.ANN_FIELD_PATH_PARAM_ORDER;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PARAM_ORDER_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
@@ -61,7 +63,7 @@ public class HttpResource {
     private static final BString HTTP_PARAM_ORDER_CONFIG =
             StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_PARAM_ORDER_CONFIG);
 
-    private AttachedFunctionType balResource;
+    private MemberFunctionType balResource;
     private List<String> methods;
     private String path;
     private String entityBodyAttribute;
@@ -74,7 +76,7 @@ public class HttpResource {
     private boolean transactionInfectable = true; //default behavior
     private boolean transactionAnnotated = false;
 
-    protected HttpResource(AttachedFunctionType resource, HttpService parentService) {
+    protected HttpResource(MemberFunctionType resource, HttpService parentService) {
         this.balResource = resource;
         this.parentService = parentService;
         this.producesSubTypes = new ArrayList<>();
@@ -100,7 +102,7 @@ public class HttpResource {
         return parentService;
     }
 
-    public AttachedFunctionType getBalResource() {
+    public MemberFunctionType getBalResource() {
         return balResource;
     }
 
@@ -181,7 +183,7 @@ public class HttpResource {
         this.entityBodyAttribute = entityBodyAttribute;
     }
 
-    public static HttpResource buildHttpResource(AttachedFunctionType resource, HttpService httpService) {
+    public static HttpResource buildHttpResource(MemberFunctionType resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
 
@@ -213,7 +215,7 @@ public class HttpResource {
         return httpResource;
     }
 
-    private static void setupTransactionAnnotations(AttachedFunctionType resource, HttpResource httpResource) {
+    private static void setupTransactionAnnotations(MemberFunctionType resource, HttpResource httpResource) {
         BMap transactionConfigAnnotation = HttpUtil.getTransactionConfigAnnotation(resource,
                         TransactionConstants.TRANSACTION_PACKAGE_PATH);
         if (transactionConfigAnnotation != null) {
@@ -227,14 +229,20 @@ public class HttpResource {
      * @param resource The resource
      * @return the resource configuration of the given resource
      */
-    public static BMap getResourceConfigAnnotation(AttachedFunctionType resource) {
+    public static BMap getResourceConfigAnnotation(MemberFunctionType resource) {
         return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
     }
 
-    protected static BMap getPathParamOrderMap(AttachedFunctionType resource) {
+    protected static BMap getPathParamOrderMap(MemberFunctionType resource) {
         Object annotation = resource.getAnnotation(HTTP_PARAM_ORDER_CONFIG);
         return annotation == null ? ValueCreator.createMapValue() :
                 (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
+    }
+
+    protected static BArray getAllParamOrderMap(MemberFunctionType resource) {
+        Object annotation = resource.getAnnotation(HTTP_PARAM_ORDER_CONFIG);
+        return annotation == null ? ValueCreator.createArrayValue(new BString[0]) :
+                (BArray) ((BMap<BString, Object>) annotation).get(ANN_FIELD_ALL_PARAM_ORDER);
     }
 
     private static List<String> getAsStringList(Object[] values) {

@@ -242,8 +242,8 @@ public type ListenerHttp1Settings record {|
 public type ListenerAuth record {|
     InboundAuthHandlers authHandlers;
     Scopes scopes?;
-    cache:Cache? positiveAuthzCache = new;
-    cache:Cache? negativeAuthzCache = new;
+    // cache:Cache? positiveAuthzCache = new;
+    // cache:Cache? negativeAuthzCache = new;
     boolean mandateSecureSocket = true;
     int position = 0;
 |};
@@ -316,8 +316,8 @@ isolated function addAuthFilters(ListenerConfiguration config) {
         InboundAuthHandlers authHandlers = auth.authHandlers;
         AuthnFilter authnFilter = new(authHandlers);
 
-        cache:Cache? positiveAuthzCache = auth.positiveAuthzCache ?: ();
-        cache:Cache? negativeAuthzCache = auth.negativeAuthzCache ?: ();
+        // cache:Cache? positiveAuthzCache = auth.positiveAuthzCache ?: ();
+        // cache:Cache? negativeAuthzCache = auth.negativeAuthzCache ?: ();
         AuthzHandler authzHandler = new(positiveAuthzCache, negativeAuthzCache);
         Scopes? scopes = auth["scopes"];
         AuthzFilter authzFilter = new(authzHandler, scopes);

@@ -124,7 +124,7 @@ public type HttpResourceConfig record {|
 # + upgradeService - Callback service for a successful upgrade
 public type WebSocketUpgradeConfig record {|
     string upgradePath = "";
-    service upgradeService?;
+    HttpService upgradeService?;
 |};
 
 # Configures the authentication scheme for a service.
@@ -138,8 +138,8 @@ public type WebSocketUpgradeConfig record {|
 # should be successfully authorized.
 public type ServiceAuth record {|
     boolean enabled = true;
-    InboundAuthHandlers authHandlers?;
-    Scopes scopes?;
+    //InboundAuthHandlers authHandlers?;
+    //Scopes scopes?;
 |};
 
 # Configures the authentication scheme for a resource.
@@ -153,12 +153,12 @@ public type ServiceAuth record {|
 # should be successfully authorized.
 public type ResourceAuth record {|
     boolean enabled?;
-    InboundAuthHandlers authHandlers?;
-    Scopes scopes?;
+    //InboundAuthHandlers authHandlers?;
+    //Scopes scopes?;
 |};
 
 # The annotation which is used to configure an HTTP resource.
-public annotation HttpResourceConfig ResourceConfig on resource function;
+//public annotation HttpResourceConfig ResourceConfig on resource function;
 
 # Path param order config keep the signature path param index against the variable names for runtime path param processing.
 #
@@ -167,5 +167,5 @@ type HttpParamOrderConfig record {|
     map<int> pathParamOrder = {};
 |};
 
-# The annotation which is used to configure an path param order.
-annotation HttpParamOrderConfig ParamOrderConfig on resource function;
+//# The annotation which is used to configure an path param order.
+//annotation HttpParamOrderConfig ParamOrderConfig on resource function;
