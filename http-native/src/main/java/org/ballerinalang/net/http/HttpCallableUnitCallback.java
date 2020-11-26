@@ -32,7 +32,7 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     @Override
-    public void notifySuccess() {
+    public void notifySuccess(Object result) {
         requestMessage.waitAndReleaseAllEntities();
     }
 

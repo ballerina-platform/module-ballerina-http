@@ -1,45 +1,45 @@
 [package]
 org = "ballerina"
 name = "http_tests"
-version = "@toml.version@"
+version = "1.0.2"
 
 [[dependency]]
 org = "ballerina"
 name = "io"
-version = "@stdlib.io.version@"
+version = "0.5.2"
 
 [[dependency]]
 org = "ballerina"
 name = "file"
-version = "@stdlib.file.version@"
+version = "0.6.0"
 
 [[dependency]]
 org = "ballerina"
 name = "auth"
-version = "@stdlib.auth.version@"
+version = "1.0.2"
 
 [[dependency]]
 org = "ballerina"
 name = "mime"
-version = "@stdlib.mime.version@"
+version = "1.0.2"
 
 [[dependency]]
 org = "ballerina"
 name = "runtime"
-version = "@stdlib.runtime.version@"
+version = "0.5.2"
 
 [[dependency]]
 org = "ballerina"
 name = "log"
-version = "@stdlib.log.version@"
+version = "1.0.2"
 
 [[dependency]]
 org = "ballerina"
 name = "stringutils"
-version = "@stdlib.stringutils.version@"
+version = "0.5.2"
 
 [[platform.java11.dependency]]
-path = "../http-native/build/libs/http-native-@project.version@.jar"
+path = "../http-native/build/libs/http-native-1.0.2-SNAPSHOT.jar"
 groupId = "ballerina"
 artifactId = "http"
-version = "@project.version@"
+version = "1.0.2-SNAPSHOT"
