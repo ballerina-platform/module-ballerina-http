@@ -398,8 +398,8 @@ function testHTTP2OriginalRequestWithQP() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
-
-@test:Config {}
+// Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
+@test:Config {enable:false}
 function testHTTP2303Status() {
     var response = http2RedirectClient->get("/service1/test303");
     if (response is http:Response) {
