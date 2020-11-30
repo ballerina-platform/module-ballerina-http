@@ -20,19 +20,19 @@
 // #
 // # + path - The resource path
 // # + method - The HTTP method
-// public class PushPromise {
+public class PushPromise {
 
-//     public string path;
-//     public string method;
+    public string path;
+    public string method;
 
-//     # Constructs an `http:PushPromise` from a given path and a method.
-//     #
-//     # + path - The resource path
-//     # + method - The HTTP method
-//     public isolated function init(string path = "/", string method = "GET") {
-//         self.path = path;
-//         self.method = method;
-//     }
+    # Constructs an `http:PushPromise` from a given path and a method.
+    #
+    # + path - The resource path
+    # + method - The HTTP method
+    public isolated function init(string path = "/", string method = "GET") {
+        self.path = path;
+        self.method = method;
+    }
 
 //     # Checks whether the requested header exists.
 //     #
@@ -93,7 +93,7 @@
 //     public isolated function getHeaderNames() returns string[] {
 //         return externPromiseGetHeaderNames(self);
 //     }
-// }
+}
 
 // isolated function externPromiseHasHeader(PushPromise promise, string headerName) returns boolean =
 // @java:Method {

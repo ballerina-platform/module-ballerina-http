@@ -224,6 +224,7 @@ task ballerinaBuild {
                 commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat build --offline --skip-tests ${additionalBuildParams} -c && exit %%ERRORLEVEL%%"
             } else {
                 commandLine 'sh', '-c', "$distributionBinPath/ballerina build --offline --skip-tests ${additionalBuildParams} -c"
+//                commandLine 'sh', '-c', "BAL_JAVA_DEBUG=5005 $distributionBinPath/ballerina build --offline --skip-tests ${additionalBuildParams} -c"
             }
         }
         copy {

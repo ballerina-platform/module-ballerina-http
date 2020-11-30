@@ -15,10 +15,10 @@
 // under the License.
 
 import ballerina/java;
-import ballerina/cache;
-import ballerina/crypto;
+// import ballerina/cache;
+// import ballerina/crypto;
 import ballerina/lang.'object as lang;
-import ballerina/runtime;
+// import ballerina/runtime;
 
 /////////////////////////////
 /// HTTP Listener Endpoint ///
@@ -60,7 +60,7 @@ public class Listener {
     # + s - The service that needs to be attached
     # + name - Name of the service
     # + return - An `error` an error occurred during the service attachment process or else nil
-    public isolated function __attach(service s, string? name = ()) returns error? {
+    public isolated function __attach(HttpService s, string? name = ()) returns error? {
         return self.register(s, name);
     }
 
@@ -69,7 +69,7 @@ public class Listener {
     #
     # + s - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
-    public isolated function __detach(service s) returns error? {
+    public isolated function __detach(HttpService s) returns error? {
         return self.detach(s);
     }
 
@@ -92,7 +92,7 @@ public class Listener {
             }
             addAuthFilters(self.config);
         }
-        addAttributeFilter(self.config);
+        // addAttributeFilter(self.config);
         error? err = self.initEndpoint();
         if (err is error) {
             panic err;
@@ -108,7 +108,7 @@ public class Listener {
     # + s - The service that needs to be attached
     # + name - Name of the service
     # + return - An `error` if an error occurred during the service attachment process or else nil
-    isolated function register(service s, string? name) returns error? {
+    isolated function register(HttpService s, string? name) returns error? {
         return externRegister(self, s, name);
     }
 
@@ -130,7 +130,7 @@ public class Listener {
     #
     # + s - The service that needs to be detached
     # + return - An `error` if an error occurred during the service detachment process or else nil
-    isolated function detach(service s) returns error? {
+    isolated function detach(HttpService s) returns error? {
         return externDetach(self, s);
     }
 }
@@ -140,7 +140,7 @@ isolated function externInitEndpoint(Listener listenerObj) returns error? = @jav
     name: "initEndpoint"
 } external;
 
-isolated function externRegister(Listener listenerObj, service s, string? name) returns error? = @java:Method {
+isolated function externRegister(Listener listenerObj, HttpService s, string? name) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Register",
     name: "register"
 } external;
@@ -155,7 +155,7 @@ isolated function externGracefulStop(Listener listenerObj) returns error? = @jav
     name: "gracefulStop"
 } external;
 
-isolated function externDetach(Listener listenerObj, service s) returns error? = @java:Method {
+isolated function externDetach(Listener listenerObj, HttpService s) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Detach",
     name: "detach"
 } external;
@@ -240,8 +240,8 @@ public type ListenerHttp1Settings record {|
 # + mandateSecureSocket - Specify whether secure socket configurations are mandatory or not
 # + position - The authn/authz filter position of the filter array. The position values starts from 0 and it is set to 0 implicitly
 public type ListenerAuth record {|
-    InboundAuthHandlers authHandlers;
-    Scopes scopes?;
+    // InboundAuthHandlers authHandlers;
+    // Scopes scopes?;
     // cache:Cache? positiveAuthzCache = new;
     // cache:Cache? negativeAuthzCache = new;
     boolean mandateSecureSocket = true;
@@ -266,8 +266,8 @@ public type ListenerAuth record {|
 # + sessionTimeoutInSeconds - SSL session time out
 # + ocspStapling - Enable/disable OCSP stapling
 public type ListenerSecureSocket record {|
-    crypto:TrustStore? trustStore = ();
-    crypto:KeyStore? keyStore = ();
+    // crypto:TrustStore? trustStore = ();
+    // crypto:KeyStore? keyStore = ();
     string certFile = "";
     string keyFile = "";
     string keyPassword = "";
@@ -313,17 +313,17 @@ isolated function addAuthFilters(ListenerConfiguration config) {
 
     ListenerAuth? auth = config["auth"];
     if (auth is ListenerAuth) {
-        InboundAuthHandlers authHandlers = auth.authHandlers;
-        AuthnFilter authnFilter = new(authHandlers);
+        // InboundAuthHandlers authHandlers = auth.authHandlers;
+        // AuthnFilter authnFilter = new(authHandlers);
 
         // cache:Cache? positiveAuthzCache = auth.positiveAuthzCache ?: ();
         // cache:Cache? negativeAuthzCache = auth.negativeAuthzCache ?: ();
-        AuthzHandler authzHandler = new(positiveAuthzCache, negativeAuthzCache);
-        Scopes? scopes = auth["scopes"];
-        AuthzFilter authzFilter = new(authzHandler, scopes);
+        // AuthzHandler authzHandler = new(positiveAuthzCache, negativeAuthzCache);
+        // Scopes? scopes = auth["scopes"];
+        // AuthzFilter authzFilter = new(authzHandler, scopes);
 
         if (auth.position == 0) {
-            config.filters.unshift(authnFilter, authzFilter);
+            // config.filters.unshift(authnFilter, authzFilter);
         } else {
             if (auth.position < 0 || auth.position > config.filters.length()) {
                 error err = error("Position of the auth filters should be beteween 0 and length of the filter array.");
@@ -334,7 +334,7 @@ isolated function addAuthFilters(ListenerConfiguration config) {
                 config.filters.push(config.filters.shift());
                 count += 1;
             }
-            config.filters.unshift(authnFilter, authzFilter);
+            // config.filters.unshift(authnFilter, authzFilter);
             while (count > 0) {
                 config.filters.unshift(config.filters.pop());
                 count -= 1;
@@ -349,10 +349,10 @@ class AttributeFilter {
     *RequestFilter;
 
     public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
-        runtime:InvocationContext ctx = runtime:getInvocationContext();
-        ctx.attributes[SERVICE_NAME] = context.getServiceName();
-        ctx.attributes[RESOURCE_NAME] = context.getResourceName();
-        ctx.attributes[REQUEST_METHOD] = request.method;
+        // runtime:InvocationContext ctx = runtime:getInvocationContext();
+        // ctx.attributes[SERVICE_NAME] = context.getServiceName();
+        // ctx.attributes[RESOURCE_NAME] = context.getResourceName();
+        // ctx.attributes[REQUEST_METHOD] = request.method;
         return true;
     }
 }
