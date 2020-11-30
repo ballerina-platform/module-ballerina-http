@@ -48,7 +48,7 @@ public type ResponseFilter object {
 # + attributes - Attributes to share between filters
 public class FilterContext {
 
-    private service serviceRef;
+    private HttpService serviceRef;
     private string serviceName = "";
     private string resourceName = "";
     public map<any> attributes = {};
@@ -58,7 +58,7 @@ public class FilterContext {
     # + serviceRef - The service to which the context is applied
     # + serviceName - Name of the service
     # + resourceName - Name of the resource function
-    public isolated function init(service serviceRef, string serviceName, string resourceName) {
+    public isolated function init(HttpService serviceRef, string serviceName, string resourceName) {
         self.serviceRef = serviceRef;
         self.serviceName = serviceName;
         self.resourceName = resourceName;
@@ -67,7 +67,7 @@ public class FilterContext {
     # Gets the service to which the `http:FilerContext` is applied.
     #
     # + return  - `service` of the context
-    public isolated function getService() returns service {
+    public isolated function getService() returns HttpService {
         return self.serviceRef;
     }
 

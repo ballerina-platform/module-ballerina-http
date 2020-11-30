@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/io;
+// import ballerina/io;
 // import ballerina/mime;
 // import ballerina/crypto;
 // import ballerina/time;

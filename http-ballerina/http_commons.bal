@@ -16,7 +16,7 @@
 
 import ballerina/java;
 // import ballerina/mime;
-import ballerina/io;
+// import ballerina/io;
 import ballerina/observe;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
@@ -35,49 +35,49 @@ public isolated function parseHeader(string headerValue) returns [string, map<an
     name: "parseHeader"
 } external;
 
-isolated function buildRequest(RequestMessage message) returns Request {
-    Request request = new;
-    if (message is ()) {
-        request.noEntityBody = true;
-        return request;
-    } else if (message is Request) {
-        request = message;
-        request.noEntityBody = !request.checkEntityBodyAvailability();
-    } else if (message is string) {
-        request.setTextPayload(message);
-    } else if (message is xml) {
-        request.setXmlPayload(message);
-    } else if (message is byte[]) {
-        request.setBinaryPayload(message);
-    } else if (message is json) {
-        request.setJsonPayload(message);
-    } else if (message is io:ReadableByteChannel) {
-        request.setByteChannel(message);
-    } else {
-        request.setBodyParts(message);
-    }
-    return request;
-}
+// isolated function buildRequest(RequestMessage message) returns Request {
+//     Request request = new;
+//     if (message is ()) {
+//         request.noEntityBody = true;
+//         return request;
+//     } else if (message is Request) {
+//         request = message;
+//         // request.noEntityBody = !request.checkEntityBodyAvailability();
+//     } else if (message is string) {
+//         request.setTextPayload(message);
+//     } else if (message is xml) {
+//         request.setXmlPayload(message);
+//     } else if (message is byte[]) {
+//         request.setBinaryPayload(message);
+//     } else if (message is json) {
+//         request.setJsonPayload(message);
+//     } else if (message is io:ReadableByteChannel) {
+//         request.setByteChannel(message);
+//     } else {
+//         request.setBodyParts(message);
+//     }
+//     return request;
+// }
 
 isolated function buildResponse(ResponseMessage message) returns Response {
     Response response = new;
-    if (message is ()) {
-        return response;
-    } else if (message is Response) {
-        response = message;
-    } else if (message is string) {
-        response.setTextPayload(message);
-    } else if (message is xml) {
-        response.setXmlPayload(message);
-    } else if (message is byte[]) {
-        response.setBinaryPayload(message);
-    } else if (message is json) {
-        response.setJsonPayload(message);
-    } else if (message is io:ReadableByteChannel) {
-        response.setByteChannel(message);
-    } else {
-        response.setBodyParts(message);
-    }
+    // if (message is ()) {
+    //     return response;
+    // } else if (message is Response) {
+    //     response = message;
+    // } else if (message is string) {
+    //     response.setTextPayload(message);
+    // } else if (message is xml) {
+    //     response.setXmlPayload(message);
+    // } else if (message is byte[]) {
+    //     response.setBinaryPayload(message);
+    // } else if (message is json) {
+    //     response.setJsonPayload(message);
+    // } else if (message is io:ReadableByteChannel) {
+    //     response.setByteChannel(message);
+    // } else {
+    //     response.setBodyParts(message);
+    // }
     return response;
 }
 
@@ -90,39 +90,39 @@ isolated function buildResponse(ResponseMessage message) returns Response {
 # + httpClient - HTTP client which uses to call the relevant functions
 # + verb - HTTP verb used for submit method
 # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-public function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
-        string verb = "") returns @tainted HttpResponse|ClientError {
+// public function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
+//         string verb = "") returns @tainted HttpResponse|ClientError {
 
-    if (HTTP_GET == requestAction) {
-        var result = httpClient->get(path, message = outRequest);
-        return getResponseOrError(result);
-    } else if (HTTP_POST == requestAction) {
-        var result = httpClient->post(path, outRequest);
-        return getResponseOrError(result);
-    } else if (HTTP_OPTIONS == requestAction) {
-        var result = httpClient->options(path, message = outRequest);
-        return getResponseOrError(result);
-    } else if (HTTP_PUT == requestAction) {
-        var result = httpClient->put(path, outRequest);
-        return getResponseOrError(result);
-    } else if (HTTP_DELETE == requestAction) {
-        var result = httpClient->delete(path, outRequest);
-        return getResponseOrError(result);
-    } else if (HTTP_PATCH == requestAction) {
-        var result = httpClient->patch(path, outRequest);
-        return getResponseOrError(result);
-    } else if (HTTP_FORWARD == requestAction) {
-        var result = httpClient->forward(path, outRequest);
-        return getResponseOrError(result);
-    } else if (HTTP_HEAD == requestAction) {
-        var result = httpClient->head(path, message = outRequest);
-        return getResponseOrError(result);
-    } else if (HTTP_SUBMIT == requestAction) {
-        return httpClient->submit(verb, path, outRequest);
-    } else {
-        return getError();
-    }
-}
+//     if (HTTP_GET == requestAction) {
+//         var result = httpClient->get(path, message = outRequest);
+//         return getResponseOrError(result);
+//     } else if (HTTP_POST == requestAction) {
+//         var result = httpClient->post(path, outRequest);
+//         return getResponseOrError(result);
+//     } else if (HTTP_OPTIONS == requestAction) {
+//         var result = httpClient->options(path, message = outRequest);
+//         return getResponseOrError(result);
+//     } else if (HTTP_PUT == requestAction) {
+//         var result = httpClient->put(path, outRequest);
+//         return getResponseOrError(result);
+//     } else if (HTTP_DELETE == requestAction) {
+//         var result = httpClient->delete(path, outRequest);
+//         return getResponseOrError(result);
+//     } else if (HTTP_PATCH == requestAction) {
+//         var result = httpClient->patch(path, outRequest);
+//         return getResponseOrError(result);
+//     } else if (HTTP_FORWARD == requestAction) {
+//         var result = httpClient->forward(path, outRequest);
+//         return getResponseOrError(result);
+//     } else if (HTTP_HEAD == requestAction) {
+//         var result = httpClient->head(path, message = outRequest);
+//         return getResponseOrError(result);
+//     } else if (HTTP_SUBMIT == requestAction) {
+//         return httpClient->submit(verb, path, outRequest);
+//     } else {
+//         return getError();
+//     }
+// }
 
 // Extracts HttpOperation from the Http verb passed in.
 isolated function extractHttpOperation (string httpVerb) returns HttpOperation {
@@ -167,7 +167,7 @@ isolated function populateRequestFields (Request originalRequest, Request newReq
     newRequest.rawPath = originalRequest.rawPath;
     newRequest.method = originalRequest.method;
     newRequest.httpVersion = originalRequest.httpVersion;
-    newRequest.cacheControl = originalRequest.cacheControl;
+    // newRequest.cacheControl = originalRequest.cacheControl;
     newRequest.userAgent = originalRequest.userAgent;
     newRequest.extraPathInfo = originalRequest.extraPathInfo;
 }
@@ -254,7 +254,7 @@ isolated function uuid() returns string {
 isolated function addObservabilityInformation(string path, string method, int statusCode, string url) {
     error? err = observe:addTagToSpan(HTTP_URL, path);
     err = observe:addTagToSpan(HTTP_METHOD, method);
-    err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
+    // err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
     err = observe:addTagToSpan(HTTP_BASE_URL, url);
 }
 
