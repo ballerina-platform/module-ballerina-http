@@ -158,7 +158,7 @@ public type ResourceAuth record {|
 |};
 
 # The annotation which is used to configure an HTTP resource.
-//public annotation HttpResourceConfig ResourceConfig on object function;
+public annotation HttpResourceConfig ResourceConfig on object function;
 
 # Path param order config keep the signature path param index against the variable names for runtime path param processing.
 #
@@ -168,17 +168,4 @@ type HttpParamOrderConfig record {|
 |};
 
 //# The annotation which is used to configure an path param order.
-annotation HttpParamOrderConfig ParamOrderConfig on resource function;
-
-path : "/{foo}/bar"
-
-foo 1
-
-
-
-(@Payload{})
-string[]
-type
-
-
-
+annotation HttpParamOrderConfig ParamOrderConfig on object function;
