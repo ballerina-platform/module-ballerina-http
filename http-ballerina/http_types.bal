@@ -26,7 +26,7 @@ public type RequestMessage Request|string|xml|json|byte[]|();
 public type ResponseMessage Response|string|xml|json|byte[]|();
 
 # The HTTP service type
-public type HttpService service object {
+public type Service service object {
 
 };
 

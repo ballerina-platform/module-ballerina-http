@@ -17,7 +17,6 @@
 import ballerina/java;
 // import ballerina/cache;
 // import ballerina/crypto;
-import ballerina/lang.'object as lang;
 // import ballerina/runtime;
 
 /////////////////////////////
@@ -27,8 +26,6 @@ import ballerina/lang.'object as lang;
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
 public class Listener {
 
-    *lang:Listener;
-
     private int port = 0;
     private ListenerConfiguration config = {};
     private string instanceId;
@@ -36,21 +33,21 @@ public class Listener {
     # Starts the registered service programmatically.
     #
     # + return - An `error` if an error occurred during the listener starting process
-    public isolated function __start() returns error? {
+    public isolated function 'start() returns error? {
         return self.startEndpoint();
     }
 
     # Stops the service listener gracefully. Already-accepted requests will be served before connection closure.
     #
     # + return - An `error` if an error occurred during the listener stopping process
-    public isolated function __gracefulStop() returns error? {
-        return self.gracefulStop();
+    public isolated function gracefulStop() returns error? {
+        return externGracefulStop(self);
     }
 
     # Stops the service listener immediately. It is not implemented yet.
     #
     # + return - An `error` if an error occurred during the listener stop process
-    public isolated function __immediateStop() returns error? {
+    public isolated function immediateStop() returns error? {
         error err = error("not implemented");
         return err;
     }
@@ -60,7 +57,7 @@ public class Listener {
     # + s - The service that needs to be attached
     # + name - Name of the service
     # + return - An `error` an error occurred during the service attachment process or else nil
-    public isolated function __attach(HttpService s, string? name = ()) returns error? {
+    public isolated function attach(Service s, string[]|string? name = ()) returns error? {
         return self.register(s, name);
     }
 
@@ -69,8 +66,8 @@ public class Listener {
     #
     # + s - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
-    public isolated function __detach(HttpService s) returns error? {
-        return self.detach(s);
+    public isolated function detach(Service s) returns error? {
+        return externDetach(self, s);
     }
 
     # Gets invoked during module initialization to initialize the listener.
@@ -108,7 +105,7 @@ public class Listener {
     # + s - The service that needs to be attached
     # + name - Name of the service
     # + return - An `error` if an error occurred during the service attachment process or else nil
-    isolated function register(HttpService s, string? name) returns error? {
+    isolated function register(Service s, string[]|string? name) returns error? {
         return externRegister(self, s, name);
     }
 
@@ -119,20 +116,20 @@ public class Listener {
         return externStart(self);
     }
 
-    # Stops the service listener gracefully.
-    #
-    # + return - An `error` if an error occurred during the listener stop process
-    isolated function gracefulStop() returns error? {
-        return externGracefulStop(self);
-    }
+//    # Stops the service listener gracefully.
+//    #
+//    # + return - An `error` if an error occurred during the listener stop process
+//    isolated function gracefulStop() returns error? {
+//        return externGracefulStop(self);
+//    }
 
-    # Disengage an attached service from the listener.
-    #
-    # + s - The service that needs to be detached
-    # + return - An `error` if an error occurred during the service detachment process or else nil
-    isolated function detach(HttpService s) returns error? {
-        return externDetach(self, s);
-    }
+//    # Disengage an attached service from the listener.
+//    #
+//    # + s - The service that needs to be detached
+//    # + return - An `error` if an error occurred during the service detachment process or else nil
+//    isolated function detach(Service s) returns error? {
+//        return externDetach(self, s);
+//    }
 }
 
 isolated function externInitEndpoint(Listener listenerObj) returns error? = @java:Method {
@@ -140,7 +137,8 @@ isolated function externInitEndpoint(Listener listenerObj) returns error? = @jav
     name: "initEndpoint"
 } external;
 
-isolated function externRegister(Listener listenerObj, HttpService s, string? name) returns error? = @java:Method {
+isolated function externRegister(Listener listenerObj, Service s, string[]|string? name) returns error? =
+@java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Register",
     name: "register"
 } external;
@@ -155,7 +153,7 @@ isolated function externGracefulStop(Listener listenerObj) returns error? = @jav
     name: "gracefulStop"
 } external;
 
-isolated function externDetach(Listener listenerObj, HttpService s) returns error? = @java:Method {
+isolated function externDetach(Listener listenerObj, Service s) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Detach",
     name: "detach"
 } external;

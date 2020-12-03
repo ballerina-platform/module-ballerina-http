@@ -124,7 +124,7 @@ public type HttpResourceConfig record {|
 # + upgradeService - Callback service for a successful upgrade
 public type WebSocketUpgradeConfig record {|
     string upgradePath = "";
-    HttpService upgradeService?;
+    Service upgradeService?;
 |};
 
 # Configures the authentication scheme for a service.
@@ -169,3 +169,10 @@ type HttpParamOrderConfig record {|
 
 //# The annotation which is used to configure an path param order.
 annotation HttpParamOrderConfig ParamOrderConfig on object function;
+
+public type PayloadParam record {|
+    string mediaType;
+|};
+
+# The annotation which is used to define the entity body parameter.
+public annotation PayloadParam on parameter;

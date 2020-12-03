@@ -38,8 +38,7 @@ import org.ballerinalang.net.http.websocket.server.WebSocketServicesRegistry;
  * @since 0.966
  */
 public class Register extends AbstractHttpNativeFunction {
-    public static Object register(Environment env, BObject serviceEndpoint, BObject service,
-                                  Object annotationData) {
+    public static Object register(Environment env, BObject serviceEndpoint, BObject service, Object serviceName) {
 
         HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
         WebSocketServicesRegistry webSocketServicesRegistry = getWebSocketServicesRegistry(serviceEndpoint);
