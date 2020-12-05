@@ -37,12 +37,12 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.ballerinalang.net.http.HttpConstants.DEFAULT_HOST;
-import static org.ballerinalang.net.http.compiler.ResourceSignatureValidator.COMPULSORY_PARAM_COUNT;
 
 /**
  * {@code HttpDispatcher} is responsible for dispatching incoming http requests to the correct resource.
@@ -145,74 +145,120 @@ public class HttpDispatcher {
 
     public static Object[] getSignatureParameters(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
                                                   BMap<BString, Object> endpointConfig) {
-        BObject httpCaller = ValueCreatorUtils.createCallerObject();
-        BObject inRequest = ValueCreatorUtils.createRequestObject();
-        BObject inRequestEntity = ValueCreatorUtils.createEntityObject();
-
-        HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, httpResource, endpointConfig);
-        HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
-
-        HttpUtil.populateInboundRequest(inRequest, inRequestEntity, httpCarbonMessage);
-
         SignatureParams signatureParams = httpResource.getSignatureParams();
-        Object[] paramValues = new Object[signatureParams.getParamCount() * 2];
+        int sigParamCount = httpResource.getParamTypes().size();
+        Object[] paramFeed = new Object[sigParamCount * 2];
         int paramIndex = 0;
-        paramValues[paramIndex++] = httpCaller;
-        paramValues[paramIndex++] = true;
-        paramValues[paramIndex++] = inRequest;
-        paramValues[paramIndex] = true;
-        if (signatureParams.getParamCount() == COMPULSORY_PARAM_COUNT) {
-            return paramValues;
+
+        int pathParamCount = httpResource.getPathParamCount();
+        // Path params are located initially before the other user provided signature params
+        if (pathParamCount != 0) {
+            // populate path params
+            HttpResourceArguments resourceArgumentValues =
+                    (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
+            updateWildcardToken(httpResource.getWildcardToken(), resourceArgumentValues.getMap());
+            populatePathParams(httpResource, paramFeed, resourceArgumentValues, pathParamCount, paramIndex);
+        }
+        paramIndex = pathParamCount * 2;
+        // TODO check whether validation is needed for multiple use of Caller, Request, @Payload annotation, @Session
+        // Following was written assuming that they are validated
+        for (int i = pathParamCount; i < sigParamCount; i++) {
+            String typeName = httpResource.getBalResource().getParameterTypes()[i].getName();
+            switch (typeName) {
+                case HttpConstants.CALLER:
+                    paramFeed[paramIndex++] = createCaller(httpResource, httpCarbonMessage, endpointConfig);
+                    paramFeed[paramIndex++] = true;
+                    break;
+                case HttpConstants.REQUEST:
+                    BObject inRequest = createRequest(httpCarbonMessage);
+                    paramFeed[paramIndex++] = inRequest;
+                    paramFeed[paramIndex++] = true;
+                    break;
+            }
         }
 
-        HttpResourceArguments resourceArgumentValues =
-                (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
-        BMap pathParamOrder = HttpResource.getPathParamOrderMap(httpResource.getBalResource());
+//        if (signatureParams.getParamCount() == COMPULSORY_PARAM_COUNT) {
+//            return paramFeed;
+//        }
+//
+//        if (signatureParams.getEntityBody() == null) {
+//            return paramFeed;
+//        }
+//        try {
+//            paramFeed[paramFeed.length - 2] = populateAndGetEntityBody(inRequest, inRequestEntity,
+//                                                                   signatureParams.getEntityBody());
+//            paramFeed[paramFeed.length - 1] = true;
+//        } catch (Exception ex) {
+//            httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+//            throw new BallerinaConnectorException("data binding failed: " + ex.getMessage());
+//        }
+        return paramFeed;
+    }
 
-        for (Object paramName : pathParamOrder.getKeys()) {
-            String argumentValue = resourceArgumentValues.getMap().get(paramName.toString());
+    private static BObject createRequest(HttpCarbonMessage httpCarbonMessage) {
+        BObject inRequest = ValueCreatorUtils.createRequestObject();
+//        BObject inRequestEntity = ValueCreatorUtils.createEntityObject();
+//        HttpUtil.populateInboundRequest(inRequest, inRequestEntity, httpCarbonMessage);
+        return inRequest;
+    }
+
+    private static BObject createCaller(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
+                                        BMap<BString, Object> endpointConfig) {
+        BObject httpCaller = ValueCreatorUtils.createCallerObject();
+        HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, httpResource, endpointConfig);
+        HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
+        return httpCaller;
+    }
+
+    private static void populatePathParams(HttpResource httpResource, Object[] paramFeed,
+                                           HttpResourceArguments resourceArgumentValues, int pathParamCount,
+                                           int paramIndex) {
+
+        String[] pathParamTokens = Arrays.copyOfRange(httpResource.getBalResource().getParamNames(), 0, pathParamCount);
+        int actualSignatureParamIndex = 0;
+        for (String paramName : pathParamTokens) {
+            String argumentValue = resourceArgumentValues.getMap().get(paramName);
             try {
                 argumentValue = URLDecoder.decode(argumentValue, "UTF-8");
             } catch (UnsupportedEncodingException e) {
                 // we can simply ignore and send the value to application and let the
                 // application deal with the value.
             }
-            int actualSignatureParamIndex = ((Long) pathParamOrder.get(paramName)).intValue();
             paramIndex = actualSignatureParamIndex * 2;
-            Type signatureParamType = signatureParams.getPathParamTypes().get(
-                    actualSignatureParamIndex - COMPULSORY_PARAM_COUNT);
+            Type signatureParamType = httpResource.getBalResource().getParameterTypes()[actualSignatureParamIndex++];
             try {
                 switch (signatureParamType.getTag()) {
                     case TypeTags.INT_TAG:
-                        paramValues[paramIndex++] = Long.parseLong(argumentValue);
+                        paramFeed[paramIndex++] = Long.parseLong(argumentValue);
                         break;
                     case TypeTags.FLOAT_TAG:
-                        paramValues[paramIndex++] = Double.parseDouble(argumentValue);
+                        paramFeed[paramIndex++] = Double.parseDouble(argumentValue);
                         break;
                     case TypeTags.BOOLEAN_TAG:
-                        paramValues[paramIndex++] = Boolean.parseBoolean(argumentValue);
+                        paramFeed[paramIndex++] = Boolean.parseBoolean(argumentValue);
+                        break;
+                    case TypeTags.ARRAY_TAG:
+                        if (((ArrayType) signatureParamType).getElementType().getTag() == TypeTags.STRING_TAG) {
+                            String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
+                            paramFeed[paramIndex++] = StringUtils.fromStringArray(segments);
+                        }
                         break;
                     default:
-                        paramValues[paramIndex++] = StringUtils.fromString(argumentValue);
+                        paramFeed[paramIndex++] = StringUtils.fromString(argumentValue);
                 }
-                paramValues[paramIndex] = true;
+                paramFeed[paramIndex] = true;
             } catch (Exception ex) {
                 throw new BallerinaConnectorException("Error in casting path param : " + ex.getMessage());
             }
         }
+    }
 
-        if (signatureParams.getEntityBody() == null) {
-            return paramValues;
+    private static void updateWildcardToken(String wildcardToken, Map<String, String> arguments) {
+        if (wildcardToken == null) {
+            return;
         }
-        try {
-            paramValues[paramValues.length - 2] = populateAndGetEntityBody(inRequest, inRequestEntity,
-                                                                   signatureParams.getEntityBody());
-            paramValues[paramValues.length - 1] = true;
-        } catch (Exception ex) {
-            httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-            throw new BallerinaConnectorException("data binding failed: " + ex.getMessage());
-        }
-        return paramValues;
+        String wildcardPathSegment = arguments.get(HttpConstants.EXTRA_PATH_INFO);
+        arguments.putIfAbsent(wildcardToken, wildcardPathSegment);
     }
 
     private static Object populateAndGetEntityBody(BObject inRequest, BObject inRequestEntity,

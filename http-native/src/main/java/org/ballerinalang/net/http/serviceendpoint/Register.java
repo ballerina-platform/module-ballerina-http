@@ -22,8 +22,10 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.types.MemberFunctionType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HTTPServicesRegistry;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
@@ -44,6 +46,8 @@ public class Register extends AbstractHttpNativeFunction {
         WebSocketServicesRegistry webSocketServicesRegistry = getWebSocketServicesRegistry(serviceEndpoint);
         Runtime runtime = env.getRuntime();
         httpServicesRegistry.setRuntime(runtime);
+        //TODO:sl rest for () and string
+        String basePath = getBasePath(serviceName);
 
         Type param;
         MemberFunctionType[] resourceList = service.getType().getAttachedFunctions();
@@ -52,7 +56,7 @@ public class Register extends AbstractHttpNativeFunction {
                 String callerType = param.getQualifiedName();
                 if (HttpConstants.HTTP_CALLER_NAME.equals(callerType)) {
                     // TODO fix should work with equals - rajith
-                    httpServicesRegistry.registerService(service, runtime);
+                    httpServicesRegistry.registerService(runtime, service, basePath);
                 } else if (WebSocketConstants.WEBSOCKET_CALLER_NAME.equals(callerType)) {
                     webSocketServicesRegistry.registerService(new WebSocketServerService(service, runtime));
                 } else if (WebSocketConstants.FULL_WEBSOCKET_CLIENT_NAME.equals(callerType)) {
@@ -63,11 +67,23 @@ public class Register extends AbstractHttpNativeFunction {
                     return HttpUtil.createHttpError("Invalid http Service");
                 }
             } else {
-                httpServicesRegistry.registerService(service, runtime);
+                httpServicesRegistry.registerService(runtime, service, basePath);
             }
         } catch (BError ex) {
             return ex;
         }
         return null;
+    }
+
+    private static String getBasePath(Object serviceName) {
+        if (serviceName instanceof BArray) {
+            String basePath = String.join("/", ((BArray) serviceName).getStringArray());
+            return HttpUtil.sanitizeBasePath(basePath);
+        } else if (serviceName instanceof BString) {
+            String basePath = ((BString) serviceName).getValue();
+            return HttpUtil.sanitizeBasePath(basePath);
+        } else {
+            return HttpConstants.DEFAULT_BASE_PATH;
+        }
     }
 }

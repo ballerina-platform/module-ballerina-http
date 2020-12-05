@@ -17,27 +17,23 @@
 */
 package org.ballerinalang.net.http;
 
-import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.MemberFunctionType;
+import io.ballerina.runtime.api.types.ResourceFunctionType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
-import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.transactions.TransactionConstants;
-import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.ballerinalang.net.http.HttpConstants.ANN_FIELD_ALL_PARAM_ORDER;
-import static org.ballerinalang.net.http.HttpConstants.ANN_FIELD_PATH_PARAM_ORDER;
-import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PARAM_ORDER_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
 import static org.ballerinalang.net.http.HttpUtil.checkConfigAnnotationAvailability;
@@ -60,10 +56,15 @@ public class HttpResource {
     private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
     private static final BString HTTP_RESOURCE_CONFIG =
             StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_RESOURCE_CONFIG);
-    private static final BString HTTP_PARAM_ORDER_CONFIG =
-            StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_PARAM_ORDER_CONFIG);
+//    private static final BString HTTP_PARAM_ORDER_CONFIG =
+//            StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_PARAM_ORDER_CONFIG);
+    private static final List<String> ALL_STANDARD_ACCESSORS =
+            Arrays.asList(HttpConstants.HTTP_METHOD_GET, HttpConstants.HTTP_METHOD_HEAD,
+                          HttpConstants.HTTP_METHOD_PATCH, HttpConstants.HTTP_METHOD_OPTIONS,
+                          HttpConstants.HTTP_METHOD_POST, HttpConstants.HTTP_METHOD_DELETE,
+                          HttpConstants.HTTP_METHOD_PUT);
 
-    private MemberFunctionType balResource;
+    private ResourceFunctionType balResource;
     private List<String> methods;
     private String path;
     private String entityBodyAttribute;
@@ -75,11 +76,15 @@ public class HttpResource {
     private HttpService parentService;
     private boolean transactionInfectable = true; //default behavior
     private boolean transactionAnnotated = false;
+    private String wildcardToken;
+    private int pathParamCount;
 
-    protected HttpResource(MemberFunctionType resource, HttpService parentService) {
+    protected HttpResource(ResourceFunctionType resource, HttpService parentService) {
         this.balResource = resource;
         this.parentService = parentService;
         this.producesSubTypes = new ArrayList<>();
+        this.populateResourcePath();
+        this.populateMethod();
     }
 
     public boolean isTransactionAnnotated() {
@@ -102,7 +107,7 @@ public class HttpResource {
         return parentService;
     }
 
-    public MemberFunctionType getBalResource() {
+    public ResourceFunctionType getBalResource() {
         return balResource;
     }
 
@@ -110,21 +115,37 @@ public class HttpResource {
         return methods;
     }
 
-    public void setMethods(List<String> methods) {
-        this.methods = methods;
+    public void populateMethod() {
+        String accessor = balResource.getAccessor();
+        if (HttpConstants.DEFAULT_HTTP_METHOD.equals(accessor.toLowerCase(Locale.getDefault()))) {
+            this.methods = ALL_STANDARD_ACCESSORS;
+        } else {
+            this.methods = Collections.singletonList(accessor);
+        }
     }
 
     public String getPath() {
         return path;
     }
 
-    public void setPath(String resourcePath) {
-        if (resourcePath == null || resourcePath.isEmpty()) {
-            log.debug("Path not specified in the Resource instance, using default sub path");
-            path = balResource.getName();
-        } else {
-            path = resourcePath;
+    private void populateResourcePath() {
+        String[] paths = balResource.getResourcePath();
+        StringBuilder resourcePath = new StringBuilder();
+        int count = 0;
+        for (String segment : paths) {
+            if (HttpConstants.PATH_PARAM_IDENTIFIER.equals(segment)) {
+                String pathSegment = balResource.getParamNames()[count++];
+                resourcePath.append(HttpConstants.SINGLE_SLASH).append(HttpConstants.OPEN_CURL_IDENTIFIER)
+                        .append(pathSegment).append(HttpConstants.CLOSE_CURL_IDENTIFIER);
+            } else if (HttpConstants.REST_PARAM_IDENTIFIER.equals(segment)) {
+                this.wildcardToken = balResource.getParamNames()[count++];
+                resourcePath.append(HttpConstants.DEFAULT_SUB_PATH);
+            } else {
+                resourcePath.append(HttpConstants.SINGLE_SLASH).append(segment);
+            }
         }
+        this.path = resourcePath.toString();
+        this.pathParamCount = count;
     }
 
     public List<String> getConsumes() {
@@ -183,21 +204,21 @@ public class HttpResource {
         this.entityBodyAttribute = entityBodyAttribute;
     }
 
-    public static HttpResource buildHttpResource(MemberFunctionType resource, HttpService httpService) {
+    public static HttpResource buildHttpResource(ResourceFunctionType resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
 
         setupTransactionAnnotations(resource, httpResource);
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
-            httpResource.setPath(resourceConfigAnnotation.getStringValue(PATH_FIELD).getValue().replaceAll(
-                    HttpConstants.REGEX, HttpConstants.SINGLE_SLASH));
-            httpResource.setMethods(
-                    getAsStringList(resourceConfigAnnotation.getArrayValue(METHODS_FIELD).getStringArray()));
+//            httpResource.setPath(resourceConfigAnnotation.getStringValue(PATH_FIELD).getValue().replaceAll(
+//                    HttpConstants.REGEX, HttpConstants.SINGLE_SLASH));
+//            httpResource.setMethods(
+//                    getAsStringList(resourceConfigAnnotation.getArrayValue(METHODS_FIELD).getStringArray()));
             httpResource.setConsumes(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(CONSUMES_FIELD).getStringArray()));
             httpResource.setProduces(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(PRODUCES_FIELD).getStringArray()));
-            httpResource.setEntityBodyAttributeValue(resourceConfigAnnotation.getStringValue(BODY_FIELD).getValue());
+//            httpResource.setEntityBodyAttributeValue(resourceConfigAnnotation.getStringValue(BODY_FIELD).getValue());
             httpResource.setCorsHeaders(CorsHeaders.buildCorsHeaders(resourceConfigAnnotation.getMapValue(CORS_FIELD)));
             httpResource
                     .setTransactionInfectable(resourceConfigAnnotation.getBooleanValue(TRANSACTION_INFECTABLE_FIELD));
@@ -210,12 +231,12 @@ public class HttpResource {
         if (log.isDebugEnabled()) {
             log.debug("resourceConfig not specified in the Resource instance, using default sub path");
         }
-        httpResource.setPath(resource.getName());
+//        httpResource.setPath(getResourcePath(((ResourceFunctionType) resource).getResourcePath()));
         httpResource.prepareAndValidateSignatureParams();
         return httpResource;
     }
 
-    private static void setupTransactionAnnotations(MemberFunctionType resource, HttpResource httpResource) {
+    private static void setupTransactionAnnotations(ResourceFunctionType resource, HttpResource httpResource) {
         BMap transactionConfigAnnotation = HttpUtil.getTransactionConfigAnnotation(resource,
                         TransactionConstants.TRANSACTION_PACKAGE_PATH);
         if (transactionConfigAnnotation != null) {
@@ -229,21 +250,21 @@ public class HttpResource {
      * @param resource The resource
      * @return the resource configuration of the given resource
      */
-    public static BMap getResourceConfigAnnotation(MemberFunctionType resource) {
+    public static BMap getResourceConfigAnnotation(ResourceFunctionType resource) {
         return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
     }
 
-    protected static BMap getPathParamOrderMap(MemberFunctionType resource) {
-        Object annotation = resource.getAnnotation(HTTP_PARAM_ORDER_CONFIG);
-        return annotation == null ? ValueCreator.createMapValue() :
-                (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
-    }
-
-    protected static BArray getAllParamOrderMap(MemberFunctionType resource) {
-        Object annotation = resource.getAnnotation(HTTP_PARAM_ORDER_CONFIG);
-        return annotation == null ? ValueCreator.createArrayValue(new BString[0]) :
-                (BArray) ((BMap<BString, Object>) annotation).get(ANN_FIELD_ALL_PARAM_ORDER);
-    }
+//    protected static BMap getPathParamOrderMap(ResourceFunctionType resource) {
+//        Object annotation = resource.getAnnotation(HTTP_PARAM_ORDER_CONFIG);
+//        return annotation == null ? ValueCreator.createMapValue() :
+//                (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
+//    }
+//
+//    protected static BArray getAllParamOrderMap(ResourceFunctionType resource) {
+//        Object annotation = resource.getAnnotation(HTTP_PARAM_ORDER_CONFIG);
+//        return annotation == null ? ValueCreator.createArrayValue(new BString[0]) :
+//                (BArray) ((BMap<BString, Object>) annotation).get(ANN_FIELD_ALL_PARAM_ORDER);
+//    }
 
     private static List<String> getAsStringList(Object[] values) {
         if (values == null) {
@@ -272,21 +293,25 @@ public class HttpResource {
             return;
         }
 
-        if (resource.getMethods() != null) {
-            corsHeaders.setAllowMethods(resource.getMethods());
-            return;
-        }
-        corsHeaders.setAllowMethods(DispatcherUtil.addAllMethods());
+        corsHeaders.setAllowMethods(resource.getMethods());
     }
 
     private void prepareAndValidateSignatureParams() {
         signatureParams = new SignatureParams(this);
-        signatureParams.validate();
+//        signatureParams.validate();
     }
 
     public List<Type> getParamTypes() {
         List<Type> paramTypes = new ArrayList<>();
         paramTypes.addAll(Arrays.asList(this.balResource.getParameterTypes()));
         return paramTypes;
+    }
+
+    public String getWildcardToken() {
+        return wildcardToken;
+    }
+
+    public int getPathParamCount() {
+        return pathParamCount;
     }
 }
