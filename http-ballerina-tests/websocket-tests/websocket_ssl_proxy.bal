@@ -167,7 +167,8 @@ public function testSslProxySendText() {
 }
 
 // Tests sending and receiving of binary frames in WebSocket.
-@test:Config {}
+// Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/306
+@test:Config {enable:false}
 public function testSslProxySendBinary() {
     http:WebSocketClient wsClient = new ("wss://localhost:21027/sslEcho", {
             callbackService: sslProxyCallbackService,
