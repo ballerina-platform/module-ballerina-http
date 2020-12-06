@@ -207,7 +207,7 @@ task revertTomlFile {
 task ballerinaBuild {
     inputs.dir file(project.projectDir)
     finalizedBy(revertTomlFile)
-//    finalizedBy(':http-ballerina-tests:build')
+    finalizedBy(':http-ballerina-tests:build')
 
     doLast {
         def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
@@ -224,7 +224,6 @@ task ballerinaBuild {
                 commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat build --offline --skip-tests ${additionalBuildParams} -c && exit %%ERRORLEVEL%%"
             } else {
                 commandLine 'sh', '-c', "$distributionBinPath/ballerina build --offline --skip-tests ${additionalBuildParams} -c"
-//                commandLine 'sh', '-c', "BAL_JAVA_DEBUG=5005 $distributionBinPath/ballerina build --offline --skip-tests ${additionalBuildParams} -c"
             }
         }
         copy {
