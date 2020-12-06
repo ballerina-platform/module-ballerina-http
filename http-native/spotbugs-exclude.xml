@@ -45,4 +45,7 @@
         <Class name="org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.cache.CacheManager$CacheManagingTask$LRUEntryCollector" />
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
+    <Match>
+        <Class name="org.ballerinalang.net.http.HttpDispatcher" />
+    </Match>
 </FindBugsFilter>
