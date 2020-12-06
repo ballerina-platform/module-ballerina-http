@@ -21,19 +21,15 @@
 # Contains the configurations for an HTTP service.
 #
 # + host - Domain name of the service
-# + basePath - Service base path
 # + compression - The status of compression
 # + chunking - Configures the chunking behaviour for the service
 # + cors - The cross origin resource sharing configurations for the service
-# + versioning - The version of the service to be used
 # + auth - Authentication configurations for secure the service
 public type HttpServiceConfig record {|
     string host = "b7a.default";
-    string basePath = "";
     CompressionConfig compression = {};
     Chunking chunking = CHUNKING_AUTO;
     CorsConfig cors = {};
-    Versioning versioning = {};
     ServiceAuth auth?;
 |};
 
@@ -52,18 +48,6 @@ public type CorsConfig record {|
     string[] exposeHeaders = [];
     boolean allowCredentials = false;
     int maxAge= -1;
-|};
-
-
-# Configurations for service versioning.
-#
-# + pattern - Expected version pattern in the request URL
-# + allowNoVersion - Allow requests with missing version path segment in the URL to be dispatched
-# + matchMajorVersion - Allow requests with only the major version specified in the URL to be dispatched
-public type Versioning record {|
-    string pattern = "v{major}.{minor}";
-    boolean allowNoVersion = false;
-    boolean matchMajorVersion = false;
 |};
 
 # Configurations for a WebSocket service.
@@ -97,8 +81,6 @@ public annotation WSServiceConfig WebSocketServiceConfig on service;
 
 # Configuration for an HTTP resource.
 #
-# + methods - The array of allowed HTTP methods
-# + path - The path of resource
 # + body - Inbound request entity body name which declared in signature
 # + consumes - The media types which are accepted by resource
 # + produces - The media types which are produced by resource
@@ -107,8 +89,6 @@ public annotation WSServiceConfig WebSocketServiceConfig on service;
 # + webSocketUpgrade - Annotation to define HTTP to WebSocket upgrade
 # + auth - Authentication Configs to secure the resource
 public type HttpResourceConfig record {|
-    string[] methods = [];
-    string path = "";
     string body = "";
     string[] consumes = [];
     string[] produces = [];
@@ -138,8 +118,8 @@ public type WebSocketUpgradeConfig record {|
 # should be successfully authorized.
 public type ServiceAuth record {|
     boolean enabled = true;
-    //InboundAuthHandlers authHandlers?;
-    //Scopes scopes?;
+    InboundAuthHandlers authHandlers?;
+    Scopes scopes?;
 |};
 
 # Configures the authentication scheme for a resource.
@@ -153,8 +133,8 @@ public type ServiceAuth record {|
 # should be successfully authorized.
 public type ResourceAuth record {|
     boolean enabled?;
-    //InboundAuthHandlers authHandlers?;
-    //Scopes scopes?;
+    InboundAuthHandlers authHandlers?;
+    Scopes scopes?;
 |};
 
 # The annotation which is used to configure an HTTP resource.

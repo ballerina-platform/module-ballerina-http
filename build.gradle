@@ -202,8 +202,8 @@ subprojects {
         ballerinaStdLibs "org.ballerinalang:runtime-ballerina:${stdlibRuntimeVersion}"
 
         // Transitive dependencies
-//        ballerinaStdLibs "org.ballerinalang:system-ballerina:${stdlibSystemVersion}"
-//        ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
+        ballerinaStdLibs "org.ballerinalang:system-ballerina:${stdlibSystemVersion}"
+        ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
     }
 }
 

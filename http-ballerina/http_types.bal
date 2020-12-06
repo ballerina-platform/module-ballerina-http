@@ -14,16 +14,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// import ballerina/io;
-// import ballerina/mime;
+import ballerina/io;
+import ballerina/mime;
 
 # The types of messages that are accepted by HTTP `client` when sending out the outbound request.
-// public type RequestMessage Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|();
-public type RequestMessage Request|string|xml|json|byte[]|();
+public type RequestMessage Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|();
+// public type RequestMessage Request|string|xml|json|byte[]|();
 
 # The types of messages that are accepted by HTTP `listener` when sending out the outbound response.
-// public type ResponseMessage Response|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|();
-public type ResponseMessage Response|string|xml|json|byte[]|();
+public type ResponseMessage Response|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|();
+// public type ResponseMessage Response|string|xml|json|byte[]|();
 
 # The HTTP service type
 public type Service service object {
@@ -120,16 +120,16 @@ type HTTPError record {
 # + cookieConfig - Configurations associated with cookies
 public type CommonClientConfiguration record {|
     string httpVersion = HTTP_1_1;
-    // ClientHttp1Settings http1Settings = {};
-    // ClientHttp2Settings http2Settings = {};
+    ClientHttp1Settings http1Settings = {};
+    ClientHttp2Settings http2Settings = {};
     int timeoutInMillis = 60000;
-    // string forwarded = "disable";
-    // FollowRedirects? followRedirects = ();
-    // PoolConfiguration? poolConfig = ();
-    // CacheConfig cache = {};
-    // Compression compression = COMPRESSION_AUTO;
-    // OutboundAuthConfig? auth = ();
-    // CircuitBreakerConfig? circuitBreaker = ();
-    // RetryConfig? retryConfig = ();
-    // CookieConfig? cookieConfig = ();
+    string forwarded = "disable";
+    FollowRedirects? followRedirects = ();
+    PoolConfiguration? poolConfig = ();
+    CacheConfig cache = {};
+    Compression compression = COMPRESSION_AUTO;
+    OutboundAuthConfig? auth = ();
+    CircuitBreakerConfig? circuitBreaker = ();
+    RetryConfig? retryConfig = ();
+    CookieConfig? cookieConfig = ();
 |};

@@ -15,8 +15,8 @@
 // under the License.
 
 import ballerina/java;
-// import ballerina/mime;
-// import ballerina/io;
+import ballerina/mime;
+import ballerina/io;
 import ballerina/observe;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
@@ -35,49 +35,49 @@ public isolated function parseHeader(string headerValue) returns [string, map<an
     name: "parseHeader"
 } external;
 
-// isolated function buildRequest(RequestMessage message) returns Request {
-//     Request request = new;
-//     if (message is ()) {
-//         request.noEntityBody = true;
-//         return request;
-//     } else if (message is Request) {
-//         request = message;
-//         // request.noEntityBody = !request.checkEntityBodyAvailability();
-//     } else if (message is string) {
-//         request.setTextPayload(message);
-//     } else if (message is xml) {
-//         request.setXmlPayload(message);
-//     } else if (message is byte[]) {
-//         request.setBinaryPayload(message);
-//     } else if (message is json) {
-//         request.setJsonPayload(message);
-//     } else if (message is io:ReadableByteChannel) {
-//         request.setByteChannel(message);
-//     } else {
-//         request.setBodyParts(message);
-//     }
-//     return request;
-// }
+isolated function buildRequest(RequestMessage message) returns Request {
+    Request request = new;
+    if (message is ()) {
+        request.noEntityBody = true;
+        return request;
+    } else if (message is Request) {
+        request = message;
+        // request.noEntityBody = !request.checkEntityBodyAvailability();
+    } else if (message is string) {
+        request.setTextPayload(message);
+    } else if (message is xml) {
+        request.setXmlPayload(message);
+    } else if (message is byte[]) {
+        request.setBinaryPayload(message);
+    } else if (message is json) {
+        request.setJsonPayload(message);
+    } else if (message is io:ReadableByteChannel) {
+        request.setByteChannel(message);
+    } else {
+        request.setBodyParts(message);
+    }
+    return request;
+}
 
 isolated function buildResponse(ResponseMessage message) returns Response {
     Response response = new;
-    // if (message is ()) {
-    //     return response;
-    // } else if (message is Response) {
-    //     response = message;
-    // } else if (message is string) {
-    //     response.setTextPayload(message);
-    // } else if (message is xml) {
-    //     response.setXmlPayload(message);
-    // } else if (message is byte[]) {
-    //     response.setBinaryPayload(message);
-    // } else if (message is json) {
-    //     response.setJsonPayload(message);
-    // } else if (message is io:ReadableByteChannel) {
-    //     response.setByteChannel(message);
-    // } else {
-    //     response.setBodyParts(message);
-    // }
+    if (message is ()) {
+        return response;
+    } else if (message is Response) {
+        response = message;
+    } else if (message is string) {
+        response.setTextPayload(message);
+    } else if (message is xml) {
+        response.setXmlPayload(message);
+    } else if (message is byte[]) {
+        response.setBinaryPayload(message);
+    } else if (message is json) {
+        response.setJsonPayload(message);
+    } else if (message is io:ReadableByteChannel) {
+        response.setByteChannel(message);
+    } else {
+        response.setBodyParts(message);
+    }
     return response;
 }
 
@@ -90,39 +90,39 @@ isolated function buildResponse(ResponseMessage message) returns Response {
 # + httpClient - HTTP client which uses to call the relevant functions
 # + verb - HTTP verb used for submit method
 # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-// public function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
-//         string verb = "") returns @tainted HttpResponse|ClientError {
+public function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
+        string verb = "") returns @tainted HttpResponse|ClientError {
 
-//     if (HTTP_GET == requestAction) {
-//         var result = httpClient->get(path, message = outRequest);
-//         return getResponseOrError(result);
-//     } else if (HTTP_POST == requestAction) {
-//         var result = httpClient->post(path, outRequest);
-//         return getResponseOrError(result);
-//     } else if (HTTP_OPTIONS == requestAction) {
-//         var result = httpClient->options(path, message = outRequest);
-//         return getResponseOrError(result);
-//     } else if (HTTP_PUT == requestAction) {
-//         var result = httpClient->put(path, outRequest);
-//         return getResponseOrError(result);
-//     } else if (HTTP_DELETE == requestAction) {
-//         var result = httpClient->delete(path, outRequest);
-//         return getResponseOrError(result);
-//     } else if (HTTP_PATCH == requestAction) {
-//         var result = httpClient->patch(path, outRequest);
-//         return getResponseOrError(result);
-//     } else if (HTTP_FORWARD == requestAction) {
-//         var result = httpClient->forward(path, outRequest);
-//         return getResponseOrError(result);
-//     } else if (HTTP_HEAD == requestAction) {
-//         var result = httpClient->head(path, message = outRequest);
-//         return getResponseOrError(result);
-//     } else if (HTTP_SUBMIT == requestAction) {
-//         return httpClient->submit(verb, path, outRequest);
-//     } else {
-//         return getError();
-//     }
-// }
+    if (HTTP_GET == requestAction) {
+        var result = httpClient->get(path, message = outRequest);
+        return getResponseOrError(result);
+    } else if (HTTP_POST == requestAction) {
+        var result = httpClient->post(path, outRequest);
+        return getResponseOrError(result);
+    } else if (HTTP_OPTIONS == requestAction) {
+        var result = httpClient->options(path, message = outRequest);
+        return getResponseOrError(result);
+    } else if (HTTP_PUT == requestAction) {
+        var result = httpClient->put(path, outRequest);
+        return getResponseOrError(result);
+    } else if (HTTP_DELETE == requestAction) {
+        var result = httpClient->delete(path, outRequest);
+        return getResponseOrError(result);
+    } else if (HTTP_PATCH == requestAction) {
+        var result = httpClient->patch(path, outRequest);
+        return getResponseOrError(result);
+    } else if (HTTP_FORWARD == requestAction) {
+        var result = httpClient->forward(path, outRequest);
+        return getResponseOrError(result);
+    } else if (HTTP_HEAD == requestAction) {
+        var result = httpClient->head(path, message = outRequest);
+        return getResponseOrError(result);
+    } else if (HTTP_SUBMIT == requestAction) {
+        return httpClient->submit(verb, path, outRequest);
+    } else {
+        return getError();
+    }
+}
 
 // Extracts HttpOperation from the Http verb passed in.
 isolated function extractHttpOperation (string httpVerb) returns HttpOperation {
@@ -172,67 +172,67 @@ isolated function populateRequestFields (Request originalRequest, Request newReq
     newRequest.extraPathInfo = originalRequest.extraPathInfo;
 }
 
-// isolated function populateMultipartRequest(Request inRequest) returns Request|ClientError {
-//     if (isMultipartRequest(inRequest)) {
-//         mime:Entity[] bodyParts = check inRequest.getBodyParts();
-//         foreach var bodyPart in bodyParts {
-//             if (isNestedEntity(bodyPart)) {
-//                 mime:Entity[]|error result = bodyPart.getBodyParts();
+isolated function populateMultipartRequest(Request inRequest) returns Request|ClientError {
+    if (isMultipartRequest(inRequest)) {
+        mime:Entity[] bodyParts = check inRequest.getBodyParts();
+        foreach var bodyPart in bodyParts {
+            if (isNestedEntity(bodyPart)) {
+                mime:Entity[]|error result = bodyPart.getBodyParts();
 
-//                 if (result is error) {
-//                     return GenericClientError(result.message(), result);
-//                 }
+                if (result is error) {
+                    return GenericClientError(result.message(), result);
+                }
 
-//                 mime:Entity[] childParts = <mime:Entity[]> result;
+                mime:Entity[] childParts = <mime:Entity[]> result;
 
-//                 foreach var childPart in childParts {
-//                     // When performing passthrough scenarios, message needs to be built before
-//                     // invoking the endpoint to create a message datasource.
-//                     var childBlobContent = childPart.getByteArray();
-//                 }
-//                 bodyPart.setBodyParts(childParts, <@untainted> bodyPart.getContentType());
-//             } else {
-//                 var bodyPartBlobContent = bodyPart.getByteArray();
-//             }
-//         }
-//         inRequest.setBodyParts(bodyParts, <@untainted> inRequest.getContentType());
-//     }
-//     return inRequest;
-// }
+                foreach var childPart in childParts {
+                    // When performing passthrough scenarios, message needs to be built before
+                    // invoking the endpoint to create a message datasource.
+                    var childBlobContent = childPart.getByteArray();
+                }
+                bodyPart.setBodyParts(childParts, <@untainted> bodyPart.getContentType());
+            } else {
+                var bodyPartBlobContent = bodyPart.getByteArray();
+            }
+        }
+        inRequest.setBodyParts(bodyParts, <@untainted> inRequest.getContentType());
+    }
+    return inRequest;
+}
 
-// isolated function isMultipartRequest(Request request) returns @tainted boolean {
-//     return request.hasHeader(mime:CONTENT_TYPE) &&
-//         request.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
-// }
+isolated function isMultipartRequest(Request request) returns @tainted boolean {
+    return request.hasHeader(mime:CONTENT_TYPE) &&
+        request.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
+}
 
-// isolated function isNestedEntity(mime:Entity entity) returns @tainted boolean {
-//     return entity.hasHeader(mime:CONTENT_TYPE) &&
-//         entity.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
-// }
+isolated function isNestedEntity(mime:Entity entity) returns @tainted boolean {
+    return entity.hasHeader(mime:CONTENT_TYPE) &&
+        entity.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
+}
 
-// isolated function createFailoverRequest(Request request, mime:Entity requestEntity) returns Request|ClientError {
-//     if (isMultipartRequest(request)) {
-//         return populateMultipartRequest(request);
-//     } else {
-//         Request newOutRequest = new;
-//         populateRequestFields(request, newOutRequest);
-//         newOutRequest.setEntity(requestEntity);
-//         return newOutRequest;
-//     }
-// }
+isolated function createFailoverRequest(Request request, mime:Entity requestEntity) returns Request|ClientError {
+    if (isMultipartRequest(request)) {
+        return populateMultipartRequest(request);
+    } else {
+        Request newOutRequest = new;
+        populateRequestFields(request, newOutRequest);
+        newOutRequest.setEntity(requestEntity);
+        return newOutRequest;
+    }
+}
 
-// isolated function getInvalidTypeError() returns ClientError {
-//     return GenericClientError("Invalid return type found for the HTTP operation");
-// }
+isolated function getInvalidTypeError() returns ClientError {
+    return GenericClientError("Invalid return type found for the HTTP operation");
+}
 
-// isolated function createErrorForNoPayload(mime:Error err) returns GenericClientError {
-//     string message = "No payload";
-//     return GenericClientError(message, err);
-// }
+isolated function createErrorForNoPayload(mime:Error err) returns GenericClientError {
+    string message = "No payload";
+    return GenericClientError(message, err);
+}
 
-// isolated function getStatusCodeRange(int statusCode) returns string {
-//     return statusCode.toString().substring(0,1) + STATUS_CODE_GROUP_SUFFIX;
-// }
+isolated function getStatusCodeRange(int statusCode) returns string {
+    return statusCode.toString().substring(0,1) + STATUS_CODE_GROUP_SUFFIX;
+}
 
 # Returns a random UUID string.
 #
@@ -284,28 +284,28 @@ isolated function nativeUuid() returns handle = @java:Method {
 } external;
 
 // Non-blocking payload retrieval common external isolated functions
-// isolated function externGetJson(mime:Entity entity) returns @tainted json|mime:ParserError = @java:Method {
-//     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
-//     name: "getNonBlockingJson"
-// } external;
+isolated function externGetJson(mime:Entity entity) returns @tainted json|mime:ParserError = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "getNonBlockingJson"
+} external;
 
-// isolated function externGetXml(mime:Entity entity) returns @tainted xml|mime:ParserError = @java:Method {
-//     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
-//     name: "getNonBlockingXml"
-// } external;
+isolated function externGetXml(mime:Entity entity) returns @tainted xml|mime:ParserError = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "getNonBlockingXml"
+} external;
 
-// isolated function externGetText(mime:Entity entity) returns @tainted string|mime:ParserError = @java:Method {
-//     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
-//     name: "getNonBlockingText"
-// } external;
+isolated function externGetText(mime:Entity entity) returns @tainted string|mime:ParserError = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "getNonBlockingText"
+} external;
 
-// isolated function externGetByteArray(mime:Entity entity) returns @tainted byte[]|mime:ParserError = @java:Method {
-//     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
-//     name: "getNonBlockingByteArray"
-// } external;
+isolated function externGetByteArray(mime:Entity entity) returns @tainted byte[]|mime:ParserError = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "getNonBlockingByteArray"
+} external;
 
-// isolated function externGetByteChannel(mime:Entity entity) returns @tainted io:ReadableByteChannel|mime:ParserError =
-// @java:Method {
-//     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
-//     name: "getByteChannel"
-// } external;
+isolated function externGetByteChannel(mime:Entity entity) returns @tainted io:ReadableByteChannel|mime:ParserError =
+@java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "getByteChannel"
+} external;
