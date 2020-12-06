@@ -148,18 +148,17 @@ public class HttpDispatcher {
         SignatureParams signatureParams = httpResource.getSignatureParams();
         int sigParamCount = httpResource.getParamTypes().size();
         Object[] paramFeed = new Object[sigParamCount * 2];
-        int paramIndex = 0;
 
         int pathParamCount = httpResource.getPathParamCount();
-        // Path params are located initially before the other user provided signature params
+        // Path params are located initially in the signature before the other user provided signature params
         if (pathParamCount != 0) {
             // populate path params
             HttpResourceArguments resourceArgumentValues =
                     (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
             updateWildcardToken(httpResource.getWildcardToken(), resourceArgumentValues.getMap());
-            populatePathParams(httpResource, paramFeed, resourceArgumentValues, pathParamCount, paramIndex);
+            populatePathParams(httpResource, paramFeed, resourceArgumentValues, pathParamCount);
         }
-        paramIndex = pathParamCount * 2;
+        int paramIndex = pathParamCount * 2;
         // TODO check whether validation is needed for multiple use of Caller, Request, @Payload annotation, @Session
         // Following was written assuming that they are validated
         for (int i = pathParamCount; i < sigParamCount; i++) {
@@ -197,8 +196,8 @@ public class HttpDispatcher {
 
     private static BObject createRequest(HttpCarbonMessage httpCarbonMessage) {
         BObject inRequest = ValueCreatorUtils.createRequestObject();
-//        BObject inRequestEntity = ValueCreatorUtils.createEntityObject();
-//        HttpUtil.populateInboundRequest(inRequest, inRequestEntity, httpCarbonMessage);
+        BObject inRequestEntity = ValueCreatorUtils.createEntityObject();
+        HttpUtil.populateInboundRequest(inRequest, inRequestEntity, httpCarbonMessage);
         return inRequest;
     }
 
@@ -211,8 +210,7 @@ public class HttpDispatcher {
     }
 
     private static void populatePathParams(HttpResource httpResource, Object[] paramFeed,
-                                           HttpResourceArguments resourceArgumentValues, int pathParamCount,
-                                           int paramIndex) {
+                                           HttpResourceArguments resourceArgumentValues, int pathParamCount) {
 
         String[] pathParamTokens = Arrays.copyOfRange(httpResource.getBalResource().getParamNames(), 0, pathParamCount);
         int actualSignatureParamIndex = 0;
@@ -224,7 +222,7 @@ public class HttpDispatcher {
                 // we can simply ignore and send the value to application and let the
                 // application deal with the value.
             }
-            paramIndex = actualSignatureParamIndex * 2;
+            int paramIndex = actualSignatureParamIndex * 2;
             Type signatureParamType = httpResource.getBalResource().getParameterTypes()[actualSignatureParamIndex++];
             try {
                 switch (signatureParamType.getTag()) {

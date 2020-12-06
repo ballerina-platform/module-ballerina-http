@@ -28,15 +28,9 @@ http:ListenerConfiguration serviceConf = {
 
 listener http:Listener httpsListener = new(9238, serviceConf);
 
-@http:ServiceConfig {
-    basePath: "/helloService"
-}
-service httpsService on httpsListener {
-    @http:ResourceConfig {
-        methods: ["GET"],
-        path: "/"
-    }
-    resource function sayHello(http:Caller caller, http:Request req) {
+service /httpsService on httpsListener {
+    
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("hello world");
         checkpanic caller->respond(res);
@@ -52,7 +46,7 @@ http:ClientConfiguration disableSslClientConf = {
 @test:Config {}
 public function testSslDisabledClient() {
     http:Client httpClient = new("https://localhost:9238", disableSslClientConf);
-    var resp = httpClient->get("/helloService");
+    var resp = httpClient->get("/httpsService");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {

@@ -148,9 +148,7 @@ task ballerinaTest {
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys} && exit %%ERRORLEVEL%%"
             } else {
-//                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys}"
-                 commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline ${groupParams} ${debugParams}"
-//                 commandLine 'sh', '-c', "$distributionBinPath/ballerina test --debug 5005 --offline ${groupParams} ${debugParams}"
+                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys}"
             }
         }
     }

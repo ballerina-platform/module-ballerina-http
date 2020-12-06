@@ -120,7 +120,7 @@ public class HttpResource {
         if (HttpConstants.DEFAULT_HTTP_METHOD.equals(accessor.toLowerCase(Locale.getDefault()))) {
             this.methods = ALL_STANDARD_ACCESSORS;
         } else {
-            this.methods = Collections.singletonList(accessor);
+            this.methods = Collections.singletonList(accessor.toUpperCase(Locale.getDefault()));
         }
     }
 
@@ -133,18 +133,22 @@ public class HttpResource {
         StringBuilder resourcePath = new StringBuilder();
         int count = 0;
         for (String segment : paths) {
-            if (HttpConstants.PATH_PARAM_IDENTIFIER.equals(segment)) {
+            resourcePath.append(HttpConstants.SINGLE_SLASH);
+            if (HttpConstants.STAR_IDENTIFIER.equals(segment)) {
                 String pathSegment = balResource.getParamNames()[count++];
-                resourcePath.append(HttpConstants.SINGLE_SLASH).append(HttpConstants.OPEN_CURL_IDENTIFIER)
+                resourcePath.append(HttpConstants.OPEN_CURL_IDENTIFIER)
                         .append(pathSegment).append(HttpConstants.CLOSE_CURL_IDENTIFIER);
-            } else if (HttpConstants.REST_PARAM_IDENTIFIER.equals(segment)) {
+            } else if (HttpConstants.DOUBLE_STAR_IDENTIFIER.equals(segment)) {
                 this.wildcardToken = balResource.getParamNames()[count++];
-                resourcePath.append(HttpConstants.DEFAULT_SUB_PATH);
+                resourcePath.append(HttpConstants.STAR_IDENTIFIER);
+            } else if (HttpConstants.DOT_IDENTIFIER.equals(segment)) {
+                // default set as "/"
+                break;
             } else {
-                resourcePath.append(HttpConstants.SINGLE_SLASH).append(segment);
+                resourcePath.append(segment);
             }
         }
-        this.path = resourcePath.toString();
+        this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
         this.pathParamCount = count;
     }
 
