@@ -62,7 +62,7 @@ public class HttpCache {
             // will be read by the client and the response will be after the first cache hit.
             var binaryPayload = inboundResponse.getBinaryPayload();
             log:printDebug("Adding new cache entry for: " + key);
-            // addEntry(self.cache, key, inboundResponse);
+            addEntry(self.cache, key, inboundResponse);
         }
     }
 

@@ -118,9 +118,9 @@ task revertTomlFile {
 
 task ballerinaTest {
     inputs.dir file(project.projectDir)
-    dependsOn(copyStdlibs)
     dependsOn(":http-ballerina:build")
     dependsOn(updateTomlVerions)
+    dependsOn(copyStdlibs)
     finalizedBy(revertTomlFile)
 
     def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"

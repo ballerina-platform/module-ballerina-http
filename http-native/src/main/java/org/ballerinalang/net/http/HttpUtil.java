@@ -1751,11 +1751,9 @@ public class HttpUtil {
     }
 
     public static String getServiceName(BObject balService) {
-        //TODO this with absolute resource path
-//        String serviceTypeName = balService.getType().getName();
-//        int serviceIndex = serviceTypeName.lastIndexOf("$$service$");
-//        return serviceTypeName.substring(0, serviceIndex);
-        return "my00TestHello";
+        String serviceTypeName = balService.getType().getName();
+        int serviceIndex = serviceTypeName.lastIndexOf("$$service$");
+        return serviceTypeName.substring(0, serviceIndex);
     }
 
     private HttpUtil() {

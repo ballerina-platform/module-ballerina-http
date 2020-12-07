@@ -203,7 +203,6 @@ public class Request {
     # + return - Nil if successful, error in case of invalid content-type
     public isolated function setContentType(string contentType) returns error? {
         return trap self.setHeader(mime:CONTENT_TYPE, contentType);
-        
     }
 
     # Gets the type of the payload of the request (i.e: the `content-type` header value).
@@ -222,7 +221,7 @@ public class Request {
             return result;
         } else {
             var payload = externGetJson(result);
-            if (payload is error) {
+            if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
                     return createErrorForNoPayload(payload);
                 } else {
@@ -244,7 +243,7 @@ public class Request {
             return result;
         } else {
             var payload = externGetXml(result);
-            if (payload is error) {
+            if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
                     return createErrorForNoPayload(payload);
                 } else {
@@ -266,7 +265,7 @@ public class Request {
             return result;
         } else {
             var payload = externGetText(result);
-            if (payload is error) {
+            if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
                     return createErrorForNoPayload(payload);
                 } else {
@@ -289,7 +288,7 @@ public class Request {
             return result;
         } else {
             var payload = externGetByteChannel(result);
-            if (payload is error) {
+            if (payload is mime:Error) {
                 string message = "Error occurred while retrieving the byte channel from the request";
                 return GenericClientError(message, payload);
             } else {
@@ -307,7 +306,7 @@ public class Request {
             return result;
         } else {
             var payload = externGetByteArray(result);
-            if (payload is error) {
+            if (payload is mime:Error) {
                 string message = "Error occurred while retrieving the binary payload from the request";
                 return GenericClientError(message, payload);
             } else {

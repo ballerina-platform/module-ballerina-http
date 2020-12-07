@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/log;
-// import ballerina/reflect;
+import ballerina/reflect;
 
 # Auth annotation module.
 const string ANN_MODULE = "ballerina/http:1.0.3";
@@ -232,13 +232,11 @@ isolated function getScopes(FilterContext context) returns Scopes|boolean {
 # + context - The `FilterContext` instance
 # + return - The service-level authentication annotations or else `()`
 isolated function getServiceAuthConfig(FilterContext context) returns ServiceAuth? {
-    // any annData = reflect:getServiceAnnotations(context.getService(), SERVICE_ANN_NAME, ANN_MODULE);
-    // if (!(annData is ())) {
-    //     HttpServiceConfig serviceConfig = <HttpServiceConfig> annData;
-    //     return serviceConfig?.auth;
-    // }
-
-    return;
+    any annData = reflect:getServiceAnnotations(context.getService(), SERVICE_ANN_NAME, ANN_MODULE);
+    if (!(annData is ())) {
+        HttpServiceConfig serviceConfig = <HttpServiceConfig> annData;
+        return serviceConfig?.auth;
+    }
 }
 
 # Retrieves the authentication annotation value for the resource level and service level.
@@ -246,13 +244,12 @@ isolated function getServiceAuthConfig(FilterContext context) returns ServiceAut
 # + context - The `FilterContext` instance
 # + return - The resource-level and service-level authentication annotations
 isolated function getResourceAuthConfig(FilterContext context) returns ResourceAuth? {
-    // any annData = reflect:getResourceAnnotations(context.getService(), context.getResourceName(), RESOURCE_ANN_NAME,
-    //                                              ANN_MODULE);
-    // if (!(annData is ())) {
-    //     HttpResourceConfig resourceConfig = <HttpResourceConfig> annData;
-    //     return resourceConfig?.auth;
-    // }
-    return;
+    any annData = reflect:getResourceAnnotations(context.getService(), context.getResourceName(), RESOURCE_ANN_NAME,
+                                                 ANN_MODULE);
+    if (!(annData is ())) {
+        HttpResourceConfig resourceConfig = <HttpResourceConfig> annData;
+        return resourceConfig?.auth;
+    }
 }
 
 # Checks whether the `http:ResourceConfig` has `http:WebSocketUpgradeConfig` or not.
@@ -260,15 +257,15 @@ isolated function getResourceAuthConfig(FilterContext context) returns ResourceA
 # + context - The `FilterContext` instance
 # + return - Whether the `http:ResourceConfig` has `http:WebSocketUpgradeConfig` or not
 isolated function isWebSocketUpgradeRequest(FilterContext context) returns boolean {
-    // any annData = reflect:getResourceAnnotations(context.getService(), context.getResourceName(), RESOURCE_ANN_NAME,
-    //                                              ANN_MODULE);
-    // if (annData is ()) {
-    //     return false;
-    // }
-    // HttpResourceConfig resourceConfig = <HttpResourceConfig> annData;
-    // if (resourceConfig?.webSocketUpgrade is WebSocketUpgradeConfig) {
-    //     return true;
-    // }
+    any annData = reflect:getResourceAnnotations(context.getService(), context.getResourceName(), RESOURCE_ANN_NAME,
+                                                 ANN_MODULE);
+    if (annData is ()) {
+        return false;
+    }
+    HttpResourceConfig resourceConfig = <HttpResourceConfig> annData;
+    if (resourceConfig?.webSocketUpgrade is WebSocketUpgradeConfig) {
+        return true;
+    }
     return false;
 }
 
