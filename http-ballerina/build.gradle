@@ -216,6 +216,8 @@ task ballerinaBuild {
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+
+            println ("=====================http-ballerina:ballerinaBuild")
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat build --offline --skip-tests ${additionalBuildParams} -c && exit %%ERRORLEVEL%%"
             } else {

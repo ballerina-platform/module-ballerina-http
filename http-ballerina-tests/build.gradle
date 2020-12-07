@@ -66,6 +66,7 @@ def tomlVersion = project.version.split("-")[0]
 def originalConfig = ballerinaConfigFile.text
 
 task copyStdlibs(type: Copy) {
+    println ("=====================http-ballerina-test:copyStdLibs")
     def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
     into ballerinaDist
 
@@ -83,6 +84,7 @@ task copyStdlibs(type: Copy) {
     into("repo/balo/${packageOrg}/http/${tomlVersion}") {
         from "../http-ballerina/target/balo"
     }
+    println ("=====================END http-ballerina-test:copyStdLibs")
 }
 
 task updateTomlVerions {
@@ -145,6 +147,7 @@ task ballerinaTest {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
+            println ("=====================http-ballerina-test:ballerinaTest")
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys} && exit %%ERRORLEVEL%%"
             } else {
