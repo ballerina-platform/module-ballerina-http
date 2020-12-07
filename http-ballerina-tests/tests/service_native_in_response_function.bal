@@ -208,39 +208,26 @@ function testResposeGetCookies() {
 
 listener http:Listener responseEp = new(responseTest);
 
-@http:ServiceConfig {basePath : "/hello"}
-service response on responseEp {
+service /response on responseEp {
 
-    @http:ResourceConfig {
-        path:"/11"
-    }
-    resource function echo1 (http:Caller caller, http:Request req) {
+    resource function get eleven(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/12/{phase}"
-    }
-    resource function echo2 (http:Caller caller, http:Request req, string phase) {
+    resource function get twelve/[string phase](http:Caller caller, http:Request req) {
         http:Response res = new;
         res.reasonPhrase = phase;
         checkpanic caller->respond(<@untainted http:Response> res);
     }
 
-    @http:ResourceConfig {
-        path:"/13"
-    }
-    resource function echo3 (http:Caller caller, http:Request req) {
+    resource function get thirteen(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.statusCode = 203;
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/addheader/{key}/{value}"
-    }
-    resource function addheader (http:Caller caller, http:Request req, string key, string value) {
+    resource function get addheader/[string key]/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
         res.addHeader(<@untainted string> key, value);
         string result = <@untainted string> res.getHeader(<@untainted string> key);
@@ -248,10 +235,7 @@ service response on responseEp {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/getHeader/{header}/{value}"
-    }
-    resource function getHeader (http:Caller caller, http:Request req, string header, string value) {
+    resource function get getHeader/[string header]/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setHeader(<@untainted string> header, value);
         string result = <@untainted string> res.getHeader(<@untainted string> header);
@@ -259,10 +243,7 @@ service response on responseEp {
         checkpanic caller->respond(<@untainted> res);
     }
 
-    @http:ResourceConfig {
-        path:"/getJsonPayload/{value}"
-    }
-    resource function getJsonPayload(http:Caller caller, http:Request req, string value) {
+    resource function get getJsonPayload/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
         json jsonStr = {lang:value};
         res.setJsonPayload(<@untainted json> jsonStr);
@@ -276,10 +257,7 @@ service response on responseEp {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/GetTextPayload/{valueStr}"
-    }
-    resource function getTextPayload(http:Caller caller, http:Request req, string valueStr) {
+    resource function get GetTextPayload/[string valueStr](http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload(<@untainted string> valueStr);
         var returnResult = res.getTextPayload();
@@ -292,10 +270,7 @@ service response on responseEp {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/GetXmlPayload"
-    }
-    resource function getXmlPayload(http:Caller caller, http:Request req) {
+    resource function get GetXmlPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         xml xmlStr = xml `<name>ballerina</name>`;
         res.setXmlPayload(xmlStr);
@@ -310,10 +285,7 @@ service response on responseEp {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/RemoveHeader/{key}/{value}"
-    }
-    resource function removeHeader (http:Caller caller, http:Request req, string key, string value) {
+    resource function get RemoveHeader/[string key]/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setHeader(<@untainted string> key, value);
         res.removeHeader(<@untainted string> key);
@@ -325,10 +297,7 @@ service response on responseEp {
         checkpanic caller->respond(<@untainted> res);
     }
 
-    @http:ResourceConfig {
-        path:"/RemoveAllHeaders"
-    }
-    resource function removeAllHeaders (http:Caller caller, http:Request req) {
+    resource function get RemoveAllHeaders (http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setHeader("Expect", "100-continue");
         res.setHeader("Range", "bytes=500-999");
@@ -341,10 +310,7 @@ service response on responseEp {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/addCookie"
-    }
-    resource function addCookie (http:Caller caller, http:Request req) {
+    resource function get addCookie (http:Caller caller, http:Request req) {
         http:Response res = new;
         http:Cookie cookie = new("SID3", "31d4d96e407aad42");
         cookie.domain = "google.com";
@@ -359,10 +325,7 @@ service response on responseEp {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/removeCookieByServer"
-    }
-    resource function removeCookieByServer (http:Caller caller, http:Request req) {
+    resource function get removeCookieByServer (http:Caller caller, http:Request req) {
         http:Response res = new;
         http:Cookie cookie = new("SID3", "31d4d96e407aad42");
         cookie.expires="2017-06-26 05:46:22";
@@ -372,10 +335,7 @@ service response on responseEp {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/getCookies"
-    }
-    resource function getCookies (http:Caller caller, http:Request req) {
+    resource function get getCookies (http:Caller caller, http:Request req) {
         http:Response res = new;
         http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
         cookie1.path = "/sample";
@@ -400,7 +360,7 @@ http:Client responseClient = new("http://localhost:" + responseTest.toString());
 function testResponseServiceAddHeader() {
     string key = "lang";
     string value = "ballerina";
-    string path = "/hello/addheader/" + key + "/" + value;
+    string path = "/response/addheader/" + key + "/" + value;
     var response = responseClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {lang:"ballerina"});
@@ -413,7 +373,7 @@ function testResponseServiceAddHeader() {
 @test:Config {}
 function testResponseServiceGetHeader() {
     string value = "test-header-value";
-    string path = "/hello/getHeader/" + "test-header-name" + "/" + value;
+    string path = "/response/getHeader/" + "test-header-name" + "/" + value;
     var response = responseClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value: value});
@@ -426,7 +386,7 @@ function testResponseServiceGetHeader() {
 @test:Config {}
 function testResponseServiceGetJsonPayload() {
     string value = "ballerina";
-    string path = "/hello/getJsonPayload/" + value;
+    string path = "/response/getJsonPayload/" + value;
     var response = responseClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), value);
@@ -439,7 +399,7 @@ function testResponseServiceGetJsonPayload() {
 @test:Config {}
 function testResponseServiceGetTextPayload() {
     string value = "ballerina";
-    string path = "/hello/GetTextPayload/" + value;
+    string path = "/response/GetTextPayload/" + value;
     var response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), value);
@@ -452,7 +412,7 @@ function testResponseServiceGetTextPayload() {
 @test:Config {}
 function testResponseServiceGetXmlPayload() {
     string value = "ballerina";
-    string path = "/hello/GetXmlPayload";
+    string path = "/response/GetXmlPayload";
     var response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), value);
@@ -463,7 +423,7 @@ function testResponseServiceGetXmlPayload() {
 
 @test:Config {}
 function testForwardMethod() {
-    string path = "/hello/11";
+    string path = "/response/eleven";
     var response = responseClient->get(path);
     test:assertTrue(response is http:Response, msg = "Found unexpected output");
 }
@@ -472,7 +432,7 @@ function testForwardMethod() {
 @test:Config {}
 function testResponseServiceRemoveHeader() {
     string value = "x-www-form-urlencoded";
-    string path = "/hello/RemoveHeader/Content-Type/" + value;
+    string path = "/response/RemoveHeader/Content-Type/" + value;
     var response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
@@ -484,7 +444,7 @@ function testResponseServiceRemoveHeader() {
 // Test RemoveAllHeaders function within a service
 @test:Config {}
 function testResponseServiceRemoveAllHeaders() {
-    string path = "/hello/RemoveAllHeaders";
+    string path = "/response/RemoveAllHeaders";
     var response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
@@ -495,7 +455,7 @@ function testResponseServiceRemoveAllHeaders() {
 
 @test:Config {}
 function testRespondMethod() {
-    string path = "/hello/11";
+    string path = "/response/eleven";
     var response = responseClient->get(path);
     test:assertTrue(response is http:Response, msg = "Found unexpected output");
 }
@@ -503,7 +463,7 @@ function testRespondMethod() {
 @test:Config {}
 function testSetReasonPhase() {
     string phase = "ballerina";
-    string path = "/hello/12/" + phase;
+    string path = "/response/twelve/" + phase;
     var response = responseClient->get(path);
     if (response is http:Response) {
         test:assertEquals(response.reasonPhrase, "OK");
@@ -514,7 +474,7 @@ function testSetReasonPhase() {
 
 @test:Config {}
 function testSetStatusCode() {
-    string path = "/hello/13";
+    string path = "/response/thirteen";
     var response = responseClient->get(path);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 203);

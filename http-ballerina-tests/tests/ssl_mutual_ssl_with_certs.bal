@@ -28,17 +28,9 @@ http:ListenerConfiguration mutualSslCertServiceConf = {
 
 listener http:Listener mutualSSLListener = new(9217, mutualSslCertServiceConf);
 
-@http:ServiceConfig {
-    basePath:"/echo"
-}
-
-service mutualSSLService on mutualSSLListener {
-
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
-    }
-    resource function sayHello(http:Caller caller, http:Request req) {
+service /mutualSSLService on mutualSSLListener {
+    
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         string expectedCert = "MIIDsTCCApmgAwIBAgIUAcBP5M4LISxVgyGsnJohqmsCN/kwDQYJKoZIhvcNAQELBQAwaDELMAkGA1UEBhMCTEsx"
                     + "EDAOBgNVBAgMB1dlc3Rlcm4xEDAOBgNVBAcMB0NvbG9tYm8xDTALBgNVBAoMBHdzbzIxEjAQBgNVBAsMCWJhbGxlcmluYTE"
@@ -82,7 +74,7 @@ http:ClientConfiguration mutualSslCertClientConf = {
 public function testMutualSslWithCerts() {
     http:Client clientEP = new("https://localhost:9217", mutualSslCertClientConf );
     http:Request req = new;
-    var resp = clientEP->get("/echo/");
+    var resp = clientEP->get("/mutualSSLService/");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {

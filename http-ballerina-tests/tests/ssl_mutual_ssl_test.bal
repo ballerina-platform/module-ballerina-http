@@ -46,15 +46,9 @@ http:ListenerConfiguration mutualSslServiceConf = {
 
 listener http:Listener echo15 = new(9116, mutualSslServiceConf);
 
-@http:ServiceConfig {
-     basePath: "/echo"
-}
-service helloWorld15 on echo15 {
-    @http:ResourceConfig {
-        methods: ["GET"],
-        path: "/"
-    }
-    resource function sayHello(http:Caller caller, http:Request req) {
+service /helloWorld15 on echo15 {
+    
+    resource function get .(http:Caller caller, http:Request req) {
         string expectedCert = "MIIDdzCCAl+gAwIBAgIEfP3e8zANBgkqhkiG9w0BAQsFADBkMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExF"
                         + "jAUBgNVBAcTDU1vdW50YWluIFZpZXcxDTALBgNVBAoTBFdTTzIxDTALBgNVBAsTBFdTTzIxEjAQBgNVBAMTCWxvY2Fsa"
                         + "G9zdDAeFw0xNzEwMjQwNTQ3NThaFw0zNzEwMTkwNTQ3NThaMGQxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA"
@@ -87,15 +81,9 @@ service helloWorld15 on echo15 {
 
 listener http:Listener echoDummy15 = new(9117);
 
-@http:ServiceConfig {
-    basePath: "/echoDummy"
-}
-service echoDummyService15 on echoDummy15 {
-    @http:ResourceConfig {
-        methods: ["POST"],
-        path: "/"
-    }
-    resource function sayHello (http:Caller caller, http:Request req) {
+service /echoDummyService15 on echoDummy15 {
+
+    resource function post .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("hello world");
         checkpanic caller->respond(res);
@@ -129,7 +117,7 @@ http:ClientConfiguration mutualSslClientConf = {
 @test:Config {}
 public function testMutualSsl() {
     http:Client httpClient = new("https://localhost:9116", mutualSslClientConf );
-    var resp = httpClient->get("/echo/");
+    var resp = httpClient->get("/helloWorld15/");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {

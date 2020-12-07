@@ -102,41 +102,40 @@ public class HTTPServicesRegistry {
     /**
      * Register a service into the map.
      *
-     * @param service requested serviceInfo to be registered.
-     * @param runtime ballerina runtime instance.
+     * @param runtime  ballerina runtime instance.
+     * @param service  requested serviceInfo to be registered.
+     * @param basePath absolute resource path of the service
      */
-    public void registerService(BObject service, Runtime runtime) {
-        List<HttpService> httpServices = HttpService.buildHttpService(service);
-
-        for (HttpService httpService : httpServices) {
-            String hostName = httpService.getHostName();
-            if (servicesMapByHost.get(hostName) == null) {
-                servicesByBasePath = new ConcurrentHashMap<>();
-                sortedServiceURIs = new CopyOnWriteArrayList<>();
-                servicesMapByHost.put(hostName, new ServicesMapHolder(servicesByBasePath, sortedServiceURIs));
-            } else {
-                servicesByBasePath = getServicesByHost(hostName);
-                sortedServiceURIs = getSortedServiceURIsByHost(hostName);
-            }
-
-            String basePath = httpService.getBasePath();
-            if (servicesByBasePath.containsKey(basePath)) {
-                String errorMessage = hostName.equals(DEFAULT_HOST) ? "'" : "' under host name : '" + hostName + "'";
-                throw ErrorCreator.createError(
-                        StringUtils.fromString("Service registration failed: two services " +
-                                                         "have the same basePath : '" + basePath + errorMessage));
-            }
-            servicesByBasePath.put(basePath, httpService);
-            String errLog = String.format("Service deployed : %s with context %s", service.getType().getName(),
-                                          basePath);
-            logger.info(errLog);
-
-            //basePath will get cached after registering service
-            sortedServiceURIs.add(basePath);
-            sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
-            // Register the WebSocket upgrade service in the WebSocket registry
-            registerWebSocketUpgradeService(httpService, runtime);
+    public void registerService(Runtime runtime, BObject service, String basePath) {
+        HttpService httpService = HttpService.buildHttpService(service, basePath);
+        service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
+        String hostName = httpService.getHostName();
+        if (servicesMapByHost.get(hostName) == null) {
+            servicesByBasePath = new ConcurrentHashMap<>();
+            sortedServiceURIs = new CopyOnWriteArrayList<>();
+            servicesMapByHost.put(hostName, new ServicesMapHolder(servicesByBasePath, sortedServiceURIs));
+        } else {
+            servicesByBasePath = getServicesByHost(hostName);
+            sortedServiceURIs = getSortedServiceURIsByHost(hostName);
         }
+
+        if (servicesByBasePath.containsKey(basePath)) {
+            String errorMessage = hostName.equals(DEFAULT_HOST) ? "'" : "' under host name : '" + hostName + "'";
+            throw ErrorCreator.createError(
+                    StringUtils.fromString("Service registration failed: two services " +
+                                                   "have the same basePath : '" + basePath + errorMessage));
+        }
+        servicesByBasePath.put(basePath, httpService);
+        String errLog = String.format("Service deployed : %s with context %s", service.getType().getName(),
+                                      basePath);
+        logger.info(errLog);
+
+        //basePath will get cached after registering service
+        sortedServiceURIs.add(basePath);
+        sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
+        // Register the WebSocket upgrade service in the WebSocket registry
+        //TODO sl remove
+        registerWebSocketUpgradeService(httpService, runtime);
     }
 
     private void registerWebSocketUpgradeService(HttpService httpService, Runtime runtime) {
@@ -214,27 +213,26 @@ public class HTTPServicesRegistry {
      * @param service requested service to be unregistered.
      */
     public void unRegisterService(BObject service) {
-        List<HttpService> httpServices = HttpService.buildHttpService(service);
-        for (HttpService httpService : httpServices) {
-            String hostName = httpService.getHostName();
-            ServicesMapHolder servicesMapHolder = servicesMapByHost.get(hostName);
-            if (servicesMapHolder == null) {
-                continue;
-            }
-            servicesByBasePath = getServicesByHost(hostName);
-            sortedServiceURIs = getSortedServiceURIsByHost(hostName);
-
-            String basePath = httpService.getBasePath();
-            if (!servicesByBasePath.containsKey(basePath)) {
-                continue;
-            }
-            servicesByBasePath.remove(basePath);
-            sortedServiceURIs.remove(basePath);
-            if (logger.isDebugEnabled()) {
-                logger.debug(String.format("Service detached : %s with context %s", service.getType().getName(),
-                                           basePath));
-            }
-            sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
+        String basePath = (String) service.getNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH);
+        HttpService httpService = HttpService.buildHttpService(service, null);
+        String hostName = httpService.getHostName();
+        ServicesMapHolder servicesMapHolder = servicesMapByHost.get(hostName);
+        if (servicesMapHolder == null) {
+            throw new BallerinaConnectorException("detach failed: " + basePath +
+                                                          " service is not attached to the listener");
         }
+        servicesByBasePath = getServicesByHost(hostName);
+        sortedServiceURIs = getSortedServiceURIsByHost(hostName);
+
+        if (!servicesByBasePath.containsKey(basePath)) {
+            throw new BallerinaConnectorException("detach failed: " + basePath +
+                                                          " service is not attached to the listener");
+        }
+        servicesByBasePath.remove(basePath);
+        sortedServiceURIs.remove(basePath);
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format("Service detached : %s with context %s", service.getType().getName(), basePath));
+        }
+        sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
     }
 }

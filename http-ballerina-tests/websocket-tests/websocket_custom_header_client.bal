@@ -24,7 +24,7 @@ string expextedValue = "";
 @http:ServiceConfig {
     basePath: "/pingpong"
 }
-service httpService on new http:Listener(21011) {
+service Service on new http:Listener(21011) {
     @http:ResourceConfig {
         webSocketUpgrade: {
             upgradePath: "/ws",

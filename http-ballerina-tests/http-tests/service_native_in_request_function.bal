@@ -201,7 +201,6 @@ function testAddCookies() {
     test:assertEquals(cookiesInRequest[0].name, "SID1", msg = "Invalid cookie name");
     test:assertEquals(cookiesInRequest[1].name, "SID3", msg = "Invalid cookie name");
     test:assertEquals(cookiesInRequest[2].name, "SID2", msg = "Invalid cookie name");
-
 }
 
 @test:Config {}

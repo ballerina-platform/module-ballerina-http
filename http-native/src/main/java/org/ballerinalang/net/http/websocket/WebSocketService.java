@@ -19,7 +19,7 @@
 package org.ballerinalang.net.http.websocket;
 
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.types.MemberFunctionType;
 import io.ballerina.runtime.api.values.BObject;
 
 import java.util.Map;
@@ -32,7 +32,7 @@ public class WebSocketService {
 
     protected final BObject service;
     protected Runtime runtime;
-    private final Map<String, AttachedFunctionType> resourcesMap = new ConcurrentHashMap<>();
+    private final Map<String, MemberFunctionType> resourcesMap = new ConcurrentHashMap<>();
 
     public WebSocketService(Runtime runtime) {
         this.runtime = runtime;
@@ -46,12 +46,12 @@ public class WebSocketService {
     }
 
     private void populateResourcesMap(BObject service) {
-        for (AttachedFunctionType resource : service.getType().getAttachedFunctions()) {
+        for (MemberFunctionType resource : service.getType().getAttachedFunctions()) {
             resourcesMap.put(resource.getName(), resource);
         }
     }
 
-    public AttachedFunctionType getResourceByName(String resourceName) {
+    public MemberFunctionType getResourceByName(String resourceName) {
         return resourcesMap.get(resourceName);
     }
 

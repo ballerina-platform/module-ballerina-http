@@ -5,6 +5,11 @@ version = "@toml.version@"
 
 [[dependency]]
 org = "ballerina"
+name = "http"
+version = "@toml.version@"
+
+[[dependency]]
+org = "ballerina"
 name = "io"
 version = "@stdlib.io.version@"
 

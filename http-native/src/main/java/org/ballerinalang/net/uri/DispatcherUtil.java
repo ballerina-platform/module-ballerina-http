@@ -23,7 +23,6 @@ import org.ballerinalang.net.http.HttpResource;
 import org.ballerinalang.net.http.HttpService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,14 +31,11 @@ import java.util.stream.Collectors;
  */
 public class DispatcherUtil {
 
-    private static String[] allMethods = new String[]{HttpConstants.HTTP_METHOD_GET, HttpConstants.HTTP_METHOD_HEAD
-            , HttpConstants.HTTP_METHOD_POST, HttpConstants.HTTP_METHOD_DELETE
-            , HttpConstants.HTTP_METHOD_PUT, HttpConstants.HTTP_METHOD_OPTIONS};
+//    private static String[] allMethods = new String[]{HttpConstants.HTTP_METHOD_GET, HttpConstants.HTTP_METHOD_HEAD
+//            , HttpConstants.HTTP_METHOD_POST, HttpConstants.HTTP_METHOD_DELETE
+//            , HttpConstants.HTTP_METHOD_PUT, HttpConstants.HTTP_METHOD_OPTIONS};
 
     public static boolean isMatchingMethodExist(HttpResource resourceInfo, String method) {
-        if (resourceInfo.getMethods() == null) {
-            return false;
-        }
         return resourceInfo.getMethods().contains(method);
     }
 
@@ -65,17 +61,13 @@ public class DispatcherUtil {
         return cachedMethods;
     }
 
-    public static List<String> addAllMethods() {
-        return Arrays.stream(allMethods).collect(Collectors.toList());
-    }
+//    public static List<String> addAllMethods() {
+//        return Arrays.stream(allMethods).collect(Collectors.toList());
+//    }
 
     public static List<String> getAllResourceMethods(HttpService service) {
         List<String> cachedMethods = new ArrayList<>();
         for (HttpResource resource : service.getResources()) {
-            if (resource.getMethods() == null) {
-                cachedMethods.addAll(DispatcherUtil.addAllMethods());
-                break;
-            }
             cachedMethods.addAll(resource.getMethods());
         }
         return validateAllowMethods(cachedMethods);

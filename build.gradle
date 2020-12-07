@@ -48,7 +48,7 @@ ext.wso2CommonsPoolVersion = project.wso2CommonsPoolVersion
 ext.wso2SnakeYamlVersion = project.wso2SnakeYamlVersion
 ext.bouncycastleVersion = project.bouncycastleVersion
 ext.mimepullVersion = project.mimepullVersion
-ext.testngVersion =project.testngVersion
+ext.testngVersion = project.testngVersion
 
 allprojects {
     group = project.group

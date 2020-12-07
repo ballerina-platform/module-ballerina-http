@@ -85,6 +85,7 @@ public class HttpConstants {
     public static final String HTTP_METHOD_DELETE = "DELETE";
     public static final String HTTP_METHOD_OPTIONS = "OPTIONS";
     public static final String HTTP_METHOD_HEAD = "HEAD";
+    public static final String DEFAULT_HTTP_METHOD = "default";
 
     /* Annotations */
     public static final String ANN_NAME_RESOURCE_CONFIG = "ResourceConfig";
@@ -138,6 +139,7 @@ public class HttpConstants {
     public static final String ANNOTATION_METHOD_OPTIONS = HTTP_METHOD_OPTIONS;
     public static final String ANN_NAME_PARAM_ORDER_CONFIG = "ParamOrderConfig";
     public static final BString ANN_FIELD_PATH_PARAM_ORDER = StringUtils.fromString("pathParamOrder");
+    public static final BString ANN_FIELD_ALL_PARAM_ORDER = StringUtils.fromString("allParamOrder");
     public static final String DIRTY_RESPONSE = "dirtyResponse";
 
     public static final String VALUE_ATTRIBUTE = "value";
@@ -173,6 +175,11 @@ public class HttpConstants {
     public static final String DEFAULT_VERSION = "v.{major}.{minor}";
     public static final String MAJOR_VERSION = "{major}";
     public static final String MINOR_VERSION = "{minor}";
+    public static final String STAR_IDENTIFIER = "*";
+    public static final String DOUBLE_STAR_IDENTIFIER = "**";
+    public static final String OPEN_CURL_IDENTIFIER = "{";
+    public static final String CLOSE_CURL_IDENTIFIER = "}";
+    public static final String DOT_IDENTIFIER = ".";
 
     /* Annotations */
     public static final String ANNOTATION_NAME_SOURCE = "Source";
@@ -307,6 +314,7 @@ public class HttpConstants {
     public static final String HTTP_SERVICE_REGISTRY = "HTTP_SERVICE_REGISTRY";
     public static final String WS_SERVICE_REGISTRY = "WS_SERVICE_REGISTRY";
     public static final String CONNECTOR_STARTED = "CONNECTOR_STARTED";
+    public static final String ABSOLUTE_RESOURCE_PATH = "ABSOLUTE_RESOURCE_PATH";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;

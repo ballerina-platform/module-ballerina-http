@@ -57,6 +57,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         List<String> newMethods = newResource.getMethods();
         if (newMethods == null) {
             for (HttpResource previousResource : this.resource) {
+                //TODO sl can remove this. check this logic - chamil
                 if (previousResource.getMethods() == null) {
                     //if both resources do not have methods but same URI, then throw following error.
                     throw HttpUtil.createHttpError("Two resources have the same addressable URI, "
@@ -118,6 +119,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             }
         }
         if (httpResource == null) {
+            //TODO check the logic sl - chamil
             httpResource = tryMatchingToDefaultVerb(resources);
         }
         if (httpResource == null) {
@@ -155,9 +157,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         List<String> methods = new ArrayList<>();
         List<HttpResource> resourceInfos = new ArrayList<>();
         for (HttpResource resourceInfo : resources) {
-            if (resourceInfo.getMethods() != null) {
-                methods.addAll(resourceInfo.getMethods());
-            }
+            methods.addAll(resourceInfo.getMethods());
             resourceInfos.add(resourceInfo);
         }
         cMsg.setProperty(HttpConstants.PREFLIGHT_RESOURCES, resourceInfos);

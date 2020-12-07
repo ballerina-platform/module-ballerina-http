@@ -33,16 +33,9 @@ http:ListenerConfiguration sslProtocolServiceConfig = {
 
 listener http:Listener sslProtocolListener = new(9249, config = sslProtocolServiceConfig);
 
-@http:ServiceConfig {
-    basePath: "/protocol"
-}
-service sslProtocolService on sslProtocolListener {
-
-    @http:ResourceConfig {
-        methods: ["GET"],
-        path: "/protocolResource"
-    }
-    resource function sayHello(http:Caller caller, http:Request req) {
+service /protocol on sslProtocolListener {
+    
+    resource function get protocolResource(http:Caller caller, http:Request req) {
         var result = caller->respond("Hello World!");
         if (result is error) {
            log:printError("Failed to respond", err = result);

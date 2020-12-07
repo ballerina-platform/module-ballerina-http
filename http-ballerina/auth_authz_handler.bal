@@ -65,6 +65,7 @@ public class AuthzHandler {
 
         boolean authorized = auth:checkForScopeMatch(scopes, userScopes, authzCacheKey, self.positiveAuthzCache,
                                                      self.negativeAuthzCache);
+
         final string serviceNameValue = serviceName;
         final string requestMethodValue = requestMethod;
         if (authorized) {

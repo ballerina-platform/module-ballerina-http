@@ -18,7 +18,8 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.flags.SymbolFlags;
-import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.types.ResourceFunctionType;
+import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -34,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,8 +72,9 @@ public class HttpService implements Cloneable {
     private String hostName;
     private String chunkingConfig;
 
-    protected HttpService(BObject service) {
+    protected HttpService(BObject service, String basePath) {
         this.balService = service;
+        this.basePath = basePath;
     }
 
     public java.lang.Object clone() throws CloneNotSupportedException {
@@ -185,65 +186,28 @@ public class HttpService implements Cloneable {
         return uriTemplate;
     }
 
-    public static List<HttpService> buildHttpService(BObject service) {
-        List<HttpService> serviceList = new ArrayList<>();
-        List<String> basePathList = new ArrayList<>();
-        HttpService httpService = new HttpService(service);
+    public static HttpService buildHttpService(BObject service, String basePath) {
+        HttpService httpService = new HttpService(service, basePath);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
-
         if (checkConfigAnnotationAvailability(serviceConfig)) {
-
             httpService.setCompressionConfig(
                     (BMap<BString, Object>) serviceConfig.get(ANN_CONFIG_ATTR_COMPRESSION));
             httpService.setChunkingConfig(serviceConfig.get(ANN_CONFIG_ATTR_CHUNKING).toString());
             httpService.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
             httpService.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
-
-            String basePath = serviceConfig.getStringValue(BASE_PATH_FIELD).getValue().replaceAll(
-                    HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
-            if (basePath.contains(HttpConstants.VERSION)) {
-                prepareBasePathList(serviceConfig.getMapValue(VERSIONING_FIELD),
-                                    serviceConfig.getStringValue(BASE_PATH_FIELD).getValue(), basePathList,
-                                    httpService.getBalService().getType().getPackage().getVersion());
-            } else {
-                basePathList.add(basePath);
-            }
         } else {
-            log.debug("serviceConfig not specified in the Service instance, using default base path");
-            //service name cannot start with / hence concat
-            String basePath = httpService.getName().startsWith(DOLLAR) ? DEFAULT_BASE_PATH :
-                    DEFAULT_BASE_PATH.concat(httpService.getName());
-            basePathList.add(basePath);
             httpService.setHostName(DEFAULT_HOST);
         }
-
         processResources(httpService);
-
         httpService.setAllAllowedMethods(DispatcherUtil.getAllResourceMethods(httpService));
-
-        if (basePathList.size() == 1) {
-            httpService.setBasePath(basePathList.get(0));
-            serviceList.add(httpService);
-            return serviceList;
-        }
-
-        for (String basePath : basePathList) {
-            HttpService tempHttpService;
-            try {
-                tempHttpService = (HttpService) httpService.clone();
-            } catch (CloneNotSupportedException e) {
-                throw new BallerinaConnectorException("Service registration failed");
-            }
-            tempHttpService.setBasePath(basePath);
-            serviceList.add(tempHttpService);
-        }
-        return serviceList;
+        return httpService;
     }
 
     private static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
         List<HttpResource> upgradeToWebSocketResources = new ArrayList<>();
-        for (AttachedFunctionType resource : httpService.getBalService().getType().getAttachedFunctions()) {
+        for (ResourceFunctionType resource :
+                ((ServiceType) httpService.getBalService().getType()).getResourceFunctions()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
@@ -271,46 +235,47 @@ public class HttpService implements Cloneable {
                 && resourceConfigAnnotation.getMapValue(HttpConstants.ANN_CONFIG_ATTR_WEBSOCKET_UPGRADE) != null;
     }
 
-    private static void prepareBasePathList(BMap versioningConfig, String basePath, List<String> basePathList,
-                                            String packageVersion) {
-        String patternAnnotValue = HttpConstants.DEFAULT_VERSION;
-        Boolean allowNoVersionAnnotValue = false;
-        Boolean matchMajorVersionAnnotValue = false;
-        if (versioningConfig != null) {
-            patternAnnotValue = versioningConfig.getStringValue(HttpConstants.ANN_CONFIG_ATTR_PATTERN).getValue();
-            allowNoVersionAnnotValue = versioningConfig.getBooleanValue(HttpConstants.ANN_CONFIG_ATTR_ALLOW_NO_VERSION);
-            matchMajorVersionAnnotValue = versioningConfig.getBooleanValue(
-                    HttpConstants.ANN_CONFIG_ATTR_MATCH_MAJOR_VERSION);
-        }
-        patternAnnotValue = patternAnnotValue.toLowerCase(Locale.getDefault());
-        basePathList.add(replaceServiceVersion(basePath, packageVersion, patternAnnotValue));
+//    private static void prepareBasePathList(BMap versioningConfig, String basePath, List<String> basePathList,
+//                                            String packageVersion) {
+//        String patternAnnotValue = HttpConstants.DEFAULT_VERSION;
+//        Boolean allowNoVersionAnnotValue = false;
+//        Boolean matchMajorVersionAnnotValue = false;
+//        if (versioningConfig != null) {
+//            patternAnnotValue = versioningConfig.getStringValue(HttpConstants.ANN_CONFIG_ATTR_PATTERN).getValue();
+//            allowNoVersionAnnotValue = versioningConfig.getBooleanValue(
+//                    HttpConstants.ANN_CONFIG_ATTR_ALLOW_NO_VERSION);
+//            matchMajorVersionAnnotValue = versioningConfig.getBooleanValue(
+//                    HttpConstants.ANN_CONFIG_ATTR_MATCH_MAJOR_VERSION);
+//        }
+//        patternAnnotValue = patternAnnotValue.toLowerCase(Locale.getDefault());
+//        basePathList.add(replaceServiceVersion(basePath, packageVersion, patternAnnotValue));
+//
+//        if (allowNoVersionAnnotValue) {
+//            basePathList.add(basePath.replace(HttpConstants.VERSION, "").replace("//", "/"));
+//        }
+//        if (matchMajorVersionAnnotValue) {
+//            String patternWithMajor = patternAnnotValue.replace(HttpConstants.MINOR_VERSION, "");
+//            patternWithMajor = patternWithMajor.endsWith(".") ?
+//                    patternWithMajor.substring(0, patternWithMajor.length() - 1) : patternWithMajor;
+//            basePathList.add(replaceServiceVersion(basePath, packageVersion, patternWithMajor));
+//        }
+//    }
 
-        if (allowNoVersionAnnotValue) {
-            basePathList.add(basePath.replace(HttpConstants.VERSION, "").replace("//", "/"));
-        }
-        if (matchMajorVersionAnnotValue) {
-            String patternWithMajor = patternAnnotValue.replace(HttpConstants.MINOR_VERSION, "");
-            patternWithMajor = patternWithMajor.endsWith(".") ?
-                    patternWithMajor.substring(0, patternWithMajor.length() - 1) : patternWithMajor;
-            basePathList.add(replaceServiceVersion(basePath, packageVersion, patternWithMajor));
-        }
-    }
-
-    private static String replaceServiceVersion(String basePath, String version, String pattern) {
-        pattern = pattern.toLowerCase(Locale.getDefault());
-        String[] versionElements = version.split("\\.");
-        String majorVersion = versionElements[0];
-        String minorVersion = versionElements.length > 1 ? versionElements[1] : "";
-
-        if (pattern.contains(HttpConstants.MAJOR_VERSION) || pattern.contains(HttpConstants.MINOR_VERSION)) {
-            String patternReplaced = pattern.replace(HttpConstants.MAJOR_VERSION, majorVersion);
-            String result = patternReplaced.replace(HttpConstants.MINOR_VERSION, minorVersion);
-
-            return basePath.replace(HttpConstants.VERSION, result);
-        }
-        throw new BallerinaConnectorException("Invalid versioning pattern: expect \"" + HttpConstants.MAJOR_VERSION +
-                                              "," + HttpConstants.MINOR_VERSION + "\" elements");
-    }
+//    private static String replaceServiceVersion(String basePath, String version, String pattern) {
+//        pattern = pattern.toLowerCase(Locale.getDefault());
+//        String[] versionElements = version.split("\\.");
+//        String majorVersion = versionElements[0];
+//        String minorVersion = versionElements.length > 1 ? versionElements[1] : "";
+//
+//        if (pattern.contains(HttpConstants.MAJOR_VERSION) || pattern.contains(HttpConstants.MINOR_VERSION)) {
+//            String patternReplaced = pattern.replace(HttpConstants.MAJOR_VERSION, majorVersion);
+//            String result = patternReplaced.replace(HttpConstants.MINOR_VERSION, minorVersion);
+//
+//            return basePath.replace(HttpConstants.VERSION, result);
+//        }
+//        throw new BallerinaConnectorException("Invalid versioning pattern: expect \"" + HttpConstants.MAJOR_VERSION +
+//                                              "," + HttpConstants.MINOR_VERSION + "\" elements");
+//    }
 
     private static BMap getHttpServiceConfigAnnotation(BObject service) {
         return getServiceConfigAnnotation(service, PROTOCOL_PACKAGE_HTTP, HttpConstants.ANN_NAME_HTTP_SERVICE_CONFIG);

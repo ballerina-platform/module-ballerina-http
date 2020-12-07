@@ -21,7 +21,7 @@ package org.ballerinalang.net.http;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.creators.ErrorCreator;
-import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.types.MemberFunctionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -1115,7 +1115,7 @@ public class HttpUtil {
                 reqMsg.getHeader(HttpHeaderNames.EXPECT.toString())) || statusCode == 100;
     }
 
-    public static BMap getTransactionConfigAnnotation(AttachedFunctionType resource, String transactionPackagePath) {
+    public static BMap getTransactionConfigAnnotation(MemberFunctionType resource, String transactionPackagePath) {
         return (BMap) resource.getAnnotation(StringUtils.fromString(
                 transactionPackagePath + ":" + TransactionConstants.ANN_NAME_TRX_PARTICIPANT_CONFIG));
     }

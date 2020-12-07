@@ -24,7 +24,7 @@ import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
-import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.types.MemberFunctionType;
 import io.ballerina.runtime.api.types.StructureType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.XmlNodeType;
@@ -95,7 +95,7 @@ public class WebSocketResourceDispatcher {
         HttpResource onUpgradeResource = wsService.getUpgradeResource();
         webSocketHandshaker.getHttpCarbonRequest().setProperty(HttpConstants.RESOURCES_CORS,
                                                                onUpgradeResource.getCorsHeaders());
-        AttachedFunctionType balResource = onUpgradeResource.getBalResource();
+        MemberFunctionType balResource = onUpgradeResource.getBalResource();
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(onUpgradeResource, webSocketHandshaker
                 .getHttpCarbonRequest(), httpEndpointConfig);
 
@@ -112,7 +112,7 @@ public class WebSocketResourceDispatcher {
 
     public static void dispatchOnOpen(WebSocketConnection webSocketConnection, BObject webSocketCaller,
                                        WebSocketServerService wsService) {
-        AttachedFunctionType onOpenResource = wsService.getResourceByName(RESOURCE_NAME_ON_OPEN);
+        MemberFunctionType onOpenResource = wsService.getResourceByName(RESOURCE_NAME_ON_OPEN);
         if (onOpenResource != null) {
             executeOnOpenResource(wsService, onOpenResource, webSocketCaller, webSocketConnection);
         } else {
@@ -120,7 +120,7 @@ public class WebSocketResourceDispatcher {
         }
     }
 
-    private static void executeOnOpenResource(WebSocketService wsService, AttachedFunctionType onOpenResource,
+    private static void executeOnOpenResource(WebSocketService wsService, MemberFunctionType onOpenResource,
                                               BObject webSocketEndpoint, WebSocketConnection webSocketConnection) {
         Type[] parameterTypes = onOpenResource.getParameterTypes();
         Object[] bValues = new Object[parameterTypes.length * 2];
@@ -130,7 +130,7 @@ public class WebSocketResourceDispatcher {
                 wsService, webSocketConnection, webSocketEndpoint);
         Callback onOpenCallback = new Callback() {
             @Override
-            public void notifySuccess() {
+            public void notifySuccess(Object result) {
                 webSocketConnection.readNextFrame();
             }
 
@@ -151,7 +151,7 @@ public class WebSocketResourceDispatcher {
         try {
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            AttachedFunctionType onTextMessageResource = wsService.getResourceByName(RESOURCE_NAME_ON_TEXT);
+            MemberFunctionType onTextMessageResource = wsService.getResourceByName(RESOURCE_NAME_ON_TEXT);
             if (onTextMessageResource == null) {
                 webSocketConnection.readNextFrame();
                 return;
@@ -266,7 +266,7 @@ public class WebSocketResourceDispatcher {
         try {
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            AttachedFunctionType onBinaryMessageResource = wsService.getResourceByName(
+            MemberFunctionType onBinaryMessageResource = wsService.getResourceByName(
                     RESOURCE_NAME_ON_BINARY);
             if (onBinaryMessageResource == null) {
                 webSocketConnection.readNextFrame();
@@ -307,7 +307,7 @@ public class WebSocketResourceDispatcher {
                                                     connectionInfo);
         try {
             WebSocketService wsService = connectionInfo.getService();
-            AttachedFunctionType onPingMessageResource = wsService.getResourceByName(
+            MemberFunctionType onPingMessageResource = wsService.getResourceByName(
                     WebSocketConstants.RESOURCE_NAME_ON_PING);
             if (onPingMessageResource == null) {
                 pongAutomatically(controlMessage);
@@ -337,7 +337,7 @@ public class WebSocketResourceDispatcher {
         try {
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            AttachedFunctionType onPongMessageResource = wsService.getResourceByName(
+            MemberFunctionType onPongMessageResource = wsService.getResourceByName(
                     WebSocketConstants.RESOURCE_NAME_ON_PONG);
             if (onPongMessageResource == null) {
                 webSocketConnection.readNextFrame();
@@ -367,7 +367,7 @@ public class WebSocketResourceDispatcher {
             WebSocketUtil.setListenerOpenField(connectionInfo);
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            AttachedFunctionType onCloseResource = wsService.getResourceByName(
+            MemberFunctionType onCloseResource = wsService.getResourceByName(
                     WebSocketConstants.RESOURCE_NAME_ON_CLOSE);
             int closeCode = closeMessage.getCloseCode();
             String closeReason = closeMessage.getCloseReason();
@@ -387,7 +387,7 @@ public class WebSocketResourceDispatcher {
             bValues[5] = true;
             Callback onCloseCallback = new Callback() {
                 @Override
-                public void notifySuccess() {
+                public void notifySuccess(Object result) {
                     finishConnectionClosureIfOpen(webSocketConnection, closeCode, connectionInfo);
                 }
 
@@ -432,7 +432,7 @@ public class WebSocketResourceDispatcher {
             connectionInfo.getWebSocketEndpoint().set(WebSocketConstants.LISTENER_IS_OPEN_FIELD, false);
         }
         WebSocketService webSocketService = connectionInfo.getService();
-        AttachedFunctionType onErrorResource = webSocketService.getResourceByName(
+        MemberFunctionType onErrorResource = webSocketService.getResourceByName(
                 WebSocketConstants.RESOURCE_NAME_ON_ERROR);
         if (isUnexpectedError(throwable)) {
             log.error("Unexpected error", throwable);
@@ -452,7 +452,7 @@ public class WebSocketResourceDispatcher {
         bValues[3] = true;
         Callback onErrorCallback = new Callback() {
             @Override
-            public void notifySuccess() {
+            public void notifySuccess(Object result) {
                 // Do nothing.
             }
 
@@ -477,7 +477,7 @@ public class WebSocketResourceDispatcher {
         try {
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            AttachedFunctionType onIdleTimeoutResource = wsService.getResourceByName(
+            MemberFunctionType onIdleTimeoutResource = wsService.getResourceByName(
                     WebSocketConstants.RESOURCE_NAME_ON_IDLE_TIMEOUT);
             if (onIdleTimeoutResource == null) {
                 return;
@@ -489,7 +489,7 @@ public class WebSocketResourceDispatcher {
 
             Callback onIdleTimeoutCallback = new Callback() {
                 @Override
-                public void notifySuccess() {
+                public void notifySuccess(Object result) {
                     // Do nothing.
                 }
 

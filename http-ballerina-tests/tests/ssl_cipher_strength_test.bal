@@ -33,16 +33,9 @@ http:ListenerConfiguration strongCipherConfig = {
 
 listener http:Listener strongCipher = new(9226, strongCipherConfig);
 
-@http:ServiceConfig {
-    basePath: "/echo"
-}
-service strongService on strongCipher {
+service /strongService on strongCipher {
 
-    @http:ResourceConfig {
-        methods: ["GET"],
-        path: "/"
-    }
-    resource function sayHello(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("hello world");
         checkpanic caller->respond(res);
@@ -65,16 +58,9 @@ http:ListenerConfiguration weakCipherConfig = {
 
 listener http:Listener weakCipher = new(9227, weakCipherConfig);
 
-@http:ServiceConfig {
-    basePath: "/echo"
-}
-service weakService on weakCipher {
-
-    @http:ResourceConfig {
-        methods: ["GET"],
-        path: "/"
-    }
-    resource function sayHello(http:Caller caller, http:Request req) {
+service /weakService on weakCipher {
+    
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("hello world");
         checkpanic caller->respond(res);
@@ -98,7 +84,7 @@ public function testWithStrongClientWithWeakService() {
         }
     });
     http:Request req = new;
-    var resp = clientEP->get("/echo/");
+    var resp = clientEP->get("/weakService/");
     if (resp is http:Response) {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
     } else if (resp is error) {
@@ -122,7 +108,7 @@ public function testWithStrongClientWithStrongService() {
         }
     });
     http:Request req = new;
-    var resp = clientEP->get("/echo/");
+    var resp = clientEP->get("/strongService/");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {

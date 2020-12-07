@@ -47,7 +47,7 @@ public client class HttpClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
+    remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
                 returns Response|Payload|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_POST);
     }
@@ -58,7 +58,7 @@ public client class HttpClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    public remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
+    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_HEAD);
     }
@@ -72,7 +72,7 @@ public client class HttpClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function put(@untainted string path, RequestMessage message, TargetType targetType = Response)
+    remote function put(@untainted string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PUT);
     }
@@ -87,7 +87,7 @@ public client class HttpClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
             TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
         return externExecute(self, httpVerb, path, <Request>message);
     }
@@ -101,7 +101,7 @@ public client class HttpClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function patch(@untainted string path, RequestMessage message, TargetType targetType = Response)
+    remote function patch(@untainted string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PATCH);
     }
@@ -115,7 +115,7 @@ public client class HttpClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function delete(@untainted string path, RequestMessage message = (),
+    remote function delete(@untainted string path, RequestMessage message = (),
             TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_DELETE);
     }
@@ -129,7 +129,7 @@ public client class HttpClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function get(@untainted string path, RequestMessage message = (),
+    remote function get(@untainted string path, RequestMessage message = (),
             TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_GET);
     }
@@ -143,7 +143,7 @@ public client class HttpClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function options(@untainted string path, RequestMessage message = (),
+    remote function options(@untainted string path, RequestMessage message = (),
             TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_OPTIONS);
     }
@@ -156,7 +156,7 @@ public client class HttpClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function forward(@untainted string path, Request request, TargetType targetType = Response)
+    remote function forward(@untainted string path, Request request, TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         return externForward(self, path, request);
     }
@@ -170,7 +170,7 @@ public client class HttpClient {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
-    public remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return externSubmit(self, httpVerb, path, <Request>message);
     }
 
@@ -178,7 +178,7 @@ public client class HttpClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         return externGetResponse(self, httpFuture);
     }
 
@@ -186,7 +186,7 @@ public client class HttpClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    public remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote function hasPromise(HttpFuture httpFuture) returns boolean {
         return externHasPromise(self, httpFuture);
     }
 
@@ -194,7 +194,7 @@ public client class HttpClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    public remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return externGetNextPromise(self, httpFuture);
     }
 
@@ -202,7 +202,7 @@ public client class HttpClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return externGetPromisedResponse(self, promise);
     }
 
@@ -210,7 +210,7 @@ public client class HttpClient {
     # response using the rejected promise.
     #
     # + promise - The Push Promise to be rejected
-    public remote function rejectPromise(PushPromise promise) {
+    remote function rejectPromise(PushPromise promise) {
         return externRejectPromise(self, promise);
     }
 }

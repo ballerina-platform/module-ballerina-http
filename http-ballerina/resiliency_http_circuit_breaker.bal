@@ -162,7 +162,7 @@ public client class CircuitBreakerClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function post(string path, RequestMessage message, TargetType targetType = Response)
+    remote function post(string path, RequestMessage message, TargetType targetType = Response)
             returns Response|Payload|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
@@ -183,7 +183,7 @@ public client class CircuitBreakerClient {
     # + message - A Request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
     #             or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    public remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
+    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
@@ -207,7 +207,7 @@ public client class CircuitBreakerClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function put(string path, RequestMessage message, TargetType targetType = Response)
+    remote function put(string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
@@ -232,7 +232,7 @@ public client class CircuitBreakerClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
+    remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
@@ -256,7 +256,7 @@ public client class CircuitBreakerClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function patch(string path, RequestMessage message, TargetType targetType = Response)
+    remote function patch(string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
@@ -280,7 +280,7 @@ public client class CircuitBreakerClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
+    remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
@@ -304,7 +304,7 @@ public client class CircuitBreakerClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
+    remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
@@ -328,7 +328,7 @@ public client class CircuitBreakerClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
+    remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
@@ -351,7 +351,7 @@ public client class CircuitBreakerClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    public remote function forward(string path, Request request, TargetType targetType = Response)
+    remote function forward(string path, Request request, TargetType targetType = Response)
             returns @tainted Response|Payload|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
@@ -375,7 +375,7 @@ public client class CircuitBreakerClient {
     #             `io:ReadableByteChannel` or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
-    public remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -398,7 +398,7 @@ public client class CircuitBreakerClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         // No need to check for the response as we already check for the response in the submit method
         return self.httpClient->getResponse(httpFuture);
     }
@@ -408,7 +408,7 @@ public client class CircuitBreakerClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    public remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote function hasPromise(HttpFuture httpFuture) returns boolean {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -416,7 +416,7 @@ public client class CircuitBreakerClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    public remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -424,7 +424,7 @@ public client class CircuitBreakerClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    public remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return self.httpClient->getPromisedResponse(promise);
     }
 
@@ -432,7 +432,7 @@ public client class CircuitBreakerClient {
     # HTTP remote functions provider.
     #
     # + promise - The `http:PushPromise` to be rejected
-    public remote function rejectPromise(PushPromise promise) {
+    remote function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
 
