@@ -17,12 +17,12 @@
 */
 package org.ballerinalang.net.http;
 
+import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.ResourceFunctionType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.transactions.TransactionConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -241,9 +241,7 @@ public class HttpResource {
     }
 
     private static void setupTransactionAnnotations(ResourceFunctionType resource, HttpResource httpResource) {
-        BMap transactionConfigAnnotation = HttpUtil.getTransactionConfigAnnotation(resource,
-                        TransactionConstants.TRANSACTION_PACKAGE_PATH);
-        if (transactionConfigAnnotation != null) {
+        if (SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.TRANSACTIONAL)) {
             httpResource.transactionAnnotated = true;
         }
     }
