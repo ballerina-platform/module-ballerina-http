@@ -18,11 +18,11 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.types.ResourceFunctionType;
-import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.transactions.TransactionConstants;
+import org.ballerinalang.net.http.signature.ParamHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,17 +47,12 @@ public class HttpResource {
 
     private static final Logger log = LoggerFactory.getLogger(HttpResource.class);
 
-    private static final BString METHODS_FIELD = StringUtils.fromString("methods");
-    private static final BString PATH_FIELD = StringUtils.fromString("path");
-    private static final BString BODY_FIELD = StringUtils.fromString("body");
     private static final BString CONSUMES_FIELD = StringUtils.fromString("consumes");
     private static final BString PRODUCES_FIELD = StringUtils.fromString("produces");
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
     private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
     private static final BString HTTP_RESOURCE_CONFIG =
             StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_RESOURCE_CONFIG);
-//    private static final BString HTTP_PARAM_ORDER_CONFIG =
-//            StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_PARAM_ORDER_CONFIG);
     private static final List<String> ALL_STANDARD_ACCESSORS =
             Arrays.asList(HttpConstants.HTTP_METHOD_GET, HttpConstants.HTTP_METHOD_HEAD,
                           HttpConstants.HTTP_METHOD_PATCH, HttpConstants.HTTP_METHOD_OPTIONS,
@@ -72,7 +67,7 @@ public class HttpResource {
     private List<String> produces;
     private List<String> producesSubTypes;
     private CorsHeaders corsHeaders;
-    private SignatureParams signatureParams;
+    private ParamHandler signatureParams;
     private HttpService parentService;
     private boolean transactionInfectable = true; //default behavior
     private boolean transactionAnnotated = false;
@@ -99,7 +94,7 @@ public class HttpResource {
         return balResource.getParentObjectType().getName();
     }
 
-    public SignatureParams getSignatureParams() {
+    public ParamHandler getSignatureParams() {
         return signatureParams;
     }
 
@@ -228,7 +223,7 @@ public class HttpResource {
                     .setTransactionInfectable(resourceConfigAnnotation.getBooleanValue(TRANSACTION_INFECTABLE_FIELD));
 
             processResourceCors(httpResource, httpService);
-            httpResource.prepareAndValidateSignatureParams();
+//            httpResource.prepareAndValidateSignatureParams();
             return httpResource;
         }
 
@@ -257,18 +252,6 @@ public class HttpResource {
     public static BMap getResourceConfigAnnotation(ResourceFunctionType resource) {
         return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
     }
-
-//    protected static BMap getPathParamOrderMap(ResourceFunctionType resource) {
-//        Object annotation = resource.getAnnotation(HTTP_PARAM_ORDER_CONFIG);
-//        return annotation == null ? ValueCreator.createMapValue() :
-//                (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
-//    }
-//
-//    protected static BArray getAllParamOrderMap(ResourceFunctionType resource) {
-//        Object annotation = resource.getAnnotation(HTTP_PARAM_ORDER_CONFIG);
-//        return annotation == null ? ValueCreator.createArrayValue(new BString[0]) :
-//                (BArray) ((BMap<BString, Object>) annotation).get(ANN_FIELD_ALL_PARAM_ORDER);
-//    }
 
     private static List<String> getAsStringList(Object[] values) {
         if (values == null) {
@@ -301,21 +284,10 @@ public class HttpResource {
     }
 
     private void prepareAndValidateSignatureParams() {
-        signatureParams = new SignatureParams(this);
-//        signatureParams.validate();
-    }
-
-    public List<Type> getParamTypes() {
-        List<Type> paramTypes = new ArrayList<>();
-        paramTypes.addAll(Arrays.asList(this.balResource.getParameterTypes()));
-        return paramTypes;
+        signatureParams = new ParamHandler(this, this.pathParamCount);
     }
 
     public String getWildcardToken() {
         return wildcardToken;
-    }
-
-    public int getPathParamCount() {
-        return pathParamCount;
     }
 }
