@@ -180,6 +180,7 @@ public class HttpConstants {
     public static final String OPEN_CURL_IDENTIFIER = "{";
     public static final String CLOSE_CURL_IDENTIFIER = "}";
     public static final String DOT_IDENTIFIER = ".";
+    public static final String QUERY_PARAM = "query";
 
     /* Annotations */
     public static final String ANNOTATION_NAME_SOURCE = "Source";

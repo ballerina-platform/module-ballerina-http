@@ -232,13 +232,9 @@ function testGetCookiesWithEmptyValue() {
 
 listener http:Listener requestListner = new(requestTest);
 
-@http:ServiceConfig { basePath: "/hello" }
-service RequestHello on requestListner {
+service /requesthello on requestListner {
 
-    @http:ResourceConfig {
-        path: "/addheader/{key}/{value}"
-    }
-    resource function addheader(http:Caller caller, http:Request inReq, string key, string value) {
+    resource function get addheader/[string key]/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
         req.addHeader(<@untainted string> key, value);
         string result = <@untainted string> req.getHeader(<@untainted string> key);
@@ -247,50 +243,35 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/11"
-    }
-    resource function echo1(http:Caller caller, http:Request req) {
+    resource function get '11(http:Caller caller, http:Request req) {
         http:Response res = new;
         string method = req.method;
         res.setTextPayload(<@untainted string> method);
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/12"
-    }
-    resource function echo2(http:Caller caller, http:Request req) {
+    resource function get '12(http:Caller caller, http:Request req) {
         http:Response res = new;
         string url = req.rawPath;
         res.setTextPayload(<@untainted string> url);
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/13"
-    }
-    resource function echo3(http:Caller caller, http:Request req) {
+    resource function get '13(http:Caller caller, http:Request req) {
         http:Response res = new;
         string url = req.rawPath;
         res.setTextPayload(<@untainted string> url);
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/getHeader"
-    }
-    resource function getHeader(http:Caller caller, http:Request req) {
+    resource function get getHeader(http:Caller caller, http:Request req) {
         http:Response res = new;
         string header = <@untainted string> req.getHeader("content-type");
         res.setJsonPayload({ value: header });
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/getJsonPayload"
-    }
-    resource function getJsonPayload(http:Caller caller, http:Request req) {
+    resource function get getJsonPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getJsonPayload();
         if (returnResult is error) {
@@ -302,10 +283,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/GetTextPayload"
-    }
-    resource function getTextPayload(http:Caller caller, http:Request req) {
+    resource function get GetTextPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getTextPayload();
         if (returnResult is error) {
@@ -317,10 +295,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/GetXmlPayload"
-    }
-    resource function getXmlPayload(http:Caller caller, http:Request req) {
+    resource function get GetXmlPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getXmlPayload();
         if (returnResult is error) {
@@ -333,10 +308,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/GetBinaryPayload"
-    }
-    resource function getBinaryPayload(http:Caller caller, http:Request req) {
+    resource function get GetBinaryPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getBinaryPayload();
         if (returnResult is error) {
@@ -354,10 +326,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/GetByteChannel"
-    }
-    resource function getByteChannel(http:Caller caller, http:Request req) {
+    resource function get GetByteChannel(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getByteChannel();
         if (returnResult is error) {
@@ -369,10 +338,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/RemoveHeader"
-    }
-    resource function removeHeader(http:Caller caller, http:Request inReq) {
+    resource function get RemoveHeader(http:Caller caller, http:Request inReq) {
         http:Request req = new;
         req.setHeader("Content-Type", "application/x-www-form-urlencoded");
         req.removeHeader("Content-Type");
@@ -385,10 +351,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/RemoveAllHeaders"
-    }
-    resource function removeAllHeaders(http:Caller caller, http:Request inReq) {
+    resource function get RemoveAllHeaders(http:Caller caller, http:Request inReq) {
         http:Request req = new;
         req.setHeader("Content-Type", "application/x-www-form-urlencoded");
         req.setHeader("Expect", "100-continue");
@@ -403,10 +366,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/setHeader/{key}/{value}"
-    }
-    resource function setHeader(http:Caller caller, http:Request inReq, string key, string value) {
+    resource function get setHeader/[string key]/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
         req.setHeader(<@untainted string> key, "abc");
         req.setHeader(<@untainted string> key, value);
@@ -417,10 +377,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/SetJsonPayload/{value}"
-    }
-    resource function setJsonPayload(http:Caller caller, http:Request inReq, string value) {
+    resource function get SetJsonPayload/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
         json jsonStr = { lang: value };
         req.setJsonPayload(<@untainted json> jsonStr);
@@ -435,10 +392,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/SetStringPayload/{value}"
-    }
-    resource function setStringPayload(http:Caller caller, http:Request inReq, string value) {
+    resource function get SetStringPayload/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
         req.setTextPayload(<@untainted string> value);
         http:Response res = new;
@@ -452,10 +406,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/SetXmlPayload"
-    }
-    resource function setXmlPayload(http:Caller caller, http:Request inReq) {
+    resource function get SetXmlPayload(http:Caller caller, http:Request inReq) {
         http:Request req = new;
         xml xmlStr = xml `<name>Ballerina</name>`;
         req.setXmlPayload(xmlStr);
@@ -471,10 +422,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/SetBinaryPayload"
-    }
-    resource function setBinaryPayload(http:Caller caller, http:Request inReq) {
+    resource function get SetBinaryPayload(http:Caller caller, http:Request inReq) {
         http:Request req = new;
         string text = "Ballerina";
         byte[] payload = text.toBytes();
@@ -496,10 +444,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/addCookies"
-    }
-    resource function addCookies(http:Caller caller, http:Request inReq) {
+    resource function get addCookies(http:Caller caller, http:Request inReq) {
         http:Request req = new;
         http:Cookie cookie1 = new("SID1", "31d4d96e407aad42");
         cookie1.domain = "google.com";
@@ -518,10 +463,7 @@ service RequestHello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path: "/getCookies"
-    }
-    resource function getCookies(http:Caller caller, http:Request req) {
+    resource function get getCookies(http:Caller caller, http:Request req) {
         http:Response res = new;
         http:Cookie cookie1 = new("SID1", "31d4d96e407aad42");
         cookie1.domain = "google.com";
@@ -541,7 +483,7 @@ http:Client requestClient = new("http://localhost:" + requestTest.toString());
 function testServiceAddHeader() {
     string key = "lang";
     string value = "ballerina";
-    string path = "/hello/addheader/" + key + "/" + value;
+    string path = "/requesthello/addheader/" + key + "/" + value;
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {lang:"ballerina"});
@@ -553,7 +495,7 @@ function testServiceAddHeader() {
 // Test GetHeader function within a service
 @test:Config {}
 function testServiceGetHeader() {
-    string path = "/hello/getHeader";
+    string path = "/requesthello/getHeader";
     string contentType = "application/x-www-form-urlencoded";
     http:Request req = new;
     req.setHeader("content-type", contentType);
@@ -569,7 +511,7 @@ function testServiceGetHeader() {
 @test:Config {}
 function testServiceGetJsonPayload() {
     string value = "ballerina";
-    string path = "/hello/getJsonPayload";
+    string path = "/requesthello/getJsonPayload";
     json payload = {lang: value };
     string contentType = "application/json";
     http:Request req = new;
@@ -587,7 +529,7 @@ function testServiceGetJsonPayload() {
 @test:Config {}
 function testServiceGetTextPayload() {
     string value = "ballerina";
-    string path = "/hello/GetTextPayload";
+    string path = "/requesthello/GetTextPayload";
     string contentType = "text/plain";
     http:Request req = new;
     req.setHeader("content-type", contentType);
@@ -603,7 +545,7 @@ function testServiceGetTextPayload() {
 // Test GetXmlPayload function within a service
 @test:Config {}
 function testServiceGetXmlPayload() {
-    string path = "/hello/GetXmlPayload";
+    string path = "/requesthello/GetXmlPayload";
     xml xmlItem = xml `<name>ballerina</name>`;
     http:Request req = new;
     req.setHeader("content-type", "application/xml");
@@ -618,7 +560,7 @@ function testServiceGetXmlPayload() {
 
 @test:Config {}
 function testGetMethodWithInService() {
-    string path = "/hello/11";
+    string path = "/requesthello/11";
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "GET");
@@ -629,7 +571,7 @@ function testGetMethodWithInService() {
 
 @test:Config {}
 function testGetRequestURLWithInService() {
-    string path = "/hello/12";
+    string path = "/requesthello/12";
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), path);
@@ -643,7 +585,7 @@ function testGetRequestURLWithInService() {
 @test:Config {}
 function testServiceGetByteChannel() {
     string value = "ballerina";
-    string path = "/hello/GetByteChannel";
+    string path = "/requesthello/GetByteChannel";
     json payload = {lang: value };
     string contentType = "application/json";
     http:Request req = new;
@@ -660,7 +602,7 @@ function testServiceGetByteChannel() {
 // Test RemoveAllHeaders function within a service
 @test:Config {}
 function testServiceRemoveAllHeaders() {
-    string path = "/hello/RemoveAllHeaders";
+    string path = "/requesthello/RemoveAllHeaders";
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { value: "value is null" });
@@ -674,7 +616,7 @@ function testServiceRemoveAllHeaders() {
 function testServiceSetHeader() {
     string key = "lang";
     string value = "ballerina";
-    string path = "/hello/setHeader/" + key + "/" + value;
+    string path = "/requesthello/setHeader/" + key + "/" + value;
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { value: value });
@@ -687,7 +629,7 @@ function testServiceSetHeader() {
 @test:Config {}
 function testServiceSetJsonPayload() {
     string value = "ballerina";
-    string path = "/hello/SetJsonPayload/" + value;
+    string path = "/requesthello/SetJsonPayload/" + value;
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { "lang": value });
@@ -700,7 +642,7 @@ function testServiceSetJsonPayload() {
 @test:Config {}
 function testServiceSetStringPayload() {
     string value = "ballerina";
-    string path = "/hello/SetJsonPayload/" + value;
+    string path = "/requesthello/SetJsonPayload/" + value;
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "{\"lang\":\"ballerina\"}");
@@ -713,7 +655,7 @@ function testServiceSetStringPayload() {
 @test:Config {}
 function testServiceSetXmlPayload() {
     string value = "Ballerina";
-    string path = "/hello/SetXmlPayload/";
+    string path = "/requesthello/SetXmlPayload/";
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { "lang": value });
@@ -726,7 +668,7 @@ function testServiceSetXmlPayload() {
 @test:Config {}
 function testServiceSetBinaryPayload() {
     string value = "Ballerina";
-    string path = "/hello/SetBinaryPayload/";
+    string path = "/requesthello/SetBinaryPayload/";
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { "lang": value });
@@ -740,7 +682,7 @@ function testServiceSetBinaryPayload() {
 public function testServiceGetBinaryPayload() {
     string textVal = "Ballerina";
     byte[] payload = textVal.toBytes();
-    string path = "/hello/GetBinaryPayload";
+    string path = "/requesthello/GetBinaryPayload";
     http:Request req = new;
     req.setBinaryPayload(payload);
     var response = requestClient->get(path, req);

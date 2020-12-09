@@ -20,16 +20,9 @@ import ballerina/http;
 
 listener http:Listener testEP = new(requestTest2);
 
-@http:ServiceConfig { 
-    basePath: "/foo" 
-}
-service MyService on testEP {
+service /MyService on testEP {
 
-    @http:ResourceConfig {
-        methods: ["POST"],
-        path: "/bar"
-    }
-    resource function myResource(http:Caller caller, http:Request req) {
+    resource function post myResource(http:Caller caller, http:Request req) {
         var stringValue = req.getTextPayload();
         if (stringValue is string) {
             string s = stringValue;
@@ -57,7 +50,7 @@ http:Client requestClient2 = new("http://localhost:" + requestTest2.toString());
 @test:Config {}
 public function testAccessingPayloadAsTextAndJSON()  {
     string payload = "{ \"foo\" : \"bar\"}";
-    string path = "/foo/bar";
+    string path = "/MyService/myResource";
     http:Request req = new;
     req.setTextPayload(payload);
     var response = requestClient2->post(path, req);
