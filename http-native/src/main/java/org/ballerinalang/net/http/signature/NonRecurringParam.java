@@ -18,8 +18,6 @@
 
 package org.ballerinalang.net.http.signature;
 
-import org.ballerinalang.net.http.HttpConstants;
-
 /**
  * {@code {@link NonRecurringParam }} represents a resource signature parameter which does not occur more than one time.
  *
@@ -37,10 +35,10 @@ public class NonRecurringParam implements Parameter {
 
     @Override
     public String getTypeName() {
-        return typeName;
+        return this.typeName;
     }
 
     public int getIndex() {
-        return index * 2;
+        return this.index * 2;
     }
 }

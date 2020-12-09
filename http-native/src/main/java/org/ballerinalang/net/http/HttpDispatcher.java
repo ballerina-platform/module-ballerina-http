@@ -33,11 +33,11 @@ import io.ballerina.runtime.api.values.BXml;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
+import org.ballerinalang.net.http.signature.AllQueryParams;
 import org.ballerinalang.net.http.signature.NonRecurringParam;
 import org.ballerinalang.net.http.signature.ParamHandler;
 import org.ballerinalang.net.http.signature.Parameter;
 import org.ballerinalang.net.http.signature.QueryParam;
-import org.ballerinalang.net.http.signature.AllQueryParams;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.URIUtil;
 
@@ -62,6 +62,7 @@ public class HttpDispatcher {
     private static final ArrayType INT_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
     private static final ArrayType FLOAT_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
     private static final ArrayType BOOLEAN_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
+    private static final ArrayType DECIMAL_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
 
     public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg) {
         try {
@@ -221,11 +222,11 @@ public class HttpDispatcher {
             if (queryValue == null) {
                 if (queryParam.isNilable()) {
                     paramFeed[index++] = null;
-                    paramFeed[index] = false;
+                    paramFeed[index] = true;
                     continue;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                    throw new BallerinaConnectorException("no query param value found for `" + token + "`");
+                    throw new BallerinaConnectorException("no query param value found for '" + token + "'");
                 }
             }
             try {
@@ -243,6 +244,10 @@ public class HttpDispatcher {
                         value = queryValueArr.getBString(0).getValue();
                         paramFeed[index++] = Boolean.parseBoolean(value);
                         break;
+                    case TypeTags.DECIMAL_TAG:
+                        value = queryValueArr.getBString(0).getValue();
+                        paramFeed[index++] = ValueCreator.createDecimalValue(value);
+                        break;
                     case TypeTags.ARRAY_TAG:
                         int elementTypeTag = ((ArrayType) queryParam.getType()).getElementType().getTag();
                         if (elementTypeTag == TypeTags.INT_TAG) {
@@ -251,6 +256,8 @@ public class HttpDispatcher {
                             paramFeed[index++] = getBArray(queryValueArr, FLOAT_ARRAY, elementTypeTag);
                         } else if (elementTypeTag == TypeTags.BOOLEAN_TAG) {
                             paramFeed[index++] = getBArray(queryValueArr, BOOLEAN_ARRAY, elementTypeTag);
+                        } else if (elementTypeTag == TypeTags.DECIMAL_TAG) {
+                            paramFeed[index++] = getBArray(queryValueArr, DECIMAL_ARRAY, elementTypeTag);
                         } else {
                             paramFeed[index++] = queryValueArr;
                         }
@@ -280,6 +287,11 @@ public class HttpDispatcher {
                 case TypeTags.BOOLEAN_TAG:
                     arrayValue.add(index++, Boolean.parseBoolean(element));
                     break;
+                case TypeTags.DECIMAL_TAG:
+                    arrayValue.add(index++, ValueCreator.createDecimalValue(element));
+                    break;
+                default:
+                    throw new BallerinaConnectorException("Illegal state error: unexpected query param type");
             }
         }
         return arrayValue;
@@ -325,6 +337,9 @@ public class HttpDispatcher {
                         break;
                     case TypeTags.BOOLEAN_TAG:
                         paramFeed[paramIndex++] = Boolean.parseBoolean(argumentValue);
+                        break;
+                    case TypeTags.DECIMAL_TAG:
+                        paramFeed[paramIndex++] = ValueCreator.createDecimalValue(argumentValue);
                         break;
                     case TypeTags.ARRAY_TAG:
                         if (((ArrayType) signatureParamType).getElementType().getTag() == TypeTags.STRING_TAG) {

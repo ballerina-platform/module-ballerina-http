@@ -20,13 +20,9 @@ import ballerina/http;
 listener http:Listener serviceEndpointTestEP = new(serviceEndpointTest);
 http:Client serviceEndpointClient = new("http://localhost:" + serviceEndpointTest.toString());
 
-service serviceEndpointHello on serviceEndpointTestEP {
+service /serviceEndpointHello on serviceEndpointTestEP {
 
-    @http:ResourceConfig {
-        path:"/protocol",
-        methods:["GET"]
-    }
-    resource function protocol(http:Caller caller, http:Request req) {
+    resource function get protocol(http:Caller caller, http:Request req) {
         http:Response res = new;
         json connectionJson = {protocol:caller.protocol};
         res.statusCode = 200;
@@ -34,11 +30,7 @@ service serviceEndpointHello on serviceEndpointTestEP {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:"/local",
-        methods:["GET"]
-    }
-    resource function local(http:Caller caller, http:Request req) {
+    resource function get local(http:Caller caller, http:Request req) {
         http:Response res = new;
         json connectionJson = {local:{host:caller.localAddress.host, port:caller.localAddress.port}};
         res.statusCode = 200;

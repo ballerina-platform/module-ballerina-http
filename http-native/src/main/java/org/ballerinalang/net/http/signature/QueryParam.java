@@ -18,8 +18,11 @@
 
 package org.ballerinalang.net.http.signature;
 
+import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
-
+import org.ballerinalang.net.http.HttpErrorType;
+import org.ballerinalang.net.http.HttpUtil;
 
 /**
  * {@code {@link QueryParam }} represents a query parameter details.
@@ -40,25 +43,41 @@ public class QueryParam {
         this.token = token;
         this.index = index;
         this.nilable = nilable;
+        //TODO remove this after resource typing
+        validateQueryParamType();
+    }
+
+    private void validateQueryParamType() {
+        if (isValidBasicType(typeTag) || (typeTag == TypeTags.ARRAY_TAG && isValidBasicType(
+                ((ArrayType) type).getElementType().getTag()))) {
+            return;
+        }
+        throw HttpUtil.createHttpError("incompatible query param type: '" + type.getName() + " " + token + "'",
+                                       HttpErrorType.GENERIC_LISTENER_ERROR);
+    }
+
+    private boolean isValidBasicType(int typeTag) {
+        return typeTag == TypeTags.STRING_TAG || typeTag == TypeTags.INT_TAG || typeTag == TypeTags.FLOAT_TAG ||
+                typeTag == TypeTags.BOOLEAN_TAG || typeTag == TypeTags.DECIMAL_TAG;
     }
 
     public String getToken() {
-        return token;
+        return this.token;
     }
 
     public int getTypeTag() {
-        return typeTag;
+        return this.typeTag;
     }
 
     public boolean isNilable() {
-        return nilable;
+        return this.nilable;
     }
 
     public int getIndex() {
-        return index * 2;
+        return this.index * 2;
     }
 
     public Type getType() {
-        return type;
+        return this.type;
     }
 }

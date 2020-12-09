@@ -46,6 +46,6 @@ public class AllQueryParams implements Parameter {
     }
 
     public List<QueryParam> getAllQueryParams() {
-        return allQueryParams;
+        return this.allQueryParams;
     }
 }

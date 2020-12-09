@@ -209,10 +209,6 @@ public class HttpResource {
 
         setupTransactionAnnotations(resource, httpResource);
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
-//            httpResource.setPath(resourceConfigAnnotation.getStringValue(PATH_FIELD).getValue().replaceAll(
-//                    HttpConstants.REGEX, HttpConstants.SINGLE_SLASH));
-//            httpResource.setMethods(
-//                    getAsStringList(resourceConfigAnnotation.getArrayValue(METHODS_FIELD).getStringArray()));
             httpResource.setConsumes(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(CONSUMES_FIELD).getStringArray()));
             httpResource.setProduces(
@@ -223,7 +219,6 @@ public class HttpResource {
                     .setTransactionInfectable(resourceConfigAnnotation.getBooleanValue(TRANSACTION_INFECTABLE_FIELD));
 
             processResourceCors(httpResource, httpService);
-//            httpResource.prepareAndValidateSignatureParams();
             return httpResource;
         }
 

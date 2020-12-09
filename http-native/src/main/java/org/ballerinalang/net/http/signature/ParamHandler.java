@@ -55,20 +55,21 @@ public class ParamHandler {
     private final Type[] paramTypes;
     private Type entityBody;
     private List<Type> pathParamTypes;
-    private int otherParamCount = COMPULSORY_PARAM_COUNT;
+    private int paramCount = COMPULSORY_PARAM_COUNT;
     private List<Parameter> otherParamList = new ArrayList<>();
     private NonRecurringParam callerParam = null;
     private NonRecurringParam requestParam = null;
     private AllQueryParams queryParams = new AllQueryParams();
 
-    private static final MapType mapType = TypeCreator.createMapType(
+    private static final MapType MAP_TYPE = TypeCreator.createMapType(
             TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
+    private static final String CALLER_TYPE = HttpConstants.PROTOCOL_HTTP + HttpConstants.COLON + HttpConstants.CALLER;
+    private static final String REQ_TYPE = HttpConstants.PROTOCOL_HTTP + HttpConstants.COLON + HttpConstants.REQUEST;
 
     public ParamHandler(HttpResource resource, int pathParamCount) {
         this.resource = resource;
         this.pathParamCount = pathParamCount;
         this.paramTypes = resource.getBalResource().getParameterTypes();
-        this.otherParamCount = paramTypes.length - pathParamCount;
         populatePathParamTokens(resource, pathParamCount);
         validateSignatureParams();
     }
@@ -85,30 +86,29 @@ public class ParamHandler {
             return;
         }
 
-        for (int index = otherParamCount; index < paramTypes.length; index++) {
+        for (int index = pathParamCount; index < paramTypes.length; index++) {
             ResourceFunctionType balResource = resource.getBalResource();
             Type parameterType = balResource.getParameterTypes()[index];
             String typeName = parameterType.toString();
             switch (typeName) {
-                case HttpConstants.PROTOCOL_HTTP + HttpConstants.COLON + HttpConstants.CALLER:
+                case CALLER_TYPE:
                     if (this.callerParam == null) {
                         this.callerParam = new NonRecurringParam(index, HttpConstants.CALLER);
                         getOtherParamList().add(this.callerParam);
                     } else {
-                        throw HttpUtil.createHttpError("invalid multiple http:Caller parameter");
+                        throw HttpUtil.createHttpError("invalid multiple '" + CALLER_TYPE + "' parameter");
                     }
                     break;
-                case HttpConstants.PROTOCOL_HTTP + HttpConstants.COLON + HttpConstants.REQUEST:
+                case REQ_TYPE:
                     if (this.requestParam == null) {
                         this.requestParam = new NonRecurringParam(index, HttpConstants.REQUEST);
                         getOtherParamList().add(this.requestParam);
                     } else {
-                        throw HttpUtil.createHttpError("invalid multiple http:Request parameter");
+                        throw HttpUtil.createHttpError("invalid multiple '" + REQ_TYPE + "' parameter");
                     }
                     break;
                 default:
-                    // can be query, payload, header
-//                  // if there is not annotation, then its a query param.
+                    // TODO handle query, payload, header params
                     validateQueryParam(index, balResource, parameterType);
             }
         }
@@ -129,18 +129,17 @@ public class ParamHandler {
 //        }
     }
 
-    // TODO resource type should restrict the query params types - sl chamil
     private void validateQueryParam(int index, ResourceFunctionType balResource, Type parameterType) {
         if (parameterType instanceof UnionType) {
             List<Type> memberTypes = ((UnionType) parameterType).getMemberTypes();
             int size = memberTypes.size();
             if (size > 2) {
-                throw HttpUtil.createHttpError("invalid query param type `" + parameterType.getName()
-                                + "`: a type should only be union with `()`");
+                throw HttpUtil.createHttpError("invalid query param type '" + parameterType.getName()
+                                + "': a type should only be union with `()`");
             }
             if (!parameterType.isNilable()) {
-                throw HttpUtil.createHttpError("invalid query param type `" + parameterType.getName()
-                                                       + "`: union type should be nilable");
+                throw HttpUtil.createHttpError("invalid query param type '" + parameterType.getName()
+                                                       + "': union type should be nilable");
             }
 
             for (Type type : memberTypes) {
@@ -152,8 +151,7 @@ public class ParamHandler {
                 break;
             }
         } else {
-            QueryParam queryParam = new QueryParam(parameterType, balResource.getParamNames()[index],
-                                                   index, false);
+            QueryParam queryParam = new QueryParam(parameterType, balResource.getParamNames()[index], index, false);
             this.queryParams.add(queryParam);
         }
     }
@@ -166,7 +164,7 @@ public class ParamHandler {
                 throw HttpUtil.createHttpError("incompatible resource signature parameter type",
                                                HttpErrorType.GENERIC_LISTENER_ERROR);
             }
-            otherParamCount++;
+            paramCount++;
         }
         this.pathParamTypes = paramDetails;
     }
@@ -176,7 +174,7 @@ public class ParamHandler {
         if (type == TypeTags.RECORD_TYPE_TAG || type == TypeTags.JSON_TAG || type == TypeTags.XML_TAG ||
                 type == TypeTags.STRING_TAG || (type == TypeTags.ARRAY_TAG && validArrayType(entityBodyParamType))) {
             this.entityBody = entityBodyParamType;
-            otherParamCount++;
+            paramCount++;
         } else {
             throw HttpUtil.createHttpError("incompatible entity-body type : " + entityBodyParamType.getName(),
                                            HttpErrorType.GENERIC_LISTENER_ERROR);
@@ -202,8 +200,8 @@ public class ParamHandler {
         return pathParamTypes;
     }
 
-    int getOtherParamCount() {
-        return otherParamCount;
+    int getParamCount() {
+        return paramCount;
     }
 
     public List<Parameter> getOtherParamList() {
@@ -220,7 +218,7 @@ public class ParamHandler {
      * @return a map of query params
      */
     public BMap<BString, Object> getQueryParams(Object rawQueryString) {
-        BMap<BString, Object> queryParams = ValueCreator.createMapValue(mapType);
+        BMap<BString, Object> queryParams = ValueCreator.createMapValue(MAP_TYPE);
 
         if (rawQueryString != null) {
             try {
