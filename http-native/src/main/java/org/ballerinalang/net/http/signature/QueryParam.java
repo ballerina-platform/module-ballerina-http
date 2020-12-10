@@ -52,7 +52,7 @@ public class QueryParam {
                 ((ArrayType) type).getElementType().getTag()))) {
             return;
         }
-        throw HttpUtil.createHttpError("incompatible query param type: '" + type.getName() + " " + token + "'",
+        throw HttpUtil.createHttpError("incompatible query param type: '" + type.getName() + "'",
                                        HttpErrorType.GENERIC_LISTENER_ERROR);
     }
 
