@@ -230,8 +230,8 @@ isolated function createErrorForNoPayload(mime:Error err) returns GenericClientE
     return GenericClientError(message, err);
 }
 
-isolated function getStatusCodeRange(int statusCode) returns string {
-    return statusCode.toString().substring(0,1) + STATUS_CODE_GROUP_SUFFIX;
+isolated function getStatusCodeRange(string statusCode) returns string {
+    return statusCode.substring(0, 1) + STATUS_CODE_GROUP_SUFFIX;
 }
 
 # Returns a random UUID string.
@@ -252,10 +252,16 @@ isolated function uuid() returns string {
 # + method - http method of the request
 # + statusCode - status code of the response
 isolated function addObservabilityInformation(string path, string method, int statusCode, string url) {
-    error? err = observe:addTagToSpan(HTTP_URL, path);
-    err = observe:addTagToSpan(HTTP_METHOD, method);
-    err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
-    err = observe:addTagToSpan(HTTP_BASE_URL, url);
+    string statusCodeConverted = statusCode.toString();
+    _ = checkpanic observe:addTagToSpan(HTTP_URL, path);
+    _ = checkpanic observe:addTagToSpan(HTTP_METHOD, method);
+    _ = checkpanic observe:addTagToSpan(HTTP_STATUS_CODE, statusCodeConverted);
+    _ = checkpanic observe:addTagToSpan(HTTP_BASE_URL, url);
+
+    _ = checkpanic observe:addTagToMetrics(HTTP_URL, path);
+    _ = checkpanic observe:addTagToMetrics(HTTP_METHOD, method);
+    _ = checkpanic observe:addTagToMetrics(HTTP_BASE_URL, url);
+    _ = checkpanic observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCodeConverted));
 }
 
 isolated function getIllegalDataBindingStateError() returns IllegalDataBindingStateError {
