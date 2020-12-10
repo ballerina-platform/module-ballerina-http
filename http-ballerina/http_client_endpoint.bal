@@ -256,7 +256,6 @@ public client class Client {
             string statusCode = response.statusCode.toString();
             _ = checkpanic observe:addTagToSpan(HTTP_STATUS_CODE, statusCode);
             _ = checkpanic observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
-
         }
         return response;
     }
