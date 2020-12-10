@@ -18,7 +18,10 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.flags.SymbolFlags;
+import io.ballerina.runtime.api.types.MemberFunctionType;
+import io.ballerina.runtime.api.types.RemoteFunctionType;
 import io.ballerina.runtime.api.types.ResourceFunctionType;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -59,7 +62,7 @@ public class HttpResource {
                           HttpConstants.HTTP_METHOD_POST, HttpConstants.HTTP_METHOD_DELETE,
                           HttpConstants.HTTP_METHOD_PUT);
 
-    private ResourceFunctionType balResource;
+    private MemberFunctionType balResource;
     private List<String> methods;
     private String path;
     private String entityBodyAttribute;
@@ -74,7 +77,7 @@ public class HttpResource {
     private String wildcardToken;
     private int pathParamCount;
 
-    protected HttpResource(ResourceFunctionType resource, HttpService parentService) {
+    protected HttpResource(MemberFunctionType resource, HttpService parentService) {
         this.balResource = resource;
         this.parentService = parentService;
         this.producesSubTypes = new ArrayList<>();
@@ -103,7 +106,7 @@ public class HttpResource {
     }
 
     public ResourceFunctionType getBalResource() {
-        return balResource;
+        return (ResourceFunctionType) balResource;
     }
 
     public List<String> getMethods() {
@@ -111,7 +114,7 @@ public class HttpResource {
     }
 
     public void populateMethod() {
-        String accessor = balResource.getAccessor();
+        String accessor = getBalResource().getAccessor();
         if (HttpConstants.DEFAULT_HTTP_METHOD.equals(accessor.toLowerCase(Locale.getDefault()))) {
             this.methods = ALL_STANDARD_ACCESSORS;
         } else {
@@ -124,17 +127,18 @@ public class HttpResource {
     }
 
     private void populateResourcePath() {
-        String[] paths = balResource.getResourcePath();
+        ResourceFunctionType resourceFunctionType = getBalResource();
+        String[] paths = resourceFunctionType.getResourcePath();
         StringBuilder resourcePath = new StringBuilder();
         int count = 0;
         for (String segment : paths) {
             resourcePath.append(HttpConstants.SINGLE_SLASH);
             if (HttpConstants.STAR_IDENTIFIER.equals(segment)) {
-                String pathSegment = balResource.getParamNames()[count++];
+                String pathSegment = resourceFunctionType.getParamNames()[count++];
                 resourcePath.append(HttpConstants.OPEN_CURL_IDENTIFIER)
                         .append(pathSegment).append(HttpConstants.CLOSE_CURL_IDENTIFIER);
             } else if (HttpConstants.DOUBLE_STAR_IDENTIFIER.equals(segment)) {
-                this.wildcardToken = balResource.getParamNames()[count++];
+                this.wildcardToken = resourceFunctionType.getParamNames()[count++];
                 resourcePath.append(HttpConstants.STAR_IDENTIFIER);
             } else if (HttpConstants.DOT_IDENTIFIER.equals(segment)) {
                 // default set as "/"
@@ -203,7 +207,7 @@ public class HttpResource {
         this.entityBodyAttribute = entityBodyAttribute;
     }
 
-    public static HttpResource buildHttpResource(ResourceFunctionType resource, HttpService httpService) {
+    public static HttpResource buildHttpResource(MemberFunctionType resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
 
@@ -230,7 +234,7 @@ public class HttpResource {
         return httpResource;
     }
 
-    private static void setupTransactionAnnotations(ResourceFunctionType resource, HttpResource httpResource) {
+    private static void setupTransactionAnnotations(MemberFunctionType resource, HttpResource httpResource) {
         if (SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.TRANSACTIONAL)) {
             httpResource.transactionAnnotated = true;
         }
@@ -242,7 +246,7 @@ public class HttpResource {
      * @param resource The resource
      * @return the resource configuration of the given resource
      */
-    public static BMap getResourceConfigAnnotation(ResourceFunctionType resource) {
+    public static BMap getResourceConfigAnnotation(MemberFunctionType resource) {
         return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
     }
 
@@ -282,5 +286,20 @@ public class HttpResource {
 
     public String getWildcardToken() {
         return wildcardToken;
+    }
+
+    // Followings added due to WebSub requirement
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public List<Type> getParamTypes() {
+        List<Type> paramTypes = new ArrayList<>();
+        paramTypes.addAll(Arrays.asList(this.balResource.getParameterTypes()));
+        return paramTypes;
+    }
+
+    public RemoteFunctionType getRemoteFunction() {
+        return (RemoteFunctionType) balResource;
     }
 }
