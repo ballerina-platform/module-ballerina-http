@@ -123,6 +123,9 @@ const HTTP_METHOD = "http.method";
 # Constant for telemetry tag http.status_code_group
 const HTTP_STATUS_CODE_GROUP = "http.status_code_group";
 
+# Constant for telemetry tag http.status_code
+const HTTP_STATUS_CODE = "http.status_code";
+
 # Constant for telemetry tag http.base_url
 const HTTP_BASE_URL = "http.base_url";
 

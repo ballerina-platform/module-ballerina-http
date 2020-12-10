@@ -18,7 +18,7 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.flags.SymbolFlags;
-import io.ballerina.runtime.api.types.ResourceFunctionType;
+import io.ballerina.runtime.api.types.MemberFunctionType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
@@ -75,6 +75,11 @@ public class HttpService implements Cloneable {
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
         this.basePath = basePath;
+    }
+
+    // Added due to WebSub requirement
+    protected HttpService(BObject service) {
+        this.balService = service;
     }
 
     public java.lang.Object clone() throws CloneNotSupportedException {
@@ -145,6 +150,7 @@ public class HttpService implements Cloneable {
         return basePath;
     }
 
+    // Added due to WebSub requirement
     public void setBasePath(String basePath) {
         if (basePath == null || basePath.trim().isEmpty()) {
             this.basePath = DEFAULT_BASE_PATH.concat(this.getName().startsWith(DOLLAR) ? "" : this.getName());
@@ -206,7 +212,7 @@ public class HttpService implements Cloneable {
     private static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
         List<HttpResource> upgradeToWebSocketResources = new ArrayList<>();
-        for (ResourceFunctionType resource :
+        for (MemberFunctionType resource :
                 ((ServiceType) httpService.getBalService().getType()).getResourceFunctions()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
