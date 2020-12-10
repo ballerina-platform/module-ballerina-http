@@ -180,6 +180,7 @@ public class HttpConstants {
     public static final String OPEN_CURL_IDENTIFIER = "{";
     public static final String CLOSE_CURL_IDENTIFIER = "}";
     public static final String DOT_IDENTIFIER = ".";
+    public static final String QUERY_PARAM = "query";
 
     /* Annotations */
     public static final String ANNOTATION_NAME_SOURCE = "Source";
@@ -457,7 +458,7 @@ public class HttpConstants {
 
     public static final String HTTP_VERSION_1_1 = "1.1";
 
-    public static final String HTTP_MODULE_VERSION = "1.0.3";
+    public static final String HTTP_MODULE_VERSION = "1.0.4";
     public static final String REASON_RECORD = "Reason";
     public static final String PACKAGE = "ballerina";
     public static final String MODULE = "http";

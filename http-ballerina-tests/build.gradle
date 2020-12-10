@@ -59,14 +59,16 @@ task unpackStdLibs() {
     }
 }
 
-
 def packageOrg = "ballerina"
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def tomlVersion = project.version.split("-")[0]
 def originalConfig = ballerinaConfigFile.text
+def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
 
-task copyStdlibs(type: Copy) {
-    def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
+task copyStdlibsForTest(type: Copy) {
+    dependsOn(unpackJballerinaTools)
+    dependsOn(unpackStdLibs)
+
     into ballerinaDist
 
     /* Standard Libraries */
@@ -79,9 +81,17 @@ task copyStdlibs(type: Copy) {
             from "${artifactExtractedPath}/cache"
         }
     }
-    /* Copy HTTP module */
-    into("repo/balo/${packageOrg}/http/${tomlVersion}") {
-        from "../http-ballerina/target/balo"
+}
+
+task copyHttpStdlib {
+    dependsOn(":http-ballerina:build")
+    dependsOn(copyStdlibsForTest)
+    doLast {
+        /* Copy HTTP module */
+        copy {
+            from "$project.rootDir/http-ballerina/target/balo"
+            into "${ballerinaDist}/repo/balo/${packageOrg}/http/${tomlVersion}"
+        }
     }
 }
 
@@ -118,9 +128,9 @@ task revertTomlFile {
 
 task ballerinaTest {
     inputs.dir file(project.projectDir)
-    dependsOn(copyStdlibs)
     dependsOn(":http-ballerina:build")
     dependsOn(updateTomlVerions)
+    dependsOn(copyHttpStdlib)
     finalizedBy(revertTomlFile)
 
     def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
@@ -158,9 +168,6 @@ test {
     dependsOn(ballerinaTest)
 }
 
-ballerinaTest.dependsOn ":http-ballerina:build"
-unpackStdLibs.dependsOn unpackJballerinaTools
-copyStdlibs.dependsOn unpackStdLibs
-updateTomlVerions.dependsOn copyStdlibs
-ballerinaTest.dependsOn updateTomlVerions
-build.dependsOn test
+build {
+    dependsOn(test)
+}

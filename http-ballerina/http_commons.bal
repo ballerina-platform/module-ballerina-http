@@ -42,7 +42,7 @@ isolated function buildRequest(RequestMessage message) returns Request {
         return request;
     } else if (message is Request) {
         request = message;
-        // request.noEntityBody = !request.checkEntityBodyAvailability();
+        request.noEntityBody = !request.checkEntityBodyAvailability();
     } else if (message is string) {
         request.setTextPayload(message);
     } else if (message is xml) {
@@ -167,7 +167,7 @@ isolated function populateRequestFields (Request originalRequest, Request newReq
     newRequest.rawPath = originalRequest.rawPath;
     newRequest.method = originalRequest.method;
     newRequest.httpVersion = originalRequest.httpVersion;
-    // newRequest.cacheControl = originalRequest.cacheControl;
+    newRequest.cacheControl = originalRequest.cacheControl;
     newRequest.userAgent = originalRequest.userAgent;
     newRequest.extraPathInfo = originalRequest.extraPathInfo;
 }
@@ -254,7 +254,7 @@ isolated function uuid() returns string {
 isolated function addObservabilityInformation(string path, string method, int statusCode, string url) {
     error? err = observe:addTagToSpan(HTTP_URL, path);
     err = observe:addTagToSpan(HTTP_METHOD, method);
-    // err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
+    err = observe:addTagToSpan(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCode));
     err = observe:addTagToSpan(HTTP_BASE_URL, url);
 }
 

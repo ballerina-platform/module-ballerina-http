@@ -79,6 +79,14 @@ function assertJsonPayload(json|error payload, json expectValue) {
     }
 }
 
+function assertJsonPayloadtoJsonString(json|error payload, json expectValue) {
+    if payload is json {
+        test:assertEquals(payload.toJsonString(), expectValue.toJsonString(), msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + payload.message());
+    }
+}
+
 function assertTextPayload(string|error payload, string expectValue) {
     if payload is string {
         test:assertEquals(payload, expectValue, msg = "Found unexpected output");

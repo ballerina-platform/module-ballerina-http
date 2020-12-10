@@ -498,7 +498,7 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         retryConfig:foConfig.retryConfig,
         poolConfig:foConfig.poolConfig,
         secureSocket:target.secureSocket,
-        // cache:foConfig.cache,
+        cache:foConfig.cache,
         compression:foConfig.compression,
         auth:foConfig.auth
     };

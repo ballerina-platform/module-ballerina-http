@@ -17,7 +17,10 @@
 */
 package org.ballerinalang.net.http;
 
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.creators.TypeCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -30,6 +33,11 @@ import io.ballerina.runtime.api.values.BXml;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
+import org.ballerinalang.net.http.signature.AllQueryParams;
+import org.ballerinalang.net.http.signature.NonRecurringParam;
+import org.ballerinalang.net.http.signature.ParamHandler;
+import org.ballerinalang.net.http.signature.Parameter;
+import org.ballerinalang.net.http.signature.QueryParam;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.URIUtil;
 
@@ -50,6 +58,11 @@ import static org.ballerinalang.net.http.HttpConstants.DEFAULT_HOST;
  * @since 0.94
  */
 public class HttpDispatcher {
+
+    private static final ArrayType INT_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
+    private static final ArrayType FLOAT_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
+    private static final ArrayType BOOLEAN_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
+    private static final ArrayType DECIMAL_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
 
     public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg) {
         try {
@@ -145,11 +158,11 @@ public class HttpDispatcher {
 
     public static Object[] getSignatureParameters(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
                                                   BMap<BString, Object> endpointConfig) {
-        SignatureParams signatureParams = httpResource.getSignatureParams();
-        int sigParamCount = httpResource.getParamTypes().size();
+        ParamHandler signatureParams = httpResource.getSignatureParams();
+        int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
 
-        int pathParamCount = httpResource.getPathParamCount();
+        int pathParamCount = signatureParams.getPathParamTokens().length;
         // Path params are located initially in the signature before the other user provided signature params
         if (pathParamCount != 0) {
             // populate path params
@@ -158,20 +171,24 @@ public class HttpDispatcher {
             updateWildcardToken(httpResource.getWildcardToken(), resourceArgumentValues.getMap());
             populatePathParams(httpResource, paramFeed, resourceArgumentValues, pathParamCount);
         }
-        int paramIndex = pathParamCount * 2;
-        // TODO check whether validation is needed for multiple use of Caller, Request, @Payload annotation, @Session
         // Following was written assuming that they are validated
-        for (int i = pathParamCount; i < sigParamCount; i++) {
-            String typeName = httpResource.getBalResource().getParameterTypes()[i].getName();
+        for (Parameter param : signatureParams.getOtherParamList()) {
+            String typeName = param.getTypeName();
             switch (typeName) {
                 case HttpConstants.CALLER:
-                    paramFeed[paramIndex++] = createCaller(httpResource, httpCarbonMessage, endpointConfig);
-                    paramFeed[paramIndex++] = true;
+                    int index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = createCaller(httpResource, httpCarbonMessage, endpointConfig);
+                    paramFeed[index] = true;
                     break;
                 case HttpConstants.REQUEST:
-                    BObject inRequest = createRequest(httpCarbonMessage);
-                    paramFeed[paramIndex++] = inRequest;
-                    paramFeed[paramIndex++] = true;
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = createRequest(httpCarbonMessage);
+                    paramFeed[index] = true;
+                    break;
+                case HttpConstants.QUERY_PARAM:
+                    populateQueryParams(httpCarbonMessage, signatureParams, paramFeed, (AllQueryParams) param);
+                    break;
+                default:
                     break;
             }
         }
@@ -192,6 +209,92 @@ public class HttpDispatcher {
 //            throw new BallerinaConnectorException("data binding failed: " + ex.getMessage());
 //        }
         return paramFeed;
+    }
+
+    private static void populateQueryParams(HttpCarbonMessage httpCarbonMessage, ParamHandler signatureParams,
+                                            Object[] paramFeed, AllQueryParams queryParams) {
+        BMap<BString, Object> urlQueryParams = signatureParams
+                .getQueryParams(httpCarbonMessage.getProperty(HttpConstants.RAW_QUERY_STR));
+        for (QueryParam queryParam : queryParams.getAllQueryParams()) {
+            String token = queryParam.getToken();
+            int index = queryParam.getIndex();
+            Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
+            if (queryValue == null) {
+                if (queryParam.isNilable()) {
+                    paramFeed[index++] = null;
+                    paramFeed[index] = true;
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no query param value found for '" + token + "'");
+                }
+            }
+            try {
+                BArray queryValueArr = (BArray) queryValue;
+                switch (queryParam.getTypeTag()) {
+                    case TypeTags.INT_TAG:
+                        String value = queryValueArr.getBString(0).getValue();
+                        paramFeed[index++] = Long.parseLong(value);
+                        break;
+                    case TypeTags.FLOAT_TAG:
+                        value = queryValueArr.getBString(0).getValue();
+                        paramFeed[index++] = Double.parseDouble(value);
+                        break;
+                    case TypeTags.BOOLEAN_TAG:
+                        value = queryValueArr.getBString(0).getValue();
+                        paramFeed[index++] = Boolean.parseBoolean(value);
+                        break;
+                    case TypeTags.DECIMAL_TAG:
+                        value = queryValueArr.getBString(0).getValue();
+                        paramFeed[index++] = ValueCreator.createDecimalValue(value);
+                        break;
+                    case TypeTags.ARRAY_TAG:
+                        int elementTypeTag = ((ArrayType) queryParam.getType()).getElementType().getTag();
+                        if (elementTypeTag == TypeTags.INT_TAG) {
+                            paramFeed[index++] = getBArray(queryValueArr, INT_ARRAY, elementTypeTag);
+                        } else if (elementTypeTag == TypeTags.FLOAT_TAG) {
+                            paramFeed[index++] = getBArray(queryValueArr, FLOAT_ARRAY, elementTypeTag);
+                        } else if (elementTypeTag == TypeTags.BOOLEAN_TAG) {
+                            paramFeed[index++] = getBArray(queryValueArr, BOOLEAN_ARRAY, elementTypeTag);
+                        } else if (elementTypeTag == TypeTags.DECIMAL_TAG) {
+                            paramFeed[index++] = getBArray(queryValueArr, DECIMAL_ARRAY, elementTypeTag);
+                        } else {
+                            paramFeed[index++] = queryValueArr;
+                        }
+                        break;
+                    default:
+                        paramFeed[index++] = queryValueArr.getBString(0);
+                        break;
+                }
+                paramFeed[index] = true;
+            } catch (Exception ex) {
+                throw new BallerinaConnectorException("Error in casting query param : " + ex.getMessage());
+            }
+        }
+    }
+
+    private static BArray getBArray(BArray queryValueArr, ArrayType arrayType, int elementTypeTag) {
+        BArray arrayValue = ValueCreator.createArrayValue(arrayType);
+        int index = 0;
+        for (String element : queryValueArr.getStringArray()) {
+            switch (elementTypeTag) {
+                case TypeTags.INT_TAG:
+                    arrayValue.add(index++, Long.parseLong(element));
+                    break;
+                case TypeTags.FLOAT_TAG:
+                    arrayValue.add(index++, Double.parseDouble(element));
+                    break;
+                case TypeTags.BOOLEAN_TAG:
+                    arrayValue.add(index++, Boolean.parseBoolean(element));
+                    break;
+                case TypeTags.DECIMAL_TAG:
+                    arrayValue.add(index++, ValueCreator.createDecimalValue(element));
+                    break;
+                default:
+                    throw new BallerinaConnectorException("Illegal state error: unexpected query param type");
+            }
+        }
+        return arrayValue;
     }
 
     private static BObject createRequest(HttpCarbonMessage httpCarbonMessage) {
@@ -234,6 +337,9 @@ public class HttpDispatcher {
                         break;
                     case TypeTags.BOOLEAN_TAG:
                         paramFeed[paramIndex++] = Boolean.parseBoolean(argumentValue);
+                        break;
+                    case TypeTags.DECIMAL_TAG:
+                        paramFeed[paramIndex++] = ValueCreator.createDecimalValue(argumentValue);
                         break;
                     case TypeTags.ARRAY_TAG:
                         if (((ArrayType) signatureParamType).getElementType().getTag() == TypeTags.STRING_TAG) {

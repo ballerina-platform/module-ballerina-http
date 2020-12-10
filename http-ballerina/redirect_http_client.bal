@@ -404,7 +404,7 @@ isolated function createNewEndpointConfig(ClientConfiguration config) returns Cl
         retryConfig: config.retryConfig,
         poolConfig: config.poolConfig,
         secureSocket: config.secureSocket,
-        // cache: config.cache,
+        cache: config.cache,
         compression: config.compression,
         auth: config.auth
     };

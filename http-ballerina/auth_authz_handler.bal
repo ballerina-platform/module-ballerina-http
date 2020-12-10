@@ -37,7 +37,6 @@ public class AuthzHandler {
         self.negativeAuthzCache = negativeAuthzCache;
     }
 
-
     # Checks if the request can be authorized.
     #
     # + req - The `http:Request` instance
@@ -64,7 +63,8 @@ public class AuthzHandler {
         string[] userScopes = auth:getInvocationContext()?.scopes ?: [];
         string authzCacheKey = generateAuthzCacheKey(userId, userScopes, serviceName, resourceName, requestMethod);
 
-        boolean authorized = false;
+        boolean authorized = auth:checkForScopeMatch(scopes, userScopes, authzCacheKey, self.positiveAuthzCache,
+                                                     self.negativeAuthzCache);
 
         final string serviceNameValue = serviceName;
         final string requestMethodValue = requestMethod;
