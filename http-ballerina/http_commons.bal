@@ -231,7 +231,7 @@ isolated function createErrorForNoPayload(mime:Error err) returns GenericClientE
 }
 
 isolated function getStatusCodeRange(string statusCode) returns string {
-    return statusCode.substring(0,1) + STATUS_CODE_GROUP_SUFFIX;
+    return statusCode.substring(0, 1) + STATUS_CODE_GROUP_SUFFIX;
 }
 
 # Returns a random UUID string.
