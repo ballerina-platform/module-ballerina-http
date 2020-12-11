@@ -89,7 +89,6 @@ public annotation WSServiceConfig WebSocketServiceConfig on service;
 # + webSocketUpgrade - Annotation to define HTTP to WebSocket upgrade
 # + auth - Authentication Configs to secure the resource
 public type HttpResourceConfig record {|
-    string body = "";
     string[] consumes = [];
     string[] produces = [];
     CorsConfig cors = {};

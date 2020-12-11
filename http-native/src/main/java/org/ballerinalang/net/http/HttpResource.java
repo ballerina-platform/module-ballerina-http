@@ -221,15 +221,8 @@ public class HttpResource {
             httpResource.setCorsHeaders(CorsHeaders.buildCorsHeaders(resourceConfigAnnotation.getMapValue(CORS_FIELD)));
             httpResource
                     .setTransactionInfectable(resourceConfigAnnotation.getBooleanValue(TRANSACTION_INFECTABLE_FIELD));
-
-            processResourceCors(httpResource, httpService);
-            return httpResource;
         }
-
-        if (log.isDebugEnabled()) {
-            log.debug("resourceConfig not specified in the Resource instance, using default sub path");
-        }
-//        httpResource.setPath(getResourcePath(((ResourceFunctionType) resource).getResourcePath()));
+        processResourceCors(httpResource, httpService);
         httpResource.prepareAndValidateSignatureParams();
         return httpResource;
     }
@@ -263,7 +256,7 @@ public class HttpResource {
 
     private static void processResourceCors(HttpResource resource, HttpService service) {
         CorsHeaders corsHeaders = resource.getCorsHeaders();
-        if (!corsHeaders.isAvailable()) {
+        if (corsHeaders == null || !corsHeaders.isAvailable()) {
             //resource doesn't have CORS headers, hence use service CORS
             resource.setCorsHeaders(service.getCorsHeaders());
             return;
