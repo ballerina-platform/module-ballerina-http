@@ -22,59 +22,52 @@ import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP00 = new(9300);
+listener http:Listener failoverEP01 = new(9301);
 
-// Create an endpoint with port 8080 for the mock backend services.
-listener http:Listener backendEP00 = new(8080);
+// Create an endpoint with port 8081 for the mock backend services.
+listener http:Listener backendEP01 = new(8081);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP00 = new({
+http:FailoverClient foBackendEP01 = new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
     // Define set of HTTP Clients that needs to be Failover.
     targets: [
         { url: "http://localhost:3467/inavalidEP" },
-        { url: "http://localhost:8080/echo" },
-        { url: "http://localhost:8080/mock" },
-        { url: "http://localhost:8080/mock" }
+        { url: "http://localhost:8081/echo01" },
+        { url: "http://localhost:8081/mock01" },
+        { url: "http://localhost:8081/mock01" }
     ]
 });
 
-http:FailoverClient foBackendFailureEP00 = new({
+http:FailoverClient foBackendFailureEP01 = new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
     // Define set of HTTP Clients that needs to be Failover.
     targets: [
         { url: "http://localhost:3467/inavalidEP" },
-        { url: "http://localhost:8080/echo" },
-        { url: "http://localhost:8080/echo" }
+        { url: "http://localhost:8081/echo01" },
+        { url: "http://localhost:8081/echo01" }
     ]
 });
 
-http:FailoverClient foStatusCodesEP00 = new({
+http:FailoverClient foStatusCodesEP01 = new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
     // Define set of HTTP Clients that needs to be Failover.
     targets: [
-        { url: "http://localhost:8080/statuscodes" },
-        { url: "http://localhost:8080/statuscodes" },
-        { url: "http://localhost:8080/statuscodes" }
+        { url: "http://localhost:8081/failureStatusCodeService01" },
+        { url: "http://localhost:8081/failureStatusCodeService01" },
+        { url: "http://localhost:8081/failureStatusCodeService01" }
     ]
 });
 
-@http:ServiceConfig {
-    basePath: "/fo"
-}
-service failoverDemoService00 on failoverEP00 {
-    @http:ResourceConfig {
-        methods: ["GET", "POST"],
-        path: "/typical"
-    }
-    resource function invokeEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = foBackendEP00->forward("/", <@untainted> request);
+service /failoverDemoService01 on failoverEP01 {
+    resource function 'default invokeAllFailureEndpoint01(http:Caller caller, http:Request request) {
+        var backendRes = foBackendEP01->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -91,12 +84,8 @@ service failoverDemoService00 on failoverEP00 {
         }
     }
 
-    @http:ResourceConfig {
-        methods: ["GET", "POST"],
-        path: "/failures"
-    }
-    resource function invokeAllFailureEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = foBackendFailureEP00->forward("/", <@untainted> request);
+    resource function 'default invokeAllFailureEndpoint(http:Caller caller, http:Request request) {
+        var backendRes = foBackendFailureEP01->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -113,12 +102,8 @@ service failoverDemoService00 on failoverEP00 {
         }
     }
 
-    @http:ResourceConfig {
-        methods: ["GET", "POST"],
-        path: "/failurecodes"
-    }
-    resource function invokeAllFailureStatusCodesEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = foStatusCodesEP00->forward("/", <@untainted> request);
+    resource function 'default invokeAllFailureStatusCodesEndpoint(http:Caller caller, http:Request request) {
+        var backendRes = foStatusCodesEP01->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -135,13 +120,9 @@ service failoverDemoService00 on failoverEP00 {
         }
     }
 
-    @http:ResourceConfig {
-        methods: ["GET", "POST"],
-        path: "/index"
-    }
-    resource function failoverStartIndex(http:Caller caller, http:Request request) {
-        string startIndex = foBackendEP00.succeededEndpointIndex.toString();
-        var backendRes = foBackendEP00->forward("/", <@untainted> request);
+    resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
+        string startIndex = foBackendEP01.succeededEndpointIndex.toString();
+        var backendRes = foBackendEP01->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             string responseMessage = "Failover start index is : " + startIndex;
             var responseToCaller = caller->respond(<@untainted> responseMessage);
@@ -161,15 +142,8 @@ service failoverDemoService00 on failoverEP00 {
 }
 
 // Define the sample service to mock connection timeouts and service outages.
-@http:ServiceConfig {
-    basePath: "/echo"
-}
-service echo00 on backendEP00 {
-    @http:ResourceConfig {
-        methods: ["POST", "PUT", "GET"],
-        path: "/"
-    }
-    resource function echoResource(http:Caller caller, http:Request req) {
+service /echo01 on backendEP01 {
+    resource function 'default .(http:Caller caller, http:Request req) {
         http:Response outResponse = new;
         // Delay the response for 30000 milliseconds to mimic network level delays.
         runtime:sleep(30000);
@@ -180,19 +154,12 @@ service echo00 on backendEP00 {
     }
 }
 
-int counter00 = 1;
+int counter01 = 1;
 // Define the sample service to mock a healthy service.
-@http:ServiceConfig {
-    basePath: "/mock"
-}
-service mock00 on backendEP00 {
-    @http:ResourceConfig {
-        methods: ["POST", "PUT", "GET"],
-        path: "/"
-    }
-    resource function mockResource(http:Caller caller, http:Request req) {
-        counter00 += 1;
-        if (counter00 % 5 == 0) {
+service /mock01 on backendEP01 {
+    resource function 'default .(http:Caller caller, http:Request req) {
+        counter01 += 1;
+        if (counter01 % 5 == 0) {
             runtime:sleep(30000);
         }
         http:Response response = new;
@@ -231,6 +198,7 @@ service mock00 on backendEP00 {
         } else {
             response.setPayload("Mock Resource is Invoked.");
         }
+
         var responseToCaller = caller->respond(response);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", responseToCaller);
@@ -239,15 +207,8 @@ service mock00 on backendEP00 {
 }
 
 // Define the sample service to mock connection timeouts and service outages.
-@http:ServiceConfig {
-    basePath: "/statuscodes"
-}
-service failureStatusCodeService00 on backendEP00 {
-    @http:ResourceConfig {
-        methods: ["POST", "PUT", "GET"],
-        path: "/"
-    }
-    resource function errorStatusResource(http:Caller caller, http:Request req) {
+service /failureStatusCodeService01 on backendEP01 {
+    resource function 'default .(http:Caller caller, http:Request req) {
         http:Response outResponse = new;
         outResponse.statusCode = 503;
         outResponse.setPayload("Failure status code scenario");
@@ -258,16 +219,8 @@ service failureStatusCodeService00 on backendEP00 {
     }
 }
 
-//Test basic failover functionality
+//Test failover functionality with multipart requests
 @test:Config {}
-function testSimpleFailover() {
-    http:Client testClient = new("http://localhost:9300");
-    var response = testClient->post("/fo/typical", requestPayload);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Mock Resource is Invoked.");
-    } else if (response is error) {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+function testFailoverWithMultiPart() {
+    test:assertTrue(externTestMultiPart(9301, "failoverDemoService01/invokeAllFailureEndpoint01"));
 }

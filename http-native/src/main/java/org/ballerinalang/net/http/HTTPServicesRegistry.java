@@ -214,19 +214,23 @@ public class HTTPServicesRegistry {
      */
     public void unRegisterService(BObject service) {
         String basePath = (String) service.getNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH);
-        HttpService httpService = HttpService.buildHttpService(service, null);
+        if (basePath == null) {
+            logger.info("service is not attached to the listener");
+            return;
+        }
+        HttpService httpService = HttpService.buildHttpService(service, basePath);
         String hostName = httpService.getHostName();
         ServicesMapHolder servicesMapHolder = servicesMapByHost.get(hostName);
         if (servicesMapHolder == null) {
-            throw new BallerinaConnectorException("detach failed: " + basePath +
-                                                          " service is not attached to the listener");
+            logger.info(basePath + " service is not attached to the listener");
+            return;
         }
         servicesByBasePath = getServicesByHost(hostName);
         sortedServiceURIs = getSortedServiceURIsByHost(hostName);
 
         if (!servicesByBasePath.containsKey(basePath)) {
-            throw new BallerinaConnectorException("detach failed: " + basePath +
-                                                          " service is not attached to the listener");
+            logger.info(basePath + " service is not attached to the listener");
+            return;
         }
         servicesByBasePath.remove(basePath);
         sortedServiceURIs.remove(basePath);

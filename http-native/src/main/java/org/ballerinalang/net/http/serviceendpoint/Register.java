@@ -46,12 +46,13 @@ public class Register extends AbstractHttpNativeFunction {
         WebSocketServicesRegistry webSocketServicesRegistry = getWebSocketServicesRegistry(serviceEndpoint);
         Runtime runtime = env.getRuntime();
         httpServicesRegistry.setRuntime(runtime);
-        //TODO:sl rest for () and string
+        //TODO:sl rest for () and string - also user can send "/mock2" as path - check all
         String basePath = getBasePath(serviceName);
 
         Type param;
         MemberFunctionType[] resourceList = service.getType().getAttachedFunctions();
         try {
+            //TODO fix following logic to handle both resource and remote functions - sl
             if (resourceList.length > 0 && (param = resourceList[0].getParameterTypes()[0]) != null) {
                 String callerType = param.getQualifiedName();
                 if (HttpConstants.HTTP_CALLER_NAME.equals(callerType)) {

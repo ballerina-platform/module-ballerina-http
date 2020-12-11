@@ -20,12 +20,9 @@ import ballerina/http;
 listener http:Listener connectionNativeTestEP = new(connectionNativeTest);
 http:Client connectionNativeClient = new("http://localhost:" + connectionNativeTest.toString());
 
-service connectionNativeHello on connectionNativeTestEP {
-    @http:ResourceConfig {
-        path:"/redirect",
-        methods:["GET"]
-    }
-    resource function redirect(http:Caller caller, http:Request req) {
+service /connectionNativeHello on connectionNativeTestEP {
+    
+    resource function get redirect(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_MOVED_PERMANENTLY_301, ["location1"]);
     }

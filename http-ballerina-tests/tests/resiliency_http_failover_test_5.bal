@@ -34,19 +34,12 @@ http:FailoverClient foBackendEP05 = new({
     targets: [
         { url: "http://localhost:3467/inavalidEP" },
         { url: "http://localhost:8085/delay" },
-        { url: "http://localhost:8085/mock" }
+        { url: "http://localhost:8085/mock05" }
     ]
 });
 
-@http:ServiceConfig {
-    basePath: "/fo"
-}
-service failoverDemoService05 on failoverEP05 {
-    @http:ResourceConfig {
-        methods: ["GET", "POST"],
-        path: "/index"
-    }
-    resource function failoverStartIndex(http:Caller caller, http:Request request) {
+service /failoverDemoService05 on failoverEP05 {
+    resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP05.succeededEndpointIndex.toString();
         var backendRes = foBackendEP05->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
@@ -68,15 +61,8 @@ service failoverDemoService05 on failoverEP05 {
 }
 
 // Define the sample service to mock connection timeouts and service outages.
-@http:ServiceConfig {
-    basePath: "/delay"
-}
-service echo05 on backendEP05 {
-    @http:ResourceConfig {
-        methods: ["POST", "PUT", "GET"],
-        path: "/"
-    }
-    resource function delayResource(http:Caller caller, http:Request req) {
+service /delay on backendEP05 {
+    resource function 'default .(http:Caller caller, http:Request req) {
         // Delay the response for 30000 milliseconds to mimic network level delays.
         runtime:sleep(30000);
         var responseToCaller = caller->respond("Delayed resource is invoked");
@@ -87,15 +73,8 @@ service echo05 on backendEP05 {
 }
 
 // Define the sample service to mock a healthy service.
-@http:ServiceConfig {
-    basePath: "/mock"
-}
-service mock05 on backendEP05 {
-    @http:ResourceConfig {
-        methods: ["POST", "PUT", "GET"],
-        path: "/"
-    }
-    resource function mockResource(http:Caller caller, http:Request req) {
+service /mock05 on backendEP05 {
+    resource function 'default .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock Resource is Invoked.");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", responseToCaller);
@@ -107,7 +86,7 @@ service mock05 on backendEP05 {
 @test:Config {}
 function testFailoverStartingPosition() {
     http:Client testClient = new("http://localhost:9305");
-    var response = testClient->post("/fo/index", requestPayload);
+    var response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -116,7 +95,7 @@ function testFailoverStartingPosition() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     
-    response = testClient->post("/fo/index", requestPayload);
+    response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
