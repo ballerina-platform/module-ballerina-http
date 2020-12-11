@@ -36,19 +36,19 @@ service helloContinue on expectContinueListenerEP1 {
     resource function hello(http:Caller caller, http:Request request) {
         if (request.expects100Continue()) {
             if (request.hasHeader("X-Status")) {
-                log:printInfo("Sending 100-Continue response");
+                log:print("Sending 100-Continue response");
                 var responseError = caller->continue();
                 if (responseError is error) {
-                    log:printError("Error sending response", responseError);
+                    log:printError("Error sending response", err = responseError);
                 }
             } else {
-                log:printInfo("Ignore payload by sending 417 response");
+                log:print("Ignore payload by sending 417 response");
                 http:Response res = new;
                 res.statusCode = 417;
                 res.setPayload("Do not send me any payload");
                 var responseError = caller->respond(res);
                 if (responseError is error) {
-                    log:printError("Error sending response", responseError);
+                    log:printError("Error sending response", err = responseError);
                 }
                 return;
             }
@@ -60,7 +60,7 @@ service helloContinue on expectContinueListenerEP1 {
         if (result is string) {
             var responseError = caller->respond(<@untainted> result);
             if (responseError is error) {
-                log:printError("Error sending response", responseError);
+                log:printError("Error sending response", err = responseError);
             }
         } else {
             res.statusCode = 500;
@@ -68,7 +68,7 @@ service helloContinue on expectContinueListenerEP1 {
             log:printError("Failed to retrieve payload from request: " + result.message());
             var responseError = caller->respond(res);
             if (responseError is error) {
-                log:printError("Error sending response", responseError);
+                log:printError("Error sending response", err = responseError);
             }
         }
     }
@@ -94,7 +94,7 @@ service helloContinue on expectContinueListenerEP1 {
             }
             var responseError = caller->respond(<@untainted> replyMsg);
             if (responseError is error) {
-                log:printError(responseError.message(), responseError);
+                log:printError(responseError.message(), err = responseError);
             }
         } else {
             log:printError(bodyParts.message(), bodyParts);
@@ -106,14 +106,14 @@ service helloContinue on expectContinueListenerEP1 {
             req.removeHeader("Expect");
             var responseError = caller->continue();
             if (responseError is error) {
-                log:printError("Error sending response", responseError);
+                log:printError("Error sending response", err = responseError);
             }
         }
         var res = expectContinueClient->forward("/backend/hello", <@untainted> req);
         if (res is http:Response) {
             var responseError = caller->respond(<@untainted> res);
             if (responseError is error) {
-                log:printError("Error sending response", responseError);
+                log:printError("Error sending response", err = responseError);
             }
         } else if (res is error) {
             log:printError(res.message(), res);
@@ -132,7 +132,7 @@ service backend on expectContinueListenerEP2 {
         }
         var responseError = caller->respond(response);
         if (responseError is error) {
-            log:printError("Error sending response", responseError);
+            log:printError("Error sending response", err = responseError);
         }
     }
 }

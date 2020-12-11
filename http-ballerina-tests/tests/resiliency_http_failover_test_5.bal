@@ -46,7 +46,7 @@ service /failoverDemoService05 on failoverEP05 {
             string responseMessage = "Failover start index is : " + startIndex;
             var responseToCaller = caller->respond(<@untainted> responseMessage);
             if (responseToCaller is error) {
-                log:printError("Error sending response", responseToCaller);
+                log:printError("Error sending response", err = responseToCaller);
             }
         } else if (backendRes is error) {
             http:Response response = new;
@@ -54,7 +54,7 @@ service /failoverDemoService05 on failoverEP05 {
             response.setPayload(<@untainted> backendRes.message());
             var responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", responseToCaller);
+                log:printError("Error sending response", err = responseToCaller);
             }
         }
     }
@@ -67,7 +67,7 @@ service /delay on backendEP05 {
         runtime:sleep(30000);
         var responseToCaller = caller->respond("Delayed resource is invoked");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", responseToCaller);
+            log:printError("Error sending response from mock service", err = responseToCaller);
         }
     }
 }
@@ -77,7 +77,7 @@ service /mock05 on backendEP05 {
     resource function 'default .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", responseToCaller);
+            log:printError("Error sending response from mock service", err = responseToCaller);
         }
     }
 }

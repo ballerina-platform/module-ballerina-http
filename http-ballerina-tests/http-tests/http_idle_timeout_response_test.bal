@@ -35,13 +35,13 @@ service idleTimeout on idleTimeoutListenerEP {
     resource function timeoutTest408(http:Caller caller, http:Request req) {
         var result = req.getTextPayload();
         if (result is string) {
-            log:printInfo(result);
+            log:print(result);
         } else  {
-            log:printError("Error reading request", result);
+            log:printError("Error reading request", err = result);
         }
         var responseError = caller->respond("some");
         if (responseError is error) {
-            log:printError("Error sending response", responseError);
+            log:printError("Error sending response", err = responseError);
         }
     }
 
@@ -53,7 +53,7 @@ service idleTimeout on idleTimeoutListenerEP {
         runtime:sleep(3000);
         var responseError = caller->respond("some");
         if (responseError is error) {
-            log:printError("Error sending response", responseError);
+            log:printError("Error sending response", err = responseError);
         }
     }
 }

@@ -14,8 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
-
 # Provides secure HTTP remote functions for interacting with HTTP endpoints. This will make use of the authentication
 # schemes configured in the HTTP client endpoint to secure the HTTP requests.
 #
@@ -344,8 +342,8 @@ function doInspection(Request req, Response res, ClientConfiguration config) ret
         OutboundAuthHandler authHandler = auth.authHandler;
         return authHandler.inspect(req, res);
     }
-    log:printDebug(isolated function () returns string {
-        return "Retry is not required for the given request after the inspection.";
-    });
+    // log:printDebug(isolated function () returns string {
+    //    return "Retry is not required for the given request after the inspection.";
+    // });
     return ();
 }
