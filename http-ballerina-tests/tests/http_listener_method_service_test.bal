@@ -28,11 +28,11 @@ http:Listener listenerMethodbackendEP = new(listenerMethodTestPort2);
 boolean listenerIdle = true;
 boolean listenerStopped = false;
 
-service startService on listenerMethodListener {
-    resource function test(http:Caller caller, http:Request req) {
-        checkpanic listenerMethodbackendEP.__attach(listenerMethodMock1);
-        checkpanic listenerMethodbackendEP.__attach(listenerMethodMock2);
-        checkpanic listenerMethodbackendEP.__start();
+service /startService on listenerMethodListener {
+    resource function get test(http:Caller caller, http:Request req) {
+        checkpanic listenerMethodbackendEP.attach(listenerMethodMock1, "mock1");
+        checkpanic listenerMethodbackendEP.attach(listenerMethodMock2, "mock2");
+        checkpanic listenerMethodbackendEP.start();
         var result = caller->respond("Backend service started!");
         if (result is error) {
             log:printError("Error sending response", result);
@@ -40,14 +40,8 @@ service startService on listenerMethodListener {
     }
 }
 
-service listenerMethodMock1 =
-@http:ServiceConfig {
-    basePath: "/mock1"
-} service {
-    @http:ResourceConfig {
-        path: "/"
-    }
-    resource function mock1(http:Caller caller, http:Request req) {
+http:Service listenerMethodMock1 = service object {
+    resource function get .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock1 invoked!");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", err = responseToCaller);
@@ -55,15 +49,9 @@ service listenerMethodMock1 =
     }
 };
 
-service listenerMethodMock2 =
-@http:ServiceConfig {
-    basePath: "/mock2"
-} service {
-    @http:ResourceConfig {
-        path: "/"
-    }
-    resource function mock2(http:Caller caller, http:Request req) {
-        checkpanic listenerMethodbackendEP.__gracefulStop();
+http:Service listenerMethodMock2 = service object {
+    resource function get .(http:Caller caller, http:Request req) {
+        checkpanic listenerMethodbackendEP.gracefulStop();
         runtime:sleep(2000);
         var responseToCaller = caller->respond("Mock2 invoked!");
         if (responseToCaller is error) {
