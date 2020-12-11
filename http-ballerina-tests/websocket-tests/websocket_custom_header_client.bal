@@ -65,7 +65,7 @@ public function testClientSentCustomHeader() {
     test:assertEquals(expextedValue, "some-header-value");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
-       io:println("Error occurred when closing connection", result);
+       io:println("Error occurred when closing connection", err = result);
     }
 }
 
@@ -86,6 +86,6 @@ public function testClientReceivedCustomHeader() {
     }
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
-       io:println("Error occurred when closing connection", result);
+       io:println("Error occurred when closing connection", err = result);
     }
 }

@@ -60,7 +60,7 @@ service circuitbreaker07 on circuitBreakerEP07 {
             if (backendRes is http:Response) {
                 var responseToCaller = caller->respond(backendRes);
                 if (responseToCaller is error) {
-                    log:printError("Error sending response", responseToCaller);
+                    log:printError("Error sending response", err = responseToCaller);
                 }
             } else {
                 sendCBErrorResponse(caller, <error>backendRes);
@@ -90,7 +90,7 @@ service helloService07 on new http:Listener(8095) {
         }
         var responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", responseToCaller);
+            log:printError("Error sending response from mock service", err = responseToCaller);
         }
     }
 }
@@ -101,7 +101,7 @@ function sendCBErrorResponse(http:Caller caller, error e) {
     response.setPayload(<@untainted> e.message());
     var responseToCaller = caller->respond(response);
     if (responseToCaller is error) {
-        log:printError("Error sending response", responseToCaller);
+        log:printError("Error sending response", err = responseToCaller);
     }
 }
 

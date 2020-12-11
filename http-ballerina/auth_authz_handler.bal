@@ -16,7 +16,6 @@
 
 import ballerina/auth;
 import ballerina/cache;
-import ballerina/log;
 import ballerina/runtime;
 
 # Representation of Authorization Handler for HTTP.
@@ -69,13 +68,13 @@ public class AuthzHandler {
         final string serviceNameValue = serviceName;
         final string requestMethodValue = requestMethod;
         if (authorized) {
-            log:printDebug(isolated function () returns string {
-                return "Successfully authorized to access resource: " + serviceNameValue + ", method: " + requestMethodValue;
-            });
+            // log:printDebug(isolated function () returns string {
+            //     return "Successfully authorized to access resource: " + serviceNameValue + ", method: " +
+            // requestMethodValue;});
         } else {
-            log:printDebug(isolated function () returns string {
-                return "Authorization failure for resource: " + serviceNameValue + ", method: " + requestMethodValue;
-            });
+            // log:printDebug(isolated function () returns string {
+            //     return "Authorization failure for resource: " + serviceNameValue + ", method: " + requestMethodValue;
+            // });
         }
         return authorized;
     }

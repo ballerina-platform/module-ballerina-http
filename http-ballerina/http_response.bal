@@ -436,7 +436,7 @@ public class Response {
         if (result is boolean) {
             self.addHeader("Set-Cookie", cookie.toStringValue());
         } else {
-            log:printError("Invalid Cookie", result);
+            log:printError("Invalid Cookie", err = result);
         }
     }
 

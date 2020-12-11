@@ -66,7 +66,7 @@ service on new http:Listener(21018) {
 service proxyServer on new http:Listener(21019) {
 
     resource function onOpen(http:WebSocketCaller caller) {
-        log:printInfo("The Connection ID: " + caller.getConnectionId());
+        log:print("The Connection ID: " + caller.getConnectionId());
     }
 
     resource function onText(http:WebSocketCaller caller, string text, boolean finalFrame) {
@@ -134,7 +134,7 @@ public function testSendText() {
     test:assertEquals(proxyData, "Hi kalai", msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
-       log:printError("Error occurred when closing connection", result);
+       log:printError("Error occurred when closing connection", err = result);
     }
 }
 
@@ -148,6 +148,6 @@ public function testSendBinary() {
     test:assertEquals(expectedBinaryData, binaryData, msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
-       log:printError("Error occurred when closing connection", result);
+       log:printError("Error occurred when closing connection", err = result);
     }
 }
