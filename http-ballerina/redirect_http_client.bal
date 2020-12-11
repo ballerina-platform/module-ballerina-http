@@ -14,8 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
-
 # Provides redirect functionality for HTTP client remote functions.
 #
 # + url - Target service url
@@ -279,9 +277,9 @@ public client class RedirectClient {
 function performRedirectIfEligible(RedirectClient redirectClient, string path, Request request,
                                    HttpOperation httpOperation) returns @tainted HttpResponse|ClientError {
     final string originalUrl = redirectClient.url + path;
-    log:printDebug(isolated function() returns string {
-        return "Checking redirect eligibility for original request " + originalUrl;
-    });
+    // log:printDebug(isolated function() returns string {
+    //    return "Checking redirect eligibility for original request " + originalUrl;
+    // });
 
     Request inRequest = request;
     if !(httpOperation is safeHttpOperation) {
@@ -315,9 +313,9 @@ function checkRedirectEligibility(HttpResponse|ClientError response, string reso
 //Check the response status for redirect eligibility.
 isolated function isRedirectResponse(int statusCode) returns boolean {
     final string statusCodeValue = statusCode.toString();
-    log:printDebug(isolated function() returns string {
-        return "Response Code : " + statusCodeValue;
-    });
+    // log:printDebug(isolated function() returns string {
+    //    return "Response Code : " + statusCodeValue;
+    // });
     return (statusCode == 300 || statusCode == 301 || statusCode == 302 || statusCode == 303 || statusCode == 305 ||
         statusCode == 307 || statusCode == 308);
 }
@@ -328,22 +326,22 @@ function redirect(Response response, HttpOperation httpVerb, Request request,
     int currentCount = redirectClient.currentRedirectCount;
     int maxCount = redirectClient.redirectConfig.maxCount;
     if (currentCount >= maxCount) {
-        log:printDebug("Maximum redirect count reached!");
+        //log:printDebug("Maximum redirect count reached!");
         setCountAndResolvedURL(redirectClient, response, resolvedRequestedURI);
     } else {
         currentCount += 1;
         final string currentCountValue = currentCount.toString();
-        log:printDebug(isolated function() returns string {
-            return "Redirect count : " + currentCountValue;
-        });
+        // log:printDebug(isolated function() returns string {
+        //     return "Redirect count : " + currentCountValue;
+        // });
         redirectClient.currentRedirectCount = currentCount;
         var redirectMethod = getRedirectMethod(httpVerb, response);
         if (redirectMethod is HttpOperation) {
             if (response.hasHeader(LOCATION)) {
                 final string location = response.getHeader(LOCATION);
-                log:printDebug(isolated function() returns string {
-                    return "Location header value: " + location;
-                });
+                // log:printDebug(isolated function() returns string {
+                //     return "Location header value: " + location;
+                // });
                 if (!isAbsolute(location)) {
                     var resolvedURI = resolve(resolvedRequestedURI, location);
                     if (resolvedURI is string) {
@@ -379,9 +377,9 @@ function performRedirection(string location, RedirectClient redirectClient, Http
     var retryClient = createRetryClient(location, createNewEndpointConfig(redirectClient.config), cookieStore);
     if (retryClient is HttpClient) {
         final string locationValue = location;
-        log:printDebug(isolated function() returns string {
-                return "Redirect using new clientEP : " + locationValue;
-            });
+        // log:printDebug(isolated function() returns string {
+        //         return "Redirect using new clientEP : " + locationValue;
+        //     });
         HttpResponse|ClientError result = invokeEndpoint("",
             createRedirectRequest(request, redirectClient.redirectConfig.allowAuthHeaders),
             redirectMethod, retryClient);
@@ -431,9 +429,9 @@ isolated function getRedirectMethod(HttpOperation httpVerb, Response response) r
         return httpVerb;
     }
     final string statusCodeValue = statusCode.toString();
-    log:printDebug(isolated function() returns string {
-        return "unsupported redirect status code" + statusCodeValue;
-    });
+    // log:printDebug(isolated function() returns string {
+    //    return "unsupported redirect status code" + statusCodeValue;
+    // });
     return ();
 }
 
@@ -453,9 +451,9 @@ isolated function isAbsolute(string locationUrl) returns boolean {
 //Reset the current redirect count to 0 and set the resolved requested URI.
 isolated function setCountAndResolvedURL(RedirectClient redirectClient, Response response, string resolvedRequestedURI) {
     final string resolvedRequestedURIValue = resolvedRequestedURI;
-    log:printDebug(isolated function() returns string {
-        return "Ultimate response coming from the request: " + resolvedRequestedURIValue;
-    });
+    // log:printDebug(isolated function() returns string {
+    //     return "Ultimate response coming from the request: " + resolvedRequestedURIValue;
+    // });
     redirectClient.currentRedirectCount = 0;
     response.resolvedRequestedURI = resolvedRequestedURI;
 }

@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/lang.'int;
-import ballerina/log;
 import ballerina/time;
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.2.3
@@ -55,7 +54,7 @@ isolated function getDateValue(Response inboundResponse) returns int {
         return (dateHeaderTime is time:Time) ? dateHeaderTime.time : 0;
     }
 
-    log:printDebug("Date header not found. Using current time for the Date header.");
+    // log:printDebug("Date header not found. Using current time for the Date header.");
 
     // Based on https://tools.ietf.org/html/rfc7231#section-7.1.1.2
     time:Time currentT = time:currentTime();

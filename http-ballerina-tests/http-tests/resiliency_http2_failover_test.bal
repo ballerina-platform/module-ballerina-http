@@ -77,7 +77,7 @@ service delay06 on backendEP06 {
         runtime:sleep(10000);
         var responseToCaller = caller->respond("Delayed resource is invoked");
         if (responseToCaller is error) {
-            log:printError("Error sending response from delay service", responseToCaller);
+            log:printError("Error sending response from delay service", err = responseToCaller);
         }
     }
 }
@@ -97,7 +97,7 @@ service error06 on backendEP06 {
         response.setPayload("Response from error Service with error status code.");
         var responseToCaller = caller->respond(response);
         if (responseToCaller is error) {
-            log:printError("Error sending response from error service", responseToCaller);
+            log:printError("Error sending response from error service", err = responseToCaller);
         }
     }
 }
@@ -114,14 +114,14 @@ service mock06 on backendEP06 {
     resource function mockResource(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", responseToCaller);
+            log:printError("Error sending response from mock service", err = responseToCaller);
         }
     }
 }
 
 function handleResponseToCaller(error? responseToCaller) {
     if (responseToCaller is error) {
-        log:printError("Error sending response from failover service.", responseToCaller);
+        log:printError("Error sending response from failover service.", err = responseToCaller);
     }
 }
 

@@ -35,7 +35,7 @@ service startService on listenerMethodListener {
         checkpanic listenerMethodbackendEP.__start();
         var result = caller->respond("Backend service started!");
         if (result is error) {
-            log:printError("Error sending response", result);
+            log:printError("Error sending response", err = result);
         }
     }
 }

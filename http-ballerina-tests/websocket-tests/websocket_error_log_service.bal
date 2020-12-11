@@ -23,7 +23,7 @@ import ballerina/http;
 }
 service errorService on new http:Listener(21013) {
     resource function onOpen(http:WebSocketCaller ep) {
-        log:printInfo("connection open");
+        log:print("connection open");
     }
 
     resource function onText(http:WebSocketCaller ep, string text) {

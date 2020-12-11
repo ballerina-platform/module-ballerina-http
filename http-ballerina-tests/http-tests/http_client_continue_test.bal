@@ -53,7 +53,7 @@ service continueBackend on httpClientContinueListenerEP1 {
         http:Response res = new;
         var payload = request.getTextPayload();
         if (payload is string) {
-            log:printInfo(payload);
+            log:print(payload);
             res.statusCode = 200;
             res.setPayload("Hello World!\n");
             var result = caller->respond(res);

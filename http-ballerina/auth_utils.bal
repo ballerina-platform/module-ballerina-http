@@ -91,9 +91,7 @@ isolated function getAuthHandlers(FilterContext context) returns InboundAuthHand
     if (resourceSecured is boolean) {
         // if resource is not secured, no need to check further.
         if (!resourceSecured) {
-            log:printDebug(isolated function () returns string {
-                return "Resource is not secured. `enabled: false`.";
-            });
+            log:printError("Resource is not secured. `enabled: false`.");
             return false;
         }
         // checks if Auth providers are given at the resource level.
@@ -135,9 +133,7 @@ isolated function getAuthHandlers(FilterContext context) returns InboundAuthHand
         }
         // if service is not secured, no need to check further.
         if (!serviceSecured) {
-            log:printDebug(isolated function () returns string {
-                return "Service is not secured. `enabled: false`.";
-            });
+            log:printError("Service is not secured. `enabled: false`.");
             return false;
         }
         // Checks if Auth providers are given at the service level.
@@ -167,9 +163,9 @@ isolated function getScopes(FilterContext context) returns Scopes|boolean {
     if (resourceSecured is boolean) {
         // if resource is not secured, no need to check further.
         if (!resourceSecured) {
-            log:printDebug(isolated function () returns string {
-                return "Resource is not secured. `enabled: false`.";
-            });
+            // log:printDebug(isolated function () returns string {
+            //     return "Resource is not secured. `enabled: false`.";
+            // });
             return false;
         }
         // checks if scopes are given at the resource level.
@@ -211,9 +207,9 @@ isolated function getScopes(FilterContext context) returns Scopes|boolean {
         }
         // if service is not secured, no need to check further.
         if (!serviceSecured) {
-            log:printDebug(isolated function () returns string {
-                return "Service is not secured. `enabled: false`.";
-            });
+            //log:printDebug(isolated function () returns string {
+            //    return "Service is not secured. `enabled: false`.";
+            //});
             return false;
         }
         // Checks if scopes are given at the service level.
@@ -311,7 +307,7 @@ isolated function createResponseHeaderMap(Response resp) returns @tainted map<an
 # + return - The prepared `http:AuthenticationError` instance
 isolated function prepareAuthenticationError(string message, error? err = ()) returns AuthenticationError {
     final string messageValue = message;
-    log:printDebug(isolated function () returns string { return messageValue; });
+    // log:printDebug(isolated function () returns string { return messageValue; });
     if (err is error) {
         return AuthenticationError(message, err);
     }
@@ -325,7 +321,7 @@ isolated function prepareAuthenticationError(string message, error? err = ()) re
 # + return - The prepared `http:AuthorizationError` instance
 isolated function prepareAuthorizationError(string message, error? err = ()) returns AuthorizationError {
     final string messageValue = message;
-    log:printDebug(isolated function () returns string { return messageValue; });
+    // log:printDebug(isolated function () returns string { return messageValue; });
     if (err is error) {
         return AuthorizationError(message, err);
     }

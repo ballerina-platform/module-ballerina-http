@@ -27,20 +27,20 @@ string expectedOutput43 = "";
 service failoverServer on new http:Listener(21043) {
 
     resource function onOpen(http:WebSocketCaller caller) {
-        log:printInfo("The Connection ID: " + caller.getConnectionId());
+        log:print("The Connection ID: " + caller.getConnectionId());
     }
 
     resource function onText(http:WebSocketCaller caller, string text, boolean finalFrame) {
         var err = caller->pushText(text, finalFrame);
         if (err is http:WebSocketError) {
-            log:printError("Error occurred when sending text message", err);
+            log:printError("Error occurred when sending text message", err = err);
         }
     }
 
     resource function onBinary(http:WebSocketCaller caller, byte[] data, boolean finalFrame) {
         var err = caller->pushBinary(data, finalFrame);
         if (err is http:WebSocketError) {
-            log:printError("Error occurred when sending text message", err);
+            log:printError("Error occurred when sending text message", err = err);
         }
     }
 
@@ -82,7 +82,7 @@ public function testBinaryFrameWithThirdServer() {
     test:assertEquals(expectedOutput43, "Hello");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
-       log:printError("Error occurred when closing connection", result);
+       log:printError("Error occurred when closing connection", err = result);
     }
 }
 
@@ -104,7 +104,7 @@ public function testTextFrameWithSecondServer() {
     test:assertEquals(expectedOutput43, "Hello");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
-       log:printError("Error occurred when closing connection", result);
+       log:printError("Error occurred when closing connection", err = result);
     }
 }
 
@@ -127,7 +127,7 @@ public function testBinaryFrameWithFirstServer() {
     test:assertEquals(expectedBinaryData, pingData);
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
-       log:printError("Error occurred when closing connection", result);
+       log:printError("Error occurred when closing connection", err = result);
     }
 }
 
@@ -149,6 +149,6 @@ public function testHandshakeTimeout() {
     test:assertEquals(expectedOutput43, "Hello everyone");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
-       log:printError("Error occurred when closing connection", result);
+       log:printError("Error occurred when closing connection", err = result);
     }
 }

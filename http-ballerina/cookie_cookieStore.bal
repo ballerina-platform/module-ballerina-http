@@ -72,7 +72,8 @@ public class CookieStore {
                         return CookieHandlingError("Error in adding persistent cookies", result);
                     }
                 } else if (isFirstRequest(self.allSessionCookies, domain)) {
-                    log:printWarn("Client is not configured to use persistent cookies. Hence, persistent cookies from " + domain + " will be discarded.");
+                    log:printError("Client is not configured to use persistent cookies. Hence, persistent cookies from "
+                                        + domain + " will be discarded.");
                 }
             } else {
                 var result = addSessionCookie(identicalCookie, cookie, url, self);
@@ -93,7 +94,7 @@ public class CookieStore {
         foreach var cookie in cookiesInResponse {
             var result = self.addCookie(cookie, cookieConfig, url, requestPath);
             if (result is error) {
-                log:printError("Error in adding cookies to cookie store: ", result);
+                log:printError("Error in adding cookies to cookie store: ", err = result);
             }
         }
     }
@@ -150,7 +151,7 @@ public class CookieStore {
         if (persistentCookieHandler is PersistentCookieHandler) {
             var result = persistentCookieHandler.getAllCookies();
             if (result is error) {
-                log:printError("Error in getting persistent cookies: ", result);
+                log:printError("Error in getting persistent cookies: ", err = result);
             } else {
                 foreach var cookie in result {
                     allCookies.push(cookie);

@@ -50,7 +50,7 @@ service circuitbreaker04 on circuitBreakerEP04 {
         if (backendRes is http:Response) {
             var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", responseToCaller);
+                log:printError("Error sending response", err = responseToCaller);
             }
         } else if (backendRes is error) {
             http:Response response = new;
@@ -58,7 +58,7 @@ service circuitbreaker04 on circuitBreakerEP04 {
             response.setPayload(<@untainted> backendRes.message());
             var responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", responseToCaller);
+                log:printError("Error sending response", err = responseToCaller);
             }
         }
     }
@@ -76,7 +76,7 @@ service errornousservice on new http:Listener(8090) {
         res.setPayload("Internal error occurred while processing the request.");
         var responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", responseToCaller);
+            log:printError("Error sending response from mock service", err = responseToCaller);
         }
     }
 }

@@ -35,7 +35,7 @@ public function testCloseWithCloseCode() {
     http:WebSocketClient wsClient = new ("ws://localhost:21004");
     error? result = wsClient->close(1001, "Close the connection");
     if (result is http:WebSocketError) {
-       log:printError("Error occurred when closing connection", result);
+       log:printError("Error occurred when closing connection", err = result);
     }
     test:assertEquals(expectedStatusCode, 1001, msg = "status code mismatched");
 }
@@ -46,7 +46,7 @@ public function testCloseWithoutCloseCode() {
     http:WebSocketClient wsClient = new ("ws://localhost:21004");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
-       log:printError("Error occurred when closing connection", result);
+       log:printError("Error occurred when closing connection", err = result);
     }
     test:assertEquals(expectedStatusCode, 1000, msg = "status code mismatched");
 }

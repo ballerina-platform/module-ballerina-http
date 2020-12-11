@@ -15,8 +15,6 @@
 // under the License.
 
 import ballerina/cache;
-import ballerina/io;
-import ballerina/log;
 import ballerina/time;
 
 # An HTTP caching client implementation which takes an `HttpActions` instance and wraps it with an HTTP caching layer.
@@ -307,7 +305,7 @@ public client class HttpCachingClient {
 public function createHttpCachingClient(string url, ClientConfiguration config, CacheConfig cacheConfig)
                                                                                       returns HttpClient|ClientError {
     HttpCachingClient httpCachingClient = new(url, config, cacheConfig);
-    log:printDebug("Created HTTP caching client: " + io:sprintf("%s", httpCachingClient));
+    // log:printDebug("Created HTTP caching client: " + io:sprintf("%s", httpCachingClient));
     return httpCachingClient;
 }
 
@@ -319,7 +317,7 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
     if (cache.hasKey(getCacheKey(httpMethod, path))) {
         Response cachedResponse = cache.get(getCacheKey(httpMethod, path));
 
-        log:printDebug("Cached response found for: '" + httpMethod + " " + path + "'");
+        // log:printDebug("Cached response found for: '" + httpMethod + " " + path + "'");
 
         // Based on https://tools.ietf.org/html/rfc7234#section-4
 
@@ -333,11 +331,11 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
             // If the no-cache directive is not set, responses can be served straight from the cache, without
             // validating with the origin server.
             if (!isNoCacheSet(reqCache, resCache) && !req.hasHeader(PRAGMA)) {
-                log:printDebug("Serving a cached fresh response without validating with the origin server");
+                // log:printDebug("Serving a cached fresh response without validating with the origin server");
                 return cachedResponse;
             }
 
-            log:printDebug("Serving a cached fresh response after validating with the origin server");
+            // log:printDebug("Serving a cached fresh response after validating with the origin server");
             return getValidationResponse(httpClient, req, cachedResponse, cache, currentT, path, httpMethod, true);
         }
 
@@ -346,12 +344,12 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
         if (isAllowedToBeServedStale(req.cacheControl, cachedResponse, isShared) && !req.hasHeader(PRAGMA)) {
             // If the no-cache directive is not set, responses can be served straight from the cache, without
             // validating with the origin server.
-            log:printDebug("Serving cached stale response without validating with the origin server");
+            // log:printDebug("Serving cached stale response without validating with the origin server");
             cachedResponse.setHeader(WARNING, WARNING_110_RESPONSE_IS_STALE);
             return cachedResponse;
         }
 
-        log:printDebug("Validating a stale response for '" + path + "' with the origin server.");
+        // log:printDebug("Validating a stale response for '" + path + "' with the origin server.");
 
         var validatedResponse = getValidationResponse(httpClient, req, cachedResponse, cache, currentT, path,
                                                             httpMethod, false);
@@ -362,8 +360,8 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
         return validatedResponse;
     }
 
-    log:printDebug("Cached response not found for: '" + httpMethod + " " + path + "'");
-    log:printDebug("Sending new request to: " + path);
+    // log:printDebug("Cached response not found for: '" + httpMethod + " " + path + "'");
+    // log:printDebug("Sending new request to: " + path);
 
     var response = sendNewRequest(httpClient, req, path, httpMethod, forwardRequest);
     if (response is Response) {
@@ -389,7 +387,7 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
         if (httpCache.cache.hasKey(getMethodCacheKey)) {
             cache:Error? result = httpCache.cache.invalidate(getMethodCacheKey);
             if (result is cache:Error) {
-                log:printDebug("Failed to remove the key: " + getMethodCacheKey + " from the cache.");
+                // log:printDebug("Failed to remove the key: " + getMethodCacheKey + " from the cache.");
             }
         }
 
@@ -397,7 +395,7 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
         if (httpCache.cache.hasKey(headMethodCacheKey)) {
             cache:Error? result = httpCache.cache.invalidate(headMethodCacheKey);
             if (result is cache:Error) {
-                log:printDebug("Failed to remove the key: " + headMethodCacheKey + " from the cache.");
+                // log:printDebug("Failed to remove the key: " + headMethodCacheKey + " from the cache.");
             }
         }
     }

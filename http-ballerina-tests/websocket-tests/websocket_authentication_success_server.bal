@@ -39,7 +39,7 @@ service httpUpgradeServi on httpServi {
         }
     }
     resource function upgrader(http:Caller caller, http:Request req) {
-        log:printInfo("WS upgrade resource");
+        log:print("WS upgrade resource");
     }
 }
 service upgradedService = @http:WebSocketServiceConfig {} service {
