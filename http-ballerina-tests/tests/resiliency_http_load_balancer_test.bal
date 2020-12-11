@@ -24,18 +24,18 @@ listener http:Listener LBbackendListener = new(8093);
 
 http:LoadBalanceClient lbBackendEP = new({
     targets: [
-        { url: "http://localhost:8093/mock1" },
-        { url: "http://localhost:8093/mock2" },
-        { url: "http://localhost:8093/mock3" }
+        { url: "http://localhost:8093/LBMock1" },
+        { url: "http://localhost:8093/LBMock2" },
+        { url: "http://localhost:8093/LBMock3" }
     ],
     timeoutInMillis: 5000
 });
 
 http:LoadBalanceClient lbFailoverBackendEP = new({
     targets: [
-        { url: "http://localhost:8093/mock4" },
-        { url: "http://localhost:8093/mock2" },
-        { url: "http://localhost:8093/mock3" }
+        { url: "http://localhost:8093/LBMock4" },
+        { url: "http://localhost:8093/LBMock2" },
+        { url: "http://localhost:8093/LBMock3" }
     ],
     failover: true,
     timeoutInMillis: 2000
@@ -43,8 +43,8 @@ http:LoadBalanceClient lbFailoverBackendEP = new({
 
 http:LoadBalanceClient delayedBackendEP = new({
     targets: [
-        { url: "http://localhost:8093/mock4" },
-        { url: "http://localhost:8093/mock5" }
+        { url: "http://localhost:8093/LBMock4" },
+        { url: "http://localhost:8093/LBMock5" }
     ],
     failover: true,
     timeoutInMillis: 2000
@@ -54,22 +54,16 @@ CustomLoadBalancerRule customLbRule = new CustomLoadBalancerRule(2);
 
 http:LoadBalanceClient customLbBackendEP = new ({
     targets: [
-        { url: "http://localhost:8093/mock1" },
-        { url: "http://localhost:8093/mock2" },
-        { url: "http://localhost:8093/mock3" }
+        { url: "http://localhost:8093/LBMock1" },
+        { url: "http://localhost:8093/LBMock2" },
+        { url: "http://localhost:8093/LBMock3" }
     ],
     lbRule: customLbRule,
     timeoutInMillis: 5000
 });
 
-@http:ServiceConfig {
-    basePath: "/lb"
-}
-service loadBalancerDemoService on new http:Listener(9313) {
-    @http:ResourceConfig {
-        path: "/roundRobin"
-    }
-    resource function roundRobin(http:Caller caller, http:Request req) {
+service /loadBalancerDemoService on new http:Listener(9313) {
+    resource function 'default roundRobin(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
         var response = lbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
@@ -88,10 +82,7 @@ service loadBalancerDemoService on new http:Listener(9313) {
         }
     }
 
-    @http:ResourceConfig {
-        path: "/failover"
-    }
-    resource function lbFailover(http:Caller caller, http:Request req) {
+    resource function 'default lbFailover(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
         var response = lbFailoverBackendEP->post("/", requestPayload);
         if (response is http:Response) {
@@ -110,10 +101,7 @@ service loadBalancerDemoService on new http:Listener(9313) {
         }
     }
 
-    @http:ResourceConfig {
-        path: "/delay"
-    }
-    resource function delayResource(http:Caller caller, http:Request req) {
+    resource function 'default delayResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
         var response = delayedBackendEP->post("/", requestPayload);
         if (response is http:Response) {
@@ -132,10 +120,7 @@ service loadBalancerDemoService on new http:Listener(9313) {
         }
     }
 
-    @http:ResourceConfig {
-        path: "/custom"
-    }
-    resource function customResource(http:Caller caller, http:Request req) {
+    resource function 'default customResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
         var response = customLbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
@@ -155,12 +140,8 @@ service loadBalancerDemoService on new http:Listener(9313) {
     }
 }
 
-@http:ServiceConfig { basePath: "/mock1" }
-service LBMock1 on LBbackendListener {
-    @http:ResourceConfig {
-        path: "/"
-    }
-    resource function mock1Resource(http:Caller caller, http:Request req) {
+service /LBMock1 on LBbackendListener {
+    resource function 'default .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock1 Resource is Invoked.");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", responseToCaller);
@@ -168,12 +149,8 @@ service LBMock1 on LBbackendListener {
     }
 }
 
-@http:ServiceConfig { basePath: "/mock2" }
-service LBMock2 on LBbackendListener {
-    @http:ResourceConfig {
-        path: "/"
-    }
-    resource function mock2Resource(http:Caller caller, http:Request req) {
+service /LBMock2 on LBbackendListener {
+    resource function 'default .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock2 Resource is Invoked.");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", responseToCaller);
@@ -181,12 +158,8 @@ service LBMock2 on LBbackendListener {
     }
 }
 
-@http:ServiceConfig { basePath: "/mock3" }
-service LBMock3 on LBbackendListener {
-    @http:ResourceConfig {
-        path: "/"
-    }
-    resource function mock3Resource(http:Caller caller, http:Request req) {
+service /LBMock3 on LBbackendListener {
+    resource function 'default .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock3 Resource is Invoked.");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", responseToCaller);
@@ -194,12 +167,8 @@ service LBMock3 on LBbackendListener {
     }
 }
 
-@http:ServiceConfig { basePath: "/mock4" }
-service LBMock4 on LBbackendListener {
-    @http:ResourceConfig {
-        path: "/"
-    }
-    resource function mock4Resource(http:Caller caller, http:Request req) {
+service /LBMock4 on LBbackendListener {
+    resource function 'default .(http:Caller caller, http:Request req) {
         runtime:sleep(5000);
         var responseToCaller = caller->respond("Mock4 Resource is Invoked.");
         if (responseToCaller is error) {
@@ -208,12 +177,8 @@ service LBMock4 on LBbackendListener {
     }
 }
 
-@http:ServiceConfig { basePath: "/mock5" }
-service LBMock5 on LBbackendListener {
-    @http:ResourceConfig {
-        path: "/"
-    }
-    resource function mock5Resource(http:Caller caller, http:Request req) {
+service /LBMock5 on LBbackendListener {
+    resource function 'default .(http:Caller caller, http:Request req) {
         runtime:sleep(5000);
         var responseToCaller = caller->respond("Mock5 Resource is Invoked.");
         if (responseToCaller is error) {
@@ -263,7 +228,7 @@ http:Client roundRobinLoadBalanceTestClient = new("http://localhost:9313");
     dataProvider:"roundRobinResponseDataProvider"
 }
 function roundRobinLoadBalanceTest(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/lb/roundRobin", dataFeed);
+    invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/roundRobin", dataFeed);
 }
 
 function roundRobinResponseDataProvider() returns DataFeed[][] {
@@ -280,7 +245,7 @@ function roundRobinResponseDataProvider() returns DataFeed[][] {
     dataProvider:"roundRobinWithFailoverResponseDataProvider"
 }
 function roundRobinWithFailoverResponseTest(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/lb/failover", dataFeed);
+    invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/lbFailover", dataFeed);
 }
 
 function roundRobinWithFailoverResponseDataProvider() returns DataFeed[][] {
@@ -296,7 +261,7 @@ function roundRobinWithFailoverResponseDataProvider() returns DataFeed[][] {
 function testAllLbEndpointFailure() {
     string expectedMessage = "All the load balance endpoints failed. Last error was: Idle timeout triggered " +
                 "before initiating inbound response";
-    var response = roundRobinLoadBalanceTestClient->post("/lb/delay", requestPayload);
+    var response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -311,7 +276,7 @@ function testAllLbEndpointFailure() {
     dataProvider:"customLbResponseDataProvider"
 }
 function customLbResponseTest(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/lb/custom", dataFeed);
+    invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/customResource", dataFeed);
 }
 
 function customLbResponseDataProvider() returns DataFeed[][] {

@@ -339,38 +339,38 @@ public client class MockClient {
         self.httpClient = simpleClient;
     }
 
-    public remote function post(@untainted string path, http:RequestMessage message,
+    remote function post(@untainted string path, http:RequestMessage message,
             http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function head(string path,
+    remote function head(string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = ())
                                                                                 returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function put(@untainted string path, http:RequestMessage message,
+    remote function put(@untainted string path, http:RequestMessage message,
             http:TargetType targetType = http:Response) returns http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message,
+    remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message,
            http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function patch(@untainted string path, http:RequestMessage message, http:TargetType targetType = http:Response)
+    remote function patch(@untainted string path, http:RequestMessage message, http:TargetType targetType = http:Response)
                                              returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function delete(@untainted string path, http:RequestMessage message = (),
+    remote function delete(@untainted string path, http:RequestMessage message = (),
           http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function get(@untainted string path, http:RequestMessage message = (),
+    remote function get(@untainted string path, http:RequestMessage message = (),
            http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         http:Request req = buildRequest(message);
         http:Response response = new;
@@ -423,40 +423,40 @@ public client class MockClient {
         return response;
     }
 
-    public remote function options(@untainted string path, http:RequestMessage message = (),
+    remote function options(@untainted string path, http:RequestMessage message = (),
            http:TargetType targetType = http:Response) returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function forward(@untainted string path, http:Request request, http:TargetType targetType =
+    remote function forward(@untainted string path, http:Request request, http:TargetType targetType =
     http:Response)
                                                returns @tainted http:Response|http:Payload|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function submit(string httpVerb, string path,
+    remote function submit(string httpVerb, string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
                                                                             returns http:HttpFuture|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function getResponse(http:HttpFuture httpFuture)  returns http:Response|http:ClientError {
+    remote function getResponse(http:HttpFuture httpFuture)  returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function hasPromise(http:HttpFuture httpFuture) returns boolean {
+    remote function hasPromise(http:HttpFuture httpFuture) returns boolean {
         return false;
     }
 
-    public remote function getNextPromise(http:HttpFuture httpFuture) returns http:PushPromise|http:ClientError {
+    remote function getNextPromise(http:HttpFuture httpFuture) returns http:PushPromise|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function getPromisedResponse(http:PushPromise promise) returns http:Response|http:ClientError {
+    remote function getPromisedResponse(http:PushPromise promise) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    public remote function rejectPromise(http:PushPromise promise) {
+    remote function rejectPromise(http:PushPromise promise) {
     }
 }
 
@@ -569,13 +569,9 @@ http:Client clientEP = new("http://localhost:8080", {
     timeoutInMillis: 2000
 });
 
-@http:ServiceConfig { basePath: "/cb" }
-service circuitBreakerService on mockEP3 {
+service /circuitBreakerService on mockEP3 {
 
-    @http:ResourceConfig {
-        path: "/getState"
-    }
-    resource function getState(http:Caller caller, http:Request req) {
+    resource function 'default getState(http:Caller caller, http:Request req) {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>clientEP.httpClient;
         http:CircuitState currentState = cbClient.getCurrentState();
         http:Response res = new;
@@ -745,7 +741,7 @@ function cBRequestVolumeThresholdFailureResponseScenarioTest() {
 function cBGetCurrentStatausScenarioTest() {
     string expected = "Circuit Breaker is in CLOSED state";
     http:Client reqClient = new("http://localhost:9095");
-    var response = reqClient->get("/cb/getState");
+    var response = reqClient->get("/circuitBreakerService/getState");
     if (response is http:Response) {
         var body = response.getTextPayload();
         if (body is string) {

@@ -21,7 +21,6 @@ listener http:Listener corsConfigEP = new(corsConfigTest);
 http:Client corsClient = new("http://localhost:" + corsConfigTest.toString());
 
 @http:ServiceConfig {
-    basePath:"/hello1",
     cors:{
         allowOrigins:["http://www.m3.com", "http://www.hello.com"],
         allowCredentials:true,
@@ -30,29 +29,23 @@ http:Client corsClient = new("http://localhost:" + corsConfigTest.toString());
         maxAge:1
     }
 }
-service echo1 on corsConfigEP {
+service /hello1 on corsConfigEP {
 
     @http:ResourceConfig {
-        methods:["POST"],
-        path : "/test1",
         cors: {
             allowOrigins :["http://www.wso2.com", "http://www.facebook.com"],
             allowCredentials : true,
             allowHeaders:["X-Content-Type-Options", "X-PINGOTHER"]
         }
     }
-    resource function info1 (http:Caller caller, http:Request req) {
+    resource function post test1(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"resCors"};
         res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-         methods:["GET"],
-         path : "/test2"
-    }
-    resource function info2 (http:Caller caller, http:Request req) {
+    resource function get test2(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"serCors"};
         res.setJsonPayload(responseJson);
@@ -60,14 +53,12 @@ service echo1 on corsConfigEP {
     }
 
     @http:ResourceConfig {
-        methods:["POST"],
-        path : "/test3",
         cors:{
             allowOrigins :["http://www.wso2.com", "http://facebook.com", "http://www.amazon.com"],
             allowCredentials:true
         }
     }
-    resource function info3 (http:Caller caller, http:Request req) {
+    resource function post test3(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"moreOrigins"};
         res.setJsonPayload(responseJson);
@@ -75,15 +66,13 @@ service echo1 on corsConfigEP {
     }
 
     @http:ResourceConfig {
-        methods:["PUT"],
-        path : "/test4",
         cors:{
             allowOrigins :["*"],
             allowMethods: ["*"],
             allowCredentials:true
         }
     }
-    resource function info4 (http:Caller caller, http:Request req) {
+    resource function put test4(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"moreOrigins"};
         res.setJsonPayload(responseJson);
@@ -91,17 +80,15 @@ service echo1 on corsConfigEP {
     }
 }
 
-service hello2 on corsConfigEP {
+service /hello2 on corsConfigEP {
 
     @http:ResourceConfig {
-         methods:["POST"],
-         path : "/test1",
          cors: {
             allowOrigins :["http://www.hello.com", " http://www.facebook.com  "],
             exposeHeaders:["X-Content-Type-Options", "X-PINGOTHER"]
         }
     }
-    resource function info1 (http:Caller caller, http:Request req) {
+    resource function post test1(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"resOnlyCors"};
         res.setJsonPayload(responseJson);
@@ -109,15 +96,13 @@ service hello2 on corsConfigEP {
     }
 
     @http:ResourceConfig {
-        methods:["PUT"],
-        path : "/test2",
         cors:{
             allowMethods :["HEAD", "PUT"],
             allowOrigins:["http://www.bbc.com", " http://www.amazon.com  "],
             exposeHeaders:["X-Content-Type-Options", "X-PINGOTHER"]
         }
     }
-    resource function info2 (http:Caller caller, http:Request req) {
+    resource function put test2(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"optionsOnly"};
         res.setJsonPayload(responseJson);
@@ -126,7 +111,6 @@ service hello2 on corsConfigEP {
 }
 
 @http:ServiceConfig {
-    basePath:"/hello3",
     cors:{
         allowCredentials : true,
         allowMethods:["GET", "PUT"],
@@ -135,12 +119,9 @@ service hello2 on corsConfigEP {
         maxAge:1
     }
 }
-service echo3 on corsConfigEP {
+service /hello3 on corsConfigEP {
 
-    @http:ResourceConfig {
-        methods:["POST", "PUT"]
-    }
-    resource function info1 (http:Caller caller, http:Request req) {
+    resource function put info1(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"cors"};
         res.setJsonPayload(responseJson);
@@ -148,21 +129,16 @@ service echo3 on corsConfigEP {
     }
 }
 
-service echo4 on corsConfigEP {
-    @http:ResourceConfig {
-        methods:["POST"]
-    }
-    resource function info1 (http:Caller caller, http:Request req) {
+service /echo4 on corsConfigEP {
+
+    resource function post info1(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"noCors"};
         res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["OPTIONS"]
-    }
-    resource function info2 (http:Caller caller, http:Request req) {
+    resource function options info2(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"noCorsOPTIONS"};
         res.setJsonPayload(responseJson);
@@ -170,7 +146,6 @@ service echo4 on corsConfigEP {
     }
 
     @http:ResourceConfig {
-        methods:["POST"],
         cors:{
             allowOrigins:["*"],
             allowMethods: ["*"],
@@ -178,7 +153,7 @@ service echo4 on corsConfigEP {
             exposeHeaders:["X-Content-Type-Options", "X-PINGOTHER"]
         }
     }
-    resource function info3 (http:Caller caller, http:Request req) {
+    resource function post info3(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"resourceDefaults"};
         res.setJsonPayload(responseJson);
@@ -187,17 +162,14 @@ service echo4 on corsConfigEP {
 }
 
 @http:ServiceConfig {
-    basePath:"/hello5",
     cors:{
         allowOrigins:["*"],
         allowMethods: ["*"]
     }
 }
-service defaultValues on corsConfigEP {
-    @http:ResourceConfig {
-        methods:["POST"]
-    }
-    resource function info1 (http:Caller caller, http:Request req) {
+service /hello5 on corsConfigEP {
+
+    resource function post info1(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo":"serviceDefaults"};
         res.setJsonPayload(responseJson);
@@ -444,7 +416,7 @@ function testPreFlightReqwithRestrictedMethodsServiceLevel() {
     var response = corsClient->options("/hello3/info1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
-        test:assertEquals(response.getHeader(ALLOW), "POST, PUT, OPTIONS", msg = "Found unexpected Header");
+        test:assertEquals(response.getHeader(ALLOW), "PUT, OPTIONS", msg = "Found unexpected Header");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

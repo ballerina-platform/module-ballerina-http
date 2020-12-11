@@ -24,15 +24,9 @@ listener http:Listener utTestEPWithNoServicesAttached = new(uriTemplateTest2);
 http:Client utClient1 = new("http://localhost:" + uriTemplateTest1.toString());
 http:Client utClient2 = new("http://localhost:" + uriTemplateTest2.toString());
 
-@http:ServiceConfig {
-    basePath:"/ecommerceservice"
-}
-service Ecommerce on utTestEP {
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/products/{productId}/{regId}"
-    }
-    resource function productsInfo1 (http:Caller caller, http:Request req, string productId, string regId) {
+service /ecommerceservice on utTestEP {
+
+    resource function get products/[string productId]/[string regId](http:Caller caller, http:Request req) {
         string orderId = req.getHeader("X-ORDER-ID");
         io:println("Order ID " + orderId);
         io:println("Product ID " + productId);
@@ -45,11 +39,7 @@ service Ecommerce on utTestEP {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/products2/{productId}/{regId}/item"
-    }
-    resource function productsInfo2 (http:Caller caller, http:Request req, string productId, string regId) {
+    resource function get products2/[string productId]/[string regId]/item(http:Caller caller) {
         json responseJson;
         io:println("Product ID " + productId);
         io:println("Reg ID " + regId);
@@ -61,11 +51,7 @@ service Ecommerce on utTestEP {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/products3/{productId}/{regId}/*"
-    }
-    resource function productsInfo3 (http:Caller caller, http:Request req, string productId, string regId) {
+    resource function get products3/[string productId]/[string regId]/[string... extra](http:Caller caller) {
         json responseJson;
         io:println("Product ID " + productId);
         io:println("Reg ID " + regId);
@@ -77,11 +63,7 @@ service Ecommerce on utTestEP {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/products/{productId}"
-    }
-    resource function productsInfo4 (http:Caller caller, http:Request req, string productId) {
+    resource function get products/[string productId] (http:Caller caller, http:Request req) {
         json responseJson;
         map<string[]> qParams = req.getQueryParams();
         string[]? rID = qParams["regID"];
@@ -96,11 +78,7 @@ service Ecommerce on utTestEP {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/products"
-    }
-    resource function productsInfo6 (http:Caller caller, http:Request req) {
+    resource function get products(http:Caller caller, http:Request req) {
         json responseJson;
         map<string[]> params = req.getQueryParams();
         string[]? prdID = params["prodID"];
@@ -117,11 +95,7 @@ service Ecommerce on utTestEP {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/products5/{productId}/reg"
-    }
-    resource function productsInfo5 (http:Caller caller, http:Request req, string productId) {
+    resource function get products5/[string productId]/reg(http:Caller caller, http:Request req) {
         json responseJson;
         map<string[]> params = req.getQueryParams();
         string[]? rID = params["regID"];
@@ -136,10 +110,7 @@ service Ecommerce on utTestEP {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        path:""
-    }
-    resource function echo1 (http:Caller caller, http:Request req) {
+    resource function 'default echo1(http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo11":"echo11"};
         res.setJsonPayload(responseJson);
@@ -147,79 +118,48 @@ service Ecommerce on utTestEP {
     }
 }
 
-@http:ServiceConfig {
-    basePath:"/options"
-}
-service echo111 on utTestEP {
+service /options on utTestEP {
 
-    @http:ResourceConfig {
-        methods:["POST", "UPDATE"],
-        path : "/test"
-    }
-    resource function productsInfo99 (http:Caller caller, http:Request req) {
+    resource function post test(http:Caller caller) {
         http:Response res = new;
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["OPTIONS"],
-        path : "/hi"
-    }
-    resource function productsOptions (http:Caller caller, http:Request req) {
+    resource function options hi(http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo":"wso2"};
         res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["GET", "PUT"],
-        path : "/test"
-    }
-    resource function productsInfo98 (http:Caller caller, http:Request req) {
+    resource function get test(http:Caller caller) {
         http:Response res = new;
         checkpanic caller->respond(res);
 
     }
 
-    @http:ResourceConfig {
-        methods:["GET"],
-        path : "/getme"
-    }
-    resource function productsGet (http:Caller caller, http:Request req) {
+    resource function get getme(http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo":"get"};
         res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["POST"],
-        path : "/post"
-    }
-    resource function productsPOST (http:Caller caller, http:Request req) {
+    resource function post post(http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo":"post"};
         res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["PUT"],
-        path : "/put/add"
-    }
-    resource function productsPUT (http:Caller caller, http:Request req) {
+    resource function put put/add(http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo":"put"};
         res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods:["DELETE"],
-        path : "/put/{abc}"
-    }
-    resource function productsDELETE (http:Caller caller, http:Request req, string abc) {
+    resource function delete put/[string abc](http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo":"delete"};
         res.setJsonPayload(responseJson);
@@ -227,22 +167,12 @@ service echo111 on utTestEP {
     }
 }
 
-@http:ServiceConfig {
-    basePath:"/noResource"
-}
-service echo112 on utTestEP {
+service /noResource on utTestEP {
 }
 
-@http:ServiceConfig {
-    basePath:"hello/"
-}
-service serviceHello on utTestEP {
+service /hello on utTestEP {
 
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/test/"
-    }
-    resource function productsInfo (http:Caller caller, http:Request req) {
+    resource function get test(http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo":"sanitized"};
         res.setJsonPayload(responseJson);
@@ -250,39 +180,40 @@ service serviceHello on utTestEP {
     }
 }
 
-@http:ServiceConfig {
-    basePath:"/ech%5Bo"
-}
-service echo113 on utTestEP {
+// // Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/730
+// @http:ServiceConfig {
+//     basePath:"/ech%5Bo"
+// }
+// service echo113 on utTestEP {
 
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/ech%5Bo/{foo}"
-    }
-    resource function productsInfo (http:Caller caller, http:Request req, string foo) {
-        http:Response res = new;
-        json responseJson = {"echo113": foo};
-        res.setJsonPayload(<@untainted json> responseJson);
-        checkpanic caller->respond(res);
-    }
-}
+//     @http:ResourceConfig {
+//         methods:["GET"],
+//         path:"/ech%5Bo/{foo}"
+//     }
+//     resource function productsInfo (http:Caller caller, http:Request req, string foo) {
+//         http:Response res = new;
+//         json responseJson = {"echo113": foo};
+//         res.setJsonPayload(<@untainted json> responseJson);
+//         checkpanic caller->respond(res);
+//     }
+// }
 
-@http:ServiceConfig {
-    basePath:"/ech%5Bo14"
-}
-service echo114 on utTestEP {
+// @http:ServiceConfig {
+//     basePath:"/ech%5Bo14"
+// }
+// service echo114 on utTestEP {
 
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/ech%5Bo14/{foo}"
-    }
-    resource function productsInfo (http:Caller caller, http:Request req, string foo) {
-        http:Response res = new;
-        json responseJson = {"echo114": foo};
-        res.setJsonPayload(<@untainted json> responseJson);
-        checkpanic caller->respond(res);
-    }
-}
+//     @http:ResourceConfig {
+//         methods:["GET"],
+//         path:"/ech%5Bo14/{foo}"
+//     }
+//     resource function productsInfo (http:Caller caller, http:Request req, string foo) {
+//         http:Response res = new;
+//         json responseJson = {"echo114": foo};
+//         res.setJsonPayload(<@untainted json> responseJson);
+//         checkpanic caller->respond(res);
+//     }
+// }
 
 //Test accessing the variables parsed with URL. /products/{productId}/{regId}
 @test:Config{
@@ -411,7 +342,7 @@ function testUrlTemplateWithMultipleQueryParamDispatching() {
     }
 }
 
-//Test dispatching with URL. /products?productId={productId}&regID={regID}
+//Test dispatching with URL. /products?productId=[string productId]&regID={regID}
 @test:Config{}
 function testUrlTemplateWithMultipleQueryParamWithURIEncodeCharacterDispatching() {
     var response = utClient1->get("/ecommerceservice/products?prodID=PID%20123&regID=RID%20123");
@@ -500,7 +431,7 @@ function testOPTIONSWithMultiResources() {
     var response = utClient1->options("/options/test");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "POST, UPDATE, GET, PUT, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -512,7 +443,7 @@ function testOPTIONSAtRootPath() {
     var response = utClient1->options("/options");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "POST, UPDATE, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
+        test:assertEquals(response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -565,7 +496,8 @@ function testBasePathEndingWithSlash() {
     }
 }
 
-@test:Config{}
+// Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/730
+@test:Config{ enable:false }
 function testSpecialCharacterURI() {
     var response = utClient1->get("/ech%5Bo/ech%5Bo/b%5Bar");
     if (response is http:Response) {
@@ -575,7 +507,8 @@ function testSpecialCharacterURI() {
     }
 }
 
-@test:Config{}
+// Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/730
+@test:Config{ enable:false }
 function testSpecialCharacterEscapedURI() {
     var response = utClient1->get("/ech%5Bo14/ech%5Bo14/b%5Bar14");
     if (response is http:Response) {
