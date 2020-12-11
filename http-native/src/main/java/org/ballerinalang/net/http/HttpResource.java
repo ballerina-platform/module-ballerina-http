@@ -81,8 +81,10 @@ public class HttpResource {
         this.balResource = resource;
         this.parentService = parentService;
         this.producesSubTypes = new ArrayList<>();
-        this.populateResourcePath();
-        this.populateMethod();
+        if (balResource instanceof ResourceFunctionType) {
+            this.populateResourcePath();
+            this.populateMethod();
+        }
     }
 
     public boolean isTransactionAnnotated() {
