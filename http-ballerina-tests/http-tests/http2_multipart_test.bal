@@ -62,7 +62,7 @@ service multipartDemoService on new http:Listener(9100, { httpVersion: "2.0" }) 
         path: "/initial"
     }
     resource function requestInitializer(http:Caller caller, http:Request request) {
-        http:Response|http:Payload|error finalResponse;
+        http:Response|http:PayloadTypes|error finalResponse;
         http:Request req = new;
         if (request.getHeader("priorKnowledge") == "true") {
             req.setHeader("priorKnowledge", "true");
@@ -102,7 +102,7 @@ service multipartDemoService on new http:Listener(9100, { httpVersion: "2.0" }) 
         mime:Entity[] bodyParts = [jsonBodyPart, xmlFilePart, textPart];
         http:Request request = new;
         request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-        http:Response|http:Payload|error returnResponse;
+        http:Response|http:PayloadTypes|error returnResponse;
         if (req.getHeader("priorKnowledge") == "true") {
             returnResponse = priorKnowclientEP1->post("/multiparts/decode", request);
         } else {

@@ -44,7 +44,7 @@ service generalCases on ep {
     }
 }
 
-function handleResponse(http:Response|http:Payload|error result) returns string {
+function handleResponse(http:Response|http:PayloadTypes|error result) returns string {
     string response = "";
     if (result is http:Response) {
         response = "Call succeeded";

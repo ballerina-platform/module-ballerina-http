@@ -57,7 +57,7 @@ public client class CookieClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse = self.httpClient->get(path, message = request);
@@ -75,7 +75,7 @@ public client class CookieClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function post(string path, RequestMessage message, TargetType targetType = Response)
-            returns Response|Payload|ClientError {
+            returns Response|PayloadTypes|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse = self.httpClient->post(path, request);
@@ -113,7 +113,7 @@ public client class CookieClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function put(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse = self.httpClient->put(path, request);
@@ -130,7 +130,7 @@ public client class CookieClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function forward(string path, Request request, TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse = self.httpClient->forward(path, request);
         return addCookiesInResponseToStore(inboundResponse, self.cookieStore, self.cookieConfig, self.url, path);
@@ -148,7 +148,7 @@ public client class CookieClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse = self.httpClient->execute(httpVerb, path, request);
@@ -166,7 +166,7 @@ public client class CookieClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function patch(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse =  self.httpClient->patch(path, request);
@@ -184,7 +184,7 @@ public client class CookieClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse =  self.httpClient->delete(path, request);
@@ -202,7 +202,7 @@ public client class CookieClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse =  self.httpClient->options(path, message = request);
@@ -277,8 +277,8 @@ function addStoredCookiesToRequest(string url, string path, CookieStore? cookieS
 }
 
 // Gets the cookies from the inbound response, adds them to the cookies store, and returns the response.
-function addCookiesInResponseToStore(Response|Payload|ClientError inboundResponse, @tainted CookieStore?
-        cookieStore, CookieConfig cookieConfig, string url, string path) returns Response|Payload|ClientError {
+function addCookiesInResponseToStore(Response|PayloadTypes|ClientError inboundResponse, @tainted CookieStore?
+        cookieStore, CookieConfig cookieConfig, string url, string path) returns Response|PayloadTypes|ClientError {
     if (cookieStore is CookieStore && inboundResponse is Response) {
         Cookie[] cookiesInResponse = inboundResponse.getCookies();
         cookieStore.addCookies(cookiesInResponse, cookieConfig, url, path );

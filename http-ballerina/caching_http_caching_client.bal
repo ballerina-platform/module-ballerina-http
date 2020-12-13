@@ -62,7 +62,7 @@ public client class HttpCachingClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function post(string path, RequestMessage message, TargetType targetType = Response)
-            returns Response|Payload|ClientError {
+            returns Response|PayloadTypes|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -98,7 +98,7 @@ public client class HttpCachingClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function put(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -121,7 +121,7 @@ public client class HttpCachingClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function execute(string httpMethod, string path, RequestMessage message,
-            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
+            TargetType targetType = Response) returns @tainted Response|PayloadTypes|ClientError {
         Request request = <Request>message;
         setRequestCacheControlHeader(request);
 
@@ -148,7 +148,7 @@ public client class HttpCachingClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function patch(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -170,7 +170,7 @@ public client class HttpCachingClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -192,7 +192,7 @@ public client class HttpCachingClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
         return getCachedResponse(self.cache, self.httpClient, req, HTTP_GET, path, self.cacheConfig.isShared, false);
@@ -209,7 +209,7 @@ public client class HttpCachingClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -230,7 +230,7 @@ public client class HttpCachingClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function forward(string path, @tainted Request request, TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadTypes|ClientError {
         if (request.method == HTTP_GET || request.method == HTTP_HEAD) {
             return getCachedResponse(self.cache, self.httpClient, request, request.method, path,
                                      self.cacheConfig.isShared, true);
@@ -371,7 +371,7 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
             cache.put(<@untainted> getCacheKey(httpMethod, path), <@untainted> req.cacheControl, <@untainted> response);
         }
         return response;
-    } else if (response is Payload) {
+    } else if (response is PayloadTypes) {
         panic getIllegalDataBindingStateError();
     } else {
         return response;
@@ -402,7 +402,7 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
 }
 
 function sendNewRequest(HttpClient httpClient, Request request, string path, string httpMethod, boolean forwardRequest)
-                                                                returns @tainted Response|Payload|ClientError {
+                                                                returns @tainted Response|PayloadTypes|ClientError {
     if (forwardRequest) {
         return httpClient->forward(path, request);
     }

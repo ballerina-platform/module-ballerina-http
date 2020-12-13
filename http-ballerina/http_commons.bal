@@ -269,7 +269,7 @@ isolated function getIllegalDataBindingStateError() returns IllegalDataBindingSt
     return payloadRetrievalErr;
 }
 
-isolated function getResponseOrError(Response|Payload|ClientError result) returns HttpResponse|ClientError {
+isolated function getResponseOrError(Response|PayloadTypes|ClientError result) returns HttpResponse|ClientError {
     if (result is HttpResponse|ClientError) {
         return result;
     } else {

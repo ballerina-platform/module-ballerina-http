@@ -150,7 +150,7 @@ type HttpParamOrderConfig record {|
 annotation HttpParamOrderConfig ParamOrderConfig on object function;
 
 public type PayloadParam record {|
-    string mediaType;
+    string[] mediaType;
 |};
 
 # The annotation which is used to define the entity body parameter.
