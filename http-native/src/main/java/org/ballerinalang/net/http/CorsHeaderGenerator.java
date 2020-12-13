@@ -185,7 +185,7 @@ public class CorsHeaderGenerator {
             return null;
         }
         for (HttpResource resource : resources) {
-            if (resource.getMethods().contains(requestMethod)) {
+            if (resource.getMethods() != null && resource.getMethods().contains(requestMethod)) {
                 return resource.getCorsHeaders();
             }
         }
@@ -193,7 +193,7 @@ public class CorsHeaderGenerator {
             return null;
         }
         for (HttpResource resource : resources) {
-            if (resource.getMethods().contains(HttpConstants.HTTP_METHOD_GET)) {
+            if (resource.getMethods() != null && resource.getMethods().contains(HttpConstants.HTTP_METHOD_GET)) {
                 return resource.getCorsHeaders();
             }
         }

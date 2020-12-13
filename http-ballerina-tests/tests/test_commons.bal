@@ -54,6 +54,8 @@ const string APPLICATION_XML = "application/xml";
 const string APPLICATION_JSON = "application/json";
 const string APPLICATION_FORM = "application/x-www-form-urlencoded";
 
+const string errorMessage = "Found an unexpected output:";
+
 
 function getContentDispositionForFormData(string partName)
                                     returns (mime:ContentDisposition) {

@@ -57,7 +57,6 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         List<String> newMethods = newResource.getMethods();
         if (newMethods == null) {
             for (HttpResource previousResource : this.resource) {
-                //TODO sl can remove this. check this logic - chamil
                 if (previousResource.getMethods() == null) {
                     //if both resources do not have methods but same URI, then throw following error.
                     throw HttpUtil.createHttpError("Two resources have the same addressable URI, "
@@ -119,7 +118,6 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             }
         }
         if (httpResource == null) {
-            //TODO check the logic sl - chamil
             httpResource = tryMatchingToDefaultVerb(resources);
         }
         if (httpResource == null) {
@@ -138,7 +136,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
     private HttpResource tryMatchingToDefaultVerb(List<HttpResource> resources) {
         for (HttpResource resourceInfo : resources) {
             if (resourceInfo.getMethods() == null) {
-                //this means, no method mentioned in the dataElement, hence it has all the methods by default.
+                //this means, wildcard method mentioned in the dataElement, hence it has all the methods by default.
                 return resourceInfo;
             }
         }
@@ -157,7 +155,9 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         List<String> methods = new ArrayList<>();
         List<HttpResource> resourceInfos = new ArrayList<>();
         for (HttpResource resourceInfo : resources) {
-            methods.addAll(resourceInfo.getMethods());
+            if (resourceInfo.getMethods() != null) {
+                methods.addAll(resourceInfo.getMethods());
+            }
             resourceInfos.add(resourceInfo);
         }
         cMsg.setProperty(HttpConstants.PREFLIGHT_RESOURCES, resourceInfos);

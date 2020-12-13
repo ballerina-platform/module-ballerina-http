@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.signature.ParamHandler;
+import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,11 +57,6 @@ public class HttpResource {
     private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
     private static final BString HTTP_RESOURCE_CONFIG =
             StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_RESOURCE_CONFIG);
-    private static final List<String> ALL_STANDARD_ACCESSORS =
-            Arrays.asList(HttpConstants.HTTP_METHOD_GET, HttpConstants.HTTP_METHOD_HEAD,
-                          HttpConstants.HTTP_METHOD_PATCH, HttpConstants.HTTP_METHOD_OPTIONS,
-                          HttpConstants.HTTP_METHOD_POST, HttpConstants.HTTP_METHOD_DELETE,
-                          HttpConstants.HTTP_METHOD_PUT);
 
     private MemberFunctionType balResource;
     private List<String> methods;
@@ -115,10 +111,12 @@ public class HttpResource {
         return methods;
     }
 
-    public void populateMethod() {
+    private void populateMethod() {
         String accessor = getBalResource().getAccessor();
         if (HttpConstants.DEFAULT_HTTP_METHOD.equals(accessor.toLowerCase(Locale.getDefault()))) {
-            this.methods = ALL_STANDARD_ACCESSORS;
+            // TODO: Fix this properly
+            // setting method as null means that no specific method. Resource is exposed for any method match
+            this.methods = null;
         } else {
             this.methods = Collections.singletonList(accessor.toUpperCase(Locale.getDefault()));
         }
@@ -146,7 +144,7 @@ public class HttpResource {
                 // default set as "/"
                 break;
             } else {
-                resourcePath.append(segment);
+                resourcePath.append(HttpUtil.unescapeAndEncodeValue(segment));
             }
         }
         this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
@@ -272,14 +270,18 @@ public class HttpResource {
             return;
         }
 
-        corsHeaders.setAllowMethods(resource.getMethods());
+        if (resource.getMethods() != null) {
+            corsHeaders.setAllowMethods(resource.getMethods());
+            return;
+        }
+        corsHeaders.setAllowMethods(DispatcherUtil.addAllMethods());
     }
 
     private void prepareAndValidateSignatureParams() {
         signatureParams = new ParamHandler(this, this.pathParamCount);
     }
 
-    public String getWildcardToken() {
+    String getWildcardToken() {
         return wildcardToken;
     }
 
@@ -289,9 +291,7 @@ public class HttpResource {
     }
 
     public List<Type> getParamTypes() {
-        List<Type> paramTypes = new ArrayList<>();
-        paramTypes.addAll(Arrays.asList(this.balResource.getParameterTypes()));
-        return paramTypes;
+        return new ArrayList<>(Arrays.asList(this.balResource.getParameterTypes()));
     }
 
     public RemoteFunctionType getRemoteFunction() {

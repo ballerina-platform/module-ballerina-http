@@ -87,9 +87,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -132,6 +135,7 @@ import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABL
 import static org.ballerinalang.net.http.HttpConstants.AUTO;
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_MANAGER;
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION;
+import static org.ballerinalang.net.http.HttpConstants.DOUBLE_SLASH;
 import static org.ballerinalang.net.http.HttpConstants.ENABLED_PROTOCOLS;
 import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_CERTIFICATE;
 import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_DISABLE_SSL;
@@ -1437,7 +1441,7 @@ public class HttpUtil {
     }
 
     public static String sanitizeBasePath(String basePath) {
-        basePath = basePath.trim();
+        basePath = basePath.trim().replace(DOUBLE_SLASH, HttpConstants.SINGLE_SLASH);
 
         if (!basePath.startsWith(HttpConstants.DEFAULT_BASE_PATH)) {
             basePath = HttpConstants.DEFAULT_BASE_PATH.concat(basePath);
@@ -1754,6 +1758,30 @@ public class HttpUtil {
         String serviceTypeName = balService.getType().getName();
         int serviceIndex = serviceTypeName.lastIndexOf("$$service$");
         return serviceTypeName.substring(0, serviceIndex);
+    }
+
+    /**
+     * This method will remove the escape character "\" from a string and encode it. This is used for both basePath and
+     * resource path sanitization. When the special chars are present in those paths, user can escape them in order to
+     * get through the compilation phrase. Then listener sanitize and register paths in both basePath map and resource
+     * syntax tree using encoded values as during the dispatching, the path matches with raw path.
+     *
+     * @param segment path segment
+     * @return encoded value
+     */
+    public static String unescapeAndEncodeValue(String segment) {
+        if (!segment.contains("\\")) {
+            return segment;
+        }
+        return encodeString(segment.replace("\\", ""));
+    }
+
+    public static String encodeString(String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.name()).replaceAll("\\+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new BallerinaConnectorException("Error while encoding value: " + value, e);
+        }
     }
 
     private HttpUtil() {
