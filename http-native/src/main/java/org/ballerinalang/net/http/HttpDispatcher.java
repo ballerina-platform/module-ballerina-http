@@ -37,6 +37,7 @@ import org.ballerinalang.net.http.signature.AllQueryParams;
 import org.ballerinalang.net.http.signature.NonRecurringParam;
 import org.ballerinalang.net.http.signature.ParamHandler;
 import org.ballerinalang.net.http.signature.Parameter;
+import org.ballerinalang.net.http.signature.PayloadParam;
 import org.ballerinalang.net.http.signature.QueryParam;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.URIUtil;
@@ -50,6 +51,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
+import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
+import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
+import static io.ballerina.runtime.api.TypeTags.FLOAT_TAG;
+import static io.ballerina.runtime.api.TypeTags.INT_TAG;
+import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
+import static org.ballerinalang.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.DEFAULT_HOST;
 
 /**
@@ -158,11 +166,11 @@ public class HttpDispatcher {
 
     public static Object[] getSignatureParameters(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
                                                   BMap<BString, Object> endpointConfig) {
-        ParamHandler signatureParams = httpResource.getSignatureParams();
+        BObject inRequest = null;
+        ParamHandler paramHandler = httpResource.getParamHandler();
         int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
-
-        int pathParamCount = signatureParams.getPathParamTokens().length;
+        int pathParamCount = paramHandler.getPathParamTokens().length;
         // Path params are located initially in the signature before the other user provided signature params
         if (pathParamCount != 0) {
             // populate path params
@@ -172,7 +180,7 @@ public class HttpDispatcher {
             populatePathParams(httpResource, paramFeed, resourceArgumentValues, pathParamCount);
         }
         // Following was written assuming that they are validated
-        for (Parameter param : signatureParams.getOtherParamList()) {
+        for (Parameter param : paramHandler.getOtherParamList()) {
             String typeName = param.getTypeName();
             switch (typeName) {
                 case HttpConstants.CALLER:
@@ -181,39 +189,32 @@ public class HttpDispatcher {
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.REQUEST:
+                    if (inRequest == null) {
+                        inRequest = createRequest(httpCarbonMessage);
+                    }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = createRequest(httpCarbonMessage);
+                    paramFeed[index++] = inRequest;
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.QUERY_PARAM:
-                    populateQueryParams(httpCarbonMessage, signatureParams, paramFeed, (AllQueryParams) param);
+                    populateQueryParams(httpCarbonMessage, paramHandler, paramFeed, (AllQueryParams) param);
+                    break;
+                case HttpConstants.PAYLOAD_PARAM:
+                    if (inRequest == null) {
+                        inRequest = createRequest(httpCarbonMessage);
+                    }
+                    populatePayloadParam(inRequest, httpCarbonMessage, paramFeed, (PayloadParam) param);
                     break;
                 default:
                     break;
             }
         }
-
-//        if (signatureParams.getParamCount() == COMPULSORY_PARAM_COUNT) {
-//            return paramFeed;
-//        }
-//
-//        if (signatureParams.getEntityBody() == null) {
-//            return paramFeed;
-//        }
-//        try {
-//            paramFeed[paramFeed.length - 2] = populateAndGetEntityBody(inRequest, inRequestEntity,
-//                                                                   signatureParams.getEntityBody());
-//            paramFeed[paramFeed.length - 1] = true;
-//        } catch (Exception ex) {
-//            httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-//            throw new BallerinaConnectorException("data binding failed: " + ex.getMessage());
-//        }
         return paramFeed;
     }
 
-    private static void populateQueryParams(HttpCarbonMessage httpCarbonMessage, ParamHandler signatureParams,
+    private static void populateQueryParams(HttpCarbonMessage httpCarbonMessage, ParamHandler paramHandler,
                                             Object[] paramFeed, AllQueryParams queryParams) {
-        BMap<BString, Object> urlQueryParams = signatureParams
+        BMap<BString, Object> urlQueryParams = paramHandler
                 .getQueryParams(httpCarbonMessage.getProperty(HttpConstants.RAW_QUERY_STR));
         for (QueryParam queryParam : queryParams.getAllQueryParams()) {
             String token = queryParam.getToken();
@@ -232,31 +233,31 @@ public class HttpDispatcher {
             try {
                 BArray queryValueArr = (BArray) queryValue;
                 switch (queryParam.getTypeTag()) {
-                    case TypeTags.INT_TAG:
+                    case INT_TAG:
                         String value = queryValueArr.getBString(0).getValue();
                         paramFeed[index++] = Long.parseLong(value);
                         break;
-                    case TypeTags.FLOAT_TAG:
+                    case FLOAT_TAG:
                         value = queryValueArr.getBString(0).getValue();
                         paramFeed[index++] = Double.parseDouble(value);
                         break;
-                    case TypeTags.BOOLEAN_TAG:
+                    case BOOLEAN_TAG:
                         value = queryValueArr.getBString(0).getValue();
                         paramFeed[index++] = Boolean.parseBoolean(value);
                         break;
-                    case TypeTags.DECIMAL_TAG:
+                    case DECIMAL_TAG:
                         value = queryValueArr.getBString(0).getValue();
                         paramFeed[index++] = ValueCreator.createDecimalValue(value);
                         break;
-                    case TypeTags.ARRAY_TAG:
+                    case ARRAY_TAG:
                         int elementTypeTag = ((ArrayType) queryParam.getType()).getElementType().getTag();
-                        if (elementTypeTag == TypeTags.INT_TAG) {
+                        if (elementTypeTag == INT_TAG) {
                             paramFeed[index++] = getBArray(queryValueArr, INT_ARRAY, elementTypeTag);
-                        } else if (elementTypeTag == TypeTags.FLOAT_TAG) {
+                        } else if (elementTypeTag == FLOAT_TAG) {
                             paramFeed[index++] = getBArray(queryValueArr, FLOAT_ARRAY, elementTypeTag);
-                        } else if (elementTypeTag == TypeTags.BOOLEAN_TAG) {
+                        } else if (elementTypeTag == BOOLEAN_TAG) {
                             paramFeed[index++] = getBArray(queryValueArr, BOOLEAN_ARRAY, elementTypeTag);
-                        } else if (elementTypeTag == TypeTags.DECIMAL_TAG) {
+                        } else if (elementTypeTag == DECIMAL_TAG) {
                             paramFeed[index++] = getBArray(queryValueArr, DECIMAL_ARRAY, elementTypeTag);
                         } else {
                             paramFeed[index++] = queryValueArr;
@@ -278,16 +279,16 @@ public class HttpDispatcher {
         int index = 0;
         for (String element : queryValueArr.getStringArray()) {
             switch (elementTypeTag) {
-                case TypeTags.INT_TAG:
+                case INT_TAG:
                     arrayValue.add(index++, Long.parseLong(element));
                     break;
-                case TypeTags.FLOAT_TAG:
+                case FLOAT_TAG:
                     arrayValue.add(index++, Double.parseDouble(element));
                     break;
-                case TypeTags.BOOLEAN_TAG:
+                case BOOLEAN_TAG:
                     arrayValue.add(index++, Boolean.parseBoolean(element));
                     break;
-                case TypeTags.DECIMAL_TAG:
+                case DECIMAL_TAG:
                     arrayValue.add(index++, ValueCreator.createDecimalValue(element));
                     break;
                 default:
@@ -329,20 +330,20 @@ public class HttpDispatcher {
             Type signatureParamType = httpResource.getBalResource().getParameterTypes()[actualSignatureParamIndex++];
             try {
                 switch (signatureParamType.getTag()) {
-                    case TypeTags.INT_TAG:
+                    case INT_TAG:
                         paramFeed[paramIndex++] = Long.parseLong(argumentValue);
                         break;
-                    case TypeTags.FLOAT_TAG:
+                    case FLOAT_TAG:
                         paramFeed[paramIndex++] = Double.parseDouble(argumentValue);
                         break;
-                    case TypeTags.BOOLEAN_TAG:
+                    case BOOLEAN_TAG:
                         paramFeed[paramIndex++] = Boolean.parseBoolean(argumentValue);
                         break;
-                    case TypeTags.DECIMAL_TAG:
+                    case DECIMAL_TAG:
                         paramFeed[paramIndex++] = ValueCreator.createDecimalValue(argumentValue);
                         break;
-                    case TypeTags.ARRAY_TAG:
-                        if (((ArrayType) signatureParamType).getElementType().getTag() == TypeTags.STRING_TAG) {
+                    case ARRAY_TAG:
+                        if (((ArrayType) signatureParamType).getElementType().getTag() == STRING_TAG) {
                             String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
                             paramFeed[paramIndex++] = StringUtils.fromStringArray(segments);
                         }
@@ -365,44 +366,53 @@ public class HttpDispatcher {
         arguments.putIfAbsent(wildcardToken, wildcardPathSegment);
     }
 
-    private static Object populateAndGetEntityBody(BObject inRequest, BObject inRequestEntity,
-                                                   io.ballerina.runtime.api.types.Type entityBodyType)
-            throws IOException {
+    private static void populatePayloadParam(BObject inRequest,
+                                             HttpCarbonMessage httpCarbonMessage,
+                                             Object[] paramFeed, PayloadParam payloadParam) {
+        BObject inRequestEntity = (BObject) inRequest.get(REQUEST_ENTITY_FIELD);
         HttpUtil.populateEntityBody(inRequest, inRequestEntity, true, true);
+        int index = payloadParam.getIndex();
+        Type payloadType = payloadParam.getType();
         try {
-            switch (entityBodyType.getTag()) {
-                case TypeTags.STRING_TAG:
+            switch (payloadType.getTag()) {
+                case STRING_TAG:
                     BString stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
                     EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
-                    return stringDataSource;
+                    paramFeed[index++] = stringDataSource;
+                    break;
                 case TypeTags.JSON_TAG:
                     Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
                     EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
-                    return bjson;
+                    paramFeed[index++] = bjson;
+                    break;
                 case TypeTags.XML_TAG:
                     BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
                     EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
-                    return bxml;
-                case TypeTags.ARRAY_TAG:
-                    if (((ArrayType) entityBodyType).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                    paramFeed[index++] = bxml;
+                    break;
+                case ARRAY_TAG:
+                    if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
                         BArray blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
                         EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
-                        return blobDataSource;
-                    } else if (((ArrayType) entityBodyType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
-                        return getRecordEntity(inRequestEntity, entityBodyType);
+                        paramFeed[index++] = blobDataSource;
+                    } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
+                        paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
                     } else {
                         throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
-                                ((ArrayType) entityBodyType).getElementType().getName());
+                                        ((ArrayType) payloadType).getElementType().getName());
                     }
+                    break;
                 case TypeTags.RECORD_TYPE_TAG:
-                    return getRecordEntity(inRequestEntity, entityBodyType);
+                    paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
+                    break;
                 default:
                         //Do nothing
             }
-        } catch (BError ex) {
-            throw new BallerinaConnectorException(ex.toString());
+            paramFeed[index] = true;
+        } catch (BError | IOException ex) {
+            httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+            throw new BallerinaConnectorException("data binding failed: " + ex.toString());
         }
-        return null;
     }
 
     private static Object getRecordEntity(BObject inRequestEntity, Type entityBodyType) {
@@ -442,7 +452,7 @@ public class HttpDispatcher {
     }
 
     public static boolean shouldDiffer(HttpResource httpResource) {
-        return (httpResource != null && httpResource.getSignatureParams().getEntityBody() != null);
+        return (httpResource != null && httpResource.getParamHandler().isPayloadBindingRequired());
     }
 
     private HttpDispatcher() {

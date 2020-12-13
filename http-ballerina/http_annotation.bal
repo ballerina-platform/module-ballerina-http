@@ -149,9 +149,22 @@ type HttpParamOrderConfig record {|
 //# The annotation which is used to configure an path param order.
 annotation HttpParamOrderConfig ParamOrderConfig on object function;
 
-public type PayloadParam record {|
-    string[] mediaType;
+# Defines the Payload resource signature parameter and return parameter.
+#
+# + mediaType - Specifies the allowed media types of the corresponding payload type
+public type Payload record {|
+    string[] mediaType = [];
 |};
 
-# The annotation which is used to define the entity body parameter.
-public annotation PayloadParam on parameter;
+# The annotation which is used to define the Payload resource signature parameter and return parameter.
+public annotation Payload on parameter;
+
+# Configures the typing details type of the Caller resource signature parameter.
+#
+# + respondType - Specifies the allowed media types of the corresponding payload type
+public type CallerInfo record {|
+    string respondType;
+|};
+
+# The annotation which is used to configure the Caller resource signature parameter.
+public annotation CallerInfo on parameter;

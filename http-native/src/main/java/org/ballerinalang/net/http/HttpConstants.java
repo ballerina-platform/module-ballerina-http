@@ -140,6 +140,8 @@ public class HttpConstants {
     public static final String ANN_NAME_PARAM_ORDER_CONFIG = "ParamOrderConfig";
     public static final BString ANN_FIELD_PATH_PARAM_ORDER = StringUtils.fromString("pathParamOrder");
     public static final BString ANN_FIELD_ALL_PARAM_ORDER = StringUtils.fromString("allParamOrder");
+    public static final String ANN_NAME_PAYLOAD = "Payload";
+    public static final String ANN_NAME_CALLER = "Caller";
     public static final String DIRTY_RESPONSE = "dirtyResponse";
 
     public static final String VALUE_ATTRIBUTE = "value";
@@ -181,6 +183,7 @@ public class HttpConstants {
     public static final String CLOSE_CURL_IDENTIFIER = "}";
     public static final String DOT_IDENTIFIER = ".";
     public static final String QUERY_PARAM = "query";
+    public static final String PAYLOAD_PARAM = "payload";
 
     /* Annotations */
     public static final String ANNOTATION_NAME_SOURCE = "Source";
