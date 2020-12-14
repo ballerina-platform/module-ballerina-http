@@ -121,7 +121,7 @@ public client class FoMockClient {
 
     remote function post(string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message,
-                           http:TargetType targetType = http:Response) returns http:Response|http:PayloadTypes|http:ClientError {
+                           http:TargetType targetType = http:Response) returns http:Response|http:PayloadType|http:ClientError {
         return getUnsupportedFOError();
     }
 
@@ -131,32 +131,32 @@ public client class FoMockClient {
     }
 
     remote function put(string path, http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|()
-            message, http:TargetType targetType = http:Response) returns http:Response|http:PayloadTypes|http:ClientError
+            message, http:TargetType targetType = http:Response) returns http:Response|http:PayloadType|http:ClientError
              {
         return getUnsupportedFOError();
     }
 
     remote function execute(string httpVerb, string path,
                                    http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|()
-                                        message, http:TargetType targetType = http:Response) returns http:Response|http:PayloadTypes|http:ClientError {
+                                        message, http:TargetType targetType = http:Response) returns http:Response|http:PayloadType|http:ClientError {
         return getUnsupportedFOError();
     }
 
     remote function patch(string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message, http:TargetType targetType = http:Response)
-                                                                                returns http:Response|http:PayloadTypes|http:ClientError {
+                                                                                returns http:Response|http:PayloadType|http:ClientError {
         return getUnsupportedFOError();
     }
 
     remote function delete(string path,
                            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message, http:TargetType targetType = http:Response)
-                                                                                returns http:Response|http:PayloadTypes|http:ClientError {
+                                                                                returns http:Response|http:PayloadType|http:ClientError {
         return getUnsupportedFOError();
     }
 
     remote function get(string path,
                             http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message, http:TargetType targetType = http:Response)
-                                                                                returns http:Response|http:PayloadTypes|http:ClientError {
+                                                                                returns http:Response|http:PayloadType|http:ClientError {
         http:Response response = new;
         var result = handleFailoverScenario(counter);
         if (result is http:Response) {
@@ -171,11 +171,11 @@ public client class FoMockClient {
 
     remote function options(string path,
            http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = (), http:TargetType targetType = http:Response)
-                                                                                returns http:Response|http:PayloadTypes|http:ClientError {
+                                                                                returns http:Response|http:PayloadType|http:ClientError {
         return getUnsupportedFOError();
     }
 
-    remote function forward(string path, http:Request req, http:TargetType targetType = http:Response) returns http:Response|http:PayloadTypes|http:ClientError {
+    remote function forward(string path, http:Request req, http:TargetType targetType = http:Response) returns http:Response|http:PayloadType|http:ClientError {
         return getUnsupportedFOError();
     }
 

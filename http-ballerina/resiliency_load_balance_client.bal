@@ -60,7 +60,7 @@ public client class LoadBalanceClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
-                returns @tainted Response|PayloadTypes|ClientError {
+                returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_POST);
     }
@@ -87,7 +87,7 @@ public client class LoadBalanceClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function patch(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadTypes|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_PATCH);
     }
@@ -102,7 +102,7 @@ public client class LoadBalanceClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function put(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadTypes|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_PUT);
     }
@@ -117,7 +117,7 @@ public client class LoadBalanceClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadTypes|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_OPTIONS);
     }
@@ -131,7 +131,7 @@ public client class LoadBalanceClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function forward(string path, Request request, TargetType targetType = Response)
-            returns @tainted Response|PayloadTypes|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         return performLoadBalanceAction(self, path, request, HTTP_FORWARD);
     }
 
@@ -147,7 +147,7 @@ public client class LoadBalanceClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadTypes|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceExecuteAction(self, path, req, httpVerb);
     }
@@ -162,7 +162,7 @@ public client class LoadBalanceClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadTypes|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_DELETE);
     }
@@ -177,7 +177,7 @@ public client class LoadBalanceClient {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadTypes|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         return performLoadBalanceAction(self, path, req, HTTP_GET);
     }
