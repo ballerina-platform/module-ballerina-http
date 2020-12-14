@@ -109,7 +109,7 @@ service /echo on dataBindingEP {
 }
 
 http:Service multipleAnnot1 = service object {
-    resource function get annot(@http:Payload {} @http:CallerInfo string payload) {
+    resource function get annot(@http:Payload {} @http:CallerInfo {} string payload) {
         //...
     }
 };

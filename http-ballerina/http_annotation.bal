@@ -160,11 +160,8 @@ public type HttpPayload record {|
 public annotation HttpPayload Payload on parameter;
 
 # Configures the typing details type of the Caller resource signature parameter.
-#
-# + respondType - Specifies the allowed media types of the corresponding payload type
-public type CallerInfo record {|
-    string respondType;
+public type HttpCallerInfo record {|
 |};
 
-# The annotation which is used to configure the Caller resource signature parameter.
-public annotation CallerInfo on parameter;
+# The annotation which is used to configure the type of the response.
+public annotation HttpCallerInfo CallerInfo on parameter;
