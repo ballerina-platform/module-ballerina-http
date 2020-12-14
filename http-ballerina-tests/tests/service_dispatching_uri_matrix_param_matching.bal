@@ -53,10 +53,6 @@ service /hello on matrixEP {
         checkpanic caller->respond(res);
     }
 
-    // @http:ResourceConfig {
-    //     methods:["GET"],
-    //     path:"/t2/[string person]/foo%3Ba%3D5%3Bb%3D10"
-    // }
     resource function get t2/[string person]/foo\;a\=5\;b\=10(http:Caller caller, http:Request req) {
         http:Response res = new;
         map<json> outJson = {};
