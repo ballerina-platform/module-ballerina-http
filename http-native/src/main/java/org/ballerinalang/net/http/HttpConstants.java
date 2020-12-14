@@ -141,7 +141,7 @@ public class HttpConstants {
     public static final BString ANN_FIELD_PATH_PARAM_ORDER = StringUtils.fromString("pathParamOrder");
     public static final BString ANN_FIELD_ALL_PARAM_ORDER = StringUtils.fromString("allParamOrder");
     public static final String ANN_NAME_PAYLOAD = "Payload";
-    public static final String ANN_NAME_CALLER = "Caller";
+    public static final String ANN_NAME_CALLER_INFO = "CallerInfo";
     public static final String DIRTY_RESPONSE = "dirtyResponse";
 
     public static final String VALUE_ATTRIBUTE = "value";

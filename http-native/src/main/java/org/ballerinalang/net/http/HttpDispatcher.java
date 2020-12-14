@@ -67,10 +67,10 @@ import static org.ballerinalang.net.http.HttpConstants.DEFAULT_HOST;
  */
 public class HttpDispatcher {
 
-    private static final ArrayType INT_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
-    private static final ArrayType FLOAT_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
-    private static final ArrayType BOOLEAN_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
-    private static final ArrayType DECIMAL_ARRAY = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
+    private static final ArrayType INT_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
+    private static final ArrayType FLOAT_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
+    private static final ArrayType BOOLEAN_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
+    private static final ArrayType DECIMAL_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
 
     public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg) {
         try {
@@ -232,40 +232,11 @@ public class HttpDispatcher {
             }
             try {
                 BArray queryValueArr = (BArray) queryValue;
-                switch (queryParam.getTypeTag()) {
-                    case INT_TAG:
-                        String value = queryValueArr.getBString(0).getValue();
-                        paramFeed[index++] = Long.parseLong(value);
-                        break;
-                    case FLOAT_TAG:
-                        value = queryValueArr.getBString(0).getValue();
-                        paramFeed[index++] = Double.parseDouble(value);
-                        break;
-                    case BOOLEAN_TAG:
-                        value = queryValueArr.getBString(0).getValue();
-                        paramFeed[index++] = Boolean.parseBoolean(value);
-                        break;
-                    case DECIMAL_TAG:
-                        value = queryValueArr.getBString(0).getValue();
-                        paramFeed[index++] = ValueCreator.createDecimalValue(value);
-                        break;
-                    case ARRAY_TAG:
-                        int elementTypeTag = ((ArrayType) queryParam.getType()).getElementType().getTag();
-                        if (elementTypeTag == INT_TAG) {
-                            paramFeed[index++] = getBArray(queryValueArr, INT_ARRAY, elementTypeTag);
-                        } else if (elementTypeTag == FLOAT_TAG) {
-                            paramFeed[index++] = getBArray(queryValueArr, FLOAT_ARRAY, elementTypeTag);
-                        } else if (elementTypeTag == BOOLEAN_TAG) {
-                            paramFeed[index++] = getBArray(queryValueArr, BOOLEAN_ARRAY, elementTypeTag);
-                        } else if (elementTypeTag == DECIMAL_TAG) {
-                            paramFeed[index++] = getBArray(queryValueArr, DECIMAL_ARRAY, elementTypeTag);
-                        } else {
-                            paramFeed[index++] = queryValueArr;
-                        }
-                        break;
-                    default:
-                        paramFeed[index++] = queryValueArr.getBString(0);
-                        break;
+                if (queryParam.getTypeTag() == ARRAY_TAG) {
+                    int elementTypeTag = ((ArrayType) queryParam.getType()).getElementType().getTag();
+                    paramFeed[index++] = castParamArray(elementTypeTag, queryValueArr.getStringArray());
+                } else {
+                    paramFeed[index++] = castParam(queryParam.getTypeTag(), (queryValueArr).getBString(0).getValue());
                 }
                 paramFeed[index] = true;
             } catch (Exception ex) {
@@ -274,10 +245,39 @@ public class HttpDispatcher {
         }
     }
 
-    private static BArray getBArray(BArray queryValueArr, ArrayType arrayType, int elementTypeTag) {
+    private static Object castParam(int targetParamTypeTag, String argValue) {
+        switch (targetParamTypeTag) {
+            case INT_TAG:
+                return Long.parseLong(argValue);
+            case FLOAT_TAG:
+                return Double.parseDouble(argValue);
+            case BOOLEAN_TAG:
+                return Boolean.parseBoolean(argValue);
+            case DECIMAL_TAG:
+                return ValueCreator.createDecimalValue(argValue);
+            default:
+                return StringUtils.fromString(argValue);
+        }
+    }
+
+    private static Object castParamArray(int targetElementTypeTag, String[] argValueArr) {
+        if (targetElementTypeTag == INT_TAG) {
+            return getBArray(argValueArr, INT_ARR, targetElementTypeTag);
+        } else if (targetElementTypeTag == FLOAT_TAG) {
+            return getBArray(argValueArr, FLOAT_ARR, targetElementTypeTag);
+        } else if (targetElementTypeTag == BOOLEAN_TAG) {
+            return getBArray(argValueArr, BOOLEAN_ARR, targetElementTypeTag);
+        } else if (targetElementTypeTag == DECIMAL_TAG) {
+            return getBArray(argValueArr, DECIMAL_ARR, targetElementTypeTag);
+        } else {
+            return StringUtils.fromStringArray(argValueArr);
+        }
+    }
+
+    private static BArray getBArray(String[] valueArray, ArrayType arrayType, int elementTypeTag) {
         BArray arrayValue = ValueCreator.createArrayValue(arrayType);
         int index = 0;
-        for (String element : queryValueArr.getStringArray()) {
+        for (String element : valueArray) {
             switch (elementTypeTag) {
                 case INT_TAG:
                     arrayValue.add(index++, Long.parseLong(element));
@@ -292,7 +292,7 @@ public class HttpDispatcher {
                     arrayValue.add(index++, ValueCreator.createDecimalValue(element));
                     break;
                 default:
-                    throw new BallerinaConnectorException("Illegal state error: unexpected query param type");
+                    throw new BallerinaConnectorException("Illegal state error: unexpected param type");
             }
         }
         return arrayValue;
@@ -327,29 +327,15 @@ public class HttpDispatcher {
                 // application deal with the value.
             }
             int paramIndex = actualSignatureParamIndex * 2;
-            Type signatureParamType = httpResource.getBalResource().getParameterTypes()[actualSignatureParamIndex++];
+            Type pathParamType = httpResource.getBalResource().getParameterTypes()[actualSignatureParamIndex++];
+
             try {
-                switch (signatureParamType.getTag()) {
-                    case INT_TAG:
-                        paramFeed[paramIndex++] = Long.parseLong(argumentValue);
-                        break;
-                    case FLOAT_TAG:
-                        paramFeed[paramIndex++] = Double.parseDouble(argumentValue);
-                        break;
-                    case BOOLEAN_TAG:
-                        paramFeed[paramIndex++] = Boolean.parseBoolean(argumentValue);
-                        break;
-                    case DECIMAL_TAG:
-                        paramFeed[paramIndex++] = ValueCreator.createDecimalValue(argumentValue);
-                        break;
-                    case ARRAY_TAG:
-                        if (((ArrayType) signatureParamType).getElementType().getTag() == STRING_TAG) {
-                            String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
-                            paramFeed[paramIndex++] = StringUtils.fromStringArray(segments);
-                        }
-                        break;
-                    default:
-                        paramFeed[paramIndex++] = StringUtils.fromString(argumentValue);
+                if (pathParamType.getTag() == ARRAY_TAG) {
+                    int elementTypeTag = ((ArrayType) pathParamType).getElementType().getTag();
+                    String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
+                    paramFeed[paramIndex++] = castParamArray(elementTypeTag, segments);
+                } else {
+                    paramFeed[paramIndex++] = castParam(pathParamType.getTag(), argumentValue);
                 }
                 paramFeed[paramIndex] = true;
             } catch (Exception ex) {

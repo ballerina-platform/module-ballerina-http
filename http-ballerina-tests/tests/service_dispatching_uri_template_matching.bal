@@ -369,6 +369,15 @@ service /encodedUri on utmTestEP {
     }
 }
 
+service /restParam on utmTestEP {
+    resource function 'default test/[int... aaa](http:Caller caller) {
+        http:Response res = new;
+        json responseJson = {aaa:aaa};
+        res.setJsonPayload(<@untainted json> responseJson);
+        checkpanic caller->respond(res);
+    }
+}
+
 //Test dispatching with URL. /hello/world/echo2?regid=abc
 @test:Config {}
 function testMostSpecificMatchWithQueryParam() {
@@ -978,6 +987,23 @@ function testEncodedPathParams() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "xxx", "123");
         assertJsonValue(response.getJsonPayload(), "yyy", "456");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testMultipleTypedRestParams() {
+    var response = utmClient->get("/restParam/test/345/234/123");
+    if (response is http:Response) {
+        assertJsonValue(response.getJsonPayload(), "aaa", "1/1");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = utmClient->get("/restParam/test/12.3/4.56");
+    if (response is http:Response) {
+        assertJsonValue(response.getJsonPayload(), "aaa", "1/1");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

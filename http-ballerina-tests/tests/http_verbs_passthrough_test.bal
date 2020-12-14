@@ -104,15 +104,11 @@ service /getQuote on httpVerbListenerEP {
         checkpanic caller->respond(res);
     }
 
-    // @http:ResourceConfig {
-    //     methods:["POST"],
-    //     body:"person"
-    // }
-    // resource function employee (http:Caller caller, http:Request req, json person) {
-    //     http:Response res = new;
-    //     res.setJsonPayload(<@untainted> person);
-    //     checkpanic caller->respond(res);
-    // }
+    resource function post employee (http:Caller caller, http:Request req, @http:Payload json person) {
+        http:Response res = new;
+        res.setJsonPayload(<@untainted> person);
+        checkpanic caller->respond(res);
+    }
 }
 
 //Test simple passthrough test case For HEAD with URL. /sampleHead
@@ -203,29 +199,28 @@ function testForwardActionWithPOST() {
     }
 }
 
-//Test HTTP data binding with JSON payload with URL. /getQuote/employee
-// @test:Config {}
-// function testDataBindingJsonPayload() {
-//     json payload = {name:"WSO2", team:"ballerina"};
-//     var response = httpVerbClient->post("/getQuote/employee", payload);
-//     if (response is http:Response) {
-//         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-//         assertJsonPayload(response.getJsonPayload(), payload);
-//     } else if (response is error) {
-//         test:assertFail(msg = "Found unexpected output type: " + response.message());
-//     }
-// }
+// Test HTTP data binding with JSON payload with URL. /getQuote/employee
+@test:Config {}
+function testDataBindingJsonPayload() {
+    json payload = {name:"WSO2", team:"ballerina"};
+    var response = httpVerbClient->post("/getQuote/employee", payload);
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertJsonPayload(response.getJsonPayload(), payload);
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
 
-// //Test HTTP data binding with incompatible payload with URL. /getQuote/employee
-// @test:Config {}
-// function testDataBindingWithIncompatiblePayload() {
-//     string payload = "name:WSO2,team:ballerina";
-//     var response = httpVerbClient->post("/getQuote/employee", payload);
-//     if (response is http:Response) {
-//         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-//         assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'name:WSO2,team:ballerina'");
-//     } else if (response is error) {
-//         test:assertFail(msg = "Found unexpected output type: " + response.message());
-//     }
-// }
-
+//Test HTTP data binding with incompatible payload with URL. /getQuote/employee
+@test:Config {}
+function testDataBindingWithIncompatiblePayload() {
+    string payload = "name:WSO2,team:ballerina";
+    var response = httpVerbClient->post("/getQuote/employee", payload);
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'name:WSO2,team:ballerina'");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}

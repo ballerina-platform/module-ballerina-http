@@ -53,14 +53,14 @@ service /echo on dataBindingEP {
         checkpanic caller->respond(<@untainted> { Key: name, Team: team });
     }
 
-    resource function post body4(@http:Payload xml person, http:Caller caller, http:Request req) {
+    resource function post body4(@http:Payload @tainted xml person, http:Caller caller, http:Request req) {
         xmllib:Element elem = <xmllib:Element> person;
         string name = <@untainted string> elem.getName();
         string team = <@untainted string> (person/*).toString();
         checkpanic caller->respond({ Key: name, Team: team });
     }
 
-    resource function post body5(http:Caller caller, @http:Payload byte[] person) {
+    resource function post body5(http:Caller caller, @tainted @http:Payload byte[] person) {
         http:Response res = new;
         var name = <@untainted> strings:fromBytes(person);
         if (name is string) {
@@ -90,7 +90,35 @@ service /echo on dataBindingEP {
             checkpanic caller->respond(<@untainted string> jsonPayload.message());
         }
     }
+
+    resource function get negative1(http:Caller caller) {
+        var err = dataBindingEP.attach(multipleAnnot1, "multipleAnnot1");
+        if err is error {
+            checkpanic caller->respond(err.message());
+        }
+        checkpanic caller->respond("ok");
+    }
+
+    resource function get negative2(http:Caller caller) {
+        var err = dataBindingEP.attach(multipleAnnot2, "multipleAnnot2");
+        if err is error {
+            checkpanic caller->respond(err.message());
+        }
+        checkpanic caller->respond("ok");
+    }
 }
+
+http:Service multipleAnnot1 = service object {
+    resource function get annot(@http:Payload @http:CallerInfo string payload) {
+        //...
+    }
+};
+
+http:Service multipleAnnot2 = service object {
+    resource function get annot(@http:Payload string payload1, @http:Payload string payload2) {
+        //...
+    }
+};
 
 //Test data binding with string payload
 @test:Config {}
@@ -320,6 +348,28 @@ function testDataBindingWithRecordArrayNegative() {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
             "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]'\")");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test init error for multiple http annotations in a single param
+@test:Config {}
+function testMultipleAnnotsInASingleParam() {
+    var response = dataBindingClient->get("/echo/negative1");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "cannot specify more than one http annotation for parameter 'payload'");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test init error for multiple Payload annotationed params
+@test:Config {}
+function testMultiplePayloadAnnots() {
+    var response = dataBindingClient->get("/echo/negative2");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "invalid multiple 'http:Payload' annotation usage");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
