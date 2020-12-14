@@ -180,40 +180,25 @@ service /hello on utTestEP {
     }
 }
 
-// // Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/730
-// @http:ServiceConfig {
-//     basePath:"/ech%5Bo"
-// }
-// service echo113 on utTestEP {
+service /ech\[o on utTestEP {
 
-//     @http:ResourceConfig {
-//         methods:["GET"],
-//         path:"/ech%5Bo/{foo}"
-//     }
-//     resource function productsInfo (http:Caller caller, http:Request req, string foo) {
-//         http:Response res = new;
-//         json responseJson = {"echo113": foo};
-//         res.setJsonPayload(<@untainted json> responseJson);
-//         checkpanic caller->respond(res);
-//     }
-// }
+    resource function get ech\[o/[string foo] (http:Caller caller, http:Request req) {
+        http:Response res = new;
+        json responseJson = {"echo113": foo};
+        res.setJsonPayload(<@untainted json> responseJson);
+        checkpanic caller->respond(res);
+    }
+}
 
-// @http:ServiceConfig {
-//     basePath:"/ech%5Bo14"
-// }
-// service echo114 on utTestEP {
+service /ech\[o14 on utTestEP {
 
-//     @http:ResourceConfig {
-//         methods:["GET"],
-//         path:"/ech%5Bo14/{foo}"
-//     }
-//     resource function productsInfo (http:Caller caller, http:Request req, string foo) {
-//         http:Response res = new;
-//         json responseJson = {"echo114": foo};
-//         res.setJsonPayload(<@untainted json> responseJson);
-//         checkpanic caller->respond(res);
-//     }
-// }
+    resource function get ech\[o14/[string foo](http:Caller caller, http:Request req) {
+        http:Response res = new;
+        json responseJson = {"echo114": foo};
+        res.setJsonPayload(<@untainted json> responseJson);
+        checkpanic caller->respond(res);
+    }
+}
 
 //Test accessing the variables parsed with URL. /products/{productId}/{regId}
 @test:Config{
@@ -496,8 +481,7 @@ function testBasePathEndingWithSlash() {
     }
 }
 
-// Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/730
-@test:Config{ enable:false }
+@test:Config{}
 function testSpecialCharacterURI() {
     var response = utClient1->get("/ech%5Bo/ech%5Bo/b%5Bar");
     if (response is http:Response) {
@@ -507,8 +491,7 @@ function testSpecialCharacterURI() {
     }
 }
 
-// Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/730
-@test:Config{ enable:false }
+@test:Config{}
 function testSpecialCharacterEscapedURI() {
     var response = utClient1->get("/ech%5Bo14/ech%5Bo14/b%5Bar14");
     if (response is http:Response) {
