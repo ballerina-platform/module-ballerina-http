@@ -101,9 +101,6 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
     }
 
     // withWhitespacedLiteral
-    // @http:ResourceConfig {
-    //         path: "/a/b%20c/d"
-    // }
     resource function 'default a/b\ c/d(http:Caller caller, http:Request request) {
         var res = caller->respond("dispatched to white_spaced literal");
     }
@@ -497,4 +494,3 @@ function testClientPathWithWhitespaces() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
-
