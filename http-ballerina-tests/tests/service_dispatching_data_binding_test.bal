@@ -35,17 +35,17 @@ type Stock record {|
 
 service /echo on dataBindingEP {
 
-    resource function 'default body1(http:Caller caller, @http:Payload string person, http:Request req) {
+    resource function 'default body1(http:Caller caller, @http:Payload {} string person, http:Request req) {
         json responseJson = { "Person": person };
         checkpanic caller->respond(<@untainted json> responseJson);
     }
 
-    resource function post body2/[string key](@http:Payload string person, http:Caller caller) {
+    resource function post body2/[string key](@http:Payload {mediaType:"text/plain"} string person, http:Caller caller) {
         json responseJson = { Key: key, Person: person };
         checkpanic caller->respond(<@untainted json> responseJson);
     }
 
-    resource function 'default body3(http:Caller caller, http:Request req, @http:Payload json person) {
+    resource function 'default body3(http:Caller caller, @http:Payload {mediaType:["text/plain"]} json person) {
         json|error val1 = person.name;
         json|error val2 = person.team;
         json name = val1 is json ? val1 : ();
@@ -53,14 +53,14 @@ service /echo on dataBindingEP {
         checkpanic caller->respond(<@untainted> { Key: name, Team: team });
     }
 
-    resource function post body4(@http:Payload @tainted xml person, http:Caller caller, http:Request req) {
+    resource function post body4(@http:Payload {} @tainted xml person, http:Caller caller, http:Request req) {
         xmllib:Element elem = <xmllib:Element> person;
         string name = <@untainted string> elem.getName();
         string team = <@untainted string> (person/*).toString();
         checkpanic caller->respond({ Key: name, Team: team });
     }
 
-    resource function post body5(http:Caller caller, @tainted @http:Payload byte[] person) {
+    resource function post body5(http:Caller caller, @tainted @http:Payload {} byte[] person) {
         http:Response res = new;
         var name = <@untainted> strings:fromBytes(person);
         if (name is string) {
@@ -72,17 +72,17 @@ service /echo on dataBindingEP {
         checkpanic caller->respond(res);
     }
 
-    resource function post body6(http:Caller caller, http:Request req, @http:Payload Person person) {
+    resource function post body6(http:Caller caller, http:Request req, @http:Payload {} Person person) {
         string name = <@untainted string> person.name;
         int age = <@untainted int> person.age;
         checkpanic caller->respond({ Key: name, Age: age });
     }
 
-    resource function post body7(http:Caller caller, http:Request req, @http:Payload Stock person) {
+    resource function post body7(http:Caller caller, http:Request req, @http:Payload {} Stock person) {
         checkpanic caller->respond();
     }
 
-    resource function post body8(http:Caller caller, @http:Payload Person[] persons) {
+    resource function post body8(http:Caller caller, @http:Payload {} Person[] persons) {
         var jsonPayload = persons.cloneWithType(json);
         if (jsonPayload is json) {
             checkpanic caller->respond(<@untainted json> jsonPayload);
@@ -109,13 +109,13 @@ service /echo on dataBindingEP {
 }
 
 http:Service multipleAnnot1 = service object {
-    resource function get annot(@http:Payload @http:CallerInfo string payload) {
+    resource function get annot(@http:Payload {} @http:CallerInfo string payload) {
         //...
     }
 };
 
 http:Service multipleAnnot2 = service object {
-    resource function get annot(@http:Payload string payload1, @http:Payload string payload2) {
+    resource function get annot(@http:Payload {} string payload1, @http:Payload {} string payload2) {
         //...
     }
 };

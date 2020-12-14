@@ -370,12 +370,33 @@ service /encodedUri on utmTestEP {
 }
 
 service /restParam on utmTestEP {
-    resource function 'default test/[int... aaa](http:Caller caller) {
+    resource function 'default 'int/[int... aaa](http:Caller caller) {
         http:Response res = new;
         json responseJson = {aaa:aaa};
         res.setJsonPayload(<@untainted json> responseJson);
         checkpanic caller->respond(res);
     }
+
+    resource function 'default 'bool/[boolean... aaa](http:Caller caller) {
+        http:Response res = new;
+        json responseJson = {aaa:aaa};
+        res.setJsonPayload(<@untainted json> responseJson);
+        checkpanic caller->respond(res);
+    }
+
+    resource function 'default 'float/[float... aaa](http:Caller caller) {
+        http:Response res = new;
+        json responseJson = {aaa:aaa};
+        res.setJsonPayload(<@untainted json> responseJson);
+        checkpanic caller->respond(res);
+    }
+
+    // resource function 'default 'decimal/[decimal... aaa](http:Caller caller) {
+    //     http:Response res = new;
+    //     json responseJson = {aaa:aaa};
+    //     res.setJsonPayload(<@untainted json> responseJson);
+    //     checkpanic caller->respond(res);
+    // }
 }
 
 //Test dispatching with URL. /hello/world/echo2?regid=abc
@@ -993,18 +1014,52 @@ function testEncodedPathParams() {
 }
 
 @test:Config {}
-function testMultipleTypedRestParams() {
-    var response = utmClient->get("/restParam/test/345/234/123");
+function testMultipleIntTypedRestParams() {
+    var response = utmClient->get("/restParam/int/345/234/123");
     if (response is http:Response) {
-        assertJsonValue(response.getJsonPayload(), "aaa", "1/1");
-    } else if (response is error) {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-
-    response = utmClient->get("/restParam/test/12.3/4.56");
-    if (response is http:Response) {
-        assertJsonValue(response.getJsonPayload(), "aaa", "1/1");
+        assertJsonValue(response.getJsonPayload(), "aaa", [345,234,123]);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
+
+@test:Config {}
+function testMultipleNegativeRestParams() {
+    var response = utmClient->get("/restParam/int/12.3/4.56");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "error in casting path param : For input string: \"12.3\"");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testMultipleFloatRestParams() {
+    var response = utmClient->get("/restParam/float/12.3/4.56");
+    if (response is http:Response) {
+        assertJsonPayloadtoJsonString(response.getJsonPayload(), {"aaa":[12.3, 4.56]});
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testMultipleBoolRestParams() {
+    var response = utmClient->get("/restParam/bool/true/false/true");
+    if (response is http:Response) {
+        assertJsonValue(response.getJsonPayload(), "aaa", [true,false,true]);
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+// @test:Config {}
+// function testMultipleDeciRestParams() {
+//     var response = utmClient->get("/restParam/decimal/12.3/4.56");
+//     if (response is http:Response) {
+//         assertJsonValue(response.getJsonPayload(), "aaa", [12.3,4.56]);
+//     } else if (response is error) {
+//         test:assertFail(msg = "Found unexpected output type: " + response.message());
+//     }
+// }

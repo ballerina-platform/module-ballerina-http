@@ -28,6 +28,7 @@ import io.ballerina.runtime.api.types.ResourceFunctionType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HttpConstants;
@@ -53,12 +54,12 @@ import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
  */
 public class ParamHandler {
 
+    private final Type[] paramTypes;
     private final int pathParamCount;
     private ResourceFunctionType resource;
-    private final Type[] paramTypes;
-    private String payloadParamToken = null;
     private String[] pathParamTokens = new String[0];
     private List<Parameter> otherParamList = new ArrayList<>();
+    private PayloadParam payloadParam = null;
     private NonRecurringParam callerParam = null;
     private NonRecurringParam requestParam = null;
     private AllQueryParams queryParams = new AllQueryParams();
@@ -68,8 +69,8 @@ public class ParamHandler {
             TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
     private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
     private static final String REQ_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST;
-    private static final String PAYLOAD_ANNOTATION = PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_PAYLOAD;
-    private static final String CALLER_ANNOTATION = PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_CALLER_INFO;
+    private static final String PAYLOAD_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_PAYLOAD;
+    private static final String CALLER_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_CALLER_INFO;
 
     public ParamHandler(ResourceFunctionType resource, int pathParamCount) {
         this.resource = resource;
@@ -115,8 +116,9 @@ public class ParamHandler {
                 default:
                     // TODO handle query, payload, header params
                     String paramName = resource.getParamNames()[index];
-                    if (paramName.equals(payloadParamToken)) {
-                        getOtherParamList().add(new PayloadParam(parameterType, index));
+                    if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
+                        payloadParam.init(parameterType, index);
+                        getOtherParamList().add(payloadParam);
                     } else {
                         validateQueryParam(index, resource, parameterType);
                     }
@@ -138,8 +140,8 @@ public class ParamHandler {
             for (Object objKey : annotationsKeys) {
                 String key = ((BString) objKey).getValue();
                 if (PAYLOAD_ANNOTATION.equals(key)) {
-                    if (payloadParamToken == null) {
-                        payloadParamToken = paramName;
+                    if (payloadParam == null) {
+                        createPayloadParam(paramName, annotations);
                     } else {
                         throw HttpUtil.createHttpError(
                                 "invalid multiple '" + PROTOCOL_HTTP + COLON + ANN_NAME_PAYLOAD + "' annotation usage");
@@ -164,6 +166,23 @@ public class ParamHandler {
 
     private boolean isAllowedResourceParamAnnotation(String key) {
         return PAYLOAD_ANNOTATION.equals(key) || CALLER_ANNOTATION.equals(key);
+    }
+
+    private void createPayloadParam(String paramName, BMap annotations) {
+        this.payloadParam = new PayloadParam(paramName);
+        BMap mapValue = annotations.getMapValue(StringUtils.fromString(PAYLOAD_ANNOTATION));
+        Object mediaType = mapValue.get(StringUtils.fromString("mediaType"));
+        if (mediaType instanceof BString) {
+            String value = ((BString) mediaType).getValue();
+            if (!value.isEmpty()) {
+                this.payloadParam.getMediaTypes().add(value);
+            }
+        } else {
+            String[] value = ((BArray) mediaType).getStringArray();
+            if (value.length != 0) {
+                this.payloadParam.getMediaTypes().add(Arrays.toString(value));
+            }
+        }
     }
 
     private void validateQueryParam(int index, ResourceFunctionType balResource, Type parameterType) {
@@ -208,7 +227,7 @@ public class ParamHandler {
     }
 
     public boolean isPayloadBindingRequired() {
-        return payloadParamToken != null;
+        return payloadParam != null;
     }
 
     public List<Parameter> getOtherParamList() {

@@ -25,6 +25,9 @@ import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * {@code {@link PayloadParam }} represents a payload parameter details.
  *
@@ -32,11 +35,17 @@ import org.ballerinalang.net.http.HttpUtil;
  */
 public class PayloadParam implements Parameter {
 
-    private final int index;
-    private final Type type;
-    private final int typeTag;
+    private int index;
+    private Type type;
+    private int typeTag;
+    private final String token;
+    private List<String> mediaTypes = new ArrayList<>();
 
-    PayloadParam(Type type, int index) {
+    PayloadParam(String token) {
+        this.token = token;
+    }
+
+    public void init(Type type, int index) {
         this.type = type;
         this.typeTag = type.getTag();
         this.index = index;
@@ -67,6 +76,14 @@ public class PayloadParam implements Parameter {
     }
 
     public Type getType() {
-        return type;
+        return this.type;
+    }
+
+    public String getToken() {
+        return this.token;
+    }
+
+    List<String> getMediaTypes() {
+        return mediaTypes;
     }
 }

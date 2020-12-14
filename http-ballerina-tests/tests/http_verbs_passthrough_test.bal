@@ -104,7 +104,7 @@ service /getQuote on httpVerbListenerEP {
         checkpanic caller->respond(res);
     }
 
-    resource function post employee (http:Caller caller, http:Request req, @http:Payload json person) {
+    resource function post employee (http:Caller caller, http:Request req, @http:Payload {} json person) {
         http:Response res = new;
         res.setJsonPayload(<@untainted> person);
         checkpanic caller->respond(res);
