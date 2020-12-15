@@ -21,48 +21,40 @@ import ballerina/http;
 listener http:Listener pcEP = new(producesConsumesTest);
 http:Client pcClient = new("http://localhost:" + producesConsumesTest.toString());
 
-service echo66 on pcEP {
+service /echo66 on pcEP {
     @http:ResourceConfig {
-        methods: ["POST"],
-        path: "/test1",
         consumes: ["application/xml"]
     }
-    resource function echo1(http:Caller caller, http:Request req) {
+    resource function post test1(http:Caller caller, http:Request req) {
         checkpanic caller->respond({ msg: "wso2" });
     }
 
     @http:ResourceConfig {
-        methods: ["GET"],
-        path: "/test2",
         produces: ["text/xml", "application/xml "]
     }
-    resource function echo2(http:Caller caller, http:Request req) {
+    resource function get test2(http:Caller caller, http:Request req) {
         checkpanic caller->respond({ msg: "wso22" });
     }
 
     @http:ResourceConfig {
-        methods: ["POST"],
-        path: "/test3",
         consumes: ["application/xhtml+xml", "text/plain", "text/json"],
         produces: ["text/css", "application/json"]
     }
-    resource function echo3(http:Caller caller, http:Request req) {
+    resource function post test3(http:Caller caller, http:Request req) {
         checkpanic caller->respond({ msg: "wso222" });
     }
 
     @http:ResourceConfig {
-        methods: ["POST"],
-        path: "/test4",
         consumes: ["appliCation/XML"],
         produces: ["Application/JsON"]
     }
-    resource function echo4(http:Caller caller, http:Request req) {
+    resource function post test4(http:Caller caller, http:Request req) {
         checkpanic caller->respond({ msg: "wso222" });
     }
 }
 
-service echo67 on pcEP {
-    resource function echo1(http:Caller caller, http:Request req) {
+service /echo67 on pcEP {
+    resource function 'default echo1(http:Caller caller, http:Request req) {
         checkpanic caller->respond({ echo33: "echo1" });
     }
 }

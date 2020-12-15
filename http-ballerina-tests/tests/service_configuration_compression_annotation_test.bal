@@ -20,13 +20,9 @@ import ballerina/http;
 listener http:Listener compressionTestEP = new(CompressionConfigTest);
 http:Client compressionClient = new("http://localhost:" + CompressionConfigTest.toString());
 
-@http:ServiceConfig {basePath : "/autoCompress", compression: {enable: http:COMPRESSION_AUTO}}
-service autoCompress on compressionTestEP {
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
-    }
-    resource function test1 (http:Caller caller, http:Request req) {
+@http:ServiceConfig {compression: {enable: http:COMPRESSION_AUTO}}
+service /autoCompress on compressionTestEP {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
         checkpanic caller->respond(res);
@@ -34,25 +30,17 @@ service autoCompress on compressionTestEP {
 }
 
 @http:ServiceConfig {compression: {contentTypes:["text/plain"]}}
-service autoCompressWithContentType on compressionTestEP {
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
-    }
-    resource function test1 (http:Caller caller, http:Request req) {
+service /autoCompressWithContentType on compressionTestEP {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
         checkpanic caller->respond(res);
     }
 }
 
-@http:ServiceConfig {basePath : "/alwaysCompress", compression: {enable: http:COMPRESSION_ALWAYS}}
-service alwaysCompress on compressionTestEP {
-     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
-        }
-    resource function test2 (http:Caller caller, http:Request req) {
+@http:ServiceConfig {compression: {enable: http:COMPRESSION_ALWAYS}}
+service /alwaysCompress on compressionTestEP {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
         checkpanic caller->respond(res);
@@ -60,25 +48,17 @@ service alwaysCompress on compressionTestEP {
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_ALWAYS, contentTypes:["text/plain","Application/Json"]}}
-service alwaysCompressWithContentType on compressionTestEP {
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
-    }
-    resource function test2 (http:Caller caller, http:Request req) {
+service /alwaysCompressWithContentType on compressionTestEP {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setJsonPayload({ test: "testValue" }, "application/json");
         checkpanic caller->respond(res);
     }
 }
 
-@http:ServiceConfig {basePath : "/neverCompress", compression: {enable: http:COMPRESSION_NEVER}}
-service neverCompress on compressionTestEP {
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
-    }
-    resource function test3 (http:Caller caller, http:Request req) {
+@http:ServiceConfig {compression: {enable: http:COMPRESSION_NEVER}}
+service /neverCompress on compressionTestEP {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
         checkpanic caller->respond(res);
@@ -86,25 +66,17 @@ service neverCompress on compressionTestEP {
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_NEVER, contentTypes:["text/plain","application/xml"]}}
-service neverCompressWithContentType on compressionTestEP {
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
-    }
-    resource function test3 (http:Caller caller, http:Request req) {
+service /neverCompressWithContentType on compressionTestEP {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
         checkpanic caller->respond(res);
     }
 }
 
-@http:ServiceConfig {basePath : "/userOverridenValue", compression: {enable: http:COMPRESSION_NEVER}}
-service userOverridenValue on compressionTestEP {
-    @http:ResourceConfig {
-            methods:["GET"],
-            path:"/"
-    }
-    resource function test3 (http:Caller caller, http:Request req) {
+@http:ServiceConfig {compression: {enable: http:COMPRESSION_NEVER}}
+service /userOverridenValue on compressionTestEP {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
         res.setHeader("content-encoding", "deflate");
@@ -113,12 +85,8 @@ service userOverridenValue on compressionTestEP {
 }
 
 @http:ServiceConfig {compression: {contentTypes:["text/plain"]}}
-service autoCompressWithInCompatibleContentType on compressionTestEP {
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
-    }
-    resource function test1 (http:Caller caller, http:Request req) {
+service /autoCompressWithInCompatibleContentType on compressionTestEP {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setJsonPayload({ test: "testValue" }, "application/json");
         checkpanic caller->respond(res);
@@ -126,12 +94,8 @@ service autoCompressWithInCompatibleContentType on compressionTestEP {
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_ALWAYS, contentTypes:[]}}
-service alwaysCompressWithEmptyContentType on compressionTestEP {
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
-    }
-    resource function test1 (http:Caller caller, http:Request req) {
+service /alwaysCompressWithEmptyContentType on compressionTestEP {
+    resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
         checkpanic caller->respond(res);
