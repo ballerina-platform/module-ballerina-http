@@ -27,11 +27,12 @@ import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.ResourceFunctionType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
-import org.ballerinalang.net.http.HttpResource;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.uri.URIUtil;
 
@@ -40,7 +41,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.ballerinalang.net.http.compiler.ResourceSignatureValidator.COMPULSORY_PARAM_COUNT;
+import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_CALLER_INFO;
+import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PAYLOAD;
+import static org.ballerinalang.net.http.HttpConstants.COLON;
+import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP;
+import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
 
 /**
  * This class holds the resource signature parameters.
@@ -49,46 +54,47 @@ import static org.ballerinalang.net.http.compiler.ResourceSignatureValidator.COM
  */
 public class ParamHandler {
 
-    private final int pathParamCount;
-    private String[] pathParamTokens = new String[0];
-    private HttpResource resource;
     private final Type[] paramTypes;
-    private Type entityBody;
-    private List<Type> pathParamTypes;
-    private int paramCount = COMPULSORY_PARAM_COUNT;
+    private final int pathParamCount;
+    private ResourceFunctionType resource;
+    private String[] pathParamTokens = new String[0];
     private List<Parameter> otherParamList = new ArrayList<>();
+    private PayloadParam payloadParam = null;
     private NonRecurringParam callerParam = null;
     private NonRecurringParam requestParam = null;
     private AllQueryParams queryParams = new AllQueryParams();
 
+    private static final String PARAM_ANNOT_PREFIX = "$param$.";
     private static final MapType MAP_TYPE = TypeCreator.createMapType(
             TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
-    private static final String CALLER_TYPE = HttpConstants.PROTOCOL_HTTP + HttpConstants.COLON + HttpConstants.CALLER;
-    private static final String REQ_TYPE = HttpConstants.PROTOCOL_HTTP + HttpConstants.COLON + HttpConstants.REQUEST;
+    private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
+    private static final String REQ_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST;
+    private static final String PAYLOAD_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_PAYLOAD;
+    private static final String CALLER_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_CALLER_INFO;
 
-    public ParamHandler(HttpResource resource, int pathParamCount) {
+    public ParamHandler(ResourceFunctionType resource, int pathParamCount) {
         this.resource = resource;
         this.pathParamCount = pathParamCount;
-        this.paramTypes = resource.getBalResource().getParameterTypes();
+        this.paramTypes = resource.getParameterTypes();
         populatePathParamTokens(resource, pathParamCount);
+        populatePayloadAndHeaderParamTokens(resource);
         validateSignatureParams();
     }
 
-    private void populatePathParamTokens(HttpResource resource, int pathParamCount) {
+    private void populatePathParamTokens(ResourceFunctionType resource, int pathParamCount) {
         if (pathParamCount == 0) {
             return;
         }
-        this.pathParamTokens = Arrays.copyOfRange(resource.getBalResource().getParamNames(), 0, pathParamCount);
+        this.pathParamTokens = Arrays.copyOfRange(resource.getParamNames(), 0, pathParamCount);
+        validatePathParam(resource, pathParamCount);
     }
 
-    void validateSignatureParams() {
+    private void validateSignatureParams() {
         if (paramTypes.length == pathParamCount) {
             return;
         }
-
         for (int index = pathParamCount; index < paramTypes.length; index++) {
-            ResourceFunctionType balResource = resource.getBalResource();
-            Type parameterType = balResource.getParameterTypes()[index];
+            Type parameterType = resource.getParameterTypes()[index];
             String typeName = parameterType.toString();
             switch (typeName) {
                 case CALLER_TYPE:
@@ -109,24 +115,74 @@ public class ParamHandler {
                     break;
                 default:
                     // TODO handle query, payload, header params
-                    validateQueryParam(index, balResource, parameterType);
+                    String paramName = resource.getParamNames()[index];
+                    if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
+                        payloadParam.init(parameterType, index);
+                        getOtherParamList().add(payloadParam);
+                    } else {
+                        validateQueryParam(index, resource, parameterType);
+                    }
             }
         }
         if (queryParams.isNotEmpty()) {
             getOtherParamList().add(this.queryParams);
         }
+    }
 
+    private void populatePayloadAndHeaderParamTokens(ResourceFunctionType balResource) {
+        for (String paramName : balResource.getParamNames()) {
+            BMap annotations = (BMap) balResource.getAnnotation(StringUtils.fromString(PARAM_ANNOT_PREFIX + paramName));
+            if (annotations == null) {
+                continue;
+            }
+            Object[] annotationsKeys = annotations.getKeys();
+            validateForMultipleHTTPAnnotations(annotationsKeys, paramName);
+            for (Object objKey : annotationsKeys) {
+                String key = ((BString) objKey).getValue();
+                if (PAYLOAD_ANNOTATION.equals(key)) {
+                    if (payloadParam == null) {
+                        createPayloadParam(paramName, annotations);
+                    } else {
+                        throw HttpUtil.createHttpError(
+                                "invalid multiple '" + PROTOCOL_HTTP + COLON + ANN_NAME_PAYLOAD + "' annotation usage");
+                    }
+                }
+            }
+        }
+    }
 
+    private void validateForMultipleHTTPAnnotations(Object[] annotationsKeys, String paramName) {
+        boolean alreadyAnnotated = false;
+        for (Object objKey : annotationsKeys) {
+            String key = ((BString) objKey).getValue();
+            if (alreadyAnnotated && isAllowedResourceParamAnnotation(key)) {
+                throw HttpUtil.createHttpError(
+                        "cannot specify more than one http annotation for parameter '" + paramName + "'");
+            } else if (!alreadyAnnotated && isAllowedResourceParamAnnotation(key)) {
+                alreadyAnnotated = true;
+            }
+        }
+    }
 
+    private boolean isAllowedResourceParamAnnotation(String key) {
+        return PAYLOAD_ANNOTATION.equals(key) || CALLER_ANNOTATION.equals(key);
+    }
 
-//        if (resource.getEntityBodyAttributeValue() == null ||
-//                resource.getEntityBodyAttributeValue().isEmpty()) {
-//            validatePathParam(paramTypes.subList(COMPULSORY_PARAM_COUNT, paramTypes.size()));
-//        } else {
-//            int lastParamIndex = paramTypes.size() - 1;
-//            validatePathParam(paramTypes.subList(COMPULSORY_PARAM_COUNT, lastParamIndex));
-//            validateEntityBodyParam(paramTypes.get(lastParamIndex));
-//        }
+    private void createPayloadParam(String paramName, BMap annotations) {
+        this.payloadParam = new PayloadParam(paramName);
+        BMap mapValue = annotations.getMapValue(StringUtils.fromString(PAYLOAD_ANNOTATION));
+        Object mediaType = mapValue.get(StringUtils.fromString("mediaType"));
+        if (mediaType instanceof BString) {
+            String value = ((BString) mediaType).getValue();
+            if (!value.isEmpty()) {
+                this.payloadParam.getMediaTypes().add(value);
+            }
+        } else {
+            String[] value = ((BArray) mediaType).getStringArray();
+            if (value.length != 0) {
+                this.payloadParam.getMediaTypes().add(Arrays.toString(value));
+            }
+        }
     }
 
     private void validateQueryParam(int index, ResourceFunctionType balResource, Type parameterType) {
@@ -152,52 +208,26 @@ public class ParamHandler {
         }
     }
 
-    private void validatePathParam(List<Type> paramDetails) {
-        for (Type paramType : paramDetails) {
-            int varTag = paramType.getTag();
-            if (varTag != TypeTags.STRING_TAG && varTag != TypeTags.INT_TAG && varTag != TypeTags.BOOLEAN_TAG &&
-                    varTag != TypeTags.FLOAT_TAG) {
-                throw HttpUtil.createHttpError("incompatible resource signature parameter type",
-                                               HttpErrorType.GENERIC_LISTENER_ERROR);
+    private void validatePathParam(ResourceFunctionType resource, int pathParamCount) {
+        Type[] parameterTypes = resource.getParameterTypes();
+        Arrays.stream(parameterTypes, 0, pathParamCount).forEach(type -> {
+            int typeTag = type.getTag();
+            if (isValidBasicType(typeTag) || (typeTag == TypeTags.ARRAY_TAG && isValidBasicType(
+                    ((ArrayType) type).getElementType().getTag()))) {
+                return;
             }
-            paramCount++;
-        }
-        this.pathParamTypes = paramDetails;
-    }
-
-    private void validateEntityBodyParam(Type entityBodyParamType) {
-        int type = entityBodyParamType.getTag();
-        if (type == TypeTags.RECORD_TYPE_TAG || type == TypeTags.JSON_TAG || type == TypeTags.XML_TAG ||
-                type == TypeTags.STRING_TAG || (type == TypeTags.ARRAY_TAG && validArrayType(entityBodyParamType))) {
-            this.entityBody = entityBodyParamType;
-            paramCount++;
-        } else {
-            throw HttpUtil.createHttpError("incompatible entity-body type : " + entityBodyParamType.getName(),
+            throw HttpUtil.createHttpError("incompatible path parameter type: '" + type.getName() + "'",
                                            HttpErrorType.GENERIC_LISTENER_ERROR);
-        }
+        });
     }
 
-    /**
-     * Check the validity of array type in data binding scenario.
-     *
-     * @param entityBodyParamType Represents resource parameter details
-     * @return a boolean indicating the validity of the array type
-     */
-    private boolean validArrayType(Type entityBodyParamType) {
-        return ((ArrayType) entityBodyParamType).getElementType().getTag() == TypeTags.BYTE_TAG ||
-                ((ArrayType) entityBodyParamType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG;
+    private boolean isValidBasicType(int typeTag) {
+        return typeTag == TypeTags.STRING_TAG || typeTag == TypeTags.INT_TAG || typeTag == TypeTags.FLOAT_TAG ||
+                typeTag == TypeTags.BOOLEAN_TAG || typeTag == TypeTags.DECIMAL_TAG;
     }
 
-    public Type getEntityBody() {
-        return entityBody;
-    }
-
-    List<Type> getPathParamTypes() {
-        return pathParamTypes;
-    }
-
-    int getParamCount() {
-        return paramCount;
+    public boolean isPayloadBindingRequired() {
+        return payloadParam != null;
     }
 
     public List<Parameter> getOtherParamList() {
