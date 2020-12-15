@@ -33,31 +33,19 @@ type Stock record {|
     float price;
 |};
 
-service echo on dataBindingEP {
+service /echo on dataBindingEP {
 
-    @http:ResourceConfig {
-        body: "person"
-    }
-    resource function body1(http:Caller caller, http:Request req, string person) {
+    resource function 'default body1(http:Caller caller, @http:Payload {} string person, http:Request req) {
         json responseJson = { "Person": person };
         checkpanic caller->respond(<@untainted json> responseJson);
     }
 
-    @http:ResourceConfig {
-        methods: ["POST"],
-        path: "/body2/{key}",
-        body: "person"
-    }
-    resource function body2(http:Caller caller, http:Request req, string key, string person) {
+    resource function post body2/[string key](@http:Payload {mediaType:"text/plain"} string person, http:Caller caller) {
         json responseJson = { Key: key, Person: person };
         checkpanic caller->respond(<@untainted json> responseJson);
     }
 
-    @http:ResourceConfig {
-        methods: ["GET", "POST"],
-        body: "person"
-    }
-    resource function body3(http:Caller caller, http:Request req, json person) {
+    resource function 'default body3(http:Caller caller, @http:Payload {mediaType:["text/plain"]} json person) {
         json|error val1 = person.name;
         json|error val2 = person.team;
         json name = val1 is json ? val1 : ();
@@ -65,22 +53,14 @@ service echo on dataBindingEP {
         checkpanic caller->respond(<@untainted> { Key: name, Team: team });
     }
 
-    @http:ResourceConfig {
-        methods: ["POST"],
-        body: "person"
-    }
-    resource function body4(http:Caller caller, http:Request req, xml person) {
+    resource function post body4(@http:Payload {} @tainted xml person, http:Caller caller, http:Request req) {
         xmllib:Element elem = <xmllib:Element> person;
         string name = <@untainted string> elem.getName();
         string team = <@untainted string> (person/*).toString();
         checkpanic caller->respond({ Key: name, Team: team });
     }
 
-    @http:ResourceConfig {
-        methods: ["POST"],
-        body: "person"
-    }
-    resource function body5(http:Caller caller, http:Request req, byte[] person) {
+    resource function post body5(http:Caller caller, @tainted @http:Payload {} byte[] person) {
         http:Response res = new;
         var name = <@untainted> strings:fromBytes(person);
         if (name is string) {
@@ -92,29 +72,17 @@ service echo on dataBindingEP {
         checkpanic caller->respond(res);
     }
 
-    @http:ResourceConfig {
-        methods: ["POST"],
-        body: "person"
-    }
-    resource function body6(http:Caller caller, http:Request req, Person person) {
+    resource function post body6(http:Caller caller, http:Request req, @http:Payload {} Person person) {
         string name = <@untainted string> person.name;
         int age = <@untainted int> person.age;
         checkpanic caller->respond({ Key: name, Age: age });
     }
 
-    @http:ResourceConfig {
-        methods: ["POST"],
-        body: "person"
-    }
-    resource function body7(http:Caller caller, http:Request req, Stock person) {
+    resource function post body7(http:Caller caller, http:Request req, @http:Payload {} Stock person) {
         checkpanic caller->respond();
     }
 
-    @http:ResourceConfig {
-        methods: ["POST"],
-        body: "persons"
-    }
-    resource function body8(http:Caller caller, http:Request req, Person[] persons) {
+    resource function post body8(http:Caller caller, @http:Payload {} Person[] persons) {
         var jsonPayload = persons.cloneWithType(json);
         if (jsonPayload is json) {
             checkpanic caller->respond(<@untainted json> jsonPayload);
@@ -122,7 +90,35 @@ service echo on dataBindingEP {
             checkpanic caller->respond(<@untainted string> jsonPayload.message());
         }
     }
+
+    resource function get negative1(http:Caller caller) {
+        var err = dataBindingEP.attach(multipleAnnot1, "multipleAnnot1");
+        if err is error {
+            checkpanic caller->respond(err.message());
+        }
+        checkpanic caller->respond("ok");
+    }
+
+    resource function get negative2(http:Caller caller) {
+        var err = dataBindingEP.attach(multipleAnnot2, "multipleAnnot2");
+        if err is error {
+            checkpanic caller->respond(err.message());
+        }
+        checkpanic caller->respond("ok");
+    }
 }
+
+http:Service multipleAnnot1 = service object {
+    resource function get annot(@http:Payload {} @http:CallerInfo {} string payload) {
+        //...
+    }
+};
+
+http:Service multipleAnnot2 = service object {
+    resource function get annot(@http:Payload {} string payload1, @http:Payload {} string payload2) {
+        //...
+    }
+};
 
 //Test data binding with string payload
 @test:Config {}
@@ -352,6 +348,28 @@ function testDataBindingWithRecordArrayNegative() {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
             "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]'\")");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test init error for multiple http annotations in a single param
+@test:Config {}
+function testMultipleAnnotsInASingleParam() {
+    var response = dataBindingClient->get("/echo/negative1");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "cannot specify more than one http annotation for parameter 'payload'");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test init error for multiple Payload annotationed params
+@test:Config {}
+function testMultiplePayloadAnnots() {
+    var response = dataBindingClient->get("/echo/negative2");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "invalid multiple 'http:Payload' annotation usage");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

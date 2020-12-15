@@ -43,7 +43,6 @@ public class QueryParam {
         this.token = token;
         this.index = index;
         this.nilable = nilable;
-        //TODO remove this after resource typing
         validateQueryParamType();
     }
 
@@ -52,7 +51,7 @@ public class QueryParam {
                 ((ArrayType) type).getElementType().getTag()))) {
             return;
         }
-        throw HttpUtil.createHttpError("incompatible query param type: '" + type.getName() + "'",
+        throw HttpUtil.createHttpError("incompatible query parameter type: '" + type.getName() + "'",
                                        HttpErrorType.GENERIC_LISTENER_ERROR);
     }
 

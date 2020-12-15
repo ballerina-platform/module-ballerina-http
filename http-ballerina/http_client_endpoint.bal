@@ -72,11 +72,11 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         // TODO improve signature once issue https://github.com/ballerina-platform/ballerina-spec/issues/386 is resolved
         // Dependently typed function signature support for ballerina function is required.
         Request req = buildRequest(message);
-        Response|Payload|ClientError response = self.httpClient->post(path, req);
+        Response|PayloadType|ClientError response = self.httpClient->post(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
         }
@@ -109,9 +109,9 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function put(@untainted string path, RequestMessage message, TargetType targetType = Response) 
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        Response|Payload|ClientError response = self.httpClient->put(path, req);
+        Response|PayloadType|ClientError response = self.httpClient->put(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
         }
@@ -129,9 +129,9 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
+            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        Response|Payload|ClientError response = self.httpClient->execute(httpVerb, path, req);
+        Response|PayloadType|ClientError response = self.httpClient->execute(httpVerb, path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
@@ -148,9 +148,9 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function patch(@untainted string path, RequestMessage message, TargetType targetType = Response) 
-            returns @tainted Response|Payload|ClientError {
+            returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        Response|Payload|ClientError response = self.httpClient->patch(path, req);
+        Response|PayloadType|ClientError response = self.httpClient->patch(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
         }
@@ -167,9 +167,9 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function delete(@untainted string path, RequestMessage message = (), 
-            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
+            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        Response|Payload|ClientError response = self.httpClient->delete(path, req);
+        Response|PayloadType|ClientError response = self.httpClient->delete(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
         }
@@ -186,9 +186,9 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function get(@untainted string path, RequestMessage message = (),
-            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
+            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        Response|Payload|ClientError response = self.httpClient->get(path, message = req);
+        Response|PayloadType|ClientError response = self.httpClient->get(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
         }
@@ -205,9 +205,9 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function options(@untainted string path, RequestMessage message = (),
-            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
+            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        Response|Payload|ClientError response = self.httpClient->options(path, message = req);
+        Response|PayloadType|ClientError response = self.httpClient->options(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
         }
@@ -223,8 +223,8 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function forward(@untainted string path, Request request,
-            TargetType targetType = Response) returns @tainted Response|Payload|ClientError {
-        Response|Payload|ClientError response = self.httpClient->forward(path, request);
+            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+        Response|PayloadType|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
@@ -617,8 +617,8 @@ function createDefaultClient(string url, ClientConfiguration configuration) retu
     return createHttpSecureClient(url, configuration);
 }
 
-function processResponse(Response|Payload|ClientError result, TargetType targetType) returns @tainted
-        Response|Payload|ClientError {
+function processResponse(Response|PayloadType|ClientError result, TargetType targetType) returns @tainted
+        Response|PayloadType|ClientError {
     if (targetType is typedesc<Response> || result is ClientError) {
         return result;
     }
@@ -637,7 +637,7 @@ function processResponse(Response|Payload|ClientError result, TargetType targetT
     return performDataBinding(response, targetType);
 }
 
-function performDataBinding(Response response, TargetType targetType) returns @tainted Payload|ClientError {
+function performDataBinding(Response response, TargetType targetType) returns @tainted PayloadType|ClientError {
     if (targetType is typedesc<string>) {
         return response.getTextPayload();
     } else if (targetType is typedesc<xml>) {

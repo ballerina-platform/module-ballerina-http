@@ -66,7 +66,7 @@ public class HttpResource {
     private List<String> produces;
     private List<String> producesSubTypes;
     private CorsHeaders corsHeaders;
-    private ParamHandler signatureParams;
+    private ParamHandler paramHandler;
     private HttpService parentService;
     private boolean transactionInfectable = true; //default behavior
     private boolean transactionAnnotated = false;
@@ -95,8 +95,8 @@ public class HttpResource {
         return balResource.getParentObjectType().getName();
     }
 
-    public ParamHandler getSignatureParams() {
-        return signatureParams;
+    public ParamHandler getParamHandler() {
+        return paramHandler;
     }
 
     public HttpService getParentService() {
@@ -278,7 +278,7 @@ public class HttpResource {
     }
 
     private void prepareAndValidateSignatureParams() {
-        signatureParams = new ParamHandler(this, this.pathParamCount);
+        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount);
     }
 
     String getWildcardToken() {
