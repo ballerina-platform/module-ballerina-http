@@ -16,10 +16,15 @@
 
 package org.ballerinalang.net.http;
 
+import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.values.BError;
-import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+
+import java.util.concurrent.CountDownLatch;
+
+import static org.ballerinalang.net.http.HttpConstants.NOTIFY_SUCCESS_METADATA;
 
 /**
  * {@code HttpCallableUnitCallback} is the responsible for acting on notifications received from Ballerina side.
@@ -27,10 +32,15 @@ import org.ballerinalang.net.transport.message.HttpCarbonMessage;
  * @since 0.94
  */
 public class HttpCallableUnitCallback implements Callback {
+    private final BObject caller;
+    private final Runtime runtime;
     private HttpCarbonMessage requestMessage;
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: request has already been responded";
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage) {
+    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
         this.requestMessage = requestMessage;
+        this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
+        this.runtime = runtime;
     }
 
     @Override
@@ -39,14 +49,38 @@ public class HttpCallableUnitCallback implements Callback {
             requestMessage.waitAndReleaseAllEntities();
             return;
         }
+        HttpUtil.methodInvocationCheck(requestMessage, 0, ILLEGAL_FUNCTION_INVOKED);
         if (result instanceof BError) { // handles error check and return
             HttpUtil.handleFailure(requestMessage, (BError) result);
             requestMessage.waitAndReleaseAllEntities();
             return;
         }
 
-        if (result instanceof BString) {
+        Object[] paramFeed = new Object[2];
+        paramFeed[0] = result;
+        paramFeed[1] = true;
+        CountDownLatch completeFunction = new CountDownLatch(1);
+
+        runtime.invokeMethodAsync(caller, "respond", null, NOTIFY_SUCCESS_METADATA, new Callback() {
+            @Override
+            public void notifySuccess(Object o) {
+                System.out.println("oooooooookkkkkkkkkkkkkkkkkkkkkkkkk");
+                completeFunction.countDown();
+            }
+
+            @Override
+            public void notifyFailure(BError bError) {
+                System.out.println("panicccccccccccccccccccc");
+                completeFunction.countDown();
+            }
+        }, paramFeed);
+//        if (result instanceof BString) {
 //            Return.send(requestMessage, result);
+//        }
+        try {
+            completeFunction.await();
+        } catch (InterruptedException e) {
+//            throw new BallerinaException("invocation failed: " + e.getMessage());
         }
         requestMessage.waitAndReleaseAllEntities();
     }

@@ -167,6 +167,7 @@ public class HttpDispatcher {
     public static Object[] getSignatureParameters(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
                                                   BMap<BString, Object> endpointConfig) {
         BObject inRequest = null;
+        BObject httpCaller = createCaller(httpResource,httpCarbonMessage, endpointConfig);
         ParamHandler paramHandler = httpResource.getParamHandler();
         int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
@@ -185,7 +186,7 @@ public class HttpDispatcher {
             switch (typeName) {
                 case HttpConstants.CALLER:
                     int index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = createCaller(httpResource, httpCarbonMessage, endpointConfig);
+                    paramFeed[index++] = httpCaller;
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.REQUEST:
@@ -305,11 +306,12 @@ public class HttpDispatcher {
         return inRequest;
     }
 
-    private static BObject createCaller(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
+    static BObject createCaller(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
                                         BMap<BString, Object> endpointConfig) {
         BObject httpCaller = ValueCreatorUtils.createCallerObject();
         HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, httpResource, endpointConfig);
         HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
+        httpCarbonMessage.setProperty(HttpConstants.CALLER, httpCaller);
         return httpCaller;
     }
 

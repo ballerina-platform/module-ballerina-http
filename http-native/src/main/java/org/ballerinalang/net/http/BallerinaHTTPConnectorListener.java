@@ -90,6 +90,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         log.warn("Error in HTTP server connector: {}", throwable.getMessage());
     }
 
+    @SuppressWarnings("unchecked")
     protected void extractPropertiesAndStartResourceExecution(HttpCarbonMessage inboundMessage,
                                                               HttpResource httpResource) {
         boolean isTransactionInfectable = httpResource.isTransactionInfectable();
@@ -108,7 +109,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             observerContext.addTag(TAG_KEY_HTTP_URL, inboundMessage.getRequestUrl());
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
         }
-        Callback callback = new HttpCallableUnitCallback(inboundMessage);
+        Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime());
         BObject service = httpResource.getParentService().getBalService();
         httpServicesRegistry.getRuntime()
                 .invokeMethodAsync(service, httpResource.getName(), null, ON_MESSAGE_METADATA, callback, properties,

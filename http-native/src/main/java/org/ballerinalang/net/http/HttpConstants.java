@@ -479,6 +479,9 @@ public class HttpConstants {
     public static final String ON_MESSAGE_RESOURCE = "onMessage";
     public static final StrandMetadata ON_MESSAGE_METADATA =
             new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION, ON_MESSAGE_RESOURCE);
+    public static final String NOTIFY_SUCCESS = "notifySuccess";
+    public static final StrandMetadata NOTIFY_SUCCESS_METADATA =
+            new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION, NOTIFY_SUCCESS);
 
     private HttpConstants() {
     }

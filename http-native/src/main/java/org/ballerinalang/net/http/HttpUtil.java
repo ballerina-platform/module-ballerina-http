@@ -213,6 +213,7 @@ public class HttpUtil {
     private static final String METHOD_ACCESSED = "isMethodAccessed";
     private static final String IO_EXCEPTION_OCCURRED = "I/O exception occurred";
     private static final String CHUNKING_CONFIG = "chunking_config";
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal function invocation";
 
     /**
      * Set new entity to in/out request/response struct.
@@ -1094,16 +1095,27 @@ public class HttpUtil {
                                              HttpCarbonMessage outboundResponseMsg) {
         serverConnectionStructCheck(reqMsg);
         int statusCode = outboundResponseMsg.getHttpStatusCode();
-        methodInvocationCheck(connectionObj, reqMsg, statusCode);
+//        methodInvocationCheck(connectionObj, reqMsg, statusCode);
+        methodInvocationCheck(reqMsg, statusCode, ILLEGAL_FUNCTION_INVOKED);
     }
 
-    private static void methodInvocationCheck(BObject connectionObj, HttpCarbonMessage reqMsg, int statusCode) {
-        if (connectionObj.getNativeData(METHOD_ACCESSED) != null || reqMsg == null) {
-            throw new IllegalStateException("illegal function invocation");
+//    private static void methodInvocationCheck(BObject connectionObj, HttpCarbonMessage reqMsg, int statusCode) {
+//        if (connectionObj.getNativeData(METHOD_ACCESSED) != null || reqMsg == null) {
+//            throw new IllegalStateException("illegal function invocation");
+//        }
+//
+//        if (!is100ContinueRequest(reqMsg, statusCode)) {
+//            connectionObj.addNativeData(METHOD_ACCESSED, true);
+//        }
+//    }
+
+    public static void methodInvocationCheck(HttpCarbonMessage reqMsg, int statusCode, String errMsg) {
+        if (reqMsg == null || reqMsg.getProperty(METHOD_ACCESSED) != null) {
+            throw createHttpError(errMsg, HttpErrorType.GENERIC_CLIENT_ERROR);
         }
 
         if (!is100ContinueRequest(reqMsg, statusCode)) {
-            connectionObj.addNativeData(METHOD_ACCESSED, true);
+            reqMsg.setProperty(METHOD_ACCESSED, true);
         }
     }
 

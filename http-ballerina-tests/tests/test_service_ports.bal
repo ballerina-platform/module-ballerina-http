@@ -95,6 +95,7 @@ const int clientDatabindingTestPort2 = 9550;
 const int clientDatabindingTestPort3 = 9551;
 const int queryParamBindingTest = 9552;
 const int basePathTest = 9553;
+const int resourceReturnTest = 9554;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
