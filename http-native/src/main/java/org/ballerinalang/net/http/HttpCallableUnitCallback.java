@@ -18,6 +18,7 @@ package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 /**
@@ -34,16 +35,25 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifySuccess(Object result) {
-        if (result instanceof BError) {
+        if (result == null) { // handles nil return and end of resource exec
+            requestMessage.waitAndReleaseAllEntities();
+            return;
+        }
+        if (result instanceof BError) { // handles error check and return
             HttpUtil.handleFailure(requestMessage, (BError) result);
+            requestMessage.waitAndReleaseAllEntities();
+            return;
+        }
+
+        if (result instanceof BString) {
+//            Return.send(requestMessage, result);
         }
         requestMessage.waitAndReleaseAllEntities();
     }
 
     @Override
-    public void notifyFailure(BError error) {
+    public void notifyFailure(BError error) { // handles panic and check_panic
         HttpUtil.handleFailure(requestMessage, error);
         requestMessage.waitAndReleaseAllEntities();
     }
-
 }
