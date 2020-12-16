@@ -149,13 +149,13 @@ allprojects {
                 password System.getenv("packagePAT")
             }
         }
-//        maven {
-//            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-reflect'
-//            credentials {
-//                username System.getenv("packageUser")
-//                password System.getenv("packagePAT")
-//            }
-//        }
+        maven {
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-reflect'
+            credentials {
+                username System.getenv("packageUser")
+                password System.getenv("packagePAT")
+            }
+        }
         maven {
             url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-runtime'
             credentials {
@@ -198,7 +198,7 @@ subprojects {
         ballerinaStdLibs "org.ballerinalang:crypto-ballerina:${stdlibCryptoVersion}"
         ballerinaStdLibs "org.ballerinalang:file-ballerina:${stdlibFileVersion}"
         ballerinaStdLibs "org.ballerinalang:config-ballerina:${stdlibConfigVersion}"
-//        ballerinaStdLibs "org.ballerinalang:reflect-ballerina:${stdlibReflectVersion}"
+        ballerinaStdLibs "org.ballerinalang:reflect-ballerina:${stdlibReflectVersion}"
         ballerinaStdLibs "org.ballerinalang:runtime-ballerina:${stdlibRuntimeVersion}"
 
         // Transitive dependencies
