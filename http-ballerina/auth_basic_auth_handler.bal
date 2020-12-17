@@ -19,51 +19,51 @@ import ballerina/auth;
 # Defines the Basic Auth header handler for inbound and outbound HTTP traffic.
 public class BasicAuthHandler {
 
-    *InboundAuthHandler;
+    //*InboundAuthHandler;
     *OutboundAuthHandler;
 
-    auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider;
+    auth:OutboundAuthProvider authProvider;
 
     # Initializes the `BasicAuthHandler` object.
     #
     # + authProvider - The `auth:InboundAuthProvider` instance or the `auth:OutboundAuthProvider` instance
-    public isolated function init(auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider) {
+    public isolated function init(auth:OutboundAuthProvider authProvider) {
         self.authProvider = authProvider;
     }
 
-    # Checks if the provided request can be authenticated with the Basic Auth header.
-    #
-    # + req - The `http:Request` instance
-    # + return - `true` if authentication is successful or else `false`
-    public function canProcess(Request req) returns @tainted boolean {
-        if (req.hasHeader(AUTH_HEADER)) {
-            string headerValue = extractAuthorizationHeaderValue(req);
-            return headerValue.startsWith(auth:AUTH_SCHEME_BASIC);
-        }
-        return false;
-    }
-
-    # Authenticates the incoming request with the use of the credentials passed as the Basic Auth header.
-    #
-    # + req - The `http:Request` instance
-    # + return - `true` if it is possible to authenticate with Basic Auth, `false` otherwise, or else
-    #                 an `http:AuthenticationError` in case of an error
-    public function process(Request req) returns boolean|AuthenticationError {
-        string headerValue = extractAuthorizationHeaderValue(req);
-        string credential = headerValue.substring(5, headerValue.length());
-        credential = credential.trim();
-        auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider = self.authProvider;
-        if (authProvider is auth:InboundAuthProvider) {
-            boolean|auth:Error authenticationResult = authProvider.authenticate(credential);
-            if (authenticationResult is boolean) {
-                return authenticationResult;
-            } else {
-                return prepareAuthenticationError("Failed to authenticate with basic auth hanndler.", authenticationResult);
-            }
-        } else {
-            return prepareAuthenticationError("Outbound auth provider is configured for inbound authentication.");
-        }
-    }
+    //# Checks if the provided request can be authenticated with the Basic Auth header.
+    //#
+    //# + req - The `http:Request` instance
+    //# + return - `true` if authentication is successful or else `false`
+    //public function canProcess(Request req) returns @tainted boolean {
+    //    if (req.hasHeader(AUTH_HEADER)) {
+    //        string headerValue = extractAuthorizationHeaderValue(req);
+    //        return headerValue.startsWith(auth:AUTH_SCHEME_BASIC);
+    //    }
+    //    return false;
+    //}
+    //
+    //# Authenticates the incoming request with the use of the credentials passed as the Basic Auth header.
+    //#
+    //# + req - The `http:Request` instance
+    //# + return - `true` if it is possible to authenticate with Basic Auth, `false` otherwise, or else
+    //#                 an `http:AuthenticationError` in case of an error
+    //public function process(Request req) returns boolean|AuthenticationError {
+    //    string headerValue = extractAuthorizationHeaderValue(req);
+    //    string credential = headerValue.substring(5, headerValue.length());
+    //    credential = credential.trim();
+    //    auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider = self.authProvider;
+    //    if (authProvider is auth:InboundAuthProvider) {
+    //        boolean|auth:Error authenticationResult = authProvider.authenticate(credential);
+    //        if (authenticationResult is boolean) {
+    //            return authenticationResult;
+    //        } else {
+    //            return prepareAuthenticationError("Failed to authenticate with basic auth hanndler.", authenticationResult);
+    //        }
+    //    } else {
+    //        return prepareAuthenticationError("Outbound auth provider is configured for inbound authentication.");
+    //    }
+    //}
 
     # Prepares the request with the Basic Auth header.
     #

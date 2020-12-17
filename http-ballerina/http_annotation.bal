@@ -24,13 +24,13 @@
 # + compression - The status of compression
 # + chunking - Configures the chunking behaviour for the service
 # + cors - The cross origin resource sharing configurations for the service
-# + auth - Authentication configurations for secure the service
+//# + auth - Authentication configurations for secure the service
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
     Chunking chunking = CHUNKING_AUTO;
     CorsConfig cors = {};
-    ServiceAuth auth?;
+    //ServiceAuth auth?;
 |};
 
 # Configurations for CORS support.
@@ -87,14 +87,14 @@ public annotation WSServiceConfig WebSocketServiceConfig on service;
 # + cors - The cross origin resource sharing configurations for the resource. If not set, the resource will inherit the CORS behaviour of the enclosing service.
 # + transactionInfectable - Allow to participate in the distributed transactions if value is true
 # + webSocketUpgrade - Annotation to define HTTP to WebSocket upgrade
-# + auth - Authentication Configs to secure the resource
+//# + auth - Authentication Configs to secure the resource
 public type HttpResourceConfig record {|
     string[] consumes = [];
     string[] produces = [];
     CorsConfig cors = {};
     boolean transactionInfectable = true;
     WebSocketUpgradeConfig? webSocketUpgrade = ();
-    ResourceAuth auth?;
+    //ResourceAuth auth?;
 |};
 
 # Resource configuration to upgrade from HTTP to WebSocket.
@@ -106,35 +106,35 @@ public type WebSocketUpgradeConfig record {|
     Service upgradeService?;
 |};
 
-# Configures the authentication scheme for a service.
-#
-# + enabled - Specifies whether authentication is enabled
-# + authHandlers - An array of inbound authentication handlers or an array consisting of arrays of inbound authentication handlers.
-# An array is used to indicate that at least one of the authentication handlers should be successfully authenticated. An array consisting of arrays
-# is used to indicate that at least one authentication handler from the sub-arrays should be successfully authenticated.
-# + scopes - An array of scopes or an array consisting of arrays of scopes. An array is used to indicate that at least one of the scopes should
-# be successfully authorized. An array consisting of arrays is used to indicate that at least one scope from the sub-arrays 
-# should be successfully authorized.
-public type ServiceAuth record {|
-    boolean enabled = true;
-    InboundAuthHandlers authHandlers?;
-    Scopes scopes?;
-|};
+//# Configures the authentication scheme for a service.
+//#
+//# + enabled - Specifies whether authentication is enabled
+//# + authHandlers - An array of inbound authentication handlers or an array consisting of arrays of inbound authentication handlers.
+//# An array is used to indicate that at least one of the authentication handlers should be successfully authenticated. An array consisting of arrays
+//# is used to indicate that at least one authentication handler from the sub-arrays should be successfully authenticated.
+//# + scopes - An array of scopes or an array consisting of arrays of scopes. An array is used to indicate that at least one of the scopes should
+//# be successfully authorized. An array consisting of arrays is used to indicate that at least one scope from the sub-arrays
+//# should be successfully authorized.
+//public type ServiceAuth record {|
+//    boolean enabled = true;
+//    InboundAuthHandlers authHandlers?;
+//    Scopes scopes?;
+//|};
 
-# Configures the authentication scheme for a resource.
-#
-# + enabled - Specifies whether authentication is enabled
-# + authHandlers - An array of inbound authentication handlers or an array consisting of arrays of inbound authentication handlers.
-# An array is used to indicate that at least one of the authentication handlers should be successfully authenticated. An array consisting of arrays
-# is used to indicate that at least one authentication handler from the sub-arrays should be successfully authenticated.
-# + scopes - An array of scopes or an array consisting of arrays of scopes. An array is used to indicate that at least one of the scopes should
-# be successfully authorized. An array consisting of arrays is used to indicate that at least one scope from the sub-arrays
-# should be successfully authorized.
-public type ResourceAuth record {|
-    boolean enabled?;
-    InboundAuthHandlers authHandlers?;
-    Scopes scopes?;
-|};
+//# Configures the authentication scheme for a resource.
+//#
+//# + enabled - Specifies whether authentication is enabled
+//# + authHandlers - An array of inbound authentication handlers or an array consisting of arrays of inbound authentication handlers.
+//# An array is used to indicate that at least one of the authentication handlers should be successfully authenticated. An array consisting of arrays
+//# is used to indicate that at least one authentication handler from the sub-arrays should be successfully authenticated.
+//# + scopes - An array of scopes or an array consisting of arrays of scopes. An array is used to indicate that at least one of the scopes should
+//# be successfully authorized. An array consisting of arrays is used to indicate that at least one scope from the sub-arrays
+//# should be successfully authorized.
+//public type ResourceAuth record {|
+//    boolean enabled?;
+//    InboundAuthHandlers authHandlers?;
+//    Scopes scopes?;
+//|};
 
 # The annotation which is used to configure an HTTP resource.
 public annotation HttpResourceConfig ResourceConfig on object function;

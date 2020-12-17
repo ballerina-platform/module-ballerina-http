@@ -19,50 +19,50 @@ import ballerina/auth;
 # Representation of the Bearer Auth header handler for both inbound and outbound HTTP traffic.
 public class BearerAuthHandler {
 
-    *InboundAuthHandler;
+    //*InboundAuthHandler;
     *OutboundAuthHandler;
 
-    auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider;
+    auth:OutboundAuthProvider authProvider;
 
     # Initializes the `BearerAuthHandler` object.
     #
     # + authProvider - The `auth:InboundAuthProvider` instance or the `auth:OutboundAuthProvider` instance
-    public isolated function init(auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider) {
+    public isolated function init(auth:OutboundAuthProvider authProvider) {
         self.authProvider = authProvider;
     }
 
-    # Checks if the request can be authenticated with the Bearer Auth header.
-    #
-    # + req - The `http:Request` instance
-    # + return - `true` if it can be authenticated or else `false`
-    public function canProcess(Request req) returns @tainted boolean {
-        if (req.hasHeader(AUTH_HEADER)) {
-            string headerValue = extractAuthorizationHeaderValue(req);
-            return headerValue.startsWith(auth:AUTH_SCHEME_BEARER);
-        }
-        return false;
-    }
-
-    # Authenticates the incoming request with the use of credentials passed as the Bearer Auth header.
-    #
-    # + req - The `http:Request` instance
-    # + return - `true` if authenticated successfully, `false` otherwise,
-    #                 or else an `http:AuthenticationError` in case of an error
-    public function process(Request req) returns boolean|AuthenticationError {
-        string headerValue = extractAuthorizationHeaderValue(req);
-        string credential = headerValue.substring(6, headerValue.length()).trim();
-        auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider = self.authProvider;
-        if (authProvider is auth:InboundAuthProvider) {
-            boolean|auth:Error authenticationResult = authProvider.authenticate(credential);
-            if (authenticationResult is boolean) {
-                return authenticationResult;
-            } else {
-                return prepareAuthenticationError("Failed to authenticate with bearer auth handler.", authenticationResult);
-            }
-        } else {
-            return prepareAuthenticationError("Outbound auth provider is configured for inbound authentication.");
-        }
-    }
+    //# Checks if the request can be authenticated with the Bearer Auth header.
+    //#
+    //# + req - The `http:Request` instance
+    //# + return - `true` if it can be authenticated or else `false`
+    //public function canProcess(Request req) returns @tainted boolean {
+    //    if (req.hasHeader(AUTH_HEADER)) {
+    //        string headerValue = extractAuthorizationHeaderValue(req);
+    //        return headerValue.startsWith(auth:AUTH_SCHEME_BEARER);
+    //    }
+    //    return false;
+    //}
+    //
+    //# Authenticates the incoming request with the use of credentials passed as the Bearer Auth header.
+    //#
+    //# + req - The `http:Request` instance
+    //# + return - `true` if authenticated successfully, `false` otherwise,
+    //#                 or else an `http:AuthenticationError` in case of an error
+    //public function process(Request req) returns boolean|AuthenticationError {
+    //    string headerValue = extractAuthorizationHeaderValue(req);
+    //    string credential = headerValue.substring(6, headerValue.length()).trim();
+    //    auth:InboundAuthProvider|auth:OutboundAuthProvider authProvider = self.authProvider;
+    //    if (authProvider is auth:InboundAuthProvider) {
+    //        boolean|auth:Error authenticationResult = authProvider.authenticate(credential);
+    //        if (authenticationResult is boolean) {
+    //            return authenticationResult;
+    //        } else {
+    //            return prepareAuthenticationError("Failed to authenticate with bearer auth handler.", authenticationResult);
+    //        }
+    //    } else {
+    //        return prepareAuthenticationError("Outbound auth provider is configured for inbound authentication.");
+    //    }
+    //}
 
     # Prepares the request with the Bearer Auth header.
     #
