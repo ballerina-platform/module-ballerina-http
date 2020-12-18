@@ -86,14 +86,12 @@ public annotation WSServiceConfig WebSocketServiceConfig on service;
 # + produces - The media types which are produced by resource
 # + cors - The cross origin resource sharing configurations for the resource. If not set, the resource will inherit the CORS behaviour of the enclosing service.
 # + transactionInfectable - Allow to participate in the distributed transactions if value is true
-# + webSocketUpgrade - Annotation to define HTTP to WebSocket upgrade
 # + auth - Authentication Configs to secure the resource
 public type HttpResourceConfig record {|
     string[] consumes = [];
     string[] produces = [];
     CorsConfig cors = {};
     boolean transactionInfectable = true;
-    WebSocketUpgradeConfig? webSocketUpgrade = ();
     ResourceAuth auth?;
 |};
 
