@@ -500,7 +500,7 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         secureSocket:target.secureSocket,
         cache:foConfig.cache,
         compression:foConfig.compression,
-        auth:foConfig.auth
+        authConfig:foConfig.authConfig
     };
     return clientEPConfig;
 }

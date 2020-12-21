@@ -1,21 +1,21 @@
-//// Copyright (c) 2018 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-////
-//// WSO2 Inc. licenses this file to you under the Apache License,
-//// Version 2.0 (the "License"); you may not use this file except
-//// in compliance with the License.
-//// You may obtain a copy of the License at
-////
-//// http://www.apache.org/licenses/LICENSE-2.0
-////
-//// Unless required by applicable law or agreed to in writing,
-//// software distributed under the License is distributed on an
-//// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-//// KIND, either express or implied.  See the License for the
-//// specific language governing permissions and limitations
-//// under the License.
+// Copyright (c) 2018 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
-//import ballerina/log;
-////import ballerina/reflect;
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import ballerina/log;
+//import ballerina/reflect;
 //
 //# Auth annotation module.
 //const string ANN_MODULE = "ballerina/http:1.0.4";
@@ -26,6 +26,12 @@
 
 # Represents the Authorization header name.
 public const string AUTH_HEADER = "Authorization";
+
+# The prefix used to denote the Basic authentication scheme.
+public const string AUTH_SCHEME_BASIC = "Basic";
+
+# The prefix used to denote the Bearer authentication scheme.
+public const string AUTH_SCHEME_BEARER = "Bearer";
 
 //# Specifies how to send the authentication credentials when exchanging tokens.
 //public type CredentialBearer AUTH_HEADER_BEARER|POST_BODY_BEARER|NO_BEARER;
@@ -286,44 +292,18 @@ public const string AUTH_HEADER = "Authorization";
 //    }
 //}
 
-# Creates a map out of the headers of the HTTP response.
-#
-# + resp - The `Response` instance
-# + return - The map of the response headers
-isolated function createResponseHeaderMap(Response resp) returns @tainted map<anydata> {
-    map<anydata> headerMap = { STATUS_CODE: resp.statusCode };
-    string[] headerNames = resp.getHeaderNames();
-    foreach string header in headerNames {
-        string[] headerValues = resp.getHeaders(<@untainted> header);
-        headerMap[header] = headerValues;
-    }
-    return headerMap;
-}
+# Defines the authentication configurations that a HTTP client may have
+public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig|OAuth2GrantConfig;
 
-# Logs, prepares, and returns the `AuthenticationError`.
+# Logs and prepares the `error` as an `http:ClientAuthError`.
 #
-# + message -The error message
+# + message - The error message
 # + err - The `error` instance
-# + return - The prepared `http:AuthenticationError` instance
-isolated function prepareAuthenticationError(string message, error? err = ()) returns AuthenticationError {
-    final string messageValue = message;
-    // log:printDebug(isolated function () returns string { return messageValue; });
+# + return - The prepared `http:ClientAuthError` instance
+isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
+    log:printError(message, err = err);
     if (err is error) {
-        return AuthenticationError(message, err);
+        return ClientAuthError(message, err);
     }
-    return AuthenticationError(message);
+    return ClientAuthError(message);
 }
-
-//# Logs, prepares, and returns the `AuthorizationError`.
-//#
-//# + message -The error message
-//# + err - The `error` instance
-//# + return - The prepared `http:AuthorizationError` instance
-//isolated function prepareAuthorizationError(string message, error? err = ()) returns AuthorizationError {
-//    final string messageValue = message;
-//    // log:printDebug(isolated function () returns string { return messageValue; });
-//    if (err is error) {
-//        return AuthorizationError(message, err);
-//    }
-//    return AuthorizationError(message);
-//}

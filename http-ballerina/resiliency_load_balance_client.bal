@@ -361,7 +361,7 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         secureSocket:target.secureSocket,
         cache:lbConfig.cache,
         compression:lbConfig.compression,
-        auth:lbConfig.auth
+        authConfig:lbConfig.authConfig
     };
     return clientEPConfig;
 }

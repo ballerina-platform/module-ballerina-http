@@ -32,10 +32,6 @@ public enum HttpErrorType {
     IDLE_TIMEOUT_TRIGGERED("IdleTimeoutError", "{ballerina/http}IdleTimeoutError"),
     LISTENER_STARTUP_FAILURE("ListenerError", "{ballerina/http}ListenerStartupError"),
 
-    // ClientAuthError
-    AUTHN_FAILED("AuthenticationError", "{ballerina/http}AuthenticationFailed"),
-    AUTHZ_FAILED("AuthorizationError", "{ballerina/http}AuthorizationFailed"),
-
     // OutboundRequestError (Client)
     INIT_OUTBOUND_REQUEST_FAILED("InitializingOutboundRequestError",
             "{ballerina/http}InitializingOutboundRequestFailed"),

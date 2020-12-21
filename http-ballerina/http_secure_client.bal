@@ -21,11 +21,11 @@
 # + config - The configurations of the client endpoint associated with this `HttpActions` instance
 # + httpClient - The underlying `HttpActions` instance, which will make the actual network calls
 public client class HttpSecureClient {
-    //These properties are populated from the init call and sent to the client connector as these will be needed at a
-    //later stage for retrying and in other few places.
+
     public string url = "";
     public ClientConfiguration config = {};
     public HttpClient httpClient;
+    ClientAuthHandler clientAuthHandler;
 
     # Gets invoked to initialize the secure `client`. Due to the secure client releated configurations provided
     # through the `config` record, the `HttpSecureClient` is initialized.
@@ -35,6 +35,7 @@ public client class HttpSecureClient {
     public function init(string url, ClientConfiguration config) {
         self.url = url;
         self.config = config;
+        self.clientAuthHandler = initClientAuthHandler(config);
         HttpClient|ClientError simpleClient = createClient(url, self.config);
         if (simpleClient is HttpClient) {
             self.httpClient = simpleClient;
@@ -56,14 +57,8 @@ public client class HttpSecureClient {
     remote function post(string path, RequestMessage message, TargetType targetType = Response)
             returns Response|PayloadType|ClientError {
         Request req = <Request>message;
-        req = check prepareSecureRequest(req, self.config);
-        var result = check self.httpClient->post(path, req);
-        Response res = <Response> result;
-        Request? inspection = check doInspection(req, res, self.config);
-        if (inspection is Request) {
-            return self.httpClient->post(path, inspection);
-        }
-        return res;
+        req = check self.clientAuthHandler.enrich(req);
+        return self.httpClient->post(path, req);
     }
 
     # This wraps the `HttpSecureClient.head()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -76,13 +71,8 @@ public client class HttpSecureClient {
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
         Request req = <Request>message;
-        req = check prepareSecureRequest(req, self.config);
-        Response res = check self.httpClient->head(path, message = req);
-        Request? inspection = check doInspection(req, res, self.config);
-        if (inspection is Request) {
-            return self.httpClient->head(path, message = inspection);
-        }
-        return res;
+        req = check self.clientAuthHandler.enrich(req);
+        return self.httpClient->head(path, message = req);
     }
 
     # This wraps the `HttpSecureClient.put()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -98,14 +88,8 @@ public client class HttpSecureClient {
     remote function put(string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
-        req = check prepareSecureRequest(req, self.config);
-        var result = check self.httpClient->put(path, req);
-        Response res = <Response> result;
-        Request? inspection = check doInspection(req, res, self.config);
-        if (inspection is Request) {
-            return self.httpClient->put(path, inspection);
-        }
-        return res;
+        req = check self.clientAuthHandler.enrich(req);
+        return self.httpClient->put(path, req);
     }
 
     # This wraps the `HttpSecureClient.execute()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -122,14 +106,8 @@ public client class HttpSecureClient {
     remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
-        req = check prepareSecureRequest(req, self.config);
-        var result = check self.httpClient->execute(httpVerb, path, req);
-        Response res = <Response> result;
-        Request? inspection = check doInspection(req, res, self.config);
-        if (inspection is Request) {
-            return self.httpClient->execute(httpVerb, path, inspection);
-        }
-        return res;
+        req = check self.clientAuthHandler.enrich(req);
+        return self.httpClient->execute(httpVerb, path, req);
     }
 
     # This wraps the `HttpSecureClient.patch()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -145,14 +123,8 @@ public client class HttpSecureClient {
     remote function patch(string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
-        req = check prepareSecureRequest(req, self.config);
-        var result = check self.httpClient->patch(path, req);
-        Response res = <Response> result;
-        Request? inspection = check doInspection(req, res, self.config);
-        if (inspection is Request) {
-            return self.httpClient->patch(path, inspection);
-        }
-        return res;
+        req = check self.clientAuthHandler.enrich(req);
+        return self.httpClient->patch(path, req);
     }
 
     # This wraps the `HttpSecureClient.delete()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -168,14 +140,8 @@ public client class HttpSecureClient {
     remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
-        req = check prepareSecureRequest(req, self.config);
-        var result = check self.httpClient->delete(path, req);
-        Response res = <Response> result;
-        Request? inspection = check doInspection(req, res, self.config);
-        if (inspection is Request) {
-            return self.httpClient->delete(path, inspection);
-        }
-        return res;
+        req = check self.clientAuthHandler.enrich(req);
+        return self.httpClient->delete(path, req);
     }
 
     # This wraps the `HttpSecureClient.get()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -191,14 +157,8 @@ public client class HttpSecureClient {
     remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
-        req = check prepareSecureRequest(req, self.config);
-        var result = check self.httpClient->get(path, message = req);
-        Response res = <Response> result;
-        Request? inspection = check doInspection(req, res, self.config);
-        if (inspection is Request) {
-            return self.httpClient->get(path, message = inspection);
-        }
-        return res;
+        req = check self.clientAuthHandler.enrich(req);
+        return self.httpClient->get(path, message = req);
     }
 
     # This wraps the `HttpSecureClient.options()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -214,14 +174,8 @@ public client class HttpSecureClient {
     remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = <Request>message;
-        req = check prepareSecureRequest(req, self.config);
-        var result = check self.httpClient->options(path, message = req);
-        Response res = <Response> result;
-        Request? inspection = check doInspection(req, res, self.config);
-        if (inspection is Request) {
-            return self.httpClient->options(path, message = inspection);
-        }
-        return res;
+        req = check self.clientAuthHandler.enrich(req);
+        return self.httpClient->options(path, message = req);
     }
 
     # This wraps the `HttpSecureClient.forward()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -237,13 +191,7 @@ public client class HttpSecureClient {
             returns @tainted Response|PayloadType|ClientError {
         Request req = request;
         req = check prepareSecureRequest(request, self.config);
-        var result = check self.httpClient->forward(path, request);
-        Response res = <Response> result;
-        Request? inspection = check doInspection(req, res, self.config);
-        if (inspection is Request) {
-            return self.httpClient->forward(path, inspection);
-        }
-        return res;
+        return self.httpClient->forward(path, request);
     }
 
     # This wraps the `HttpSecureClient.submit()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -256,7 +204,7 @@ public client class HttpSecureClient {
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = <Request>message;
-        req = check prepareSecureRequest(req, self.config);
+        req = check self.clientAuthHandler.enrich(req);
         return self.httpClient->submit(httpVerb, path, req);
     }
 
@@ -307,7 +255,7 @@ public client class HttpSecureClient {
 # + return - Created secure HTTP client
 public function createHttpSecureClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpSecureClient httpSecureClient;
-    if (config.auth is OutboundAuthConfig) {
+    if (config.auth is ClientAuthConfig) {
         httpSecureClient = new(url, config);
         return httpSecureClient;
     } else {
@@ -315,35 +263,21 @@ public function createHttpSecureClient(string url, ClientConfiguration config) r
     }
 }
 
-# Prepares an HTTP request with the required headers for authentication based on the scheme.
-#
-# + req - An HTTP outbound request message
-# + config - Client endpoint configurations
-# + return - Prepared HTTP request or `http:ClientError` if an error occurred at auth handler invocation
-function prepareSecureRequest(Request req, ClientConfiguration config) returns Request|ClientError {
-    OutboundAuthConfig? auth = config.auth;
-    if (auth is OutboundAuthConfig) {
-        OutboundAuthHandler authHandler = auth.authHandler;
-        return authHandler.prepare(req);
+// Initialize the client auth handler based on the provided configurations
+fucntion initClientAuthHandler(ClientConfiguration config) returns ClientAuthHandler {
+    // The existence of authConfig is already validated.
+    ClientAuthConfig authConfig = <ClientAuthConfig>(config.authConfig);
+    if (authConfig is CredentialsConfig) {
+        ClientBasicAuthHandler handler = new(authConfig);
+        return handler;
+    } else if (authConfig is BearerTokenConfig) {
+        ClientBearerTokenAuthHandler handler = new(authConfig);
+        return handler;
+    } else if (authConfig is JwtIssuerConfig) {
+        ClientSelfSignedJwtAuthProvider handler = new(authConfig);
+        eturn handler;
+    } else if (authConfig is OAuth2GrantConfig) {
+        ClientOAuth2Handler handler = new(authConfig);
+        eturn handler;
     }
-    // Never throw this error since the auth config is already validated.
-    return prepareAuthenticationError("Failed to prepare the HTTP request since OutboundAuthConfig is not configured.");
-}
-
-# Does inspection with the received HTTP response for the prepared HTTP request.
-#
-# + req - An HTTP outbound request message
-# + res - An HTTP outbound response message
-# + config - Client endpoint configurations
-# + return - Prepared HTTP request or `()` if nothing to be done or `http:ClientError` if an error occurred at auth handler invocation
-function doInspection(Request req, Response res, ClientConfiguration config) returns Request|ClientError? {
-    OutboundAuthConfig? auth = config.auth;
-    if (auth is OutboundAuthConfig) {
-        OutboundAuthHandler authHandler = auth.authHandler;
-        return authHandler.inspect(req, res);
-    }
-    // log:printDebug(isolated function () returns string {
-    //    return "Retry is not required for the given request after the inspection.";
-    // });
-    return ();
 }
