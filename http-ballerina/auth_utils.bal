@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/log;
+import ballerina/stringutils;
 
 # Represents the Authorization header name.
 public const string AUTH_HEADER = "Authorization";
@@ -28,11 +29,7 @@ public const string AUTH_SCHEME_BEARER = "Bearer";
 # Defines the authentication configurations that a HTTP client may have
 public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig|OAuth2GrantConfig;
 
-# Logs and prepares the `error` as an `http:ClientAuthError`.
-#
-# + message - The error message
-# + err - The `error` instance
-# + return - The prepared `http:ClientAuthError` instance
+// Logs and prepares the `error` as an `http:ClientAuthError`.
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
     log:printError(message, err = err);
     if (err is error) {
@@ -40,3 +37,48 @@ isolated function prepareClientAuthError(string message, error? err = ()) return
     }
     return ClientAuthError(message);
 }
+
+// Extract the credential from `http:Request` or `string` header.
+isolated function extractCredential(Request|string data) returns string {
+    if (data is Request) {
+        string header = data.getHeader(AUTH_HEADER);
+        return stringutils:split(header, " ")[1];
+    }
+    return stringutils:split(<string>data, " ")[1];
+}
+
+// Match the expectedScopes with actualScopes and return if there is a match.
+isolated function matchScopes(string[] actualScopes, string|string[] expectedScopes) returns boolean {
+    if (expectedScopes is string) {
+        foreach string actualScope in actualScopes {
+            if (actualScope == expectedScopes) {
+                return true;
+            }
+        }
+    } else {
+        foreach string actualScope in actualScopes {
+            foreach string expectedScope in expectedScopes {
+                if (actualScope == expectedScope) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// TODO: Remove these once all the types are implemented
+type UNAUTHORIZED_401 "Unauthorized";
+type Unauthorized record {
+    UNAUTHORIZED_401 unauthorized = "Unauthorized";
+    string message?;
+    map<string|string[]> headers?;
+};
+
+// TODO: Remove these once all the types are implemented
+type FORBIDDEN_403 "Forbidden";
+type Forbidden record {
+    FORBIDDEN_403 forbidden = "Forbidden";
+    string message?;
+    map<string|string[]> headers?;
+};
