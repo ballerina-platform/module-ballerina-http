@@ -18,7 +18,7 @@ import ballerina/log;
 //import ballerina/reflect;
 
 # Auth annotation module.
-const string ANN_MODULE = "ballerina/http:1.0.4";
+const string ANN_MODULE = "ballerina/http:1.0.5";
 # Resource level annotation name.
 const string RESOURCE_ANN_NAME = "ResourceConfig";
 # Service level annotation name.
