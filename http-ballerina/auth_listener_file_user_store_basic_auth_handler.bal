@@ -29,7 +29,7 @@ public class ListenerFileUserStoreBasicAuthHandler {
     # Initializes the `http:ListenerFileUserStoreBasicAuthHandler` object.
     #
     # + config - The `http:FileUserStoreConfig` instance
-    public function __init(FileUserStoreConfig config) {
+    public function __init(FileUserStoreConfig config = {}) {
         self.provider = new(config);
     }
 
