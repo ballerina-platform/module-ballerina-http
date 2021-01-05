@@ -26,7 +26,7 @@ import ballerina/runtime;
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
 public class Listener {
 
-    private int port = 0;
+    public int port = 0;
     private ListenerConfiguration config = {};
     private string instanceId;
 
