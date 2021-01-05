@@ -404,7 +404,7 @@ isolated function createNewEndpointConfig(ClientConfiguration config) returns Cl
         secureSocket: config.secureSocket,
         cache: config.cache,
         compression: config.compression,
-        authConfig: config.authConfig
+        auth: config.auth
     };
     return newEpConfig;
 }

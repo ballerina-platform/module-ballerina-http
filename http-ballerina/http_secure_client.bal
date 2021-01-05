@@ -265,8 +265,8 @@ public function createHttpSecureClient(string url, ClientConfiguration config) r
 
 // Initialize the client auth handler based on the provided configurations
 fucntion initClientAuthHandler(ClientConfiguration config) returns ClientAuthHandler {
-    // The existence of authConfig is already validated.
-    ClientAuthConfig authConfig = <ClientAuthConfig>(config.authConfig);
+    // The existence of auth configuration is already validated.
+    ClientAuthConfig authConfig = <ClientAuthConfig>(config.auth);
     if (authConfig is CredentialsConfig) {
         ClientBasicAuthHandler handler = new(authConfig);
         return handler;

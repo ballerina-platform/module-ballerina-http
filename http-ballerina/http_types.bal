@@ -114,7 +114,7 @@ type HTTPError record {
 # + poolConfig - Configurations associated with request pooling
 # + cache - HTTP caching related configurations
 # + compression - Specifies the way of handling compression (`accept-encoding`) header
-# + authConfig - Configurations related to client authentication
+# + auth - Configurations related to client authentication
 # + circuitBreaker - Configurations associated with the behaviour of the Circuit Breaker
 # + retryConfig - Configurations associated with retrying
 # + cookieConfig - Configurations associated with cookies
@@ -128,7 +128,7 @@ public type CommonClientConfiguration record {|
     PoolConfiguration? poolConfig = ();
     CacheConfig cache = {};
     Compression compression = COMPRESSION_AUTO;
-    ClientAuthConfig? authConfig = ();
+    ClientAuthConfig? auth = ();
     CircuitBreakerConfig? circuitBreaker = ();
     RetryConfig? retryConfig = ();
     CookieConfig? cookieConfig = ();
