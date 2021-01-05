@@ -38,6 +38,8 @@ ext.stdlibConfigVersion = project.stdlibConfigVersion
 ext.stdlibRuntimeVersion = project.stdlibRuntimeVersion
 ext.stdlibSystemVersion = project.stdlibSystemVersion
 ext.stdlibTaskVersion = project.stdlibTaskVersion
+ext.stdlibUuidVersion = project.stdlibUuidVersion
+ext.stdlibEncodingVersion = project.stdlibEncodingVersion
 
 ext.slf4jVersion = project.slf4jVersion
 ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
@@ -185,6 +187,20 @@ allprojects {
                 password System.getenv("packagePAT")
             }
         }
+        maven {
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-uuid'
+            credentials {
+                username System.getenv("packageUser")
+                password System.getenv("packagePAT")
+            }
+        }
+        maven {
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-encoding'
+            credentials {
+                username System.getenv("packageUser")
+                password System.getenv("packagePAT")
+            }
+        }
     }
 }
 
@@ -213,6 +229,8 @@ subprojects {
         // Transitive dependencies
         ballerinaStdLibs "org.ballerinalang:system-ballerina:${stdlibSystemVersion}"
         ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
+        ballerinaStdLibs "org.ballerinalang:uuid-ballerina:${stdlibUuidVersion}"
+        ballerinaStdLibs "org.ballerinalang:encoding-ballerina:${stdlibEncodingVersion}"
     }
 }
 
