@@ -15,15 +15,16 @@
 // under the License.
 
 import ballerina/auth;
-import ballerina/test;
 import ballerina/http;
+import ballerina/jwt;
+import ballerina/test;
 
 @test:Config {}
 isolated function testClientBasicAuthHandler() {
     http:CredentialsConfig config = {
         username: "admin",
         password: "123"
-    }
+    };
     http:ClientBasicAuthHandler handler = new(config);
     http:Request request = createRequest();
     http:Request|http:ClientAuthError result = handler.enrich(request);
@@ -39,7 +40,7 @@ isolated function testClientBasicAuthHandler() {
 isolated function testClientBearerTokenAuthHandler() {
     http:BearerTokenConfig config = {
         token: "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"
-    }
+    };
     http:ClientBearerTokenAuthHandler handler = new(config);
     http:Request request = createRequest();
     http:Request|http:ClientAuthError result = handler.enrich(request);
@@ -65,7 +66,7 @@ isolated function testClientSelfSignedJwtAuthHandler() {
             keyAlias: "ballerina",
             keyPassword: "ballerina"
         }
-    }
+    };
     http:ClientSelfSignedJwtAuthProvider handler = new(config);
     http:Request request = createRequest();
     http:Request|http:ClientAuthError result = handler.enrich(request);
@@ -86,17 +87,17 @@ isolated function testClientOAuth2Handler() {
 isolated function testListenerFileUserStoreBasicAuthHandler() {
     http:ListenerFileUserStoreBasicAuthHandler handler = new;
     http:Request request = createRequest();
-    request.addHeader(http:AUTH_HEADER, AUTH_SCHEME_BASIC + " " + "YWxpY2U6eHh4");
+    request.addHeader(http:AUTH_HEADER, http:AUTH_SCHEME_BASIC + " " + "YWxpY2U6eHh4");
     auth:UserDetails|http:Unauthorized authn = handler.authenticate(request);
     if (authn is auth:UserDetails) {
         test:assertEquals(authn.username, "alice");
         test:assertEquals(authn.scopes, ["read", "write"]);
     } else {
-        test:assertFail(msg = "Test Failed! " + authn.message());
+        test:assertFail(msg = "Test Failed!");
     }
 
     http:Forbidden? authz = handler.authorize(<auth:UserDetails>authn, "read");
-    if (authn is http:Forbidden) {
+    if (authz is http:Forbidden) {
         test:assertFail(msg = "Test Failed!");
     }
 }
@@ -117,28 +118,28 @@ isolated function testListenerJwtAuthHandler() {
                 password: "ballerina"
             },
             certificateAlias: "ballerina"
-        }
-    }
+        },
+        scopeKey: "scp"
+    };
     http:ListenerJwtAuthHandler handler = new(config);
     http:Request request = createRequest();
-    string jwt = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k0Tk" +
-                 "RObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTYwOTc0NjUzMSwgImp0aSI6" +
-                 "IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.dY3pLPNBkZWTxR4un1_f_8N5BLp" +
-                 "q5H3EB9SdcVvao50pnxK7CjQiq8N_kFuUT6jEc66Hzl83KAp5OMBHysUpoFmXiBclh5Ee-pOUHWLsOrR1u0GyITErBpG4nqjNv" +
-                 "lzzCQBcdqt0smooh7eeTccYJbNsgBOTPQFOia3fVvhijcAQtMnnqPChgjaUfUnvnVCwcd7jvB8w1uRp9oHlZT1OEfGbBauKOyw" +
-                 "3A0rjN8_P1RjuvOD824MhDcJCmbDSu682fwWKkbYDOCNxaudP7eyv7fpl5UK8ZwP21Q5bMSycelKEEVBHx65-miAjp0i2hhnUo" +
-                 "qRA-PGsbu_rpBjcAK9XrA";
-    request.addHeader(http:AUTH_HEADER, AUTH_SCHEME_BEARER + " " + jwt);
+    string jwt = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTI5MzU" +
+                 "2MSwgImp0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.Xcqmj0qxM_zKIE" +
+                 "uNzZJ1kfI_Ba0mTqHfYmwnqrArRx7jA-HrKENAqTSYDlQbpCTF-3sUPCaV2uHoPPNnFaAxKlzuZtIIjfkPhKm5PfHfmnGoAN7n" +
+                 "YthtkBV8lwCFy0vyCQwiN4SYDXQT0gbfJ2VH08hYzaI3gY5jtCMlqhiouds4glbbC-9_o9uURBnGiF5dfnPMEvRHpkgD8Ge-Rf" +
+                 "LoppEcb69pPSMvXX65Ookal3_mEiJRZHzyqsJnli8m5_13SsnpppXt0xme_KrvJmdm7-er5cbKHjvF8Ve7OO6V7VSs6pwsRVfe" +
+                 "TaFgNpEXC8RCDcaFykiBQW6uT5jYH3W3Eg";
+    request.addHeader(http:AUTH_HEADER, http:AUTH_SCHEME_BEARER + " " + jwt);
     jwt:Payload|http:Unauthorized authn = handler.authenticate(request);
     if (authn is jwt:Payload) {
         test:assertEquals(authn?.iss, "wso2");
-        test:assertEquals(authn?.aud, "ballerina");
+        test:assertEquals(authn?.aud, ["ballerina"]);
     } else {
-        test:assertFail(msg = "Test Failed! " + authn.message());
+        test:assertFail(msg = "Test Failed!");
     }
 
-    Forbidden? authz = handler.authorize(<jwt:Payload>authn, "write");
-    if (authz is Forbidden) {
+    http:Forbidden? authz = handler.authorize(<jwt:Payload>authn, "write");
+    if (authz is http:Forbidden) {
         test:assertFail(msg = "Test Failed!");
     }
 }
