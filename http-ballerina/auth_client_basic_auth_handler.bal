@@ -31,7 +31,7 @@ public class ClientBasicAuthHandler {
     # Initializes the `http:ClientBasicAuthHandler` object.
     #
     # + config - The `http:CredentialsConfig` instance
-    public function init(CredentialsConfig config) {
+    public isolated function init(CredentialsConfig config) {
         self.provider = new(config);
     }
 
@@ -39,7 +39,7 @@ public class ClientBasicAuthHandler {
     #
     # + req - The `http:Request` instance
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
-    public function enrich(Request req) returns Request|ClientAuthError {
+    public isolated function enrich(Request req) returns Request|ClientAuthError {
         string|auth:Error result = self.provider.generateToken();
         if (result is auth:Error) {
             return prepareClientAuthError("Failed to enrich request with Basic Auth token.", result);

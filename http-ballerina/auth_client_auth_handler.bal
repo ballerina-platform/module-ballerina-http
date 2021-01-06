@@ -21,5 +21,5 @@ public type ClientAuthHandler object {
     #
     # + req - The `http:Request` instance
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
-    public function enrich(Request req) returns Request|ClientAuthError;
+    public isolated function enrich(Request req) returns Request|ClientAuthError;
 };

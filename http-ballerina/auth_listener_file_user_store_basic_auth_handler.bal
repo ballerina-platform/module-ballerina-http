@@ -29,7 +29,7 @@ public class ListenerFileUserStoreBasicAuthHandler {
     # Initializes the `http:ListenerFileUserStoreBasicAuthHandler` object.
     #
     # + config - The `http:FileUserStoreConfig` instance
-    public function init(FileUserStoreConfig config = {}) {
+    public isolated function init(FileUserStoreConfig config = {}) {
         self.provider = new(config);
     }
 
@@ -37,7 +37,7 @@ public class ListenerFileUserStoreBasicAuthHandler {
     #
     # + data - The `http:Request` instance or `string` Authorization header
     # + return - The `auth:UserDetails` instance or else `Unauthorized` type in case of an error
-    public function authenticate(Request|string data) returns auth:UserDetails|Unauthorized {
+    public isolated function authenticate(Request|string data) returns auth:UserDetails|Unauthorized {
         string credential = extractCredential(data);
         auth:UserDetails|auth:Error details = self.provider.authenticate(credential);
         if (details is auth:Error) {
@@ -52,7 +52,7 @@ public class ListenerFileUserStoreBasicAuthHandler {
     # + userDetails - The `auth:UserDetails` instance which is received from authentication results
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + return - `()`, if it is successful or else `Forbidden` type in case of an error
-    public function authorize(auth:UserDetails userDetails, string|string[] expectedScopes) returns Forbidden? {
+    public isolated function authorize(auth:UserDetails userDetails, string|string[] expectedScopes) returns Forbidden? {
         string[] actualScopes = userDetails.scopes;
         boolean matched = matchScopes(actualScopes, expectedScopes);
         if (!matched) {

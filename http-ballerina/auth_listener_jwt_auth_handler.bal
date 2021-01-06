@@ -17,6 +17,8 @@
 import ballerina/jwt;
 
 # Represents JWT validator configurations for JWT authentication.
+#
+# + scopeKey - The key used to fetch the scopes
 public type JwtValidatorConfig record {|
     *jwt:ValidatorConfig;
     string scopeKey = "scope";
@@ -31,7 +33,7 @@ public class ListenerJwtAuthHandler {
     # Initializes the `http:ListenerJwtAuthHandler` object.
     #
     # + config - The `http:JwtValidatorConfig` instance
-    public function init(JwtValidatorConfig config) {
+    public isolated function init(JwtValidatorConfig config) {
         self.scopeKey = config.scopeKey;
         self.provider = new(config);
     }
@@ -40,7 +42,7 @@ public class ListenerJwtAuthHandler {
     #
     # + data - The `http:Request` instance or `string` Authorization header
     # + return - The `jwt:Payload` instance or else `Unauthorized` type in case of an error
-    public function authenticate(Request|string data) returns jwt:Payload|Unauthorized {
+    public isolated function authenticate(Request|string data) returns jwt:Payload|Unauthorized {
         string credential = extractCredential(data);
         jwt:Payload|jwt:Error details = self.provider.authenticate(credential);
         if (details is jwt:Error) {
@@ -55,7 +57,7 @@ public class ListenerJwtAuthHandler {
     # + jwtPayload - The `jwt:Payload` instance which is received from authentication results
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + return - `()`, if it is successful or else `Forbidden` type in case of an error
-    public function authorize(jwt:Payload jwtPayload, string|string[] expectedScopes) returns Forbidden? {
+    public isolated function authorize(jwt:Payload jwtPayload, string|string[] expectedScopes) returns Forbidden? {
         string scopeKey = self.scopeKey;
         var actualScope = jwtPayload[scopeKey];
         if (actualScope is string) {

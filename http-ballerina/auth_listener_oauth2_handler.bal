@@ -17,6 +17,8 @@
 import ballerina/oauth2;
 
 # Represents OAuth2 introspection server configurations for OAuth2 authentication.
+#
+# + scopeKey - The key used to fetch the scopes
 public type OAuth2IntrospectionConfig record {|
     *oauth2:IntrospectionConfig;
     string scopeKey = "scopes";
@@ -31,7 +33,7 @@ public class ListenerOAuth2Handler {
     # Initializes the `http:ListenerOAuth2Handler` object.
     #
     # + config - The `http:OAuth2IntrospectionConfig` instance
-    public function init(OAuth2IntrospectionConfig config) {
+    public isolated function init(OAuth2IntrospectionConfig config) {
         self.scopeKey = config.scopeKey;
         self.provider = new(config);
     }
@@ -42,8 +44,9 @@ public class ListenerOAuth2Handler {
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + customParams - Map of custom parameters that need to be sent to introspection endpoint
     # + return - The `oauth2:IntrospectionResponse` instance or else `Unauthorized` or `Forbidden` type in case of an error
-    public function authorize(Request|string data, string|string[]? expectedScopes = (), map<string>? customParams = ())
-                              returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
+    public isolated function authorize(Request|string data, string|string[]? expectedScopes = (),
+                                       map<string>? customParams = ())
+                                       returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
         string credential = extractCredential(data);
         oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(credential);
         if (details is oauth2:Error) {
