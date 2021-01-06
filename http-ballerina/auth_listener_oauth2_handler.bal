@@ -16,7 +16,7 @@
 
 import ballerina/oauth2;
 
-# Represents OAuth2 introspection configurations for OAuth2 authentication.
+# Represents OAuth2 introspection server configurations for OAuth2 authentication.
 public type OAuth2IntrospectionConfig record {|
     *oauth2:IntrospectionConfig;
     string scopeKey = "scopes";
@@ -31,14 +31,9 @@ public class ListenerOAuth2Handler {
     # Initializes the `http:ListenerOAuth2Handler` object.
     #
     # + config - The `http:OAuth2IntrospectionConfig` instance
-    public function __init(OAuth2IntrospectionConfig config) {
-        oauth2:IntrospectionConfig|error result = config.cloneWithType(oauth2:IntrospectionConfig);
-        if (result is oauth2:IntrospectionConfig) {
-            self.scopeKey = config.scopeKey;
-            self.provider = new(result);
-        } else {
-            panic result;
-        }
+    public function init(OAuth2IntrospectionConfig config) {
+        self.scopeKey = config.scopeKey;
+        self.provider = new(config);
     }
 
     # Authorizes with the relevant authentication & authorization requirements.
@@ -60,16 +55,17 @@ public class ListenerOAuth2Handler {
             return introspectionResponse;
         }
 
+        // TODO: Support custom key for scopes
         string scopeKey = self.scopeKey;
-        string? actualScope = introspectionResponse?.scopeKey;
-        if (actualScope is ()) {
-            Forbidden forbidden = {};
-            return forbidden;
+
+        string? actualScope = introspectionResponse?.scopes;
+        if (actualScope is string) {
+            boolean matched = matchScopes(<string>actualScope, <string|string[]>expectedScopes);
+            if (matched) {
+                return introspectionResponse;
+            }
         }
-        boolean matched = matchScopes(<string>actualScope, <string|string[]>expectedScopes);
-        if (!matched) {
-            Forbidden forbidden = {};
-            return forbidden;
-        }
+        Forbidden forbidden = {};
+        return forbidden;
     }
 }

@@ -18,7 +18,7 @@ import ballerina/auth;
 
 # Represents credentials for Basic Auth authentication.
 public type CredentialsConfig record {|
-    *auth:credentialsConfig;
+    *auth:CredentialsConfig;
 |};
 
 # Defines the Basic Auth handler for client authentication.
@@ -31,7 +31,7 @@ public class ClientBasicAuthHandler {
     # Initializes the `http:ClientBasicAuthHandler` object.
     #
     # + config - The `http:CredentialsConfig` instance
-    public function __init(CredentialsConfig config) {
+    public function init(CredentialsConfig config) {
         self.provider = new(config);
     }
 
@@ -40,11 +40,11 @@ public class ClientBasicAuthHandler {
     # + req - The `http:Request` instance
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
     public function enrich(Request req) returns Request|ClientAuthError {
-        string|auth:Error result = self.provider.generate();
+        string|auth:Error result = self.provider.generateToken();
         if (result is auth:Error) {
             return prepareClientAuthError("Failed to enrich request with Basic Auth token.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BASIC + " " + <string>token);
+        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BASIC + " " + <string>result);
         return req;
     }
 }

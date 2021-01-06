@@ -32,7 +32,7 @@ public class ClientSelfSignedJwtAuthProvider {
     # Initializes the `http:ClientSelfSignedJwtAuthProvider` object.
     #
     # + config - The `http:JwtIssuerConfig` instance
-    public function __init(JwtIssuerConfig config) {
+    public function init(JwtIssuerConfig config) {
         self.provider = new(config);
     }
 
@@ -41,11 +41,11 @@ public class ClientSelfSignedJwtAuthProvider {
     # + req - The `http:Request` instance
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
     public function enrich(Request req) returns Request|ClientAuthError {
-        string|jwt:Error result = self.provider.generate();
+        string|jwt:Error result = self.provider.generateToken();
         if (result is jwt:Error) {
             return prepareClientAuthError("Failed to enrich request with JWT.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + <string>token);
+        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + <string>result);
         return req;
     }
 }

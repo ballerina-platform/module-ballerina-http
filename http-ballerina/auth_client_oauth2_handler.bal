@@ -44,7 +44,7 @@ public class ClientOAuth2Handler {
     # Initializes the `http:ClientOAuth2Handler` object.
     #
     # + config - The `http:OAuth2GrantConfig` instance
-    public function __init(OAuth2GrantConfig config) {
+    public function init(OAuth2GrantConfig config) {
         self.provider = new(config);
     }
 
@@ -53,11 +53,11 @@ public class ClientOAuth2Handler {
     # + req - The `http:Request` instance
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
     public function enrich(Request req) returns Request|ClientAuthError {
-        string|oauth2:Error result = self.provider.generate();
+        string|oauth2:Error result = self.provider.generateToken();
         if (result is oauth2:Error) {
             return prepareClientAuthError("Failed to enrich request with OAuth2 token.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + <string>token);
+        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + <string>result);
         return req;
     }
 }

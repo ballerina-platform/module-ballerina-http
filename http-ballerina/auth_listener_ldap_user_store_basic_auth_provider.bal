@@ -29,8 +29,9 @@ public class ListenerLdapUserStoreBasicAuthProvider {
     # Initializes the `http:ListenerLdapUserStoreBasicAuthProvider` object.
     #
     # + config - The `http:LdapUserStoreConfig` instance
-    public function __init(LdapUserStoreConfig config) {
-        self.provider = new(config);
+    # + instanceId - Instance ID of the endpoint
+    public function init(LdapUserStoreConfig config, string instaceId) {
+        self.provider = new(config, instaceId);
     }
 
     # Authenticates with the relevant authentication requirements.
@@ -53,12 +54,8 @@ public class ListenerLdapUserStoreBasicAuthProvider {
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + return - `()`, if it is successful or else `Forbidden` type in case of an error
     public function authorize(auth:UserDetails userDetails, string|string[] expectedScopes) returns Forbidden? {
-        scopes[]? actualScopes = userDetails?.scopes;
-        if (actualScopes is ()) {
-            Forbidden forbidden = {};
-            return forbidden;
-        }
-        boolean matched = matchScopes(<scopes[]>actualScopes, expectedScopes);
+        string[] actualScopes = userDetails.scopes;
+        boolean matched = matchScopes(actualScopes, expectedScopes);
         if (!matched) {
             Forbidden forbidden = {};
             return forbidden;

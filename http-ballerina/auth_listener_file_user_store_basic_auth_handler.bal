@@ -29,7 +29,7 @@ public class ListenerFileUserStoreBasicAuthHandler {
     # Initializes the `http:ListenerFileUserStoreBasicAuthHandler` object.
     #
     # + config - The `http:FileUserStoreConfig` instance
-    public function __init(FileUserStoreConfig config = {}) {
+    public function init(FileUserStoreConfig config = {}) {
         self.provider = new(config);
     }
 
@@ -53,12 +53,8 @@ public class ListenerFileUserStoreBasicAuthHandler {
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + return - `()`, if it is successful or else `Forbidden` type in case of an error
     public function authorize(auth:UserDetails userDetails, string|string[] expectedScopes) returns Forbidden? {
-        scopes[]? actualScopes = userDetails?.scopes;
-        if (actualScopes is ()) {
-            Forbidden forbidden = {};
-            return forbidden;
-        }
-        boolean matched = matchScopes(<scopes[]>actualScopes, expectedScopes);
+        string[] actualScopes = userDetails.scopes;
+        boolean matched = matchScopes(actualScopes, expectedScopes);
         if (!matched) {
             Forbidden forbidden = {};
             return forbidden;

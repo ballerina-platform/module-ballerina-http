@@ -31,14 +31,9 @@ public class ListenerJwtAuthHandler {
     # Initializes the `http:ListenerJwtAuthHandler` object.
     #
     # + config - The `http:JwtValidatorConfig` instance
-    public function __init(JwtValidatorConfig config) {
-        jwt:ValidatorConfig|error result = config.cloneWithType(jwt:ValidatorConfig);
-        if (result is jwt:ValidatorConfig) {
-            self.scopeKey = config.scopeKey;
-            self.provider = new(result);
-        } else {
-            panic result;
-        }
+    public function init(JwtValidatorConfig config) {
+        self.scopeKey = config.scopeKey;
+        self.provider = new(config);
     }
 
     # Authenticates with the relevant authentication requirements.
@@ -62,15 +57,14 @@ public class ListenerJwtAuthHandler {
     # + return - `()`, if it is successful or else `Forbidden` type in case of an error
     public function authorize(jwt:Payload jwtPayload, string|string[] expectedScopes) returns Forbidden? {
         string scopeKey = self.scopeKey;
-        string? actualScope = jwtPayload?.scopeKey;
-        if (actualScope is ()) {
-            Forbidden forbidden = {};
-            return forbidden;
+        var actualScope = jwtPayload[scopeKey];
+        if (actualScope is string) {
+            boolean matched = matchScopes(<string>actualScope, expectedScopes);
+            if (matched) {
+                return;
+            }
         }
-        boolean matched = matchScopes(<string>actualScope, expectedScopes);
-        if (!matched) {
-            Forbidden forbidden = {};
-            return forbidden;
-        }
+        Forbidden forbidden = {};
+        return forbidden;
     }
 }

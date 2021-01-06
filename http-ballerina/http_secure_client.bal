@@ -190,8 +190,8 @@ public client class HttpSecureClient {
     remote function forward(string path, Request request, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = request;
-        req = check prepareSecureRequest(request, self.config);
-        return self.httpClient->forward(path, request);
+        req = check self.clientAuthHandler.enrich(req);
+        return self.httpClient->forward(path, req);
     }
 
     # This wraps the `HttpSecureClient.submit()` function of the underlying HTTP remote functions provider. Add relevant authentication
@@ -264,7 +264,7 @@ public function createHttpSecureClient(string url, ClientConfiguration config) r
 }
 
 // Initialize the client auth handler based on the provided configurations
-fucntion initClientAuthHandler(ClientConfiguration config) returns ClientAuthHandler {
+function initClientAuthHandler(ClientConfiguration config) returns ClientAuthHandler {
     // The existence of auth configuration is already validated.
     ClientAuthConfig authConfig = <ClientAuthConfig>(config.auth);
     if (authConfig is CredentialsConfig) {
@@ -275,9 +275,10 @@ fucntion initClientAuthHandler(ClientConfiguration config) returns ClientAuthHan
         return handler;
     } else if (authConfig is JwtIssuerConfig) {
         ClientSelfSignedJwtAuthProvider handler = new(authConfig);
-        eturn handler;
-    } else if (authConfig is OAuth2GrantConfig) {
+        return handler;
+    } else {
+        // Here, `authConfig` is `OAuth2GrantConfig`
         ClientOAuth2Handler handler = new(authConfig);
-        eturn handler;
+        return handler;
     }
 }

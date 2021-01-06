@@ -48,18 +48,30 @@ isolated function extractCredential(Request|string data) returns string {
 }
 
 // Match the expectedScopes with actualScopes and return if there is a match.
-isolated function matchScopes(string[] actualScopes, string|string[] expectedScopes) returns boolean {
+isolated function matchScopes(string|string[] actualScopes, string|string[] expectedScopes) returns boolean {
     if (expectedScopes is string) {
-        foreach string actualScope in actualScopes {
-            if (actualScope == expectedScopes) {
-                return true;
+        if (actualScopes is string) {
+            return actualScopes == expectedScopes;
+        } else {
+            foreach string actualScope in actualScopes {
+                if (actualScope == expectedScopes) {
+                    return true;
+                }
             }
         }
     } else {
-        foreach string actualScope in actualScopes {
+        if (actualScopes is string) {
             foreach string expectedScope in expectedScopes {
-                if (actualScope == expectedScope) {
+                if (actualScopes == expectedScope) {
                     return true;
+                }
+            }
+        } else {
+            foreach string actualScope in actualScopes {
+                foreach string expectedScope in expectedScopes {
+                    if (actualScope == expectedScope) {
+                        return true;
+                    }
                 }
             }
         }

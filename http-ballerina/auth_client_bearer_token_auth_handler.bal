@@ -31,7 +31,7 @@ public class ClientBearerTokenAuthHandler {
     # Initializes the `http:ClientBearerTokenAuthHandler` object.
     #
     # + config - The `http:BearerTokenConfig` instance
-    public function __init(BearerTokenConfig config) {
+    public function init(BearerTokenConfig config) {
         self.config = config;
     }
 
