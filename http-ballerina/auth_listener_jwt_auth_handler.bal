@@ -61,7 +61,7 @@ public class ListenerJwtAuthHandler {
         string scopeKey = self.scopeKey;
         var actualScope = jwtPayload[scopeKey];
         if (actualScope is string) {
-            boolean matched = matchScopes(<string>actualScope, expectedScopes);
+            boolean matched = matchScopes(actualScope, expectedScopes);
             if (matched) {
                 return;
             }

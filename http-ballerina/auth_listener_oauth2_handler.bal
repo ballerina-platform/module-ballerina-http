@@ -54,6 +54,10 @@ public class ListenerOAuth2Handler {
             return unauthorized;
         }
         oauth2:IntrospectionResponse introspectionResponse = <oauth2:IntrospectionResponse>details;
+        if (!introspectionResponse.active) {
+            Unauthorized unauthorized = {};
+            return unauthorized;
+        }
         if (expectedScopes is ()) {
             return introspectionResponse;
         }
