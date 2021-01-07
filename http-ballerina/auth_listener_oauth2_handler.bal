@@ -21,7 +21,7 @@ import ballerina/oauth2;
 # + scopeKey - The key used to fetch the scopes
 public type OAuth2IntrospectionConfig record {|
     *oauth2:IntrospectionConfig;
-    string scopeKey = "scopes";
+    string scopeKey = "scope";
 |};
 
 # Defines the OAuth2 handler for listener authentication.
@@ -58,12 +58,10 @@ public class ListenerOAuth2Handler {
             return introspectionResponse;
         }
 
-        // TODO: Support custom key for scopes
         string scopeKey = self.scopeKey;
-
-        string? actualScope = introspectionResponse?.scopes;
+        var actualScope = introspectionResponse[scopeKey];
         if (actualScope is string) {
-            boolean matched = matchScopes(<string>actualScope, <string|string[]>expectedScopes);
+            boolean matched = matchScopes(convertToArray(actualScope), <string|string[]>expectedScopes);
             if (matched) {
                 return introspectionResponse;
             }

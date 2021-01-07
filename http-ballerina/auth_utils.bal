@@ -79,6 +79,14 @@ isolated function matchScopes(string|string[] actualScopes, string|string[] expe
     return false;
 }
 
+// Constructs an array of groups from the given space-separated string of groups.
+isolated function convertToArray(string spaceSeperatedString) returns string[] {
+    if (spaceSeperatedString.length() == 0) {
+        return [];
+    }
+    return stringutils:split(spaceSeperatedString, " ");
+}
+
 // TODO: Remove these once all the types are implemented
 public type UNAUTHORIZED_401 "Unauthorized";
 public type Unauthorized record {
