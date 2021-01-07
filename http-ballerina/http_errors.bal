@@ -45,13 +45,6 @@ public type AllRetryAttemptsFailed distinct error;
 # Represents the error that triggered upon a request/response idle timeout
 public type IdleTimeoutError distinct error;
 
-// Security errors
-# Represents a listener error that occurred due to inbound request authentication failure
-public type AuthenticationError distinct error;
-
-# Represents a listener error that occurred due to inbound request authorization failure
-public type AuthorizationError distinct error;
-
 // Outbound request errors in client
 # Represents a client error that occurred due to outbound request initialization failure
 public type InitializingOutboundRequestError distinct error;
@@ -140,7 +133,7 @@ public type ResiliencyError FailoverAllEndpointsFailedError|FailoverActionFailed
                             AllRetryAttemptsFailed|IdleTimeoutError;
 
 # Defines the Auth error types that returned from client
-public type ClientAuthError AuthenticationError|AuthorizationError;
+public type ClientAuthError distinct error;
 
 # Defines the client error types that returned while sending outbound request
 public type OutboundRequestError InitializingOutboundRequestError|WritingOutboundRequestHeadersError|

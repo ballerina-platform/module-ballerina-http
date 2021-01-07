@@ -14,18 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The representation of an inbound authentication handler object type for HTTP traffic.
-public type InboundAuthHandler object {
+# The representation of an client authentication handler object type for HTTP traffic.
+public type ClientAuthHandler object {
 
-    # Checks if the request can be authenticated with the relevant `InboundAuthHandler` implementation.
+    # Enrich the request with the relevant authentication requirements.
     #
     # + req - The `http:Request` instance
-    # + return - `true` if it can be authenticated or else `false`
-    public function canProcess(Request req) returns boolean;
-
-    # Tries to authenticate the request with the relevant `InboundAuthHandler` implementation.
-    #
-    # + req - The `http:Request` instance
-    # + return - `true` if it authenticated successfully, `false` otherwise, or else an `http:AuthenticationError` in case of errors
-    public function process(Request req) returns boolean|AuthenticationError;
+    # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
+    public isolated function enrich(Request req) returns Request|ClientAuthError;
 };
