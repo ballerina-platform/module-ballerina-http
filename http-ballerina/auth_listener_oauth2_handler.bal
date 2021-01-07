@@ -49,15 +49,11 @@ public class ListenerOAuth2Handler {
                                        returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
         string credential = extractCredential(data);
         oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(credential);
-        if (details is oauth2:Error) {
+        if (details is oauth2:Error || !details.active) {
             Unauthorized unauthorized = {};
             return unauthorized;
         }
         oauth2:IntrospectionResponse introspectionResponse = <oauth2:IntrospectionResponse>details;
-        if (!introspectionResponse.active) {
-            Unauthorized unauthorized = {};
-            return unauthorized;
-        }
         if (expectedScopes is ()) {
             return introspectionResponse;
         }

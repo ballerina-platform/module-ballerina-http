@@ -28,7 +28,6 @@ public class ClientSelfSignedJwtAuthProvider {
 
     jwt:ClientSelfSignedJwtAuthProvider provider;
 
-
     # Initializes the `http:ClientSelfSignedJwtAuthProvider` object.
     #
     # + config - The `http:JwtIssuerConfig` instance
