@@ -22,8 +22,6 @@ import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
-import java.util.concurrent.CountDownLatch;
-
 import static org.ballerinalang.net.http.HttpConstants.NOTIFY_SUCCESS_METADATA;
 
 /**
@@ -49,44 +47,36 @@ public class HttpCallableUnitCallback implements Callback {
             requestMessage.waitAndReleaseAllEntities();
             return;
         }
-        HttpUtil.methodInvocationCheck(requestMessage, 0, ILLEGAL_FUNCTION_INVOKED);
+        HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
         if (result instanceof BError) { // handles error check and return
-            HttpUtil.handleFailure(requestMessage, (BError) result);
-            requestMessage.waitAndReleaseAllEntities();
+            sendFailureResponse((BError) result);
             return;
         }
-
         Object[] paramFeed = new Object[2];
         paramFeed[0] = result;
         paramFeed[1] = true;
-        CountDownLatch completeFunction = new CountDownLatch(1);
 
-        runtime.invokeMethodAsync(caller, "respond", null, NOTIFY_SUCCESS_METADATA, new Callback() {
+        runtime.invokeMethodAsync(caller, "returnResponse", null, NOTIFY_SUCCESS_METADATA, new Callback() {
             @Override
-            public void notifySuccess(Object o) {
+            public void notifySuccess(Object result) {
                 System.out.println("oooooooookkkkkkkkkkkkkkkkkkkkkkkkk");
-                completeFunction.countDown();
+                requestMessage.waitAndReleaseAllEntities();
             }
 
             @Override
-            public void notifyFailure(BError bError) {
+            public void notifyFailure(BError result) {
                 System.out.println("panicccccccccccccccccccc");
-                completeFunction.countDown();
+                sendFailureResponse(result);
             }
         }, paramFeed);
-//        if (result instanceof BString) {
-//            Return.send(requestMessage, result);
-//        }
-        try {
-            completeFunction.await();
-        } catch (InterruptedException e) {
-//            throw new BallerinaException("invocation failed: " + e.getMessage());
-        }
-        requestMessage.waitAndReleaseAllEntities();
     }
 
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
+        sendFailureResponse(error);
+    }
+
+    private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
         requestMessage.waitAndReleaseAllEntities();
     }

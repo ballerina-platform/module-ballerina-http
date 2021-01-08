@@ -53,7 +53,7 @@ public class Respond extends ConnectionAction {
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
-
+        System.out.println("------------------------nativeRespond");
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
         DataContext dataContext = new DataContext(env, inboundRequestMsg);
         if (isDirtyResponse(outboundResponseObj)) {

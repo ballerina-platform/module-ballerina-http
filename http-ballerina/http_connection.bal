@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/java;
+import ballerina/io;
 
 # The caller actions for responding to client requests.
 #
@@ -55,6 +56,33 @@ public client class Caller {
         }
         return nativeRespond(self, response);
     }
+
+    private isolated function returnResponse(ResponseMessage|StatusCodeResponse message) returns ListenerError? {
+        Response response = new;
+        io:println("+++++++returnResponse++++++++++");
+
+        if (message is StatusCodeResponse) {
+            response = createStatusCodeResponse(message);
+        } else if ()
+
+        return nativeRespond(self, response);
+    }
+
+    private isolated function createStatusCodeResponse(StatusCodeResponse message) returns Response {
+        Response response = new;
+        io:println("+++++++createStatusCodeResponse++++++++++");
+        if (message is Ok) {
+            io:println("+++++OKKKKKKKKKKKKKKK+++++++++");
+            response.statusCode = message.status.code;
+        } else if message is Accepted {
+            io:println("+++++Accepteddddddddd+++++++++");
+            response.statusCode = message.status.code;
+            setPayload()
+        }
+        return nativeRespond(self, response);
+    }
+
+
 
     # Pushes a promise to the caller.
     #

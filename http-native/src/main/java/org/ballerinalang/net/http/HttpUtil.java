@@ -1109,14 +1109,15 @@ public class HttpUtil {
 //        }
 //    }
 
-    public static void methodInvocationCheck(HttpCarbonMessage reqMsg, int statusCode, String errMsg) {
+    static void methodInvocationCheck(HttpCarbonMessage reqMsg, int statusCode, String errMsg) {
         if (reqMsg == null || reqMsg.getProperty(METHOD_ACCESSED) != null) {
             throw createHttpError(errMsg, HttpErrorType.GENERIC_CLIENT_ERROR);
         }
 
-        if (!is100ContinueRequest(reqMsg, statusCode)) {
-            reqMsg.setProperty(METHOD_ACCESSED, true);
+        if (is100ContinueRequest(reqMsg, statusCode) || statusCode == HttpConstants.INVALID_STATUS_CODE) {
+            return;
         }
+        reqMsg.setProperty(METHOD_ACCESSED, true);
     }
 
     public static void serverConnectionStructCheck(HttpCarbonMessage reqMsg) {
