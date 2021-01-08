@@ -44,7 +44,7 @@ public class ClientBasicAuthHandler {
         if (result is auth:Error) {
             return prepareClientAuthError("Failed to enrich request with Basic Auth token.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BASIC + " " + <string> checkpanic result);
+        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BASIC + " " + checkpanic result);
         return req;
     }
 }

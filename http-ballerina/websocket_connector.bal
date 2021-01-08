@@ -36,7 +36,7 @@ class WebSocketConnector {
             if (result is error) {
                 return error WsGenericError("Error occurred during the text message creation", result);
             }
-            text = <string> checkpanic result;
+            text = checkpanic result;
         } else if (data is json) {
             text = data.toJsonString();
         } else {
