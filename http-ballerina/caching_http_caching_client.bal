@@ -412,6 +412,6 @@ function sendNewRequest(HttpClient httpClient, Request request, string path, str
         return httpClient->head(path, message = request);
     } else {
         string message = "HTTP method not supported in caching client: " + httpMethod;
-        return UnsupportedActionError(message);
+        return error UnsupportedActionError(message);
     }
 }

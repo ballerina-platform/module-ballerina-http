@@ -18,9 +18,9 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.flags.SymbolFlags;
-import io.ballerina.runtime.api.types.MemberFunctionType;
-import io.ballerina.runtime.api.types.RemoteFunctionType;
-import io.ballerina.runtime.api.types.ResourceFunctionType;
+import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.RemoteMethodType;
+import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
@@ -58,7 +58,7 @@ public class HttpResource {
     private static final BString HTTP_RESOURCE_CONFIG =
             StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_RESOURCE_CONFIG);
 
-    private MemberFunctionType balResource;
+    private MethodType balResource;
     private List<String> methods;
     private String path;
     private String entityBodyAttribute;
@@ -73,11 +73,11 @@ public class HttpResource {
     private String wildcardToken;
     private int pathParamCount;
 
-    protected HttpResource(MemberFunctionType resource, HttpService parentService) {
+    protected HttpResource(MethodType resource, HttpService parentService) {
         this.balResource = resource;
         this.parentService = parentService;
         this.producesSubTypes = new ArrayList<>();
-        if (balResource instanceof ResourceFunctionType) {
+        if (balResource instanceof ResourceMethodType) {
             this.populateResourcePath();
             this.populateMethod();
         }
@@ -103,8 +103,8 @@ public class HttpResource {
         return parentService;
     }
 
-    public ResourceFunctionType getBalResource() {
-        return (ResourceFunctionType) balResource;
+    public ResourceMethodType getBalResource() {
+        return (ResourceMethodType) balResource;
     }
 
     public List<String> getMethods() {
@@ -127,7 +127,7 @@ public class HttpResource {
     }
 
     private void populateResourcePath() {
-        ResourceFunctionType resourceFunctionType = getBalResource();
+        ResourceMethodType resourceFunctionType = getBalResource();
         String[] paths = resourceFunctionType.getResourcePath();
         StringBuilder resourcePath = new StringBuilder();
         int count = 0;
@@ -207,7 +207,7 @@ public class HttpResource {
         this.entityBodyAttribute = entityBodyAttribute;
     }
 
-    public static HttpResource buildHttpResource(MemberFunctionType resource, HttpService httpService) {
+    public static HttpResource buildHttpResource(MethodType resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
 
@@ -227,7 +227,7 @@ public class HttpResource {
         return httpResource;
     }
 
-    private static void setupTransactionAnnotations(MemberFunctionType resource, HttpResource httpResource) {
+    private static void setupTransactionAnnotations(MethodType resource, HttpResource httpResource) {
         if (SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.TRANSACTIONAL)) {
             httpResource.transactionAnnotated = true;
         }
@@ -239,7 +239,7 @@ public class HttpResource {
      * @param resource The resource
      * @return the resource configuration of the given resource
      */
-    public static BMap getResourceConfigAnnotation(MemberFunctionType resource) {
+    public static BMap getResourceConfigAnnotation(MethodType resource) {
         return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
     }
 
@@ -294,7 +294,7 @@ public class HttpResource {
         return new ArrayList<>(Arrays.asList(this.balResource.getParameterTypes()));
     }
 
-    public RemoteFunctionType getRemoteFunction() {
-        return (RemoteFunctionType) balResource;
+    public RemoteMethodType getRemoteFunction() {
+        return (RemoteMethodType) balResource;
     }
 }

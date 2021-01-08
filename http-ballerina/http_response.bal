@@ -201,7 +201,7 @@ public class Response {
                     return createErrorForNoPayload(payload);
                 } else {
                     string message = "Error occurred while retrieving the json payload from the response";
-                    return GenericClientError(message, payload);
+                    return error GenericClientError(message, payload);
                }
             } else {
                 return payload;
@@ -223,7 +223,7 @@ public class Response {
                     return createErrorForNoPayload(payload);
                 } else {
                     string message = "Error occurred while retrieving the xml payload from the response";
-                    return GenericClientError(message, payload);
+                    return error GenericClientError(message, payload);
                }
             } else {
                 return payload;
@@ -245,7 +245,7 @@ public class Response {
                     return createErrorForNoPayload(payload);
                 } else {
                     string message = "Error occurred while retrieving the text payload from the response";
-                    return GenericClientError(message, payload);
+                    return error GenericClientError(message, payload);
                }
             } else {
                 return payload;
@@ -265,7 +265,7 @@ public class Response {
             var payload = externGetByteChannel(result);
             if (payload is mime:Error) {
                 string message = "Error occurred while retrieving the byte channel from the response";
-                return GenericClientError(message, payload);
+                return error GenericClientError(message, payload);
             } else {
                 return payload;
             }
@@ -283,7 +283,7 @@ public class Response {
             var payload = externGetByteArray(result);
             if (payload is mime:Error) {
                 string message = "Error occurred while retrieving the binary payload from the response";
-                return GenericClientError(message, payload);
+                return error GenericClientError(message, payload);
             } else {
                 return payload;
             }
@@ -303,7 +303,7 @@ public class Response {
             var bodyParts = result.getBodyParts();
             if (bodyParts is mime:Error) {
                 string message = "Error occurred while retrieving body parts from the response";
-                return GenericClientError(message, bodyParts);
+                return error GenericClientError(message, bodyParts);
             } else {
                 return bodyParts;
             }

@@ -57,7 +57,7 @@ public class ClientOAuth2Handler {
         if (result is oauth2:Error) {
             return prepareClientAuthError("Failed to enrich request with OAuth2 token.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + <string>result);
+        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + <string> checkpanic result);
         return req;
     }
 }

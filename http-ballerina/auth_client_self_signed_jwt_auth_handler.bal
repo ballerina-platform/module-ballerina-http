@@ -44,7 +44,7 @@ public class ClientSelfSignedJwtAuthProvider {
         if (result is jwt:Error) {
             return prepareClientAuthError("Failed to enrich request with JWT.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + <string>result);
+        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + <string> checkpanic result);
         return req;
     }
 }

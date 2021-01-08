@@ -49,7 +49,7 @@ service /passthrough on passthroughEP1 {
         if (response is http:Response) {
             var entity = response.getEntity();
             if (entity is mime:Entity) {
-                json|error payload = entity.getText();
+                string|error payload = entity.getText();
                 if (payload is string) {
                     checkpanic caller->ok(<@untainted> (payload + ", " + entity.getHeader("X-check-header")));
                 } else {
@@ -59,7 +59,7 @@ service /passthrough on passthroughEP1 {
                 checkpanic caller->internalServerError(<@untainted> entity.toString());
             }
         } else {
-            checkpanic caller->internalServerError(<@untainted> response.toString());
+            checkpanic caller->internalServerError(<@untainted> (<error>response).toString());
         }
     }
 }

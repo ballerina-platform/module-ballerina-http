@@ -42,37 +42,37 @@ service /passthrough on clientDBProxyListener {
         string payload = "";
 
         var res = clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
-        json p = <json>res;
+        json p = <json> checkpanic res;
         payload = payload + p.toJsonString();
 
         res = clientDBBackendClient->post("/backend/getJson", "want json", MapOfJson);
-        map<json> p1 = <map<json>>res;
+        map<json> p1 = <map<json>> checkpanic res;
         json name = check p1.id;
         payload = payload + " | " + name.toJsonString();
 
         res = clientDBBackendClient->post("/backend/getXml", "want xml", xml);
-        xml q = <xml>res;
+        xml q = <xml> checkpanic res;
         payload = payload + " | " + q.toString();
 
         res = clientDBBackendClient->post("/backend/getString", "want string", targetType = string);
-        string r = <string>res;
+        string r = <string> checkpanic res;
         payload = payload + " | " + r;
 
         res = clientDBBackendClient->post("/backend/getByteArray", "want byte[]", ByteArray);
-        byte[] val = <byte[]>res;
+        byte[] val = <byte[]> checkpanic res;
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
         res = clientDBBackendClient->post("/backend/getRecord", "want record", targetType = ClientDBPerson);
-        ClientDBPerson t = <ClientDBPerson>res;
+        ClientDBPerson t = <ClientDBPerson> checkpanic res;
         payload = payload + " | " + t.name;
 
         res = clientDBBackendClient->post("/backend/getRecordArr", "want record[]", targetType = ClientDBPersonArray);
-        ClientDBPerson[] u = <ClientDBPerson[]>res;
+        ClientDBPerson[] u = <ClientDBPerson[]> checkpanic res;
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
         res = clientDBBackendClient->post("/backend/getResponse", "want record[]", targetType = http:Response);
-        http:Response v = <http:Response>res;
+        http:Response v = <http:Response> checkpanic res;
         payload = payload + " | " + v.getHeader("x-fact");
 
         var result = caller->respond(<@untainted>payload);
@@ -82,28 +82,28 @@ service /passthrough on clientDBProxyListener {
         string payload = "";
 
         var res = clientDBBackendClient->get("/backend/getJson", targetType = json);
-        json p = <json>res;
+        json p = <json> checkpanic res;
         payload = payload + p.toJsonString();
 
         res = clientDBBackendClient->head("/backend/getXml", "want xml");
-        http:Response v = <http:Response>res;
+        http:Response v = <http:Response> checkpanic res;
         payload = payload + " | " + v.getHeader("Content-type");
 
         res = clientDBBackendClient->delete("/backend/getString", "want string", targetType = string);
-        string r = <string>res;
+        string r = <string> checkpanic res;
         payload = payload + " | " + r;
 
         res = clientDBBackendClient->put("/backend/getByteArray", "want byte[]", ByteArray);
-        byte[] val = <byte[]>res;
+        byte[] val = <byte[]> checkpanic res;
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
         res = clientDBBackendClient->execute("POST", "/backend/getRecord", "want record", targetType = ClientDBPerson);
-        ClientDBPerson t = <ClientDBPerson>res;
+        ClientDBPerson t = <ClientDBPerson> checkpanic res;
         payload = payload + " | " + t.name;
 
         res = clientDBBackendClient->forward("/backend/getRecordArr", request, targetType = ClientDBPersonArray);
-        ClientDBPerson[] u = <ClientDBPerson[]>res;
+        ClientDBPerson[] u = <ClientDBPerson[]> checkpanic res;
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
         var result = caller->respond(<@untainted>payload);
@@ -113,7 +113,7 @@ service /passthrough on clientDBProxyListener {
         http:Client redirectClient = new("http://localhost:" + clientDatabindingTestPort3.toString(),
                                                         {followRedirects: {enabled: true, maxCount: 5}});
         var res = redirectClient->post("/redirect1/", "want json", targetType = json);
-        json p = <json>res;
+        json p = <json> checkpanic res;
         var result = caller->respond(<@untainted>p);
     }
 
@@ -124,19 +124,19 @@ service /passthrough on clientDBProxyListener {
             }
         );
         var backendResponse = retryClient->forward("/backend/getRetryResponse", request, targetType = string);
-        string r = <string>backendResponse;
+        string r = <string> checkpanic backendResponse;
         var responseToCaller = caller->respond(<@untainted>r);
     }
 
     resource function 'default cast(http:Caller caller, http:Request request) {
         var res = clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
-        xml p = <xml>res;
+        xml p = <xml> checkpanic res;
         var responseToCaller = caller->respond(<@untainted>p);
     }
 
     resource function 'default '500(http:Caller caller, http:Request request) {
         var res = clientDBBackendClient->post("/backend/get5XX", "want 500", targetType = json);
-        json p = <json>res;
+        json p = <json> checkpanic res;
         var responseToCaller = caller->respond(<@untainted>p);
     }
 
@@ -148,14 +148,14 @@ service /passthrough on clientDBProxyListener {
             resp.setPayload(<@untainted>res.message());
             var responseToCaller = caller->respond(<@untainted>resp);
         } else {
-            json p = <json>res;
+            json p = <json> checkpanic res;
             var responseToCaller = caller->respond(<@untainted>p);
         }
     }
 
     resource function 'default '404(http:Caller caller, http:Request request) {
         var res = clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500", targetType = json);
-        json p = <json>res;
+        json p = <json> checkpanic res;
         var responseToCaller = caller->respond(<@untainted>p);
     }
 
@@ -167,7 +167,7 @@ service /passthrough on clientDBProxyListener {
             resp.setPayload(<@untainted>res.message());
             var responseToCaller = caller->respond(<@untainted>resp);
         } else {
-            json p = <json>res;
+            json p = <json> checkpanic res;
             var responseToCaller = caller->respond(<@untainted>p);
         }
     }
@@ -328,9 +328,9 @@ function testCastError() {
 function test5XXErrorPanic() {
     var response = clientDBTestClient->get("/passthrough/500");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "incompatible types: 'http:RemoteServerError' cannot be cast to 'json'");
+        assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -354,9 +354,10 @@ function test5XXHandleError() {
 function test4XXErrorPanic() {
     var response = clientDBTestClient->get("/passthrough/404");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "incompatible types: 'http:ClientRequestError' cannot be cast to 'json'");
+        assertTextPayload(response.getTextPayload(), 
+            "no matching resource found for path : /backend/getIncorrectPath404 , method : POST");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
