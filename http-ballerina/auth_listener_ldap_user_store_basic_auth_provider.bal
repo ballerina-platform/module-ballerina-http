@@ -45,7 +45,7 @@ public class ListenerLdapUserStoreBasicAuthProvider {
             Unauthorized unauthorized = {};
             return unauthorized;
         }
-        return <auth:UserDetails>details;
+        return <auth:UserDetails> checkpanic details;
     }
 
     # Authorizes with the relevant authorization requirements.

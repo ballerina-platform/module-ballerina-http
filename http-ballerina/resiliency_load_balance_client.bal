@@ -191,7 +191,7 @@ public client class LoadBalanceClient {
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
-        return UnsupportedActionError("Load balancer client not supported for submit action");
+        return error UnsupportedActionError("Load balancer client not supported for submit action");
     }
 
     # The getResponse implementation of the LoadBalancer Connector.
@@ -199,7 +199,7 @@ public client class LoadBalanceClient {
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
     remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
-        return UnsupportedActionError("Load balancer client not supported for getResponse action");
+        return error UnsupportedActionError("Load balancer client not supported for getResponse action");
     }
 
     # The hasPromise implementation of the LoadBalancer Connector.
@@ -215,7 +215,7 @@ public client class LoadBalanceClient {
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
     remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
-        return UnsupportedActionError("Load balancer client not supported for getNextPromise action");
+        return error UnsupportedActionError("Load balancer client not supported for getNextPromise action");
     }
 
     # The getPromisedResponse implementation of the LoadBalancer Connector.
@@ -223,7 +223,7 @@ public client class LoadBalanceClient {
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
     remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
-        return UnsupportedActionError("Load balancer client not supported for getPromisedResponse action");
+        return error UnsupportedActionError("Load balancer client not supported for getPromisedResponse action");
     }
 
     # The rejectPromise implementation of the LoadBalancer Connector.
@@ -250,7 +250,7 @@ function performLoadBalanceExecuteAction(LoadBalanceClient lb, string path, Requ
     if (connectorAction != HTTP_NONE) {
         return performLoadBalanceAction(lb, path, request, connectorAction);
     } else {
-        return UnsupportedActionError("Load balancer client not supported for http method: " + httpVerb);
+        return error UnsupportedActionError("Load balancer client not supported for http method: " + httpVerb);
     }
 }
 
@@ -313,7 +313,7 @@ isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorDa
     error actError = <error> lastError;
     string lastErrorMessage = actError.message();
     string message = "All the load balance endpoints failed. Last error was: " + lastErrorMessage;
-    return AllLoadBalanceEndpointsFailedError(message, httpActionError = loadBalanceActionErrorData.httpActionErr);
+    return error AllLoadBalanceEndpointsFailedError(message, httpActionError = loadBalanceActionErrorData.httpActionErr);
 }
 
 

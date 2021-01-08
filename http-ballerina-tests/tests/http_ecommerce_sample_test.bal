@@ -149,7 +149,8 @@ service /productsservice on ecommerceListenerEP {
     resource function post .(http:Caller caller, http:Request req) {
         var jsonReq = req.getJsonPayload();
         if (jsonReq is json) {
-            string productId = jsonReq.Product.ID.toString();
+            var id = jsonReq.Product.ID;
+            string productId = id is error ? id.toString() : id.toString();
             productsMap[productId] = jsonReq;
             json payload = {"Status":"Product is successfully added."};
 

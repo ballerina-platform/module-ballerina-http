@@ -31,7 +31,8 @@ service /contentBasedRouting on httpRoutingListenerEP {
         var jsonMsg = req.getJsonPayload();
         string nameString = "";
         if (jsonMsg is json) {
-            nameString = jsonMsg.name.toString();
+            var tempName = jsonMsg.name;
+            nameString = tempName is error ? tempName.toString() : tempName.toString();
         } else {
             io:println("Error getting payload");
         }

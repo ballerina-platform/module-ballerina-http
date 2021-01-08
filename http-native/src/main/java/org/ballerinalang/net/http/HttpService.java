@@ -18,7 +18,7 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.flags.SymbolFlags;
-import io.ballerina.runtime.api.types.MemberFunctionType;
+import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
@@ -212,8 +212,8 @@ public class HttpService implements Cloneable {
     private static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
         List<HttpResource> upgradeToWebSocketResources = new ArrayList<>();
-        for (MemberFunctionType resource :
-                ((ServiceType) httpService.getBalService().getType()).getResourceFunctions()) {
+        for (MethodType resource :
+                ((ServiceType) httpService.getBalService().getType()).getResourceMethods()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }

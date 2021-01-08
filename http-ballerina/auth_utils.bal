@@ -33,9 +33,9 @@ public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
     log:printError(message, err = err);
     if (err is error) {
-        return ClientAuthError(message, err);
+        return error ClientAuthError(message, err);
     }
-    return ClientAuthError(message);
+    return error ClientAuthError(message);
 }
 
 // Extract the credential from `http:Request` or `string` header.

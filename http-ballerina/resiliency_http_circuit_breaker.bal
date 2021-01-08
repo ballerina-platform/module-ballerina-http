@@ -142,7 +142,7 @@ public client class CircuitBreakerClient {
         circuitBreakerInferredConfig, HttpClient httpClient, CircuitHealth circuitHealth) {
         RollingWindow rollingWindow = circuitBreakerInferredConfig.rollingWindow;
         if (rollingWindow.timeWindowInMillis < rollingWindow.bucketSizeInMillis) {
-            panic GenericClientError("Circuit breaker 'timeWindowInMillis' value should be greater" +
+            panic error GenericClientError("Circuit breaker 'timeWindowInMillis' value should be greater" +
                 " than the 'bucketSizeInMillis' value.");
         }
         self.url = url;
@@ -574,7 +574,7 @@ isolated function handleOpenCircuit(CircuitHealth circuitHealth, CircuitBreakerI
     updateRejectedRequestCount(circuitHealth, circuitBreakerInferredConfig);
     string errorMessage = "Upstream service unavailable. Requests to upstream service will be suspended for "
         + timeRemaining.toString() + " milliseconds.";
-    return UpstreamServiceUnavailableError(errorMessage);
+    return error UpstreamServiceUnavailableError(errorMessage);
 }
 
 // Validates the struct configurations passed to create circuit breaker.
@@ -583,7 +583,7 @@ isolated function validateCircuitBreakerConfiguration(CircuitBreakerConfig circu
     if (failureThreshold < 0 || failureThreshold > 1) {
         string errorMessage = "Invalid failure threshold. Failure threshold value"
             + " should between 0 to 1, found " + failureThreshold.toString();
-        panic CircuitBreakerConfigError(errorMessage);
+        panic error CircuitBreakerConfigError(errorMessage);
     }
 }
 

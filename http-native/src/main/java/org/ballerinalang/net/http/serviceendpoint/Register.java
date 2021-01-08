@@ -47,7 +47,7 @@ public class Register extends AbstractHttpNativeFunction {
             String basePath = getBasePath(serviceName);
 
 //            Type param;
-//            MemberFunctionType[] resourceList = service.getType().getAttachedFunctions();
+//            MethodType[] resourceList = service.getType().getMethods();
 //
 //            //TODO fix following logic to handle both resource and remote functions - sl
 //            if (resourceList.length > 0 && (param = resourceList[0].getParameterTypes()[0]) != null) {

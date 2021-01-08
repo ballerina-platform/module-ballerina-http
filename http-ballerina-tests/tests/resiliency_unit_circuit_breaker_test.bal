@@ -513,7 +513,7 @@ function handleRequestVolumeThresholdFailureResponseScenario() returns http:Resp
 }
 
 function getErrorStruct() returns http:ClientError {
-    return http:GenericClientError("Connection refused");
+    return error http:GenericClientError("Connection refused");
 }
 
 function getResponse() returns http:Response {
@@ -524,11 +524,11 @@ function getResponse() returns http:Response {
 }
 
 function getMockErrorStruct() returns http:ClientError {
-    return http:GenericClientError("Internal Server Error");
+    return error http:GenericClientError("Internal Server Error");
 }
 
 function getUnsupportedError() returns http:ClientError {
-    return http:GenericClientError("Unsupported function for MockClient");
+    return error http:GenericClientError("Unsupported function for MockClient");
 }
 
 function buildRequest(http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message) returns

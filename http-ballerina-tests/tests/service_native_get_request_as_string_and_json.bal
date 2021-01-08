@@ -37,7 +37,7 @@ service /MyService on testEP {
             panic <error>jsonValue;
         }
         http:Response res = new;
-        res.setPayload(<@untainted json> payload.foo);
+        res.setPayload(<@untainted json> checkpanic payload.foo);
         var err = caller->respond(res);
         if (err is error) {
             io:println("Error sending response");

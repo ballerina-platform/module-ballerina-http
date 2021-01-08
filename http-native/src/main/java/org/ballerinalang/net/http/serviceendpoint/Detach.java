@@ -18,7 +18,7 @@
 
 package org.ballerinalang.net.http.serviceendpoint;
 
-import io.ballerina.runtime.api.types.MemberFunctionType;
+import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.HTTPServicesRegistry;
@@ -38,7 +38,7 @@ public class Detach extends AbstractHttpNativeFunction {
         HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
         WebSocketServicesRegistry webSocketServicesRegistry = getWebSocketServicesRegistry(serviceEndpoint);
         Type param;
-        MemberFunctionType[] resourceList = serviceObj.getType().getAttachedFunctions();
+        MethodType[] resourceList = serviceObj.getType().getMethods();
         try {
             if (resourceList.length > 0 && (param = resourceList[0].getParameterTypes()[0]) != null) {
                 String callerType = param.getQualifiedName();
