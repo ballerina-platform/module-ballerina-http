@@ -14,10 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/cache;
 import ballerina/crypto;
 import ballerina/java;
-import ballerina/runtime;
 
 /////////////////////////////
 /// HTTP Listener Endpoint ///
@@ -38,18 +36,6 @@ public class Listener {
         self.instanceId = uuid();
         self.config = config ?: {};
         self.port = port;
-        ListenerAuth? auth = self.config["auth"];
-        if (auth is ListenerAuth) {
-            if (auth.mandateSecureSocket) {
-                ListenerSecureSocket? secureSocket = self.config.secureSocket;
-                if (secureSocket is ()) {
-                    error err = error("Secure sockets have not been configured in order to enable auth providers.");
-                    panic err;
-                }
-            }
-            addAuthFilters(self.config);
-        }
-        addAttributeFilter(self.config);
         error? err = externInitEndpoint(self);
         if (err is error) {
             panic err;
@@ -152,7 +138,6 @@ public type Local record {|
 #             resource, filters can applied
 # + timeoutInMillis - Period of time in milliseconds that a connection waits for a read/write operation. Use value 0 to
 #                   disable timeout
-# + auth - Listener authenticaton configurations
 # + server - The server name which should appear as a response header
 # + webSocketCompressionEnabled - Enable support for compression in WebSocket
 public type ListenerConfiguration record {|
@@ -163,7 +148,6 @@ public type ListenerConfiguration record {|
     //TODO: update as a optional field
     (RequestFilter | ResponseFilter)[] filters = [];
     int timeoutInMillis = DEFAULT_LISTENER_TIMEOUT;
-    ListenerAuth auth?;
     string? server = ();
     boolean webSocketCompressionEnabled = true;
 |};
@@ -188,27 +172,6 @@ public type ListenerHttp1Settings record {|
     int maxUriLength = 4096;
     int maxHeaderSize = 8192;
     int maxEntityBodySize = -1;
-|};
-
-# Authentication configurations for the listener.
-#
-# + authHandlers - An array of inbound authentication handlers or an array consisting of arrays of inbound authentication handlers
-# An array is used to indicate that at least one of the authentication handlers should be successfully authenticated. An array consisting of arrays
-# is used to indicate that at least one authentication handler from the sub-arrays should be successfully authenticated.
-# + scopes - An array of scopes or an array consisting of arrays of scopes. An array is used to indicate that at least one of the scopes should
-# be successfully authorized. An array consisting of arrays is used to indicate that at least one scope from the sub-arrays
-# should successfully be authorized
-# + positiveAuthzCache - The `cache:Cache` object for positive authorizations
-# + negativeAuthzCache - The `cache:Cache` object for negative authorizations
-# + mandateSecureSocket - Specify whether secure socket configurations are mandatory or not
-# + position - The authn/authz filter position of the filter array. The position values starts from 0 and it is set to 0 implicitly
-public type ListenerAuth record {|
-    InboundAuthHandlers authHandlers;
-    Scopes scopes?;
-    cache:Cache? positiveAuthzCache = new;
-    cache:Cache? negativeAuthzCache = new;
-    boolean mandateSecureSocket = true;
-    int position = 0;
 |};
 
 # Configures the SSL/TLS options to be used for HTTP service.
@@ -265,62 +228,3 @@ public const SERVICE_NAME = "SERVICE_NAME";
 public const RESOURCE_NAME = "RESOURCE_NAME";
 # Constant for the request method reference.
 public const REQUEST_METHOD = "REQUEST_METHOD";
-
-# Adds authentication and authorization filters.
-#
-# + config - `ServiceEndpointConfiguration` instance
-isolated function addAuthFilters(ListenerConfiguration config) {
-    // Add authentication and authorization filters as the first two filters if there are no any filters specified OR
-    // the auth filter position is specified as 0. If there are any filters specified, the authentication and
-    // authorization filters should be added into the position specified.
-
-    ListenerAuth? auth = config["auth"];
-    if (auth is ListenerAuth) {
-        InboundAuthHandlers authHandlers = auth.authHandlers;
-        AuthnFilter authnFilter = new(authHandlers);
-
-        cache:Cache? positiveAuthzCache = auth.positiveAuthzCache ?: ();
-        cache:Cache? negativeAuthzCache = auth.negativeAuthzCache ?: ();
-        AuthzHandler authzHandler = new(positiveAuthzCache, negativeAuthzCache);
-        Scopes? scopes = auth["scopes"];
-        AuthzFilter authzFilter = new(authzHandler, scopes);
-
-        if (auth.position == 0) {
-            config.filters.unshift(authnFilter, authzFilter);
-        } else {
-            if (auth.position < 0 || auth.position > config.filters.length()) {
-                error err = error("Position of the auth filters should be beteween 0 and length of the filter array.");
-                panic err;
-            }
-            int count = 0;
-            while (count < auth.position) {
-                config.filters.push(config.filters.shift());
-                count += 1;
-            }
-            config.filters.unshift(authnFilter, authzFilter);
-            while (count > 0) {
-                config.filters.unshift(config.filters.pop());
-                count -= 1;
-            }
-        }
-    }
-    // No need to validate else part since the function is called if and only if the `auth is ListenerAuth`
-}
-
-class AttributeFilter {
-
-    *RequestFilter;
-
-    public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
-        runtime:InvocationContext ctx = runtime:getInvocationContext();
-        ctx.attributes[SERVICE_NAME] = context.getServiceName();
-        ctx.attributes[RESOURCE_NAME] = context.getResourceName();
-        ctx.attributes[REQUEST_METHOD] = request.method;
-        return true;
-    }
-}
-
-isolated function addAttributeFilter(ListenerConfiguration config) {
-    AttributeFilter attributeFilter = new;
-    config.filters.unshift(attributeFilter);
-}

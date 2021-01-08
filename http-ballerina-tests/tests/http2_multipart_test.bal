@@ -41,7 +41,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
             }
             response.setBodyParts(respBodyParts);
         } else {
-            log:printError(<string> bodyParts.detail()["message"]);
+            log:printError(bodyParts.message());
             response.setPayload("Error in decoding multiparts!");
             response.statusCode = 500;
         }

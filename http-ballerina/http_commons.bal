@@ -160,7 +160,7 @@ isolated function populateErrorCodeIndex (int[] errorCode) returns boolean[] {
 }
 
 isolated function getError() returns UnsupportedActionError {
-    return UnsupportedActionError("Unsupported connector action received.");
+    return error UnsupportedActionError("Unsupported connector action received.");
 }
 
 isolated function populateRequestFields (Request originalRequest, Request newRequest)  {
@@ -180,10 +180,10 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
                 mime:Entity[]|error result = bodyPart.getBodyParts();
 
                 if (result is error) {
-                    return GenericClientError(result.message(), result);
+                    return error GenericClientError(result.message(), result);
                 }
 
-                mime:Entity[] childParts = <mime:Entity[]> result;
+                mime:Entity[] childParts = <mime:Entity[]> checkpanic result;
 
                 foreach var childPart in childParts {
                     // When performing passthrough scenarios, message needs to be built before
@@ -222,12 +222,12 @@ isolated function createFailoverRequest(Request request, mime:Entity requestEnti
 }
 
 isolated function getInvalidTypeError() returns ClientError {
-    return GenericClientError("Invalid return type found for the HTTP operation");
+    return error GenericClientError("Invalid return type found for the HTTP operation");
 }
 
 isolated function createErrorForNoPayload(mime:Error err) returns GenericClientError {
     string message = "No payload";
-    return GenericClientError(message, err);
+    return error GenericClientError(message, err);
 }
 
 isolated function getStatusCodeRange(string statusCode) returns string {
@@ -265,7 +265,7 @@ isolated function addObservabilityInformation(string path, string method, int st
 }
 
 isolated function getIllegalDataBindingStateError() returns IllegalDataBindingStateError {
-    IllegalDataBindingStateError payloadRetrievalErr = IllegalDataBindingStateError("Payload cannot be retrieved");
+    IllegalDataBindingStateError payloadRetrievalErr = error IllegalDataBindingStateError("Payload cannot be retrieved");
     return payloadRetrievalErr;
 }
 

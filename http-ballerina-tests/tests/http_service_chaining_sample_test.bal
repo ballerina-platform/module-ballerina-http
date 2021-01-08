@@ -31,7 +31,8 @@ service /ABCBank on serviceChainingListenerEP {
         http:Request backendServiceReq = new;
         var jsonLocatorReq = req.getJsonPayload();
         if (jsonLocatorReq is json) {
-            string zipCode = jsonLocatorReq.ATMLocator.ZipCode.toString();
+            var code = jsonLocatorReq.ATMLocator.ZipCode;
+            string zipCode = code is error ? code.toString() : code.toString();
             io:println("Zip Code " + zipCode);
             map<map<json>> branchLocatorReq = {"BranchLocator":{"ZipCode":""}};
             branchLocatorReq["BranchLocator"]["ZipCode"] = zipCode;
@@ -50,7 +51,8 @@ service /ABCBank on serviceChainingListenerEP {
 
         var branchLocatorRes = locatorResponse.getJsonPayload();
         if (branchLocatorRes is json) {
-            string branchCode = branchLocatorRes.ABCBank.BranchCode.toString();
+            var code = branchLocatorRes.ABCBank.BranchCode;
+            string branchCode = code is error ? code.toString() : code.toString();
             io:println("Branch Code " + branchCode);
             map<map<json>> bankInfoReq = {"BranchInfo":{"BranchCode":""}};
             bankInfoReq["BranchInfo"]["BranchCode"] = branchCode;
@@ -76,7 +78,8 @@ service /bankinfo on serviceChainingListenerEP {
         http:Response res = new;
         var jsonRequest = req.getJsonPayload();
         if (jsonRequest is json) {
-            string branchCode = jsonRequest.BranchInfo.BranchCode.toString();
+            var code = jsonRequest.BranchInfo.BranchCode;
+            string branchCode = code is error ? code.toString() : code.toString();
             json payload = {};
             if (branchCode == "123") {
                 payload = {"ABC Bank":{"Address":"111 River Oaks Pkwy, San Jose, CA 95999"}};
@@ -98,7 +101,8 @@ service /branchlocator on serviceChainingListenerEP {
         http:Response res = new;
         var jsonRequest = req.getJsonPayload();
         if (jsonRequest is json) {
-            string zipCode = jsonRequest.BranchLocator.ZipCode.toString();
+            var code = jsonRequest.BranchLocator.ZipCode;
+            string zipCode = code is error ? code.toString() : code.toString();
             json payload = {};
             if (zipCode == "95999") {
                 payload = {"ABCBank":{"BranchCode":"123"}};

@@ -549,7 +549,7 @@ public class WebSocketUtil {
                                                                      BMap<BString, Object> clientEndpointConfig) {
         Object clientService = clientEndpointConfig.get(WebSocketConstants.CLIENT_SERVICE_CONFIG);
         if (clientService != null) {
-            Type param = ((BObject) clientService).getType().getAttachedFunctions()[0].getParameterTypes()[0];
+            Type param = ((BObject) clientService).getType().getMethods()[0].getParameterTypes()[0];
             if (param == null || !(WebSocketConstants.WEBSOCKET_CLIENT_NAME.equals(param.toString()) ||
                     WEBSOCKET_FAILOVER_CLIENT_NAME.equals(param.toString()))) {
                 throw WebSocketUtil.getWebSocketError(

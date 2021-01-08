@@ -252,7 +252,7 @@ service /response on responseEp {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setJsonPayload(<@untainted json> returnResult.lang);
+            res.setJsonPayload(<@untainted json> checkpanic returnResult.lang);
         }
         checkpanic caller->respond(res);
     }

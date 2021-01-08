@@ -226,7 +226,7 @@ public class Request {
                     return createErrorForNoPayload(payload);
                 } else {
                     string message = "Error occurred while retrieving the json payload from the request";
-                    return GenericClientError(message, payload);
+                    return error GenericClientError(message, payload);
                }
             } else {
                 return payload;
@@ -248,7 +248,7 @@ public class Request {
                     return createErrorForNoPayload(payload);
                 } else {
                     string message = "Error occurred while retrieving the xml payload from the request";
-                    return GenericClientError(message, payload);
+                    return error GenericClientError(message, payload);
                 }
             } else {
                 return payload;
@@ -270,7 +270,7 @@ public class Request {
                     return createErrorForNoPayload(payload);
                 } else {
                     string message = "Error occurred while retrieving the text payload from the request";
-                    return GenericClientError(message, payload);
+                    return error GenericClientError(message, payload);
                 }
             } else {
                 return payload;
@@ -290,7 +290,7 @@ public class Request {
             var payload = externGetByteChannel(result);
             if (payload is mime:Error) {
                 string message = "Error occurred while retrieving the byte channel from the request";
-                return GenericClientError(message, payload);
+                return error GenericClientError(message, payload);
             } else {
                 return payload;
             }
@@ -308,7 +308,7 @@ public class Request {
             var payload = externGetByteArray(result);
             if (payload is mime:Error) {
                 string message = "Error occurred while retrieving the binary payload from the request";
-                return GenericClientError(message, payload);
+                return error GenericClientError(message, payload);
             } else {
                 return payload;
             }
@@ -326,25 +326,25 @@ public class Request {
             string message = "Error occurred while retrieving form parameters from the request";
             if (!self.hasHeader(mime:CONTENT_TYPE)) {
                 string errMessage = "Content-Type header is not available";
-                mime:HeaderUnavailableError typeError = mime:HeaderUnavailableError(errMessage);
-                return GenericClientError(message, typeError);
+                mime:HeaderUnavailableError typeError = error mime:HeaderUnavailableError(errMessage);
+                return error GenericClientError(message, typeError);
             }
             string contentTypeHeaderValue = "";
             var mediaType = mime:getMediaType(self.getHeader(mime:CONTENT_TYPE));
             if (mediaType is mime:InvalidContentTypeError) {
-                return GenericClientError(message, mediaType);
+                return error GenericClientError(message, mediaType);
             } else {
                 contentTypeHeaderValue = mediaType.primaryType + "/" + mediaType.subType;
             }
             if (!(stringutils:equalsIgnoreCase(mime:APPLICATION_FORM_URLENCODED, contentTypeHeaderValue))) {
                 string errorMessage = "Invalid content type : expected 'application/x-www-form-urlencoded'";
-                mime:InvalidContentTypeError typeError = mime:InvalidContentTypeError(errorMessage);
-                return GenericClientError(message, typeError);
+                mime:InvalidContentTypeError typeError = error mime:InvalidContentTypeError(errorMessage);
+                return error GenericClientError(message, typeError);
             }
             var formData = externGetText(mimeEntity);
             map<string> parameters = {};
             if (formData is error) {
-                return GenericClientError(message, formData);
+                return error GenericClientError(message, formData);
             } else {
                 if (formData != "") {
                     string[] entries = stringutils:split(formData, "&");
@@ -382,7 +382,7 @@ public class Request {
             var bodyParts = result.getBodyParts();
             if (bodyParts is mime:Error) {
                 string message = "Error occurred while retrieving body parts from the request";
-                return GenericClientError(message, bodyParts);
+                return error GenericClientError(message, bodyParts);
             } else {
                 return bodyParts;
             }

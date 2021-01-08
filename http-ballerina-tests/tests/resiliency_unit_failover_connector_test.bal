@@ -211,7 +211,7 @@ public client class FoMockClient {
 
 function handleFailoverScenario (int count) returns (http:Response | http:ClientError) {
     if (count == 0) {
-        return http:GenericClientError("Connection refused");
+        return error http:GenericClientError("Connection refused");
     } else {
         http:Response inResponse = new;
         inResponse.statusCode = http:STATUS_OK;
@@ -220,7 +220,7 @@ function handleFailoverScenario (int count) returns (http:Response | http:Client
 }
 
 function getUnsupportedFOError() returns http:ClientError {
-    return http:GenericClientError("Unsupported function for MockClient");
+    return error http:GenericClientError("Unsupported function for MockClient");
 }
 
 function createMockClient(string url) returns FoMockClient {

@@ -96,12 +96,12 @@ public class HttpCache {
     }
 
     isolated function get(string key) returns Response {
-        Response[] cacheEntry = <Response[]> self.cache.get(key);
+        Response[] cacheEntry = <Response[]> checkpanic self.cache.get(key);
         return cacheEntry[cacheEntry.length() - 1];
     }
 
     isolated function getAll(string key) returns Response[]|() {
-        var cacheEntry = trap <Response[]> self.cache.get(key);
+        var cacheEntry = trap <Response[]> checkpanic self.cache.get(key);
         if (cacheEntry is Response[]) {
             return cacheEntry;
         }
@@ -167,7 +167,7 @@ isolated function isCacheableStatusCode(int statusCode) returns boolean {
 
 isolated function addEntry(cache:Cache cache, string key, Response inboundResponse) {
     if (cache.hasKey(key)) {
-        Response[] existingResponses = <Response[]>cache.get(key);
+        Response[] existingResponses = <Response[]> checkpanic cache.get(key);
         existingResponses.push(inboundResponse);
     } else {
         Response[] cachedResponses = [inboundResponse];

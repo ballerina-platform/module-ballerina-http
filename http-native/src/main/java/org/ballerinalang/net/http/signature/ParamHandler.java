@@ -24,7 +24,7 @@ import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
-import io.ballerina.runtime.api.types.ResourceFunctionType;
+import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -56,7 +56,7 @@ public class ParamHandler {
 
     private final Type[] paramTypes;
     private final int pathParamCount;
-    private ResourceFunctionType resource;
+    private ResourceMethodType resource;
     private String[] pathParamTokens = new String[0];
     private List<Parameter> otherParamList = new ArrayList<>();
     private PayloadParam payloadParam = null;
@@ -72,7 +72,7 @@ public class ParamHandler {
     private static final String PAYLOAD_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_PAYLOAD;
     private static final String CALLER_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_CALLER_INFO;
 
-    public ParamHandler(ResourceFunctionType resource, int pathParamCount) {
+    public ParamHandler(ResourceMethodType resource, int pathParamCount) {
         this.resource = resource;
         this.pathParamCount = pathParamCount;
         this.paramTypes = resource.getParameterTypes();
@@ -81,7 +81,7 @@ public class ParamHandler {
         validateSignatureParams();
     }
 
-    private void populatePathParamTokens(ResourceFunctionType resource, int pathParamCount) {
+    private void populatePathParamTokens(ResourceMethodType resource, int pathParamCount) {
         if (pathParamCount == 0) {
             return;
         }
@@ -129,7 +129,7 @@ public class ParamHandler {
         }
     }
 
-    private void populatePayloadAndHeaderParamTokens(ResourceFunctionType balResource) {
+    private void populatePayloadAndHeaderParamTokens(ResourceMethodType balResource) {
         for (String paramName : balResource.getParamNames()) {
             BMap annotations = (BMap) balResource.getAnnotation(StringUtils.fromString(PARAM_ANNOT_PREFIX + paramName));
             if (annotations == null) {
@@ -185,7 +185,7 @@ public class ParamHandler {
         }
     }
 
-    private void validateQueryParam(int index, ResourceFunctionType balResource, Type parameterType) {
+    private void validateQueryParam(int index, ResourceMethodType balResource, Type parameterType) {
         if (parameterType instanceof UnionType) {
             List<Type> memberTypes = ((UnionType) parameterType).getMemberTypes();
             int size = memberTypes.size();
@@ -208,7 +208,7 @@ public class ParamHandler {
         }
     }
 
-    private void validatePathParam(ResourceFunctionType resource, int pathParamCount) {
+    private void validatePathParam(ResourceMethodType resource, int pathParamCount) {
         Type[] parameterTypes = resource.getParameterTypes();
         Arrays.stream(parameterTypes, 0, pathParamCount).forEach(type -> {
             int typeTag = type.getTag();

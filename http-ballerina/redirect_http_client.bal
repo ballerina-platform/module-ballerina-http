@@ -356,7 +356,7 @@ function redirect(Response response, HttpOperation httpVerb, Request request,
                 }
             } else {
                 redirectClient.currentRedirectCount = 0;
-                return GenericClientError("Location header not available!");
+                return error GenericClientError("Location header not available!");
             }
         } else {
             setCountAndResolvedURL(redirectClient, response, resolvedRequestedURI);
