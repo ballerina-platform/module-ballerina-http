@@ -49,7 +49,7 @@ public class ListenerJwtAuthHandler {
             Unauthorized unauthorized = {};
             return unauthorized;
         }
-        return <jwt:Payload> checkpanic details;
+        return checkpanic details;
     }
 
     # Authorizes with the relevant authorization requirements.

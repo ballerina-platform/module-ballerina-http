@@ -53,7 +53,7 @@ public class ListenerOAuth2Handler {
             Unauthorized unauthorized = {};
             return unauthorized;
         }
-        oauth2:IntrospectionResponse introspectionResponse = <oauth2:IntrospectionResponse> checkpanic details;
+        oauth2:IntrospectionResponse introspectionResponse = checkpanic details;
         if (expectedScopes is ()) {
             return introspectionResponse;
         }
