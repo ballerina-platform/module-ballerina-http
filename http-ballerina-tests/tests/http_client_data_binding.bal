@@ -328,9 +328,9 @@ function testCastError() {
 function test5XXErrorPanic() {
     var response = clientDBTestClient->get("/passthrough/500");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "incompatible types: 'http:RemoteServerError' cannot be cast to 'json'");
+        assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -354,9 +354,10 @@ function test5XXHandleError() {
 function test4XXErrorPanic() {
     var response = clientDBTestClient->get("/passthrough/404");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "incompatible types: 'http:ClientRequestError' cannot be cast to 'json'");
+        assertTextPayload(response.getTextPayload(), 
+            "no matching resource found for path : /backend/getIncorrectPath404 , method : POST");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
