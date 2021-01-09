@@ -65,7 +65,7 @@ isolated function testClientSelfSignedJwtAuthHandler() {
             keyPassword: "ballerina"
         }
     };
-    http:ClientSelfSignedJwtAuthProvider handler = new(config);
+    http:ClientSelfSignedJwtAuthHandler handler = new(config);
     http:Request request = createDummyRequest();
     http:Request|http:ClientAuthError result = handler.enrich(request);
     if (result is http:Request) {
