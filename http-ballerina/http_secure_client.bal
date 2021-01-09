@@ -253,6 +253,7 @@ public function createHttpSecureClient(string url, ClientConfiguration config) r
     }
 }
 
+// Enriches the request using the relevant client auth handler.
 isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req) returns Request|ClientError {
     if (clientAuthHandler is ClientBasicAuthHandler) {
         return clientAuthHandler.enrich(req);
@@ -261,6 +262,7 @@ isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req
     } else if (clientAuthHandler is ClientSelfSignedJwtAuthHandler) {
         return clientAuthHandler.enrich(req);
     } else {
+        // Here, `clientAuthHandler` is `ClientOAuth2Handler`
         return clientAuthHandler->enrich(req);
     }
 }
