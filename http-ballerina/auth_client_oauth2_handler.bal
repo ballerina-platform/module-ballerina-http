@@ -35,9 +35,7 @@ public type OAuth2DirectTokenConfig record {|
 public type OAuth2GrantConfig OAuth2ClientCredentialsGrantConfig|OAuth2PasswordGrantConfig|OAuth2DirectTokenConfig;
 
 # Defines the OAuth2 handler for client authentication.
-public class ClientOAuth2Handler {
-
-    *ClientAuthHandler;
+public client class ClientOAuth2Handler {
 
     oauth2:ClientOAuth2Provider provider;
 
@@ -52,7 +50,7 @@ public class ClientOAuth2Handler {
     #
     # + req - The `http:Request` instance
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
-    public isolated function enrich(Request req) returns Request|ClientAuthError {
+    remote isolated function enrich(Request req) returns Request|ClientAuthError {
         string|oauth2:Error result = self.provider.generateToken();
         if (result is oauth2:Error) {
             return prepareClientAuthError("Failed to enrich request with OAuth2 token.", result);

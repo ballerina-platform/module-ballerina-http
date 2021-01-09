@@ -25,7 +25,7 @@ public client class HttpSecureClient {
     public string url = "";
     public ClientConfiguration config = {};
     public HttpClient httpClient;
-    ClientAuthHandler clientAuthHandler;
+    ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler clientAuthHandler;
 
     # Gets invoked to initialize the secure `client`. Due to the secure client releated configurations provided
     # through the `config` record, the `HttpSecureClient` is initialized.
@@ -56,8 +56,7 @@ public client class HttpSecureClient {
     #            establish the communication with the upstream server or a data binding failure
     remote function post(string path, RequestMessage message, TargetType targetType = Response)
             returns Response|PayloadType|ClientError {
-        Request req = <Request>message;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->post(path, req);
     }
 
@@ -70,8 +69,7 @@ public client class HttpSecureClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
-        Request req = <Request>message;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->head(path, message = req);
     }
 
@@ -87,8 +85,7 @@ public client class HttpSecureClient {
     #            establish the communication with the upstream server or a data binding failure
     remote function put(string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
-        Request req = <Request>message;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->put(path, req);
     }
 
@@ -105,8 +102,7 @@ public client class HttpSecureClient {
     #            establish the communication with the upstream server or a data binding failure
     remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
-        Request req = <Request>message;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->execute(httpVerb, path, req);
     }
 
@@ -122,8 +118,7 @@ public client class HttpSecureClient {
     #            establish the communication with the upstream server or a data binding failure
     remote function patch(string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
-        Request req = <Request>message;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->patch(path, req);
     }
 
@@ -139,8 +134,7 @@ public client class HttpSecureClient {
     #            establish the communication with the upstream server or a data binding failure
     remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
-        Request req = <Request>message;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->delete(path, req);
     }
 
@@ -156,8 +150,7 @@ public client class HttpSecureClient {
     #            establish the communication with the upstream server or a data binding failure
     remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
-        Request req = <Request>message;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->get(path, message = req);
     }
 
@@ -173,8 +166,7 @@ public client class HttpSecureClient {
     #            establish the communication with the upstream server or a data binding failure
     remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
-        Request req = <Request>message;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->options(path, message = req);
     }
 
@@ -189,8 +181,7 @@ public client class HttpSecureClient {
     #            establish the communication with the upstream server or a data binding failure
     remote function forward(string path, Request request, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
-        Request req = request;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, request);
         return self.httpClient->forward(path, req);
     }
 
@@ -203,8 +194,7 @@ public client class HttpSecureClient {
     #             `io:ReadableByteChannel`, or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
-        Request req = <Request>message;
-        req = check self.clientAuthHandler.enrich(req);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->submit(httpVerb, path, req);
     }
 
@@ -263,8 +253,24 @@ public function createHttpSecureClient(string url, ClientConfiguration config) r
     }
 }
 
+isolated function enrichRequest(ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler clientAuthHandler,
+                                Request req) returns Request|ClientError {
+    if (clientAuthHandler is ClientBasicAuthHandler) {
+        return clientAuthHandler.enrich(req);
+    } else if (clientAuthHandler is ClientBearerTokenAuthHandler) {
+        return clientAuthHandler.enrich(req);
+    } else if (clientAuthHandler is ClientSelfSignedJwtAuthHandler) {
+        return clientAuthHandler.enrich(req);
+    } else {
+        return clientAuthHandler->enrich(req);
+    }
+}
+
 // Initialize the client auth handler based on the provided configurations
-isolated function initClientAuthHandler(ClientConfiguration config) returns ClientAuthHandler {
+isolated function initClientAuthHandler(ClientConfiguration config) returns ClientBasicAuthHandler|
+                                                                            ClientBearerTokenAuthHandler|
+                                                                            ClientSelfSignedJwtAuthHandler|
+                                                                            ClientOAuth2Handler {
     // The existence of auth configuration is already validated.
     ClientAuthConfig authConfig = <ClientAuthConfig>(config.auth);
     if (authConfig is CredentialsConfig) {
@@ -274,7 +280,7 @@ isolated function initClientAuthHandler(ClientConfiguration config) returns Clie
         ClientBearerTokenAuthHandler handler = new(authConfig);
         return handler;
     } else if (authConfig is JwtIssuerConfig) {
-        ClientSelfSignedJwtAuthProvider handler = new(authConfig);
+        ClientSelfSignedJwtAuthHandler handler = new(authConfig);
         return handler;
     } else {
         // Here, `authConfig` is `OAuth2GrantConfig`
