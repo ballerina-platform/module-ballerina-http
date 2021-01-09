@@ -25,7 +25,7 @@ public client class HttpSecureClient {
     public string url = "";
     public ClientConfiguration config = {};
     public HttpClient httpClient;
-    ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler clientAuthHandler;
+    ClientAuthHandler clientAuthHandler;
 
     # Gets invoked to initialize the secure `client`. Due to the secure client releated configurations provided
     # through the `config` record, the `HttpSecureClient` is initialized.
@@ -253,8 +253,7 @@ public function createHttpSecureClient(string url, ClientConfiguration config) r
     }
 }
 
-isolated function enrichRequest(ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler clientAuthHandler,
-                                Request req) returns Request|ClientError {
+isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req) returns Request|ClientError {
     if (clientAuthHandler is ClientBasicAuthHandler) {
         return clientAuthHandler.enrich(req);
     } else if (clientAuthHandler is ClientBearerTokenAuthHandler) {
@@ -267,10 +266,7 @@ isolated function enrichRequest(ClientBasicAuthHandler|ClientBearerTokenAuthHand
 }
 
 // Initialize the client auth handler based on the provided configurations
-isolated function initClientAuthHandler(ClientConfiguration config) returns ClientBasicAuthHandler|
-                                                                            ClientBearerTokenAuthHandler|
-                                                                            ClientSelfSignedJwtAuthHandler|
-                                                                            ClientOAuth2Handler {
+isolated function initClientAuthHandler(ClientConfiguration config) returns ClientAuthHandler {
     // The existence of auth configuration is already validated.
     ClientAuthConfig authConfig = <ClientAuthConfig>(config.auth);
     if (authConfig is CredentialsConfig) {
