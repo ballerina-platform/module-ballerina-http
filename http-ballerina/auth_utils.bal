@@ -26,8 +26,11 @@ public const string AUTH_SCHEME_BASIC = "Basic";
 # The prefix used to denote the Bearer authentication scheme.
 public const string AUTH_SCHEME_BEARER = "Bearer";
 
-# Defines the authentication configurations that a HTTP client may have
+# Defines the authentication configurations for the HTTP client.
 public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig|OAuth2GrantConfig;
+
+// Defines the client authentication handlers.
+type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
 
 // Logs and prepares the `error` as an `http:ClientAuthError`.
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {

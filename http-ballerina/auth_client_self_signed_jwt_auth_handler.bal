@@ -22,9 +22,7 @@ public type JwtIssuerConfig record {|
 |};
 
 # Defines the self signed JWT handler for client authentication.
-public class ClientSelfSignedJwtAuthProvider {
-
-    *ClientAuthHandler;
+public class ClientSelfSignedJwtAuthHandler {
 
     jwt:ClientSelfSignedJwtAuthProvider provider;
 

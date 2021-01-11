@@ -24,8 +24,6 @@ public type CredentialsConfig record {|
 # Defines the Basic Auth handler for client authentication.
 public class ClientBasicAuthHandler {
 
-    *ClientAuthHandler;
-
     auth:ClientBasicAuthProvider provider;
 
     # Initializes the `http:ClientBasicAuthHandler` object.

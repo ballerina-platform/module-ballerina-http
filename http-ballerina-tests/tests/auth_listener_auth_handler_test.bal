@@ -255,7 +255,7 @@ isolated function testListenerJwtAuthHandlerAuthFailure() {
 }
 
 @test:Config {}
-isolated function testListenerOAuth2HandlerAuthSuccess() {
+function testListenerOAuth2HandlerAuthSuccess() {
     http:OAuth2IntrospectionConfig config = {
         url: "https://localhost:20000/oauth2/token/introspect/success",
         tokenTypeHint: "access_token",
@@ -273,7 +273,7 @@ isolated function testListenerOAuth2HandlerAuthSuccess() {
     string oauth2Token = "2YotnFZFEjr1zCsicMWpAA";
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
-    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler.authorize(request, "read");
+    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request, "read");
     if (auth is oauth2:IntrospectionResponse) {
         test:assertEquals(auth.active, true);
     } else {
@@ -282,7 +282,7 @@ isolated function testListenerOAuth2HandlerAuthSuccess() {
 }
 
 @test:Config {}
-isolated function testListenerOAuth2HandlerAuthzFailure() {
+function testListenerOAuth2HandlerAuthzFailure() {
     http:OAuth2IntrospectionConfig config = {
         url: "https://localhost:20000/oauth2/token/introspect/success",
         tokenTypeHint: "access_token",
@@ -300,14 +300,14 @@ isolated function testListenerOAuth2HandlerAuthzFailure() {
     string oauth2Token = "2YotnFZFEjr1zCsicMWpAA";
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
-    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler.authorize(request, "update");
+    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request, "update");
     if (auth is oauth2:IntrospectionResponse || auth is http:Unauthorized) {
         test:assertFail(msg = "Test Failed!");
     }
 }
 
 @test:Config {}
-isolated function testListenerOAuth2HandlerAuthFailure() {
+function testListenerOAuth2HandlerAuthFailure() {
     http:OAuth2IntrospectionConfig config = {
         url: "https://localhost:20000/oauth2/token/introspect/failure",
         tokenTypeHint: "access_token",
@@ -325,7 +325,7 @@ isolated function testListenerOAuth2HandlerAuthFailure() {
     string oauth2Token = "invalid_token";
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
-    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler.authorize(request);
+    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request);
     if (auth is oauth2:IntrospectionResponse || auth is http:Forbidden) {
         test:assertFail(msg = "Test Failed!");
     }

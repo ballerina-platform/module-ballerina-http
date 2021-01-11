@@ -65,7 +65,7 @@ isolated function testClientSelfSignedJwtAuthHandler() {
             keyPassword: "ballerina"
         }
     };
-    http:ClientSelfSignedJwtAuthProvider handler = new(config);
+    http:ClientSelfSignedJwtAuthHandler handler = new(config);
     http:Request request = createDummyRequest();
     http:Request|http:ClientAuthError result = handler.enrich(request);
     if (result is http:Request) {
@@ -131,7 +131,7 @@ isolated function testClientOAuth2Handler() {
 
     http:Request request = createDummyRequest();
     http:ClientOAuth2Handler handler = new(config1);
-    http:Request|http:ClientAuthError result = handler.enrich(request);
+    http:Request|http:ClientAuthError result = handler->enrich(request);
     if (result is http:Request) {
         string header = result.getHeader(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
@@ -140,7 +140,7 @@ isolated function testClientOAuth2Handler() {
     }
 
     handler = new(config2);
-    result = handler.enrich(request);
+    result = handler->enrich(request);
     if (result is http:Request) {
         string header = result.getHeader(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
@@ -149,7 +149,7 @@ isolated function testClientOAuth2Handler() {
     }
 
     handler = new(config3);
-    result = handler.enrich(request);
+    result = handler->enrich(request);
     if (result is http:Request) {
         string header = result.getHeader(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");

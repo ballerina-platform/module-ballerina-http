@@ -25,7 +25,7 @@ public type OAuth2IntrospectionConfig record {|
 |};
 
 # Defines the OAuth2 handler for listener authentication.
-public class ListenerOAuth2Handler {
+public client class ListenerOAuth2Handler {
 
     oauth2:ListenerOAuth2Provider provider;
     string scopeKey;
@@ -44,7 +44,7 @@ public class ListenerOAuth2Handler {
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + customParams - Map of custom parameters that need to be sent to introspection endpoint
     # + return - The `oauth2:IntrospectionResponse` instance or else `Unauthorized` or `Forbidden` type in case of an error
-    public isolated function authorize(Request|string data, string|string[]? expectedScopes = (),
+    remote isolated function authorize(Request|string data, string|string[]? expectedScopes = (),
                                        map<string>? customParams = ())
                                        returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
         string credential = extractCredential(data);

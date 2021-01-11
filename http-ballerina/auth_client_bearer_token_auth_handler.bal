@@ -24,8 +24,6 @@ public type BearerTokenConfig record {|
 # Defines the Bearer token auth handler for client authentication.
 public class ClientBearerTokenAuthHandler {
 
-    *ClientAuthHandler;
-
     BearerTokenConfig config;
 
     # Initializes the `http:ClientBearerTokenAuthHandler` object.
