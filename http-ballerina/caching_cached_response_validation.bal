@@ -49,7 +49,7 @@ function getValidationResponse(HttpClient httpClient, Request req, Response cach
         return response;
     }
 
-    Response validationResponse = <Response>response;
+    Response validationResponse = <Response> checkpanic response;
 
     // log:printDebug("Response for validation request received");
 

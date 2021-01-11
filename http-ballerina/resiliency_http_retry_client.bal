@@ -320,7 +320,7 @@ function performRetryAction(@untainted string path, Request request, HttpOperati
     boolean[] statusCodeIndex = retryClient.retryInferredConfig.statusCodes;
     initializeBackOffFactorAndMaxWaitInterval(retryClient);
     
-    AllRetryAttemptsFailed retryFailedError = AllRetryAttemptsFailed("All the retry attempts failed.");
+    AllRetryAttemptsFailed retryFailedError = error AllRetryAttemptsFailed("All the retry attempts failed.");
     ClientError httpConnectorErr = retryFailedError;
     Request inRequest = request;
     // When performing passthrough scenarios using retry client, message needs to be built before sending out the

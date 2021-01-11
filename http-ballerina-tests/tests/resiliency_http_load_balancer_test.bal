@@ -206,7 +206,7 @@ public class CustomLoadBalancerRule {
     public isolated function getNextClient(http:Client?[] loadBalanceClientsArray) returns http:Client|http:ClientError {
         http:Client httpClient = <http:Client>loadBalanceClientsArray[self.index];
         if (self.index >= loadBalanceClientsArray.length()) {
-            return http:AllLoadBalanceEndpointsFailedError("Provided index is doesn't match with the targets.");
+            return error http:AllLoadBalanceEndpointsFailedError("Provided index is doesn't match with the targets.");
         }
         lock {
             if (self.index == (loadBalanceClientsArray.length() - 1)) {

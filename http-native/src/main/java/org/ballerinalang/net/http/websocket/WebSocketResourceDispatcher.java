@@ -24,7 +24,7 @@ import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
-import io.ballerina.runtime.api.types.MemberFunctionType;
+import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.StructureType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.XmlNodeType;
@@ -95,7 +95,7 @@ public class WebSocketResourceDispatcher {
         HttpResource onUpgradeResource = wsService.getUpgradeResource();
         webSocketHandshaker.getHttpCarbonRequest().setProperty(HttpConstants.RESOURCES_CORS,
                                                                onUpgradeResource.getCorsHeaders());
-        MemberFunctionType balResource = onUpgradeResource.getBalResource();
+        MethodType balResource = onUpgradeResource.getBalResource();
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(onUpgradeResource, webSocketHandshaker
                 .getHttpCarbonRequest(), httpEndpointConfig);
 
@@ -112,7 +112,7 @@ public class WebSocketResourceDispatcher {
 
     public static void dispatchOnOpen(WebSocketConnection webSocketConnection, BObject webSocketCaller,
                                        WebSocketServerService wsService) {
-        MemberFunctionType onOpenResource = wsService.getResourceByName(RESOURCE_NAME_ON_OPEN);
+        MethodType onOpenResource = wsService.getResourceByName(RESOURCE_NAME_ON_OPEN);
         if (onOpenResource != null) {
             executeOnOpenResource(wsService, onOpenResource, webSocketCaller, webSocketConnection);
         } else {
@@ -120,7 +120,7 @@ public class WebSocketResourceDispatcher {
         }
     }
 
-    private static void executeOnOpenResource(WebSocketService wsService, MemberFunctionType onOpenResource,
+    private static void executeOnOpenResource(WebSocketService wsService, MethodType onOpenResource,
                                               BObject webSocketEndpoint, WebSocketConnection webSocketConnection) {
         Type[] parameterTypes = onOpenResource.getParameterTypes();
         Object[] bValues = new Object[parameterTypes.length * 2];
@@ -151,7 +151,7 @@ public class WebSocketResourceDispatcher {
         try {
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            MemberFunctionType onTextMessageResource = wsService.getResourceByName(RESOURCE_NAME_ON_TEXT);
+            MethodType onTextMessageResource = wsService.getResourceByName(RESOURCE_NAME_ON_TEXT);
             if (onTextMessageResource == null) {
                 webSocketConnection.readNextFrame();
                 return;
@@ -266,7 +266,7 @@ public class WebSocketResourceDispatcher {
         try {
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            MemberFunctionType onBinaryMessageResource = wsService.getResourceByName(
+            MethodType onBinaryMessageResource = wsService.getResourceByName(
                     RESOURCE_NAME_ON_BINARY);
             if (onBinaryMessageResource == null) {
                 webSocketConnection.readNextFrame();
@@ -307,7 +307,7 @@ public class WebSocketResourceDispatcher {
                                                     connectionInfo);
         try {
             WebSocketService wsService = connectionInfo.getService();
-            MemberFunctionType onPingMessageResource = wsService.getResourceByName(
+            MethodType onPingMessageResource = wsService.getResourceByName(
                     WebSocketConstants.RESOURCE_NAME_ON_PING);
             if (onPingMessageResource == null) {
                 pongAutomatically(controlMessage);
@@ -337,7 +337,7 @@ public class WebSocketResourceDispatcher {
         try {
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            MemberFunctionType onPongMessageResource = wsService.getResourceByName(
+            MethodType onPongMessageResource = wsService.getResourceByName(
                     WebSocketConstants.RESOURCE_NAME_ON_PONG);
             if (onPongMessageResource == null) {
                 webSocketConnection.readNextFrame();
@@ -367,7 +367,7 @@ public class WebSocketResourceDispatcher {
             WebSocketUtil.setListenerOpenField(connectionInfo);
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            MemberFunctionType onCloseResource = wsService.getResourceByName(
+            MethodType onCloseResource = wsService.getResourceByName(
                     WebSocketConstants.RESOURCE_NAME_ON_CLOSE);
             int closeCode = closeMessage.getCloseCode();
             String closeReason = closeMessage.getCloseReason();
@@ -432,7 +432,7 @@ public class WebSocketResourceDispatcher {
             connectionInfo.getWebSocketEndpoint().set(WebSocketConstants.LISTENER_IS_OPEN_FIELD, false);
         }
         WebSocketService webSocketService = connectionInfo.getService();
-        MemberFunctionType onErrorResource = webSocketService.getResourceByName(
+        MethodType onErrorResource = webSocketService.getResourceByName(
                 WebSocketConstants.RESOURCE_NAME_ON_ERROR);
         if (isUnexpectedError(throwable)) {
             log.error("Unexpected error", throwable);
@@ -477,7 +477,7 @@ public class WebSocketResourceDispatcher {
         try {
             WebSocketConnection webSocketConnection = connectionInfo.getWebSocketConnection();
             WebSocketService wsService = connectionInfo.getService();
-            MemberFunctionType onIdleTimeoutResource = wsService.getResourceByName(
+            MethodType onIdleTimeoutResource = wsService.getResourceByName(
                     WebSocketConstants.RESOURCE_NAME_ON_IDLE_TIMEOUT);
             if (onIdleTimeoutResource == null) {
                 return;

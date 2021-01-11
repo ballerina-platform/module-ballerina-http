@@ -76,7 +76,7 @@ service /'continue on httpClientContinueListenerEP2  {
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            checkpanic caller->respond("Error in client post - HTTP/1.1");
+            checkpanic caller->respond("Error: " + <@untainted> (<error>response).toString());
         }
     }
 
@@ -88,7 +88,7 @@ service /'continue on httpClientContinueListenerEP2  {
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            checkpanic caller->respond("Error in client post - HTTP/1.1");
+            checkpanic caller->respond("Error: " + <@untainted> (<error>response).toString());
         }
     }
 }
@@ -107,7 +107,7 @@ function testContinueAction() {
 }
 
 //Negative test case for 100 continue of http client
-@test:Config {}
+@test:Config {dependsOn:["testContinueAction"]}
 function testNegativeContinueAction() {
     var response = httpClientContinueClient->get("/continue/failure");
     if (response is http:Response) {
@@ -118,7 +118,7 @@ function testNegativeContinueAction() {
     }
 }
 
-@test:Config {}
+@test:Config {dependsOn:["testNegativeContinueAction"]}
 function testContinueActionWithMain() {
     http:Client clientEP = new("http://localhost:" + httpClientContinueTestPort1.toString());
     http:Request req = new();

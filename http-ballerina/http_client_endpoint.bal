@@ -438,13 +438,6 @@ public type ProxyConfig record {|
     string password = "";
 |};
 
-# The `OutboundAuthConfig` record can be used to configure the authentication mechanism used by the HTTP endpoint.
-#
-# + authHandler - The outbound authentication handler
-public type OutboundAuthConfig record {|
-    OutboundAuthHandler authHandler;
-|};
-
 # Client configuration for cookies.
 #
 # + enabled - User agents provide users with a mechanism for disabling or enabling cookies
@@ -622,16 +615,16 @@ function processResponse(Response|PayloadType|ClientError result, TargetType tar
     if (targetType is typedesc<Response> || result is ClientError) {
         return result;
     }
-    Response response = <Response> result;
+    Response response = <Response> checkpanic result;
     int statusCode = response.statusCode;
     if (400 <= statusCode && statusCode <= 499) {
         string errorPayload = check response.getTextPayload();
-        ClientRequestError err = ClientRequestError(errorPayload, statusCode = statusCode);
+        ClientRequestError err = error ClientRequestError(errorPayload, statusCode = statusCode);
         return err;
     }
     if (500 <= statusCode && statusCode <= 599) {
         string errorPayload = check response.getTextPayload();
-        RemoteServerError err = RemoteServerError(errorPayload, statusCode = statusCode);
+        RemoteServerError err = error RemoteServerError(errorPayload, statusCode = statusCode);
         return err;
     }
     return performDataBinding(response, targetType);
@@ -646,10 +639,18 @@ function performDataBinding(Response response, TargetType targetType) returns @t
         return response.getBinaryPayload();
     } else if (targetType is typedesc<CustomRecordType>) {
         json payload = check response.getJsonPayload();
-        return <CustomRecordType> payload.cloneWithType(targetType);
+        var result = payload.cloneWithType(targetType);
+        if (result is error) {
+            return error GenericClientError("payload binding failed: " + result.message(), result);
+        }
+        return <CustomRecordType> checkpanic result;
     } else if (targetType is typedesc<CustomRecordType[]>) {
         json payload = check response.getJsonPayload();
-        return <CustomRecordType[]> payload.cloneWithType(targetType);
+        var result = payload.cloneWithType(targetType);
+        if (result is error) {
+            return error GenericClientError("payload binding failed: " + result.message(), result);
+        }
+        return <CustomRecordType[]> checkpanic result;
     } else if (targetType is typedesc<map<json>>) {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;

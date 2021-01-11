@@ -229,6 +229,9 @@ public class HttpConstants {
     public static final String HTTP_ERROR_CODE = "{ballerina/http}HTTPError";
     public static final String HTTP_ERROR_RECORD = "HTTPError";
     public static final BString HTTP_ERROR_MESSAGE = StringUtils.fromString("message");
+    public static final BString HTTP_ERROR_STATUS_CODE = StringUtils.fromString("statusCode");
+    public static final String HTTP_CLIENT_REQUEST_ERROR = "ClientRequestError";
+    public static final String HTTP_REMOTE_SERVER_ERROR = "RemoteServerError";
 
     // ServeConnector struct indices
     public static final BString HTTP_CONNECTOR_CONFIG_FIELD = StringUtils.fromString("config");
@@ -463,7 +466,7 @@ public class HttpConstants {
 
     public static final String HTTP_VERSION_1_1 = "1.1";
 
-    public static final String HTTP_MODULE_VERSION = "1.0.4";
+    public static final String HTTP_MODULE_VERSION = "1.0.5";
     public static final String REASON_RECORD = "Reason";
     public static final String PACKAGE = "ballerina";
     public static final String MODULE = "http";

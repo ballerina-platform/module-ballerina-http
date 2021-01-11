@@ -288,7 +288,7 @@ public client class FailoverClient {
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
     remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
-        return UnsupportedActionError("Failover client not supported for getNextPromise action");
+        return error UnsupportedActionError("Failover client not supported for getNextPromise action");
     }
 
     # Retrieves the promised server push `http:Response` message.
@@ -296,7 +296,7 @@ public client class FailoverClient {
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
     remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
-        return UnsupportedActionError("Failover client not supported for getPromisedResponse action");
+        return error UnsupportedActionError("Failover client not supported for getPromisedResponse action");
     }
 
     # Rejects an `http:PushPromise`. When an `http:PushPromise` is rejected, there is no chance of fetching a promised
@@ -431,7 +431,7 @@ isolated function populateGenericFailoverActionError (ClientError?[] failoverAct
     error err = httpActionErr;
     string lastErrorMsg = err.message();
     string failoverMessage = "All the failover endpoints failed. Last error was: " + lastErrorMsg;
-    return FailoverAllEndpointsFailedError(failoverMessage, failoverErrors = failoverActionErr);
+    return error FailoverAllEndpointsFailedError(failoverMessage, failoverErrors = failoverActionErr);
 }
 
 // If leaf endpoint returns a response with status code configured to retry in the failover connector, failover error
@@ -439,7 +439,7 @@ isolated function populateGenericFailoverActionError (ClientError?[] failoverAct
 isolated function populateFailoverErrorHttpStatusCodes (Response inResponse, ClientError?[] failoverActionErr, int index) {
     string failoverMessage = "Endpoint " + index.toString() + " returned response is: " +
                                 inResponse.statusCode.toString() + " " + inResponse.reasonPhrase;
-    FailoverActionFailedError httpActionErr = FailoverActionFailedError(failoverMessage);
+    FailoverActionFailedError httpActionErr = error FailoverActionFailedError(failoverMessage);
     failoverActionErr[index] = httpActionErr;
 }
 
@@ -447,11 +447,11 @@ isolated function populateErrorsFromLastResponse (Response inResponse, ClientErr
                                                                             returns (ClientError) {
     string message = "Last endpoint returned response: " + inResponse.statusCode.toString() + " " +
                         inResponse.reasonPhrase;
-    FailoverActionFailedError lastHttpConnectorErr = FailoverActionFailedError(message);
+    FailoverActionFailedError lastHttpConnectorErr = error FailoverActionFailedError(message);
     failoverActionErr[index] = lastHttpConnectorErr;
     string failoverMessage = "All the failover endpoints failed. Last endpoint returned response is: "
                                 + inResponse.statusCode.toString() + " " + inResponse.reasonPhrase;
-    return FailoverAllEndpointsFailedError(failoverMessage, failoverErrors = failoverActionErr);
+    return error FailoverAllEndpointsFailedError(failoverMessage, failoverErrors = failoverActionErr);
 }
 
 # Provides a set of HTTP related configurations and failover related configurations.

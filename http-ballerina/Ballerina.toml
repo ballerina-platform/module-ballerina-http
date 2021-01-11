@@ -25,6 +25,16 @@ version = "@stdlib.auth.version@"
 
 [[dependency]]
 org = "ballerina"
+name = "jwt"
+version = "@stdlib.jwt.version@"
+
+[[dependency]]
+org = "ballerina"
+name = "oauth2"
+version = "@stdlib.oauth2.version@"
+
+[[dependency]]
+org = "ballerina"
 name = "crypto"
 version = "@stdlib.crypto.version@"
 

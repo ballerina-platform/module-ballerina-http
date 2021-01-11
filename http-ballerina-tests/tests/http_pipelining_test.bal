@@ -52,7 +52,7 @@ service /pipeliningTest on pipeliningListenerEP1 {
         var result = caller->respond(<@untainted> response);
         if (result is error) {
             error err = result;
-            log:printError(<string> err.detail()["message"], err = result);
+            log:printError(err.message(), err = result);
         }
     }
 }

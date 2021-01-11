@@ -58,7 +58,7 @@ isolated function getDateValue(Response inboundResponse) returns int {
 
     // Based on https://tools.ietf.org/html/rfc7231#section-7.1.1.2
     time:Time currentT = time:currentTime();
-    string timeStr = <string>time:format(currentT, time:TIME_FORMAT_RFC_1123);
+    string timeStr = <string> checkpanic time:format(currentT, time:TIME_FORMAT_RFC_1123);
 
     inboundResponse.setHeader(DATE, timeStr);
     return currentT.time;

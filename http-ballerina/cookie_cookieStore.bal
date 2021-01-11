@@ -39,11 +39,11 @@ public class CookieStore {
     # + return - An `http:CookieHandlingError` if there is any error occurred when adding a cookie or else `()`
     public function addCookie(Cookie cookie, CookieConfig cookieConfig, string url, string requestPath) returns CookieHandlingError? {
         if (self.getAllCookies().length() == cookieConfig.maxTotalCookieCount) {
-            return CookieHandlingError("Number of total cookies in the cookie store can not exceed the maximum amount");
+            return error CookieHandlingError("Number of total cookies in the cookie store can not exceed the maximum amount");
         }
         string domain = getDomain(url);
         if (self.getCookiesByDomain(domain).length() == cookieConfig.maxCookiesPerDomain) {
-            return CookieHandlingError("Number of total cookies for the domain: " + domain + " in the cookie store can not exceed the maximum amount per domain");
+            return error CookieHandlingError("Number of total cookies for the domain: " + domain + " in the cookie store can not exceed the maximum amount per domain");
         }
         string path  = requestPath;
         int? index = requestPath.indexOf("?");
@@ -69,7 +69,7 @@ public class CookieStore {
                 if (persistentCookieHandler is PersistentCookieHandler) {
                     var result = addPersistentCookie(identicalCookie, cookie, url, persistentCookieHandler, self);
                     if (result is error) {
-                        return CookieHandlingError("Error in adding persistent cookies", result);
+                        return error CookieHandlingError("Error in adding persistent cookies", result);
                     }
                 } else if (isFirstRequest(self.allSessionCookies, domain)) {
                     log:printError("Client is not configured to use persistent cookies. Hence, persistent cookies from "
@@ -78,7 +78,7 @@ public class CookieStore {
             } else {
                 var result = addSessionCookie(identicalCookie, cookie, url, self);
                 if (result is error) {
-                    return CookieHandlingError("Error in adding session cookie", result);
+                    return error CookieHandlingError("Error in adding session cookie", result);
                 }
             }
         }
@@ -218,7 +218,7 @@ public class CookieStore {
             if (persistentCookieHandler is PersistentCookieHandler) {
                 return persistentCookieHandler.removeCookie(name, domain, path);
             }
-            return CookieHandlingError("Error in removing cookie: No such cookie to remove");
+            return error CookieHandlingError("Error in removing cookie: No such cookie to remove");
         }
     }
 
@@ -238,7 +238,7 @@ public class CookieStore {
                 if (cookieName is string && cookiePath is string) {
                     var result = self.removeCookie(cookieName, domain, cookiePath);
                     if (result is error) {
-                        return CookieHandlingError("Error in removing cookies", result);
+                        return error CookieHandlingError("Error in removing cookies", result);
                     }
                 }
             }
@@ -253,7 +253,7 @@ public class CookieStore {
         if (persistentCookieHandler is PersistentCookieHandler) {
             var result = persistentCookieHandler.getAllCookies();
             if (result is error) {
-                return CookieHandlingError("Error in removing expired cookies", result);
+                return error CookieHandlingError("Error in removing expired cookies", result);
             } else {
                 lock {
                     foreach var cookie in result {
@@ -266,14 +266,14 @@ public class CookieStore {
                         if (cookieName is string && cookieDomain is string && cookiePath is string) {
                             var removeResult = persistentCookieHandler.removeCookie(cookieName, cookieDomain, cookiePath);
                             if (removeResult is error) {
-                                return CookieHandlingError("Error in removing expired cookies", removeResult);
+                                return error CookieHandlingError("Error in removing expired cookies", removeResult);
                             }
                         }
                     }
                 }
             }
         } else {
-            return CookieHandlingError("No persistent cookie store to remove expired cookies");
+            return error CookieHandlingError("No persistent cookie store to remove expired cookies");
         }
     }
 
