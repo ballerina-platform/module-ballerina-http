@@ -81,6 +81,13 @@ public class Listener {
     public isolated function detach(Service s) returns error? {
         return externDetach(self, s);
     }
+
+    # Retrieve the port from the HTTP listener.
+    #
+    # + return - The HTTP listener port
+    public isolated function getPort() returns int {
+        return self.port;
+    }
 }
 
 isolated function externInitEndpoint(Listener listenerObj) returns error? = @java:Method {
