@@ -24,7 +24,7 @@ import ballerina/java;
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
 public class Listener {
 
-    public int port = 0; // Converted to a public variable as this is needed for websocket module
+    private int port = 0;
     private ListenerConfiguration config = {};
     private string instanceId;
 
@@ -80,6 +80,13 @@ public class Listener {
     # + return - An `error` if one occurred during detaching of a service or else `()`
     public isolated function detach(Service s) returns error? {
         return externDetach(self, s);
+    }
+
+    # Retrieve the port from the HTTP listener.
+    #
+    # + return - The HTTP listener port
+    public isolated function getPort() returns int {
+        return self.port;
     }
 }
 
