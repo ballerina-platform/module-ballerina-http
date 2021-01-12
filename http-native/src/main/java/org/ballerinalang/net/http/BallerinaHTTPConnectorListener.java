@@ -109,7 +109,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             observerContext.addTag(TAG_KEY_HTTP_URL, inboundMessage.getRequestUrl());
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
         }
-        Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime());
+        Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime(),
+                                                         httpResource.getReturnMediaType());
         BObject service = httpResource.getParentService().getBalService();
         httpServicesRegistry.getRuntime()
                 .invokeMethodAsync(service, httpResource.getName(), null, ON_MESSAGE_METADATA, callback, properties,

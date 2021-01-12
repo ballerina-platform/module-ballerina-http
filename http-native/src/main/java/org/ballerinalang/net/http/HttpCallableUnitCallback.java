@@ -18,6 +18,7 @@ package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
@@ -32,13 +33,15 @@ import static org.ballerinalang.net.http.HttpConstants.NOTIFY_SUCCESS_METADATA;
 public class HttpCallableUnitCallback implements Callback {
     private final BObject caller;
     private final Runtime runtime;
+    private final String returnMediaType;
     private HttpCarbonMessage requestMessage;
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: request has already been responded";
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
+    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType) {
         this.requestMessage = requestMessage;
         this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
         this.runtime = runtime;
+        this.returnMediaType = returnMediaType;
     }
 
     @Override
@@ -52,9 +55,12 @@ public class HttpCallableUnitCallback implements Callback {
             sendFailureResponse((BError) result);
             return;
         }
-        Object[] paramFeed = new Object[2];
+
+        Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
         paramFeed[1] = true;
+        paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
+        paramFeed[3] = true;
 
         runtime.invokeMethodAsync(caller, "returnResponse", null, NOTIFY_SUCCESS_METADATA, new Callback() {
             @Override

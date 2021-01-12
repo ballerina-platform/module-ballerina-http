@@ -245,20 +245,22 @@ public client class Caller {
         return nativeGetRemoteHostName(self);
     }
 
-    private isolated function returnResponse(ResponseMessage|StatusCodeResponse message) returns ListenerError? {
+    private isolated function returnResponse(anydata|StatusCodeResponse message, string? returnMediaType) 
+            returns ListenerError? {
         Response response = new;
-        io:println("+++++++returnResponse++++++++++");
-
         if (message is StatusCodeResponse) {
-            response = createStatusCodeResponse(message);
+            response = createStatusCodeResponse(message, returnMediaType);
         } else {
-
+            setPayload(message, response);
+            if (returnMediaType is string) {
+                response.setHeader(CONTENT_TYPE, returnMediaType);
+            }
         }
         return nativeRespond(self, response);
     }
 }
 
-isolated function createStatusCodeResponse(StatusCodeResponse message) returns Response {
+isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType) returns Response {
     Response response = new;
     response.statusCode = message.status.code;
 
@@ -287,27 +289,26 @@ isolated function createStatusCodeResponse(StatusCodeResponse message) returns R
                 response.setHeader(headerKey, headerValue);
             }
         }
-    } else {
-        io:println("---------message?.headers; is nil------------");
     }
 
-    setPayload(message, response);
+    setPayload(message?.body, response);
 
-    // update content type header. If payload annotation value can be override by mediaType field in response record
+    // Update content type header according to the priority. (Highest to lowest)
+    // 1. MediaType field in response record
+    // 2. Payload annotation mediaType value
+    // 3. Default content type related to payload
     string? mediaType = message?.mediaType;
-    if (mediaType is ()) {
-        var value = getPayloadAnnotationMediaTypeValue();
-        if (value is string) {
-            response.setHeader(CONTENT_TYPE, value);
-        }
-    } else {
+    if (mediaType is string) {
         response.setHeader(CONTENT_TYPE, mediaType);
+        return response;
+    }
+    if (returnMediaType is string) {
+        response.setHeader(CONTENT_TYPE, returnMediaType);
     }
     return response;
 }
 
-isolated function setPayload(StatusCodeResponse message, Response response) {
-    anydata payload = message?.body;
+isolated function setPayload(anydata payload, Response response) {
     if (payload is ()) {
         return;
     } else if (payload is xml) {
@@ -319,10 +320,6 @@ isolated function setPayload(StatusCodeResponse message, Response response) {
     } else {
         response.setJsonPayload(val:toJson(payload));
     }
-}
-
-isolated function getPayloadAnnotationMediaTypeValue() returns string? {
-    return;
 }
 
 isolated function nativeRespond(Caller caller, Response response) returns ListenerError? = @java:Method {

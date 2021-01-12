@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.signature.ParamHandler;
@@ -57,6 +58,7 @@ public class HttpResource {
     private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
     private static final BString HTTP_RESOURCE_CONFIG =
             StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_RESOURCE_CONFIG);
+    private static final String RETURN_ANNOT_PREFIX = "$returns$";
 
     private MethodType balResource;
     private List<String> methods;
@@ -72,6 +74,7 @@ public class HttpResource {
     private boolean transactionAnnotated = false;
     private String wildcardToken;
     private int pathParamCount;
+    private String returnMediaType;
 
     protected HttpResource(MethodType resource, HttpService parentService) {
         this.balResource = resource;
@@ -80,6 +83,7 @@ public class HttpResource {
         if (balResource instanceof ResourceMethodType) {
             this.populateResourcePath();
             this.populateMethod();
+            this.populateReturnMediaType();
         }
     }
 
@@ -199,14 +203,6 @@ public class HttpResource {
         this.transactionInfectable = transactionInfectable;
     }
 
-    public String getEntityBodyAttributeValue() {
-        return entityBodyAttribute;
-    }
-
-    public void setEntityBodyAttributeValue(String entityBodyAttribute) {
-        this.entityBodyAttribute = entityBodyAttribute;
-    }
-
     public static HttpResource buildHttpResource(MethodType resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
@@ -217,7 +213,6 @@ public class HttpResource {
                     getAsStringList(resourceConfigAnnotation.getArrayValue(CONSUMES_FIELD).getStringArray()));
             httpResource.setProduces(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(PRODUCES_FIELD).getStringArray()));
-//            httpResource.setEntityBodyAttributeValue(resourceConfigAnnotation.getStringValue(BODY_FIELD).getValue());
             httpResource.setCorsHeaders(CorsHeaders.buildCorsHeaders(resourceConfigAnnotation.getMapValue(CORS_FIELD)));
             httpResource
                     .setTransactionInfectable(resourceConfigAnnotation.getBooleanValue(TRANSACTION_INFECTABLE_FIELD));
@@ -283,6 +278,36 @@ public class HttpResource {
 
     String getWildcardToken() {
         return wildcardToken;
+    }
+
+    private void populateReturnMediaType() {
+        BMap annotations = (BMap) getBalResource().getAnnotation(StringUtils.fromString(RETURN_ANNOT_PREFIX));
+        if (annotations == null) {
+            return;
+        }
+        Object[] annotationsKeys = annotations.getKeys();
+        for (Object objKey : annotationsKeys) {
+            BString key = ((BString) objKey);
+            if (!HttpConstants.PAYLOAD_ANNOTATION.equals(key.getValue())) {
+                continue;
+            }
+            Object mediaType = annotations.getMapValue(key).get(HttpConstants.ANN_FIELD_MEDIA_TYPE);
+            if (mediaType instanceof BString) {
+                this.returnMediaType = ((BString) mediaType).getValue();
+            } else if (mediaType instanceof BArray) {
+                BArray mediaTypeArr = (BArray) mediaType;
+                if (mediaTypeArr.getLength() < 0) {
+                    // When user provides an array of mediaTypes, the first element is considered for `Content-Type`
+                    // of the response assuming the priority order.
+                    this.returnMediaType = ((BArray) mediaType).get(0).toString();
+                }
+            }
+            return;
+        }
+    }
+
+    String getReturnMediaType() {
+        return returnMediaType;
     }
 
     // Followings added due to WebSub requirement

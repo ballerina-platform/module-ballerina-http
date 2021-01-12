@@ -143,6 +143,7 @@ public class HttpConstants {
     public static final String ANN_NAME_PAYLOAD = "Payload";
     public static final String ANN_NAME_CALLER_INFO = "CallerInfo";
     public static final String DIRTY_RESPONSE = "dirtyResponse";
+    public static final BString ANN_FIELD_MEDIA_TYPE = StringUtils.fromString("mediaType");
 
     public static final String VALUE_ATTRIBUTE = "value";
 
@@ -479,6 +480,7 @@ public class HttpConstants {
     public static final Module PROTOCOL_HTTP_PKG_ID =
             new Module(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION);
     public static final String HTTP_CALLER_NAME = PROTOCOL_PACKAGE_HTTP + COLON + CALLER;
+    public static final String PAYLOAD_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_PAYLOAD;
 
     public static final String ON_MESSAGE_RESOURCE = "onMessage";
     public static final StrandMetadata ON_MESSAGE_METADATA =
