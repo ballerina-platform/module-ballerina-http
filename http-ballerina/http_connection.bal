@@ -16,6 +16,7 @@
 
 import ballerina/java;
 import ballerina/io;
+import ballerina/lang.value as val;
 
 # The caller actions for responding to client requests.
 #
@@ -56,33 +57,6 @@ public client class Caller {
         }
         return nativeRespond(self, response);
     }
-
-    private isolated function returnResponse(ResponseMessage|StatusCodeResponse message) returns ListenerError? {
-        Response response = new;
-        io:println("+++++++returnResponse++++++++++");
-
-        if (message is StatusCodeResponse) {
-            response = createStatusCodeResponse(message);
-        } else if ()
-
-        return nativeRespond(self, response);
-    }
-
-    private isolated function createStatusCodeResponse(StatusCodeResponse message) returns Response {
-        Response response = new;
-        io:println("+++++++createStatusCodeResponse++++++++++");
-        if (message is Ok) {
-            io:println("+++++OKKKKKKKKKKKKKKK+++++++++");
-            response.statusCode = message.status.code;
-        } else if message is Accepted {
-            io:println("+++++Accepteddddddddd+++++++++");
-            response.statusCode = message.status.code;
-            setPayload()
-        }
-        return nativeRespond(self, response);
-    }
-
-
 
     # Pushes a promise to the caller.
     #
@@ -270,6 +244,85 @@ public client class Caller {
     public isolated function getRemoteHostName() returns string? {
         return nativeGetRemoteHostName(self);
     }
+
+    private isolated function returnResponse(ResponseMessage|StatusCodeResponse message) returns ListenerError? {
+        Response response = new;
+        io:println("+++++++returnResponse++++++++++");
+
+        if (message is StatusCodeResponse) {
+            response = createStatusCodeResponse(message);
+        } else {
+
+        }
+        return nativeRespond(self, response);
+    }
+}
+
+isolated function createStatusCodeResponse(StatusCodeResponse message) returns Response {
+    Response response = new;
+    response.statusCode = message.status.code;
+
+    var headers = message?.headers;
+    if (headers is map<string[]>) {
+        foreach var [headerKey, headerValues] in headers.entries() {
+            io:println("key: ", headerKey, ", value: ", headerValues);
+            foreach string headerValue in headerValues {
+                response.addHeader(headerKey, headerValue);
+            }
+        }
+    } else if (headers is map<string>) {
+        foreach var [headerKey, headerValue] in headers.entries() {
+            io:println("key: ", headerKey, ", value: ", headerValue);
+            response.setHeader(headerKey, headerValue);
+        }
+    } else if (headers is map<string|string[]>) {
+        foreach var [headerKey, headerValue] in headers.entries() {
+            if (headerValue is string[]) {
+                io:println("key: ", headerKey, ", value: ", headerValue);
+                foreach string value in headerValue {
+                    response.addHeader(headerKey, value);
+                }
+            } else {
+                io:println("key: ", headerKey, ", value: ", headerValue);
+                response.setHeader(headerKey, headerValue);
+            }
+        }
+    } else {
+        io:println("---------message?.headers; is nil------------");
+    }
+
+    setPayload(message, response);
+
+    // update content type header. If payload annotation value can be override by mediaType field in response record
+    string? mediaType = message?.mediaType;
+    if (mediaType is ()) {
+        var value = getPayloadAnnotationMediaTypeValue();
+        if (value is string) {
+            response.setHeader(CONTENT_TYPE, value);
+        }
+    } else {
+        response.setHeader(CONTENT_TYPE, mediaType);
+    }
+    return response;
+}
+
+isolated function setPayload(StatusCodeResponse message, Response response) {
+    anydata payload = message?.body;
+    if (payload is ()) {
+        return;
+    } else if (payload is xml) {
+        response.setXmlPayload(payload);
+    } else if (payload is string) {
+        response.setTextPayload(payload);
+    } else if (payload is byte[]) {
+        response.setBinaryPayload(payload);
+    } else {
+        response.setJsonPayload(val:toJson(payload));
+    }
+}
+
+isolated function getPayloadAnnotationMediaTypeValue() returns string? {
+    return;
 }
 
 isolated function nativeRespond(Caller caller, Response response) returns ListenerError? = @java:Method {

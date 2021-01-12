@@ -24,37 +24,33 @@ type Status distinct object {
     public int code;
 };
 
-// this is some enums
-const STATUS_CODE_OK = 200;
-const STATUS_CODE_ACCEPTED = 202;
+type CommonResponse record {|
+    string mediaType?;
+    map<string|string[]> headers?;
+    anydata body?;
+|};
 
 public readonly class StatusOK {
     *Status;
-    public STATUS_CODE_OK code = STATUS_CODE_OK;
+    public STATUS_OK code = STATUS_OK;
 }
 
 public readonly class StatusAccepted {
     *Status;
-    public STATUS_CODE_ACCEPTED code = STATUS_CODE_ACCEPTED;
+    public STATUS_ACCEPTED code = STATUS_ACCEPTED;
 }
 
-StatusOK STATUS_OK_OBJ = new;
-StatusAccepted STATUS_ACCEPTED_OBJ = new;
-
-type CommonResponse record {
-    string mediaType?;
-    map<string|string[]> headers?;
-    anydata body?;
-};
+final StatusOK STATUS_OK_OBJ = new;
+final StatusAccepted STATUS_ACCEPTED_OBJ = new;
 
 public type Accepted record {
     *CommonResponse;
-    StatusAccepted status = STATUS_ACCEPTED_OBJ;
+    readonly StatusAccepted status = STATUS_ACCEPTED_OBJ;
 };
 
 public type Ok record {
     *CommonResponse;
-    StatusOK status = STATUS_OK_OBJ;
+    readonly StatusOK status = STATUS_OK_OBJ;
 };
 
 // # The HTTP response status code: 100 Continue

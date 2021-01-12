@@ -167,7 +167,7 @@ public class HttpDispatcher {
     public static Object[] getSignatureParameters(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
                                                   BMap<BString, Object> endpointConfig) {
         BObject inRequest = null;
-        BObject httpCaller = createCaller(httpResource,httpCarbonMessage, endpointConfig);
+        BObject httpCaller = createCaller(httpResource, httpCarbonMessage, endpointConfig);
         ParamHandler paramHandler = httpResource.getParamHandler();
         int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
@@ -354,8 +354,7 @@ public class HttpDispatcher {
         arguments.putIfAbsent(wildcardToken, wildcardPathSegment);
     }
 
-    private static void populatePayloadParam(BObject inRequest,
-                                             HttpCarbonMessage httpCarbonMessage,
+    private static void populatePayloadParam(BObject inRequest, HttpCarbonMessage httpCarbonMessage,
                                              Object[] paramFeed, PayloadParam payloadParam) {
         BObject inRequestEntity = (BObject) inRequest.get(REQUEST_ENTITY_FIELD);
         HttpUtil.populateEntityBody(inRequest, inRequestEntity, true, true);
