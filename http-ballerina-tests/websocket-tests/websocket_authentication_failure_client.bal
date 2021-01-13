@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/auth;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -57,6 +57,6 @@ service unAuthenticationService = @http:WebSocketServiceConfig {} service {
 @test:Config {enable : false}
 public function testBasicAuthenticationFailure() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21041");
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(expectedError41, "InvalidHandshakeError: Invalid handshake response getStatus: 401 Unauthorized");
 }

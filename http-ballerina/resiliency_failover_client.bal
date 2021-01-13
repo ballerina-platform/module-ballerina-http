@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/lang.runtime as runtime;
 import ballerina/mime;
-import ballerina/runtime;
 
 # Provides a set of configurations for controlling the failover behaviour of the endpoint.
 #

@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -70,7 +70,7 @@ service resourceNotFoundCallbackService = @http:WebSocketServiceConfig {} servic
 public function testResourceNotFound() {
     http:WebSocketClient wsClient = new ("ws://localhost:21009/proxy/cancell",
         {callbackService: resourceNotFoundCallbackService});
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(errorMsg, "InvalidHandshakeError: Invalid handshake response getStatus: 404 Not Found");
 
 }
@@ -80,7 +80,7 @@ public function testResourceNotFound() {
 public function testCancelUpgrade() {
     http:WebSocketClient wsClient = new ("ws://localhost:21009/simple/cancel",
         {callbackService: resourceNotFoundCallbackService});
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(errorMsg, "InvalidHandshakeError: Invalid handshake response getStatus: 404 Not Found");
 }
 
@@ -89,6 +89,6 @@ public function testCancelUpgrade() {
 public function testCancelUpgradeSuccessStatusCode() {
     http:WebSocketClient wsClient = new ("ws://localhost:21009/cannotcancel/cannot/cancel",
         {callbackService: resourceNotFoundCallbackService});
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(errorMsg, "InvalidHandshakeError: Invalid handshake response getStatus: 400 Bad Request");
 }

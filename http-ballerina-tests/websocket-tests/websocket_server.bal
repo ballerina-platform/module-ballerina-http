@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/http;
 
 @http:ServiceConfig {
@@ -28,7 +28,7 @@ service wsUpgradedService on new http:Listener(21044) {
         }
     }
     resource function upgrader(http:Caller caller, http:Request req) {
-        runtime:sleep(30000);
+        runtime:sleep(30);
     }
 }
 service wsUpgradeService = @http:WebSocketServiceConfig {} service {

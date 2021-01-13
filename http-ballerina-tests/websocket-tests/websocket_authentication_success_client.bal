@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/auth;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/io;
 import ballerina/http;
@@ -63,7 +63,7 @@ service authenticationService = @http:WebSocketServiceConfig {} service {
 @test:Config {enable : false}
 public function testBasicAuthenticationSuccess() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21039");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedOutput39, "Hello World!");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

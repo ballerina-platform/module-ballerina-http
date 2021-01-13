@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -87,7 +87,7 @@ function testCallerRequestHeaderPreservation() {
     }
 
     // Wait for a while before sending the next request
-    runtime:sleep(3000);
+    runtime:sleep(3);
 
     req = new;
     req.setHeader(callerReqHeader, "Third Request");

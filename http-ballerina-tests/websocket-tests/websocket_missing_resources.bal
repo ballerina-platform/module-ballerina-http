@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/io;
 import ballerina/http;
@@ -60,10 +60,10 @@ public function testMissingOnText() {
     expectedData = "";
     byte[] binaryData = [5, 24, 56, 243];
     checkpanic wsClient->pushText("Hi");
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(expectedData, "", msg = "Data mismatched");
     checkpanic wsClient->pushBinary(binaryData);
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(expectedBinaryData, binaryData, msg = "Data mismatched");
     error? result = wsClient->close();
     if (result is http:WebSocketError) {
@@ -78,10 +78,10 @@ public function testMissingOnPong() {
     byte[] binaryData = [5, 24, 56, 243];
     expectedBinaryData = [];
     checkpanic wsClient->pong(binaryData);
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(expectedPingBinaryData, expectedBinaryData, msg = "Data mismatched");
     checkpanic wsClient->pushBinary(binaryData);
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(expectedBinaryData, binaryData, msg = "Data mismatched");
     error? result = wsClient->close();
     if (result is http:WebSocketError) {
@@ -98,10 +98,10 @@ public function testMissingOnBinary() {
     byte[] expectedBinaryData = [];
     expectedData = "";
     checkpanic wsClient->pushBinary(binaryData);
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(expectedBinaryData, expectedBinaryData, msg = "Data mismatched");
     checkpanic wsClient->pushText("Hi");
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(expectedData, "Hi", msg = "Data mismatched");
     error? result = wsClient->close();
     if (result is http:WebSocketError) {
@@ -114,9 +114,9 @@ public function testMissingOnBinary() {
 public function testMissingOnIdleTimeout() {
     http:WebSocketClient wsClient = new ("ws://localhost:21006/onlyOnText", {callbackService: callbackService});
     expectedData = "";
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     checkpanic wsClient->pushText("Hi");
-    runtime:sleep(500);
+    runtime:sleep(0.500);
     test:assertEquals(expectedData, "Hi", msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

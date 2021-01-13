@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/log;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -52,7 +52,7 @@ http:Service listenerMethodMock1 = service object {
 http:Service listenerMethodMock2 = service object {
     resource function get .(http:Caller caller, http:Request req) {
         checkpanic listenerMethodbackendEP.gracefulStop();
-        runtime:sleep(2000);
+        runtime:sleep(2);
         var responseToCaller = caller->respond("Mock2 invoked!");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", err = responseToCaller);
@@ -99,7 +99,7 @@ function testGracefulStopMethod() {
 // Disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25675
 @test:Config {dependsOn:["testGracefulStopMethod"], enable:false}
 function testInvokingStoppedService() {
-    runtime:sleep(10000);
+    runtime:sleep(10);
     var response = backendTestClient->get("/mock1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
