@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/io;
 import ballerina/http;
@@ -45,7 +45,7 @@ service ClientService200 = @http:WebSocketServiceConfig {} service {
 @test:Config {}
 public function testClientSuccessWithoutService() {
     http:WebSocketClient wsClient = new ("ws://localhost:21021/client/service");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertTrue(isClientConnectionOpen);
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -59,7 +59,7 @@ public function testClientSuccessWithWebSocketClientService() {
     isClientConnectionOpen = false;
     http:WebSocketClient wsClient = new ("ws://localhost:21021/client/service", {callbackService: ClientService200});
     checkpanic wsClient->pushText("Client worked");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertTrue(isClientConnectionOpen);
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -73,7 +73,7 @@ public function testClientFailureWithWebSocketService() {
     isClientConnectionOpen = false;
     http:WebSocketClient|error wsClientEp = trap new ("ws://localhost:21021/client/service",
         {callbackService: callback200});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     if (wsClientEp is error) {
         test:assertEquals(wsClientEp.message(),
             "GenericError: The callback service should be a WebSocket Client Service");

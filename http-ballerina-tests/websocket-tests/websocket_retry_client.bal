@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/io;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -78,13 +78,13 @@ service retryService on new http:Listener(21035) {
 @test:Config {}
 public function testRetry() {
     checkpanic retryEP.__gracefulStop();
-    runtime:sleep(1500);
+    runtime:sleep(1.5);
     http:WebSocketClient wsClientEp = new ("ws://localhost:21035/retry");
-    runtime:sleep(1500);
+    runtime:sleep(1.5);
     checkpanic retryEP.__attach(wsUpgradedRetryService);
-    runtime:sleep(1500);
+    runtime:sleep(1.5);
     checkpanic retryEP.__start();
-    runtime:sleep(5000);
+    runtime:sleep(5);
     test:assertEquals(expectedOutput34, "Hi madam");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

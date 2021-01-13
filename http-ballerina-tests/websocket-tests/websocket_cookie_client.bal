@@ -78,7 +78,7 @@ service CookieService = @http:WebSocketServiceConfig {} service {
 public function testCookieSupport() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21037");
     checkpanic wsClientEp->pushText("Hi");
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedOutput37, "Hello World!");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

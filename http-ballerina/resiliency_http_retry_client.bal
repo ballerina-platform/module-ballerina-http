@@ -361,7 +361,7 @@ function performRetryAction(@untainted string path, Request request, HttpOperati
                             calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, intervalInMillis);
             httpConnectorErr = backendResponse;
         }
-        runtime:sleep(intervalInMillis);
+        runtime:sleep(<decimal>intervalInMillis/1000);
     }
     return httpConnectorErr;
 }

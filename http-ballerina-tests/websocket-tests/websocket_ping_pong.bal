@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/io;
 import ballerina/http;
@@ -62,7 +62,7 @@ public function testPingToBallerinaServer() {
         {callbackService: pingPongCallbackService});
     byte[] pongData = [5, 24, 56, 243];
     checkpanic wsClient->ping(pongData);
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedPongData, pongData);
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -77,7 +77,7 @@ public function testPingFromRemoteServerToBallerinaClient() {
         {callbackService: pingPongCallbackService});
     byte[] pongData = [5, 24, 34];
     checkpanic wsClient->pong(pongData);
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedPongData1, pongData);
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

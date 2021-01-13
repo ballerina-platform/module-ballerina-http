@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -158,7 +158,7 @@ public function testSslProxySendText() {
             }
         });
     checkpanic wsClient->pushText("Hi");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(proxyData, "Hi", msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -181,7 +181,7 @@ public function testSslProxySendBinary() {
         });
     byte[] binaryData = [5, 24, 56];
     checkpanic wsClient->pushBinary(binaryData);
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedBinaryData, binaryData, msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

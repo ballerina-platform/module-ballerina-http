@@ -18,7 +18,7 @@
 import ballerina/log;
 import ballerina/io;
 import ballerina/mime;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -146,7 +146,7 @@ service /echo03 on backendEP03 {
     resource function 'default .(http:Caller caller, http:Request req) {
         http:Response outResponse = new;
         // Delay the response for 30000 milliseconds to mimic network level delays.
-        runtime:sleep(30000);
+        runtime:sleep(30);
         var responseToCaller = caller->respond("echo Resource is invoked");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", err = responseToCaller);
@@ -160,7 +160,7 @@ service /mock03 on backendEP03 {
     resource function 'default .(http:Caller caller, http:Request req) {
         counter03 += 1;
         if (counter03 % 5 == 0) {
-            runtime:sleep(30000);
+            runtime:sleep(30);
         }
         http:Response response = new;
         if (req.hasHeader(mime:CONTENT_TYPE)

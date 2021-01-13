@@ -84,7 +84,7 @@ service clientPushCallbackService = @http:WebSocketServiceConfig {} service {
 public function testString() {
     http:WebSocketClient wsClient = new ("ws://localhost:21003/onTextString", {callbackService: clientPushCallbackService});
     checkpanic wsClient->pushText("Hi");
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(data, "Hi", msg = "Failed pushtext");
     checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection");
 }
@@ -95,7 +95,7 @@ public function testJson() {
     http:WebSocketClient wsClient = new ("ws://localhost:21023/onTextJSON",
         {callbackService: clientPushCallbackService});
     checkpanic wsClient->pushText("{\"name\":\"Riyafa\", \"age\":23}");
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(data, expectedMsg, msg = "Failed pushtext");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -109,7 +109,7 @@ public function testXml() {
     http:WebSocketClient wsClient = new ("ws://localhost:21024/onTextXML", {callbackService: clientPushCallbackService});
     string msg = "<note><to>Tove</to></note>";
     var output = wsClient->pushText(msg);
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(data, msg, msg = "");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -123,7 +123,7 @@ public function testRecord() {
     http:WebSocketClient wsClient = new ("ws://localhost:21025/onTextRecord",
         {callbackService: clientPushCallbackService});
     var output = wsClient->pushText("{\"name\":\"Riyafa\", \"age\":23}");
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(data, expectedMsg, msg = "");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -138,7 +138,7 @@ public function testByteArray() {
         {callbackService: clientPushCallbackService});
     string msg = "Hello";
     var output = wsClient->pushText(msg);
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(data, msg, msg = "");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

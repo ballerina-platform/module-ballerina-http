@@ -130,7 +130,7 @@ service proxyCallbackService = @http:WebSocketServiceConfig {} service {
 public function testSendText() {
     http:WebSocketClient wsClient = new ("ws://localhost:21018", {callbackService: proxyCallbackService});
     checkpanic wsClient->pushText("Hi kalai");
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(proxyData, "Hi kalai", msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -144,7 +144,7 @@ public function testSendBinary() {
     http:WebSocketClient wsClient = new ("ws://localhost:21018", {callbackService: proxyCallbackService});
     byte[] binaryData = [5, 24, 56, 243];
     checkpanic wsClient->pushBinary(binaryData);
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedBinaryData, binaryData, msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

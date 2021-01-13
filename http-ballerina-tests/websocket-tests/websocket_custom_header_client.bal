@@ -61,7 +61,7 @@ public function testClientSentCustomHeader() {
                 customHeaderService,
             customHeaders: {"X-some-header": "some-header-value"}
         });
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(expextedValue, "some-header-value");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -77,7 +77,7 @@ public function testClientReceivedCustomHeader() {
                 customHeaderService,
             customHeaders: {"X-some-header": "some-header-value"}
         });
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     var resp = wsClient.getHttpResponse();
     if (resp is http:Response) {
         test:assertEquals(resp.getHeader("X-some-header"), "some-header-value");

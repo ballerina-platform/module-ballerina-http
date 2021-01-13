@@ -407,7 +407,7 @@ function performFailoverAction (string path, Request request, HttpOperation requ
             }
         }
         failoverRequest = check createFailoverRequest(failoverRequest, requestEntity);
-        runtime:sleep(failoverInterval);
+        runtime:sleep(<decimal>failoverInterval/1000);
 
         var tmpClnt = failoverClients[currentIndex];
         if (tmpClnt is Client) {

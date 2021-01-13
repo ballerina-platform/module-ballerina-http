@@ -15,8 +15,8 @@
 // under the License.
 //
 
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -45,9 +45,9 @@ service /cb on circuitBreakerEP02 {
     resource function 'default forceclose(http:Caller caller, http:Request request) {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>unhealthyClientEP.httpClient;
         forceCloseStateCount += 1;
-        runtime:sleep(1000);
+        runtime:sleep(1);
         if (forceCloseStateCount == 3) {
-            runtime:sleep(5000);
+            runtime:sleep(5);
             cbClient.forceClose();
         }
         var backendRes = unhealthyClientEP->forward("/unhealthy", request);
@@ -73,7 +73,7 @@ service /unhealthy on new http:Listener(8088) {
     resource function 'default .(http:Caller caller, http:Request req) {
         http:Response res = new;
         if (forceCloseStateCount <= 3) {
-            runtime:sleep(5000);
+            runtime:sleep(5);
         } else {
             res.setPayload("Hello World!!!");
         }

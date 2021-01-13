@@ -57,6 +57,6 @@ service unAuthenticationService = @http:WebSocketServiceConfig {} service {
 @test:Config {enable : false}
 public function testBasicAuthenticationFailure() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21041");
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedError41, "InvalidHandshakeError: Invalid handshake response getStatus: 401 Unauthorized");
 }

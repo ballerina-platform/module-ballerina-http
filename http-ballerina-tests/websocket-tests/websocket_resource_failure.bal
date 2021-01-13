@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -81,7 +81,7 @@ service resourceFailureService = @http:WebSocketServiceConfig {} service {
 public function testUpgradeResourceFailure() {
     http:WebSocketClient wsClient = new ("ws://localhost:21016/resourceFailue",
         {callbackService: resourceFailureService});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedCode, 1011);
     test:assertEquals(expectedReason, "Unexpected condition");
 }
@@ -91,7 +91,7 @@ public function testUpgradeResourceFailure() {
 public function testOnTextResource() {
     http:WebSocketClient wsClient = new ("ws://localhost:21016/resourceFailue?q1=name",
         {callbackService: resourceFailureService});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedCode, 1011);
     test:assertEquals(expectedReason, "Unexpected condition");
 }
@@ -101,7 +101,7 @@ public function testOnTextResource() {
 public function testOnBinaryResource() {
     http:WebSocketClient wsClient = new ("ws://localhost:21016/resourceFailue?q1=name",
         {callbackService: resourceFailureService});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedCode, 1011);
     test:assertEquals(expectedReason, "Unexpected condition");
 }
@@ -111,7 +111,7 @@ public function testOnBinaryResource() {
 public function testOnPingResource() {
     http:WebSocketClient wsClient = new ("ws://localhost:21016/resourceFailue?q1=name",
         {callbackService: resourceFailureService});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedCode, 1011);
     test:assertEquals(expectedReason, "Unexpected condition");
 }
@@ -121,7 +121,7 @@ public function testOnPingResource() {
 public function testOnIdleTimeoutResource() {
     http:WebSocketClient wsClient = new ("ws://localhost:21016/resourceFailue?q1=name",
         {callbackService: resourceFailureService});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedCode, 1011);
     test:assertEquals(expectedReason, "Unexpected condition");
 }
@@ -131,7 +131,7 @@ public function testOnIdleTimeoutResource() {
 public function testOnCloseResource() {
     http:WebSocketClient wsClient = new ("ws://localhost:21016/resourceFailue?q1=name",
         {callbackService: resourceFailureService});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedCode, 1011);
     test:assertEquals(expectedReason, "Unexpected condition");
 }

@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -38,6 +38,6 @@ public function testClientEndpointFailureInResource() {
     } else {
         test:assertFail("Couldn't find the expected output");
     }
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedErr, "error(\"ConnectionError: IO Error\")");
 }

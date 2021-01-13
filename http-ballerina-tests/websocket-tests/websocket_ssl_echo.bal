@@ -75,7 +75,7 @@ public function sslBinaryEcho() {
         });
     byte[] binaryData = [5, 24, 56];
     checkpanic wsClient->pushBinary(binaryData);
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedBinaryData, binaryData, msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -96,7 +96,7 @@ public function sslTextEcho() {
             }
         });
     checkpanic wsClient->pushText("Hi madam");
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedString, "Hi madam", msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

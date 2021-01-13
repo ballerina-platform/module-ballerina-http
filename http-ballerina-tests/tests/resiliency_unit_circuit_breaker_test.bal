@@ -17,7 +17,7 @@
 import ballerina/http;
 import ballerina/io;
 import ballerina/mime;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 
 const string TEST_SCENARIO_HEADER = "test-scenario";
@@ -70,7 +70,7 @@ function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
             counter = counter + 1;
             // To ensure the reset timeout period expires
             if (counter == 5) {
-                runtime:sleep(5000);
+                runtime:sleep(5);
             }
         }
     return [responses, errs];
@@ -111,7 +111,7 @@ function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
             counter = counter + 1;
             // To ensure the reset timeout period expires
             if (counter == 5) {
-                runtime:sleep(5000);
+                runtime:sleep(5);
             }
         }
     return [responses, errs];

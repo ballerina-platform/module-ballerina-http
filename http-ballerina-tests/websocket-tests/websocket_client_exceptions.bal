@@ -74,7 +74,7 @@ service errorServer on new http:Listener(21030) {
 @test:Config {}
 public function testConnectionError() {
     http:WebSocketClient wsClient = new ("ws://lmnop.ls", config);
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(errMessage, "ConnectionError: IO Error");
 }
 
@@ -82,7 +82,7 @@ public function testConnectionError() {
 @test:Config {}
 public function testSslError() {
     http:WebSocketClient|error wsClient = new ("wss://localhost:21030/websocket", config);
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(errMessage, "GenericError: SSL/TLS Error");
 }
 
@@ -93,7 +93,7 @@ public function testLongFrameError() {
         + "pingpingpingpingpingpingpingpingpingpingpingpingpingping";
     byte[] pingData = ping.toBytes();
     http:WebSocketClient wsClientEp = new ("ws://localhost:21030/websocket", {callbackService: errorResourceService});
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     var err = wsClientEp->ping(pingData);
     if (err is error) {
         test:assertEquals(err.message(), "ProtocolError: io.netty.handler.codec.TooLongFrameException: " +
@@ -128,7 +128,7 @@ public function testConnectionClosedError() {
 @test:Config {}
 public function testHandshakeError() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21030/websocket", config);
-    runtime:sleep(0.500);
+    runtime:sleep(0.5);
     test:assertEquals(errMessage, "InvalidHandshakeError: Invalid subprotocol. Actual: null. Expected one of: xml");
 }
 

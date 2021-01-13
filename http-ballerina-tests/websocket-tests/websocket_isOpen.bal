@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -45,7 +45,7 @@ service isOpen on socketListener {
 public function testIsOpenCloseCalled() {
     http:WebSocketClient wsClient = new ("ws://localhost:21001");
     checkpanic wsClient->pushText("Hi");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(output, "In onText isOpen false");
 }
 
@@ -55,6 +55,6 @@ public function testIsOpenCloseCalled() {
 public function testIsOpenCloseFrameReceived() {
     http:WebSocketClient wsClient = new ("ws://localhost:21001");
     checkpanic wsClient->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 300);
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(output, "In onClose isOpen true");
 }

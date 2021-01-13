@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/io;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -55,7 +55,7 @@ service serverError on new http:Listener(21031) {
 public function testContinuationFrameError() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21031/server/errors");
     var err = trap wsClientEp->pushText("Hi kalai");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(serverOutput, "InvalidContinuationFrameError: Cannot interrupt WebSocket" +
         " text frame continuation");
 }
