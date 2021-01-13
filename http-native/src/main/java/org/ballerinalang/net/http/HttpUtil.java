@@ -1095,19 +1095,8 @@ public class HttpUtil {
                                              HttpCarbonMessage outboundResponseMsg) {
         serverConnectionStructCheck(reqMsg);
         int statusCode = outboundResponseMsg.getHttpStatusCode();
-//        methodInvocationCheck(connectionObj, reqMsg, statusCode);
         methodInvocationCheck(reqMsg, statusCode, ILLEGAL_FUNCTION_INVOKED);
     }
-
-//    private static void methodInvocationCheck(BObject connectionObj, HttpCarbonMessage reqMsg, int statusCode) {
-//        if (connectionObj.getNativeData(METHOD_ACCESSED) != null || reqMsg == null) {
-//            throw new IllegalStateException("illegal function invocation");
-//        }
-//
-//        if (!is100ContinueRequest(reqMsg, statusCode)) {
-//            connectionObj.addNativeData(METHOD_ACCESSED, true);
-//        }
-//    }
 
     static void methodInvocationCheck(HttpCarbonMessage reqMsg, int statusCode, String errMsg) {
         if (reqMsg == null || reqMsg.getProperty(METHOD_ACCESSED) != null) {
