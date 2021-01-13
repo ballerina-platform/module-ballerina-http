@@ -63,6 +63,11 @@ org = "ballerina"
 name = "stringutils"
 version = "@stdlib.stringutils.version@"
 
+[[dependency]]
+org = "ballerina"
+name = "reflect"
+version = "@stdlib.reflect.version@"
+
 [[platform.java11.dependency]]
 path = "../http-native/build/libs/http-native-@project.version@.jar"
 groupId = "ballerina"

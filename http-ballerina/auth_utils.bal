@@ -32,6 +32,32 @@ public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig
 // Defines the client authentication handlers.
 type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
 
+# Defines the authentication configurations for the HTTP listener.
+public type ListenerAuthConfig FileUserStoreConfigWithScopes|
+                               LdapUserStoreConfigWithScopes|
+                               JwtValidatorConfigWithScopes|
+                               OAuth2IntrospectionConfigWithScopes;
+
+public type FileUserStoreConfigWithScopes record {|
+   FileUserStoreConfig fileUserStoreConfig;
+   string|string[] scopes?;
+|};
+
+public type LdapUserStoreConfigWithScopes record {|
+   LdapUserStoreConfig ldapUserStoreConfig;
+   string|string[] scopes?;
+|};
+
+public type JwtValidatorConfigWithScopes record {|
+   JwtValidatorConfig validatorConfig;
+   string|string[] scopes?;
+|};
+
+public type OAuth2IntrospectionConfigWithScopes record {|
+   OAuth2IntrospectionConfig introspectionConfig;
+   string|string[] scopes?;
+|};
+
 // Logs and prepares the `error` as an `http:ClientAuthError`.
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
     log:printError(message, err = err);

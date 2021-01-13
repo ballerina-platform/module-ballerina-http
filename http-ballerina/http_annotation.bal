@@ -24,11 +24,13 @@
 # + compression - The status of compression
 # + chunking - Configures the chunking behaviour for the service
 # + cors - The cross origin resource sharing configurations for the service
+# + auth - Listener authenticaton configurations
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
     Chunking chunking = CHUNKING_AUTO;
     CorsConfig cors = {};
+    ListenerAuthConfig[] auth?;
 |};
 
 # Configurations for CORS support.
@@ -85,12 +87,14 @@ public annotation WSServiceConfig WebSocketServiceConfig on service;
 # + cors - The cross origin resource sharing configurations for the resource. If not set, the resource will inherit the CORS behaviour of the enclosing service.
 # + transactionInfectable - Allow to participate in the distributed transactions if value is true
 # + webSocketUpgrade - Annotation to define HTTP to WebSocket upgrade
+# + auth - Listener authenticaton configurations
 public type HttpResourceConfig record {|
     string[] consumes = [];
     string[] produces = [];
     CorsConfig cors = {};
     boolean transactionInfectable = true;
     WebSocketUpgradeConfig? webSocketUpgrade = ();
+    ListenerAuthConfig[] auth?;
 |};
 
 # Resource configuration to upgrade from HTTP to WebSocket.
