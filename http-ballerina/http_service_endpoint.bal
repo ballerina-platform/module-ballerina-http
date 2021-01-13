@@ -152,8 +152,7 @@ public type ListenerConfiguration record {|
     ListenerHttp1Settings http1Settings = {};
     ListenerSecureSocket? secureSocket = ();
     string httpVersion = "1.1";
-    //TODO: update as a optional field
-    (RequestFilter | ResponseFilter)[] filters = [];
+    (RequestFilter|ResponseFilter)[] filters = [];
     int timeoutInMillis = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     boolean webSocketCompressionEnabled = true;
