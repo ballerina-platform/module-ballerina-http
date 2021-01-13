@@ -39,7 +39,7 @@ public client class Caller {
     remote isolated function respond(ResponseMessage message = ()) returns ListenerError? {
         Response response = buildResponse(message);
         FilterContext? filterContext = self.filterContext;
-        (RequestFilter | ResponseFilter)[] filters = self.config.filters;
+        (RequestFilter|ResponseFilter)[] filters = self.config.filters;
         int i = filters.length() - 1;
         if (filterContext is FilterContext) {
             while (i >= 0) {
