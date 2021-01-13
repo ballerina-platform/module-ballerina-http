@@ -29,9 +29,8 @@ public client class ListenerLdapUserStoreBasicAuthProvider {
     # Initializes the `http:ListenerLdapUserStoreBasicAuthProvider` object.
     #
     # + config - The `http:LdapUserStoreConfig` instance
-    # + instanceId - Instance ID of the endpoint
-    public isolated function init(LdapUserStoreConfig config, string instaceId) {
-        self.provider = new(config, instaceId);
+    public isolated function init(LdapUserStoreConfig config) {
+        self.provider = new(config);
     }
 
     # Authenticates with the relevant authentication requirements.
