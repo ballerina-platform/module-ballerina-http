@@ -81,6 +81,13 @@ public class Listener {
     public isolated function detach(Service s) returns error? {
         return externDetach(self, s);
     }
+
+    # Retrieve the port from the HTTP listener.
+    #
+    # + return - The HTTP listener port
+    public isolated function getPort() returns int {
+        return self.port;
+    }
 }
 
 isolated function externInitEndpoint(Listener listenerObj) returns error? = @java:Method {
@@ -145,8 +152,7 @@ public type ListenerConfiguration record {|
     ListenerHttp1Settings http1Settings = {};
     ListenerSecureSocket? secureSocket = ();
     string httpVersion = "1.1";
-    //TODO: update as a optional field
-    (RequestFilter | ResponseFilter)[] filters = [];
+    (RequestFilter|ResponseFilter)[] filters = [];
     int timeoutInMillis = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     boolean webSocketCompressionEnabled = true;

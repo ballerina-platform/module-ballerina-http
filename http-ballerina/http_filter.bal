@@ -14,43 +14,43 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The representation of a HTTP Request Filter Object type.
+# The representation of a HTTP Request Filter object type.
 # This filter will be applied before the request is dispatched to the relevant resource.
 # Any RequestFilter implementation should be structurally similar to or implement the RequestFilter object.
 public type RequestFilter object {
-    # Request filter function. If a false is returned the response should have been sent from this function as it will
+
+    # Request filter function. If a `false` is returned the response should have been sent from this function as it will
     # not be dispatched to the next filter or the resource.
     #
-    # + caller - The http caller
+    # + caller - The HTTP caller
     # + request - An inbound HTTP request message
     # + context - A filter context
-    # + return - True if the filter succeeds
+    # + return - `true` if the filter succeeds, `false` otherwise
     public function filterRequest(Caller caller, Request request, FilterContext context) returns boolean;
 };
 
-# The representation of a HTTP Response Filter Object type.
+# The representation of a HTTP Response Filter object type.
 # This filter will be applied in the response path.
 # Any ResponseFilter implementation should be structurally similar to or implement the ResponseFilter object.
 public type ResponseFilter object {
-    # Response filter function. If a false is returned a 500 Internal Server Error would be sent to the client.
+
+    # Response filter function. If a `false` is returned a 500 Internal Server Error would be sent to the client.
     #
     # + response - An outbound HTTP response message
     # + context - A filter context
-    # + return - True if the filter succeeds
+    # + return - `true` if the filter succeeds, `false` otherwise
     public isolated function filterResponse(Response response, FilterContext context) returns boolean;
 };
 
-# Representation of request filter Context.
+# Representation of request filter context.
 #
 # + serviceRef - The service
-# + serviceName - Name of the service
 # + resourceName - Name of the resource
 # + attributes - Attributes to share between filters
 public class FilterContext {
 
     private Service serviceRef;
-    private string serviceName = "";
-    private string resourceName = "";
+    private string resourceName;
     public map<any> attributes = {};
 
     # Initializes the `http:FilterContext` object.
@@ -58,9 +58,8 @@ public class FilterContext {
     # + serviceRef - The service to which the context is applied
     # + serviceName - Name of the service
     # + resourceName - Name of the resource function
-    public isolated function init(Service serviceRef, string serviceName, string resourceName) {
+    public isolated function init(Service serviceRef, string resourceName) {
         self.serviceRef = serviceRef;
-        self.serviceName = serviceName;
         self.resourceName = resourceName;
     }
 
@@ -69,13 +68,6 @@ public class FilterContext {
     # + return  - `service` of the context
     public isolated function getService() returns Service {
         return self.serviceRef;
-    }
-
-    # Gets the service name to which the `http:FilerContext` is applied.
-    #
-    # + return  - Name of the `service`
-    public isolated function getServiceName() returns string {
-        return self.serviceName;
     }
 
     # Gets the resource function name to which the `http:FilerContext` is applied.
