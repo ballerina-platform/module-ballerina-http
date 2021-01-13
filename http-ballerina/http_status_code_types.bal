@@ -14,8 +14,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The types of messages that are accepted by HTTP `client` when sending out the outbound request.
-public type StatusCodeResponse Ok|Accepted;
+# Defines the possible Status code response record types.
+public type StatusCodeResponse Continue|SwitchingProtocols|Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|
+    ResetContent|PartialContent|MultipleChoices|MovedPermanently|Found|SeeOther|NotModified|UseProxy|TemporaryRedirect|
+    PermanentRedirect|BadRequest|Unauthorized|PaymentRequired|Forbidden|NotFound|MethodNotAllowed|NotAcceptable|
+    ProxyAuthenticationRequired|RequestTimeout|Conflict|Gone|LengthRequired|PreconditionFailed|PayloadTooLarge|
+    UriTooLong|UnsupportedMediaType|RangeNotSatisfiable|ExpectationFailed|UpgradeRequired|RequestHeaderFieldsTooLarge|
+    InternalServerError|NotImplemented|BadGateway|ServiceUnavailable|GatewayTimeout|HttpVersionNotSupported;
 
 # The `Status` object creates the distinction for the different response status code types.
 #
@@ -24,15 +29,36 @@ type Status distinct object {
     public int code;
 };
 
+# The common attributed of response status code record type.
+#
+# + mediaType - The value of response `Content-type` header
+# + headers - The response headers
+# + body - The response payload
 type CommonResponse record {|
     string mediaType?;
     map<string|string[]> headers?;
     anydata body?;
 |};
 
+// Status code class declarations
+public readonly class StatusContinue {
+    *Status;
+    public STATUS_CONTINUE code = STATUS_CONTINUE;
+}
+
+public readonly class StatusSwitchingProtocols {
+    *Status;
+    public STATUS_SWITCHING_PROTOCOLS code = STATUS_SWITCHING_PROTOCOLS;
+}
+
 public readonly class StatusOK {
     *Status;
     public STATUS_OK code = STATUS_OK;
+}
+
+public readonly class StatusCreated {
+    *Status;
+    public STATUS_CREATED code = STATUS_CREATED;
 }
 
 public readonly class StatusAccepted {
@@ -40,12 +66,250 @@ public readonly class StatusAccepted {
     public STATUS_ACCEPTED code = STATUS_ACCEPTED;
 }
 
-final StatusOK STATUS_OK_OBJ = new;
-final StatusAccepted STATUS_ACCEPTED_OBJ = new;
+public readonly class StatusNonAuthoritativeInformation {
+    *Status;
+    public STATUS_NON_AUTHORITATIVE_INFORMATION code = STATUS_NON_AUTHORITATIVE_INFORMATION;
+}
 
-public type Accepted record {
+public readonly class StatusNoContent {
+    *Status;
+    public STATUS_NO_CONTENT code = STATUS_NO_CONTENT;
+}
+
+public readonly class StatusResetContent {
+    *Status;
+    public STATUS_RESET_CONTENT code = STATUS_RESET_CONTENT;
+}
+
+public readonly class StatusPartialContent {
+    *Status;
+    public STATUS_PARTIAL_CONTENT code = STATUS_PARTIAL_CONTENT;
+}
+
+public readonly class StatusMultipleChoices {
+    *Status;
+    public STATUS_MULTIPLE_CHOICES code = STATUS_MULTIPLE_CHOICES;
+}
+
+public readonly class StatusMovedPermanently {
+    *Status;
+    public STATUS_MOVED_PERMANENTLY code = STATUS_MOVED_PERMANENTLY;
+}
+
+public readonly class StatusFound {
+    *Status;
+    public STATUS_FOUND code = STATUS_FOUND;
+}
+
+public readonly class StatusSeeOther {
+    *Status;
+    public STATUS_SEE_OTHER code = STATUS_SEE_OTHER;
+}
+
+public readonly class StatusNotModified {
+    *Status;
+    public STATUS_NOT_MODIFIED code = STATUS_NOT_MODIFIED;
+}
+
+public readonly class StatusUseProxy {
+    *Status;
+    public STATUS_USE_PROXY code = STATUS_USE_PROXY;
+}
+
+public readonly class StatusTemporaryRedirect {
+    *Status;
+    public STATUS_TEMPORARY_REDIRECT code = STATUS_TEMPORARY_REDIRECT;
+}
+
+public readonly class StatusPermanentRedirect {
+    *Status;
+    public STATUS_PERMANENT_REDIRECT code = STATUS_PERMANENT_REDIRECT;
+}
+
+public readonly class StatusBadRequest {
+    *Status;
+    public STATUS_BAD_REQUEST code = STATUS_BAD_REQUEST;
+}
+
+public readonly class StatusUnauthorized {
+    *Status;
+    public STATUS_UNAUTHORIZED code = STATUS_UNAUTHORIZED;
+}
+
+public readonly class StatusPaymentRequired {
+    *Status;
+    public STATUS_PAYMENT_REQUIRED code = STATUS_PAYMENT_REQUIRED;
+}
+
+public readonly class StatusForbidden {
+    *Status;
+    public STATUS_FORBIDDEN code = STATUS_FORBIDDEN;
+}
+
+public readonly class StatusNotFound {
+    *Status;
+    public STATUS_NOT_FOUND code = STATUS_NOT_FOUND;
+}
+
+public readonly class StatusMethodNotAllowed {
+    *Status;
+    public STATUS_METHOD_NOT_ALLOWED code = STATUS_METHOD_NOT_ALLOWED;
+}
+
+public readonly class StatusNotAcceptable {
+    *Status;
+    public STATUS_NOT_ACCEPTABLE code = STATUS_NOT_ACCEPTABLE;
+}
+
+public readonly class StatusProxyAuthenticationRequired {
+    *Status;
+    public STATUS_PROXY_AUTHENTICATION_REQUIRED code = STATUS_PROXY_AUTHENTICATION_REQUIRED;
+}
+
+public readonly class StatusRequestTimeout {
+    *Status;
+    public STATUS_REQUEST_TIMEOUT code = STATUS_REQUEST_TIMEOUT;
+}
+
+public readonly class StatusConflict {
+    *Status;
+    public STATUS_CONFLICT code = STATUS_CONFLICT;
+}
+
+public readonly class StatusGone {
+    *Status;
+    public STATUS_GONE code = STATUS_GONE;
+}
+
+public readonly class StatusLengthRequired {
+    *Status;
+    public STATUS_LENGTH_REQUIRED code = STATUS_LENGTH_REQUIRED;
+}
+
+public readonly class StatusPreconditionFailed {
+    *Status;
+    public STATUS_PRECONDITION_FAILED code = STATUS_PRECONDITION_FAILED;
+}
+
+public readonly class StatusPayloadTooLarge {
+    *Status;
+    public STATUS_PAYLOAD_TOO_LARGE code = STATUS_PAYLOAD_TOO_LARGE;
+}
+
+public readonly class StatusUriTooLong {
+    *Status;
+    public STATUS_URI_TOO_LONG code = STATUS_URI_TOO_LONG;
+}
+
+public readonly class StatusUnsupportedMediaType {
+    *Status;
+    public STATUS_UNSUPPORTED_MEDIA_TYPE code = STATUS_UNSUPPORTED_MEDIA_TYPE;
+}
+
+public readonly class StatusRangeNotSatisfiable {
+    *Status;
+    public STATUS_RANGE_NOT_SATISFIABLE code = STATUS_RANGE_NOT_SATISFIABLE;
+}
+
+public readonly class StatusExpectationFailed {
+    *Status;
+    public STATUS_EXPECTATION_FAILED code = STATUS_EXPECTATION_FAILED;
+}
+
+public readonly class StatusUpgradeRequired {
+    *Status;
+    public STATUS_UPGRADE_REQUIRED code = STATUS_UPGRADE_REQUIRED;
+}
+
+public readonly class StatusRequestHeaderFieldsTooLarge {
+    *Status;
+    public STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE code = STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE;
+}
+
+public readonly class StatusInternalServerError {
+    *Status;
+    public STATUS_INTERNAL_SERVER_ERROR code = STATUS_INTERNAL_SERVER_ERROR;
+}
+
+public readonly class StatusNotImplemented {
+    *Status;
+    public STATUS_NOT_IMPLEMENTED code = STATUS_NOT_IMPLEMENTED;
+}
+
+public readonly class StatusBadGateway {
+    *Status;
+    public STATUS_BAD_GATEWAY code = STATUS_BAD_GATEWAY;
+}
+
+public readonly class StatusServiceUnavailable {
+    *Status;
+    public STATUS_SERVICE_UNAVAILABLE code = STATUS_SERVICE_UNAVAILABLE;
+}
+
+public readonly class StatusGatewayTimeout {
+    *Status;
+    public STATUS_GATEWAY_TIMEOUT code = STATUS_GATEWAY_TIMEOUT;
+}
+
+public readonly class StatusHttpVersionNotSupported {
+    *Status;
+    public STATUS_HTTP_VERSION_NOT_SUPPORTED code = STATUS_HTTP_VERSION_NOT_SUPPORTED;
+}
+
+// Status code object initialization
+final StatusContinue STATUS_CONTINUE_OBJ = new;
+final StatusSwitchingProtocols STATUS_SWITCHING_PROTOCOLS_OBJ = new;
+final StatusOK STATUS_OK_OBJ = new;
+final StatusCreated STATUS_CREATED_OBJ = new;
+final StatusAccepted STATUS_ACCEPTED_OBJ = new;
+final StatusNonAuthoritativeInformation STATUS_NON_AUTHORITATIVE_INFORMATION_OBJ = new;
+final StatusNoContent STATUS_NO_CONTENT_OBJ = new;
+final StatusResetContent STATUS_RESET_CONTENT_OBJ = new;
+final StatusPartialContent STATUS_PARTIAL_CONTENT_OBJ = new;
+final StatusMultipleChoices STATUS_MULTIPLE_CHOICES_OBJ = new;
+final StatusMovedPermanently STATUS_MOVED_PERMANENTLY_OBJ = new;
+final StatusFound STATUS_FOUND_OBJ = new;
+final StatusSeeOther STATUS_SEE_OTHER_OBJ = new;
+final StatusNotModified STATUS_NOT_MODIFIED_OBJ = new;
+final StatusUseProxy STATUS_USE_PROXY_OBJ = new;
+final StatusTemporaryRedirect STATUS_TEMPORARY_REDIRECT_OBJ = new;
+final StatusPermanentRedirect STATUS_PERMANENT_REDIRECT_OBJ = new;
+final StatusBadRequest STATUS_BAD_REQUEST_OBJ = new;
+final StatusUnauthorized STATUS_UNAUTHORIZED_OBJ = new;
+final StatusPaymentRequired STATUS_PAYMENT_REQUIRED_OBJ = new;
+final StatusForbidden STATUS_FORBIDDEN_OBJ = new;
+final StatusNotFound STATUS_NOT_FOUND_OBJ = new;
+final StatusMethodNotAllowed STATUS_METHOD_NOT_ALLOWED_OBJ = new;
+final StatusNotAcceptable STATUS_NOT_ACCEPTABLE_OBJ = new;
+final StatusProxyAuthenticationRequired STATUS_PROXY_AUTHENTICATION_REQUIRED_OBJ = new;
+final StatusRequestTimeout STATUS_REQUEST_TIMEOUT_OBJ = new;
+final StatusConflict STATUS_CONFLICT_OBJ = new;
+final StatusGone STATUS_GONE_OBJ = new;
+final StatusLengthRequired STATUS_LENGTH_REQUIRED_OBJ = new;
+final StatusPreconditionFailed STATUS_PRECONDITION_FAILED_OBJ = new;
+final StatusPayloadTooLarge STATUS_PAYLOAD_TOO_LARGE_OBJ = new;
+final StatusUriTooLong STATUS_URI_TOO_LONG_OBJ = new;
+final StatusUnsupportedMediaType STATUS_UNSUPPORTED_MEDIA_TYPE_OBJ = new;
+final StatusRangeNotSatisfiable STATUS_RANGE_NOT_SATISFIABLE_OBJ = new;
+final StatusExpectationFailed STATUS_EXPECTATION_FAILED_OBJ = new;
+final StatusUpgradeRequired STATUS_UPGRADE_REQUIRED_OBJ = new;
+final StatusRequestHeaderFieldsTooLarge STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE_OBJ = new;
+final StatusInternalServerError STATUS_INTERNAL_SERVER_ERROR_OBJ = new;
+final StatusNotImplemented STATUS_NOT_IMPLEMENTED_OBJ = new;
+final StatusBadGateway STATUS_BAD_GATEWAY_OBJ = new;
+final StatusServiceUnavailable STATUS_SERVICE_UNAVAILABLE_OBJ = new;
+final StatusGatewayTimeout STATUS_GATEWAY_TIMEOUT_OBJ = new;
+final StatusHttpVersionNotSupported STATUS_HTTP_VERSION_NOT_SUPPORTED_OBJ = new;
+
+// Status code record types
+public type Continue record {
     *CommonResponse;
-    readonly StatusAccepted status = STATUS_ACCEPTED_OBJ;
+    readonly StatusContinue status = STATUS_CONTINUE_OBJ;
+};
+
+public type SwitchingProtocols record {
+    *CommonResponse;
+    readonly StatusSwitchingProtocols status = STATUS_SWITCHING_PROTOCOLS_OBJ;
 };
 
 public type Ok record {
@@ -53,91 +317,202 @@ public type Ok record {
     readonly StatusOK status = STATUS_OK_OBJ;
 };
 
-// # The HTTP response status code: 100 Continue
-// public const int STATUS_CONTINUE = 100;
-// # The HTTP response status code: 101 Switching Protocols
-// public const int STATUS_SWITCHING_PROTOCOLS = 101;
+public type Created record {
+    *CommonResponse;
+    readonly StatusCreated status = STATUS_CREATED_OBJ;
+};
 
-// # The HTTP response status code: 200 OK
-// public const int STATUS_OK = 200;
-// # The HTTP response status code: 201 Created
-// public const int STATUS_CREATED = 201;
-// # The HTTP response status code: 202 Accepted
-// public const int STATUS_ACCEPTED = 202;
-// # The HTTP response status code: 203 Non Authoritative Information
-// public const int STATUS_NON_AUTHORITATIVE_INFORMATION = 203;
-// # The HTTP response status code: 204 No Content
-// public const int STATUS_NO_CONTENT = 204;
-// # The HTTP response status code: 205 Reset Content
-// public const int STATUS_RESET_CONTENT = 205;
-// # The HTTP response status code: 206 Partial Content
-// public const int STATUS_PARTIAL_CONTENT = 206;
+public type Accepted record {
+    *CommonResponse;
+    readonly StatusAccepted status = STATUS_ACCEPTED_OBJ;
+};
 
-// # The HTTP response status code: 300 Multiple Choices
-// public const int STATUS_MULTIPLE_CHOICES = 300;
-// # The HTTP response status code: 301 Moved Permanently
-// public const int STATUS_MOVED_PERMANENTLY = 301;
-// # The HTTP response status code: 302 Found
-// public const int STATUS_FOUND = 302;
-// # The HTTP response status code: 303 See Other
-// public const int STATUS_SEE_OTHER = 303;
-// # The HTTP response status code: 304 Not Modified
-// public const int STATUS_NOT_MODIFIED = 304;
-// # The HTTP response status code: 305 Use Proxy
-// public const int STATUS_USE_PROXY = 305;
-// # The HTTP response status code: 307 Temporary Redirect
-// public const int STATUS_TEMPORARY_REDIRECT = 307;
-// # The HTTP response status code: 308 Permanent Redirect
-// public const int STATUS_PERMANENT_REDIRECT = 308;
+public type NonAuthoritativeInformation record {
+    *CommonResponse;
+    readonly StatusNonAuthoritativeInformation status = STATUS_NON_AUTHORITATIVE_INFORMATION_OBJ;
+};
 
-// # The HTTP response status code: 400 Bad Request
-// public const int STATUS_BAD_REQUEST = 400;
-// # The HTTP response status code: 401 Unauthorized
-// public const int STATUS_UNAUTHORIZED = 401;
-// # The HTTP response status code: 402 Payment Required
-// public const int STATUS_PAYMENT_REQUIRED = 402;
-// # The HTTP response status code: 403 Forbidden
-// public const int STATUS_FORBIDDEN = 403;
-// # The HTTP response status code: 404 Not Found
-// public const int STATUS_NOT_FOUND = 404;
-// # The HTTP response status code: 405 Method Not Allowed
-// public const int STATUS_METHOD_NOT_ALLOWED = 405;
-// # The HTTP response status code: 406 Not Acceptable
-// public const int STATUS_NOT_ACCEPTABLE = 406;
-// # The HTTP response status code: 407 Proxy Authentication Required
-// public const int STATUS_PROXY_AUTHENTICATION_REQUIRED = 407;
-// # The HTTP response status code: 408 Request Timeout
-// public const int STATUS_REQUEST_TIMEOUT = 408;
-// # The HTTP response status code: 409 Conflict
-// public const int STATUS_CONFLICT = 409;
-// # The HTTP response status code: 410 Gone
-// public const int STATUS_GONE = 410;
-// # The HTTP response status code: 411 Length Required
-// public const int STATUS_LENGTH_REQUIRED = 411;
-// # The HTTP response status code: 412 Precondition Failed
-// public const int STATUS_PRECONDITION_FAILED = 412;
-// # The HTTP response status code: 413 Payload Too Large
-// public const int STATUS_PAYLOAD_TOO_LARGE = 413;
-// # The HTTP response status code: 414 URI Too Long
-// public const int STATUS_URI_TOO_LONG = 414;
-// # The HTTP response status code: 415 Unsupported Media Type
-// public const int STATUS_UNSUPPORTED_MEDIA_TYPE = 415;
-// # The HTTP response status code: 416 Range Not Satisfiable
-// public const int STATUS_RANGE_NOT_SATISFIABLE = 416;
-// # The HTTP response status code: 417 Expectation Failed
-// public const int STATUS_EXPECTATION_FAILED = 417;
-// # The HTTP response status code: 426 Upgrade Required
-// public const int STATUS_UPGRADE_REQUIRED = 426;
+public type NoContent record {
+    *CommonResponse;
+    readonly StatusNoContent status = STATUS_NO_CONTENT_OBJ;
+};
 
-// # The HTTP response status code: 500 Internal Server Error
-// public const int STATUS_INTERNAL_SERVER_ERROR = 500;
-// # The HTTP response status code: 501 Not Implemented
-// public const int STATUS_NOT_IMPLEMENTED = 501;
-// # The HTTP response status code: 502 Bad Gateway
-// public const int STATUS_BAD_GATEWAY = 502;
-// # The HTTP response status code: 503 Service Unavailable
-// public const int STATUS_SERVICE_UNAVAILABLE = 503;
-// # The HTTP response status code: 504 Gateway Timeout
-// public const int STATUS_GATEWAY_TIMEOUT = 504;
-// # The HTTP response status code: 505 HTTP Version Not Supported
-// public const int STATUS_HTTP_VERSION_NOT_SUPPORTED = 505;
+public type ResetContent record {
+    *CommonResponse;
+    readonly StatusResetContent status = STATUS_RESET_CONTENT_OBJ;
+};
+
+public type PartialContent record {
+    *CommonResponse;
+    readonly StatusPartialContent status = STATUS_PARTIAL_CONTENT_OBJ;
+};
+
+public type MultipleChoices record {
+    *CommonResponse;
+    readonly StatusMultipleChoices status = STATUS_MULTIPLE_CHOICES_OBJ;
+};
+
+public type MovedPermanently record {
+    *CommonResponse;
+    readonly StatusMovedPermanently status = STATUS_MOVED_PERMANENTLY_OBJ;
+};
+
+public type Found record {
+    *CommonResponse;
+    readonly StatusFound status = STATUS_FOUND_OBJ;
+};
+
+public type SeeOther record {
+    *CommonResponse;
+    readonly StatusSeeOther status = STATUS_SEE_OTHER_OBJ;
+};
+
+public type NotModified record {
+    *CommonResponse;
+    readonly StatusNotModified status = STATUS_NOT_MODIFIED_OBJ;
+};
+
+public type UseProxy record {
+    *CommonResponse;
+    readonly StatusUseProxy status = STATUS_USE_PROXY_OBJ;
+};
+
+public type TemporaryRedirect record {
+    *CommonResponse;
+    readonly StatusTemporaryRedirect status = STATUS_TEMPORARY_REDIRECT_OBJ;
+};
+
+public type PermanentRedirect record {
+    *CommonResponse;
+    readonly StatusPermanentRedirect status = STATUS_PERMANENT_REDIRECT_OBJ;
+};
+
+public type BadRequest record {
+    *CommonResponse;
+    readonly StatusBadRequest status = STATUS_BAD_REQUEST_OBJ;
+};
+
+public type Unauthorized record {
+    *CommonResponse;
+    readonly StatusUnauthorized status = STATUS_UNAUTHORIZED_OBJ;
+};
+
+public type PaymentRequired record {
+    *CommonResponse;
+    readonly StatusPaymentRequired status = STATUS_PAYMENT_REQUIRED_OBJ;
+};
+
+public type Forbidden record {
+    *CommonResponse;
+    readonly StatusForbidden status = STATUS_FORBIDDEN_OBJ;
+};
+
+public type NotFound record {
+    *CommonResponse;
+    readonly StatusNotFound status = STATUS_NOT_FOUND_OBJ;
+};
+
+public type MethodNotAllowed record {
+    *CommonResponse;
+    readonly StatusMethodNotAllowed status = STATUS_METHOD_NOT_ALLOWED_OBJ;
+};
+
+public type NotAcceptable record {
+    *CommonResponse;
+    readonly StatusNotAcceptable status = STATUS_NOT_ACCEPTABLE_OBJ;
+};
+
+public type ProxyAuthenticationRequired record {
+    *CommonResponse;
+    readonly StatusProxyAuthenticationRequired status = STATUS_PROXY_AUTHENTICATION_REQUIRED_OBJ;
+};
+
+public type RequestTimeout record {
+    *CommonResponse;
+    readonly StatusRequestTimeout status = STATUS_REQUEST_TIMEOUT_OBJ;
+};
+
+public type Conflict record {
+    *CommonResponse;
+    readonly StatusConflict status = STATUS_CONFLICT_OBJ;
+};
+
+public type Gone record {
+    *CommonResponse;
+    readonly StatusGone status = STATUS_GONE_OBJ;
+};
+
+public type LengthRequired record {
+    *CommonResponse;
+    readonly StatusLengthRequired status = STATUS_LENGTH_REQUIRED_OBJ;
+};
+
+public type PreconditionFailed record {
+    *CommonResponse;
+    readonly StatusPreconditionFailed status = STATUS_PRECONDITION_FAILED_OBJ;
+};
+
+public type PayloadTooLarge record {
+    *CommonResponse;
+    readonly StatusPayloadTooLarge status = STATUS_PAYLOAD_TOO_LARGE_OBJ;
+};
+
+public type UriTooLong record {
+    *CommonResponse;
+    readonly StatusUriTooLong status = STATUS_URI_TOO_LONG_OBJ;
+};
+
+public type UnsupportedMediaType record {
+    *CommonResponse;
+    readonly StatusUnsupportedMediaType status = STATUS_UNSUPPORTED_MEDIA_TYPE_OBJ;
+};
+
+public type RangeNotSatisfiable record {
+    *CommonResponse;
+    readonly StatusRangeNotSatisfiable status = STATUS_RANGE_NOT_SATISFIABLE_OBJ;
+};
+
+public type ExpectationFailed record {
+    *CommonResponse;
+    readonly StatusExpectationFailed status = STATUS_EXPECTATION_FAILED_OBJ;
+};
+
+public type UpgradeRequired record {
+    *CommonResponse;
+    readonly StatusUpgradeRequired status = STATUS_UPGRADE_REQUIRED_OBJ;
+};
+
+public type RequestHeaderFieldsTooLarge record {
+    *CommonResponse;
+    readonly StatusRequestHeaderFieldsTooLarge status = STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE_OBJ;
+};
+
+public type InternalServerError record {
+    *CommonResponse;
+    readonly StatusInternalServerError status = STATUS_INTERNAL_SERVER_ERROR_OBJ;
+};
+
+public type NotImplemented record {
+    *CommonResponse;
+    readonly StatusNotImplemented status = STATUS_NOT_IMPLEMENTED_OBJ;
+};
+
+public type BadGateway record {
+    *CommonResponse;
+    readonly StatusBadGateway status = STATUS_BAD_GATEWAY_OBJ;
+};
+
+public type ServiceUnavailable record {
+    *CommonResponse;
+    readonly StatusServiceUnavailable status = STATUS_SERVICE_UNAVAILABLE_OBJ;
+};
+
+public type GatewayTimeout record {
+    *CommonResponse;
+    readonly StatusGatewayTimeout status = STATUS_GATEWAY_TIMEOUT_OBJ;
+};
+
+public type HttpVersionNotSupported record {
+    *CommonResponse;
+    readonly StatusHttpVersionNotSupported status = STATUS_HTTP_VERSION_NOT_SUPPORTED_OBJ;
+};

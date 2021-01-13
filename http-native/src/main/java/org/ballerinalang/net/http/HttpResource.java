@@ -296,7 +296,7 @@ public class HttpResource {
                 this.returnMediaType = ((BString) mediaType).getValue();
             } else if (mediaType instanceof BArray) {
                 BArray mediaTypeArr = (BArray) mediaType;
-                if (mediaTypeArr.getLength() < 0) {
+                if (mediaTypeArr.getLength() != 0) {
                     // When user provides an array of mediaTypes, the first element is considered for `Content-Type`
                     // of the response assuming the priority order.
                     this.returnMediaType = ((BArray) mediaType).get(0).toString();

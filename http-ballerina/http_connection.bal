@@ -245,15 +245,36 @@ public client class Caller {
         return nativeGetRemoteHostName(self);
     }
 
-    private isolated function returnResponse(anydata|StatusCodeResponse message, string? returnMediaType) 
+    private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType) 
             returns ListenerError? {
         Response response = new;
         if (message is StatusCodeResponse) {
             response = createStatusCodeResponse(message, returnMediaType);
+        } else if (message is Response) {
+            response = message;
+            // Update content-type header only if the response does not already have a similiar header
+            if (returnMediaType is string && !response.hasHeader(CONTENT_TYPE)) {
+                response.setHeader(CONTENT_TYPE, returnMediaType);
+            }
         } else {
             setPayload(message, response);
             if (returnMediaType is string) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
+            }
+        }
+        // Engage response filters
+        FilterContext? filterContext = self.filterContext;
+        (RequestFilter | ResponseFilter)[] filters = self.config.filters;
+        int i = filters.length() - 1;
+        if (filterContext is FilterContext) {
+            while (i >= 0) {
+                var filter = filters[i];
+                if (filter is ResponseFilter && !filter.filterResponse(response, filterContext)) {
+                    Response res = new;
+                    res.statusCode = 500;
+                    return nativeRespond(self, res);
+                }
+                i -= 1;
             }
         }
         return nativeRespond(self, response);
@@ -293,7 +314,7 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
 
     setPayload(message?.body, response);
 
-    // Update content type header according to the priority. (Highest to lowest)
+    // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
     // 2. Payload annotation mediaType value
     // 3. Default content type related to payload

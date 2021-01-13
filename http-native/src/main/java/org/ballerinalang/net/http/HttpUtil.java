@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -499,7 +500,6 @@ public class HttpUtil {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         response.waitAndReleaseAllEntities();
         if (payload != null) {
-            payload = lowerCaseTheFirstLetter(payload);
             response.addHttpContent(
                     new DefaultLastHttpContent(Unpooled.wrappedBuffer(payload.getBytes(CharsetUtil.UTF_8))));
         } else {
@@ -508,15 +508,6 @@ public class HttpUtil {
         setHttpStatusCodes(statusCode, response);
 
         return response;
-    }
-
-    private static String lowerCaseTheFirstLetter(String payload) {
-        if (!payload.isEmpty()) {
-            char[] characters = payload.toCharArray();
-            characters[0] = Character.toLowerCase(characters[0]);
-            payload = new String(characters);
-        }
-        return payload;
     }
 
     private static void setHttpStatusCodes(int statusCode, HttpCarbonMessage response) {
@@ -1513,7 +1504,7 @@ public class HttpUtil {
             ((BXmlItem) value).serialize(outputStream);
         } else if (value instanceof BXmlSequence) {
             ((BXmlSequence) value).serialize(outputStream);
-        } else if (value instanceof Long || value instanceof String ||
+        } else if (value instanceof Long || value instanceof String || value instanceof BDecimal ||
                 value instanceof Double || value instanceof Integer || value instanceof Boolean) {
             outputStream.write(value.toString().getBytes(Charset.defaultCharset()));
         } else if (value instanceof BString) {

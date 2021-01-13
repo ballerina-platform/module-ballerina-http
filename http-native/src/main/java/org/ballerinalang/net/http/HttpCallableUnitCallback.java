@@ -65,13 +65,11 @@ public class HttpCallableUnitCallback implements Callback {
         runtime.invokeMethodAsync(caller, "returnResponse", null, NOTIFY_SUCCESS_METADATA, new Callback() {
             @Override
             public void notifySuccess(Object result) {
-                System.out.println("Successssssssssssssssss");
                 requestMessage.waitAndReleaseAllEntities();
             }
 
             @Override
             public void notifyFailure(BError result) {
-                System.out.println("panicccccccccccccccccccc");
                 sendFailureResponse(result);
             }
         }, paramFeed);
