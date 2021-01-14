@@ -81,7 +81,7 @@ isolated function testClientSelfSignedJwtAuthHandler() {
 @test:Config {}
 isolated function testClientOAuth2Handler() {
     http:OAuth2ClientCredentialsGrantConfig config1 = {
-        tokenUrl: "https://localhost:" + oauth2AuthorizationServer + "/oauth2/token",
+        tokenUrl: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token",
         clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
         clientSecret: "9205371918321623741",
         scopes: ["token-scope1", "token-scope2"],
@@ -96,7 +96,7 @@ isolated function testClientOAuth2Handler() {
     };
 
     http:OAuth2PasswordGrantConfig config2 = {
-        tokenUrl: "https://localhost:" + oauth2AuthorizationServer + "/oauth2/token",
+        tokenUrl: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token",
         username: "johndoe",
         password: "A3ddj3w",
         clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
@@ -115,7 +115,7 @@ isolated function testClientOAuth2Handler() {
     http:OAuth2DirectTokenConfig config3 = {
         accessToken: "2YotnFZFEjr1zCsicMWpAA",
         refreshConfig: {
-            refreshUrl: "https://localhost:" + oauth2AuthorizationServer + "/oauth2/token/refresh",
+            refreshUrl: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/refresh",
             refreshToken: "XlfBs91yquexJqDaKEMzVg==",
             clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
             clientSecret: "9205371918321623741",

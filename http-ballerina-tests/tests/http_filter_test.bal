@@ -55,7 +55,7 @@ service /hello on listenerEP {
 
 @test:Config {}
 function testFilterInvocation() {
-    http:Client clientEP = new("http://localhost:" + filterTestPort);
+    http:Client clientEP = new("http://localhost:" + filterTestPort.toString());
     var res = clientEP->get("/hello/sayHello");
     if (res is http:Response) {
         string header = res.getHeader("Baz");
