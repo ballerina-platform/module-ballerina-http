@@ -124,7 +124,7 @@ function testResourceAuthnFailure() {
         {
             scopes: ["write", "update"],
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/success",
+                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/failure",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -189,7 +189,7 @@ function testServiceResourceAuthnFailure() {
         {
             scopes: ["write", "update"],
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/success",
+                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/failure",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -250,7 +250,7 @@ service /bar on authListener {
             {
                 scopes: ["write", "update"],
                 oauth2IntrospectionConfig: {
-                    url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/success",
+                    url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/failure",
                     tokenTypeHint: "access_token",
                     scopeKey: "scp",
                     clientConfig: {
