@@ -36,6 +36,7 @@ public class Listener {
         self.instanceId = uuid();
         self.config = config ?: {};
         self.port = port;
+        addAuthFilter(self.config.filters);
         error? err = externInitEndpoint(self);
         if (err is error) {
             panic err;
@@ -234,3 +235,9 @@ public const SERVICE_NAME = "SERVICE_NAME";
 public const RESOURCE_NAME = "RESOURCE_NAME";
 # Constant for the request method reference.
 public const REQUEST_METHOD = "REQUEST_METHOD";
+
+// Add auth filter as the first filter of the filter chain.
+isolated function addAuthFilter((RequestFilter|ResponseFilter)[] filters) {
+    AuthFilter authFilter = new;
+    filters.unshift(authFilter);
+}
