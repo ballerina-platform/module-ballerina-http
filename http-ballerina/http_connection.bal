@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/java;
-import ballerina/io;
 import ballerina/lang.value as val;
 
 # The caller actions for responding to client requests.
@@ -252,7 +251,8 @@ public client class Caller {
             response = createStatusCodeResponse(message, returnMediaType);
         } else if (message is Response) {
             response = message;
-            // Update content-type header only if the response does not already have a similiar header
+            // Update content-type header with mediaType annotation value only if the response does not already 
+            // have a similar header
             if (returnMediaType is string && !response.hasHeader(CONTENT_TYPE)) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
@@ -288,25 +288,21 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     var headers = message?.headers;
     if (headers is map<string[]>) {
         foreach var [headerKey, headerValues] in headers.entries() {
-            io:println("key: ", headerKey, ", value: ", headerValues);
             foreach string headerValue in headerValues {
                 response.addHeader(headerKey, headerValue);
             }
         }
     } else if (headers is map<string>) {
         foreach var [headerKey, headerValue] in headers.entries() {
-            io:println("key: ", headerKey, ", value: ", headerValue);
             response.setHeader(headerKey, headerValue);
         }
     } else if (headers is map<string|string[]>) {
         foreach var [headerKey, headerValue] in headers.entries() {
             if (headerValue is string[]) {
-                io:println("key: ", headerKey, ", value: ", headerValue);
                 foreach string value in headerValue {
                     response.addHeader(headerKey, value);
                 }
             } else {
-                io:println("key: ", headerKey, ", value: ", headerValue);
                 response.setHeader(headerKey, headerValue);
             }
         }
@@ -338,8 +334,27 @@ isolated function setPayload(anydata payload, Response response) {
         response.setTextPayload(payload);
     } else if (payload is byte[]) {
         response.setBinaryPayload(payload);
+    } else if (payload is table<anydata>) {
+        // Can remove this scope after https://github.com/ballerina-platform/ballerina-lang/issues/27860 is fixed
+        castToJsonAndSetPayload(response, payload.toArray(), "table<anydata> to json conversion error: " );
+    } else if (payload is table<anydata>[]) {
+        // Can remove this scope after https://github.com/ballerina-platform/ballerina-lang/issues/27860 is fixed
+        anydata[] tableArr = [];
+        foreach var index in 0 ... payload.length()-1 {
+            tableArr[index] = payload[index].toArray();
+        }
+        castToJsonAndSetPayload(response, tableArr, "table<anydata>[] to json conversion error: " );
     } else {
-        response.setJsonPayload(val:toJson(payload));
+        castToJsonAndSetPayload(response, payload, "anydata to json conversion error: " );
+    }
+}
+
+isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg) {
+    var result = trap val:toJson(payload);
+    if (result is error) {
+        panic error InitializingOutboundResponseError(errMsg + result.message(), result);
+    } else {
+        response.setJsonPayload(result);
     }
 }
 
