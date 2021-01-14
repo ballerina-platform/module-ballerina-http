@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -45,6 +45,6 @@ service simple8 on new http:Listener(21017) {
 public function testServiceNotFound() {
     http:WebSocketClient wsClient = new ("ws://localhost:21017/prox",
         {callbackService: resourceNotFoundCallbackService});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(errorMsg, "InvalidHandshakeError: Invalid handshake response getStatus: 404 Not Found");
 }

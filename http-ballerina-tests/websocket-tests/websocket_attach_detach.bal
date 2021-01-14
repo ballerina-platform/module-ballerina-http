@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 import ballerina/io;
@@ -84,7 +84,7 @@ service attachService = @http:WebSocketServiceConfig {} service {
 public function attachClientService() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21032/attach/detach");
     checkpanic wsClientEp->pushText("client_attach");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(serverOutput, "GenericError: Client service cannot be attached to the Listener");
 }
 
@@ -93,7 +93,7 @@ public function attachClientService() {
 public function detachFirst() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21032/attach/detach");
     checkpanic wsClientEp->pushText("detach");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(serverOutput, "GenericError: Cannot detach service. Service has not been registered");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -106,19 +106,19 @@ public function detachFirst() {
 public function attachSuccess() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21032/attach/detach");
     checkpanic wsClientEp->pushText("attach");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
 
     // send to the no path service
     http:WebSocketClient attachClient = new ("ws://localhost:21032", {callbackService: attachService});
     checkpanic attachClient->pushText(msg);
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedData, msg);
 
     // send to service with path
     msg = "path message";
     http:WebSocketClient pathClient = new ("ws://localhost:21032/hello", {callbackService: attachService});
     checkpanic attachClient->pushText(msg);
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedData, msg);
     error? result1 = wsClientEp->close(statusCode = 1000, reason = "Close the connection", timeoutInSeconds = 180);
     if (result1 is http:WebSocketError) {
@@ -139,10 +139,10 @@ public function attachSuccess() {
 public function detachSuccess() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21032/attach/detach");
     checkpanic wsClientEp->pushText("detach");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(serverOutput, "GenericError: Cannot detach service. Service has not been registered");
     http:WebSocketClient attachClient = new ("ws://localhost:21032", {callbackService: attachService});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedErr, "error(\"InvalidHandshakeError: Invalid handshake response getStatus: 404 Not Found\")");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -155,9 +155,9 @@ public function detachSuccess() {
 public function attachTwice() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21032/attach/detach");
     checkpanic wsClientEp->pushText("attach");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     checkpanic wsClientEp->pushText("attach");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(serverOutput, "GenericError: Two services have the same addressable URI");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -170,9 +170,9 @@ public function attachTwice() {
 public function detachTwice() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21032/attach/detach");
     checkpanic wsClientEp->pushText("detach");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     checkpanic wsClientEp->pushText("detach");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(serverOutput, "GenericError: Cannot detach service. Service has not been registered");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

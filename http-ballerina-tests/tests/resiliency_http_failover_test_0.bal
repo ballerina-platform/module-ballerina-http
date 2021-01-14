@@ -18,7 +18,7 @@
 import ballerina/log;
 import ballerina/io;
 import ballerina/mime;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 

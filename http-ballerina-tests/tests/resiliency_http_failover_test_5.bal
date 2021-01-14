@@ -15,8 +15,8 @@
 // under the License.
 //
 
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -64,7 +64,7 @@ service /failoverDemoService05 on failoverEP05 {
 service /delay on backendEP05 {
     resource function 'default .(http:Caller caller, http:Request req) {
         // Delay the response for 30000 milliseconds to mimic network level delays.
-        runtime:sleep(30000);
+        runtime:sleep(30);
         var responseToCaller = caller->respond("Delayed resource is invoked");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", err = responseToCaller);

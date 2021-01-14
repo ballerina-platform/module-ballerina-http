@@ -15,8 +15,8 @@
 // under the License.
 
 import ballerina/io;
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -75,7 +75,7 @@ service ErrorCookieService = @http:WebSocketServiceConfig {} service {
 @test:Config {enable : false}
 public function IncorrectCookieTestCase() {
     http:WebSocketClient wsClientEp = new ("ws://localhost:21038");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedError38, "InvalidHandshakeError: Invalid handshake response getStatus: 401 Unauthorized");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

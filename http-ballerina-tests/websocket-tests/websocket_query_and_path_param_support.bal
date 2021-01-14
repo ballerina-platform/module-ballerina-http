@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -52,6 +52,6 @@ service pathQueyCallbackService = @http:WebSocketServiceConfig {} service {
 public function testPathAndQueryParams() {
     http:WebSocketClient wsClient = new ("ws://localhost:21015/pathQuery/" + PATH1 + "/" + PATH2 + "?q1=" + QUERY1 +
         "&q2=" + QUERY2, {callbackService: pathQueyCallbackService});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(data, textMessage);
 }

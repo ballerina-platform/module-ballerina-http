@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -41,7 +41,7 @@ public function testFailingFailover() {
         failoverIntervalInMillis: 2000
     });
     var out = trap wsClientEp->ready();
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedError35, "ConnectionError: IO Error");
     if (out is error) {
         test:assertEquals(out.message(), "ConnectionError: The WebSocket connection has not been made");

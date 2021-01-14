@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/lang.runtime as runtime;
 import ballerina/mime;
-import ballerina/runtime;
 
 # Provides a set of configurations for controlling the failover behaviour of the endpoint.
 #
@@ -407,7 +407,7 @@ function performFailoverAction (string path, Request request, HttpOperation requ
             }
         }
         failoverRequest = check createFailoverRequest(failoverRequest, requestEntity);
-        runtime:sleep(failoverInterval);
+        runtime:sleep(<decimal>failoverInterval/1000);
 
         var tmpClnt = failoverClients[currentIndex];
         if (tmpClnt is Client) {

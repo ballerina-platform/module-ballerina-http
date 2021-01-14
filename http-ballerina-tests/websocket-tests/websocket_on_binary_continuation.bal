@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/io;
 import ballerina/http;
@@ -65,7 +65,7 @@ public function testBinaryContinuation() {
         checkpanic wsClient->pushBinary(value.toBytes(), false);
     }
     checkpanic wsClient->pushBinary("</note>".toBytes(), true);
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     string|error value = 'string:fromBytes(binaryContent);
     test:assertEquals(value.toString(), msg, msg = "Data mismatched");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
