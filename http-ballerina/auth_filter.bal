@@ -61,44 +61,33 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, Request req
         if (config is FileUserStoreConfigWithScopes) {
             ListenerFileUserStoreBasicAuthHandler handler = new(config.fileUserStoreConfig);
             auth:UserDetails|Unauthorized authn = handler.authenticate(req);
-            if (authn is auth:UserDetails && !(config?.scopes is ())) {
+            if (authn is auth:UserDetails) {
                 Forbidden? authz = handler.authorize(authn, <string|string[]>config?.scopes);
-                if (authz is ()) {
-                    return;
-                }
-                return <Forbidden>authz;
+                return authz;
             }
-            return <Unauthorized>authn;
         } else if (config is LdapUserStoreConfigWithScopes) {
             ListenerLdapUserStoreBasicAuthProvider handler = new(config.ldapUserStoreConfig);
             auth:UserDetails|Unauthorized authn = handler->authenticate(req);
-            if (authn is auth:UserDetails && !(config?.scopes is ())) {
+            if (authn is auth:UserDetails) {
                 Forbidden? authz = handler->authorize(authn, <string|string[]>config?.scopes);
-                if (authz is ()) {
-                    return;
-                }
-                return <Forbidden>authz;
+                return authz;
             }
-            return <Unauthorized>authn;
         } else if (config is JwtValidatorConfigWithScopes) {
-            ListenerJwtAuthHandler handler = new(config.validatorConfig);
+            ListenerJwtAuthHandler handler = new(config.jwtValidatorConfig);
             jwt:Payload|Unauthorized authn = handler.authenticate(req);
-            if (authn is jwt:Payload && !(config?.scopes is ())) {
+            if (authn is jwt:Payload) {
                 Forbidden? authz = handler.authorize(authn, <string|string[]>config?.scopes);
-                if (authz is ()) {
-                    return;
-                }
-                return <Forbidden>authz;
+                return authz;
             }
-            return <Unauthorized>authn;
         } else {
             // Here, config is OAuth2IntrospectionConfigWithScopes
-            ListenerOAuth2Handler handler = new(config.introspectionConfig);
+            ListenerOAuth2Handler handler = new(config.oauth2IntrospectionConfig);
             oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(req, <string|string[]>config?.scopes);
             if (auth is oauth2:IntrospectionResponse) {
                 return;
+            } else if (auth is Forbidden) {
+                return auth;
             }
-            return <Unauthorized|Forbidden>auth;
         }
     }
     Unauthorized unauthorized = {};
@@ -107,10 +96,11 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, Request req
 
 isolated function getAuthHandlers(FilterContext context) returns ListenerAuthConfig[]? {
     ListenerAuthConfig[]? resourceAuthConfig = getResourceAuthConfig(context);
-    ListenerAuthConfig[]? serviceAuthConfig = getServiceAuthConfig(context);
     if (resourceAuthConfig is ListenerAuthConfig[]) {
         return resourceAuthConfig;
-    } else if (serviceAuthConfig is ListenerAuthConfig[]) {
+    }
+    ListenerAuthConfig[]? serviceAuthConfig = getServiceAuthConfig(context);
+    if (serviceAuthConfig is ListenerAuthConfig[]) {
         return serviceAuthConfig;
     }
 }

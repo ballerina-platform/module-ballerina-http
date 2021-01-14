@@ -49,12 +49,12 @@ public type LdapUserStoreConfigWithScopes record {|
 |};
 
 public type JwtValidatorConfigWithScopes record {|
-   JwtValidatorConfig validatorConfig;
+   JwtValidatorConfig jwtValidatorConfig;
    string|string[] scopes?;
 |};
 
 public type OAuth2IntrospectionConfigWithScopes record {|
-   OAuth2IntrospectionConfig introspectionConfig;
+   OAuth2IntrospectionConfig oauth2IntrospectionConfig;
    string|string[] scopes?;
 |};
 
