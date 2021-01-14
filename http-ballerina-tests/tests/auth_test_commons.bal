@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// NOTE: All the tokens/credentials used in this test are dummy tokens/credentials and used only for testing purposes.
+
 import ballerina/http;
 
 const string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
@@ -34,7 +36,7 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
 }
 
 // Mock OAuth2 authorization server implementation, which treats the APIs with successful responses.
-listener http:Listener oauth2Listener = new(20000, {
+listener http:Listener oauth2Listener = new(oauth2AuthorizationServerPort, {
     secureSocket: {
         keyStore: {
             path: KEYSTORE_PATH,
