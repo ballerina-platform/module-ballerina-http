@@ -42,7 +42,7 @@ class MyResponseFilter {
 MyRequestFilter reqFilter = new;
 MyResponseFilter resFilter = new;
 
-listener http:Listener listenerEP = new http:Listener(25000, config = {filters: [reqFilter, resFilter]});
+listener http:Listener listenerEP = new http:Listener(filterTestPort, config = {filters: [reqFilter, resFilter]});
 
 service /hello on listenerEP {
     resource function get sayHello(http:Caller caller, http:Request req) {
@@ -55,7 +55,7 @@ service /hello on listenerEP {
 
 @test:Config {}
 function testFilterInvocation() {
-    http:Client clientEP = new("http://localhost:25000");
+    http:Client clientEP = new("http://localhost:" + filterTestPort.toString());
     var res = clientEP->get("/hello/sayHello");
     if (res is http:Response) {
         string header = res.getHeader("Baz");

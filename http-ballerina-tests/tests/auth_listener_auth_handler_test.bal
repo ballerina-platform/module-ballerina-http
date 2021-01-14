@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// NOTE: All the tokens/credentials used in this test are dummy tokens/credentials and used only for testing purposes.
+
 import ballerina/auth;
 import ballerina/http;
 import ballerina/jwt;
@@ -54,7 +56,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccess() {
 }
 
 @test:Config {}
-isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccessAuthzFailure() {
+isolated function testListenerFileUserStoreBasicAuthHandlerAuthzFailure() {
     http:ListenerFileUserStoreBasicAuthHandler handler = new;
     string basicAuthToken = "YWxpY2U6eHh4";
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
@@ -87,7 +89,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccessAuthzFailu
 }
 
 @test:Config {}
-isolated function testListenerFileUserStoreBasicAuthHandlerAuthFailure() {
+isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
     http:ListenerFileUserStoreBasicAuthHandler handler = new;
     string basicAuthToken = "YWxpY2U6aW52YWxpZA==";
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
@@ -222,9 +224,9 @@ isolated function testListenerJwtAuthHandlerAuthzFailure() {
 }
 
 @test:Config {}
-isolated function testListenerJwtAuthHandlerAuthFailure() {
+isolated function testListenerJwtAuthHandlerAuthnFailure() {
     http:JwtValidatorConfig config = {
-        issuer: "ballerina",
+        issuer: "invalid",
         audience: "ballerina",
         trustStoreConfig: {
             trustStore: {
@@ -257,7 +259,7 @@ isolated function testListenerJwtAuthHandlerAuthFailure() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthSuccess() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:20000/oauth2/token/introspect/success",
+        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/success",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
@@ -284,7 +286,7 @@ function testListenerOAuth2HandlerAuthSuccess() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthzFailure() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:20000/oauth2/token/introspect/success",
+        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/success",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
@@ -307,9 +309,9 @@ function testListenerOAuth2HandlerAuthzFailure() {
 }
 
 @test:Config {}
-function testListenerOAuth2HandlerAuthFailure() {
+function testListenerOAuth2HandlerAuthnFailure() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:20000/oauth2/token/introspect/failure",
+        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/failure",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
