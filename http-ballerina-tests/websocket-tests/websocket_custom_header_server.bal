@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/io;
 import ballerina/http;
@@ -61,7 +61,7 @@ service customServerHeaderService = @http:WebSocketServiceConfig {} service {
 public function testServerSentCustomHeader() {
     http:WebSocketClient wsClient = new ("ws://localhost:21012/customHeader/custom/header/server",
         {customHeaders: {"X-some-header": "some-header-value"}});
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     var resp = wsClient.getHttpResponse();
     if (resp is http:Response) {
         test:assertEquals(resp.getHeader("X-some-header"), "some-header-value");
@@ -83,7 +83,7 @@ public function testServerReceivedCustomHeader() {
             customHeaders: {"X-some-header": "some-header-value"}
         });
     checkpanic wsClient->pushText("HI");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expextedValue, "some-header-value");
     error? result = wsClient->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

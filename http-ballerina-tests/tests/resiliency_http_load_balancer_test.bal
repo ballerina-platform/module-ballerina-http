@@ -15,8 +15,8 @@
 // under the License.
 //
 
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -169,7 +169,7 @@ service /LBMock3 on LBbackendListener {
 
 service /LBMock4 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
-        runtime:sleep(5000);
+        runtime:sleep(5);
         var responseToCaller = caller->respond("Mock4 Resource is Invoked.");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", err = responseToCaller);
@@ -179,7 +179,7 @@ service /LBMock4 on LBbackendListener {
 
 service /LBMock5 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
-        runtime:sleep(5000);
+        runtime:sleep(5);
         var responseToCaller = caller->respond("Mock5 Resource is Invoked.");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", err = responseToCaller);

@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -46,7 +46,7 @@ service /cb on circuitBreakerEP07 {
         cbTrialRequestCount += 1;
         // To ensure the reset timeout period expires
         if (cbTrialRequestCount == 3) {
-            runtime:sleep(3000);
+            runtime:sleep(3);
         }
         var backendFuture = backendClientEP07->submit("GET", "/hello07", <@untainted> request);
         if (backendFuture is http:HttpFuture) {

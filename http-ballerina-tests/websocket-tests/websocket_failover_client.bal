@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -78,7 +78,7 @@ public function testBinaryFrameWithThirdServer() {
         failoverIntervalInMillis: 3000
     });
     checkpanic wsClientEp->pushText("Hello");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedOutput43, "Hello");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -100,7 +100,7 @@ public function testTextFrameWithSecondServer() {
         failoverIntervalInMillis: 3000
     });
     checkpanic wsClientEp->pushText("Hello");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedOutput43, "Hello");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -123,7 +123,7 @@ public function testBinaryFrameWithFirstServer() {
     });
     byte[] pingData = [5, 24, 56, 243];
     checkpanic wsClientEp->pushBinary(pingData);
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedBinaryData, pingData);
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {
@@ -145,7 +145,7 @@ public function testHandshakeTimeout() {
         handShakeTimeoutInSeconds: 7
     });
     checkpanic wsClientEp->pushText("Hello everyone");
-    runtime:sleep(500);
+    runtime:sleep(0.5);
     test:assertEquals(expectedOutput43, "Hello everyone");
     error? result = wsClientEp->close(statusCode = 1000, reason = "Close the connection");
     if (result is http:WebSocketError) {

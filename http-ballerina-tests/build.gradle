@@ -106,7 +106,6 @@ task updateTomlVerions {
         def stdlibDependentOAuth2Version = project.stdlibOAuth2Version.split("-")[0]
         def stdlibDependentFileVersion = project.stdlibFileVersion.split("-")[0]
         def stdlibDependentConfigVersion = project.stdlibConfigVersion.split("-")[0]
-        def stdlibDependentRuntimeVersion = project.stdlibRuntimeVersion.split("-")[0]
 
         def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
@@ -119,7 +118,6 @@ task updateTomlVerions {
         newConfig = newConfig.replace("@stdlib.oauth2.version@", stdlibDependentOAuth2Version)
         newConfig = newConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
         newConfig = newConfig.replace("@stdlib.config.version@", stdlibDependentConfigVersion)
-        newConfig = newConfig.replace("@stdlib.runtime.version@", stdlibDependentRuntimeVersion)
         ballerinaConfigFile.text = newConfig
     }
 }

@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -221,7 +221,7 @@ service /backend on clientDBBackendListener {
     resource function 'default getRetryResponse(http:Caller caller, http:Request req) {
         clientDBCounter = clientDBCounter + 1;
         if (clientDBCounter == 1) {
-            runtime:sleep(5000);
+            runtime:sleep(5);
             var responseToCaller = caller->respond("Not received");
         } else {
             var responseToCaller = caller->respond("Hello World!!!");

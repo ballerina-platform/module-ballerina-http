@@ -16,7 +16,7 @@
 
 import ballerina/java;
 import ballerina/log;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -40,7 +40,7 @@ service /idleTimeout on idleTimeoutListenerEP {
     }
 
     resource function get timeout500(http:Caller caller, http:Request req) {
-        runtime:sleep(3000);
+        runtime:sleep(3);
         var responseError = caller->respond("some");
         if (responseError is error) {
             log:printError("Error sending response", err = responseError);
