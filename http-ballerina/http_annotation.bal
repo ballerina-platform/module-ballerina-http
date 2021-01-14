@@ -131,3 +131,13 @@ public type HttpCallerInfo record {|
 
 # The annotation which is used to configure the type of the response.
 public annotation HttpCallerInfo CallerInfo on parameter;
+
+# Defines the Header resource signature parameter.
+#
+# + name - Specifies the name of the required header
+public type HttpHeader record {|
+    string name?;
+|};
+
+# The annotation which is used to define the Header resource signature parameter.
+public annotation HttpHeader Header on parameter;
