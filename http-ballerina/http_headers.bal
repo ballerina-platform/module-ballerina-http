@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Represents the headers of inbound request.
+# Represents the headers of the inbound request.
 public class Header {
 
     private Request request = new;
@@ -35,18 +35,18 @@ public class Header {
     # these values is returned.
     #
     # + headerName - The header name
-    # + return - The first header value for the specified header name. Panic if the header is not found. Use the
-    #            `Request.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeader(string headerName) returns @tainted string {
+    # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeader(string headerName) returns @tainted string|HeaderNotFoundError {
         return self.request.getHeader(headerName);
     }
 
     # Gets all the header values to which the specified header key maps to.
     #
     # + headerName - The header name
-    # + return - The header values the specified header key maps to. Panic if the header is not found. Use the
-    #            `Request.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeaders(string headerName) returns @tainted string[] {
+    # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeaders(string headerName) returns @tainted string[]|HeaderNotFoundError {
         return self.request.getHeaders(headerName);
     }
 
