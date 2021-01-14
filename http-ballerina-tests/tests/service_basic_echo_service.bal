@@ -359,7 +359,8 @@ function testErrorReturn() {
     var response = stClient->post("/echo/parseJSON", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error occurred while retrieving the json payload from the request");
+        assertTextPayload(response.getTextPayload(),
+            "Error occurred while retrieving the json payload from the request");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

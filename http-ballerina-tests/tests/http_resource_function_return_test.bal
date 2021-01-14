@@ -62,7 +62,7 @@ function testErrorTypeReturnedFromAResourceFunction() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "some random error");
+        assertTextPayload(response.getTextPayload(), "Some random error");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -75,7 +75,7 @@ function testErrorReturnedFromACheckExprInResourceFunction() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "simulated error");
+        assertTextPayload(response.getTextPayload(), "Simulated error");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
