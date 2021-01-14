@@ -15,8 +15,8 @@
 // under the License.
 //
 
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -62,7 +62,7 @@ service /delay on backendEP06 {
 
     resource function get .(http:Caller caller, http:Request req) {
         // Delay the response for 5000 milliseconds to mimic network level delays.
-        runtime:sleep(10000);
+        runtime:sleep(10);
         var responseToCaller = caller->respond("Delayed resource is invoked");
         if (responseToCaller is error) {
             log:printError("Error sending response from delay service", err = responseToCaller);

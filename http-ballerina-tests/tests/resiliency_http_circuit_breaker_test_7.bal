@@ -15,8 +15,8 @@
 // under the License.
 //
 
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -47,7 +47,7 @@ service /cb on circuitBreakerEP06 {
         requestCount += 1;
         // To ensure the reset timeout period expires
         if (requestCount == 3) {
-            runtime:sleep(3000);
+            runtime:sleep(3);
         }
         var backendRes = backendClientEP06->forward("/hello06", request);
         if (backendRes is http:Response) {

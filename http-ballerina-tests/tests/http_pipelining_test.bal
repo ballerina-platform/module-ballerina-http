@@ -15,8 +15,8 @@
 // under the License.
 
 import ballerina/java;
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
-import ballerina/runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -32,7 +32,7 @@ service /pipeliningTest on pipeliningListenerEP1 {
         if (req.hasHeader("message-id")) {
             //Request one roughly takes 4 seconds to prepare its response
             if (req.getHeader("message-id") == "request-one") {
-                runtime:sleep(4000);
+                runtime:sleep(4);
                 response.setHeader("message-id", "response-one");
                 response.setPayload("Hello1");
             }
@@ -43,7 +43,7 @@ service /pipeliningTest on pipeliningListenerEP1 {
             }
             //Request three roughly takes 2 seconds to prepare its response
             if (req.getHeader("message-id") == "request-three") {
-                runtime:sleep(2000);
+                runtime:sleep(2);
                 response.setHeader("message-id", "response-three");
                 response.setPayload("Hello3");
             }
@@ -65,7 +65,7 @@ service /pipelining on pipeliningListenerEP2 {
         if (req.hasHeader("message-id")) {
             //Request one roughly takes 8 seconds to prepare its response
             if (req.getHeader("message-id") == "request-one") {
-                runtime:sleep(8000);
+                runtime:sleep(8);
                 response.setHeader("message-id", "response-one");
                 response.setPayload("Hello1");
             }
@@ -93,7 +93,7 @@ service /pipeliningLimit on pipeliningListenerEP3 {
     resource function 'default testMaxRequestLimit(http:Caller caller, http:Request req) {
         http:Response response = new;
         //Let the thread sleep for sometime so the requests have enough time to queue up
-        runtime:sleep(8000);
+        runtime:sleep(8);
         response.setPayload("Pipelined Response");
 
         var responseError = caller->respond(response);

@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 
 # Derived set of configurations from the `RetryConfig`.
 #
@@ -361,7 +361,7 @@ function performRetryAction(@untainted string path, Request request, HttpOperati
                             calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, intervalInMillis);
             httpConnectorErr = backendResponse;
         }
-        runtime:sleep(intervalInMillis);
+        runtime:sleep(<decimal>intervalInMillis/1000);
     }
     return httpConnectorErr;
 }

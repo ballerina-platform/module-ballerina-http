@@ -15,9 +15,9 @@
 // under the License.
 
 import ballerina/java;
+import ballerina/lang.runtime as runtime;
 import ballerina/log;
 import ballerina/mime;
-import ballerina/runtime;
 import ballerina/io;
 import ballerina/test;
 import ballerina/http;
@@ -84,7 +84,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
                 "Request received from the client to delayed service.");
             // Delay the response by 5000 milliseconds to
             // mimic network level delays.
-            runtime:sleep(5000);
+            runtime:sleep(5);
             http:Response res = new;
             res.setPayload("Hello World!!!");
             var result = caller->respond(res);
