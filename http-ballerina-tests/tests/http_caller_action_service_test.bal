@@ -60,7 +60,7 @@ function testNonBlockingRespondAction() {
     }
 }
 
-@test:Config {dependsOn:["testNonBlockingRespondAction"]}
+@test:Config {dependsOn:[testNonBlockingRespondAction]}
 function testExecutionAfterRespondAction() {
     test:assertEquals(globalLvlStr, "respond");
     // var response = callerActionTestClient->get("/listener/getChangedValue");
@@ -73,7 +73,7 @@ function testExecutionAfterRespondAction() {
     // }
 }
 
-@test:Config {dependsOn:["testExecutionAfterRespondAction"]}
+@test:Config {dependsOn:[testExecutionAfterRespondAction]}
 function testNonBlockingRedirectAction() {
     var response = callerActionTestClient->get("/listener/redirect");
     if (response is http:Response) {
@@ -83,7 +83,7 @@ function testNonBlockingRedirectAction() {
     }
 }
 
-@test:Config {dependsOn:["testNonBlockingRedirectAction"]}
+@test:Config {dependsOn:[testNonBlockingRedirectAction]}
 function testExecutionAfterRedirectAction() {
     test:assertEquals(globalLvlStr, "redirect");
     // var response = callerActionTestClient->get("/listener/getChangedValue");

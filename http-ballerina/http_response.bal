@@ -321,7 +321,7 @@ public class Response {
     # Sets the current time as the `last-modified` header.
     public isolated function setLastModified() {
         time:Time currentT = time:currentTime();
-        var lastModified = time:format(currentT, time:TIME_FORMAT_RFC_1123);
+        var lastModified = time:format(currentT, time:RFC_1123_DATE_TIME);
         if (lastModified is string) {
             self.setHeader(LAST_MODIFIED, lastModified);
         } else {
