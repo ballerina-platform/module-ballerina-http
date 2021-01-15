@@ -22,6 +22,7 @@ const string CONTENT_TYPE = "content-type";
 const string CONTENT_ENCODING = "content-encoding";
 const string ACCEPT_ENCODING = "accept-encoding";
 const string CONTENT_LENGTH = "content-length";
+const string TRANSFER_ENCODING = "transfer-encoding";
 const string LOCATION = "location";
 const string ORIGIN = "origin";
 const string ALLOW = "Allow";

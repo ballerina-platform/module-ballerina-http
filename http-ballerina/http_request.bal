@@ -223,7 +223,7 @@ public class Request {
             var payload = externGetJson(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the json payload from the request";
                     return error GenericClientError(message, payload);
@@ -245,7 +245,7 @@ public class Request {
             var payload = externGetXml(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the xml payload from the request";
                     return error GenericClientError(message, payload);
@@ -267,7 +267,7 @@ public class Request {
             var payload = externGetText(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the text payload from the request";
                     return error GenericClientError(message, payload);
