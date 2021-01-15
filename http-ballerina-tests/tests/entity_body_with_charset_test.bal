@@ -282,7 +282,7 @@ function testSetHeaderAfterStringPayloadResponse() {
     test:assertEquals(headers[0], "text/plain;charset=\"ISO_8859-1:1987\"");
 }
 
-listener http:Listener entityEP = new(entityTest);
+listener http:Listener entityEP = checkpanic new(entityTest);
 
 service /test on entityEP {
 
@@ -298,7 +298,7 @@ service /test on entityEP {
     }
 }
 
-http:Client entityClient = new("http://localhost:" + entityTest.toString());
+http:Client entityClient = checkpanic new("http://localhost:" + entityTest.toString());
 
 // Test addHeader function within a service
 // Disabled due to https://github.com/ballerina-platform/module-ballerina-http/issues/62

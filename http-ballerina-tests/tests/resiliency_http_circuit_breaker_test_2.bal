@@ -21,7 +21,7 @@ import ballerina/http;
 
 int forceOpenStateCount = 0;
 
-listener http:Listener circuitBreakerEP01 = new(9307);
+listener http:Listener circuitBreakerEP01 = checkpanic new(9307);
 
 http:ClientConfiguration conf01 = {
     circuitBreaker: {
@@ -37,7 +37,7 @@ http:ClientConfiguration conf01 = {
     timeoutInMillis: 2000
 };
 
-http:Client healthyClientEP = new("http://localhost:8087", conf01);
+http:Client healthyClientEP = checkpanic new("http://localhost:8087", conf01);
 
 service /cb on circuitBreakerEP01 {
 
@@ -77,7 +77,7 @@ service /healthy on new http:Listener(8087) {
 
 
 //Test for circuit breaker forceOpen functionality
-http:Client testForceOpenClient = new("http://localhost:9307");
+http:Client testForceOpenClient = checkpanic new("http://localhost:9307");
 
 @test:Config{
     dataProvider:"forceOpenResponseDataProvider"

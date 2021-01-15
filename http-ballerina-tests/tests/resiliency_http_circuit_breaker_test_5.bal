@@ -19,7 +19,7 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener circuitBreakerEP04 = new(9310);
+listener http:Listener circuitBreakerEP04 = checkpanic new(9310);
 
 http:ClientConfiguration conf04 = {
     circuitBreaker: {
@@ -35,7 +35,7 @@ http:ClientConfiguration conf04 = {
     timeoutInMillis: 2000
 };
 
-http:Client errornousClientEP = new("http://localhost:8090", conf04);
+http:Client errornousClientEP = checkpanic new("http://localhost:8090", conf04);
 
 service /cb on circuitBreakerEP04 {
 
@@ -72,7 +72,7 @@ service /errornous on new http:Listener(8090) {
 }
 
 //Test for circuit breaker requestVolumeThreshold functionality
-http:Client testRequestVolumeClient = new("http://localhost:9310");
+http:Client testRequestVolumeClient = checkpanic new("http://localhost:9310");
 
 @test:Config{
     dataProvider:"requestVolumeResponseDataProvider"

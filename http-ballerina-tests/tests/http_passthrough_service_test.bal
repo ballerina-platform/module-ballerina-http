@@ -19,12 +19,12 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/stringutils;
 
-listener http:Listener passthroughEP1 = new(9113);
+listener http:Listener passthroughEP1 = checkpanic new(9113);
 
 service /passthrough on passthroughEP1 {
 
     resource function get .(http:Caller caller, http:Request clientRequest) {
-        http:Client nyseEP1 = new("http://localhost:9113");
+        http:Client nyseEP1 = checkpanic new("http://localhost:9113");
         var response = nyseEP1->get("/nyseStock/stocks", <@untainted> clientRequest);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
@@ -34,7 +34,7 @@ service /passthrough on passthroughEP1 {
     }
 
     resource function post forwardMultipart(http:Caller caller, http:Request clientRequest) {
-        http:Client nyseEP1 = new("http://localhost:9113");
+        http:Client nyseEP1 = checkpanic new("http://localhost:9113");
         var response = nyseEP1->forward("/nyseStock/stocksAsMultiparts", clientRequest);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
@@ -44,7 +44,7 @@ service /passthrough on passthroughEP1 {
     }
 
     resource function post forward(http:Caller caller, http:Request clientRequest) {
-        http:Client nyseEP1 = new("http://localhost:9113");
+        http:Client nyseEP1 = checkpanic new("http://localhost:9113");
         var response = nyseEP1->forward("/nyseStock/entityCheck", clientRequest);
         if (response is http:Response) {
             var entity = response.getEntity();
@@ -101,7 +101,7 @@ service /nyseStock on passthroughEP1 {
 
 @test:Config {}
 public function testPassthroughServiceByBasePath() {
-    http:Client httpClient = new("http://localhost:9113");
+    http:Client httpClient = checkpanic new("http://localhost:9113");
     var resp = httpClient->get("/passthrough");
     if (resp is http:Response) {
         string contentType = resp.getHeader("content-type");
@@ -119,7 +119,7 @@ public function testPassthroughServiceByBasePath() {
 
 @test:Config {}
 public function testPassthroughServiceWithMimeEntity() {
-    http:Client httpClient = new("http://localhost:9113");
+    http:Client httpClient = checkpanic new("http://localhost:9113");
     var resp = httpClient->post("/passthrough/forward", "Hello from POST!");
     if (resp is http:Response) {
         string contentType = resp.getHeader("content-type");
@@ -137,7 +137,7 @@ public function testPassthroughServiceWithMimeEntity() {
 
 @test:Config {}
 public function testPassthroughWithMultiparts() {
-    http:Client httpClient = new("http://localhost:9113");
+    http:Client httpClient = checkpanic new("http://localhost:9113");
     mime:Entity textPart1 = new;
     textPart1.setText("Part1");
     textPart1.setHeader("Content-Type", "text/plain; charset=UTF-8");

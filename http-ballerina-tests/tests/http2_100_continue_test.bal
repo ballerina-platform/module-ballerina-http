@@ -19,7 +19,7 @@ import ballerina/log;
 import ballerina/io;
 import ballerina/test;
 
-http:Client h2Client = new ("http://localhost:9127", {
+http:Client h2Client = checkpanic new("http://localhost:9127", {
     httpVersion: "2.0",
     http2Settings: {
         http2PriorKnowledge: true
@@ -69,7 +69,7 @@ function handleRespError(error? result) {
 
 @test:Config {}
 public function testUnexpected100ContinueResponse() {
-    http:Client clientEP = new("http://localhost:9128");
+    http:Client clientEP = checkpanic new("http://localhost:9128");
     var resp = clientEP->get("/continueService/initial");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();

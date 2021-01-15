@@ -18,26 +18,26 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener http2RedirectServiceEndpoint1 = new(http2RedirectTestPort1, { httpVersion: "2.0" });
+listener http:Listener http2RedirectServiceEndpoint1 = checkpanic new(http2RedirectTestPort1, { httpVersion: "2.0" });
 
-listener http:Listener http2RedirectServiceEndpoint2 = new(http2RedirectTestPort2, { httpVersion: "2.0" });
+listener http:Listener http2RedirectServiceEndpoint2 = checkpanic new(http2RedirectTestPort2, { httpVersion: "2.0" });
 
-listener http:Listener http2RedirectServiceEndpoint3 = new(http2RedirectTestPort3, { httpVersion: "2.0" });
+listener http:Listener http2RedirectServiceEndpoint3 = checkpanic new(http2RedirectTestPort3, { httpVersion: "2.0" });
 
 
-http:Client http2RedirectClient = new("http://localhost:" + http2RedirectTestPort1.toString());
+http:Client http2RedirectClient = checkpanic new("http://localhost:" + http2RedirectTestPort1.toString());
 
-http:Client http2RedirectEndPoint1 = new("http://localhost:" + http2RedirectTestPort2.toString(), {
+http:Client http2RedirectEndPoint1 = checkpanic new("http://localhost:" + http2RedirectTestPort2.toString(), {
     httpVersion: "2.0",
     followRedirects: { enabled: true, maxCount: 3 }
 });
 
-http:Client http2RedirectEndPoint2 = new("http://localhost:" + http2RedirectTestPort2.toString(), {
+http:Client http2RedirectEndPoint2 = checkpanic new("http://localhost:" + http2RedirectTestPort2.toString(), {
     httpVersion: "2.0",
     followRedirects: { enabled: true, maxCount: 5 }
 });
 
-http:Client http2RedirectEndPoint3 = new("http://localhost:" + http2RedirectTestPort3.toString(), {
+http:Client http2RedirectEndPoint3 = checkpanic new("http://localhost:" + http2RedirectTestPort3.toString(), {
     httpVersion: "2.0",
     followRedirects: { enabled: true }
 });

@@ -18,11 +18,11 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener clientDBProxyListener = new(clientDatabindingTestPort1);
-listener http:Listener clientDBBackendListener = new(clientDatabindingTestPort2);
-listener http:Listener clientDBBackendListener2 = new(clientDatabindingTestPort3);
-http:Client clientDBTestClient = new("http://localhost:" + clientDatabindingTestPort1.toString());
-http:Client clientDBBackendClient = new("http://localhost:" + clientDatabindingTestPort2.toString());
+listener http:Listener clientDBProxyListener = checkpanic new(clientDatabindingTestPort1);
+listener http:Listener clientDBBackendListener = checkpanic new(clientDatabindingTestPort2);
+listener http:Listener clientDBBackendListener2 = checkpanic new(clientDatabindingTestPort3);
+http:Client clientDBTestClient = checkpanic new("http://localhost:" + clientDatabindingTestPort1.toString());
+http:Client clientDBBackendClient = checkpanic new("http://localhost:" + clientDatabindingTestPort2.toString());
 
 type ClientDBPerson record {|
     string name;
@@ -110,7 +110,7 @@ service /passthrough on clientDBProxyListener {
     }
 
     resource function get redirect(http:Caller caller, http:Request req) {
-        http:Client redirectClient = new("http://localhost:" + clientDatabindingTestPort3.toString(),
+        http:Client redirectClient = checkpanic new("http://localhost:" + clientDatabindingTestPort3.toString(),
                                                         {followRedirects: {enabled: true, maxCount: 5}});
         var res = redirectClient->post("/redirect1/", "want json", targetType = json);
         json p = <json> checkpanic res;
@@ -118,7 +118,7 @@ service /passthrough on clientDBProxyListener {
     }
 
     resource function get 'retry(http:Caller caller, http:Request request) {
-        http:Client retryClient = new ("http://localhost:" + clientDatabindingTestPort2.toString(), {
+        http:Client retryClient = checkpanic new("http://localhost:" + clientDatabindingTestPort2.toString(), {
                 retryConfig: { intervalInMillis: 3000, count: 3, backOffFactor: 2.0,
                 maxWaitIntervalInMillis: 20000 },  timeoutInMillis: 2000
             }

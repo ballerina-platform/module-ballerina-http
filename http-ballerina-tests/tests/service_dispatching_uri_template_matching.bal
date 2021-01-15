@@ -20,8 +20,8 @@ import ballerina/stringutils;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener utmTestEP = new(uriTemplateMatchingTest);
-http:Client utmClient = new("http://localhost:" + uriTemplateMatchingTest.toString());
+listener http:Listener utmTestEP = checkpanic new(uriTemplateMatchingTest);
+http:Client utmClient = checkpanic new("http://localhost:" + uriTemplateMatchingTest.toString());
 
 service /hello on utmTestEP {
 

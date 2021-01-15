@@ -20,8 +20,8 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener dataBindingEP = new(databindingTest);
-http:Client dataBindingClient = new("http://localhost:" + databindingTest.toString());
+listener http:Listener dataBindingEP = checkpanic new(databindingTest);
+http:Client dataBindingClient = checkpanic new("http://localhost:" + databindingTest.toString());
 
 type Person record {|
     string name;

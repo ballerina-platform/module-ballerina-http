@@ -18,8 +18,8 @@ import ballerina/config;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener backendEP = new(config:getAsInt("\"backendEP.port\""));
-http:Client scClient = new("http://localhost:" + serviceConfigTest.toString());
+listener http:Listener backendEP = checkpanic new(config:getAsInt("\"backendEP.port\""));
+http:Client scClient = checkpanic new("http://localhost:" + serviceConfigTest.toString());
 
 service /schello on backendEP {
     resource function get sayHello(http:Caller caller, http:Request request) {

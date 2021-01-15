@@ -18,11 +18,11 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpClientContinueListenerEP1 = new(httpClientContinueTestPort1);
-listener http:Listener httpClientContinueListenerEP2 = new(httpClientContinueTestPort2);
-http:Client httpClientContinueClient = new("http://localhost:" + httpClientContinueTestPort2.toString());
+listener http:Listener httpClientContinueListenerEP1 = checkpanic new(httpClientContinueTestPort1);
+listener http:Listener httpClientContinueListenerEP2 = checkpanic new(httpClientContinueTestPort2);
+http:Client httpClientContinueClient = checkpanic new("http://localhost:" + httpClientContinueTestPort2.toString());
 
-http:Client continueClient = new ("http://localhost:" + httpClientContinueTestPort1.toString(), { cache: { enabled: false }});
+http:Client continueClient = checkpanic new("http://localhost:" + httpClientContinueTestPort1.toString(), { cache: { enabled: false }});
 
 service /'continue on httpClientContinueListenerEP1 {
 
@@ -120,7 +120,7 @@ function testNegativeContinueAction() {
 
 @test:Config {dependsOn:["testNegativeContinueAction"]}
 function testContinueActionWithMain() {
-    http:Client clientEP = new("http://localhost:" + httpClientContinueTestPort1.toString());
+    http:Client clientEP = checkpanic new("http://localhost:" + httpClientContinueTestPort1.toString());
     http:Request req = new();
     req.addHeader("content-type", "text/plain");
     req.addHeader("Expect", "100-continue");

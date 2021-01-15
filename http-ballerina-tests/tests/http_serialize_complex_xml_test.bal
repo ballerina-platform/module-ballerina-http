@@ -20,8 +20,8 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener serializeXmlListener = new(serializeXmlTestPort);
-http:Client xmlClientEP = new("http://localhost:" + serializeXmlTestPort.toString());
+listener http:Listener serializeXmlListener = checkpanic new(serializeXmlTestPort);
+http:Client xmlClientEP = checkpanic new("http://localhost:" + serializeXmlTestPort.toString());
 
 service /serialize on serializeXmlListener {
 

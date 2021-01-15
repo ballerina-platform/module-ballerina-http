@@ -19,11 +19,11 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1);
-listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2);
-http:Client httpClientActionClient = new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService");
+listener http:Listener httpClientActionListenerEP1 = checkpanic new(httpClientActionTestPort1);
+listener http:Listener httpClientActionListenerEP2 = checkpanic new(httpClientActionTestPort2);
+http:Client httpClientActionClient = checkpanic new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService");
 
-http:Client clientEP2 = new ("http://localhost:" + httpClientActionTestPort1.toString(), { cache: { enabled: false }});
+http:Client clientEP2 = checkpanic new("http://localhost:" + httpClientActionTestPort1.toString(), { cache: { enabled: false }});
 
 
 service /httpClientActionBE on httpClientActionListenerEP1 {

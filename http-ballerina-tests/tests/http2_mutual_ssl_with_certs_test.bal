@@ -27,7 +27,7 @@ http:ListenerConfiguration sslConf = {
     httpVersion: "2.0"
 };
 
-listener http:Listener mutualSslistener = new(9110, sslConf);
+listener http:Listener mutualSslistener = checkpanic new(9110, sslConf);
 
 service /mutualSslService on mutualSslistener {
 
@@ -73,7 +73,7 @@ http:ClientConfiguration certsClientConf = {
 
 @test:Config {}
 public function mutualSslWithCerts() {
-    http:Client clientEP = new("https://localhost:9110", certsClientConf);
+    http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf);
     var resp = clientEP->get("/mutualSslService/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Response received");

@@ -17,8 +17,8 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener matrixEP = new(uriMatrixParamMatchingTest);
-http:Client matrixClient = new("http://localhost:" + uriMatrixParamMatchingTest.toString());
+listener http:Listener matrixEP = checkpanic new(uriMatrixParamMatchingTest);
+http:Client matrixClient = checkpanic new("http://localhost:" + uriMatrixParamMatchingTest.toString());
 
 service /hello on matrixEP {
 

@@ -17,9 +17,9 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener serviceEndpointWithoutSSL = new(9101, { httpVersion: "2.0" });
+listener http:Listener serviceEndpointWithoutSSL = checkpanic new(9101, { httpVersion: "2.0" });
 
-listener http:Listener serviceEndpointWithSSL = new(9105, {
+listener http:Listener serviceEndpointWithSSL = checkpanic new(9105, {
     httpVersion: "2.0",
     secureSocket: {
         keyStore: {
@@ -45,7 +45,7 @@ service /helloWorldWithSSL on serviceEndpointWithSSL {
 
 @test:Config {}
 public function testFallback() {
-    http:Client clientEP = new("http://localhost:9101");
+    http:Client clientEP = checkpanic new("http://localhost:9101");
     var resp = clientEP->get("/helloWorldWithoutSSL");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
@@ -56,7 +56,7 @@ public function testFallback() {
 
 @test:Config {}
 public function testFallbackWithSSL() {
-    http:Client clientEP = new("https://localhost:9105", {
+    http:Client clientEP = checkpanic new("https://localhost:9105", {
         secureSocket: {
             trustStore: {
                 path: "tests/certsandkeys/ballerinaTruststore.p12",

@@ -20,9 +20,9 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener pipeliningListenerEP1 = new(pipeliningTestPort1);
-listener http:Listener pipeliningListenerEP2 = new(pipeliningTestPort2, { timeoutInMillis: 1000 });
-listener http:Listener pipeliningListenerEP3 = new(pipeliningTestPort3, { http1Settings: { maxPipelinedRequests: 2 } });
+listener http:Listener pipeliningListenerEP1 = checkpanic new(pipeliningTestPort1);
+listener http:Listener pipeliningListenerEP2 = checkpanic new(pipeliningTestPort2, { timeoutInMillis: 1000 });
+listener http:Listener pipeliningListenerEP3 = checkpanic new(pipeliningTestPort3, { http1Settings: { maxPipelinedRequests: 2 } });
 
 service /pipeliningTest on pipeliningListenerEP1 {
 

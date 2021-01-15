@@ -32,7 +32,7 @@ int counter = 0;
 function testSuccessScenario() {
 
     int counter = 0;
-    http:FailoverClient backendClientEP = new({
+    http:FailoverClient backendClientEP = checkpanic new({
         failoverCodes : [400, 500, 502, 503],
         targets: [
                  {url: "http://invalidEP"},
@@ -79,7 +79,7 @@ function testFailureScenario() {
 
 function failureScenario() returns @tainted http:Response|error {
     int counter = 0;
-    http:FailoverClient backendClientEP = new({
+    http:FailoverClient backendClientEP = checkpanic new({
         failoverCodes : [400, 404, 500, 502, 503],
         targets: [
                  {url: "http://invalidEP"},
@@ -111,8 +111,8 @@ public client class FoMockClient {
     public http:Client httpClient;
     public http:CookieStore? cookieStore = ();
 
-    public function init(string url, http:ClientConfiguration? config = ()) {
-        http:Client simpleClient = new(url);
+    public function init(string url, http:ClientConfiguration? config = ()) returns http:ClientError? {
+        http:Client simpleClient = checkpanic new(url);
         self.url = url;
         self.config = config ?: {};
         self.cookieStore = ();
@@ -224,6 +224,6 @@ function getUnsupportedFOError() returns http:ClientError {
 }
 
 function createMockClient(string url) returns FoMockClient {
-    FoMockClient mockClient = new(url);
+    FoMockClient mockClient = checkpanic new(url);
     return mockClient;
 }

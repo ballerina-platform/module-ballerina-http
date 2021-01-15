@@ -206,7 +206,7 @@ function testResposeGetCookies() {
     test:assertEquals(cookiesInResponse[0].name, "SID002", msg = "Invalid cookie name");
 }
 
-listener http:Listener responseEp = new(responseTest);
+listener http:Listener responseEp = checkpanic new(responseTest);
 
 service /response on responseEp {
 
@@ -353,7 +353,7 @@ service /response on responseEp {
     }
 }
 
-http:Client responseClient = new("http://localhost:" + responseTest.toString());
+http:Client responseClient = checkpanic new("http://localhost:" + responseTest.toString());
 
 // Test addHeader function within a service
 @test:Config {}

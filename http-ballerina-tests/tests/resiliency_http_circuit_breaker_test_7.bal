@@ -23,7 +23,7 @@ import ballerina/http;
 int requestCount = 0;
 int actualCount = 0;
 
-listener http:Listener circuitBreakerEP06 = new(9312);
+listener http:Listener circuitBreakerEP06 = checkpanic new(9312);
 
 http:ClientConfiguration conf06 = {
     circuitBreaker: {
@@ -39,7 +39,7 @@ http:ClientConfiguration conf06 = {
     timeoutInMillis: 2000
 };
 
-http:Client backendClientEP06 = new("http://localhost:8092", conf06);
+http:Client backendClientEP06 = checkpanic new("http://localhost:8092", conf06);
 
 service /cb on circuitBreakerEP06 {
 
@@ -86,7 +86,7 @@ service /hello06 on new http:Listener(8092) {
 }
 
 //Test for circuit breaker trail failure functionality
-http:Client testTrialRunFailureClient = new("http://localhost:9312");
+http:Client testTrialRunFailureClient = checkpanic new("http://localhost:9312");
 
 @test:Config{
     dataProvider:"trialRunFailureResponseDataProvider"

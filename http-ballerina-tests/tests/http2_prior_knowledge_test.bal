@@ -17,13 +17,13 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener priorEp1 = new(9111, { httpVersion: "2.0" });
-listener http:Listener priorEp2 = new(9112, { httpVersion: "2.0" });
+listener http:Listener priorEp1 = checkpanic new(9111, { httpVersion: "2.0" });
+listener http:Listener priorEp2 = checkpanic new(9112, { httpVersion: "2.0" });
 
-http:Client h2WithPriorKnowledge = new("http://localhost:9112", { httpVersion: "2.0", http2Settings: {
+http:Client h2WithPriorKnowledge = checkpanic new("http://localhost:9112", { httpVersion: "2.0", http2Settings: {
                 http2PriorKnowledge: true }, poolConfig: {} });
 
-http:Client h2WithoutPriorKnowledge = new("http://localhost:9112", { httpVersion: "2.0", http2Settings: {
+http:Client h2WithoutPriorKnowledge = checkpanic new("http://localhost:9112", { httpVersion: "2.0", http2Settings: {
                 http2PriorKnowledge: false }, poolConfig: {} });
 
 service /priorKnowledge on priorEp1 {
@@ -66,7 +66,7 @@ service /priorKnowledgeTestBackEnd on priorEp2 {
 
 @test:Config {}
 public function testPriorKnowledgeOn() {
-    http:Client clientEP = new("http://localhost:9111");
+    http:Client clientEP = checkpanic new("http://localhost:9111");
     http:Request req = new;
     var resp = clientEP->get("/priorKnowledge/on");
     if (resp is http:Response) {
@@ -78,7 +78,7 @@ public function testPriorKnowledgeOn() {
 
 @test:Config {}
 public function testPriorKnowledgeOff() {
-    http:Client clientEP = new("http://localhost:9111");
+    http:Client clientEP = checkpanic new("http://localhost:9111");
     var resp = clientEP->get("/priorKnowledge/off");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "HTTP2-Settings,upgrade--h2c--Prior knowledge is disabled");

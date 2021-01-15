@@ -17,10 +17,10 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpVerbListenerEP = new(httpVerbTestPort);
-http:Client httpVerbClient = new("http://localhost:" + httpVerbTestPort.toString());
+listener http:Listener httpVerbListenerEP = checkpanic new(httpVerbTestPort);
+http:Client httpVerbClient = checkpanic new("http://localhost:" + httpVerbTestPort.toString());
 
-http:Client endPoint = new("http://localhost:" + httpVerbTestPort.toString());
+http:Client endPoint = checkpanic new("http://localhost:" + httpVerbTestPort.toString());
 
 service /headQuote on httpVerbListenerEP {
 

@@ -20,11 +20,11 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP06 = new(9314, { httpVersion: "2.0" });
+listener http:Listener failoverEP06 = checkpanic new(9314, { httpVersion: "2.0" });
 
-listener http:Listener backendEP06 = new(8094, { httpVersion: "2.0" });
+listener http:Listener backendEP06 = checkpanic new(8094, { httpVersion: "2.0" });
 
-http:FailoverClient foBackendEP06 = new({
+http:FailoverClient foBackendEP06 = checkpanic new({
     timeoutInMillis: 5000,
     failoverCodes: [500, 501, 502, 503],
     intervalInMillis: 5000,
@@ -112,7 +112,7 @@ function sendErrorResponse(http:Caller caller, error e) {
 //Test basic failover scenario for HTTP2 clients. //////TODO: #24260
 @test:Config{}
 function testBasicHttp2Failover() {
-    http:Client testClient = new("http://localhost:9314");
+    http:Client testClient = checkpanic new("http://localhost:9314");
     var response = testClient->post("/failoverDemoService06/index", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");

@@ -230,7 +230,7 @@ function testGetCookiesWithEmptyValue() {
     test:assertEquals(cookiesInRequest[0].value, "", msg = "Invalid cookie value");
 }
 
-listener http:Listener requestListner = new(requestTest);
+listener http:Listener requestListner = checkpanic new(requestTest);
 
 service /requesthello on requestListner {
 
@@ -476,7 +476,7 @@ service /requesthello on requestListner {
     }
 }
 
-http:Client requestClient = new("http://localhost:" + requestTest.toString());
+http:Client requestClient = checkpanic new("http://localhost:" + requestTest.toString());
 
 // Test addHeader function within a service
 @test:Config {}

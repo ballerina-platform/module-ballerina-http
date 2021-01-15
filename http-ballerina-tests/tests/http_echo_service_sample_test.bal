@@ -19,8 +19,8 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener echoServiceTestListenerEP = new(echoServiceTestPort);
-http:Client echoServiceClient = new("http://localhost:" + echoServiceTestPort.toString());
+listener http:Listener echoServiceTestListenerEP = checkpanic new(echoServiceTestPort);
+http:Client echoServiceClient = checkpanic new("http://localhost:" + echoServiceTestPort.toString());
 
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
     secureSocket: {
@@ -31,7 +31,7 @@ http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
     }
 };
 
-listener http:Listener echoHttpsServiceTestListenerEP = new(echoHttpsServiceTestPort, echoHttpsServiceTestListenerEPConfig);
+listener http:Listener echoHttpsServiceTestListenerEP = checkpanic new(echoHttpsServiceTestPort, echoHttpsServiceTestListenerEPConfig);
 
 http:ClientConfiguration echoHttpsServiceClientConfig = {
     secureSocket: {
@@ -41,7 +41,7 @@ http:ClientConfiguration echoHttpsServiceClientConfig = {
         }
     }
 };
-http:Client echoHttpsServiceClient = new("https://localhost:" + echoHttpsServiceTestPort.toString(), echoHttpsServiceClientConfig);
+http:Client echoHttpsServiceClient = checkpanic new("https://localhost:" + echoHttpsServiceTestPort.toString(), echoHttpsServiceClientConfig);
 
 service /echoServiceTest1 on echoServiceTestListenerEP {
 

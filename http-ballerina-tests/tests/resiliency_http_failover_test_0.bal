@@ -22,13 +22,13 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP00 = new(9300);
+listener http:Listener failoverEP00 = checkpanic new(9300);
 
 // Create an endpoint with port 8080 for the mock backend services.
-listener http:Listener backendEP00 = new(8080);
+listener http:Listener backendEP00 = checkpanic new(8080);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP00 = new({
+http:FailoverClient foBackendEP00 = checkpanic new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -41,7 +41,7 @@ http:FailoverClient foBackendEP00 = new({
     ]
 });
 
-http:FailoverClient foBackendFailureEP00 = new({
+http:FailoverClient foBackendFailureEP00 = checkpanic new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -53,7 +53,7 @@ http:FailoverClient foBackendFailureEP00 = new({
     ]
 });
 
-http:FailoverClient foStatusCodesEP00 = new({
+http:FailoverClient foStatusCodesEP00 = checkpanic new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -221,7 +221,7 @@ service /failureStatusCodeService on backendEP00 {
 //Test basic failover functionality
 @test:Config {}
 function testSimpleFailover() {
-    http:Client testClient = new("http://localhost:9300");
+    http:Client testClient = checkpanic new("http://localhost:9300");
     var response = testClient->post("/failoverDemoService00/typical", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");

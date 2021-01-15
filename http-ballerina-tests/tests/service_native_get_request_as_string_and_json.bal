@@ -18,7 +18,7 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener testEP = new(requestTest2);
+listener http:Listener testEP = checkpanic new(requestTest2);
 
 service /MyService on testEP {
 
@@ -45,7 +45,7 @@ service /MyService on testEP {
     }
 }
 
-http:Client requestClient2 = new("http://localhost:" + requestTest2.toString());
+http:Client requestClient2 = checkpanic new("http://localhost:" + requestTest2.toString());
 
 @test:Config {}
 public function testAccessingPayloadAsTextAndJSON()  {

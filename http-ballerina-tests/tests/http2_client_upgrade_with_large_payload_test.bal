@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/test;
 
-http:Client eP1 = new("http://localhost:9106", { httpVersion: "2.0" });
+http:Client eP1 = checkpanic new("http://localhost:9106", { httpVersion: "2.0" });
 
 service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
 
@@ -147,7 +147,7 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
 
 @test:Config {}
 public function testClientUpgradewithLargePayload() {
-    http:Client clientEP = new("http://localhost:9106");
+    http:Client clientEP = checkpanic new("http://localhost:9106");
     var resp = clientEP->get("/http2EchoService/initial");
     string expectedPayload = "{\"web-app\":{\"servlet\":[{\"servlet-name\":\"cofaxCDS\", \"servlet-class\":"
                         + "\"org.cofax.cds.CDSServlet\", \"init-param\":{\"configGlossary:installationAt\":"

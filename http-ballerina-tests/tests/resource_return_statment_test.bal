@@ -19,8 +19,8 @@ import ballerina/mime;
 import ballerina/lang.'string as strings;
 import ballerina/test;
 
-listener http:Listener resourceReturnTestEP = new(resourceReturnTest);
-http:Client resourceReturnTestClient = new("http://localhost:" + resourceReturnTest.toString());
+listener http:Listener resourceReturnTestEP = checkpanic new(resourceReturnTest);
+http:Client resourceReturnTestClient = checkpanic new("http://localhost:" + resourceReturnTest.toString());
 
 type RetPerson record {
     string name;

@@ -18,7 +18,7 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-http:Client cachingEP4 = new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
+http:Client cachingEP4 = checkpanic new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
 
 service /validation\-request on cachingProxyListener {
 

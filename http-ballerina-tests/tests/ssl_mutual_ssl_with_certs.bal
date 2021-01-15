@@ -26,7 +26,7 @@ http:ListenerConfiguration mutualSslCertServiceConf = {
     }
 };
 
-listener http:Listener mutualSSLListener = new(9217, mutualSslCertServiceConf);
+listener http:Listener mutualSSLListener = checkpanic new(9217, mutualSslCertServiceConf);
 
 service /mutualSSLService on mutualSSLListener {
     
@@ -72,7 +72,7 @@ http:ClientConfiguration mutualSslCertClientConf = {
 
 @test:Config {}
 public function testMutualSslWithCerts() {
-    http:Client clientEP = new("https://localhost:9217", mutualSslCertClientConf );
+    http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf );
     http:Request req = new;
     var resp = clientEP->get("/mutualSSLService/");
     if (resp is http:Response) {

@@ -19,9 +19,9 @@ import ballerina/io;
 import ballerina/mime;
 import ballerina/test;
 
-listener http:Listener serviceEndpoint2 = new(9102);
+listener http:Listener serviceEndpoint2 = checkpanic new(9102);
 
-listener http:Listener serviceEndpoint3 = new(9103);
+listener http:Listener serviceEndpoint3 = checkpanic new(9103);
 
 http:ListenerConfiguration httpsEPConfig = {
     secureSocket: {
@@ -32,7 +32,7 @@ http:ListenerConfiguration httpsEPConfig = {
     }
 };
 
-listener http:Listener httpsEP = new(9104, httpsEPConfig);
+listener http:Listener httpsEP = checkpanic new(9104, httpsEPConfig);
 
 http:ClientConfiguration endPoint1Config = {
     followRedirects: { enabled: true, maxCount: 3 }
@@ -60,11 +60,11 @@ http:ClientConfiguration endPoint5Config = {
     }
 };
 
-http:Client endPoint1 = new("http://localhost:9103", endPoint1Config );
-http:Client endPoint2 = new("http://localhost:9103", endPoint2Config );
-http:Client endPoint3 = new("http://localhost:9102", endPoint3Config );
-http:Client endPoint4 = new("http://localhost:9103");
-http:Client endPoint5 = new("https://localhost:9104", endPoint5Config );
+http:Client endPoint1 = checkpanic new("http://localhost:9103", endPoint1Config );
+http:Client endPoint2 = checkpanic new("http://localhost:9103", endPoint2Config );
+http:Client endPoint3 = checkpanic new("http://localhost:9102", endPoint3Config );
+http:Client endPoint4 = checkpanic new("http://localhost:9103");
+http:Client endPoint5 = checkpanic new("https://localhost:9104", endPoint5Config );
 
 service /testRedirectService on serviceEndpoint3 {
 
@@ -213,7 +213,7 @@ service /testRedirectService on serviceEndpoint3 {
     }
 
     resource function get doPost(http:Caller caller, http:Request request) {
-        http:Client endPoint4 = new("http://localhost:9103", endPoint4Config );
+        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -250,7 +250,7 @@ service /testRedirectService on serviceEndpoint3 {
     }
 
     resource function get testMultipart(http:Caller caller, http:Request req) {
-        http:Client endPoint3 = new("http://localhost:9103", endPoint3Config );
+        http:Client endPoint3 = checkpanic new("http://localhost:9103", endPoint3Config );
         mime:Entity jsonBodyPart = new;
         jsonBodyPart.setContentDisposition(getContentDispositionForFormData("json part"));
         jsonBodyPart.setJson({"name": "wso2"});
@@ -397,7 +397,7 @@ service /redirect3 on httpsEP {
 
 @test:Config {}
 public function testHttpRedirects() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "http://localhost:9102/redirect2");
@@ -408,7 +408,7 @@ public function testHttpRedirects() {
 
 @test:Config {}
 public function testMaxRedirect() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/maxRedirect");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "/redirect1/round5:http://localhost:9103/redirect1/round4");
@@ -419,7 +419,7 @@ public function testMaxRedirect() {
 
 @test:Config {}
 public function testCrossDomain() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/noRedirect");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -430,7 +430,7 @@ public function testCrossDomain() {
 
 @test:Config {}
 public function testNoRedirect() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/crossDomain");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -441,7 +441,7 @@ public function testNoRedirect() {
 
 @test:Config {}
 public function testRedirectOff() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/redirectOff");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "/redirect1/round2:");
@@ -452,7 +452,7 @@ public function testRedirectOff() {
 
 @test:Config {}
 public function testQPWithRelativePath() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/qpWithRelativePath");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
@@ -463,7 +463,7 @@ public function testQPWithRelativePath() {
 
 @test:Config {}
 public function testQPWithAbsolutePath() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/qpWithAbsolutePath");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
@@ -474,7 +474,7 @@ public function testQPWithAbsolutePath() {
 
 @test:Config {}
 public function testOriginalRequestWithQP() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/originalRequestWithQP");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -485,7 +485,7 @@ public function testOriginalRequestWithQP() {
 
 @test:Config {}
 public function test303Status() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/test303");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -496,7 +496,7 @@ public function test303Status() {
 
 @test:Config {}
 public function testRedirectWithHTTPs() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/httpsRedirect");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "HTTPs Result:https://localhost:9104/redirect3/result");
@@ -507,7 +507,7 @@ public function testRedirectWithHTTPs() {
 
 @test:Config {}
 public function testRedirectWithPOST() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/doPost");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
@@ -518,7 +518,7 @@ public function testRedirectWithPOST() {
 
 @test:Config {}
 public function testWithHTTPs() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/doSecurePut");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "Received:Secure payload:No Proxy:http://localhost:9102/redirect2/echo");
@@ -529,7 +529,7 @@ public function testWithHTTPs() {
 
 @test:Config {}
 public function testMultipartRedirect() {
-    http:Client httpClient = new("http://localhost:9103");
+    http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/testMultipart");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "{\"name\":\"wso2\"}:http://localhost:9102/redirect2/echo");
