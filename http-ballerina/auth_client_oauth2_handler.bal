@@ -19,16 +19,19 @@ import ballerina/oauth2;
 # Represents OAuth2 client credentials grant configurations for OAuth2 authentication.
 public type OAuth2ClientCredentialsGrantConfig record {|
     *oauth2:ClientCredentialsGrantConfig;
+    int inspectStatusCode = STATUS_UNAUTHORIZED;
 |};
 
 # Represents OAuth2 password grant configurations for OAuth2 authentication.
 public type OAuth2PasswordGrantConfig record {|
     *oauth2:PasswordGrantConfig;
+    int inspectStatusCode = STATUS_UNAUTHORIZED;
 |};
 
 # Represents OAuth2 direct token configurations for OAuth2 authentication.
 public type OAuth2DirectTokenConfig record {|
     *oauth2:DirectTokenConfig;
+    int inspectStatusCode = STATUS_UNAUTHORIZED;
 |};
 
 # Represents OAuth2 grant configurations for OAuth2 authentication.
@@ -38,12 +41,14 @@ public type OAuth2GrantConfig OAuth2ClientCredentialsGrantConfig|OAuth2PasswordG
 public client class ClientOAuth2Handler {
 
     oauth2:ClientOAuth2Provider provider;
+    int inspectStatusCode;
 
     # Initializes the `http:ClientOAuth2Handler` object.
     #
     # + config - The `http:OAuth2GrantConfig` instance
     public isolated function init(OAuth2GrantConfig config) {
         self.provider = new(config);
+        self.inspectStatusCode = config.inspectStatusCode;
     }
 
     # Enrich the request with the relevant authentication requirements.
@@ -57,5 +62,21 @@ public client class ClientOAuth2Handler {
         }
         req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + checkpanic result);
         return req;
+    }
+
+    # Inspect the request with the relevant authentication requirements.
+    #
+    # + req - The `http:Request` instance
+    # + res - The `http:Response` instance
+    # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
+    remote isolated function inspect(Request req, Response res) returns Request|ClientAuthError {
+        if (res.statusCode == self.inspectStatusCode) {
+            string|oauth2:Error result = self.provider.refreshToken();
+            if (result is oauth2:Error) {
+                return prepareClientAuthError("Failed to inspect response with OAuth2 token.", result);
+            }
+            req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + checkpanic result);
+            return req;
+        }
     }
 }
