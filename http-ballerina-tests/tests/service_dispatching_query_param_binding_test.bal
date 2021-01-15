@@ -85,7 +85,7 @@ function testNegativeIntQueryBindingCastingError() {
     var response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=go");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500);
-        assertTextPayload(response.getTextPayload(), "error in casting query param : For input string: \"go\"");
+        assertTextPayload(response.getTextPayload(), "Error in casting query param : For input string: \"go\"");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

@@ -198,7 +198,7 @@ public class Response {
             var payload = externGetJson(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the json payload from the response";
                     return error GenericClientError(message, payload);
@@ -220,7 +220,7 @@ public class Response {
             var payload = externGetXml(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the xml payload from the response";
                     return error GenericClientError(message, payload);
@@ -242,7 +242,7 @@ public class Response {
             var payload = externGetText(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the text payload from the response";
                     return error GenericClientError(message, payload);
@@ -321,7 +321,7 @@ public class Response {
     # Sets the current time as the `last-modified` header.
     public isolated function setLastModified() {
         time:Time currentT = time:currentTime();
-        var lastModified = time:format(currentT, time:TIME_FORMAT_RFC_1123);
+        var lastModified = time:format(currentT, time:RFC_1123_DATE_TIME);
         if (lastModified is string) {
             self.setHeader(LAST_MODIFIED, lastModified);
         } else {

@@ -119,14 +119,17 @@ annotation HttpParamOrderConfig ParamOrderConfig on object function;
 #
 # + mediaType - Specifies the allowed media types of the corresponding payload type
 public type HttpPayload record {|
-    string|string[] mediaType = "";
+    string|string[] mediaType?;
 |};
 
 # The annotation which is used to define the Payload resource signature parameter and return parameter.
-public annotation HttpPayload Payload on parameter;
+public annotation HttpPayload Payload on parameter, return;
 
 # Configures the typing details type of the Caller resource signature parameter.
+#
+# + respondType - Specifies the type of response
 public type HttpCallerInfo record {|
+    string respondType?;
 |};
 
 # The annotation which is used to configure the type of the response.

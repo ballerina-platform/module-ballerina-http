@@ -59,13 +59,13 @@ dependencies {
 }
 
 test {
-    useTestNG() {
-        suites 'src/test/resources/testng.xml'
-    }
-    testLogging.showStandardStreams = true
-    testLogging {
-        events "PASSED", "FAILED", "SKIPPED"
-    }
+//    useTestNG() {
+//        suites 'src/test/resources/testng.xml'
+//    }
+//    testLogging.showStandardStreams = true
+//    testLogging {
+//        events "PASSED", "FAILED", "SKIPPED"
+//    }
 }
 
 checkstyle {

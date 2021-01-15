@@ -89,19 +89,3 @@ isolated function convertToArray(string spaceSeperatedString) returns string[] {
     }
     return stringutils:split(spaceSeperatedString, " ");
 }
-
-// TODO: Remove these once all the types are implemented
-public type UNAUTHORIZED_401 "Unauthorized";
-public type Unauthorized record {
-    UNAUTHORIZED_401 unauthorized = "Unauthorized";
-    string message?;
-    map<string|string[]> headers?;
-};
-
-// TODO: Remove these once all the types are implemented
-public type FORBIDDEN_403 "Forbidden";
-public type Forbidden record {
-    FORBIDDEN_403 forbidden = "Forbidden";
-    string message?;
-    map<string|string[]> headers?;
-};

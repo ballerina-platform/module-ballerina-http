@@ -50,7 +50,7 @@ isolated function getResponseAge(Response cachedResponse) returns @tainted int {
 isolated function getDateValue(Response inboundResponse) returns int {
     if (inboundResponse.hasHeader(DATE)) {
         string dateHeader = inboundResponse.getHeader(DATE); // TODO: May need to handle invalid date headers
-        var dateHeaderTime = time:parse(dateHeader, time:TIME_FORMAT_RFC_1123);
+        var dateHeaderTime = time:parse(dateHeader, time:RFC_1123_DATE_TIME);
         return (dateHeaderTime is time:Time) ? dateHeaderTime.time : 0;
     }
 
@@ -58,7 +58,7 @@ isolated function getDateValue(Response inboundResponse) returns int {
 
     // Based on https://tools.ietf.org/html/rfc7231#section-7.1.1.2
     time:Time currentT = time:currentTime();
-    string timeStr = <string> checkpanic time:format(currentT, time:TIME_FORMAT_RFC_1123);
+    string timeStr = <string> checkpanic time:format(currentT, time:RFC_1123_DATE_TIME);
 
     inboundResponse.setHeader(DATE, timeStr);
     return currentT.time;

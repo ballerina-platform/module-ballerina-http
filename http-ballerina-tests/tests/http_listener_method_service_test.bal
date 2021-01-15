@@ -72,7 +72,7 @@ function testServiceAttachAndStart() {
     }
 }
 
-@test:Config {dependsOn:["testServiceAttachAndStart"]}
+@test:Config {dependsOn:[testServiceAttachAndStart]}
 function testAvailabilityOfAttachedService() {
     var response = backendTestClient->get("/mock1");
     if (response is http:Response) {
@@ -84,7 +84,7 @@ function testAvailabilityOfAttachedService() {
     }
 }
 
-@test:Config {dependsOn:["testAvailabilityOfAttachedService"]}
+@test:Config {dependsOn:[testAvailabilityOfAttachedService]}
 function testGracefulStopMethod() {
     var response = backendTestClient->get("/mock2");
     if (response is http:Response) {
@@ -97,7 +97,7 @@ function testGracefulStopMethod() {
 }
 
 // Disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25675
-@test:Config {dependsOn:["testGracefulStopMethod"], enable:false}
+@test:Config {dependsOn:[testGracefulStopMethod], enable:false}
 function testInvokingStoppedService() {
     runtime:sleep(10);
     var response = backendTestClient->get("/mock1");

@@ -53,7 +53,7 @@ function testDirtyResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "couldn't complete the respond operation as the response has" +
+        assertTextPayload(response.getTextPayload(), "Couldn't complete the respond operation as the response has" +
                         " been already used.");
         test:assertEquals(dirtyErrorLog, "Couldn't complete the respond operation as the response has" +
                         " been already used.");
