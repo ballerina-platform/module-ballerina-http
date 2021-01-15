@@ -388,7 +388,8 @@ function isExpiresAttributeValid(Cookie cookie) returns boolean {
         if (t1 is time:Time) {
             int year = time:getYear(t1);
             if (year <= 69 && year >= 0) {
-                time:Time tmAdd = time:addDuration(t1, 2000, 0, 0, 0, 0, 0, 0);
+                time:Duration delta = {years: 2000};
+                time:Time tmAdd = time:addDuration(t1, delta);
                 string|error timeString = time:format(tmAdd, "E, dd MMM yyyy HH:mm:ss");
                 if (timeString is string) {
                     cookie.expires = timeString + " GMT";
@@ -447,7 +448,8 @@ function addPersistentCookie(Cookie? identicalCookie, Cookie cookie, string url,
 // Returns true if the cookie is expired according to the rules in [RFC-6265](https://tools.ietf.org/html/rfc6265#section-4.1.2.2).
 function isExpired(Cookie cookie) returns boolean {
     if (cookie.maxAge > 0) {
-        time:Time expTime = time:addDuration(cookie.createdTime, 0, 0, 0, 0, 0, cookie.maxAge, 0);
+        time:Duration delta = {seconds: cookie.maxAge};
+        time:Time expTime = time:addDuration(cookie.createdTime, delta);
         time:Time curTime = time:currentTime();
         return (expTime.time < curTime.time);
     }
