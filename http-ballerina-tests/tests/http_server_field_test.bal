@@ -18,10 +18,10 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-// listener http:Listener echoEP1 = checkpanic new(9094, {server: "Mysql"});
+// listener http:Listener echoEP1 = new(9094, {server: "Mysql"});
 
-listener http:Listener httpServerFieldListenerEP1 = checkpanic new(httpServerFieldTestPort1, {server: "Mysql"});
-http:Client httpServerFieldClient = checkpanic new("http://localhost:" + httpServerFieldTestPort1.toString());
+listener http:Listener httpServerFieldListenerEP1 = new(httpServerFieldTestPort1, {server: "Mysql"});
+http:Client httpServerFieldClient = check new("http://localhost:" + httpServerFieldTestPort1.toString());
 
 service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
 

@@ -26,7 +26,7 @@ http:ListenerConfiguration serviceConf = {
     }
 };
 
-listener http:Listener httpsListener = checkpanic new(9238, serviceConf);
+listener http:Listener httpsListener = new(9238, serviceConf);
 
 service /httpsService on httpsListener {
     

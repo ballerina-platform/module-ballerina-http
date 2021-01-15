@@ -44,7 +44,7 @@ http:ListenerConfiguration mutualSslServiceConf = {
     }
 };
 
-listener http:Listener echo15 = checkpanic new(9116, mutualSslServiceConf);
+listener http:Listener echo15 = new(9116, mutualSslServiceConf);
 
 service /helloWorld15 on echo15 {
     
@@ -79,7 +79,7 @@ service /helloWorld15 on echo15 {
     }
 }
 
-listener http:Listener echoDummy15 = checkpanic new(9117);
+listener http:Listener echoDummy15 = new(9117);
 
 service /echoDummyService15 on echoDummy15 {
 

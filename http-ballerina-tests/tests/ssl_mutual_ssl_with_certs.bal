@@ -26,7 +26,7 @@ http:ListenerConfiguration mutualSslCertServiceConf = {
     }
 };
 
-listener http:Listener mutualSSLListener = checkpanic new(9217, mutualSslCertServiceConf);
+listener http:Listener mutualSSLListener = new(9217, mutualSslCertServiceConf);
 
 service /mutualSSLService on mutualSSLListener {
     

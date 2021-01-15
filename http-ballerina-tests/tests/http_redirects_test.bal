@@ -19,9 +19,9 @@ import ballerina/io;
 import ballerina/mime;
 import ballerina/test;
 
-listener http:Listener serviceEndpoint2 = checkpanic new(9102);
+listener http:Listener serviceEndpoint2 = new(9102);
 
-listener http:Listener serviceEndpoint3 = checkpanic new(9103);
+listener http:Listener serviceEndpoint3 = new(9103);
 
 http:ListenerConfiguration httpsEPConfig = {
     secureSocket: {
@@ -32,7 +32,7 @@ http:ListenerConfiguration httpsEPConfig = {
     }
 };
 
-listener http:Listener httpsEP = checkpanic new(9104, httpsEPConfig);
+listener http:Listener httpsEP = check new(9104, httpsEPConfig);
 
 http:ClientConfiguration endPoint1Config = {
     followRedirects: { enabled: true, maxCount: 3 }
@@ -60,11 +60,11 @@ http:ClientConfiguration endPoint5Config = {
     }
 };
 
-http:Client endPoint1 = checkpanic new("http://localhost:9103", endPoint1Config );
-http:Client endPoint2 = checkpanic new("http://localhost:9103", endPoint2Config );
-http:Client endPoint3 = checkpanic new("http://localhost:9102", endPoint3Config );
-http:Client endPoint4 = checkpanic new("http://localhost:9103");
-http:Client endPoint5 = checkpanic new("https://localhost:9104", endPoint5Config );
+http:Client endPoint1 = check new("http://localhost:9103", endPoint1Config );
+http:Client endPoint2 = check new("http://localhost:9103", endPoint2Config );
+http:Client endPoint3 = check new("http://localhost:9102", endPoint3Config );
+http:Client endPoint4 = check new("http://localhost:9103");
+http:Client endPoint5 = check new("https://localhost:9104", endPoint5Config );
 
 service /testRedirectService on serviceEndpoint3 {
 

@@ -19,7 +19,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/stringutils;
 
-listener http:Listener passthroughEP1 = checkpanic new(9113);
+listener http:Listener passthroughEP1 = new(9113);
 
 service /passthrough on passthroughEP1 {
 

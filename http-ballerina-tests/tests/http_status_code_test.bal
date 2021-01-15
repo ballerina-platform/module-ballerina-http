@@ -17,8 +17,8 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpStatusCodeListenerEP = checkpanic new(httpStatusCodeTestPort);
-http:Client httpStatusCodeClient = checkpanic new("http://localhost:" + httpStatusCodeTestPort.toString());
+listener http:Listener httpStatusCodeListenerEP = new(httpStatusCodeTestPort);
+http:Client httpStatusCodeClient = check new("http://localhost:" + httpStatusCodeTestPort.toString());
 
 service /differentStatusCodes on httpStatusCodeListenerEP {
 

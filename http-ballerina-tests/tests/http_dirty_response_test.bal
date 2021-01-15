@@ -18,8 +18,8 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener dirtyResponseListener = checkpanic new(dirtyResponseTestPort);
-http:Client dirtyResponseTestClient = checkpanic new("http://localhost:" + dirtyResponseTestPort.toString());
+listener http:Listener dirtyResponseListener = new(dirtyResponseTestPort);
+http:Client dirtyResponseTestClient = check new("http://localhost:" + dirtyResponseTestPort.toString());
 
 http:Response dirtyResponse = getSingletonResponse();
 string dirtyErrorLog = "";

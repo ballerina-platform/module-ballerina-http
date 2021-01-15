@@ -17,8 +17,8 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener QueryBindingEP = checkpanic new(queryParamBindingTest);
-http:Client queryBindingClient = checkpanic new("http://localhost:" + queryParamBindingTest.toString());
+listener http:Listener QueryBindingEP = new(queryParamBindingTest);
+http:Client queryBindingClient = check new("http://localhost:" + queryParamBindingTest.toString());
 
 service /queryparamservice on QueryBindingEP {
 

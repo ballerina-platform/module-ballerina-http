@@ -31,7 +31,7 @@ http:ListenerConfiguration sslProtocolServiceConfig = {
     }
 };
 
-listener http:Listener sslProtocolListener = checkpanic new(9249, config = sslProtocolServiceConfig);
+listener http:Listener sslProtocolListener = new(9249, config = sslProtocolServiceConfig);
 
 service /protocol on sslProtocolListener {
     

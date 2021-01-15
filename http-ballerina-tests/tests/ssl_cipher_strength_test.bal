@@ -31,7 +31,7 @@ http:ListenerConfiguration strongCipherConfig = {
     }
 };
 
-listener http:Listener strongCipher = checkpanic new(9226, strongCipherConfig);
+listener http:Listener strongCipher = new(9226, strongCipherConfig);
 
 service /strongService on strongCipher {
 
@@ -56,7 +56,7 @@ http:ListenerConfiguration weakCipherConfig = {
     }
 };
 
-listener http:Listener weakCipher = checkpanic new(9227, weakCipherConfig);
+listener http:Listener weakCipher = new(9227, weakCipherConfig);
 
 service /weakService on weakCipher {
     

@@ -19,7 +19,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener mimeEP = checkpanic new(mimeTest);
+listener http:Listener mimeEP = new(mimeTest);
 
 service /test on mimeEP {
 
@@ -143,7 +143,7 @@ function testPayloadInResponse() {
     }
 }
 
-http:Client mimeClient = checkpanic new("http://localhost:" + mimeTest.toString());
+http:Client mimeClient = check new("http://localhost:" + mimeTest.toString());
 
 // Access entity to read payload and send back
 @test:Config {}

@@ -36,7 +36,7 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
 }
 
 // Mock OAuth2 authorization server implementation, which treats the APIs with successful responses.
-listener http:Listener oauth2Listener = checkpanic new(oauth2AuthorizationServerPort, {
+listener http:Listener oauth2Listener = new(oauth2AuthorizationServerPort, {
     secureSocket: {
         keyStore: {
             path: KEYSTORE_PATH,

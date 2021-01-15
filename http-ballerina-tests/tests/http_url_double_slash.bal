@@ -17,11 +17,11 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpUrlListenerEP1 = checkpanic new(httpUrlTestPort1);
-listener http:Listener httpUrlListenerEP2 = checkpanic new(httpUrlTestPort2);
-http:Client httpUrlClient = checkpanic new("http://localhost:" + httpUrlTestPort1.toString());
+listener http:Listener httpUrlListenerEP1 = new(httpUrlTestPort1);
+listener http:Listener httpUrlListenerEP2 = new(httpUrlTestPort2);
+http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString());
 
-http:Client urlClient = checkpanic new("http://localhost:" + httpUrlTestPort2.toString() + "//url", { cache: { enabled: false }});
+http:Client urlClient = check new("http://localhost:" + httpUrlTestPort2.toString() + "//url", { cache: { enabled: false }});
 
 service "/url//test" on httpUrlListenerEP2 {
 

@@ -19,11 +19,11 @@ import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 
-http:Client mimeClientEP1 = checkpanic new("http://localhost:9100", { httpVersion: "2.0" });
-http:Client mimeClientEP2 = checkpanic new("http://localhost:9100", { httpVersion: "2.0" });
-http:Client priorKnowclientEP1 = checkpanic new("http://localhost:9100", { httpVersion: "2.0",
+http:Client mimeClientEP1 = check new("http://localhost:9100", { httpVersion: "2.0" });
+http:Client mimeClientEP2 = check new("http://localhost:9100", { httpVersion: "2.0" });
+http:Client priorKnowclientEP1 = check new("http://localhost:9100", { httpVersion: "2.0",
                                     http2Settings: { http2PriorKnowledge: true } });
-http:Client priorKnowclientEP2 = checkpanic new("http://localhost:9100", { httpVersion: "2.0",
+http:Client priorKnowclientEP2 = check new("http://localhost:9100", { httpVersion: "2.0",
                                     http2Settings: { http2PriorKnowledge: true } });
 
 service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {

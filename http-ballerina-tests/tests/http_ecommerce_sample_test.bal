@@ -19,8 +19,8 @@ import ballerina/stringutils;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener ecommerceListenerEP = checkpanic new(ecommerceTestPort);
-http:Client ecommerceClient = checkpanic new("http://localhost:" + ecommerceTestPort.toString());
+listener http:Listener ecommerceListenerEP = new(ecommerceTestPort);
+http:Client ecommerceClient = check new("http://localhost:" + ecommerceTestPort.toString());
 
 service /customerservice on ecommerceListenerEP {
 
@@ -39,7 +39,7 @@ service /customerservice on ecommerceListenerEP {
     }
 }
 
-http:Client productsService = checkpanic new("http://localhost:" + ecommerceTestPort.toString());
+http:Client productsService = check new("http://localhost:" + ecommerceTestPort.toString());
 
 service /ecommerceservice on ecommerceListenerEP {
 

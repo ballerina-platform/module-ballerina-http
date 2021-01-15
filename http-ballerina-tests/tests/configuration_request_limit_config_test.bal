@@ -42,10 +42,10 @@ http:ListenerConfiguration midSizeHeaderConfig = {
     }
 };
 
-listener http:Listener normalRequestLimitEP = checkpanic new(requestLimitsTestPort1, urlLimitConfig);
-listener http:Listener lowRequestLimitEP = checkpanic new(requestLimitsTestPort2, lowUrlLimitConfig);
-listener http:Listener lowHeaderLimitEP = checkpanic new(requestLimitsTestPort3, lowHeaderConfig);
-listener http:Listener midHeaderLimitEP = checkpanic new(requestLimitsTestPort4, midSizeHeaderConfig);
+listener http:Listener normalRequestLimitEP = new(requestLimitsTestPort1, urlLimitConfig);
+listener http:Listener lowRequestLimitEP = new(requestLimitsTestPort2, lowUrlLimitConfig);
+listener http:Listener lowHeaderLimitEP = new(requestLimitsTestPort3, lowHeaderConfig);
+listener http:Listener midHeaderLimitEP = new(requestLimitsTestPort4, midSizeHeaderConfig);
 
 service /requestUriLimit on normalRequestLimitEP {
 

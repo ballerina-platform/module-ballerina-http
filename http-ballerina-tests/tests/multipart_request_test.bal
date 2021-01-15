@@ -25,8 +25,8 @@ function setErrorResponse(http:Response response, error err) {
     response.setPayload(<@untainted> err.message());
 }
 
-listener http:Listener multipartReqEP = checkpanic new(multipartRequestTest);
-http:Client multipartReqClient = checkpanic new("http://localhost:" + multipartRequestTest.toString());
+listener http:Listener multipartReqEP = new(multipartRequestTest);
+http:Client multipartReqClient = check new("http://localhost:" + multipartRequestTest.toString());
 
 service /test on multipartReqEP {
 
