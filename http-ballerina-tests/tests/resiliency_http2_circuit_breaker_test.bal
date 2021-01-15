@@ -100,7 +100,7 @@ http:Client h2CBTestClient = new("http://localhost:9315");
 
 @test:Config{
     enable:false,
-    dataProvider:"http2CircuitBreakerDataProvider"
+    dataProvider:http2CircuitBreakerDataProvider
 }
 function testBasicHttp2CircuitBreaker(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun", dataFeed);

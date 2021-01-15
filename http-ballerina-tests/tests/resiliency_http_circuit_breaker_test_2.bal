@@ -79,9 +79,7 @@ service /healthy on new http:Listener(8087) {
 //Test for circuit breaker forceOpen functionality
 http:Client testForceOpenClient = new("http://localhost:9307");
 
-@test:Config{
-    dataProvider:"forceOpenResponseDataProvider"
-}
+@test:Config{ dataProvider:forceOpenResponseDataProvider }
 function testForceOpen(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
