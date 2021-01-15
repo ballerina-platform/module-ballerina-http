@@ -45,7 +45,8 @@ public client class Client {
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
-    public function init(string url, ClientConfiguration? config = ()) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(string url, ClientConfiguration? config = ()) returns ClientError? {
         self.config = config ?: {};
         self.url = url;
         var cookieConfigVal = self.config.cookieConfig;
@@ -55,8 +56,8 @@ public client class Client {
             }
         }
         var result = initialize(url, self.config, self.cookieStore);
-        if (result is error) {
-            panic result;
+        if (result is ClientError) {
+            return result;
         } else {
             self.httpClient = result;
         }
@@ -454,7 +455,7 @@ public type CookieConfig record {|
      PersistentCookieHandler persistentCookieHandler?;
 |};
 
-function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|error {
+function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
     boolean httpClientRequired = false;
     string url = serviceUrl;
     if (url.endsWith("/")) {

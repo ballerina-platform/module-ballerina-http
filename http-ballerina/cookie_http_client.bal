@@ -36,7 +36,9 @@ public client class CookieClient {
     # + cookieConfig - Configurations associated with the cookies
     # + httpClient - HTTP client for outbound HTTP requests
     # + cookieStore - Stores the cookies of the client
-     public function init(string url, ClientConfiguration config, CookieConfig cookieConfig, HttpClient httpClient, CookieStore? cookieStore) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+     public function init(string url, ClientConfiguration config, CookieConfig cookieConfig, HttpClient httpClient,
+            CookieStore? cookieStore) returns ClientError? {
          self.url = url;
          self.config = config;
          self.cookieConfig = cookieConfig;

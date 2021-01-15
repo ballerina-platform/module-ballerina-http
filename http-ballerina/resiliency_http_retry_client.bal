@@ -53,8 +53,9 @@ public client class RetryClient {
     # + config - HTTP ClientConfiguration to be used for HTTP client invocation
     # + retryInferredConfig - Derived set of configurations associated with retry
     # + httpClient - HTTP client for outbound HTTP requests
+    # + return - The `client` or an `http:ClientError` if the initialization failed
     public function init(string url, ClientConfiguration config, RetryInferredConfig retryInferredConfig,
-                                        HttpClient httpClient) {
+                                        HttpClient httpClient) returns ClientError? {
         self.url = url;
         self.config = config;
         self.retryInferredConfig = retryInferredConfig;

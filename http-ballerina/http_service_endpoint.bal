@@ -32,13 +32,14 @@ public class Listener {
     #
     # + port - Listening port of the HTTP service listener
     # + config - Configurations for the HTTP service listener
-    public isolated function init(int port, ListenerConfiguration? config = ()) {
+    # + return - The `listener` or an `error` if the initialization failed
+    public isolated function init(int port, ListenerConfiguration? config = ()) returns error? {
         self.instanceId = uuid();
         self.config = config ?: {};
         self.port = port;
         error? err = externInitEndpoint(self);
         if (err is error) {
-            panic err;
+            return err;
         }
     }
 

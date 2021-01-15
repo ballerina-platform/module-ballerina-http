@@ -35,7 +35,9 @@ public client class RedirectClient {
     # + config - HTTP ClientConfiguration to be used for HTTP client invocation
     # + redirectConfig - Configurations associated with redirect
     # + httpClient - HTTP client for outbound HTTP requests
-    public function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient)
+            returns ClientError? {
         self.url = url;
         self.config = config;
         self.redirectConfig = redirectConfig;
