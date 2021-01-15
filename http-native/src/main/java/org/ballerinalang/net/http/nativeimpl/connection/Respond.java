@@ -53,7 +53,6 @@ public class Respond extends ConnectionAction {
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
-
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
         DataContext dataContext = new DataContext(env, inboundRequestMsg);
         if (isDirtyResponse(outboundResponseObj)) {
@@ -110,7 +109,7 @@ public class Respond extends ConnectionAction {
             dataContext.getFuture().complete(e);
         } catch (Throwable e) {
             //Exception is already notified by http transport.
-            String errorMessage = "Couldn't complete outbound response";
+            String errorMessage = "Couldn't complete outbound response: " + e != null ? e.getMessage() : "";
             log.debug(errorMessage, e);
             dataContext.getFuture().complete(
                     HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR));

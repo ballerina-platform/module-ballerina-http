@@ -383,7 +383,7 @@ function test405HandleError() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "method not allowed");
+        assertTextPayload(response.getTextPayload(), "Method not allowed");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

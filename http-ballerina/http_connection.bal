@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/java;
+import ballerina/lang.value as val;
 
 # The caller actions for responding to client requests.
 #
@@ -241,6 +242,119 @@ public client class Caller {
     # + return - The hostname of the address or else `()` if it is unresolved
     public isolated function getRemoteHostName() returns string? {
         return nativeGetRemoteHostName(self);
+    }
+
+    private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType) 
+            returns ListenerError? {
+        Response response = new;
+        if (message is StatusCodeResponse) {
+            response = createStatusCodeResponse(message, returnMediaType);
+        } else if (message is Response) {
+            response = message;
+            // Update content-type header with mediaType annotation value only if the response does not already 
+            // have a similar header
+            if (returnMediaType is string && !response.hasHeader(CONTENT_TYPE)) {
+                response.setHeader(CONTENT_TYPE, returnMediaType);
+            }
+        } else {
+            setPayload(message, response);
+            if (returnMediaType is string) {
+                response.setHeader(CONTENT_TYPE, returnMediaType);
+            }
+        }
+        // Engage response filters
+        FilterContext? filterContext = self.filterContext;
+        (RequestFilter|ResponseFilter)[] filters = self.config.filters;
+        int i = filters.length() - 1;
+        if (filterContext is FilterContext) {
+            while (i >= 0) {
+                var filter = filters[i];
+                if (filter is ResponseFilter && !filter.filterResponse(response, filterContext)) {
+                    Response res = new;
+                    res.statusCode = 500;
+                    return nativeRespond(self, res);
+                }
+                i -= 1;
+            }
+        }
+        return nativeRespond(self, response);
+    }
+}
+
+isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType) returns Response {
+    Response response = new;
+    response.statusCode = message.status.code;
+
+    var headers = message?.headers;
+    if (headers is map<string[]>) {
+        foreach var [headerKey, headerValues] in headers.entries() {
+            foreach string headerValue in headerValues {
+                response.addHeader(headerKey, headerValue);
+            }
+        }
+    } else if (headers is map<string>) {
+        foreach var [headerKey, headerValue] in headers.entries() {
+            response.setHeader(headerKey, headerValue);
+        }
+    } else if (headers is map<string|string[]>) {
+        foreach var [headerKey, headerValue] in headers.entries() {
+            if (headerValue is string[]) {
+                foreach string value in headerValue {
+                    response.addHeader(headerKey, value);
+                }
+            } else {
+                response.setHeader(headerKey, headerValue);
+            }
+        }
+    }
+
+    setPayload(message?.body, response);
+
+    // Update content-type header according to the priority. (Highest to lowest)
+    // 1. MediaType field in response record
+    // 2. Payload annotation mediaType value
+    // 3. Default content type related to payload
+    string? mediaType = message?.mediaType;
+    if (mediaType is string) {
+        response.setHeader(CONTENT_TYPE, mediaType);
+        return response;
+    }
+    if (returnMediaType is string) {
+        response.setHeader(CONTENT_TYPE, returnMediaType);
+    }
+    return response;
+}
+
+isolated function setPayload(anydata payload, Response response) {
+    if (payload is ()) {
+        return;
+    } else if (payload is xml) {
+        response.setXmlPayload(payload);
+    } else if (payload is string) {
+        response.setTextPayload(payload);
+    } else if (payload is byte[]) {
+        response.setBinaryPayload(payload);
+    } else if (payload is table<anydata>) {
+        // Can remove this scope after https://github.com/ballerina-platform/ballerina-lang/issues/27860 is fixed
+        castToJsonAndSetPayload(response, payload.toArray(), "table<anydata> to json conversion error: " );
+    } else if (payload is table<anydata>[]) {
+        // Can remove this scope after https://github.com/ballerina-platform/ballerina-lang/issues/27860 is fixed
+        anydata[] tableArr = [];
+        foreach var index in 0 ... payload.length()-1 {
+            tableArr[index] = payload[index].toArray();
+        }
+        castToJsonAndSetPayload(response, tableArr, "table<anydata>[] to json conversion error: " );
+    } else {
+        castToJsonAndSetPayload(response, payload, "anydata to json conversion error: " );
+    }
+}
+
+isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg) {
+    var result = trap val:toJson(payload);
+    if (result is error) {
+        panic error InitializingOutboundResponseError(errMsg + result.message(), result);
+    } else {
+        response.setJsonPayload(result);
     }
 }
 

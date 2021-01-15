@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -214,6 +215,7 @@ public class HttpUtil {
     private static final String METHOD_ACCESSED = "isMethodAccessed";
     private static final String IO_EXCEPTION_OCCURRED = "I/O exception occurred";
     private static final String CHUNKING_CONFIG = "chunking_config";
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal function invocation";
 
     /**
      * Set new entity to in/out request/response struct.
@@ -498,7 +500,6 @@ public class HttpUtil {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         response.waitAndReleaseAllEntities();
         if (payload != null) {
-            payload = lowerCaseTheFirstLetter(payload);
             response.addHttpContent(
                     new DefaultLastHttpContent(Unpooled.wrappedBuffer(payload.getBytes(CharsetUtil.UTF_8))));
         } else {
@@ -507,15 +508,6 @@ public class HttpUtil {
         setHttpStatusCodes(statusCode, response);
 
         return response;
-    }
-
-    private static String lowerCaseTheFirstLetter(String payload) {
-        if (!payload.isEmpty()) {
-            char[] characters = payload.toCharArray();
-            characters[0] = Character.toLowerCase(characters[0]);
-            payload = new String(characters);
-        }
-        return payload;
     }
 
     private static void setHttpStatusCodes(int statusCode, HttpCarbonMessage response) {
@@ -1103,17 +1095,18 @@ public class HttpUtil {
                                              HttpCarbonMessage outboundResponseMsg) {
         serverConnectionStructCheck(reqMsg);
         int statusCode = outboundResponseMsg.getHttpStatusCode();
-        methodInvocationCheck(connectionObj, reqMsg, statusCode);
+        methodInvocationCheck(reqMsg, statusCode, ILLEGAL_FUNCTION_INVOKED);
     }
 
-    private static void methodInvocationCheck(BObject connectionObj, HttpCarbonMessage reqMsg, int statusCode) {
-        if (connectionObj.getNativeData(METHOD_ACCESSED) != null || reqMsg == null) {
-            throw new IllegalStateException("illegal function invocation");
+    static void methodInvocationCheck(HttpCarbonMessage reqMsg, int statusCode, String errMsg) {
+        if (reqMsg == null || reqMsg.getProperty(METHOD_ACCESSED) != null) {
+            throw createHttpError(errMsg, HttpErrorType.GENERIC_CLIENT_ERROR);
         }
 
-        if (!is100ContinueRequest(reqMsg, statusCode)) {
-            connectionObj.addNativeData(METHOD_ACCESSED, true);
+        if (is100ContinueRequest(reqMsg, statusCode) || statusCode == HttpConstants.INVALID_STATUS_CODE) {
+            return;
         }
+        reqMsg.setProperty(METHOD_ACCESSED, true);
     }
 
     public static void serverConnectionStructCheck(HttpCarbonMessage reqMsg) {
@@ -1500,7 +1493,7 @@ public class HttpUtil {
             ((BXmlItem) value).serialize(outputStream);
         } else if (value instanceof BXmlSequence) {
             ((BXmlSequence) value).serialize(outputStream);
-        } else if (value instanceof Long || value instanceof String ||
+        } else if (value instanceof Long || value instanceof String || value instanceof BDecimal ||
                 value instanceof Double || value instanceof Integer || value instanceof Boolean) {
             outputStream.write(value.toString().getBytes(Charset.defaultCharset()));
         } else if (value instanceof BString) {

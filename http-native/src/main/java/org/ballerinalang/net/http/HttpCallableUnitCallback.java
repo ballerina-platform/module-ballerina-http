@@ -16,9 +16,14 @@
 
 package org.ballerinalang.net.http;
 
+import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+
+import static org.ballerinalang.net.http.HttpConstants.NOTIFY_SUCCESS_METADATA;
 
 /**
  * {@code HttpCallableUnitCallback} is the responsible for acting on notifications received from Ballerina side.
@@ -26,24 +31,57 @@ import org.ballerinalang.net.transport.message.HttpCarbonMessage;
  * @since 0.94
  */
 public class HttpCallableUnitCallback implements Callback {
+    private final BObject caller;
+    private final Runtime runtime;
+    private final String returnMediaType;
     private HttpCarbonMessage requestMessage;
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: request has already been responded";
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage) {
+    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType) {
         this.requestMessage = requestMessage;
+        this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
+        this.runtime = runtime;
+        this.returnMediaType = returnMediaType;
     }
 
     @Override
     public void notifySuccess(Object result) {
-        if (result instanceof BError) {
-            HttpUtil.handleFailure(requestMessage, (BError) result);
+        if (result == null) { // handles nil return and end of resource exec
+            requestMessage.waitAndReleaseAllEntities();
+            return;
         }
-        requestMessage.waitAndReleaseAllEntities();
+        HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
+        if (result instanceof BError) { // handles error check and return
+            sendFailureResponse((BError) result);
+            return;
+        }
+
+        Object[] paramFeed = new Object[4];
+        paramFeed[0] = result;
+        paramFeed[1] = true;
+        paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
+        paramFeed[3] = true;
+
+        runtime.invokeMethodAsync(caller, "returnResponse", null, NOTIFY_SUCCESS_METADATA, new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                requestMessage.waitAndReleaseAllEntities();
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                sendFailureResponse(result);
+            }
+        }, paramFeed);
     }
 
     @Override
-    public void notifyFailure(BError error) {
+    public void notifyFailure(BError error) { // handles panic and check_panic
+        sendFailureResponse(error);
+    }
+
+    private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
         requestMessage.waitAndReleaseAllEntities();
     }
-
 }

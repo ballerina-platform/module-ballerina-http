@@ -143,6 +143,7 @@ public class HttpConstants {
     public static final String ANN_NAME_PAYLOAD = "Payload";
     public static final String ANN_NAME_CALLER_INFO = "CallerInfo";
     public static final String DIRTY_RESPONSE = "dirtyResponse";
+    public static final BString ANN_FIELD_MEDIA_TYPE = StringUtils.fromString("mediaType");
 
     public static final String VALUE_ATTRIBUTE = "value";
 
@@ -312,6 +313,7 @@ public class HttpConstants {
     public static final String HEADER_VAL_100_CONTINUE = "100-continue";
 
     //Response codes
+    public static final int INVALID_STATUS_CODE = 000;
     public static final String HTTP_BAD_REQUEST = "400";
     public static final String HEADER_X_XID = "x-b7a-xid";
     public static final String HEADER_X_REGISTER_AT_URL = "x-b7a-register-at";
@@ -478,10 +480,14 @@ public class HttpConstants {
     public static final Module PROTOCOL_HTTP_PKG_ID =
             new Module(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION);
     public static final String HTTP_CALLER_NAME = PROTOCOL_PACKAGE_HTTP + COLON + CALLER;
+    public static final String PAYLOAD_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_PAYLOAD;
 
     public static final String ON_MESSAGE_RESOURCE = "onMessage";
     public static final StrandMetadata ON_MESSAGE_METADATA =
             new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION, ON_MESSAGE_RESOURCE);
+    public static final String NOTIFY_SUCCESS = "notifySuccess";
+    public static final StrandMetadata NOTIFY_SUCCESS_METADATA =
+            new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION, NOTIFY_SUCCESS);
 
     private HttpConstants() {
     }
