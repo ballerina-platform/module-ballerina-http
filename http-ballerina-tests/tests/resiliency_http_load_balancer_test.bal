@@ -224,9 +224,7 @@ public class CustomLoadBalancerRule {
 //Test for round robin implementation algorithm of load balancer
 http:Client roundRobinLoadBalanceTestClient = checkpanic new("http://localhost:9313");
 
-@test:Config{
-    dataProvider:"roundRobinResponseDataProvider"
-}
+@test:Config{ dataProvider:roundRobinResponseDataProvider }
 function roundRobinLoadBalanceTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/roundRobin", dataFeed);
 }
@@ -241,9 +239,7 @@ function roundRobinResponseDataProvider() returns DataFeed[][] {
 }
 
 //Test for verify failover behavior with load balancer
-@test:Config{
-    dataProvider:"roundRobinWithFailoverResponseDataProvider"
-}
+@test:Config{ dataProvider:roundRobinWithFailoverResponseDataProvider }
 function roundRobinWithFailoverResponseTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/lbFailover", dataFeed);
 }
@@ -272,9 +268,7 @@ function testAllLbEndpointFailure() {
 }
 
 //Test for custom algorithm implementation of load balancer
-@test:Config{
-    dataProvider:"customLbResponseDataProvider"
-}
+@test:Config{ dataProvider:customLbResponseDataProvider }
 function customLbResponseTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/customResource", dataFeed);
 }

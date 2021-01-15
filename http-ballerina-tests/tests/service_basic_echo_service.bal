@@ -212,7 +212,7 @@ function testSetString() {
     }
 }
 
-@test:Config {dependsOn : ["testSetString"]}
+@test:Config {dependsOn : [testSetString]}
 function testGetString() {
     var response = stClient->get("/echo/getString");
     if (response is http:Response) {

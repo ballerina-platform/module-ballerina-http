@@ -74,9 +74,7 @@ service /errornous on new http:Listener(8090) {
 //Test for circuit breaker requestVolumeThreshold functionality
 http:Client testRequestVolumeClient = checkpanic new("http://localhost:9310");
 
-@test:Config{
-    dataProvider:"requestVolumeResponseDataProvider"
-}
+@test:Config{ dataProvider:requestVolumeResponseDataProvider }
 function requestVolumeTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed);
 }

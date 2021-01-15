@@ -107,7 +107,7 @@ function testContinueAction() {
 }
 
 //Negative test case for 100 continue of http client
-@test:Config {dependsOn:["testContinueAction"]}
+@test:Config {dependsOn:[testContinueAction]}
 function testNegativeContinueAction() {
     var response = httpClientContinueClient->get("/continue/failure");
     if (response is http:Response) {
@@ -118,7 +118,7 @@ function testNegativeContinueAction() {
     }
 }
 
-@test:Config {dependsOn:["testNegativeContinueAction"]}
+@test:Config {dependsOn:[testNegativeContinueAction]}
 function testContinueActionWithMain() {
     http:Client clientEP = checkpanic new("http://localhost:" + httpClientContinueTestPort1.toString());
     http:Request req = new();

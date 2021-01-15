@@ -74,9 +74,7 @@ service /statuscode on new http:Listener(8091) {
 //Test for circuit breaker failure status codes functionality 
 http:Client testCBStatusCodesClient = checkpanic new("http://localhost:9311");
 
-@test:Config{
-    dataProvider:"statusCodeResponseDataProvider"
-}
+@test:Config{ dataProvider:statusCodeResponseDataProvider }
 function httpStatusCodesTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testCBStatusCodesClient, "/cb/statuscode", dataFeed);
 }

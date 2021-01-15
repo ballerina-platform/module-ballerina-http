@@ -88,9 +88,7 @@ service /hello06 on new http:Listener(8092) {
 //Test for circuit breaker trail failure functionality
 http:Client testTrialRunFailureClient = checkpanic new("http://localhost:9312");
 
-@test:Config{
-    dataProvider:"trialRunFailureResponseDataProvider"
-}
+@test:Config{ dataProvider:trialRunFailureResponseDataProvider }
 function testCBTrialRunFailure(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed);
 }

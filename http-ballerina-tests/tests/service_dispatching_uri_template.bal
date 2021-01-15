@@ -201,9 +201,7 @@ service /ech\[o14 on utTestEP {
 }
 
 //Test accessing the variables parsed with URL. /products/{productId}/{regId}
-@test:Config{
-    dataProvider:"validUrl"
-}
+@test:Config{ dataProvider:validUrl }
 function testValidUrlTemplateDispatching(string path) {
     http:Request req = new;
     string xOrderIdHeadeName = "X-ORDER-ID";
@@ -228,9 +226,7 @@ function validUrl() returns (string[][]) {
 }
 
 //Test resource dispatchers with invalid URL. /products/{productId}/{regId}
-@test:Config{
-    dataProvider:"inValidUrl"
-}
+@test:Config{ dataProvider:inValidUrl }
 function testInValidUrlTemplateDispatching(string path) {
     http:Request req = new;
     string xOrderIdHeadeName = "X-ORDER-ID";
@@ -255,9 +251,7 @@ function inValidUrl() returns (string[][]) {
 }
 
 //Test accessing the variables parsed with URL. /products/{productId}
-@test:Config{
-    dataProvider:"validUrlWithQueryParam"
-}
+@test:Config{ dataProvider:validUrlWithQueryParam }
 function testValidUrlTemplateWithQueryParamDispatching(string path) {
     var response = utClient1->get(path);
     if (response is http:Response) {
@@ -502,9 +496,7 @@ function testSpecialCharacterEscapedURI() {
 }
 
 //Test a listener with no service registered
-@test:Config{
-    dataProvider:"SomeUrlsWithCorrectHost"
-}
+@test:Config{ dataProvider:SomeUrlsWithCorrectHost }
 function testListenerWithNoServiceRegistered(string path) {
     var response = utClient2->get(path);
     if (response is http:Response) {

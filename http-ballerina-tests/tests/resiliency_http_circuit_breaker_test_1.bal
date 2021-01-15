@@ -91,7 +91,7 @@ http:Client testTypicalBackendTimeoutClient = checkpanic new("http://localhost:9
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
 @test:Config {
     enable:false,
-    dataProvider:"responseDataProvider"
+    dataProvider:responseDataProvider
 }
 function testTypicalBackendTimeout(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testTypicalBackendTimeoutClient, "/cb/typical", dataFeed);
