@@ -32,12 +32,14 @@ public class Listener {
     #
     # + port - Listening port of the HTTP service listener
     # + config - Configurations for the HTTP service listener
-    # + return - The `listener` or an `ListenerError` if the initialization failed
-    public isolated function init(int port, ListenerConfiguration? config = ()) returns ListenerError? {
+    public isolated function init(int port, ListenerConfiguration? config = ()) {
         self.instanceId = uuid();
         self.config = config ?: {};
         self.port = port;
-        return externInitEndpoint(self);
+        error? err = externInitEndpoint(self);
+        if (err is error) {
+            panic err;
+        }
     }
 
     # Starts the registered service programmatically.
@@ -88,7 +90,7 @@ public class Listener {
     }
 }
 
-isolated function externInitEndpoint(Listener listenerObj) returns ListenerError? = @java:Method {
+isolated function externInitEndpoint(Listener listenerObj) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.InitEndpoint",
     name: "initEndpoint"
 } external;

@@ -32,7 +32,7 @@ http:ListenerConfiguration httpsEPConfig = {
     }
 };
 
-listener http:Listener httpsEP = check new(9104, httpsEPConfig);
+listener http:Listener httpsEP = new(9104, httpsEPConfig);
 
 http:ClientConfiguration endPoint1Config = {
     followRedirects: { enabled: true, maxCount: 3 }

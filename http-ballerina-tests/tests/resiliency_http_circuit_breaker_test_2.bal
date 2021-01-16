@@ -21,7 +21,7 @@ import ballerina/http;
 
 int forceOpenStateCount = 0;
 
-listener http:Listener circuitBreakerEP01 = checkpanic new(9307);
+listener http:Listener circuitBreakerEP01 = new(9307);
 
 http:ClientConfiguration conf01 = {
     circuitBreaker: {

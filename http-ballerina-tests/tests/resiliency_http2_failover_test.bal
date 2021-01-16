@@ -20,11 +20,11 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP06 = checkpanic new(9314, { httpVersion: "2.0" });
+listener http:Listener failoverEP06 = new(9314, { httpVersion: "2.0" });
 
-listener http:Listener backendEP06 = checkpanic new(8094, { httpVersion: "2.0" });
+listener http:Listener backendEP06 = new(8094, { httpVersion: "2.0" });
 
-http:FailoverClient foBackendEP06 = checkpanic new({
+http:FailoverClient foBackendEP06 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [500, 501, 502, 503],
     intervalInMillis: 5000,

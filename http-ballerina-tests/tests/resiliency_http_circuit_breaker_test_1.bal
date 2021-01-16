@@ -22,7 +22,7 @@ import ballerina/http;
 
 int cbCounter = 1;
 
-listener http:Listener circuitBreakerEP00 = checkpanic new(9306);
+listener http:Listener circuitBreakerEP00 = new(9306);
 
 http:ClientConfiguration conf = {
     circuitBreaker: {
@@ -38,7 +38,7 @@ http:ClientConfiguration conf = {
     timeoutInMillis: 2000
 };
 
-http:Client backendClientEP00 = checkpanic new("http://localhost:8086", conf);
+http:Client backendClientEP00 = check new("http://localhost:8086", conf);
 
 service /cb on circuitBreakerEP00 {
 
@@ -86,7 +86,7 @@ service /hello on new http:Listener(8086) {
 }
 
 //Test basic circuit breaker functionality
-http:Client testTypicalBackendTimeoutClient = checkpanic new("http://localhost:9306");
+http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306");
 
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
 @test:Config {

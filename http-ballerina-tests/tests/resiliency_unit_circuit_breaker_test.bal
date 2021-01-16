@@ -554,9 +554,9 @@ http:Request {
     return request;
 }
 
-listener http:Listener mockEP3 = checkpanic new(9095);
+listener http:Listener mockEP3 = new(9095);
 
-http:Client clientEP = checkpanic new("http://localhost:8080", {
+http:Client clientEP = check new("http://localhost:8080", {
     circuitBreaker: {
         rollingWindow: {
             timeWindowInMillis: 10000,

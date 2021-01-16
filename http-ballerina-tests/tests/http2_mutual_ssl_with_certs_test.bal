@@ -27,7 +27,7 @@ http:ListenerConfiguration sslConf = {
     httpVersion: "2.0"
 };
 
-listener http:Listener mutualSslistener = checkpanic new(9110, sslConf);
+listener http:Listener mutualSslistener = new(9110, sslConf);
 
 service /mutualSslService on mutualSslistener {
 

@@ -20,13 +20,13 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP05 = checkpanic new(9305);
+listener http:Listener failoverEP05 = new(9305);
 
 // Create an endpoint with port 8085 for the mock backend services.
-listener http:Listener backendEP05 = checkpanic new(8085);
+listener http:Listener backendEP05 = new(8085);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP05 = checkpanic new({
+http:FailoverClient foBackendEP05 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,

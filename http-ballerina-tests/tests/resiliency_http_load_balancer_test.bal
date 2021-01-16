@@ -20,9 +20,9 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener LBbackendListener = checkpanic new(8093);
+listener http:Listener LBbackendListener = new(8093);
 
-http:LoadBalanceClient lbBackendEP = checkpanic new({
+http:LoadBalanceClient lbBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
@@ -31,7 +31,7 @@ http:LoadBalanceClient lbBackendEP = checkpanic new({
     timeoutInMillis: 5000
 });
 
-http:LoadBalanceClient lbFailoverBackendEP = checkpanic new({
+http:LoadBalanceClient lbFailoverBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock4" },
         { url: "http://localhost:8093/LBMock2" },
@@ -41,7 +41,7 @@ http:LoadBalanceClient lbFailoverBackendEP = checkpanic new({
     timeoutInMillis: 2000
 });
 
-http:LoadBalanceClient delayedBackendEP = checkpanic new({
+http:LoadBalanceClient delayedBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock4" },
         { url: "http://localhost:8093/LBMock5" }
@@ -52,7 +52,7 @@ http:LoadBalanceClient delayedBackendEP = checkpanic new({
 
 CustomLoadBalancerRule customLbRule = new CustomLoadBalancerRule(2);
 
-http:LoadBalanceClient customLbBackendEP = checkpanic new({
+http:LoadBalanceClient customLbBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
@@ -222,7 +222,7 @@ public class CustomLoadBalancerRule {
 }
 
 //Test for round robin implementation algorithm of load balancer
-http:Client roundRobinLoadBalanceTestClient = checkpanic new("http://localhost:9313");
+http:Client roundRobinLoadBalanceTestClient = check new("http://localhost:9313");
 
 @test:Config{ dataProvider:roundRobinResponseDataProvider }
 function roundRobinLoadBalanceTest(DataFeed dataFeed) {

@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/test;
 
-http:Client eP1 = checkpanic new("http://localhost:9106", { httpVersion: "2.0" });
+http:Client eP1 = check new("http://localhost:9106", { httpVersion: "2.0" });
 
 service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
 

@@ -18,11 +18,11 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener clientDBProxyListener = checkpanic new(clientDatabindingTestPort1);
-listener http:Listener clientDBBackendListener = checkpanic new(clientDatabindingTestPort2);
-listener http:Listener clientDBBackendListener2 = checkpanic new(clientDatabindingTestPort3);
-http:Client clientDBTestClient = checkpanic new("http://localhost:" + clientDatabindingTestPort1.toString());
-http:Client clientDBBackendClient = checkpanic new("http://localhost:" + clientDatabindingTestPort2.toString());
+listener http:Listener clientDBProxyListener = new(clientDatabindingTestPort1);
+listener http:Listener clientDBBackendListener = new(clientDatabindingTestPort2);
+listener http:Listener clientDBBackendListener2 = new(clientDatabindingTestPort3);
+http:Client clientDBTestClient = check new("http://localhost:" + clientDatabindingTestPort1.toString());
+http:Client clientDBBackendClient = check new("http://localhost:" + clientDatabindingTestPort2.toString());
 
 type ClientDBPerson record {|
     string name;

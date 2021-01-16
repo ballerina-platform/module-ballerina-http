@@ -17,13 +17,13 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener priorEp1 = checkpanic new(9111, { httpVersion: "2.0" });
-listener http:Listener priorEp2 = checkpanic new(9112, { httpVersion: "2.0" });
+listener http:Listener priorEp1 = new(9111, { httpVersion: "2.0" });
+listener http:Listener priorEp2 = new(9112, { httpVersion: "2.0" });
 
-http:Client h2WithPriorKnowledge = checkpanic new("http://localhost:9112", { httpVersion: "2.0", http2Settings: {
+http:Client h2WithPriorKnowledge = check new("http://localhost:9112", { httpVersion: "2.0", http2Settings: {
                 http2PriorKnowledge: true }, poolConfig: {} });
 
-http:Client h2WithoutPriorKnowledge = checkpanic new("http://localhost:9112", { httpVersion: "2.0", http2Settings: {
+http:Client h2WithoutPriorKnowledge = check new("http://localhost:9112", { httpVersion: "2.0", http2Settings: {
                 http2PriorKnowledge: false }, poolConfig: {} });
 
 service /priorKnowledge on priorEp1 {

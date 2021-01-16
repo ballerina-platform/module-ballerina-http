@@ -22,13 +22,13 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP02 = checkpanic new(9302);
+listener http:Listener failoverEP02 = new(9302);
 
 // Create an endpoint with port 8082 for the mock backend services.
-listener http:Listener backendEP02 = checkpanic new(8082);
+listener http:Listener backendEP02 = new(8082);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP02 = checkpanic new({
+http:FailoverClient foBackendEP02 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -41,7 +41,7 @@ http:FailoverClient foBackendEP02 = checkpanic new({
     ]
 });
 
-http:FailoverClient foBackendFailureEP02 = checkpanic new({
+http:FailoverClient foBackendFailureEP02 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -53,7 +53,7 @@ http:FailoverClient foBackendFailureEP02 = checkpanic new({
     ]
 });
 
-http:FailoverClient foStatusCodesEP02 = checkpanic new({
+http:FailoverClient foStatusCodesEP02 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,

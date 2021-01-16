@@ -28,7 +28,7 @@ http:ListenerConfiguration helloWorldEPConfig = {
     httpVersion: "2.0"
 };
 
-listener http:Listener sslServerEp = checkpanic new(9114, config = helloWorldEPConfig);
+listener http:Listener sslServerEp = new(9114, config = helloWorldEPConfig);
 
 service /hello on sslServerEp {
     resource function get .(http:Caller caller, http:Request req) {
