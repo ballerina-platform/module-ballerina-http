@@ -259,7 +259,7 @@ isolated function testListenerJwtAuthHandlerAuthnFailure() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthSuccess() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/success",
+        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
@@ -286,7 +286,7 @@ function testListenerOAuth2HandlerAuthSuccess() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthzFailure() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/success",
+        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
@@ -311,7 +311,7 @@ function testListenerOAuth2HandlerAuthzFailure() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthnFailure() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/failure",
+        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
