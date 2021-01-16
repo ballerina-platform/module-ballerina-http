@@ -113,20 +113,17 @@ isolated function testClientOAuth2Handler() {
     };
 
     http:OAuth2DirectTokenConfig config3 = {
-        accessToken: "2YotnFZFEjr1zCsicMWpAA",
-        refreshConfig: {
-            refreshUrl: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/refresh",
-            refreshToken: "XlfBs91yquexJqDaKEMzVg==",
-            clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
-            clientSecret: "9205371918321623741",
-            scopes: ["token-scope1", "token-scope2"],
-            clientConfig: {
-                secureSocket: {
-                   trustStore: {
-                       path: TRUSTSTORE_PATH,
-                       password: "ballerina"
-                   }
-                }
+        refreshUrl: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/refresh",
+        refreshToken: "XlfBs91yquexJqDaKEMzVg==",
+        clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
+        clientSecret: "9205371918321623741",
+        scopes: ["token-scope1", "token-scope2"],
+        clientConfig: {
+            secureSocket: {
+               trustStore: {
+                   path: TRUSTSTORE_PATH,
+                   password: "ballerina"
+               }
             }
         }
     };

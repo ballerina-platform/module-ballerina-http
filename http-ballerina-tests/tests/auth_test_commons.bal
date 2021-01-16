@@ -58,6 +58,18 @@ service /oauth2 on oauth2Listener {
         checkpanic caller->respond(res);
     }
 
+    resource function post token/refresh(http:Caller caller, http:Request request) {
+        http:Response res = new;
+        json response = {
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "example_parameter": "example_value"
+        };
+        res.setPayload(response);
+        checkpanic caller->respond(res);
+    }
+
     resource function post token/introspect/success(http:Caller caller, http:Request request) {
         http:Response res = new;
         json response = { "active": true, "exp": 3600, "scp": "read write" };
