@@ -57,7 +57,7 @@ public client class HttpSecureClient {
     remote function post(string path, RequestMessage message, TargetType targetType = Response)
             returns Response|PayloadType|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
-        Response res = check self.httpClient->post(path, req);
+        Response|PayloadType res = check self.httpClient->post(path, req);
         Request? inspection = check inspectRequest(self.clientAuthHandler, req, res);
         if (inspection is Request) {
             return self.httpClient->post(path, inspection);
@@ -96,7 +96,7 @@ public client class HttpSecureClient {
     remote function put(string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
-        Response res = check self.httpClient->put(path, req);
+        Response|PayloadType res = check self.httpClient->put(path, req);
         Request? inspection = check inspectRequest(self.clientAuthHandler, req, res);
         if (inspection is Request) {
             return self.httpClient->put(path, inspection);
@@ -118,7 +118,7 @@ public client class HttpSecureClient {
     remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
-        Response res = check self.httpClient->execute(httpVerb, path, req);
+        Response|PayloadType res = check self.httpClient->execute(httpVerb, path, req);
         Request? inspection = check inspectRequest(self.clientAuthHandler, req, res);
         if (inspection is Request) {
             return self.httpClient->execute(httpVerb, path, inspection);
@@ -139,7 +139,7 @@ public client class HttpSecureClient {
     remote function patch(string path, RequestMessage message, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
-        Response res = check self.httpClient->patch(path, req);
+        Response|PayloadType res = check self.httpClient->patch(path, req);
         Request? inspection = check inspectRequest(self.clientAuthHandler, req, res);
         if (inspection is Request) {
             return self.httpClient->patch(path, inspection);
@@ -160,7 +160,7 @@ public client class HttpSecureClient {
     remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
-        Response res = check self.httpClient->delete(path, req);
+        Response|PayloadType res = check self.httpClient->delete(path, req);
         Request? inspection = check inspectRequest(self.clientAuthHandler, req, res);
         if (inspection is Request) {
             return self.httpClient->delete(path, inspection);
@@ -181,7 +181,7 @@ public client class HttpSecureClient {
     remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
-        Response res = check self.httpClient->get(path, message = req);
+        Response|PayloadType res = check self.httpClient->get(path, message = req);
         Request? inspection = check inspectRequest(self.clientAuthHandler, req, res);
         if (inspection is Request) {
             return self.httpClient->get(path, message = inspection);
@@ -202,7 +202,7 @@ public client class HttpSecureClient {
     remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
-        Response res = check self.httpClient->options(path, message = req);
+        Response|PayloadType res = check self.httpClient->options(path, message = req);
         Request? inspection = check inspectRequest(self.clientAuthHandler, req, res);
         if (inspection is Request) {
             return self.httpClient->options(path, message = inspection);
@@ -222,7 +222,7 @@ public client class HttpSecureClient {
     remote function forward(string path, Request request, TargetType targetType = Response)
             returns @tainted Response|PayloadType|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, request);
-        Response res = check self.httpClient->forward(path, req);
+        Response|PayloadType res = check self.httpClient->forward(path, req);
         Request? inspection = check inspectRequest(self.clientAuthHandler, req, res);
         if (inspection is Request) {
             return self.httpClient->forward(path, inspection);
@@ -240,12 +240,7 @@ public client class HttpSecureClient {
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
-        Response res = check self.httpClient->submit(httpVerb, path, req);
-        Request? inspection = check inspectRequest(self.clientAuthHandler, req, res);
-        if (inspection is Request) {
-            return self.httpClient->submit(httpVerb, path, inspection);
-        }
-        return res;
+        return self.httpClient->submit(httpVerb, path, req);
     }
 
     # This just passes the request to the actual network call.
@@ -318,8 +313,9 @@ isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req
 }
 
 // Inspect the request using the relevant client auth handler.
-function inspectRequest(ClientAuthHandler clientAuthHandler, Request req, Response res) returns Request|ClientAuthError? {
-    if (clientAuthHandler is ClientOAuth2Handler) {
+isolated function inspectRequest(ClientAuthHandler clientAuthHandler, Request req, Response|PayloadType res)
+                                 returns Request|ClientAuthError? {
+    if (clientAuthHandler is ClientOAuth2Handler && res is Response) {
         return clientAuthHandler->inspect(req, res);
     }
 }

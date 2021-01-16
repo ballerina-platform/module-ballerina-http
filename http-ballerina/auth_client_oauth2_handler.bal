@@ -17,18 +17,24 @@
 import ballerina/oauth2;
 
 # Represents OAuth2 client credentials grant configurations for OAuth2 authentication.
+#
+# + inspectStatusCode - The status code of the `http:Response` which should used to decide to inspect
 public type OAuth2ClientCredentialsGrantConfig record {|
     *oauth2:ClientCredentialsGrantConfig;
     int inspectStatusCode = STATUS_UNAUTHORIZED;
 |};
 
 # Represents OAuth2 password grant configurations for OAuth2 authentication.
+#
+# + inspectStatusCode - The status code of the `http:Response` which should used to decide to inspect
 public type OAuth2PasswordGrantConfig record {|
     *oauth2:PasswordGrantConfig;
     int inspectStatusCode = STATUS_UNAUTHORIZED;
 |};
 
 # Represents OAuth2 direct token configurations for OAuth2 authentication.
+#
+# + inspectStatusCode - The status code of the `http:Response` which should used to decide to inspect
 public type OAuth2DirectTokenConfig record {|
     *oauth2:DirectTokenConfig;
     int inspectStatusCode = STATUS_UNAUTHORIZED;
@@ -69,7 +75,7 @@ public client class ClientOAuth2Handler {
     # + req - The `http:Request` instance
     # + res - The `http:Response` instance
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
-    remote isolated function inspect(Request req, Response res) returns Request|ClientAuthError {
+    remote isolated function inspect(Request req, Response res) returns Request|ClientAuthError? {
         if (res.statusCode == self.inspectStatusCode) {
             string|oauth2:Error result = self.provider.refreshToken();
             if (result is oauth2:Error) {
