@@ -38,8 +38,12 @@ public client class ListenerLdapUserStoreBasicAuthProvider {
     # + data - The `http:Request` instance or `string` Authorization header
     # + return - The `auth:UserDetails` instance or else `Unauthorized` type in case of an error
     remote isolated function authenticate(Request|string data) returns auth:UserDetails|Unauthorized {
-        string credential = extractCredential(data);
-        auth:UserDetails|auth:Error details = self.provider.authenticate(credential);
+        string? credential = extractCredential(data);
+        if (credential is ()) {
+            Unauthorized unauthorized = {};
+            return unauthorized;
+        }
+        auth:UserDetails|auth:Error details = self.provider.authenticate(<string>credential);
         if (details is auth:Error) {
             Unauthorized unauthorized = {};
             return unauthorized;

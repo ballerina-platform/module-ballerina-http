@@ -47,8 +47,12 @@ public client class ListenerOAuth2Handler {
     remote isolated function authorize(Request|string data, string|string[]? expectedScopes = (),
                                        map<string>? optionalParams = ())
                                        returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
-        string credential = extractCredential(data);
-        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(credential, optionalParams);
+        string? credential = extractCredential(data);
+        if (credential is ()) {
+            Unauthorized unauthorized = {};
+            return unauthorized;
+        }
+        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(<string>credential, optionalParams);
         if (details is oauth2:Error || !details.active) {
             Unauthorized unauthorized = {};
             return unauthorized;
