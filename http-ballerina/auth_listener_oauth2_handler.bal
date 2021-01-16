@@ -42,13 +42,13 @@ public client class ListenerOAuth2Handler {
     #
     # + data - The `http:Request` instance or `string` Authorization header
     # + expectedScopes - The expected scopes as `string` or `string[]`
-    # + customParams - Map of custom parameters that need to be sent to introspection endpoint
+    # + optionalParams - Map of optional parameters that need to be sent to introspection endpoint
     # + return - The `oauth2:IntrospectionResponse` instance or else `Unauthorized` or `Forbidden` type in case of an error
     remote isolated function authorize(Request|string data, string|string[]? expectedScopes = (),
-                                       map<string>? customParams = ())
+                                       map<string>? optionalParams = ())
                                        returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
         string credential = extractCredential(data);
-        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(credential);
+        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(credential, optionalParams);
         if (details is oauth2:Error || !details.active) {
             Unauthorized unauthorized = {};
             return unauthorized;
