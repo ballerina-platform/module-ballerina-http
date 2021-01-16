@@ -139,18 +139,18 @@ public class Request {
     # these values is returned.
     #
     # + headerName - The header name
-    # + return - The first header value for the specified header name. Panic if the header is not found. Use the
-    #            `Request.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeader(string headerName) returns @tainted string {
+    # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeader(string headerName) returns @tainted string|HeaderNotFoundError {
         return externRequestGetHeader(self, headerName);
     }
 
     # Gets all the header values to which the specified header key maps to.
     #
     # + headerName - The header name
-    # + return - The header values the specified header key maps to. Panic if the header is not found. Use the
-    #            `Request.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeaders(string headerName) returns @tainted string[] {
+    # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeaders(string headerName) returns @tainted string[]|HeaderNotFoundError {
         return externRequestGetHeaders(self, headerName);
     }
 
@@ -654,13 +654,13 @@ public const NONE = ();
 
 // HTTP header related external functions
 isolated function externRequestGetHeader(Request request, string headerName, HeaderPosition position = LEADING)
-                         returns @tainted string = @java:Method {
+                         returns @tainted string|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeader"
 } external;
 
 isolated function externRequestGetHeaders(Request request, string headerName, HeaderPosition position = LEADING)
-                          returns @tainted string[] = @java:Method {
+                          returns @tainted string[]|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaders"
 } external;

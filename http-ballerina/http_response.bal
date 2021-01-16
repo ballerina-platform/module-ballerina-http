@@ -102,9 +102,10 @@ public class Response {
     # + headerName - The header name
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
-    # + return - The first header value for the specified header name. Panic if the header is not found. Use the
-    #            `Response.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeader(string headerName, HeaderPosition position = LEADING) returns @tainted string {
+    # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeader(string headerName, HeaderPosition position = LEADING)
+            returns @tainted string|HeaderNotFoundError {
         return externResponseGetHeader(self, headerName, position);
     }
 
@@ -123,9 +124,10 @@ public class Response {
     # + headerName - The header name
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
-    # + return - The header values the specified header key maps to. Panic if the header is not found. Use the
-    #            `Response.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeaders(string headerName, HeaderPosition position = LEADING) returns @tainted string[] {
+    # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeaders(string headerName, HeaderPosition position = LEADING)
+            returns @tainted string[]|HeaderNotFoundError {
         return externResponseGetHeaders(self, headerName, position);
     }
 
@@ -502,13 +504,13 @@ isolated function externGetResEntityWithBodyAndWithoutHeaders(Response response)
 
 // HTTP header related external functions
 isolated function externResponseGetHeader(Response response, string headerName, HeaderPosition position)
-                         returns @tainted string = @java:Method {
+                         returns @tainted string|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeader"
 } external;
 
 isolated function externResponseGetHeaders(Response response, string headerName, HeaderPosition position)
-                          returns @tainted string[] = @java:Method {
+                          returns @tainted string[]|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaders"
 } external;

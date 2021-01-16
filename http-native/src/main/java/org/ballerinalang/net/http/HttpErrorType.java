@@ -75,7 +75,8 @@ public enum HttpErrorType {
     HTTP2_CLIENT_ERROR("Http2ClientError", "{ballerina/http}Http2ClientError"),
     MAXIMUM_WAIT_TIME_EXCEEDED("MaximumWaitTimeExceededError", "{ballerina/http}MaximumWaitTimeExceeded"),
     SSL_ERROR("SslError", "{ballerina/http}SslError"),
-    INVALID_CONTENT_LENGTH("InvalidContentLengthError", "{ballerina/http}InvalidContentLength");
+    INVALID_CONTENT_LENGTH("InvalidContentLengthError", "{ballerina/http}InvalidContentLength"),
+    HEADER_NOT_FOUND_ERROR("HeaderNotFoundError", "{ballerina/http}HeaderNotFoundError");
 
     private final String errorName;
     private final String reason;
