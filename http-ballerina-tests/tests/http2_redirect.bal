@@ -58,7 +58,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
         if (response is http:Response) {
             string value = "";
             if (response.hasHeader(http:LOCATION)) {
-                value = response.getHeader(http:LOCATION);
+                value = checkpanic response.getHeader(http:LOCATION);
             }
             value = value + ":" + response.resolvedRequestedURI;
             checkpanic caller->respond(<@untainted> value);
@@ -229,7 +229,7 @@ function testHTTP2Redirect() {
     var response = http2RedirectClient->get("/testHttp2Redirect/");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -242,7 +242,7 @@ function testHTTP2MaxRedirect() {
     var response = http2RedirectClient->get("/testHttp2Redirect/maxRedirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "/redirect1/round5:http://localhost:" + http2RedirectTestPort2.toString() + "/redirect1/round4");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -255,7 +255,7 @@ function testHTTP2CrossDomain() {
     var response = http2RedirectClient->get("/testHttp2Redirect/crossDomain");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -268,7 +268,7 @@ function testHTTP2NoRedirect() {
     var response = http2RedirectClient->get("/testHttp2Redirect/noRedirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -281,7 +281,7 @@ function testHTTP2QPWithRelativePath() {
     var response = http2RedirectClient->get("/testHttp2Redirect/qpWithRelativePath");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "value:ballerina:http://localhost:" + http2RedirectTestPort2.toString() + "/redirect1/processQP?key=value&lang=ballerina");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -294,7 +294,7 @@ function testHTTP2QPWithAbsolutePath() {
     var response = http2RedirectClient->get("/testHttp2Redirect/qpWithAbsolutePath");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "value:ballerina:http://localhost:" + http2RedirectTestPort2.toString() + "/redirect1/processQP?key=value&lang=ballerina");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -307,7 +307,7 @@ function testHTTP2OriginalRequestWithQP() {
     var response = http2RedirectClient->get("/testHttp2Redirect/originalRequestWithQP");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -319,7 +319,7 @@ function testHTTP2303Status() {
     var response = http2RedirectClient->get("/testHttp2Redirect/test303");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -65,9 +65,9 @@ function testMustRevalidateCacheControl() {
     var response = cachingProxyTestClient->get("/mustRevalidate");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(response.getHeader(proxyHitCount), "1");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
+        assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "1");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -76,9 +76,9 @@ function testMustRevalidateCacheControl() {
     response = cachingProxyTestClient->get("/mustRevalidate");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(response.getHeader(proxyHitCount), "2");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
+        assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "2");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -90,9 +90,9 @@ function testMustRevalidateCacheControl() {
     response = cachingProxyTestClient->get("/mustRevalidate");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(serviceHitCount), "2");
-        assertHeaderValue(response.getHeader(proxyHitCount), "3");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "2");
+        assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "3");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

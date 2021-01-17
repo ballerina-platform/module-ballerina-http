@@ -28,7 +28,7 @@ service /'continue on httpClientContinueListenerEP1 {
 
     resource function 'default .(http:Caller caller, http:Request request) {
         if (request.expects100Continue()) {
-            string mediaType = request.getHeader("Content-Type");
+            string mediaType = checkpanic request.getHeader("Content-Type");
             if (mediaType.toLowerAscii() == "text/plain") {
                 var result = caller->continue();
                 if (result is error) {
@@ -99,7 +99,7 @@ function testContinueAction() {
     var response = httpClientContinueClient->get("/continue");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!\n");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -112,7 +112,7 @@ function testNegativeContinueAction() {
     var response = httpClientContinueClient->get("/continue/failure");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

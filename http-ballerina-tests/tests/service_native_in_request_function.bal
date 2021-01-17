@@ -34,7 +34,7 @@ function testGetContentLength() {
     http:Request req = new;
     string payload = "ballerina";
     req.setHeader(CONTENT_LENGTH, payload.length().toString());
-    test:assertEquals(req.getHeader(CONTENT_LENGTH), payload.length().toString(), msg = "Mismatched content length");
+    test:assertEquals(checkpanic req.getHeader(CONTENT_LENGTH), payload.length().toString(), msg = "Mismatched content length");
 }
 
 @test:Config {}
@@ -44,7 +44,7 @@ function testAddHeader() {
     string value = "abc, xyz";
     req.setHeader(key, "1stHeader");
     req.addHeader(key, value);
-    string[] headers = req.getHeaders(key);
+    string[] headers = checkpanic req.getHeaders(key);
     test:assertEquals(headers[0], "1stHeader", msg = "Mismatched header value");
     test:assertEquals(headers[1], "abc, xyz", msg = "Mismatched header value");
 }
@@ -56,7 +56,7 @@ function testSetHeader() {
     string value = "ballerina; a=6";
     req.setHeader(key, "abc");
     req.setHeader(key, value);
-    test:assertEquals(req.getHeader(key), value, msg = "Mismatched header value");
+    test:assertEquals(checkpanic req.getHeader(key), value, msg = "Mismatched header value");
 }
 
 @test:Config {}
@@ -124,7 +124,7 @@ function testGetHeader() {
     string key = "lang";
     string value = "ballerina; a=6";
     req.setHeader(key, value);
-    test:assertEquals(req.getHeader(key), value, msg = "Mismatched header value");
+    test:assertEquals(checkpanic req.getHeader(key), value, msg = "Mismatched header value");
 }
 
 @test:Config {}
@@ -134,7 +134,7 @@ function testGetHeaders() {
     string value = "abc, xyz";
     req.setHeader(key, "1stHeader");
     req.addHeader(key, value);
-    string[] headers = req.getHeaders(key);
+    string[] headers = checkpanic req.getHeaders(key);
     test:assertEquals(headers[0], "1stHeader", msg = "Mismatched header value");
     test:assertEquals(headers[1], "abc, xyz", msg = "Mismatched header value");
 }
@@ -237,7 +237,7 @@ service /requesthello on requestListner {
     resource function get addheader/[string key]/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
         req.addHeader(<@untainted string> key, value);
-        string result = <@untainted string> req.getHeader(<@untainted string> key);
+        string result = <@untainted> checkpanic req.getHeader(<@untainted string> key);
         http:Response res = new;
         res.setJsonPayload({ lang: result });
         checkpanic caller->respond(res);
@@ -266,7 +266,7 @@ service /requesthello on requestListner {
 
     resource function get getHeader(http:Caller caller, http:Request req) {
         http:Response res = new;
-        string header = <@untainted string> req.getHeader("content-type");
+        string header = <@untainted> checkpanic req.getHeader("content-type");
         res.setJsonPayload({ value: header });
         checkpanic caller->respond(res);
     }
@@ -370,7 +370,7 @@ service /requesthello on requestListner {
         http:Request req = new;
         req.setHeader(<@untainted string> key, "abc");
         req.setHeader(<@untainted string> key, value);
-        string result = <@untainted string> req.getHeader(<@untainted string> key);
+        string result = <@untainted> checkpanic req.getHeader(<@untainted string> key);
 
         http:Response res = new;
         res.setJsonPayload({ value: result });
@@ -457,7 +457,7 @@ service /requesthello on requestListner {
         cookie3.path = "/sample";
         http:Cookie[] cookiesToAdd = [cookie1, cookie2, cookie3];
         req.addCookies(cookiesToAdd);
-        string result = <@untainted string> req.getHeader("Cookie");
+        string result = <@untainted> checkpanic req.getHeader("Cookie");
         http:Response res = new;
         res.setJsonPayload({ cookieHeader: result });
         checkpanic caller->respond(res);

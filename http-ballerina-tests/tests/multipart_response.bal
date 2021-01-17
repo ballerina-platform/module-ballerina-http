@@ -53,7 +53,7 @@ service /multipart on mockEP2 {
     }
 
     resource function post nested_parts_in_outresponse(http:Caller caller, http:Request request) {
-        string contentType = <@untainted string> request.getHeader("content-type");
+        string contentType = <@untainted> checkpanic request.getHeader("content-type");
         http:Response outResponse = new;
         var bodyParts = request.getBodyParts();
 

@@ -61,7 +61,7 @@ function testErrorTypeReturnedFromAResourceFunction() {
     var response = resourceFunctionTestClient->get("/manualErrorReturn");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Some random error");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -74,7 +74,7 @@ function testErrorReturnedFromACheckExprInResourceFunction() {
     var response = resourceFunctionTestClient->get("/checkErrorReturn");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Simulated error");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

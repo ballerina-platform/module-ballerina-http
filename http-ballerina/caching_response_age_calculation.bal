@@ -37,19 +37,19 @@ isolated function calculateCurrentResponseAge(Response cachedResponse) returns @
 }
 
 isolated function getResponseAge(Response cachedResponse) returns @tainted int {
-    if (!cachedResponse.hasHeader(AGE)) {
+    string|error ageHeaderString = cachedResponse.getHeader(AGE);
+    if (ageHeaderString is error) {
         return 0;
+    } else {
+        var ageValue = 'int:fromString(ageHeaderString);
+        return (ageValue is int) ? ageValue : 0;
     }
-
-    string ageHeaderString = cachedResponse.getHeader(AGE);
-    var ageValue = 'int:fromString(ageHeaderString);
-
-    return (ageValue is int) ? ageValue : 0;
 }
 
 isolated function getDateValue(Response inboundResponse) returns int {
-    if (inboundResponse.hasHeader(DATE)) {
-        string dateHeader = inboundResponse.getHeader(DATE); // TODO: May need to handle invalid date headers
+    string|error dateHeader = inboundResponse.getHeader(DATE);
+    if (dateHeader is string) {
+        // TODO: May need to handle invalid date headers
         var dateHeaderTime = time:parse(dateHeader, time:RFC_1123_DATE_TIME);
         return (dateHeaderTime is time:Time) ? dateHeaderTime.time : 0;
     }

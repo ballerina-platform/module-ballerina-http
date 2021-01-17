@@ -42,12 +42,15 @@ isolated function prepareClientAuthError(string message, error? err = ()) return
 }
 
 // Extract the credential from `http:Request` or `string` header.
-isolated function extractCredential(Request|string data) returns string {
-    if (data is Request) {
-        string header = data.getHeader(AUTH_HEADER);
-        return stringutils:split(header, " ")[1];
+isolated function extractCredential(Request|string data) returns string? {
+    if (data is string) {
+        return stringutils:split(<string>data, " ")[1];
+    } else {
+        string|error header = data.getHeader(AUTH_HEADER);
+        if (header is string) {
+            return stringutils:split(header, " ")[1];
+        }
     }
-    return stringutils:split(<string>data, " ")[1];
 }
 
 // Match the expectedScopes with actualScopes and return if there is a match.

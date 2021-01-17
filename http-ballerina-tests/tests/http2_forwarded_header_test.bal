@@ -33,7 +33,7 @@ service /initiatingService on new http:Listener(9107) {
 
 service /forwardedBackend on new http:Listener(9108, {httpVersion: "2.0"}) {
     resource function get forwardedResource(http:Caller caller, http:Request request) {
-        string header = request.getHeader("forwarded");
+        string header = checkpanic request.getHeader("forwarded");
         io:println(header);
         http:Response response = new();
         response.setHeader("forwarded", header);
@@ -47,7 +47,7 @@ public function testForwardHeader() {
     http:Client clientEP = checkpanic new("http://localhost:9107");
     var resp = clientEP->get("/initiatingService/initiatingResource");
     if (resp is http:Response) {
-        assertHeaderValue(resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");
+        assertHeaderValue(checkpanic resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");
     } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }

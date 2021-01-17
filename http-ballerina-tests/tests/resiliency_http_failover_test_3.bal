@@ -164,7 +164,7 @@ service /mock03 on backendEP03 {
         }
         http:Response response = new;
         if (req.hasHeader(mime:CONTENT_TYPE)
-            && req.getHeader(mime:CONTENT_TYPE).startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+            && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
             var mimeEntity = req.getBodyParts();
             if (mimeEntity is error) {
                 log:printError(mimeEntity.message());
@@ -173,7 +173,7 @@ service /mock03 on backendEP03 {
             } else {
                 foreach var bodyPart in mimeEntity {
                     if (bodyPart.hasHeader(mime:CONTENT_TYPE)
-                        && bodyPart.getHeader(mime:CONTENT_TYPE).startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+                        && bodyPart.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
                         var nestedMimeEntity = bodyPart.getBodyParts();
                         if (nestedMimeEntity is error) {
                             log:printError(nestedMimeEntity.message());
@@ -228,7 +228,7 @@ function testAllEndpointFailure() {
     var response = testClient->post("/failoverDemoService03/invokeAllFailureEndpoint", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), expectedMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

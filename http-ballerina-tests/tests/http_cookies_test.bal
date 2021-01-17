@@ -53,7 +53,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie2);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -79,7 +79,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie2);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -109,7 +109,7 @@ service /cookie on new http:Listener(9253) {
             res.removeCookiesFromRemoteStore(cookie1);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -138,7 +138,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie3);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -166,7 +166,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie3); // Adds a similar persistent cookie.
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -194,7 +194,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie3); // Adds a similar session cookie.
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -225,7 +225,7 @@ service /cookie on new http:Listener(9253) {
             res.removeCookiesFromRemoteStore(cookie1);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }

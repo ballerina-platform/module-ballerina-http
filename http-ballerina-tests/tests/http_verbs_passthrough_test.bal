@@ -130,7 +130,7 @@ function testPassthroughSampleForGET() {
     var response = httpVerbClient->get("/headQuote/default");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "wso2");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -143,7 +143,7 @@ function testPassthroughSampleForPOST() {
     var response = httpVerbClient->post("/headQuote/default", "test");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "ballerina");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -156,7 +156,7 @@ function testPassthroughSampleWithDefaultResource() {
     var response = httpVerbClient->head("/headQuote/default");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("Method"), "any");
+        assertHeaderValue(checkpanic response.getHeader("Method"), "any");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -168,7 +168,7 @@ function testOutboundPUT() {
     var response = httpVerbClient->get("/headQuote/getStock/PUT");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("Method"), "any");
+        assertHeaderValue(checkpanic response.getHeader("Method"), "any");
         assertTextPayload(response.getTextPayload(), "default");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

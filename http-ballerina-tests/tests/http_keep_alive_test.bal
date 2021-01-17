@@ -72,9 +72,9 @@ service /keepAliveTest2 on keepAliveListenerEP {
     resource function 'default .(http:Caller caller, http:Request req) {
         string value;
         if (req.hasHeader("connection")) {
-            value = req.getHeader("connection");
+            value = checkpanic req.getHeader("connection");
             if (req.hasHeader("keep-alive")) {
-                value += "--" + req.getHeader("keep-alive");
+                value += "--" + checkpanic req.getHeader("keep-alive");
             }
         } else {
             value = "No connection header found";
@@ -98,7 +98,7 @@ function testWithHttp_1_1() {
     var response = keepAliveClient->get("/keepAliveTest/h1_1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "http_1_1--keep-alive--keep-alive--keep-alive--close");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -110,7 +110,7 @@ function testWithHttp_1_0() {
     var response = keepAliveClient->get("/keepAliveTest/h1_0");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "http_1_0--close--close--keep-alive--close");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

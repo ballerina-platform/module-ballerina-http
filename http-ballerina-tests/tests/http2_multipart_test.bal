@@ -54,7 +54,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
     resource function get initial(http:Caller caller, http:Request request) {
         http:Response|http:PayloadType|error finalResponse;
         http:Request req = new;
-        if (request.getHeader("priorKnowledge") == "true") {
+        if (checkpanic request.getHeader("priorKnowledge") == "true") {
             req.setHeader("priorKnowledge", "true");
             finalResponse = priorKnowclientEP2->get("/multiparts/encode", req);
         } else {
@@ -89,7 +89,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
         http:Request request = new;
         request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
         http:Response|http:PayloadType|error returnResponse;
-        if (req.getHeader("priorKnowledge") == "true") {
+        if (checkpanic req.getHeader("priorKnowledge") == "true") {
             returnResponse = priorKnowclientEP1->post("/multiparts/decode", request);
         } else {
             returnResponse = mimeClientEP1->post("/multiparts/decode", request);

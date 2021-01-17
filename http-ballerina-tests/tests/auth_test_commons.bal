@@ -17,9 +17,11 @@
 // NOTE: All the tokens/credentials used in this test are dummy tokens/credentials and used only for testing purposes.
 
 import ballerina/http;
+import ballerina/stringutils;
 
 const string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
 const string TRUSTSTORE_PATH = "tests/certsandkeys/ballerinaTruststore.p12";
+const string ACCESS_TOKEN = "2YotnFZFEjr1zCsicMWpAA";
 
 isolated function createDummyRequest() returns http:Request {
     http:Request request = new;
@@ -49,7 +51,7 @@ service /oauth2 on oauth2Listener {
     resource function post token(http:Caller caller, http:Request request) {
         http:Response res = new;
         json response = {
-            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "access_token": ACCESS_TOKEN,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
@@ -58,16 +60,36 @@ service /oauth2 on oauth2Listener {
         checkpanic caller->respond(res);
     }
 
-    resource function post token/introspect/success(http:Caller caller, http:Request request) {
+    resource function post token/refresh(http:Caller caller, http:Request request) {
         http:Response res = new;
-        json response = { "active": true, "exp": 3600, "scp": "read write" };
+        json response = {
+            "access_token": ACCESS_TOKEN,
+            "token_type": "example",
+            "expires_in": 3600,
+            "example_parameter": "example_value"
+        };
         res.setPayload(response);
         checkpanic caller->respond(res);
     }
 
-    resource function post token/introspect/failure(http:Caller caller, http:Request request) {
+    resource function post token/introspect(http:Caller caller, http:Request request) {
+        string|http:ClientError payload = request.getTextPayload();
+        json response = ();
+        if (payload is string) {
+            string[] parts = stringutils:split(payload, "&");
+            foreach string part in parts {
+                if (part.indexOf("token=") is int) {
+                    string token = stringutils:split(part, "=")[1];
+                    if (token == ACCESS_TOKEN) {
+                        response = { "active": true, "exp": 3600, "scp": "read write" };
+                    } else {
+                        response = { "active": false };
+                    }
+                    break;
+                }
+            }
+        }
         http:Response res = new;
-        json response = { "active": false };
         res.setPayload(response);
         checkpanic caller->respond(res);
     }

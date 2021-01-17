@@ -202,7 +202,7 @@ function testPushPromise() {
     var response = serverPushClient->get("/frontendHttpService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {status:"successful"});
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

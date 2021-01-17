@@ -46,7 +46,7 @@ service /validation\-req\-be on cachingBackendListener {
         res.cacheControl = resCC;
         res.setETag(payload);
         res.setPayload(payload);
-        res.setHeader("x-caller-req-header", req.getHeader("x-caller-req-header"));
+        res.setHeader("x-caller-req-header", checkpanic req.getHeader("x-caller-req-header"));
 
         checkpanic caller->respond(<@untainted>res);
     }
@@ -62,10 +62,10 @@ function testCallerRequestHeaderPreservation() {
     var response = cachingProxyTestClient->get("/validation-request", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(callerReqHeader), "First Request");
+        assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "First Request");
         test:assertFalse(response.hasHeader(IF_NONE_MATCH));
         test:assertFalse(response.hasHeader(IF_MODIFIED_SINCE));
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -77,10 +77,10 @@ function testCallerRequestHeaderPreservation() {
     response = cachingProxyTestClient->get("/validation-request", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(callerReqHeader), "First Request");
+        assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "First Request");
         test:assertFalse(response.hasHeader(IF_NONE_MATCH));
         test:assertFalse(response.hasHeader(IF_MODIFIED_SINCE));
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -94,10 +94,10 @@ function testCallerRequestHeaderPreservation() {
     response = cachingProxyTestClient->get("/validation-request", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(callerReqHeader), "Third Request");
+        assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "Third Request");
         test:assertFalse(response.hasHeader(IF_NONE_MATCH));
         test:assertFalse(response.hasHeader(IF_MODIFIED_SINCE));
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

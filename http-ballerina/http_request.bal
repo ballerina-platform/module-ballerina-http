@@ -139,18 +139,18 @@ public class Request {
     # these values is returned.
     #
     # + headerName - The header name
-    # + return - The first header value for the specified header name. Panic if the header is not found. Use the
-    #            `Request.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeader(string headerName) returns @tainted string {
+    # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeader(string headerName) returns @tainted string|HeaderNotFoundError {
         return externRequestGetHeader(self, headerName);
     }
 
     # Gets all the header values to which the specified header key maps to.
     #
     # + headerName - The header name
-    # + return - The header values the specified header key maps to. Panic if the header is not found. Use the
-    #            `Request.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeaders(string headerName) returns @tainted string[] {
+    # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeaders(string headerName) returns @tainted string[]|HeaderNotFoundError {
         return externRequestGetHeaders(self, headerName);
     }
 
@@ -209,7 +209,12 @@ public class Request {
     #
     # + return - The `content-type` header value as a string
     public isolated function getContentType() returns @tainted string {
-        return self.getHeader(mime:CONTENT_TYPE);
+        string contentTypeHeaderValue = "";
+        var value = self.getHeader(mime:CONTENT_TYPE);
+        if (value is string) {
+            contentTypeHeaderValue = value;
+        }
+        return contentTypeHeaderValue;
     }
 
     # Extracts `json` payload from the request. If the content type is not JSON, an `http:ClientError` is returned.
@@ -324,13 +329,14 @@ public class Request {
             return mimeEntity;
         } else {
             string message = "Error occurred while retrieving form parameters from the request";
-            if (!self.hasHeader(mime:CONTENT_TYPE)) {
+            string|error contentTypeValue = self.getHeader(mime:CONTENT_TYPE);
+            if (contentTypeValue is error) {
                 string errMessage = "Content-Type header is not available";
                 mime:HeaderUnavailableError typeError = error mime:HeaderUnavailableError(errMessage);
                 return error GenericClientError(message, typeError);
             }
             string contentTypeHeaderValue = "";
-            var mediaType = mime:getMediaType(self.getHeader(mime:CONTENT_TYPE));
+            var mediaType = mime:getMediaType(checkpanic contentTypeValue);
             if (mediaType is mime:InvalidContentTypeError) {
                 return error GenericClientError(message, mediaType);
             } else {
@@ -495,7 +501,7 @@ public class Request {
         }
 
         RequestCacheControl reqCC = new;
-        string cacheControl = self.getHeader(CACHE_CONTROL);
+        string cacheControl = checkpanic self.getHeader(CACHE_CONTROL);
         string[] directives = stringutils:split(cacheControl, ",");
 
         foreach var dir in directives {
@@ -565,10 +571,10 @@ public class Request {
     #
     # + return - An array of cookie objects, which are included in the request
     public function getCookies() returns Cookie[] {
-        string cookiesStringValue = "";
         Cookie[] cookiesInRequest = [];
-        if (self.hasHeader("Cookie")) {
-            cookiesInRequest = parseCookieHeader(self.getHeader("Cookie"));
+        var cookieValue = self.getHeader("Cookie");
+        if (cookieValue is string) {
+            cookiesInRequest = parseCookieHeader(cookieValue);
         }
         return cookiesInRequest;
     }
@@ -654,13 +660,13 @@ public const NONE = ();
 
 // HTTP header related external functions
 isolated function externRequestGetHeader(Request request, string headerName, HeaderPosition position = LEADING)
-                         returns @tainted string = @java:Method {
+                         returns @tainted string|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeader"
 } external;
 
 isolated function externRequestGetHeaders(Request request, string headerName, HeaderPosition position = LEADING)
-                          returns @tainted string[] = @java:Method {
+                          returns @tainted string[]|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaders"
 } external;

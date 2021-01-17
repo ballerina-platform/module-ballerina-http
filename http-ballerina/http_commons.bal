@@ -202,12 +202,12 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
 
 isolated function isMultipartRequest(Request request) returns @tainted boolean {
     return request.hasHeader(mime:CONTENT_TYPE) &&
-        request.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
+        request.getContentType().startsWith(MULTIPART_AS_PRIMARY_TYPE);
 }
 
 isolated function isNestedEntity(mime:Entity entity) returns @tainted boolean {
     return entity.hasHeader(mime:CONTENT_TYPE) &&
-        entity.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
+        entity.getContentType().startsWith(MULTIPART_AS_PRIMARY_TYPE);
 }
 
 isolated function createFailoverRequest(Request request, mime:Entity requestEntity) returns Request|ClientError {
