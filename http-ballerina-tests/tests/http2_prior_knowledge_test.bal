@@ -52,9 +52,9 @@ service /priorKnowledgeTestBackEnd on priorEp2 {
     resource function post .(http:Caller caller, http:Request req) {
         string outboundResponse = "";
         if (req.hasHeader(http:CONNECTION) && req.hasHeader(http:UPGRADE)) {
-            string[] connHeaders = req.getHeaders(http:CONNECTION);
+            string[] connHeaders = checkpanic req.getHeaders(http:CONNECTION);
             outboundResponse = connHeaders[1];
-            outboundResponse = outboundResponse + "--" + req.getHeader(http:UPGRADE);
+            outboundResponse = outboundResponse + "--" + checkpanic req.getHeader(http:UPGRADE);
         } else {
             outboundResponse = "Connection and upgrade headers are not present";
         }

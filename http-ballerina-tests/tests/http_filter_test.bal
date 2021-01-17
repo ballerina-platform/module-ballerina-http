@@ -34,7 +34,7 @@ class MyResponseFilter {
     *http:ResponseFilter;
 
     public isolated function filterResponse(http:Response response, http:FilterContext context) returns boolean {
-        response.setHeader("Baz", <@untainted>response.getHeader("Bar"));
+        response.setHeader("Baz", <@untainted> checkpanic response.getHeader("Bar"));
         return true;
     }
 }
@@ -47,8 +47,8 @@ listener http:Listener listenerEP = new http:Listener(filterTestPort, config = {
 service /hello on listenerEP {
     resource function get sayHello(http:Caller caller, http:Request req) {
         http:Response res = new;
-        res.setHeader("Bar", <@untainted>req.getHeader("Foo"));
-        res.setPayload(<@untainted>req.getHeader("Foo"));
+        res.setHeader("Bar", <@untainted> checkpanic req.getHeader("Foo"));
+        res.setPayload(<@untainted> checkpanic req.getHeader("Foo"));
         checkpanic caller->respond(<@untainted>res);
     }
 }
@@ -58,7 +58,7 @@ function testFilterInvocation() {
     http:Client clientEP = new("http://localhost:" + filterTestPort.toString());
     var res = clientEP->get("/hello/sayHello");
     if (res is http:Response) {
-        string header = res.getHeader("Baz");
+        string header = checkpanic res.getHeader("Baz");
         test:assertEquals(header, HEADER_VALUE);
     } else {
         test:assertFail(msg = "Test Failed!");

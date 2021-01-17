@@ -26,10 +26,10 @@ service /trailerInitiator on new http:Listener(9118) {
     resource function 'default [string svc]/[string rsc](http:Caller caller, http:Request request) {
         var responseFromBackend = trailerClientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
         if (responseFromBackend is http:Response) {
-            string trailerHeaderValue = responseFromBackend.getHeader("trailer");
+            string trailerHeaderValue = checkpanic responseFromBackend.getHeader("trailer");
             var textPayload = responseFromBackend.getTextPayload();
-            string firstTrailer = responseFromBackend.getHeader("foo", position = "trailing");
-            string secondTrailer = responseFromBackend.getHeader("baz", position = "trailing");
+            string firstTrailer = checkpanic responseFromBackend.getHeader("foo", position = "trailing");
+            string secondTrailer = checkpanic responseFromBackend.getHeader("baz", position = "trailing");
 
             int headerCount = responseFromBackend.getHeaderNames(position = "trailing").length();
 

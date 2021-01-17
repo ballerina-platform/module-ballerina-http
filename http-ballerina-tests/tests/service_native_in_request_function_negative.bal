@@ -26,11 +26,24 @@ function negativeTestGetContentLength() {
     test:assertFalse(req.hasHeader("content-legth"));
 }
 
-// "Test when the content type header is not set"
+// "Test getHeader() when the content type header is not set"
 @test:Config {}
 function negativeTestGetHeader() {
     http:Request req = new;
-    test:assertFalse(req.hasHeader("Content-Type"));
+    string|error header = req.getHeader("Content-Type");
+    if (header is error) {
+        test:assertEquals(header.message(), "Http header does not exist");
+    }
+}
+
+// "Test getHeaders() when the content type header is not set"
+@test:Config {}
+function negativeTestGetHeaders() {
+    http:Request req = new;
+    string[]|error header = req.getHeaders("Content-Type");
+    if (header is error) {
+        test:assertEquals(header.message(), "Http header does not exist");
+    }
 }
 
 // Test method without json payload

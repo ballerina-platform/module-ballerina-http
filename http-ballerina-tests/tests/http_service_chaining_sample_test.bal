@@ -127,7 +127,7 @@ function testServiceChaining() {
     var response = serviceChainingClient->post("/ABCBank/locator", requestMessage);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

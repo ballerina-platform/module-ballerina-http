@@ -51,7 +51,7 @@ service /passthrough on passthroughEP1 {
             if (entity is mime:Entity) {
                 string|error payload = entity.getText();
                 if (payload is string) {
-                    checkpanic caller->ok(<@untainted> (payload + ", " + entity.getHeader("X-check-header")));
+                    checkpanic caller->ok(<@untainted> (payload + ", " + checkpanic entity.getHeader("X-check-header")));
                 } else {
                     checkpanic caller->internalServerError(<@untainted> payload.toString());
                 }
@@ -86,7 +86,7 @@ service /nyseStock on passthroughEP1 {
             json|error textPayload = entity.getText();
             if (textPayload is string) {
                 mime:Entity ent = new;
-                ent.setText(<@untainted> ("payload :" + textPayload + ", header: " + entity.getHeader("Content-type")));
+                ent.setText(<@untainted> ("payload :" + textPayload + ", header: " + checkpanic entity.getHeader("Content-type")));
                 ent.setHeader("X-check-header", "entity-check-header");
                 res.setEntity(ent);
                 checkpanic caller->ok(res);
@@ -104,7 +104,7 @@ public function testPassthroughServiceByBasePath() {
     http:Client httpClient = new("http://localhost:9113");
     var resp = httpClient->get("/passthrough");
     if (resp is http:Response) {
-        string contentType = resp.getHeader("content-type");
+        string contentType = checkpanic resp.getHeader("content-type");
         test:assertEquals(contentType, "application/json");
         var body = resp.getJsonPayload();
         if (body is json) {
@@ -122,7 +122,7 @@ public function testPassthroughServiceWithMimeEntity() {
     http:Client httpClient = new("http://localhost:9113");
     var resp = httpClient->post("/passthrough/forward", "Hello from POST!");
     if (resp is http:Response) {
-        string contentType = resp.getHeader("content-type");
+        string contentType = checkpanic resp.getHeader("content-type");
         test:assertEquals(contentType, "text/plain");
         var body = resp.getTextPayload();
         if (body is string) {
@@ -151,7 +151,7 @@ public function testPassthroughWithMultiparts() {
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
     var resp = httpClient->post("/passthrough/forwardMultipart", request);
     if (resp is http:Response) {
-        string contentType = resp.getHeader("content-type");
+        string contentType = checkpanic resp.getHeader("content-type");
         test:assertTrue(stringutils:contains(contentType, "multipart/form-data"));
         var respBodyParts = resp.getBodyParts();
         if (respBodyParts is mime:Entity[]) {

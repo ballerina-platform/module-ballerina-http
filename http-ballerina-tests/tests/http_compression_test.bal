@@ -67,7 +67,7 @@ function testCompressionAnnotAutoCompress() {
     var response = compressionAnnotClient->get("/autoCompress");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -83,8 +83,8 @@ function testCompressionAnnotAutoCompressWithAcceptEncoding() {
     var response = compressionAnnotClient->get("/autoCompress", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -98,7 +98,7 @@ function testAcceptEncodingWithQValueZero() {
     var response = compressionAnnotClient->get("/autoCompress", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -112,8 +112,8 @@ function testCompressionAnnotAlwaysCompress() {
     var response = compressionAnnotClient->get("/alwaysCompress");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -128,8 +128,8 @@ function testCompressionAnnotAlwaysCompressWithAcceptEncoding() {
     var response = compressionAnnotClient->get("/alwaysCompress", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -141,7 +141,7 @@ function testCompressionAnnotNeverCompress() {
     var response = compressionAnnotClient->get("/neverCompress");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -156,7 +156,7 @@ function testCompressionAnnotNeverCompressWithAcceptEncoding() {
     var response = compressionAnnotClient->get("/neverCompress", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -172,8 +172,8 @@ function testCompressionAnnotNeverCompressWithUserOverridenValue() {
     var response = compressionAnnotClient->get("/userOverridenValue", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

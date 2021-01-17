@@ -27,7 +27,7 @@ service /maxAge on cachingProxyListener {
         if (response is http:Response) {
             json responsePayload;
             if (response.hasHeader("cache-control")) {
-                responsePayload = response.getHeader("cache-control");
+                responsePayload = checkpanic response.getHeader("cache-control");
                 checkpanic caller->respond(<@untainted> responsePayload);
             } else {
                 checkpanic caller->respond(<@untainted> response);
@@ -70,7 +70,7 @@ function testMaxAgeCacheControl() {
     var response = cachingProxyTestClient->get("/maxAge");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "public,max-age=5");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -79,7 +79,7 @@ function testMaxAgeCacheControl() {
     response = cachingProxyTestClient->get("/maxAge");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "public,max-age=5");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -91,7 +91,7 @@ function testMaxAgeCacheControl() {
     response = cachingProxyTestClient->get("/maxAge");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"after cache expiration"});
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

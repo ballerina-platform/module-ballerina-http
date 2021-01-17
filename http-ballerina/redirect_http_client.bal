@@ -337,8 +337,8 @@ function redirect(Response response, HttpOperation httpVerb, Request request,
         redirectClient.currentRedirectCount = currentCount;
         var redirectMethod = getRedirectMethod(httpVerb, response);
         if (redirectMethod is HttpOperation) {
-            if (response.hasHeader(LOCATION)) {
-                final string location = response.getHeader(LOCATION);
+             var location = response.getHeader(LOCATION);
+             if (location is string) {
                 // log:printDebug(isolated function() returns string {
                 //     return "Location header value: " + location;
                 // });
