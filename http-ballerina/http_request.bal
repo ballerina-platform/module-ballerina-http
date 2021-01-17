@@ -16,8 +16,9 @@
 
 import ballerina/io;
 import ballerina/lang.array;
+import ballerina/lang.'string as strings;
 import ballerina/mime;
-import ballerina/stringutils;
+import ballerina/regex;
 import ballerina/java;
 import ballerina/time;
 
@@ -342,7 +343,7 @@ public class Request {
             } else {
                 contentTypeHeaderValue = mediaType.primaryType + "/" + mediaType.subType;
             }
-            if (!(stringutils:equalsIgnoreCase(mime:APPLICATION_FORM_URLENCODED, contentTypeHeaderValue))) {
+            if (!(strings:equalsIgnoreCaseAscii(mime:APPLICATION_FORM_URLENCODED, contentTypeHeaderValue))) {
                 string errorMessage = "Invalid content type : expected 'application/x-www-form-urlencoded'";
                 mime:InvalidContentTypeError typeError = error mime:InvalidContentTypeError(errorMessage);
                 return error GenericClientError(message, typeError);
@@ -353,7 +354,7 @@ public class Request {
                 return error GenericClientError(message, formData);
             } else {
                 if (formData != "") {
-                    string[] entries = stringutils:split(formData, "&");
+                    string[] entries = regex:split(formData, "&");
                     int entryIndex = 0;
                     while (entryIndex < entries.length()) {
                         int? index = entries[entryIndex].indexOf("=");
@@ -502,7 +503,7 @@ public class Request {
 
         RequestCacheControl reqCC = new;
         string cacheControl = checkpanic self.getHeader(CACHE_CONTROL);
-        string[] directives = stringutils:split(cacheControl, ",");
+        string[] directives = regex:split(cacheControl, ",");
 
         foreach var dir in directives {
             var directive = dir.trim();

@@ -15,9 +15,9 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
-import ballerina/stringutils;
 
 listener http:Listener passthroughEP1 = new(9113);
 
@@ -152,7 +152,7 @@ public function testPassthroughWithMultiparts() {
     var resp = httpClient->post("/passthrough/forwardMultipart", request);
     if (resp is http:Response) {
         string contentType = checkpanic resp.getHeader("content-type");
-        test:assertTrue(stringutils:contains(contentType, "multipart/form-data"));
+        test:assertTrue(strings:includes(contentType, "multipart/form-data"));
         var respBodyParts = resp.getBodyParts();
         if (respBodyParts is mime:Entity[]) {
             test:assertEquals(respBodyParts.length(), 2);

@@ -15,10 +15,10 @@
 // under the License.
 
 import ballerina/io;
+import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/crypto;
 import ballerina/time;
-import ballerina/stringutils;
 import ballerina/java;
 import ballerina/log;
 
@@ -143,7 +143,7 @@ public class Response {
 
 
         // TODO: see if this can be handled in a better manner
-        if (stringutils:equalsIgnoreCase(SERVER, headerName)) {
+        if (strings:equalsIgnoreCaseAscii(SERVER, headerName)) {
             self.server = headerValue;
         }
     }
