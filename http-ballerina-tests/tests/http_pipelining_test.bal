@@ -31,18 +31,18 @@ service /pipeliningTest on pipeliningListenerEP1 {
 
         if (req.hasHeader("message-id")) {
             //Request one roughly takes 4 seconds to prepare its response
-            if (req.getHeader("message-id") == "request-one") {
+            if (checkpanic req.getHeader("message-id") == "request-one") {
                 runtime:sleep(4);
                 response.setHeader("message-id", "response-one");
                 response.setPayload("Hello1");
             }
             //Request two's response will get ready immediately without any sleep time
-            if (req.getHeader("message-id") == "request-two") {
+            if (checkpanic req.getHeader("message-id") == "request-two") {
                 response.setHeader("message-id", "response-two");
                 response.setPayload("Hello2");
             }
             //Request three roughly takes 2 seconds to prepare its response
-            if (req.getHeader("message-id") == "request-three") {
+            if (checkpanic req.getHeader("message-id") == "request-three") {
                 runtime:sleep(2);
                 response.setHeader("message-id", "response-three");
                 response.setPayload("Hello3");
@@ -64,18 +64,18 @@ service /pipelining on pipeliningListenerEP2 {
 
         if (req.hasHeader("message-id")) {
             //Request one roughly takes 8 seconds to prepare its response
-            if (req.getHeader("message-id") == "request-one") {
+            if (checkpanic req.getHeader("message-id") == "request-one") {
                 runtime:sleep(8);
                 response.setHeader("message-id", "response-one");
                 response.setPayload("Hello1");
             }
             //Request two and three will be ready immediately, but they should't have sent out to the client
-            if (req.getHeader("message-id") == "request-two") {
+            if (checkpanic req.getHeader("message-id") == "request-two") {
                 response.setHeader("message-id", "response-two");
                 response.setPayload("Hello2");
             }
 
-            if (req.getHeader("message-id") == "request-three") {
+            if (checkpanic req.getHeader("message-id") == "request-three") {
                 response.setHeader("message-id", "response-three");
                 response.setPayload("Hello3");
             }

@@ -73,7 +73,7 @@ service /passthrough on clientDBProxyListener {
 
         res = clientDBBackendClient->post("/backend/getResponse", "want record[]", targetType = http:Response);
         http:Response v = <http:Response> checkpanic res;
-        payload = payload + " | " + v.getHeader("x-fact");
+        payload = payload + " | " + checkpanic v.getHeader("x-fact");
 
         var result = caller->respond(<@untainted>payload);
     }
@@ -87,7 +87,7 @@ service /passthrough on clientDBProxyListener {
 
         res = clientDBBackendClient->head("/backend/getXml", "want xml");
         http:Response v = <http:Response> checkpanic res;
-        payload = payload + " | " + v.getHeader("Content-type");
+        payload = payload + " | " + checkpanic v.getHeader("Content-type");
 
         res = clientDBBackendClient->delete("/backend/getString", "want string", targetType = string);
         string r = <string> checkpanic res;
@@ -258,7 +258,7 @@ function testAllBindingDataTypes() {
     var response = clientDBTestClient->get("/passthrough/allTypes");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
                  "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | chamil | <name>Ballerina</name> | " +
                  "This is my @4491*&&#$^($@ | BinaryPayload is textVal | chamil | wso2 | 3 | data-binding");
@@ -273,7 +273,7 @@ function testDifferentMethods() {
     var response = clientDBTestClient->get("/passthrough/allMethods");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
                 "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | application/xml | This is my @4491*&&#$^($@ | BinaryPayload" +
                 " is textVal | chamil | wso2 | 3");
@@ -288,7 +288,7 @@ function testRedirectClientDataBinding() {
     var response = clientDBTestClient->get("/passthrough/redirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         json j = {id:"chamil", values:{a:2, b:45, c:{x:"mnb", y:"uio"}}};
         assertJsonPayload(response.getJsonPayload(), j);
     } else if (response is error) {
@@ -302,7 +302,7 @@ function testRetryClientDataBinding() {
     var response = clientDBTestClient->get("/passthrough/retry");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -315,7 +315,7 @@ function testCastError() {
     var response = clientDBTestClient->get("/passthrough/cast");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "incompatible types: 'map<json>' cannot be cast to " +
                             "'xml<lang.xml:Element|lang.xml:Comment|lang.xml:ProcessingInstruction|lang.xml:Text>'");
     } else if (response is error) {
@@ -329,7 +329,7 @@ function test5XXErrorPanic() {
     var response = clientDBTestClient->get("/passthrough/500");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -342,7 +342,7 @@ function test5XXHandleError() {
     var response = clientDBTestClient->get("/passthrough/500handle");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -355,7 +355,7 @@ function test4XXErrorPanic() {
     var response = clientDBTestClient->get("/passthrough/404");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), 
             "no matching resource found for path : /backend/getIncorrectPath404 , method : POST");
     } else if (response is error) {
@@ -369,7 +369,7 @@ function test4XXHandleError() {
     var response = clientDBTestClient->get("/passthrough/404/handle");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /backend/handle , method : POST");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -382,7 +382,7 @@ function test405HandleError() {
     var response = clientDBTestClient->get("/passthrough/404/get4XX");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Method not allowed");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

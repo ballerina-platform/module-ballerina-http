@@ -89,7 +89,7 @@ function testFailoverStartingPosition() {
     var response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Failover start index is : 0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -98,7 +98,7 @@ function testFailoverStartingPosition() {
     response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Failover start index is : 2");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -94,7 +94,7 @@ function testOKWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/okWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "OK Response");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -107,7 +107,7 @@ function testOKWithoutBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/okWithoutBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_LENGTH), "0");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -119,8 +119,8 @@ function testCreatedWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/createdWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(response.getHeader(LOCATION), "/newResourceURI");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(LOCATION), "/newResourceURI");
         assertTextPayload(response.getTextPayload(), "Created Response");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -133,8 +133,8 @@ function testCreatedWithoutBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/createdWithoutBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(LOCATION), "/newResourceURI");
-        assertHeaderValue(response.getHeader(CONTENT_LENGTH), "0");
+        assertHeaderValue(checkpanic response.getHeader(LOCATION), "/newResourceURI");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -147,7 +147,7 @@ function testCreatedWithEmptyURI() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         test:assertFalse(response.hasHeader(LOCATION));
-        assertHeaderValue(response.getHeader(CONTENT_LENGTH), "0");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -159,7 +159,7 @@ function testAcceptedWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/acceptedWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {msg:"accepted response"});
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -172,7 +172,7 @@ function testAcceptedWithoutBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/acceptedWithoutBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_LENGTH), "0");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -184,7 +184,7 @@ function testNoContentWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/noContentWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("x-custom-header"), "custom-header-value");
+        assertHeaderValue(checkpanic response.getHeader("x-custom-header"), "custom-header-value");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -207,7 +207,7 @@ function testBadRequestWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/badRequestWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         test:assertEquals(response.getXmlPayload(), xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -231,7 +231,7 @@ function testNotFoundWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/notFoundWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         test:assertEquals(response.getXmlPayload(), xml `<test>artifacts not found</test>`, msg = "Mismatched xml payload");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -255,7 +255,7 @@ function testInternalServerErrWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/serverErrWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         test:assertEquals(response.getXmlPayload(), xml `<test>Internal Server Error Occurred</test>`, msg = "Mismatched xml payload");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

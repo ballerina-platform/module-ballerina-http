@@ -38,7 +38,7 @@ service /hello on acceptEncodingListenerEP {
         json payload = {};
         boolean hasHeader = req.hasHeader(ACCEPT_ENCODING);
         if (hasHeader) {
-            payload = {acceptEncoding:req.getHeader(ACCEPT_ENCODING)};
+            payload = {acceptEncoding: checkpanic req.getHeader(ACCEPT_ENCODING)};
         } else {
             payload = {acceptEncoding:"Accept-Encoding header not present."};
         }

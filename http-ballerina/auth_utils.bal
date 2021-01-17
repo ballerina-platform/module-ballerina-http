@@ -72,8 +72,8 @@ isolated function extractCredential(Request|string data) returns string? {
     if (data is string) {
         return stringutils:split(<string>data, " ")[1];
     } else {
-        if (data.hasHeader(AUTH_HEADER)) {
-            string header = data.getHeader(AUTH_HEADER);
+        string|error header = data.getHeader(AUTH_HEADER);
+        if (header is string) {
             return stringutils:split(header, " ")[1];
         }
     }
