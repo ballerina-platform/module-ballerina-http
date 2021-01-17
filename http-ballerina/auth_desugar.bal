@@ -34,8 +34,12 @@ public function authenticateResource(Service servieRef, string resourceName) ret
     if (authHandlers is ()) {
         return;
     }
-    string header = getAuthorizationHeader();
-    Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authHandlers, header);
+    string|HeaderNotFoundError header = getAuthorizationHeader();
+    if (HeaderNotFoundError) {
+        Unauthorized unauthorized = {};
+        return unauthorized;
+    }
+    Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authHandlers, <string>header);
     return result;
 }
 
@@ -125,6 +129,6 @@ isolated function send403(Caller caller) {
     }
 }
 
-function getAuthorizationHeader() returns string = @java:Method {
+function getAuthorizationHeader() returns string|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders"
 } external;

@@ -159,10 +159,10 @@ public class ExternHeaders {
         return httpTrailerHeaders;
     }
 
-    public static BString getAuthorizationHeader(Environment env) {
+    public static Object getAuthorizationHeader(Environment env) {
         String authorizationHeader = (String) env.getStrandLocal(HttpConstants.AUTHORIZATION_HEADER);
         if (authorizationHeader == null) {
-            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
         return StringUtils.fromString(authorizationHeader);
     }
