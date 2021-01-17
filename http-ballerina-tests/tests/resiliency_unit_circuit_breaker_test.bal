@@ -375,7 +375,7 @@ public client class MockClient {
         http:Request req = buildRequest(message);
         http:Response response = new;
         actualRequestNumber = actualRequestNumber + 1;
-        string scenario = req.getHeader(TEST_SCENARIO_HEADER);
+        string scenario = checkpanic req.getHeader(TEST_SCENARIO_HEADER);
 
         if (scenario == SCENARIO_TYPICAL) {
             var result = handleBackendFailureScenario(actualRequestNumber);

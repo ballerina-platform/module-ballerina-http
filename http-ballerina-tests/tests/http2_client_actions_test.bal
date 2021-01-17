@@ -216,7 +216,7 @@ public function testHttp2GetAction() {
     var resp = clientEP->get("/testHttp2Service/clientGet");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "HelloHelloHello");
-        assertHeaderValue(resp.getHeader("content-type"), "text/plain");
+        assertHeaderValue(checkpanic resp.getHeader("content-type"), "text/plain");
     } else if (resp is error) {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }

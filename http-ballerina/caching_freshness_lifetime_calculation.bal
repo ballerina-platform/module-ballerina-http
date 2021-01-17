@@ -38,34 +38,32 @@ isolated function getFreshnessLifetime(Response cachedResponse, boolean isShared
 
     // At this point, there should be exactly one Expires header to calculate the freshness lifetime.
     // When adding heuristic calculations, the condition would change to >1.
-    if (!cachedResponse.hasHeader(EXPIRES)) {
+    string[]|error expiresHeader = cachedResponse.getHeaders(EXPIRES);
+    if (expiresHeader is error) {
         return STALE;
+    } else {
+        if (expiresHeader.length() != 1) {
+            return STALE;
+        }
+
+        string[]|error dateHeader = cachedResponse.getHeaders(DATE);
+        if (dateHeader is error) {
+            return STALE;
+        } else {
+            if (dateHeader.length() != 1) {
+                return STALE;
+            }
+
+            var tExpiresHeader = time:parse(expiresHeader[0], time:RFC_1123_DATE_TIME);
+            var tDateHeader = time:parse(dateHeader[0], time:RFC_1123_DATE_TIME);
+            if (tExpiresHeader is time:Time && tDateHeader is time:Time) {
+                int freshnessLifetime = (tExpiresHeader.time - tDateHeader.time) /1000;
+                return freshnessLifetime;
+            }
+
+            // TODO: Add heuristic freshness lifetime calculation
+
+            return STALE;
+        }
     }
-
-    string[] expiresHeader = cachedResponse.getHeaders(EXPIRES);
-
-    if (expiresHeader.length() != 1) {
-        return STALE;
-    }
-
-    if (!cachedResponse.hasHeader(DATE)) {
-        return STALE;
-    }
-
-    string[] dateHeader = cachedResponse.getHeaders(DATE);
-
-    if (dateHeader.length() != 1) {
-        return STALE;
-    }
-
-    var tExpiresHeader = time:parse(expiresHeader[0], time:RFC_1123_DATE_TIME);
-    var tDateHeader = time:parse(dateHeader[0], time:RFC_1123_DATE_TIME);
-    if (tExpiresHeader is time:Time && tDateHeader is time:Time) {
-        int freshnessLifetime = (tExpiresHeader.time - tDateHeader.time) /1000;
-        return freshnessLifetime;
-    }
-
-    // TODO: Add heuristic freshness lifetime calculation
-
-    return STALE;
 }

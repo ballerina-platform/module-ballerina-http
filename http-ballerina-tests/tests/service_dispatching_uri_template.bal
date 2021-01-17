@@ -27,7 +27,7 @@ http:Client utClient2 = new("http://localhost:" + uriTemplateTest2.toString());
 service /ecommerceservice on utTestEP {
 
     resource function get products/[string productId]/[string regId](http:Caller caller, http:Request req) {
-        string orderId = req.getHeader("X-ORDER-ID");
+        string orderId = checkpanic req.getHeader("X-ORDER-ID");
         io:println("Order ID " + orderId);
         io:println("Product ID " + productId);
         io:println("Reg ID " + regId);
@@ -362,7 +362,7 @@ function testOPTIONSWithGETMethods() {
     var response = utClient1->options("/options/getme", "hi");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -374,7 +374,7 @@ function testOPTIONSWithPOSTMethods() {
     var response = utClient1->options("/options/post", "hi");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -386,7 +386,7 @@ function testOPTIONSWithPUTMethods() {
     var response = utClient1->options("/options/put/add");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "PUT, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "PUT, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -398,7 +398,7 @@ function testOPTIONSWithPathParams() {
     var response = utClient1->options("/options/put/xyz");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "DELETE, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "DELETE, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -410,7 +410,7 @@ function testOPTIONSWithMultiResources() {
     var response = utClient1->options("/options/test");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -422,7 +422,7 @@ function testOPTIONSAtRootPath() {
     var response = utClient1->options("/options");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

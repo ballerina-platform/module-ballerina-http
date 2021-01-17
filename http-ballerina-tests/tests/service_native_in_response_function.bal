@@ -29,7 +29,7 @@ function testResposeGetContentLength() {
     http:Response res = new;
     string length = "Ballerina".length().toString();
     res.setHeader("content-length", length);
-    test:assertEquals(res.getHeader("content-length"), length, msg = "Content length mismatched");
+    test:assertEquals(checkpanic res.getHeader("content-length"), length, msg = "Content length mismatched");
 }
 
 @test:Config {}
@@ -38,7 +38,7 @@ function testResposeAddHeader() {
     string key = "lang";
     string value = "Ballerina";
     res.addHeader(key, value);
-    test:assertEquals(res.getHeader(key), value, msg = "Value mismatched");
+    test:assertEquals(checkpanic res.getHeader(key), value, msg = "Value mismatched");
 }
 
 @test:Config {}
@@ -47,7 +47,7 @@ function testResposeGetHeader() {
     string key = "lang";
     string value = "Ballerina";
     res.addHeader(key, value);
-    test:assertEquals(res.getHeader(key), value, msg = "Value mismatched");
+    test:assertEquals(checkpanic res.getHeader(key), value, msg = "Value mismatched");
 }
 
 @test:Config {}
@@ -57,7 +57,7 @@ function testResposeGetHeaders() {
     string value = "abc, xyz";
     res.setHeader(key, "1stHeader");
     res.addHeader(key, value);
-    string[] headers = res.getHeaders(key);
+    string[] headers = checkpanic res.getHeaders(key);
     test:assertEquals(headers[0], "1stHeader", msg = "Header value mismatched");
     test:assertEquals(headers[1], "abc, xyz", msg = "Header value mismatched");
 }
@@ -107,7 +107,7 @@ function testResposeRemoveHeader() {
     http:Response res = new;
     res.setHeader("Expect", "100-continue");
     res.removeHeader("Expect");
-    error|string output = trap res.getHeader("Expect");
+    error|string output = res.getHeader("Expect");
     if (output is error) {
         test:assertEquals(output.message(), "Http header does not exist", msg = "Outptut mismatched");
     } else {
@@ -121,7 +121,7 @@ function testResposeRemoveAllHeaders() {
     res.setHeader("Expect", "100-continue");
     res.setHeader("Expect1", "100-continue1");
     res.removeAllHeaders();
-    error|string output = trap res.getHeader("Expect1");
+    error|string output = res.getHeader("Expect1");
     if (output is error) {
         test:assertEquals(output.message(), "Http header does not exist", msg = "Outptut mismatched");
     } else {
@@ -136,7 +136,7 @@ function testResposeSetHeader() {
     string value = "ballerina; a=6";
     res.setHeader(key, "abc");
     res.setHeader(key, value);
-    test:assertEquals(res.getHeader(key), value, msg = "Header value mismatched");
+    test:assertEquals(checkpanic res.getHeader(key), value, msg = "Header value mismatched");
 }
 
 @test:Config {}
@@ -230,7 +230,7 @@ service /response on responseEp {
     resource function get addheader/[string key]/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
         res.addHeader(<@untainted string> key, value);
-        string result = <@untainted string> res.getHeader(<@untainted string> key);
+        string result = <@untainted> checkpanic res.getHeader(<@untainted string> key);
         res.setJsonPayload({lang:result});
         checkpanic caller->respond(res);
     }
@@ -238,7 +238,7 @@ service /response on responseEp {
     resource function get getHeader/[string header]/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
         res.setHeader(<@untainted string> header, value);
-        string result = <@untainted string> res.getHeader(<@untainted string> header);
+        string result = <@untainted> checkpanic res.getHeader(<@untainted string> header);
         res.setJsonPayload({value:result});
         checkpanic caller->respond(<@untainted> res);
     }
@@ -320,7 +320,7 @@ service /response on responseEp {
         cookie.httpOnly = true;
         cookie.secure = true;
         res.addCookie(cookie);
-        string result = <@untainted string> res.getHeader(<@untainted string> "Set-Cookie");
+        string result = <@untainted> checkpanic res.getHeader(<@untainted string> "Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
         checkpanic caller->respond(res);
     }
@@ -330,7 +330,7 @@ service /response on responseEp {
         http:Cookie cookie = new("SID3", "31d4d96e407aad42");
         cookie.expires="2017-06-26 05:46:22";
         res.removeCookiesFromRemoteStore(cookie);
-        string result = <@untainted string> res.getHeader(<@untainted string> "Set-Cookie");
+        string result = <@untainted> checkpanic res.getHeader(<@untainted string> "Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
         checkpanic caller->respond(res);
     }
@@ -490,7 +490,7 @@ function testTrailingAddHeader() {
     string headerValue = "eighty two";
     string retrieval = "max-forwards";
     res.addHeader(headerName, headerValue, position = "trailing");
-    test:assertEquals(res.getHeader(retrieval, position = "trailing"), "eighty two");
+    test:assertEquals(checkpanic res.getHeader(retrieval, position = "trailing"), "eighty two");
 }
 
 @test:Config {}
@@ -498,8 +498,8 @@ function testAddingMultipleValuesToSameTrailingHeader() {
     http:Response res = new;
     res.addHeader("heAder1", "value1", position = "trailing");
     res.addHeader("header1", "value2", position = "trailing");
-    string[] output = res.getHeaders("header1", position = "trailing");
-    test:assertEquals(res.getHeader("header1", position = "trailing"), "value1");
+    string[] output = checkpanic res.getHeaders("header1", position = "trailing");
+    test:assertEquals(checkpanic res.getHeader("header1", position = "trailing"), "value1");
     test:assertEquals(output.length(), 2);
     test:assertEquals(output[0], "value1");
     test:assertEquals(output[1], "value2");
@@ -511,8 +511,8 @@ function testSetTrailingHeaderAfterAddHeader() {
     res.addHeader("heAder1", "value1", position = "trailing");
     res.addHeader("header1", "value2", position = "trailing");
     res.addHeader("hEader2", "value3", position = "trailing");
-    string[] output = res.getHeaders("header1", position = "trailing");
-    test:assertEquals(res.getHeader("header2", position = "trailing"), "value3");
+    string[] output = checkpanic res.getHeaders("header1", position = "trailing");
+    test:assertEquals(checkpanic res.getHeader("header2", position = "trailing"), "value3");
     test:assertEquals(output.length(), 2);
     test:assertEquals(output[0], "value1");
     test:assertEquals(output[1], "value2");
@@ -529,8 +529,8 @@ function testRemoveTrailingHeader() {
     res.setHeader("HeADEr2", "totally different value", position = "trailing");
     res.removeHeader("HEADER1", position = "trailing");
     res.removeHeader("NONE_EXISTENCE_HEADER", position = "trailing");
-    string[] output = res.getHeaders("header1", position = "trailing");
-    test:assertEquals(res.getHeader("header2", position = "trailing"), "totally different value");
+    string[] output = checkpanic res.getHeaders("header1", position = "trailing");
+    test:assertEquals(checkpanic res.getHeader("header2", position = "trailing"), "totally different value");
     test:assertEquals(output.length(), 0);
 }
 
@@ -540,7 +540,7 @@ function testNonExistenceTrailingHeader() {
     string headerName = "heAder1";
     string headerValue = "value1";
     res.addHeader(headerName, headerValue, position = http:TRAILING);
-    error|string output = trap res.getHeader("header", position = http:TRAILING);
+    error|string output = res.getHeader("header", position = http:TRAILING);
     if (output is error) {
         test:assertEquals(output.message(), "Http header does not exist", msg = "Outptut mismatched");
     } else {

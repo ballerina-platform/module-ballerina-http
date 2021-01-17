@@ -45,7 +45,7 @@ service /test on mimeEP {
             json|error jsonPayload = entity.getJson();
             if (jsonPayload is json) {
                 mime:Entity ent = new;
-                ent.setJson(<@untainted>{"payload" : jsonPayload, "header" : entity.getHeader("Content-type")});
+                ent.setJson(<@untainted>{"payload" : jsonPayload, "header" : checkpanic entity.getHeader("Content-type")});
                 res.setEntity(ent);
                 checkpanic caller->ok(res);
             } else {
@@ -64,7 +64,7 @@ function testHeaderWithRequest() {
 
     http:Request request = new;
     request.setEntity(entity);
-    test:assertEquals(request.getHeader("123Authorization"), "123Basicxxxxxx", msg = "Output mismatched");
+    test:assertEquals(checkpanic request.getHeader("123Authorization"), "123Basicxxxxxx", msg = "Output mismatched");
 }
 
 @test:Config {}
@@ -107,7 +107,7 @@ function testHeaderWithResponse() {
 
     http:Response response = new;
     response.setEntity(entity);
-    test:assertEquals(response.getHeader("123Authorization"),  "123Basicxxxxxx", msg = "Output mismatched");
+    test:assertEquals(checkpanic response.getHeader("123Authorization"),  "123Basicxxxxxx", msg = "Output mismatched");
 }
 
 @test:Config {}

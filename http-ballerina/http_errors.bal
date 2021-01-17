@@ -159,7 +159,7 @@ public type OutboundResponseError InitializingOutboundResponseError|WritingOutbo
 public type ClientError ResiliencyError|ClientAuthError|OutboundRequestError|
                             InboundResponseError|UnsupportedActionError|Http2ClientError|
                             MaximumWaitTimeExceededError|SslError|GenericClientError|CookieHandlingError|
-                            RemoteServerError|ClientRequestError|IllegalDataBindingStateError;
+                            RemoteServerError|ClientRequestError|IllegalDataBindingStateError|HeaderNotFoundError;
 
 # Defines the possible listener error types
 public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError;

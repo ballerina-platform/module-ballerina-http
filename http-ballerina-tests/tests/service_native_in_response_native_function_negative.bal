@@ -22,11 +22,20 @@ import ballerina/http;
 @test:Config {}
 function negativeTestResponseGetHeader() {
     http:Response res = new;
-    error|string output = trap res.getHeader("key");
+    error|string output = res.getHeader("key");
     if (output is error) {
         test:assertEquals(output.message(), "Http header does not exist", msg = "Outptut mismatched");
     } else {
         test:assertFail("Test failed");
+    }
+}
+
+@test:Config {}
+function negativeTestResponseGetHeaders() {
+    http:Response res = new;
+    string[]|error header = res.getHeaders("Content-Type");
+    if (header is error) {
+        test:assertEquals(header.message(), "Http header does not exist");
     }
 }
 

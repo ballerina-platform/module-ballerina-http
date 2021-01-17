@@ -84,7 +84,7 @@ service /testRedirectService on serviceEndpoint3 {
         if (response is http:Response) {
             string value = "";
             if (response.hasHeader(http:LOCATION)) {
-                value = response.getHeader(http:LOCATION);
+                value = checkpanic response.getHeader(http:LOCATION);
             }
             value = value + ":" + response.resolvedRequestedURI;
             checkpanic caller->respond(<@untainted> value);
@@ -188,7 +188,7 @@ service /testRedirectService on serviceEndpoint3 {
         if (response is http:Response) {
             string value = "";
             if (response.hasHeader(http:LOCATION)) {
-                value = response.getHeader(http:LOCATION);
+                value = checkpanic response.getHeader(http:LOCATION);
             }
             value = value + ":" + response.resolvedRequestedURI;
             checkpanic caller->respond(<@untainted> value);

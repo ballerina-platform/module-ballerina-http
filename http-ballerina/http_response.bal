@@ -186,7 +186,12 @@ public class Response {
     #
     # + return - Returns the `content-type` header value as a string
     public isolated function getContentType() returns @tainted string {
-        return self.getHeader(mime:CONTENT_TYPE);
+        string contentTypeHeaderValue = "";
+        var value = self.getHeader(mime:CONTENT_TYPE);
+        if (value is string) {
+            contentTypeHeaderValue = value;
+        }
+        return contentTypeHeaderValue;
     }
 
     # Extract `json` payload from the response. If the content type is not JSON, an `http:ClientError` is returned.
@@ -458,9 +463,11 @@ public class Response {
     # + return - An array of cookie objects, which are included in the response
     public function getCookies() returns @tainted Cookie[] {
         Cookie[] cookiesInResponse = [];
-        string[] cookiesStringValues = self.getHeaders("Set-Cookie");
-        foreach string cookiesStringValue in cookiesStringValues {
-            cookiesInResponse.push(parseSetCookieHeader(cookiesStringValue));
+        string[]|error cookiesStringValues = self.getHeaders("Set-Cookie");
+        if (cookiesStringValues is string[]) {
+            foreach string cookiesStringValue in cookiesStringValues {
+                cookiesInResponse.push(parseSetCookieHeader(cookiesStringValue));
+            }
         }
         return cookiesInResponse;
     }
