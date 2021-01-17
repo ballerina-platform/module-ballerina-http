@@ -489,6 +489,9 @@ public class HttpConstants {
     public static final StrandMetadata NOTIFY_SUCCESS_METADATA =
             new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION, NOTIFY_SUCCESS);
 
+    // Authentication & Authorization
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+
     private HttpConstants() {
     }
 }

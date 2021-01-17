@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/auth;
+import ballerina/java;
 import ballerina/jwt;
 import ballerina/oauth2;
 import ballerina/reflect;
@@ -28,53 +29,35 @@ const string SERVICE_ANNOTATION = "ServiceConfig";
 // Resource level annotation name.
 const string RESOURCE_ANNOTATION = "ResourceConfig";
 
-# Representation of the filter used for authentication and authorization.
-public class AuthFilter {
-
-    *RequestFilter;
-
-    # The request filter method, which attempts to authenticate the request.
-    #
-    # + caller - The HTTP caller
-    # + request - An inbound HTTP request message
-    # + context - The `http:FilterContext` instance
-    # + return - A flag to indicate if the request flow should be continued(true) or aborted(false)
-    public isolated function filterRequest(Caller caller, Request request, FilterContext context) returns boolean {
-        ListenerAuthConfig[]? authHandlers = getAuthHandlers(context);
-        if (authHandlers is ()) {
-            return true;
-        }
-        Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authHandlers, request);
-        if (result is Unauthorized) {
-            send401(caller);
-        } else if (result is Forbidden) {
-            send403(caller);
-        } else {
-            return true;
-        }
-        return false;
+public function authenticateResource(Service servieRef, string resourceName) returns Unauthorized|Forbidden? {
+    ListenerAuthConfig[]? authHandlers = getAuthHandlers(servieRef, resourceName);
+    if (authHandlers is ()) {
+        return;
     }
+    string header = getAuthorizationHeader();
+    Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authHandlers, header);
+    return result;
 }
 
-isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, Request req) returns Unauthorized|Forbidden? {
+isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, string header) returns Unauthorized|Forbidden? {
     foreach ListenerAuthConfig config in authHandlers {
         if (config is FileUserStoreConfigWithScopes) {
             ListenerFileUserStoreBasicAuthHandler handler = new(config.fileUserStoreConfig);
-            auth:UserDetails|Unauthorized authn = handler.authenticate(req);
+            auth:UserDetails|Unauthorized authn = handler.authenticate(header);
             if (authn is auth:UserDetails) {
                 Forbidden? authz = handler.authorize(authn, <string|string[]>config?.scopes);
                 return authz;
             }
         } else if (config is LdapUserStoreConfigWithScopes) {
             ListenerLdapUserStoreBasicAuthProvider handler = new(config.ldapUserStoreConfig);
-            auth:UserDetails|Unauthorized authn = handler->authenticate(req);
+            auth:UserDetails|Unauthorized authn = handler->authenticate(header);
             if (authn is auth:UserDetails) {
                 Forbidden? authz = handler->authorize(authn, <string|string[]>config?.scopes);
                 return authz;
             }
         } else if (config is JwtValidatorConfigWithScopes) {
             ListenerJwtAuthHandler handler = new(config.jwtValidatorConfig);
-            jwt:Payload|Unauthorized authn = handler.authenticate(req);
+            jwt:Payload|Unauthorized authn = handler.authenticate(header);
             if (authn is jwt:Payload) {
                 Forbidden? authz = handler.authorize(authn, <string|string[]>config?.scopes);
                 return authz;
@@ -82,7 +65,7 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, Request req
         } else {
             // Here, config is OAuth2IntrospectionConfigWithScopes
             ListenerOAuth2Handler handler = new(config.oauth2IntrospectionConfig);
-            oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(req, <string|string[]>config?.scopes);
+            oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(header, <string|string[]>config?.scopes);
             if (auth is oauth2:IntrospectionResponse) {
                 return;
             } else if (auth is Forbidden) {
@@ -94,33 +77,33 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, Request req
     return unauthorized;
 }
 
-isolated function getAuthHandlers(FilterContext context) returns ListenerAuthConfig[]? {
-    ListenerAuthConfig[]? resourceAuthConfig = getResourceAuthConfig(context);
+isolated function getAuthHandlers(Service serviceRef, string resourceName) returns ListenerAuthConfig[]? {
+    ListenerAuthConfig[]? resourceAuthConfig = getResourceAuthConfig(serviceRef, resourceName);
     if (resourceAuthConfig is ListenerAuthConfig[]) {
         return resourceAuthConfig;
     }
-    ListenerAuthConfig[]? serviceAuthConfig = getServiceAuthConfig(context);
+    ListenerAuthConfig[]? serviceAuthConfig = getServiceAuthConfig(serviceRef);
     if (serviceAuthConfig is ListenerAuthConfig[]) {
         return serviceAuthConfig;
     }
 }
 
-isolated function getServiceAuthConfig(FilterContext context) returns ListenerAuthConfig[]? {
-    any annData = reflect:getServiceAnnotations(context.getService(), SERVICE_ANNOTATION, HTTP_MODULE);
-    if (annData is ()) {
+isolated function getServiceAuthConfig(Service serviceRef) returns ListenerAuthConfig[]? {
+    typedesc<any> serviceTypeDesc = typeof serviceRef;
+    var serviceAnnotation = serviceTypeDesc.@ServiceConfig;
+    if (serviceAnnotation is ()) {
         return;
     }
-    HttpServiceConfig serviceConfig = <HttpServiceConfig>annData;
+    HttpServiceConfig serviceConfig = <HttpServiceConfig>serviceAnnotation;
     return serviceConfig?.auth;
 }
 
-isolated function getResourceAuthConfig(FilterContext context) returns ListenerAuthConfig[]? {
-    any annData = reflect:getResourceAnnotations(context.getService(), context.getResourceName(),
-                                                 RESOURCE_ANNOTATION, HTTP_MODULE);
-    if (annData is ()) {
+isolated function getResourceAuthConfig(Service serviceRef, string resourceName) returns ListenerAuthConfig[]? {
+    any resourceAnnotation = reflect:getResourceAnnotations(serviceRef, resourceName, RESOURCE_ANNOTATION, HTTP_MODULE);
+    if (resourceAnnotation is ()) {
         return;
     }
-    HttpResourceConfig resourceConfig = <HttpResourceConfig>annData;
+    HttpResourceConfig resourceConfig = <HttpResourceConfig>resourceAnnotation;
     return resourceConfig?.auth;
 }
 
@@ -141,3 +124,7 @@ isolated function send403(Caller caller) {
         panic <error>err;
     }
 }
+
+function getAuthorizationHeader() returns string = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders"
+} external;

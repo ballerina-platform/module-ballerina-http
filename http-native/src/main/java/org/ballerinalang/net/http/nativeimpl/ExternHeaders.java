@@ -18,6 +18,7 @@
 
 package org.ballerinalang.net.http.nativeimpl;
 
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
@@ -26,6 +27,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ballerinalang.mime.util.MimeUtil;
+import org.ballerinalang.net.http.HttpConstants;
 
 import java.util.List;
 import java.util.Set;
@@ -154,5 +156,13 @@ public class ExternHeaders {
             messageObj.addNativeData(HTTP_TRAILER_HEADERS, httpTrailerHeaders);
         }
         return httpTrailerHeaders;
+    }
+
+    public static BString getAuthorizationHeader(Environment env) {
+        String authorizationHeader = (String) env.getStrandLocal(HttpConstants.AUTHORIZATION_HEADER);
+        if (authorizationHeader == null) {
+            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+        }
+        return StringUtils.fromString(authorizationHeader);
     }
 }
