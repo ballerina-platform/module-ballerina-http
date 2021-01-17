@@ -16,7 +16,7 @@
 
 import ballerina/lang.'float as langfloat;
 import ballerina/lang.'int as langint;
-import ballerina/stringutils;
+import ballerina/lang.boolean as langboolean;
 import ballerina/test;
 import ballerina/http;
 
@@ -152,7 +152,7 @@ service /hello on utmTestEP {
         map<string[]> params = req.getQueryParams();
         string[]? barStr = params["foo"];
         string val = barStr is string[] ? barStr[0] : "";
-        boolean bar = stringutils:toBoolean(val);
+        boolean bar = langboolean:fromString(val);
         json responseJson = {"echo15":bar};
 
         http:Response res = new;
