@@ -29,17 +29,18 @@ const string SERVICE_ANNOTATION = "ServiceConfig";
 // Resource level annotation name.
 const string RESOURCE_ANNOTATION = "ResourceConfig";
 
-public function authenticateResource(Service servieRef, string resourceName) returns Unauthorized|Forbidden? {
-    ListenerAuthConfig[]? authHandlers = getAuthHandlers(servieRef, resourceName);
-    if (authHandlers is ()) {
+public function authenticateResource(Service servieRef, string methodName, string[] resourcePath)
+                                     returns Unauthorized|Forbidden? {
+    ListenerAuthConfig[]? authConfig = getListenerAuthConfig(servieRef, methodName, resourcePath);
+    if (authConfig is ()) {
         return;
     }
     string|HeaderNotFoundError header = getAuthorizationHeader();
-    if (HeaderNotFoundError) {
+    if (header is HeaderNotFoundError) {
         Unauthorized unauthorized = {};
         return unauthorized;
     }
-    Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authHandlers, <string>header);
+    Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authConfig, checkpanic header);
     return result;
 }
 
@@ -69,7 +70,8 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, string head
         } else {
             // Here, config is OAuth2IntrospectionConfigWithScopes
             ListenerOAuth2Handler handler = new(config.oauth2IntrospectionConfig);
-            oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(header, <string|string[]>config?.scopes);
+            oauth2:IntrospectionResponse|Unauthorized|Forbidden auth =
+                                                            handler->authorize(header, <string|string[]>config?.scopes);
             if (auth is oauth2:IntrospectionResponse) {
                 return;
             } else if (auth is Forbidden) {
@@ -81,8 +83,9 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, string head
     return unauthorized;
 }
 
-isolated function getAuthHandlers(Service serviceRef, string resourceName) returns ListenerAuthConfig[]? {
-    ListenerAuthConfig[]? resourceAuthConfig = getResourceAuthConfig(serviceRef, resourceName);
+isolated function getListenerAuthConfig(Service serviceRef, string methodName, string[] resourcePath)
+                                        returns ListenerAuthConfig[]? {
+    ListenerAuthConfig[]? resourceAuthConfig = getResourceAuthConfig(serviceRef, methodName, resourcePath);
     if (resourceAuthConfig is ListenerAuthConfig[]) {
         return resourceAuthConfig;
     }
@@ -102,7 +105,12 @@ isolated function getServiceAuthConfig(Service serviceRef) returns ListenerAuthC
     return serviceConfig?.auth;
 }
 
-isolated function getResourceAuthConfig(Service serviceRef, string resourceName) returns ListenerAuthConfig[]? {
+isolated function getResourceAuthConfig(Service serviceRef, string methodName, string[] resourcePath)
+                                        returns ListenerAuthConfig[]? {
+    string resourceName = "$" + methodName;
+    foreach string path in resourcePath {
+        resourceName += "$" + path;
+    }
     any resourceAnnotation = reflect:getResourceAnnotations(serviceRef, resourceName, RESOURCE_ANNOTATION, HTTP_MODULE);
     if (resourceAnnotation is ()) {
         return;
