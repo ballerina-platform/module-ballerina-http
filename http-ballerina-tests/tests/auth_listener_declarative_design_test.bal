@@ -296,7 +296,7 @@ function testServiceResourceAuthnFailure() {
 //}
 
 function assertSuccess(string path) {
-    http:Client clientEP = new("https://localhost:" + securedListenerPort.toString(), {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             username: "alice",
             password: "xxx"
@@ -317,7 +317,7 @@ function assertSuccess(string path) {
 }
 
 function assertForbidden(string path) {
-    http:Client clientEP = new("https://localhost:" + securedListenerPort.toString(), {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             username: "bob",
             password: "yyy"
@@ -338,7 +338,7 @@ function assertForbidden(string path) {
 }
 
 function assertUnauthorized(string path) {
-    http:Client clientEP = new("https://localhost:" + securedListenerPort.toString(), {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             username: "unknown",
             password: "unknown"
