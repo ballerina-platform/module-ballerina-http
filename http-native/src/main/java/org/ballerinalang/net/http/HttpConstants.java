@@ -396,6 +396,8 @@ public class HttpConstants {
     public static final BString HTTP2_PRIOR_KNOWLEDGE = StringUtils.fromString("http2PriorKnowledge");
     public static final BString HTTP1_SETTINGS = StringUtils.fromString("http1Settings");
     public static final BString HTTP2_SETTINGS = StringUtils.fromString("http2Settings");
+    public static final BString REQUEST_LIMITS = StringUtils.fromString("requestLimits");
+    public static final BString RESPONSE_LIMITS = StringUtils.fromString("responseLimits");
 
     //Connection Throttling field names
     public static final String CONNECTION_THROTTLING_STRUCT_REFERENCE = "connectionThrottling";

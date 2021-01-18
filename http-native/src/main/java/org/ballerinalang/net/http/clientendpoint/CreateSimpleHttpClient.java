@@ -88,13 +88,15 @@ public class CreateSimpleHttpClient {
             senderConfiguration.setChunkingConfig(HttpUtil.getChunkConfig(chunking));
             String keepAliveConfig = http1Settings.getStringValue(HttpConstants.CLIENT_EP_IS_KEEP_ALIVE).getValue();
             senderConfiguration.setKeepAliveConfig(HttpUtil.getKeepAliveConfig(keepAliveConfig));
-            // Set Response validation limits.
-            HttpUtil.setInboundMgsSizeValidationConfig(
-                    http1Settings.getIntValue(HttpConstants.MAX_STATUS_LINE_LENGTH),
-                    http1Settings.getIntValue(HttpConstants.MAX_HEADER_SIZE),
-                    http1Settings.getIntValue(HttpConstants.MAX_ENTITY_BODY_SIZE),
-                    senderConfiguration.getMsgSizeValidationConfig());
         }
+
+        // Set Response validation limits.
+        BMap<BString, Object> responseLimits = (BMap<BString, Object>) clientEndpointConfig.get(
+                HttpConstants.RESPONSE_LIMITS);
+        HttpUtil.setInboundMgsSizeValidationConfig(responseLimits.getIntValue(HttpConstants.MAX_STATUS_LINE_LENGTH),
+                                                   responseLimits.getIntValue(HttpConstants.MAX_HEADER_SIZE),
+                                                   responseLimits.getIntValue(HttpConstants.MAX_ENTITY_BODY_SIZE),
+                                                   senderConfiguration.getMsgSizeValidationConfig());
         try {
             populateSenderConfigurations(senderConfiguration, clientEndpointConfig, scheme);
         } catch (RuntimeException e) {

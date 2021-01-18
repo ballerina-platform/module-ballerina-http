@@ -118,6 +118,7 @@ type HTTPError record {
 # + circuitBreaker - Configurations associated with the behaviour of the Circuit Breaker
 # + retryConfig - Configurations associated with retrying
 # + cookieConfig - Configurations associated with cookies
+# + responseLimits - Configurations associated with inbound response size limits
 public type CommonClientConfiguration record {|
     string httpVersion = HTTP_1_1;
     ClientHttp1Settings http1Settings = {};
@@ -132,4 +133,5 @@ public type CommonClientConfiguration record {|
     CircuitBreakerConfig? circuitBreaker = ();
     RetryConfig? retryConfig = ();
     CookieConfig? cookieConfig = ();
+    ResponseLimitConfigs responseLimits = {};
 |};
