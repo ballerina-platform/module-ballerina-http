@@ -28,6 +28,49 @@ listener http:Listener authListener = new(securedListenerPort, {
     }
 });
 
+// Unsecured service - Unsecured resource with different combination of resource signature parameters
+
+service /baz on authListener {
+    resource function get foo() returns string {
+        return "Hello World!";
+    }
+
+    resource function get bar(http:Request req) returns string|http:BadRequest {
+        boolean b = req.hasHeader(http:AUTH_HEADER);
+        if (b) {
+            return "Hello World!";
+        }
+        http:BadRequest bad = {};
+        return bad;
+    }
+
+    resource function get baz(http:Caller caller, http:Request req) {
+        boolean b = req.hasHeader(http:AUTH_HEADER);
+        if (b) {
+            checkpanic caller->respond("Hello World!");
+        }
+        http:Response resp = new;
+        resp.statusCode = 500;
+        resp.setPayload("Oops!");
+        checkpanic caller->respond(resp);
+    }
+}
+
+@test:Config {}
+function testNormalServiceSuccess() {
+    assertSuccess("/baz/foo");
+}
+
+@test:Config {}
+function testNormalServiceWithRequestSuccess() {
+    assertSuccess("/baz/bar");
+}
+
+@test:Config {}
+function testNormalServiceWithRequestAndCallerSuccess() {
+    assertSuccess("/baz/baz");
+}
+
 // JWT secured service - Unsecured resource
 
 @http:ServiceConfig {
@@ -50,10 +93,8 @@ listener http:Listener authListener = new(securedListenerPort, {
     ]
 }
 service /jwtAuth on authListener {
-    resource function get foo(http:Caller caller, http:Request request) {
-        http:Response res = new;
-        res.setPayload("Hello World!");
-        checkpanic caller->respond(res);
+    resource function get foo() returns string|http:Unauthorized|http:Forbidden {
+        return "Hello World!";
     }
 }
 
@@ -95,10 +136,8 @@ service /foo on authListener {
             }
         ]
     }
-    resource function get jwtAuth(http:Caller caller, http:Request request) {
-        http:Response res = new;
-        res.setPayload("Hello World!");
-        checkpanic caller->respond(res);
+    resource function get jwtAuth() returns string|http:Unauthorized|http:Forbidden {
+        return "Hello World!";
     }
 }
 
@@ -124,7 +163,7 @@ function testResourceAuthnFailure() {
         {
             scopes: ["write", "update"],
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/failure",
+                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -160,10 +199,8 @@ service /oauth2 on authListener {
             }
         ]
     }
-    resource function get jwtAuth(http:Caller caller, http:Request request) {
-        http:Response res = new;
-        res.setPayload("Hello World!");
-        checkpanic caller->respond(res);
+    resource function get jwtAuth() returns string|http:Unauthorized|http:Forbidden {
+        return "Hello World!";
     }
 }
 
@@ -189,7 +226,7 @@ function testServiceResourceAuthnFailure() {
         {
             scopes: ["write", "update"],
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/failure",
+                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -220,10 +257,8 @@ function testServiceResourceAuthnFailure() {
     ]
 }
 service /multipleAuth on authListener {
-    resource function get bar(http:Caller caller, http:Request request) {
-        http:Response res = new;
-        res.setPayload("Hello World!");
-        checkpanic caller->respond(res);
+    resource function get bar() returns string|http:Unauthorized|http:Forbidden {
+        return "Hello World!";
     }
 }
 
@@ -250,7 +285,7 @@ service /bar on authListener {
             {
                 scopes: ["write", "update"],
                 oauth2IntrospectionConfig: {
-                    url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect/failure",
+                    url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
                     tokenTypeHint: "access_token",
                     scopeKey: "scp",
                     clientConfig: {
@@ -280,10 +315,8 @@ service /bar on authListener {
             }
         ]
     }
-    resource function get multipleAuth(http:Caller caller, http:Request request) {
-        http:Response res = new;
-        res.setPayload("Hello World!");
-        checkpanic caller->respond(res);
+    resource function get multipleAuth() returns string|http:Unauthorized|http:Forbidden {
+        return "Hello World!";
     }
 }
 
