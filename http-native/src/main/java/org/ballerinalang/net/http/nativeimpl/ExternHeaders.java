@@ -25,10 +25,12 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ballerinalang.mime.util.MimeUtil;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.util.List;
 import java.util.Set;
@@ -160,7 +162,8 @@ public class ExternHeaders {
     }
 
     public static Object getAuthorizationHeader(Environment env) {
-        String authorizationHeader = (String) env.getStrandLocal(HttpConstants.AUTHORIZATION_HEADER);
+        HttpCarbonMessage inboundMessage = (HttpCarbonMessage) env.getStrandLocal(HttpConstants.INBOUND_MESSAGE);
+        String authorizationHeader = inboundMessage.getHeader(HttpHeaderNames.AUTHORIZATION.toString());
         if (authorizationHeader == null) {
             return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }

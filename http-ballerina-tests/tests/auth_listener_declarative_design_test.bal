@@ -93,7 +93,7 @@ function testNormalServiceWithRequestAndCallerSuccess() {
     ]
 }
 service /jwtAuth on authListener {
-    resource function get foo() returns string|http:Unauthorized|http:Forbidden {
+    resource function get foo() returns string {
         return "Hello World!";
     }
 }
@@ -136,7 +136,7 @@ service /foo on authListener {
             }
         ]
     }
-    resource function get jwtAuth() returns string|http:Unauthorized|http:Forbidden {
+    resource function get jwtAuth() returns string {
         return "Hello World!";
     }
 }
@@ -199,7 +199,7 @@ service /oauth2 on authListener {
             }
         ]
     }
-    resource function get jwtAuth() returns string|http:Unauthorized|http:Forbidden {
+    resource function get jwtAuth() returns string {
         return "Hello World!";
     }
 }
@@ -257,7 +257,7 @@ function testServiceResourceAuthnFailure() {
     ]
 }
 service /multipleAuth on authListener {
-    resource function get bar() returns string|http:Unauthorized|http:Forbidden {
+    resource function get bar() returns string {
         return "Hello World!";
     }
 }
@@ -315,7 +315,7 @@ service /bar on authListener {
             }
         ]
     }
-    resource function get multipleAuth() returns string|http:Unauthorized|http:Forbidden {
+    resource function get multipleAuth() returns string {
         return "Hello World!";
     }
 }

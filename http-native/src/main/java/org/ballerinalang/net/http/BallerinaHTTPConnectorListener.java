@@ -24,7 +24,6 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
@@ -146,8 +145,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         properties.put(HttpConstants.ORIGIN_HOST, inboundMessage.getHeader(HttpConstants.ORIGIN_HOST));
         properties.put(HttpConstants.POOLED_BYTE_BUFFER_FACTORY,
                        inboundMessage.getHeader(HttpConstants.POOLED_BYTE_BUFFER_FACTORY));
-        properties.put(HttpConstants.AUTHORIZATION_HEADER,
-                       inboundMessage.getHeader(HttpHeaderNames.AUTHORIZATION.toString()));
+        properties.put(HttpConstants.INBOUND_MESSAGE, inboundMessage);
         return properties;
     }
 }

@@ -29,19 +29,21 @@ const string SERVICE_ANNOTATION = "ServiceConfig";
 // Resource level annotation name.
 const string RESOURCE_ANNOTATION = "ResourceConfig";
 
-public function authenticateResource(Service servieRef, string methodName, string[] resourcePath)
-                                     returns Unauthorized|Forbidden? {
+public function authenticateResource(Service servieRef, string methodName, string[] resourcePath) {
     ListenerAuthConfig[]? authConfig = getListenerAuthConfig(servieRef, methodName, resourcePath);
     if (authConfig is ()) {
         return;
     }
     string|HeaderNotFoundError header = getAuthorizationHeader();
     if (header is HeaderNotFoundError) {
-        Unauthorized unauthorized = {};
-        return unauthorized;
+        sendResponse(create401Response());
     }
     Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authConfig, checkpanic header);
-    return result;
+    if (result is Unauthorized) {
+        sendResponse(create401Response());
+    } else if (result is Forbidden) {
+        sendResponse(create403Response());
+    }
 }
 
 isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, string header) returns Unauthorized|Forbidden? {
@@ -119,24 +121,33 @@ isolated function getResourceAuthConfig(Service serviceRef, string methodName, s
     return resourceConfig?.auth;
 }
 
-isolated function send401(Caller caller) {
+isolated function create401Response() returns Response {
     Response response = new;
     response.statusCode = 401;
-    error? err = caller->respond(response);
-    if (err is error) {
-        panic <error>err;
-    }
+    return response;
 }
 
-isolated function send403(Caller caller) {
+isolated function create403Response() returns Response {
     Response response = new;
     response.statusCode = 403;
+    return response;
+}
+
+isolated function sendResponse(Response response) {
+    Caller caller = getCaller();
     error? err = caller->respond(response);
     if (err is error) {
         panic <error>err;
     }
+    // This panic is added to break the execution of the implementation inside the resource function after there is
+    // an authn/authz failure and responded with 401/403 internally.
+    panic error("Already responded by auth desugar.");
 }
 
-function getAuthorizationHeader() returns string|HeaderNotFoundError = @java:Method {
+isolated function getAuthorizationHeader() returns string|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders"
+} external;
+
+isolated function getCaller() returns Caller = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternCaller"
 } external;

@@ -192,6 +192,7 @@ public class HttpConstants {
     public static final String ANNOTATION_NAME_PATH = "Path";
     public static final String HTTP_CLIENT_EXCEPTION_CATEGORY = "http-client";
     public static final String SERVICE_ENDPOINT = "Listener";
+    public static final String INBOUND_MESSAGE = "INBOUND_MESSAGE";
     public static final String CALLER = "Caller";
     public static final String REMOTE = "Remote";
     public static final String LOCAL = "Local";
@@ -488,9 +489,6 @@ public class HttpConstants {
     public static final String NOTIFY_SUCCESS = "notifySuccess";
     public static final StrandMetadata NOTIFY_SUCCESS_METADATA =
             new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION, NOTIFY_SUCCESS);
-
-    // Authentication & Authorization
-    public static final String AUTHORIZATION_HEADER = "Authorization";
 
     private HttpConstants() {
     }
