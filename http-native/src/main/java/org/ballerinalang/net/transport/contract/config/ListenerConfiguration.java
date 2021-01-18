@@ -51,7 +51,7 @@ public class ListenerConfiguration extends SslConfiguration {
     private boolean httpAccessLogEnabled;
     private String serverHeader = "wso2-http-transport";
     private List<Parameter> parameters = getDefaultParameters();
-    private RequestSizeValidationConfig requestSizeValidationConfig = new RequestSizeValidationConfig();
+    private InboundMsgSizeValidationConfig requestSizeValidationConfig = new InboundMsgSizeValidationConfig();
     private boolean pipeliningEnabled;
     private boolean webSocketCompressionEnabled;
     private long pipeliningLimit;
@@ -146,11 +146,11 @@ public class ListenerConfiguration extends SslConfiguration {
         this.httpAccessLogEnabled = httpAccessLogEnabled;
     }
 
-    public RequestSizeValidationConfig getRequestSizeValidationConfig() {
+    public InboundMsgSizeValidationConfig getMsgSizeValidationConfig() {
         return requestSizeValidationConfig;
     }
 
-    public void setRequestSizeValidationConfig(RequestSizeValidationConfig requestSizeValidationConfig) {
+    public void setMsgSizeValidationConfig(InboundMsgSizeValidationConfig requestSizeValidationConfig) {
         this.requestSizeValidationConfig = requestSizeValidationConfig;
     }
 

@@ -23,6 +23,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -325,6 +326,13 @@ public class HttpCarbonMessage {
 
     public void setHttpStatusCode(Integer httpStatusCode) {
         this.httpStatusCode = httpStatusCode;
+    }
+
+    public String getReasonPhrase() {
+        if (httpMessage instanceof DefaultHttpResponse) {
+            return ((DefaultHttpResponse) httpMessage).status().reasonPhrase();
+        }
+        return "Unknown Status";
     }
 
     private void setBlockingEntityCollector(BlockingEntityCollector blockingEntityCollector) {

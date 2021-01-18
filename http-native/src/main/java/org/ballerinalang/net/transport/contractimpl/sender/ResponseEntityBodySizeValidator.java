@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,38 +16,32 @@
  * under the License.
  */
 
-package org.ballerinalang.net.transport.contractimpl.listener;
+package org.ballerinalang.net.transport.contractimpl.sender;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMessage;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.ReferenceCounted;
-import org.ballerinalang.net.transport.contractimpl.common.Util;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 
 /**
- * Responsible for validating request entity body size before sending it to the application.
+ * Responsible for validating response entity body size before sending it to the application. If the validation fails,
+ * throws an exception to be handled by the targetHandler for downstream notification through respective response
+ * state.
  */
-public class MaxEntityBodyValidator extends ChannelInboundHandlerAdapter {
+public class ResponseEntityBodySizeValidator extends ChannelInboundHandlerAdapter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MaxEntityBodyValidator.class);
-
-    private String serverName;
     private long maxEntityBodySize;
     private long currentSize;
-    private HttpRequest inboundRequest;
+    private HttpResponse inboundResponse;
     private LinkedList<HttpContent> fullContent;
 
-    MaxEntityBodyValidator(String serverName, long maxEntityBodySize) {
-        this.serverName = serverName;
+    public ResponseEntityBodySizeValidator(long maxEntityBodySize) {
         this.maxEntityBodySize = maxEntityBodySize;
         this.fullContent = new LinkedList<>();
     }
@@ -55,10 +49,11 @@ public class MaxEntityBodyValidator extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (ctx.channel().isActive()) {
-            if (msg instanceof HttpRequest) {
-                inboundRequest = (HttpRequest) msg;
-                if (isContentLengthInvalid(inboundRequest, maxEntityBodySize)) {
-                    sendEntityTooLargeResponse(ctx);
+            if (msg instanceof HttpResponse) {
+                inboundResponse = (HttpResponse) msg;
+                if (isContentLengthInvalid(inboundResponse, maxEntityBodySize)) {
+                    releaseContentAndNotifyError();
+                    return;
                 }
                 ctx.channel().read();
             } else {
@@ -66,10 +61,10 @@ public class MaxEntityBodyValidator extends ChannelInboundHandlerAdapter {
                 this.currentSize += inboundContent.content().readableBytes();
                 this.fullContent.add(inboundContent);
                 if (this.currentSize > maxEntityBodySize) {
-                    sendEntityTooLargeResponse(ctx);
+                    releaseContentAndNotifyError();
                 } else {
                     if (msg instanceof LastHttpContent) {
-                        super.channelRead(ctx, this.inboundRequest);
+                        super.channelRead(ctx, this.inboundResponse);
                         while (!this.fullContent.isEmpty()) {
                             super.channelRead(ctx, this.fullContent.pop());
                         }
@@ -81,14 +76,11 @@ public class MaxEntityBodyValidator extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void sendEntityTooLargeResponse(ChannelHandlerContext ctx) {
-        Util.sendAndCloseNoEntityBodyResp(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE,
-                inboundRequest.protocolVersion(), this.serverName);
-
+    private void releaseContentAndNotifyError() {
         this.fullContent.forEach(ReferenceCounted::release);
         this.fullContent.forEach(httpContent -> this.fullContent.remove(httpContent));
-
-        LOG.warn("Inbound request payload size exceeds the max entity body allowed for a request");
+        throw new RuntimeException("Response max entity body size exceeds: Entity body is larger than "
+                                           + this.maxEntityBodySize + " bytes. ");
     }
 
     private boolean isContentLengthInvalid(HttpMessage start, long maxContentLength) {

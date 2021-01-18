@@ -62,6 +62,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     private KeepAliveConfig keepAliveConfig;
     private boolean idleTimeoutTriggered;
     private ChannelHandlerContext context;
+    private Throwable cause;
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
@@ -126,6 +127,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        this.cause = cause;
         closeChannel(ctx);
         LOG.warn("Exception occurred in TargetHandler : {}", cause.getMessage());
     }
@@ -265,5 +267,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
      */
     public ChannelHandlerContext getContext() {
         return context;
+    }
+
+    public Throwable getCause() {
+        return cause;
     }
 }
