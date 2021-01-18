@@ -36,7 +36,7 @@ http:ClientConfiguration conf07 = {
     httpVersion: "2.0"
 };
 
-http:Client backendClientEP07 = new("http://localhost:8095", conf07);
+http:Client backendClientEP07 = check new("http://localhost:8095", conf07);
 
 int cbTrialRequestCount = 0;
 
@@ -96,7 +96,7 @@ function sendCBErrorResponse(http:Caller caller, error e) {
 }
 
 //Test circuit breaker functionality for HTTP/2 methods
-http:Client h2CBTestClient = new("http://localhost:9315");
+http:Client h2CBTestClient = check new("http://localhost:9315");
 
 @test:Config{
     enable:false,

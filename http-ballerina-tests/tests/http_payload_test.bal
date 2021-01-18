@@ -20,9 +20,9 @@ import ballerina/http;
 
 listener http:Listener httpPayloadListenerEP1 = new(httpPayloadTestPort1);
 listener http:Listener httpPayloadListenerEP2 = new(httpPayloadTestPort2);
-http:Client httpPayloadClient = new("http://localhost:" + httpPayloadTestPort1.toString());
+http:Client httpPayloadClient = check new("http://localhost:" + httpPayloadTestPort1.toString());
 
-http:Client clientEP19 = new("http://localhost:" + httpPayloadTestPort2.toString());
+http:Client clientEP19 = check new("http://localhost:" + httpPayloadTestPort2.toString());
 
 service /testService16 on httpPayloadListenerEP1 {
 

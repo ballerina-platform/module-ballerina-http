@@ -116,7 +116,7 @@ http:ClientConfiguration mutualSslClientConf = {
 
 @test:Config {}
 public function testMutualSsl() {
-    http:Client httpClient = new("https://localhost:9116", mutualSslClientConf );
+    http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf );
     var resp = httpClient->get("/helloWorld15/");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();

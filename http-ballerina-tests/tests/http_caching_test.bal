@@ -20,9 +20,9 @@ import ballerina/http;
 
 listener http:Listener cachingListener1 = new(cachingTestPort1);
 listener http:Listener cachingListener2 = new(cachingTestPort2);
-http:Client cachingTestClient = new("http://localhost:" + cachingTestPort1.toString(), { cache: { enabled: false }});
+http:Client cachingTestClient = check new("http://localhost:" + cachingTestPort1.toString(), { cache: { enabled: false }});
 
-http:Client cachingEP = new("http://localhost:" + cachingTestPort2.toString(), { cache: { isShared: true } });
+http:Client cachingEP = check new("http://localhost:" + cachingTestPort2.toString(), { cache: { isShared: true } });
 int cachingProxyHitcount = 0;
 
 service /cache on cachingListener1 {

@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener callerActionListener = new(callerActionTestPort);
-http:Client callerActionTestClient = new("http://localhost:" + callerActionTestPort.toString());
+http:Client callerActionTestClient = check new("http://localhost:" + callerActionTestPort.toString());
 
 string globalLvlStr = "sample value";
 

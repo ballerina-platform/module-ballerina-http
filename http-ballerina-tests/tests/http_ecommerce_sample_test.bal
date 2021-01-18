@@ -20,7 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/test;
 
 listener http:Listener ecommerceListenerEP = new(ecommerceTestPort);
-http:Client ecommerceClient = new("http://localhost:" + ecommerceTestPort.toString());
+http:Client ecommerceClient = check new("http://localhost:" + ecommerceTestPort.toString());
 
 service /customerservice on ecommerceListenerEP {
 
@@ -39,7 +39,7 @@ service /customerservice on ecommerceListenerEP {
     }
 }
 
-http:Client productsService = new("http://localhost:" + ecommerceTestPort.toString());
+http:Client productsService = check new("http://localhost:" + ecommerceTestPort.toString());
 
 service /ecommerceservice on ecommerceListenerEP {
 

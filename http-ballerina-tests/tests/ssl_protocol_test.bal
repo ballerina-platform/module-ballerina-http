@@ -57,7 +57,7 @@ http:ClientConfiguration sslProtocolClientConfig = {
 
 @test:Config {}
 public function testSslProtocol() {
-    http:Client clientEP = new("https://localhost:9249", sslProtocolClientConfig);
+    http:Client clientEP = checkpanic new("https://localhost:9249", sslProtocolClientConfig);
     http:Request req = new;
     var resp = clientEP->get("/protocol/protocolResource");
     if (resp is http:Response) {

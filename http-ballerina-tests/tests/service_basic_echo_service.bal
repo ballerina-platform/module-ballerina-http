@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serviceTestEP = new(serviceTest);
-http:Client stClient = new("http://localhost:" + serviceTest.toString());
+http:Client stClient = check new("http://localhost:" + serviceTest.toString());
 
 string globalLevelStr = "";
 

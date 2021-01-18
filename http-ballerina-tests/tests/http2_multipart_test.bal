@@ -19,11 +19,11 @@ import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 
-http:Client mimeClientEP1 = new("http://localhost:9100", { httpVersion: "2.0" });
-http:Client mimeClientEP2 = new("http://localhost:9100", { httpVersion: "2.0" });
-http:Client priorKnowclientEP1 = new("http://localhost:9100", { httpVersion: "2.0",
+http:Client mimeClientEP1 = check new("http://localhost:9100", { httpVersion: "2.0" });
+http:Client mimeClientEP2 = check new("http://localhost:9100", { httpVersion: "2.0" });
+http:Client priorKnowclientEP1 = check new("http://localhost:9100", { httpVersion: "2.0",
                                     http2Settings: { http2PriorKnowledge: true } });
-http:Client priorKnowclientEP2 = new("http://localhost:9100", { httpVersion: "2.0",
+http:Client priorKnowclientEP2 = check new("http://localhost:9100", { httpVersion: "2.0",
                                     http2Settings: { http2PriorKnowledge: true } });
 
 service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
@@ -190,7 +190,7 @@ function getContDisposition(string partName) returns (mime:ContentDisposition) {
 
 @test:Config {}
 public function testMultipart() {
-    http:Client clientEP = new("http://localhost:9100");
+    http:Client clientEP = checkpanic new("http://localhost:9100");
     http:Request req = new;
     req.setHeader("priorKnowledge", "false");
     var resp = clientEP->get("/multiparts/initial", req);
@@ -203,7 +203,7 @@ public function testMultipart() {
 
 @test:Config {}
 public function testMultipartsWithPriorKnowledge() {
-    http:Client clientEP = new("http://localhost:9100");
+    http:Client clientEP = checkpanic new("http://localhost:9100");
     http:Request req = new;
     req.setHeader("priorKnowledge", "true");
     var resp = clientEP->get("/multiparts/initial", req);

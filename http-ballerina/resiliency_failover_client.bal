@@ -51,13 +51,14 @@ public client class FailoverClient {
 
     # Failover caller actions which provides failover capabilities to an HTTP client endpoint.
     #
-    # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance.
-    public function init(FailoverClientConfiguration failoverClientConfig) {
+    # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(FailoverClientConfiguration failoverClientConfig) returns ClientError? {
         self.failoverClientConfig = failoverClientConfig;
         self.succeededEndpointIndex = 0;
         var failoverHttpClientArray = createFailoverHttpClientArray(failoverClientConfig);
-        if (failoverHttpClientArray is error) {
-            panic failoverHttpClientArray;
+        if (failoverHttpClientArray is ClientError) {
+            return failoverHttpClientArray;
         } else {
             Client?[] clients = failoverHttpClientArray;
             boolean[] failoverCodes = populateErrorCodeIndex(failoverClientConfig.failoverCodes);
@@ -506,7 +507,7 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
 }
 
 function createFailoverHttpClientArray(FailoverClientConfiguration failoverClientConfig)
-                                                                            returns Client?[]|error {
+                                                                            returns Client?[]|ClientError {
 
     Client clientEp;
     Client?[] httpClients = [];
@@ -514,7 +515,7 @@ function createFailoverHttpClientArray(FailoverClientConfiguration failoverClien
 
     foreach var target in failoverClientConfig.targets {
         ClientConfiguration epConfig = createClientEPConfigFromFailoverEPConfig(failoverClientConfig, target);
-        clientEp = new(target.url, epConfig);
+        clientEp = check new(target.url, epConfig);
         httpClients[i] = clientEp;
         i += 1;
     }

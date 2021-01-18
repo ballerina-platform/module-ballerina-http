@@ -138,11 +138,12 @@ public client class CircuitBreakerClient {
     # + circuitBreakerInferredConfig - Configurations derived from the `http:CircuitBreakerConfig`
     # + httpClient - The underlying `HttpActions` instance, which will be making the actual network calls
     # + circuitHealth - The circuit health monitor
+    # + return - The `client` or an `http:ClientError` if the initialization failed
     public function init(string url, ClientConfiguration config, CircuitBreakerInferredConfig
-        circuitBreakerInferredConfig, HttpClient httpClient, CircuitHealth circuitHealth) {
+        circuitBreakerInferredConfig, HttpClient httpClient, CircuitHealth circuitHealth) returns ClientError? {
         RollingWindow rollingWindow = circuitBreakerInferredConfig.rollingWindow;
         if (rollingWindow.timeWindowInMillis < rollingWindow.bucketSizeInMillis) {
-            panic error GenericClientError("Circuit breaker 'timeWindowInMillis' value should be greater" +
+            return error GenericClientError("Circuit breaker 'timeWindowInMillis' value should be greater" +
                 " than the 'bucketSizeInMillis' value.");
         }
         self.url = url;

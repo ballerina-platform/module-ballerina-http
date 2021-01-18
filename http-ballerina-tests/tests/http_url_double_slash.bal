@@ -19,9 +19,9 @@ import ballerina/http;
 
 listener http:Listener httpUrlListenerEP1 = new(httpUrlTestPort1);
 listener http:Listener httpUrlListenerEP2 = new(httpUrlTestPort2);
-http:Client httpUrlClient = new("http://localhost:" + httpUrlTestPort1.toString());
+http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString());
 
-http:Client urlClient = new ("http://localhost:" + httpUrlTestPort2.toString() + "//url", { cache: { enabled: false }});
+http:Client urlClient = check new("http://localhost:" + httpUrlTestPort2.toString() + "//url", { cache: { enabled: false }});
 
 service "/url//test" on httpUrlListenerEP2 {
 

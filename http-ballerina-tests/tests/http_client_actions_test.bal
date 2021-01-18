@@ -21,9 +21,9 @@ import ballerina/http;
 
 listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1);
 listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2);
-http:Client httpClientActionClient = new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService");
+http:Client httpClientActionClient = check new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService");
 
-http:Client clientEP2 = new ("http://localhost:" + httpClientActionTestPort1.toString(), { cache: { enabled: false }});
+http:Client clientEP2 = check new("http://localhost:" + httpClientActionTestPort1.toString(), { cache: { enabled: false }});
 
 
 service /httpClientActionBE on httpClientActionListenerEP1 {
