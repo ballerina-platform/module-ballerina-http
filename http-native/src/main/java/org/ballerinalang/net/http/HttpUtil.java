@@ -800,7 +800,7 @@ public class HttpUtil {
         int statusCode = inboundResponseMsg.getHttpStatusCode();
         inboundResponse.set(RESPONSE_STATUS_CODE_FIELD, (long) statusCode);
         String reasonPhrase = inboundResponseMsg.getReasonPhrase();
-        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD, reasonPhrase);
+        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD, fromString(reasonPhrase));
 
         if (inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) != null) {
             inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD,
