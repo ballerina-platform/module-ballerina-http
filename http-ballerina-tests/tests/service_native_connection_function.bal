@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener connectionNativeTestEP = new(connectionNativeTest);
-http:Client connectionNativeClient = new("http://localhost:" + connectionNativeTest.toString());
+http:Client connectionNativeClient = check new("http://localhost:" + connectionNativeTest.toString());
 
 service /connectionNativeHello on connectionNativeTestEP {
     

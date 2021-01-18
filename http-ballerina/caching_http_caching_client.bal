@@ -39,14 +39,14 @@ public client class HttpCachingClient {
     # + url - The URL of the HTTP endpoint to connect to
     # + config - The configurations for the client endpoint associated with the caching client
     # + cacheConfig - The configurations for the HTTP cache to be used with the caching client
-    public function init(string url, ClientConfiguration config, CacheConfig cacheConfig) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
         self.url = url;
         var httpSecureClient = createHttpSecureClient(url, config);
         if (httpSecureClient is HttpClient) {
             self.httpClient = httpSecureClient;
         } else {
-            error clientError = httpSecureClient;
-            panic <error> httpSecureClient;
+            return httpSecureClient;
         }
         self.cache = new HttpCache(cacheConfig);
     }
@@ -304,7 +304,7 @@ public client class HttpCachingClient {
 #            or else an `http:ClientError`
 public function createHttpCachingClient(string url, ClientConfiguration config, CacheConfig cacheConfig)
                                                                                       returns HttpClient|ClientError {
-    HttpCachingClient httpCachingClient = new(url, config, cacheConfig);
+    HttpCachingClient httpCachingClient = check new(url, config, cacheConfig);
     // log:printDebug("Created HTTP caching client: " + io:sprintf("%s", httpCachingClient));
     return httpCachingClient;
 }

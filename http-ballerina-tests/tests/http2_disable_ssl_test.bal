@@ -28,7 +28,7 @@ http:ListenerConfiguration helloWorldEPConfig = {
     httpVersion: "2.0"
 };
 
-listener http:Listener sslServerEp = new (9114, config = helloWorldEPConfig);
+listener http:Listener sslServerEp = new(9114, config = helloWorldEPConfig);
 
 service /hello on sslServerEp {
     resource function get .(http:Caller caller, http:Request req) {
@@ -48,7 +48,7 @@ http:ClientConfiguration sslDisabledConfig = {
 
 @test:Config {}
 public function disableSslTest() {
-    http:Client clientEP = new("https://localhost:9114", sslDisabledConfig);
+    http:Client clientEP = checkpanic new("https://localhost:9114", sslDisabledConfig);
     var resp = clientEP->get("/hello/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Hello World!");

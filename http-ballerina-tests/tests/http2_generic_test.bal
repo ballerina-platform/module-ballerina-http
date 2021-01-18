@@ -20,10 +20,10 @@ import ballerina/test;
 listener http:Listener ep = new(9099, { httpVersion: "2.0" });
 
 //Backend pointed by these clients should be down.
-http:Client priorOn = new("http://localhost:14555", { httpVersion: "2.0", http2Settings: {
+http:Client priorOn = check new("http://localhost:14555", { httpVersion: "2.0", http2Settings: {
                 http2PriorKnowledge: true }, poolConfig: {} });
 
-http:Client priorOff = new("http://localhost:14555", { httpVersion: "2.0", http2Settings: {
+http:Client priorOff = check new("http://localhost:14555", { httpVersion: "2.0", http2Settings: {
                 http2PriorKnowledge: false }, poolConfig: {} });
 
 service /general on ep {
@@ -49,7 +49,7 @@ function handleResponse(http:Response|http:PayloadType|error result) returns str
 
 @test:Config {}
 public function testServerDown() {
-    http:Client clientEP = new("http://localhost:9099");
+    http:Client clientEP = checkpanic new("http://localhost:9099");
     var resp = clientEP->get("/general/serverDown");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Call to backend failed due to:Something wrong with the connection--Call to backend " +

@@ -18,7 +18,7 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-http:Client maxAgeCacheEp = new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
+http:Client maxAgeCacheEp = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
 
 service /maxAge on cachingProxyListener {
 

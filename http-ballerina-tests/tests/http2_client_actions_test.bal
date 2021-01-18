@@ -19,7 +19,7 @@ import ballerina/http;
 import ballerina/mime;
 import ballerina/test;
 
-http:Client http2Client = new("http://localhost:9122", { httpVersion: "2.0",
+http:Client http2Client = check new("http://localhost:9122", { httpVersion: "2.0",
                                 http2Settings: { http2PriorKnowledge: true } });
 
 service /backEndService on new http:Listener(9122, { httpVersion: "2.0" }) {
@@ -212,7 +212,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
 
 @test:Config {}
 public function testHttp2GetAction() {
-    http:Client clientEP = new("http://localhost:9123");
+    http:Client clientEP = checkpanic new("http://localhost:9123");
     var resp = clientEP->get("/testHttp2Service/clientGet");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "HelloHelloHello");
@@ -224,7 +224,7 @@ public function testHttp2GetAction() {
 
 @test:Config {}
 public function testHttp2PostAction() {
-    http:Client clientEP = new("http://localhost:9123");
+    http:Client clientEP = checkpanic new("http://localhost:9123");
     var resp = clientEP->get("/testHttp2Service/clientPostWithoutBody");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "No payload");
@@ -235,7 +235,7 @@ public function testHttp2PostAction() {
 
 @test:Config {}
 public function testHttp2PostActionWithBody() {
-    http:Client clientEP = new("http://localhost:9123");
+    http:Client clientEP = checkpanic new("http://localhost:9123");
     var resp = clientEP->get("/testHttp2Service/clientPostWithBody");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample TextSample Xml{\"name\":\"apple\", \"color\":\"red\"}");
@@ -246,7 +246,7 @@ public function testHttp2PostActionWithBody() {
 
 @test:Config {}
 public function testHttp2PostWithBlob() {
-    http:Client clientEP = new("http://localhost:9123");
+    http:Client clientEP = checkpanic new("http://localhost:9123");
     var resp = clientEP->get("/testHttp2Service/testHttp2PostWithBinaryData");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
@@ -257,7 +257,7 @@ public function testHttp2PostWithBlob() {
 
 @test:Config {}
 public function testHttp2PostWithByteChannel() {
-    http:Client clientEP = new("http://localhost:9123");
+    http:Client clientEP = checkpanic new("http://localhost:9123");
     var resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteChannel", "Sample Text");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");

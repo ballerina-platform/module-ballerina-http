@@ -38,7 +38,7 @@ http:ClientConfiguration conf = {
     timeoutInMillis: 2000
 };
 
-http:Client backendClientEP00 = new("http://localhost:8086", conf);
+http:Client backendClientEP00 = check new("http://localhost:8086", conf);
 
 service /cb on circuitBreakerEP00 {
 
@@ -86,7 +86,7 @@ service /hello on new http:Listener(8086) {
 }
 
 //Test basic circuit breaker functionality
-http:Client testTypicalBackendTimeoutClient = new("http://localhost:9306");
+http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306");
 
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
 @test:Config {

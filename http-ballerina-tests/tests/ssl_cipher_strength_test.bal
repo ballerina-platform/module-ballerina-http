@@ -70,7 +70,7 @@ service /weakService on weakCipher {
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
 @test:Config {enable:false}
 public function testWithStrongClientWithWeakService() {
-    http:Client clientEP = new("https://localhost:9227", {
+    http:Client clientEP = checkpanic new("https://localhost:9227", {
         secureSocket: {
             keyStore: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -94,7 +94,7 @@ public function testWithStrongClientWithWeakService() {
 
 @test:Config {}
 public function testWithStrongClientWithStrongService() {
-    http:Client clientEP = new("https://localhost:9226", {
+    http:Client clientEP = checkpanic new("https://localhost:9226", {
         secureSocket: {
             keyStore: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",

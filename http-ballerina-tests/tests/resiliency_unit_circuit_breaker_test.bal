@@ -38,8 +38,8 @@ const int CB_CLIENT_FORCE_OPEN_INDEX = 4;
 
 function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -78,8 +78,8 @@ function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
 
 function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -119,8 +119,8 @@ function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
 
 function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -155,8 +155,8 @@ function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]
 
 function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -194,8 +194,8 @@ function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
 
 function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -234,8 +234,8 @@ function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
 
 function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -271,8 +271,8 @@ function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [h
 
 function testRequestVolumeThresholdFailureResponseScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -332,8 +332,8 @@ public client class MockClient {
     public http:ClientConfiguration config = {};
     public http:HttpClient httpClient;
 
-    public function init(string url, http:ClientConfiguration? config = ()) {
-        http:HttpClient simpleClient = new(url);
+    public function init(string url, http:ClientConfiguration? config = ()) returns http:ClientError? {
+        http:HttpClient simpleClient = checkpanic new(url);
         self.url = url;
         self.config = config ?: {};
         self.httpClient = simpleClient;
@@ -556,7 +556,7 @@ http:Request {
 
 listener http:Listener mockEP3 = new(9095);
 
-http:Client clientEP = new("http://localhost:8080", {
+http:Client clientEP = check new("http://localhost:8080", {
     circuitBreaker: {
         rollingWindow: {
             timeWindowInMillis: 10000,
@@ -740,7 +740,7 @@ function cBRequestVolumeThresholdFailureResponseScenarioTest() {
 @test:Config {}
 function cBGetCurrentStatausScenarioTest() {
     string expected = "Circuit Breaker is in CLOSED state";
-    http:Client reqClient = new("http://localhost:9095");
+    http:Client reqClient = checkpanic new("http://localhost:9095");
     var response = reqClient->get("/circuitBreakerService/getState");
     if (response is http:Response) {
         var body = response.getTextPayload();

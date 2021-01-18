@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener resourceFunctionListener = new(resourceFunctionTestPort);
-http:Client resourceFunctionTestClient = new("http://localhost:" + resourceFunctionTestPort.toString());
+http:Client resourceFunctionTestClient = check new("http://localhost:" + resourceFunctionTestPort.toString());
 
 service on resourceFunctionListener {
 

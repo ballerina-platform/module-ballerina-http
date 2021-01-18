@@ -26,7 +26,7 @@ listener http:Listener failoverEP05 = new(9305);
 listener http:Listener backendEP05 = new(8085);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP05 = new({
+http:FailoverClient foBackendEP05 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -85,7 +85,7 @@ service /mock05 on backendEP05 {
 //Test to verify whether failover will test from last successful endpoint
 @test:Config {}
 function testFailoverStartingPosition() {
-    http:Client testClient = new("http://localhost:9305");
+    http:Client testClient = checkpanic new("http://localhost:9305");
     var response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");

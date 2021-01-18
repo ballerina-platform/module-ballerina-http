@@ -21,9 +21,9 @@ http:PoolConfiguration sharedPoolConfig = {};
 
 @test:Config {}
 function testGlobalPoolConfig() {
-    http:Client httpClient1 = new("http://localhost:8080");
-    http:Client httpClient2 = new("http://localhost:8080");
-    http:Client httpClient3 = new("http://localhost:8081");
+    http:Client httpClient1 = checkpanic new("http://localhost:8080");
+    http:Client httpClient2 = checkpanic new("http://localhost:8080");
+    http:Client httpClient3 = checkpanic new("http://localhost:8081");
     http:Client[] clients = [httpClient1, httpClient2, httpClient3];
     test:assertEquals(clients.length(), 3);
     test:assertEquals(clients[0].config.poolConfig.toString(), "");
@@ -33,8 +33,8 @@ function testGlobalPoolConfig() {
 
 @test:Config {}
 function testSharedConfig() {
-    http:Client httpClient1 = new("http://localhost:8080", { poolConfig: sharedPoolConfig });
-    http:Client httpClient2 = new("http://localhost:8080", { poolConfig: sharedPoolConfig });
+    http:Client httpClient1 = checkpanic new("http://localhost:8080", { poolConfig: sharedPoolConfig });
+    http:Client httpClient2 = checkpanic new("http://localhost:8080", { poolConfig: sharedPoolConfig });
     http:Client[] clients = [httpClient1, httpClient2];
     test:assertEquals(clients.length(), 2);
     test:assertEquals(clients[0].config.poolConfig, clients[1].config.poolConfig,
@@ -43,8 +43,8 @@ function testSharedConfig() {
 
 @test:Config {}
 function testPoolPerClient() {
-    http:Client httpClient1 = new("http://localhost:8080", { poolConfig: { maxActiveConnections: 50 } });
-    http:Client httpClient2 = new("http://localhost:8080", { poolConfig: { maxActiveConnections: 25 } });
+    http:Client httpClient1 = checkpanic new("http://localhost:8080", { poolConfig: { maxActiveConnections: 50 } });
+    http:Client httpClient2 = checkpanic new("http://localhost:8080", { poolConfig: { maxActiveConnections: 25 } });
     http:Client[] clients = [httpClient1, httpClient2];
     test:assertEquals(clients.length(), 2);
     test:assertNotEquals(clients[0].config.poolConfig, clients[1].config.poolConfig,

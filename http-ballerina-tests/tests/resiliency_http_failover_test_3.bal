@@ -28,7 +28,7 @@ listener http:Listener failoverEP03 = new(9303);
 listener http:Listener backendEP03 = new(8083);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP03 = new({
+http:FailoverClient foBackendEP03 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -41,7 +41,7 @@ http:FailoverClient foBackendEP03 = new({
     ]
 });
 
-http:FailoverClient foBackendFailureEP03 = new({
+http:FailoverClient foBackendFailureEP03 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -53,7 +53,7 @@ http:FailoverClient foBackendFailureEP03 = new({
     ]
 });
 
-http:FailoverClient foStatusCodesEP03 = new({
+http:FailoverClient foStatusCodesEP03 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -224,7 +224,7 @@ service /failureStatusCodeService03 on backendEP03 {
 function testAllEndpointFailure() {
     string expectedMessage = "All the failover endpoints failed. Last error was: " +
                 "Idle timeout triggered before initiating inbound response";
-    http:Client testClient = new("http://localhost:9303");
+    http:Client testClient = checkpanic new("http://localhost:9303");
     var response = testClient->post("/failoverDemoService03/invokeAllFailureEndpoint", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");

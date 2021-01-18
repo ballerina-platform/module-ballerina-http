@@ -25,19 +25,19 @@ listener http:Listener http2RedirectServiceEndpoint2 = new(http2RedirectTestPort
 listener http:Listener http2RedirectServiceEndpoint3 = new(http2RedirectTestPort3, { httpVersion: "2.0" });
 
 
-http:Client http2RedirectClient = new("http://localhost:" + http2RedirectTestPort1.toString());
+http:Client http2RedirectClient = check new("http://localhost:" + http2RedirectTestPort1.toString());
 
-http:Client http2RedirectEndPoint1 = new("http://localhost:" + http2RedirectTestPort2.toString(), {
+http:Client http2RedirectEndPoint1 = check new("http://localhost:" + http2RedirectTestPort2.toString(), {
     httpVersion: "2.0",
     followRedirects: { enabled: true, maxCount: 3 }
 });
 
-http:Client http2RedirectEndPoint2 = new("http://localhost:" + http2RedirectTestPort2.toString(), {
+http:Client http2RedirectEndPoint2 = check new("http://localhost:" + http2RedirectTestPort2.toString(), {
     httpVersion: "2.0",
     followRedirects: { enabled: true, maxCount: 5 }
 });
 
-http:Client http2RedirectEndPoint3 = new("http://localhost:" + http2RedirectTestPort3.toString(), {
+http:Client http2RedirectEndPoint3 = check new("http://localhost:" + http2RedirectTestPort3.toString(), {
     httpVersion: "2.0",
     followRedirects: { enabled: true }
 });

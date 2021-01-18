@@ -20,12 +20,12 @@ import ballerina/http;
 listener http:Listener multipleClientListener1 = new(multipleClientTestPort1, { httpVersion: "2.0" });
 listener http:Listener multipleClientListener2 = new(multipleClientTestPort2, { httpVersion: "2.0" });
 
-http:Client multipleClientTestClient = new("http://localhost:" + multipleClientTestPort1.toString());
+http:Client multipleClientTestClient = check new("http://localhost:" + multipleClientTestPort1.toString());
 
-http:Client h2WithPriorKnowledgeClient = new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "2.0", http2Settings: {
+http:Client h2WithPriorKnowledgeClient = check new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "2.0", http2Settings: {
         http2PriorKnowledge: true }, poolConfig: {} });
 
-http:Client h1Client = new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "1.1", poolConfig: {}});
+http:Client h1Client = check new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "1.1", poolConfig: {}});
 
 service /globalClientTest on multipleClientListener1 {
 

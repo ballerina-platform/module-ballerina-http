@@ -32,12 +32,13 @@ public client class LoadBalanceClient {
     # Load Balancer adds an additional layer to the HTTP client to make network interactions more resilient.
     #
     # + loadBalanceClientConfig - The configurations for the load balance client endpoint
-    public function init(LoadBalanceClientConfiguration loadBalanceClientConfig) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
         self.loadBalanceClientConfig = loadBalanceClientConfig;
         self.failover = loadBalanceClientConfig.failover;
         var lbClients = createLoadBalanceHttpClientArray(loadBalanceClientConfig);
-        if (lbClients is error) {
-            panic lbClients;
+        if (lbClients is ClientError) {
+            return lbClients;
         } else {
             self.loadBalanceClientsArray = lbClients;
             var lbRule = loadBalanceClientConfig.lbRule;
@@ -367,13 +368,13 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
 }
 
 function createLoadBalanceHttpClientArray(LoadBalanceClientConfiguration loadBalanceClientConfig)
-                                                                                    returns Client?[]|error {
+                                                                                    returns Client?[]|ClientError {
     Client cl;
     Client?[] httpClients = [];
     int i = 0;
     foreach var target in loadBalanceClientConfig.targets {
         ClientConfiguration epConfig = createClientEPConfigFromLoalBalanceEPConfig(loadBalanceClientConfig, target);
-        cl =  new(target.url , epConfig);
+        cl =  check new(target.url , epConfig);
         httpClients[i] = cl;
         i += 1;
     }

@@ -143,7 +143,7 @@ function testPayloadInResponse() {
     }
 }
 
-http:Client mimeClient = new("http://localhost:" + mimeTest.toString());
+http:Client mimeClient = check new("http://localhost:" + mimeTest.toString());
 
 // Access entity to read payload and send back
 @test:Config {}

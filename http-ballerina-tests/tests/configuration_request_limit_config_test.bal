@@ -78,7 +78,7 @@ service /requestHeaderLimit on midHeaderLimitEP {
 //Tests the behaviour when url length is less than the configured threshold
 @test:Config {}
 function testValidUrlLength() {
-    http:Client limitClient = new("http://localhost:" + requestLimitsTestPort1.toString());
+    http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort1.toString());
     var response = limitClient->get("/requestUriLimit/validUrl");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -92,7 +92,7 @@ function testValidUrlLength() {
 //Tests the behaviour when url length is greater than the configured threshold
 @test:Config {}
 function testInvalidUrlLength() {
-    http:Client limitClient = new("http://localhost:" + requestLimitsTestPort2.toString());
+    http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort2.toString());
     var response = limitClient->get("/lowRequestUriLimit/invalidUrl");
     if (response is http:Response) {
         //414 Request-URI Too Long
@@ -107,7 +107,7 @@ function testInvalidUrlLength() {
 function testInvalidHeaderLength() {
     http:Request req = new;
     req.setHeader("X-Test", getLargeHeader());
-    http:Client limitClient = new("http://localhost:" + requestLimitsTestPort3.toString());
+    http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort3.toString());
     var response = limitClient->get("/lowRequestHeaderLimit/invalidHeaderSize", req);
     if (response is http:Response) {
         //413 Request Entity Too Large
@@ -130,7 +130,7 @@ function getLargeHeader() returns string {
 //Tests the behaviour when header size is less than the configured threshold
 @test:Config {}
 function testValidHeaderLength() {
-    http:Client limitClient = new("http://localhost:" + requestLimitsTestPort4.toString());
+    http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort4.toString());
     var response = limitClient->get("/requestHeaderLimit/validHeaderSize");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");

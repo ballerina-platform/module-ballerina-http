@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serviceEndpointTestEP = new(serviceEndpointTest);
-http:Client serviceEndpointClient = new("http://localhost:" + serviceEndpointTest.toString());
+http:Client serviceEndpointClient = check new("http://localhost:" + serviceEndpointTest.toString());
 
 service /serviceEndpointHello on serviceEndpointTestEP {
 

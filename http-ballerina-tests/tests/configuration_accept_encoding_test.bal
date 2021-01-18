@@ -19,15 +19,15 @@ import ballerina/http;
 
 listener http:Listener acceptEncodingListenerEP = new(acceptEncodingHeaderTestPort, {server: "Mysql"});
 
-http:Client acceptEncodingAutoEP = new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
+http:Client acceptEncodingAutoEP = check new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
     compression:http:COMPRESSION_AUTO
 });
 
-http:Client acceptEncodingEnableEP = new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
+http:Client acceptEncodingEnableEP = check new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
     compression:http:COMPRESSION_ALWAYS
 });
 
-http:Client acceptEncodingDisableEP = new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
+http:Client acceptEncodingDisableEP = check new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
     compression:http:COMPRESSION_NEVER
 });
 

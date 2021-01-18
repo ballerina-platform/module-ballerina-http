@@ -38,7 +38,7 @@ http:ClientConfiguration conf02 = {
     timeoutInMillis: 2000
 };
 
-http:Client unhealthyClientEP = new("http://localhost:8088", conf02);
+http:Client unhealthyClientEP = check new("http://localhost:8088", conf02);
 
 service /cb on circuitBreakerEP02 {
 
@@ -85,7 +85,7 @@ service /unhealthy on new http:Listener(8088) {
 }
 
 //Test for circuit breaker forceClose functionality
-http:Client testForceCloseClient = new("http://localhost:9308");
+http:Client testForceCloseClient = check new("http://localhost:9308");
 
 @test:Config{
     enable:false,

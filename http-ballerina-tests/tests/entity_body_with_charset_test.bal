@@ -298,7 +298,7 @@ service /test on entityEP {
     }
 }
 
-http:Client entityClient = new("http://localhost:" + entityTest.toString());
+http:Client entityClient = check new("http://localhost:" + entityTest.toString());
 
 // Test addHeader function within a service
 // Disabled due to https://github.com/ballerina-platform/module-ballerina-http/issues/62
