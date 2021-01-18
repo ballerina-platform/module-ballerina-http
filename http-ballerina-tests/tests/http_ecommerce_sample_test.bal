@@ -15,9 +15,9 @@
 // under the License.
 
 import ballerina/io;
-import ballerina/stringutils;
-import ballerina/test;
 import ballerina/http;
+import ballerina/lang.'string as strings;
+import ballerina/test;
 
 listener http:Listener ecommerceListenerEP = new(ecommerceTestPort);
 http:Client ecommerceClient = check new("http://localhost:" + ecommerceTestPort.toString());
@@ -27,7 +27,7 @@ service /customerservice on ecommerceListenerEP {
     resource function 'default customers(http:Caller caller, http:Request req) {
         json payload = {};
         string httpMethod = req.method;
-        if (stringutils:equalsIgnoreCase(httpMethod, "GET")) {
+        if (strings:equalsIgnoreCaseAscii(httpMethod, "GET")) {
             payload = {"Customer":{"ID":"987654", "Name":"ABC PQR", "Description":"Sample Customer."}};
         } else {
             payload = {"Status":"Customer is successfully added."};
@@ -119,7 +119,7 @@ service /orderservice on ecommerceListenerEP {
     resource function 'default orders(http:Caller caller, http:Request req) {
         json payload = {};
         string httpMethod = req.method;
-        if (stringutils:equalsIgnoreCase(httpMethod, "GET")) {
+        if (strings:equalsIgnoreCaseAscii(httpMethod, "GET")) {
             payload = {"Order":{"ID":"111999", "Name":"ABC123", "Description":"Sample order."}};
         } else {
             payload = {"Status":"Order is successfully added."};

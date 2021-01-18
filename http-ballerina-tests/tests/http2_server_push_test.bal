@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/io;
-import ballerina/stringutils;
+import ballerina/lang.'string as strings;
 import ballerina/test;
 import ballerina/http;
 
@@ -96,7 +96,7 @@ service /frontendHttpService on serverPushFrontendEP {
         }
         // Check whether correct response received
         string responseStringPayload = responseJsonPayload.toString();
-        if (!(stringutils:contains(responseStringPayload, "main"))) {
+        if (!(strings:includes(responseStringPayload, "main"))) {
             json errMsg = { "error": "expected response message not received" };
             checkpanic caller->respond(errMsg);
             return;
@@ -130,7 +130,7 @@ service /frontendHttpService on serverPushFrontendEP {
             // check whether expected
             string expectedVal = promise.path.substring(1, 10);
             string promisedStringPayload = promisedJsonPayload.toString();
-            if (!(stringutils:contains(promisedStringPayload, expectedVal))) {
+            if (!(strings:includes(promisedStringPayload, expectedVal))) {
                 json errMsg = { "error": "expected promised response not received" };
                 checkpanic caller->respond(errMsg);
                 return;

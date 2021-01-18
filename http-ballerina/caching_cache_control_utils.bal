@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/lang.'int;
-import ballerina/stringutils;
+import ballerina/regex;
 
 isolated function appendFields (string[] fields) returns string {
     if (fields.length() > 0) {
@@ -38,7 +38,7 @@ isolated function buildCommaSeparatedString (string[] values) returns string {
 }
 
 isolated function getDirectiveValue (string directive) returns int {
-    string[] directiveParts = stringutils:split(directive, "=");
+    string[] directiveParts = regex:split(directive, "=");
 
     // Disregarding the directive if a value isn't provided
     if (directiveParts.length() != 2) {
