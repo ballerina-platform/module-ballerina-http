@@ -23,7 +23,7 @@ listener http:Listener listenerMethodListener = new(listenerMethodTestPort1);
 http:Client listenerMethodTestClient = check new("http://localhost:" + listenerMethodTestPort1.toString());
 http:Client backendTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString());
 
-http:Listener listenerMethodbackendEP = new(listenerMethodTestPort2);
+http:Listener listenerMethodbackendEP = check new(listenerMethodTestPort2);
 
 boolean listenerIdle = true;
 boolean listenerStopped = false;
