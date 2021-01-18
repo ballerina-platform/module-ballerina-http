@@ -64,11 +64,11 @@ import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
 import org.ballerinalang.net.transport.contract.config.ForwardedExtensionConfig;
+import org.ballerinalang.net.transport.contract.config.InboundMsgSizeValidationConfig;
 import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
 import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
 import org.ballerinalang.net.transport.contract.config.Parameter;
 import org.ballerinalang.net.transport.contract.config.ProxyServerConfiguration;
-import org.ballerinalang.net.transport.contract.config.RequestSizeValidationConfig;
 import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
 import org.ballerinalang.net.transport.contract.config.SslConfiguration;
 import org.ballerinalang.net.transport.contract.exceptions.ClientConnectorException;
@@ -558,7 +558,7 @@ public class HttpUtil {
                                      IO_PACKAGE_ID);
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else {
-            return createHttpError(throwable.getMessage());
+            return createHttpError(throwable.getMessage(), HttpErrorType.GENERIC_CLIENT_ERROR);
         }
     }
 
@@ -799,8 +799,8 @@ public class HttpUtil {
         inboundResponse.addNativeData(TRANSPORT_MESSAGE, inboundResponseMsg);
         int statusCode = inboundResponseMsg.getHttpStatusCode();
         inboundResponse.set(RESPONSE_STATUS_CODE_FIELD, (long) statusCode);
-        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD,
-                            fromString(HttpResponseStatus.valueOf(statusCode).reasonPhrase()));
+        String reasonPhrase = inboundResponseMsg.getReasonPhrase();
+        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD, reasonPhrase);
 
         if (inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) != null) {
             inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD,
@@ -1534,7 +1534,11 @@ public class HttpUtil {
             String keepAlive = http1Settings.getStringValue(HttpConstants.ENDPOINT_CONFIG_KEEP_ALIVE).getValue();
             listenerConfiguration.setKeepAliveConfig(HttpUtil.getKeepAliveConfig(keepAlive));
             // Set Request validation limits.
-            setRequestSizeValidationConfig(http1Settings, listenerConfiguration);
+            setInboundMgsSizeValidationConfig(
+                    http1Settings.getIntValue(HttpConstants.MAX_URI_LENGTH),
+                    http1Settings.getIntValue(HttpConstants.MAX_HEADER_SIZE),
+                    http1Settings.getIntValue(HttpConstants.MAX_ENTITY_BODY_SIZE),
+                    listenerConfiguration.getMsgSizeValidationConfig());
         }
 
         if (host == null || host.trim().isEmpty()) {
@@ -1580,29 +1584,25 @@ public class HttpUtil {
         return listenerConfiguration;
     }
 
-    private static void setRequestSizeValidationConfig(BMap http1Settings,
-                                                     ListenerConfiguration listenerConfiguration) {
-        long maxUriLength = http1Settings.getIntValue(HttpConstants.REQUEST_LIMITS_MAXIMUM_URL_LENGTH);
-        long maxHeaderSize = http1Settings.getIntValue(HttpConstants.REQUEST_LIMITS_MAXIMUM_HEADER_SIZE);
-        long maxEntityBodySize = http1Settings.getIntValue(HttpConstants.REQUEST_LIMITS_MAXIMUM_ENTITY_BODY_SIZE);
-        RequestSizeValidationConfig requestSizeValidationConfig = listenerConfiguration
-                .getRequestSizeValidationConfig();
-
-        if (maxUriLength >= 0) {
-            requestSizeValidationConfig.setMaxUriLength(Math.toIntExact(maxUriLength));
+    public static void setInboundMgsSizeValidationConfig(long maxInitialLineLength, long maxHeaderSize,
+                                                         long maxEntityBodySize,
+                                                         InboundMsgSizeValidationConfig sizeValidationConfig) {
+        if (maxInitialLineLength >= 0) {
+            sizeValidationConfig.setMaxInitialLineLength(Math.toIntExact(maxInitialLineLength));
         } else {
-            throw new BallerinaConnectorException("Invalid configuration found for maxUriLength : " + maxUriLength);
+            throw new BallerinaConnectorException(
+                    "Invalid configuration found for max initial line length : " + maxInitialLineLength);
         }
 
         if (maxHeaderSize >= 0) {
-            requestSizeValidationConfig.setMaxHeaderSize(Math.toIntExact(maxHeaderSize));
+            sizeValidationConfig.setMaxHeaderSize(Math.toIntExact(maxHeaderSize));
         } else {
             throw new BallerinaConnectorException("Invalid configuration found for maxHeaderSize : " + maxHeaderSize);
         }
 
         if (maxEntityBodySize != -1) {
             if (maxEntityBodySize >= 0) {
-                requestSizeValidationConfig.setMaxEntityBodySize(maxEntityBodySize);
+                sizeValidationConfig.setMaxEntityBodySize(maxEntityBodySize);
             } else {
                 throw new BallerinaConnectorException(
                         "Invalid configuration found for maxEntityBodySize : " + maxEntityBodySize);

@@ -22,7 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.HttpResponse;
-import org.wso2.transport.http.netty.contract.Constants;
+import org.ballerinalang.net.transport.contract.Constants;
 
 /**
  * Responsible for validating the inbound response's status line and total header size before sending it to the

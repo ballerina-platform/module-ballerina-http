@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.ballerinalang.net.transport.urilengthvalidation;
+package org.ballerinalang.net.transport.lengthvalidation;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
