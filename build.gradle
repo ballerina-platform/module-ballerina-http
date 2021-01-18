@@ -26,7 +26,7 @@ ext.ballerinaLangVersion = project.ballerinaLangVersion
 ext.stdlibMimeVersion = project.stdlibMimeVersion
 ext.stdlibIoVersion = project.stdlibIoVersion
 ext.stdlibLogVersion = project.stdlibLogVersion
-ext.stdlibStringutilsVersion = project.stdlibStringutilsVersion
+ext.stdlibRegexVersion = project.stdlibRegexVersion
 ext.stdlibAuthVersion = project.stdlibAuthVersion
 ext.stdlibJwtVersion = project.stdlibJwtVersion
 ext.stdlibOAuth2Version = project.stdlibOAuth2Version
@@ -104,7 +104,7 @@ allprojects {
             }
         }
         maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-stringutils'
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-regex'
             credentials {
                 username System.getenv("packageUser")
                 password System.getenv("packagePAT")
@@ -214,7 +214,7 @@ subprojects {
         /* Standard libraries */
         ballerinaStdLibs "org.ballerinalang:io-ballerina:${stdlibIoVersion}"
         ballerinaStdLibs "org.ballerinalang:log-ballerina:${stdlibLogVersion}"
-        ballerinaStdLibs "org.ballerinalang:stringutils-ballerina:${stdlibStringutilsVersion}"
+        ballerinaStdLibs "org.ballerinalang:regex-ballerina:${stdlibRegexVersion}"
         ballerinaStdLibs "org.ballerinalang:mime-ballerina:${stdlibMimeVersion}"
         ballerinaStdLibs "org.ballerinalang:auth-ballerina:${stdlibAuthVersion}"
         ballerinaStdLibs "org.ballerinalang:jwt-ballerina:${stdlibJwtVersion}"

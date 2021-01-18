@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/lang.'string as strings;
 import ballerina/mime;
-import ballerina/stringutils;
 import ballerina/test;
 
 const string CONTENT_TYPE = "content-type";
@@ -100,7 +100,7 @@ function assertTextPayload(string|error payload, string expectValue) {
 
 function assertTrueTextPayload(string|error payload, string expectValue) {
     if payload is string {
-        test:assertTrue(stringutils:contains(payload, expectValue), msg = "Found unexpected output");
+        test:assertTrue(strings:includes(payload, expectValue), msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + payload.message());
     }

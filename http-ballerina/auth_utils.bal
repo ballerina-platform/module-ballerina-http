@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/log;
-import ballerina/stringutils;
+import ballerina/regex;
 
 # Represents the Authorization header name.
 public const string AUTH_HEADER = "Authorization";
@@ -70,11 +70,11 @@ isolated function prepareClientAuthError(string message, error? err = ()) return
 // Extract the credential from `http:Request` or `string` header.
 isolated function extractCredential(Request|string data) returns string? {
     if (data is string) {
-        return stringutils:split(<string>data, " ")[1];
+        return regex:split(<string>data, " ")[1];
     } else {
         string|error header = data.getHeader(AUTH_HEADER);
         if (header is string) {
-            return stringutils:split(header, " ")[1];
+            return regex:split(header, " ")[1];
         }
     }
 }
@@ -116,5 +116,5 @@ isolated function convertToArray(string spaceSeperatedString) returns string[] {
     if (spaceSeperatedString.length() == 0) {
         return [];
     }
-    return stringutils:split(spaceSeperatedString, " ");
+    return regex:split(spaceSeperatedString, " ");
 }

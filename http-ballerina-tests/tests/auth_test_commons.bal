@@ -17,7 +17,7 @@
 // NOTE: All the tokens/credentials used in this test are dummy tokens/credentials and used only for testing purposes.
 
 import ballerina/http;
-import ballerina/stringutils;
+import ballerina/regex;
 
 const string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
 const string TRUSTSTORE_PATH = "tests/certsandkeys/ballerinaTruststore.p12";
@@ -76,10 +76,10 @@ service /oauth2 on oauth2Listener {
         string|http:ClientError payload = request.getTextPayload();
         json response = ();
         if (payload is string) {
-            string[] parts = stringutils:split(payload, "&");
+            string[] parts = regex:split(payload, "&");
             foreach string part in parts {
                 if (part.indexOf("token=") is int) {
-                    string token = stringutils:split(part, "=")[1];
+                    string token = regex:split(part, "=")[1];
                     if (token == ACCESS_TOKEN) {
                         response = { "active": true, "exp": 3600, "scp": "read write" };
                     } else {
