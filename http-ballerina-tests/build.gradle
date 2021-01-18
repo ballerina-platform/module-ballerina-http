@@ -158,9 +158,9 @@ task ballerinaTest {
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys} && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys} && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys}"
+                commandLine 'sh', '-c', "$distributionBinPath/bal test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys}"
             }
         }
     }
