@@ -29,7 +29,14 @@ const string SERVICE_ANNOTATION = "ServiceConfig";
 // Resource level annotation name.
 const string RESOURCE_ANNOTATION = "ResourceConfig";
 
-public function authenticateResource(Service servieRef, string methodName, string[] resourcePath) {
+// This function is used for declarative auth design, where the authentication/authorization decision is taken by
+// reading the auth annotations provided in service/resource and the `Authorization` header taken with an interop call.
+// This function is injected to the first lines of an http resource function. Then the logic will be executed during
+// the runtime.
+// If this function returns `()`, it will be moved to the execution of business logic, else there will be a 401/403
+// response sent by the `http:Caller` which is taken with an interop call. The execution flow will be broken by panic
+// with a distinct error.
+public isolated function authenticateResource(Service servieRef, string methodName, string[] resourcePath) {
     ListenerAuthConfig[]? authConfig = getListenerAuthConfig(servieRef, methodName, resourcePath);
     if (authConfig is ()) {
         return;
