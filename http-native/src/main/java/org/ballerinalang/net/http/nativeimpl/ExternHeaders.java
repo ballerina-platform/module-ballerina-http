@@ -18,15 +18,19 @@
 
 package org.ballerinalang.net.http.nativeimpl;
 
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ballerinalang.mime.util.MimeUtil;
+import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.util.List;
 import java.util.Set;
@@ -155,5 +159,14 @@ public class ExternHeaders {
             messageObj.addNativeData(HTTP_TRAILER_HEADERS, httpTrailerHeaders);
         }
         return httpTrailerHeaders;
+    }
+
+    public static Object getAuthorizationHeader(Environment env) {
+        HttpCarbonMessage inboundMessage = (HttpCarbonMessage) env.getStrandLocal(HttpConstants.INBOUND_MESSAGE);
+        String authorizationHeader = inboundMessage.getHeader(HttpHeaderNames.AUTHORIZATION.toString());
+        if (authorizationHeader == null) {
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
+        }
+        return StringUtils.fromString(authorizationHeader);
     }
 }

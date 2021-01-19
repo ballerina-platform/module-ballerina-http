@@ -112,5 +112,5 @@ const int http2RedirectTestPort2 = 9604;
 const int http2RedirectTestPort3 = 9605;
 
 //Security
-const int filterTestPort = 9400;
 const int oauth2AuthorizationServerPort = 9401;
+const int securedListenerPort = 9402;

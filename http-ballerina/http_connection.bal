@@ -25,7 +25,6 @@ import ballerina/lang.value as val;
 public client class Caller {
 
     private ListenerConfiguration config = {};
-    private FilterContext? filterContext = ();
 
     //TODO:Make these readonly
     public Remote remoteAddress = {};
@@ -39,21 +38,6 @@ public client class Caller {
     # + return - An `http:ListenerError` if failed to respond or else `()`
     remote isolated function respond(ResponseMessage message = ()) returns ListenerError? {
         Response response = buildResponse(message);
-        FilterContext? filterContext = self.filterContext;
-        (RequestFilter|ResponseFilter)[] filters = self.config.filters;
-        int i = filters.length() - 1;
-        if (filterContext is FilterContext) {
-            while (i >= 0) {
-                var filter = filters[i];
-                if (filter is ResponseFilter && !filter.filterResponse(response, filterContext)) {
-                    Response res = new;
-                    res.statusCode = 500;
-                    // res.setTextPayload("Failure when invoking response filter/s");
-                    return nativeRespond(self, res);
-                }
-                i -= 1;
-            }
-        }
         return nativeRespond(self, response);
     }
 
@@ -260,21 +244,6 @@ public client class Caller {
             setPayload(message, response);
             if (returnMediaType is string) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
-            }
-        }
-        // Engage response filters
-        FilterContext? filterContext = self.filterContext;
-        (RequestFilter|ResponseFilter)[] filters = self.config.filters;
-        int i = filters.length() - 1;
-        if (filterContext is FilterContext) {
-            while (i >= 0) {
-                var filter = filters[i];
-                if (filter is ResponseFilter && !filter.filterResponse(response, filterContext)) {
-                    Response res = new;
-                    res.statusCode = 500;
-                    return nativeRespond(self, res);
-                }
-                i -= 1;
             }
         }
         return nativeRespond(self, response);
