@@ -42,8 +42,8 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
+import org.ballerinalang.net.transport.contract.config.InboundMsgSizeValidationConfig;
 import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
-import org.ballerinalang.net.transport.contract.config.RequestSizeValidationConfig;
 import org.ballerinalang.net.transport.contractimpl.common.BackPressureHandler;
 import org.ballerinalang.net.transport.contractimpl.common.Util;
 import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
@@ -69,9 +69,11 @@ import javax.net.ssl.SSLEngine;
 import static org.ballerinalang.net.transport.contract.Constants.ACCESS_LOG;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_ACCESS_LOG_HANDLER;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_TRACE_LOG_HANDLER;
+import static org.ballerinalang.net.transport.contract.Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER;
 import static org.ballerinalang.net.transport.contract.Constants.SECURITY;
 import static org.ballerinalang.net.transport.contract.Constants.SSL;
 import static org.ballerinalang.net.transport.contract.Constants.TRACE_LOG_DOWNSTREAM;
+import static org.ballerinalang.net.transport.contract.Constants.URI_HEADER_LENGTH_VALIDATION_HANDLER;
 import static org.ballerinalang.net.transport.contractimpl.common.Util.setSslHandshakeTimeOut;
 
 /**
@@ -94,7 +96,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private SslContext keystoreHttp2SslContext;
     private SslContext certAndKeySslContext;
     private ServerConnectorFuture serverConnectorFuture;
-    private RequestSizeValidationConfig reqSizeValidationConfig;
+    private InboundMsgSizeValidationConfig reqSizeValidationConfig;
     private boolean http2Enabled = false;
     private boolean validateCertEnabled;
     private int cacheDelay;
@@ -204,7 +206,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         if (initialHttpScheme.equals(Constants.HTTP_SCHEME)) {
             serverPipeline.addLast(Constants.HTTP_ENCODER, new HttpResponseEncoder());
             serverPipeline.addLast(Constants.HTTP_DECODER,
-                                   new HttpRequestDecoder(reqSizeValidationConfig.getMaxUriLength(),
+                                   new HttpRequestDecoder(reqSizeValidationConfig.getMaxInitialLineLength(),
                                                           reqSizeValidationConfig.getMaxHeaderSize(),
                                                           reqSizeValidationConfig.getMaxChunkSize()));
 
@@ -218,9 +220,9 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                 serverPipeline.addLast(HTTP_ACCESS_LOG_HANDLER, new HttpAccessLoggingHandler(ACCESS_LOG));
             }
         }
-        serverPipeline.addLast("uriLengthValidator", new UriAndHeaderLengthValidator(this.serverName));
+        serverPipeline.addLast(URI_HEADER_LENGTH_VALIDATION_HANDLER, new UriAndHeaderLengthValidator(this.serverName));
         if (reqSizeValidationConfig.getMaxEntityBodySize() > -1) {
-            serverPipeline.addLast("maxEntityBodyValidator", new MaxEntityBodyValidator(this.serverName,
+            serverPipeline.addLast(MAX_ENTITY_BODY_VALIDATION_HANDLER, new MaxEntityBodyValidator(this.serverName,
                     reqSizeValidationConfig.getMaxEntityBodySize()));
         }
 
@@ -249,7 +251,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         pipeline.addLast(new Http2WithPriorKnowledgeHandler(
                 interfaceId, serverName, serverConnectorFuture, this));
         // Add http2 upgrade decoder and upgrade handler
-        final HttpServerCodec sourceCodec = new HttpServerCodec(reqSizeValidationConfig.getMaxUriLength(),
+        final HttpServerCodec sourceCodec = new HttpServerCodec(reqSizeValidationConfig.getMaxInitialLineLength(),
                                                                 reqSizeValidationConfig.getMaxHeaderSize(),
                                                                 reqSizeValidationConfig.getMaxChunkSize());
 
@@ -332,7 +334,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         this.certAndKeySslContext = sslContext;
     }
 
-    void setReqSizeValidationConfig(RequestSizeValidationConfig reqSizeValidationConfig) {
+    void setReqSizeValidationConfig(InboundMsgSizeValidationConfig reqSizeValidationConfig) {
         this.reqSizeValidationConfig = reqSizeValidationConfig;
     }
 

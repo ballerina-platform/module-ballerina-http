@@ -254,6 +254,9 @@ public final class Constants {
     public static final String HTTP_ACCESS_LOG_HANDLER = "http-access-logger";
     public static final String HTTP_EXCEPTION_HANDLER = "HttpExceptionHandler";
     public static final String HTTP2_EXCEPTION_HANDLER = "Http2ExceptionHandler";
+    public static final String URI_HEADER_LENGTH_VALIDATION_HANDLER = "uriAndHeaderLengthValidator";
+    public static final String STATUS_LINE_HEADER_LENGTH_VALIDATION_HANDLER = "statusLineAndHeaderLengthValidator";
+    public static final String MAX_ENTITY_BODY_VALIDATION_HANDLER = "maxEntityBodyValidator";
 
     public static final AttributeKey<Integer> REDIRECT_COUNT = AttributeKey.valueOf("REDIRECT_COUNT");
     public static final AttributeKey<String> RESOLVED_REQUESTED_URI_ATTR = AttributeKey
