@@ -60,8 +60,7 @@ public client class ListenerLdapUserStoreBasicAuthProvider {
         string[] actualScopes = userDetails.scopes;
         boolean matched = matchScopes(actualScopes, expectedScopes);
         if (!matched) {
-            Forbidden forbidden = {};
-            return forbidden;
+            return {};
         }
     }
 }
