@@ -23,59 +23,59 @@ http:Client httpStatusCodeClient = check new("http://localhost:" + httpStatusCod
 service /differentStatusCodes on httpStatusCodeListenerEP {
 
     resource function get okWithBody() returns http:Ok {
-       return {*http:Ok, body: "OK Response"};
+       return {body: "OK Response"};
     }
 
     resource function get okWithoutBody() returns http:Ok {
-        return {*http:Ok};
+        return {};
     }
 
     resource function get createdWithBody() returns http:Created {
-        return {*http:Created, headers:{"Location":"/newResourceURI"}, body: "Created Response"};
+        return {headers:{"Location":"/newResourceURI"}, body: "Created Response"};
     }
 
     resource function get createdWithoutBody() returns http:Created {
-        return {*http:Created, headers:{"Location":"/newResourceURI"}};
+        return {headers:{"Location":"/newResourceURI"}};
     }
 
     resource function get createdWithEmptyURI() returns http:Created {
-        return {*http:Created, headers:{"Location":""};
+        return {headers:{"Location":""}};
     }
 
     resource function get acceptedWithBody() returns http:Accepted {
-        return {*http:Accepted, body: "accepted response" };
+        return {body: "accepted response" };
     }
 
     resource function get acceptedWithoutBody() returns http:Accepted {
-        return {*http:Accepted};
+        return {};
     }
 
     resource function get noContentWithoutBody() returns http:NoContent {
-        return {*http:NoContent}; //Does not have body, media type field
+        return {}; //Does not have body, media type field
     }
 
     resource function get badRequestWithBody() returns http:BadRequest {
-        return {*http:BadRequest, body: xml `<test>Bad Request</test>`};
+        return {body: xml `<test>Bad Request</test>`};
     }
 
     resource function get badRequestWithoutBody() returns http:BadRequest {
-        return {*http:BadRequest};
+        return {};
     }
 
     resource function get notFoundWithBody() returns http:NotFound {
-        return {*http:NotFound, body: xml `<test>artifacts not found</test>`};
+        return {body: xml `<test>artifacts not found</test>`};
     }
 
     resource function get notFoundWithoutBody() returns http:NotFound {
-        return {*http:NotFound};
+        return {};
     }
 
     resource function get serverErrWithBody() returns http:InternalServerError {
-        return {*http:InternalServerError, body: xml `<test>Internal Server Error Occurred</test>`};
+        return {body: xml `<test>Internal Server Error Occurred</test>`};
     }
 
     resource function get serverErrWithoutBody() returns http:InternalServerError {
-        return {*http:InternalServerError};
+        return {};
     }
 }
 

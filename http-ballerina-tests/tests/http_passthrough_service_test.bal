@@ -51,15 +51,19 @@ service /passthrough on passthroughEP1 {
             if (entity is mime:Entity) {
                 string|error payload = entity.getText();
                 if (payload is string) {
-                    return return {*http:Ok, body: payload + ", " + checkpanic entity.getHeader("X-check-header")};
+                    http:Ok ok = {body: payload + ", " + checkpanic entity.getHeader("X-check-header")};
+                    return ok;
                 } else {
-                    return {*http:InternalServerError, body: payload.toString()};
+                    http:InternalServerError err = {body: payload.toString()};
+                    return err;
                 }
             } else {
-                return {*http:InternalServerError, body: entity.toString()};
+                http:InternalServerError err = {body: entity.toString()};
+                return err;
             }
         } else {
-            return {*http:InternalServerError, body: (<error>response).toString()};
+            http:InternalServerError err = {body: (<error>response).toString()};
+            return err;
         }
     }
 }
@@ -91,10 +95,10 @@ service /nyseStock on passthroughEP1 {
                 res.setEntity(ent);
                 checkpanic caller->respond(res);
             } else {
-                return {*http:InternalServerError, body: "Error while retrieving from entity"};
+                return {body: "Error while retrieving from entity"};
             }
         } else {
-            return {*http:InternalServerError, body: "Error while retrieving from request"};
+            return {body: "Error while retrieving from request"};
         }
         return;
     }

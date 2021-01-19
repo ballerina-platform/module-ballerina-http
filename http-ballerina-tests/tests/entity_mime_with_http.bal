@@ -50,10 +50,10 @@ service /test on mimeEP {
                 res.setEntity(ent);
                 checkpanic caller->respond(res);
             } else {
-                return {*http:InternalServerError, body: "Error while retrieving from entity"};
+                return {body: "Error while retrieving from entity"};
             }
         } else {
-            return {*http:InternalServerError, body: "Error while retrieving from request"};
+            return {body: "Error while retrieving from request"};
         }
         return;
     }
