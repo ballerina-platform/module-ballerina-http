@@ -25,7 +25,7 @@ public type StatusCodeResponse Continue|SwitchingProtocols|Ok|Created|Accepted|N
 # The `Status` object creates the distinction for the different response status code types.
 #
 # + code - The response status code
-type Status distinct object {
+public type Status distinct object {
     public int code;
 };
 
@@ -34,7 +34,7 @@ type Status distinct object {
 # + mediaType - The value of response `Content-type` header
 # + headers - The response headers
 # + body - The response payload
-type CommonResponse record {|
+public type CommonResponse record {|
     string mediaType?;
     map<string|string[]> headers?;
     anydata body?;
@@ -333,7 +333,7 @@ public type NonAuthoritativeInformation record {
 };
 
 public type NoContent record {
-    *CommonResponse;
+    map<string|string[]> headers?;
     readonly StatusNoContent status = STATUS_NO_CONTENT_OBJ;
 };
 
