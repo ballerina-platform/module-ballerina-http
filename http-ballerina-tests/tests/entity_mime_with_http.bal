@@ -38,7 +38,8 @@ service /test on mimeEP {
         checkpanic caller->respond(response);
     }
 
-    resource function 'default getPayloadFromEntity(http:Caller caller, http:Request request) {
+    resource function 'default getPayloadFromEntity(http:Caller caller, http:Request request) returns
+            http:InternalServerError? {
         http:Response res = new;
         var entity = request.getEntity();
         if (entity is mime:Entity) {
@@ -47,13 +48,14 @@ service /test on mimeEP {
                 mime:Entity ent = new;
                 ent.setJson(<@untainted>{"payload" : jsonPayload, "header" : checkpanic entity.getHeader("Content-type")});
                 res.setEntity(ent);
-                checkpanic caller->ok(res);
+                checkpanic caller->respond(res);
             } else {
-                checkpanic caller->internalServerError("Error while retrieving from entity");
+                return {*http:InternalServerError, body: "Error while retrieving from entity"};
             }
         } else {
-            checkpanic caller->internalServerError({ message: "Error while retrieving from request" });
+            return {*http:InternalServerError, body: "Error while retrieving from request"};
         }
+        return;
     }
 }
 

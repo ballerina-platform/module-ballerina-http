@@ -22,69 +22,60 @@ http:Client httpStatusCodeClient = check new("http://localhost:" + httpStatusCod
 
 service /differentStatusCodes on httpStatusCodeListenerEP {
 
-    resource function get okWithBody(http:Caller caller, http:Request req) {
-       checkpanic caller->ok("OK Response");
+    resource function get okWithBody() returns http:Ok {
+       return {*http:Ok, body: "OK Response"};
     }
 
-    resource function get okWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->ok();
+    resource function get okWithoutBody() returns http:Ok {
+        return {*http:Ok};
     }
 
-    resource function get createdWithBody(http:Caller caller, http:Request req) {
-        checkpanic caller->created("/newResourceURI", "Created Response");
+    resource function get createdWithBody() returns http:Created {
+        return {*http:Created, headers:{"Location":"/newResourceURI"}, body: "Created Response"};
     }
 
-    resource function get createdWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->created("/newResourceURI");
+    resource function get createdWithoutBody() returns http:Created {
+        return {*http:Created, headers:{"Location":"/newResourceURI"}};
     }
 
-    resource function get createdWithEmptyURI(http:Caller caller, http:Request req) {
-        checkpanic caller->created("");
+    resource function get createdWithEmptyURI() returns http:Created {
+        return {*http:Created, headers:{"Location":""};
     }
 
-    resource function get acceptedWithBody(http:Caller caller, http:Request req) {
-        checkpanic caller->accepted({ msg: "accepted response" });
+    resource function get acceptedWithBody() returns http:Accepted {
+        return {*http:Accepted, body: "accepted response" };
     }
 
-    resource function get acceptedWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->accepted();
+    resource function get acceptedWithoutBody() returns http:Accepted {
+        return {*http:Accepted};
     }
 
-    resource function get noContentWithBody(http:Caller caller, http:Request req) {
-        http:Response res = new;
-        res.setHeader("x-custom-header", "custom-header-value");
-        res.setPayload(xml `<test>No Content</test>`);
-        checkpanic caller->noContent(res); //Body will be removed
+    resource function get noContentWithoutBody() returns http:NoContent {
+        return {*http:NoContent}; //Does not have body, media type field
     }
 
-    resource function get noContentWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->noContent();
+    resource function get badRequestWithBody() returns http:BadRequest {
+        return {*http:BadRequest, body: xml `<test>Bad Request</test>`};
     }
 
-    resource function get badRequestWithBody(http:Caller caller, http:Request req) {
-        http:Response res = new;
-        res.setPayload(xml `<test>Bad Request</test>`);
-        checkpanic caller->badRequest(res);
+    resource function get badRequestWithoutBody() returns http:BadRequest {
+        return {*http:BadRequest};
     }
 
-    resource function get badRequestWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->badRequest();
+    resource function get notFoundWithBody() returns http:NotFound {
+        return {*http:NotFound, body: xml `<test>artifacts not found</test>`};
     }
 
-    resource function get notFoundWithBody(http:Caller caller, http:Request req) {
-        checkpanic caller->notFound(xml `<test>artifacts not found</test>`);
+    resource function get notFoundWithoutBody() returns http:NotFound {
+        return {*http:NotFound};
     }
 
-    resource function get notFoundWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->notFound();
+    resource function get serverErrWithBody() returns http:InternalServerError {
+        return {*http:InternalServerError, body: xml `<test>Internal Server Error Occurred</test>`};
     }
 
-    resource function get serverErrWithBody(http:Caller caller, http:Request req) {
-        checkpanic caller->internalServerError(xml `<test>Internal Server Error Occurred</test>`);
-    }
-
-    resource function get serverErrWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->internalServerError();
+    resource function get serverErrWithoutBody() returns http:InternalServerError {
+        return {*http:InternalServerError};
     }
 }
 
@@ -146,7 +137,7 @@ function testCreatedWithEmptyURI() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/createdWithEmptyURI");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
-        test:assertFalse(response.hasHeader(LOCATION));
+        test:assertTrue(response.hasHeader(LOCATION));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -173,18 +164,6 @@ function testAcceptedWithoutBody() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
-    } else if (response is error) {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-//Test ballerina noContent() function with entity body
-@test:Config {}
-function testNoContentWithBody() {
-    var response = httpStatusCodeClient->get("/differentStatusCodes/noContentWithBody");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader("x-custom-header"), "custom-header-value");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

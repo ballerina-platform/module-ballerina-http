@@ -137,101 +137,101 @@ public client class Caller {
         return self->respond(response);
     }
 
-    # Sends the outbound response to the caller with the status 200 OK.
-    #
-    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
-    # + return - An `http:ListenerError` if failed to respond or else `()`
-    remote isolated function ok(ResponseMessage message = ()) returns ListenerError? {
-        Response response = buildResponse(message);
-        response.statusCode = STATUS_OK;
-        return self->respond(response);
-    }
+    // # Sends the outbound response to the caller with the status 200 OK.
+    // #
+    // # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    // #             or `mime:Entity[]`
+    // # + return - An `http:ListenerError` if failed to respond or else `()`
+    // remote isolated function ok(ResponseMessage message = ()) returns ListenerError? {
+    //     Response response = buildResponse(message);
+    //     response.statusCode = STATUS_OK;
+    //     return self->respond(response);
+    // }
 
-    # Sends the outbound response to the caller with the status 201 Created.
-    #
-    # + uri - Represents the most specific URI for the newly created resource
-    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`. This message is optional.
-    # + return - An `http:ListenerError` if failed to respond or else `()`
-    remote isolated function created(string uri, ResponseMessage message = ()) returns ListenerError? {
-        Response response = buildResponse(message);
-        response.statusCode = STATUS_CREATED;
-        if (uri.length() > 0) {
-            response.setHeader(LOCATION, uri);
-        }
-        return self->respond(response);
-    }
+    // # Sends the outbound response to the caller with the status 201 Created.
+    // #
+    // # + uri - Represents the most specific URI for the newly created resource
+    // # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    // #             or `mime:Entity[]`. This message is optional.
+    // # + return - An `http:ListenerError` if failed to respond or else `()`
+    // remote isolated function created(string uri, ResponseMessage message = ()) returns ListenerError? {
+    //     Response response = buildResponse(message);
+    //     response.statusCode = STATUS_CREATED;
+    //     if (uri.length() > 0) {
+    //         response.setHeader(LOCATION, uri);
+    //     }
+    //     return self->respond(response);
+    // }
 
-    # Sends the outbound response to the caller with the status 202 Accepted.
-    #
-    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`. This message is optional.
-    # + return - An `http:ListenerError` if failed to respond or else `()`
-    remote isolated function accepted(ResponseMessage message = ()) returns ListenerError? {
-        Response response = buildResponse(message);
-        response.statusCode = STATUS_ACCEPTED;
-        return self->respond(response);
-    }
+    // # Sends the outbound response to the caller with the status 202 Accepted.
+    // #
+    // # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    // #             or `mime:Entity[]`. This message is optional.
+    // # + return - An `http:ListenerError` if failed to respond or else `()`
+    // remote isolated function accepted(ResponseMessage message = ()) returns ListenerError? {
+    //     Response response = buildResponse(message);
+    //     response.statusCode = STATUS_ACCEPTED;
+    //     return self->respond(response);
+    // }
 
-    # Sends the outbound response to the caller with the status 204 No Content. If the given response contains a body
-    # that will be removed.
-    # ```ballerina
-    # http:ListenerError? err = caller->noContent();
-    # ```
-    #
-    # + message - The outbound response, which is optional
-    # + return - An `http:ListenerError` if failed to respond or else `()`
-    remote isolated function noContent(Response? message = ()) returns ListenerError? {
-        Response newResponse = new;
-        if message is Response {
-            newResponse = message;
-        }
-        newResponse.statusCode = STATUS_NO_CONTENT;
-        return self->respond(newResponse);
-    }
+    // # Sends the outbound response to the caller with the status 204 No Content. If the given response contains a body
+    // # that will be removed.
+    // # ```ballerina
+    // # http:ListenerError? err = caller->noContent();
+    // # ```
+    // #
+    // # + message - The outbound response, which is optional
+    // # + return - An `http:ListenerError` if failed to respond or else `()`
+    // remote isolated function noContent(Response? message = ()) returns ListenerError? {
+    //     Response newResponse = new;
+    //     if message is Response {
+    //         newResponse = message;
+    //     }
+    //     newResponse.statusCode = STATUS_NO_CONTENT;
+    //     return self->respond(newResponse);
+    // }
 
-    # Sends the outbound response to the caller with the status 400 Bad Request.
-    # ```ballerina
-    # http:ListenerError? err = caller->badRequest();
-    # ```
-    #
-    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
-    #             or `mime:Entity[]`
-    # + return - An `http:ListenerError` if failed to respond or else `()`
-    remote isolated function badRequest(ResponseMessage message = ()) returns ListenerError? {
-        Response response = buildResponse(message);
-        response.statusCode = STATUS_BAD_REQUEST;
-        return self->respond(response);
-    }
+    // # Sends the outbound response to the caller with the status 400 Bad Request.
+    // # ```ballerina
+    // # http:ListenerError? err = caller->badRequest();
+    // # ```
+    // #
+    // # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
+    // #             or `mime:Entity[]`
+    // # + return - An `http:ListenerError` if failed to respond or else `()`
+    // remote isolated function badRequest(ResponseMessage message = ()) returns ListenerError? {
+    //     Response response = buildResponse(message);
+    //     response.statusCode = STATUS_BAD_REQUEST;
+    //     return self->respond(response);
+    // }
 
-    # Sends the outbound response to the caller with the status 404 Not Found.
-    # ```ballerina
-    # http:ListenerError? err = caller->notFound();
-    # ```
-    #
-    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
-    #             or `mime:Entity[]`
-    # + return - An `http:ListenerError` if failed to respond or else `()`
-    remote isolated function notFound(ResponseMessage message = ()) returns ListenerError? {
-        Response response = buildResponse(message);
-        response.statusCode = STATUS_NOT_FOUND;
-        return self->respond(response);
-    }
+    // # Sends the outbound response to the caller with the status 404 Not Found.
+    // # ```ballerina
+    // # http:ListenerError? err = caller->notFound();
+    // # ```
+    // #
+    // # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
+    // #             or `mime:Entity[]`
+    // # + return - An `http:ListenerError` if failed to respond or else `()`
+    // remote isolated function notFound(ResponseMessage message = ()) returns ListenerError? {
+    //     Response response = buildResponse(message);
+    //     response.statusCode = STATUS_NOT_FOUND;
+    //     return self->respond(response);
+    // }
 
-    # Sends the outbound response to the caller with the status 500 Internal Server Error.
-    # ```ballerina
-    # http:ListenerError? err = caller->internalServerError();
-    # ```
-    #
-    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
-    #             or `mime:Entity[]`
-    # + return - An `http:ListenerError` if failed to respond or else `()`
-    remote isolated function internalServerError(ResponseMessage message = ()) returns ListenerError? {
-        Response response = buildResponse(message);
-        response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
-        return self->respond(response);
-    }
+    // # Sends the outbound response to the caller with the status 500 Internal Server Error.
+    // # ```ballerina
+    // # http:ListenerError? err = caller->internalServerError();
+    // # ```
+    // #
+    // # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ByteChannel`,
+    // #             or `mime:Entity[]`
+    // # + return - An `http:ListenerError` if failed to respond or else `()`
+    // remote isolated function internalServerError(ResponseMessage message = ()) returns ListenerError? {
+    //     Response response = buildResponse(message);
+    //     response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
+    //     return self->respond(response);
+    // }
 
     # Gets the hostname from the remote address. This method may trigger a DNS reverse lookup if the address was created
     # with a literal IP address.

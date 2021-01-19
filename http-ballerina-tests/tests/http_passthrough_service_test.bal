@@ -43,7 +43,7 @@ service /passthrough on passthroughEP1 {
         }
     }
 
-    resource function post forward(http:Caller caller, http:Request clientRequest) {
+    resource function post forward(http:Request clientRequest) returns http:Ok|http:InternalServerError {
         http:Client nyseEP1 = checkpanic new("http://localhost:9113");
         var response = nyseEP1->forward("/nyseStock/entityCheck", clientRequest);
         if (response is http:Response) {
@@ -51,15 +51,15 @@ service /passthrough on passthroughEP1 {
             if (entity is mime:Entity) {
                 string|error payload = entity.getText();
                 if (payload is string) {
-                    checkpanic caller->ok(<@untainted> (payload + ", " + checkpanic entity.getHeader("X-check-header")));
+                    return return {*http:Ok, body: payload + ", " + checkpanic entity.getHeader("X-check-header")};
                 } else {
-                    checkpanic caller->internalServerError(<@untainted> payload.toString());
+                    return {*http:InternalServerError, body: payload.toString()};
                 }
             } else {
-                checkpanic caller->internalServerError(<@untainted> entity.toString());
+                return {*http:InternalServerError, body: entity.toString()};
             }
         } else {
-            checkpanic caller->internalServerError(<@untainted> (<error>response).toString());
+            return {*http:InternalServerError, body: (<error>response).toString()};
         }
     }
 }
@@ -79,7 +79,7 @@ service /nyseStock on passthroughEP1 {
         }
     }
 
-    resource function post entityCheck(http:Caller caller, http:Request clientRequest) {
+    resource function post entityCheck(http:Caller caller, http:Request clientRequest) returns http:InternalServerError? {
         http:Response res = new;
         var entity = clientRequest.getEntity();
         if (entity is mime:Entity) {
@@ -89,13 +89,14 @@ service /nyseStock on passthroughEP1 {
                 ent.setText(<@untainted> ("payload :" + textPayload + ", header: " + checkpanic entity.getHeader("Content-type")));
                 ent.setHeader("X-check-header", "entity-check-header");
                 res.setEntity(ent);
-                checkpanic caller->ok(res);
+                checkpanic caller->respond(res);
             } else {
-                checkpanic caller->internalServerError("Error while retrieving from entity");
+                return {*http:InternalServerError, body: "Error while retrieving from entity"};
             }
         } else {
-            checkpanic caller->internalServerError({ message: "Error while retrieving from request" });
+            return {*http:InternalServerError, body: "Error while retrieving from request"};
         }
+        return;
     }
 }
 
