@@ -39,6 +39,7 @@ ext.stdlibOsVersion = project.stdlibOsVersion
 ext.stdlibTaskVersion = project.stdlibTaskVersion
 ext.stdlibUuidVersion = project.stdlibUuidVersion
 ext.stdlibEncodingVersion = project.stdlibEncodingVersion
+ext.stdlibReflectVersion = project.stdlibReflectVersion
 
 ext.slf4jVersion = project.slf4jVersion
 ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
@@ -193,6 +194,13 @@ allprojects {
                 password System.getenv("packagePAT")
             }
         }
+        maven {
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-reflect'
+            credentials {
+                username System.getenv("packageUser")
+                password System.getenv("packagePAT")
+            }
+        }
     }
 }
 
@@ -216,6 +224,7 @@ subprojects {
         ballerinaStdLibs "org.ballerinalang:crypto-ballerina:${stdlibCryptoVersion}"
         ballerinaStdLibs "org.ballerinalang:file-ballerina:${stdlibFileVersion}"
         ballerinaStdLibs "org.ballerinalang:config-ballerina:${stdlibConfigVersion}"
+        ballerinaStdLibs "org.ballerinalang:reflect-ballerina:${stdlibReflectVersion}"
 
         // Transitive dependencies
         ballerinaStdLibs "org.ballerinalang:os-ballerina:${stdlibOsVersion}"

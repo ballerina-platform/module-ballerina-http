@@ -31,7 +31,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccess() {
     auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
     if (authn1 is auth:UserDetails) {
         test:assertEquals(authn1.username, "alice");
-        test:assertEquals(authn1.scopes, ["read", "write"]);
+        test:assertEquals(authn1.scopes, ["write", "update"]);
     } else {
         test:assertFail(msg = "Test Failed!");
     }
@@ -39,17 +39,17 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccess() {
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
     if (authn2 is auth:UserDetails) {
         test:assertEquals(authn2.username, "alice");
-        test:assertEquals(authn2.scopes, ["read", "write"]);
+        test:assertEquals(authn2.scopes, ["write", "update"]);
     } else {
         test:assertFail(msg = "Test Failed!");
     }
 
-    http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "read");
+    http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "write");
     if (authz1 is http:Forbidden) {
         test:assertFail(msg = "Test Failed!");
     }
 
-    http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "write");
+    http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "update");
     if (authz2 is http:Forbidden) {
         test:assertFail(msg = "Test Failed!");
     }
@@ -64,7 +64,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthzFailure() {
     auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
     if (authn1 is auth:UserDetails) {
         test:assertEquals(authn1.username, "alice");
-        test:assertEquals(authn1.scopes, ["read", "write"]);
+        test:assertEquals(authn1.scopes, ["write", "update"]);
     } else {
         test:assertFail(msg = "Test Failed!");
     }
@@ -72,17 +72,17 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthzFailure() {
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
     if (authn2 is auth:UserDetails) {
         test:assertEquals(authn2.username, "alice");
-        test:assertEquals(authn2.scopes, ["read", "write"]);
+        test:assertEquals(authn2.scopes, ["write", "update"]);
     } else {
         test:assertFail(msg = "Test Failed!");
     }
 
-    http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "update");
+    http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "read");
     if (authz1 is ()) {
         test:assertFail(msg = "Test Failed!");
     }
 
-    http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "update");
+    http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "read");
     if (authz2 is ()) {
         test:assertFail(msg = "Test Failed!");
     }

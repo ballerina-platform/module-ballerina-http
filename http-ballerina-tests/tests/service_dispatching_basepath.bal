@@ -22,19 +22,19 @@ http:Client basePathTestClient = check new("http://localhost:" + basePathTest.to
 
 service http:Service /my/Tes\@tHello/go on basePathTestEP {
     resource function get foo(http:Caller caller) {
-        var result = caller->ok("special dispatched");
+        var result = caller->respond("special dispatched");
     }
 }
 
 service http:Service "/Tes@tHello/go" on basePathTestEP {
     resource function get foo(http:Caller caller) {
-        var result = caller->ok("string dispatched");
+        var result = caller->respond("string dispatched");
     }
 }
 
 service http:Service /myservice/'andversion/a\/b/id on basePathTestEP {
     resource function get .(http:Caller caller) {
-        var result = caller->ok("service/version/1/1/id");
+        var result = caller->respond("service/version/1/1/id");
     }
 }
 
