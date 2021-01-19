@@ -20,7 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/test;
 
 listener http:Listener resourceReturnTestEP = new(resourceReturnTest);
-http:Client resourceReturnTestClient = new("http://localhost:" + resourceReturnTest.toString());
+http:Client resourceReturnTestClient = check new("http://localhost:" + resourceReturnTest.toString());
 
 type RetPerson record {
     string name;

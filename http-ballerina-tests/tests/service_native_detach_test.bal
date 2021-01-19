@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serviceDetachTestEP = new(serviceDetachTest);
-http:Client serviceDetachClient = new("http://localhost:" + serviceDetachTest.toString());
+http:Client serviceDetachClient = check new("http://localhost:" + serviceDetachTest.toString());
 
 service /mock1 on serviceDetachTestEP {
     resource function get .(http:Caller caller, http:Request req) {

@@ -32,10 +32,11 @@ public client class HttpClient {
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
-    public function init(string url, ClientConfiguration? config = ()) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(string url, ClientConfiguration? config = ()) returns ClientError? {
         self.config = config ?: {};
         self.url = url;
-        createSimpleHttpClient(self, globalHttpClientConnPool);
+        return createSimpleHttpClient(self, globalHttpClientConnPool);
     }
 
     # The `HttpClient.post()` function can be used to send HTTP POST requests to HTTP endpoints.
@@ -282,6 +283,6 @@ public type HttpTimeoutError record {|
 |};
 
 function createClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
-    HttpClient simpleClient = new(url, config);
+    HttpClient simpleClient = check new(url, config);
     return simpleClient;
 }

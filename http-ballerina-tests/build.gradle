@@ -99,7 +99,7 @@ task updateTomlVerions {
     doLast {
         def stdlibDependentIoVersion = project.stdlibIoVersion.split("-")[0]
         def stdlibDependentLogVersion = project.stdlibLogVersion.split("-")[0]
-        def stdlibDependentStringutilsVersion = project.stdlibStringutilsVersion.split("-")[0]
+        def stdlibDependentRegexVersion = project.stdlibRegexVersion.split("-")[0]
         def stdlibDependentMimeVersion = project.stdlibMimeVersion.split("-")[0]
         def stdlibDependentAuthVersion = project.stdlibAuthVersion.split("-")[0]
         def stdlibDependentJwtVersion = project.stdlibJwtVersion.split("-")[0]
@@ -111,7 +111,7 @@ task updateTomlVerions {
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
         newConfig = newConfig.replace("@stdlib.io.version@", stdlibDependentIoVersion)
         newConfig = newConfig.replace("@stdlib.log.version@", stdlibDependentLogVersion)
-        newConfig = newConfig.replace("@stdlib.stringutils.version@", stdlibDependentStringutilsVersion)
+        newConfig = newConfig.replace("@stdlib.regex.version@", stdlibDependentRegexVersion)
         newConfig = newConfig.replace("@stdlib.mime.version@", stdlibDependentMimeVersion)
         newConfig = newConfig.replace("@stdlib.auth.version@", stdlibDependentAuthVersion)
         newConfig = newConfig.replace("@stdlib.jwt.version@", stdlibDependentJwtVersion)
@@ -158,9 +158,9 @@ task ballerinaTest {
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys} && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys} && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/ballerina test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys}"
+                commandLine 'sh', '-c', "$distributionBinPath/bal test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys}"
             }
         }
     }

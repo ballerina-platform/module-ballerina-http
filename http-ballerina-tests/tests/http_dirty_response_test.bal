@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener dirtyResponseListener = new(dirtyResponseTestPort);
-http:Client dirtyResponseTestClient = new("http://localhost:" + dirtyResponseTestPort.toString());
+http:Client dirtyResponseTestClient = check new("http://localhost:" + dirtyResponseTestPort.toString());
 
 http:Response dirtyResponse = getSingletonResponse();
 string dirtyErrorLog = "";

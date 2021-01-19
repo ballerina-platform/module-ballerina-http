@@ -18,7 +18,7 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-http:Client cachingEP3 = new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
+http:Client cachingEP3 = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
 int numberOfProxyHits = 0;
 
 service /mustRevalidate on cachingProxyListener {

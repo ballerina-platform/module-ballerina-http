@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener pcEP = new(producesConsumesTest);
-http:Client pcClient = new("http://localhost:" + producesConsumesTest.toString());
+http:Client pcClient = check new("http://localhost:" + producesConsumesTest.toString());
 
 service /echo66 on pcEP {
     @http:ResourceConfig {

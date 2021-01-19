@@ -21,8 +21,8 @@ import ballerina/http;
 listener http:Listener utTestEP = new(uriTemplateTest1);
 listener http:Listener utTestEPWithNoServicesAttached = new(uriTemplateTest2);
 
-http:Client utClient1 = new("http://localhost:" + uriTemplateTest1.toString());
-http:Client utClient2 = new("http://localhost:" + uriTemplateTest2.toString());
+http:Client utClient1 = check new("http://localhost:" + uriTemplateTest1.toString());
+http:Client utClient2 = check new("http://localhost:" + uriTemplateTest2.toString());
 
 service /ecommerceservice on utTestEP {
 

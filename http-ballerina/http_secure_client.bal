@@ -27,12 +27,13 @@ public client class HttpSecureClient {
     public HttpClient httpClient;
     ClientAuthHandler clientAuthHandler;
 
-    # Gets invoked to initialize the secure `client`. Due to the secure client releated configurations provided
+    # Gets invoked to initialize the secure `client`. Due to the secure client related configurations provided
     # through the `config` record, the `HttpSecureClient` is initialized.
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
-    public function init(string url, ClientConfiguration config) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(string url, ClientConfiguration config) returns ClientError? {
         self.url = url;
         self.config = config;
         self.clientAuthHandler = initClientAuthHandler(config);
@@ -40,7 +41,7 @@ public client class HttpSecureClient {
         if (simpleClient is HttpClient) {
             self.httpClient = simpleClient;
         } else {
-            panic <error> simpleClient;
+            return simpleClient;
         }
     }
 
@@ -246,7 +247,7 @@ public client class HttpSecureClient {
 public function createHttpSecureClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpSecureClient httpSecureClient;
     if (config.auth is ClientAuthConfig) {
-        httpSecureClient = new(url, config);
+        httpSecureClient = check new(url, config);
         return httpSecureClient;
     } else {
         return createClient(url, config);

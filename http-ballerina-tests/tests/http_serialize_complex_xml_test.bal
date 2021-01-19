@@ -21,7 +21,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serializeXmlListener = new(serializeXmlTestPort);
-http:Client xmlClientEP = new("http://localhost:" + serializeXmlTestPort.toString());
+http:Client xmlClientEP = check new("http://localhost:" + serializeXmlTestPort.toString());
 
 service /serialize on serializeXmlListener {
 

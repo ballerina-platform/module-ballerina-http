@@ -20,7 +20,7 @@ import ballerina/test;
 
 service /initiatingService on new http:Listener(9107) {
     resource function get initiatingResource(http:Caller caller, http:Request request) {
-        http:Client forwadingClient = new ("http://localhost:9108",
+        http:Client forwadingClient = checkpanic new("http://localhost:9108",
                                        {forwarded: "enable", httpVersion: "2.0",
                                         http2Settings: { http2PriorKnowledge: true }});
         var responseFromForwardBackend = forwadingClient->get(
@@ -44,7 +44,7 @@ service /forwardedBackend on new http:Listener(9108, {httpVersion: "2.0"}) {
 
 @test:Config {}
 public function testForwardHeader() {
-    http:Client clientEP = new("http://localhost:9107");
+    http:Client clientEP = checkpanic new("http://localhost:9107");
     var resp = clientEP->get("/initiatingService/initiatingResource");
     if (resp is http:Response) {
         assertHeaderValue(checkpanic resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");

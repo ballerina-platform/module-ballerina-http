@@ -150,7 +150,7 @@ task updateTomlVerions {
         def stdlibDependentMimeNativeVersion = project.stdlibMimeVersion
         def stdlibDependentIoVersion = project.stdlibIoVersion.split("-")[0]
         def stdlibDependentLogVersion = project.stdlibLogVersion.split("-")[0]
-        def stdlibDependentStringutilsVersion = project.stdlibStringutilsVersion.split("-")[0]
+        def stdlibDependentRegexVersion = project.stdlibRegexVersion.split("-")[0]
         def stdlibDependentMimeVersion = project.stdlibMimeVersion.split("-")[0]
         def stdlibDependentAuthVersion = project.stdlibAuthVersion.split("-")[0]
         def stdlibDependentJwtVersion = project.stdlibJwtVersion.split("-")[0]
@@ -172,7 +172,7 @@ task updateTomlVerions {
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
         newConfig = newConfig.replace("@stdlib.io.version@", stdlibDependentIoVersion)
         newConfig = newConfig.replace("@stdlib.log.version@", stdlibDependentLogVersion)
-        newConfig = newConfig.replace("@stdlib.stringutils.version@", stdlibDependentStringutilsVersion)
+        newConfig = newConfig.replace("@stdlib.regex.version@", stdlibDependentRegexVersion)
         newConfig = newConfig.replace("@stdlib.mime.version@", stdlibDependentMimeVersion)
         newConfig = newConfig.replace("@stdlib.auth.version@", stdlibDependentAuthVersion)
         newConfig = newConfig.replace("@stdlib.jwt.version@", stdlibDependentJwtVersion)
@@ -217,9 +217,9 @@ task ballerinaBuild {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat build --offline --skip-tests ${additionalBuildParams} -c && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat build --offline --skip-tests ${additionalBuildParams} -c && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/ballerina build --offline --skip-tests ${additionalBuildParams} -c"
+                commandLine 'sh', '-c', "$distributionBinPath/bal build --offline --skip-tests ${additionalBuildParams} -c"
             }
         }
         copy {
@@ -240,9 +240,9 @@ task ballerinaBuild {
                 workingDir project.projectDir
                 environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat push && exit %%ERRORLEVEL%%"
+                    commandLine 'cmd', '/c', "$distributionBinPath/bal.bat push && exit %%ERRORLEVEL%%"
                 } else {
-                    commandLine 'sh', '-c', "$distributionBinPath/ballerina push"
+                    commandLine 'sh', '-c', "$distributionBinPath/bal push"
                 }
             }
 
@@ -252,9 +252,9 @@ task ballerinaBuild {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat doc && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat doc && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/ballerina doc"
+                commandLine 'sh', '-c', "$distributionBinPath/bal doc"
             }
         }
         copy {

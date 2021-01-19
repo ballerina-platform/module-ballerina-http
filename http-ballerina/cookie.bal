@@ -15,8 +15,9 @@
 // under the License.
 
 import ballerina/lang.'int as ints;
+import ballerina/lang.'string as strings;
 import ballerina/log;
-import ballerina/stringutils;
+import ballerina/regex;
 import ballerina/time;
 
 # Represents a Cookie.
@@ -102,7 +103,7 @@ public class Cookie {
         var path = self.path;
         if (path is string) {
             path = path.trim();
-            if (path == "" || !path.startsWith("/") || stringutils:contains(path, "?")) {
+            if (path == "" || !path.startsWith("/") || strings:includes(path, "?")) {
                 return error InvalidCookieError("Invalid path: Path is not in correct format");
             }
             self.path = path;
@@ -192,11 +193,11 @@ function appendNameIntValuePair(string setCookieHeaderValue, string name, int va
 // Returns the cookie object from the string value of the "Set-Cookie" header.
 function parseSetCookieHeader(string cookieStringValue) returns Cookie {
     string cookieValue = cookieStringValue;
-    string[] result = stringutils:split(cookieValue, SEMICOLON + SPACE);
-    string[] nameValuePair = stringutils:split(result[0], EQUALS);
+    string[] result = regex:split(cookieValue, SEMICOLON + SPACE);
+    string[] nameValuePair = regex:split(result[0], EQUALS);
     Cookie cookie = new (nameValuePair[0], nameValuePair[1]);
     foreach var item in result {
-        nameValuePair = stringutils:split(item, EQUALS);
+        nameValuePair = regex:split(item, EQUALS);
         match nameValuePair[0] {
             DOMAIN_ATTRIBUTE => {
                 cookie.domain = nameValuePair[1];
@@ -228,10 +229,10 @@ function parseSetCookieHeader(string cookieStringValue) returns Cookie {
 function parseCookieHeader(string cookieStringValue) returns Cookie[] {
     Cookie[] cookiesInRequest = [];
     string cookieValue = cookieStringValue;
-    string[] nameValuePairs = stringutils:split(cookieValue, SEMICOLON + SPACE);
+    string[] nameValuePairs = regex:split(cookieValue, SEMICOLON + SPACE);
     foreach var item in nameValuePairs {
-        if (stringutils:matches(item, "^([^=]+)=.*$")) {
-            string[] nameValue = stringutils:split(item, EQUALS);
+        if (regex:matches(item, "^([^=]+)=.*$")) {
+            string[] nameValue = regex:split(item, EQUALS);
             Cookie cookie;
             if (nameValue.length() > 1) {
                 cookie = new (nameValue[0], nameValue[1]);

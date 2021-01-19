@@ -16,7 +16,7 @@
 
 import ballerina/http;
 import ballerina/log;
-import ballerina/stringutils;
+import ballerina/lang.'string as strings;
 import ballerina/test;
 
 http:ListenerConfiguration sslProtocolServiceConfig = {
@@ -57,12 +57,12 @@ http:ClientConfiguration sslProtocolClientConfig = {
 
 @test:Config {}
 public function testSslProtocol() {
-    http:Client clientEP = new("https://localhost:9249", sslProtocolClientConfig);
+    http:Client clientEP = checkpanic new("https://localhost:9249", sslProtocolClientConfig);
     http:Request req = new;
     var resp = clientEP->get("/protocol/protocolResource");
     if (resp is http:Response) {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
     } else if (resp is error) {
-        test:assertTrue(stringutils:contains(resp.message(), "SSL connection failed"));
+        test:assertTrue(strings:includes(resp.message(), "SSL connection failed"));
     }
 }

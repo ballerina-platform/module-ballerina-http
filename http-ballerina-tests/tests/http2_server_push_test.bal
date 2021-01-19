@@ -15,15 +15,15 @@
 // under the License.
 
 import ballerina/io;
-import ballerina/stringutils;
+import ballerina/lang.'string as strings;
 import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serverPushFrontendEP = new(serverPushTestPort1);
 listener http:Listener serverPushBackendEP = new(serverPushTestPort2, { httpVersion: "2.0" });
 
-http:Client serverPushClient = new("http://localhost:" + serverPushTestPort1.toString());
-http:Client backendClientEP = new("http://localhost:" + serverPushTestPort2.toString(), { httpVersion: "2.0" });
+http:Client serverPushClient = check new("http://localhost:" + serverPushTestPort1.toString());
+http:Client backendClientEP = check new("http://localhost:" + serverPushTestPort2.toString(), { httpVersion: "2.0" });
 
 service /frontendHttpService on serverPushFrontendEP {
 
@@ -96,7 +96,7 @@ service /frontendHttpService on serverPushFrontendEP {
         }
         // Check whether correct response received
         string responseStringPayload = responseJsonPayload.toString();
-        if (!(stringutils:contains(responseStringPayload, "main"))) {
+        if (!(strings:includes(responseStringPayload, "main"))) {
             json errMsg = { "error": "expected response message not received" };
             checkpanic caller->respond(errMsg);
             return;
@@ -130,7 +130,7 @@ service /frontendHttpService on serverPushFrontendEP {
             // check whether expected
             string expectedVal = promise.path.substring(1, 10);
             string promisedStringPayload = promisedJsonPayload.toString();
-            if (!(stringutils:contains(promisedStringPayload, expectedVal))) {
+            if (!(strings:includes(promisedStringPayload, expectedVal))) {
                 json errMsg = { "error": "expected promised response not received" };
                 checkpanic caller->respond(errMsg);
                 return;

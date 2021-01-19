@@ -45,7 +45,7 @@ service /helloWorldWithSSL on serviceEndpointWithSSL {
 
 @test:Config {}
 public function testFallback() {
-    http:Client clientEP = new("http://localhost:9101");
+    http:Client clientEP = checkpanic new("http://localhost:9101");
     var resp = clientEP->get("/helloWorldWithoutSSL");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
@@ -56,7 +56,7 @@ public function testFallback() {
 
 @test:Config {}
 public function testFallbackWithSSL() {
-    http:Client clientEP = new("https://localhost:9105", {
+    http:Client clientEP = checkpanic new("https://localhost:9105", {
         secureSocket: {
             trustStore: {
                 path: "tests/certsandkeys/ballerinaTruststore.p12",

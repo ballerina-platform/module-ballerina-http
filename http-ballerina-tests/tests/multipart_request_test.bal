@@ -26,7 +26,7 @@ function setErrorResponse(http:Response response, error err) {
 }
 
 listener http:Listener multipartReqEP = new(multipartRequestTest);
-http:Client multipartReqClient = new("http://localhost:" + multipartRequestTest.toString());
+http:Client multipartReqClient = check new("http://localhost:" + multipartRequestTest.toString());
 
 service /test on multipartReqEP {
 

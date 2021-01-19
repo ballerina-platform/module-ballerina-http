@@ -35,8 +35,8 @@ version = "@stdlib.log.version@"
 
 [[dependency]]
 org = "ballerina"
-name = "stringutils"
-version = "@stdlib.stringutils.version@"
+name = "regex"
+version = "@stdlib.regex.version@"
 
 [[platform.java11.dependency]]
 path = "../http-native/build/libs/http-native-@project.version@.jar"

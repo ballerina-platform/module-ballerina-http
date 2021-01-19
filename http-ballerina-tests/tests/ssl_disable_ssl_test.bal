@@ -45,7 +45,7 @@ http:ClientConfiguration disableSslClientConf = {
 
 @test:Config {}
 public function testSslDisabledClient() {
-    http:Client httpClient = new("https://localhost:9238", disableSslClientConf);
+    http:Client httpClient = checkpanic new("https://localhost:9238", disableSslClientConf);
     var resp = httpClient->get("/httpsService");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
