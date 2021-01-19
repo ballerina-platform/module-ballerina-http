@@ -17,6 +17,7 @@
 import ballerina/auth;
 import ballerina/java;
 import ballerina/jwt;
+import ballerina/log;
 import ballerina/oauth2;
 import ballerina/reflect;
 
@@ -144,7 +145,7 @@ isolated function sendResponse(Response response) {
     Caller caller = getCaller();
     error? err = caller->respond(response);
     if (err is error) {
-        panic <error>err;
+        log:printError("Failed to respond the 401/403 request.", err = err);
     }
     // This panic is added to break the execution of the implementation inside the resource function after there is
     // an authn/authz failure and responded with 401/403 internally.
