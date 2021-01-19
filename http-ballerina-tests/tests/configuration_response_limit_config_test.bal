@@ -48,19 +48,23 @@ http:ClientConfiguration http2headerLimitConfig = {
     }
 };
 
-listener http:Listener statusLineEP = new(responseLimitsTestPort1);//9261
-listener http:Listener statusBackendEP = new(responseLimitsTestPort2); // 9262
-listener http:Listener headertBackendEP = new(responseLimitsTestPort3); // 9263
-listener http:Listener entitybodyBackendEP = new(responseLimitsTestPort4); //9264
-listener http:Listener headerTestEP = new(responseLimitsTestPort5); //9266
+listener http:Listener statusLineEP = new(responseLimitsTestPort1);
+listener http:Listener statusBackendEP = new(responseLimitsTestPort2);
+listener http:Listener headertBackendEP = new(responseLimitsTestPort3);
+listener http:Listener entitybodyBackendEP = new(responseLimitsTestPort4);
+listener http:Listener headerTestEP = new(responseLimitsTestPort5);
 
-http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString(), statusLineLimitConfig);//9261
-http:Client statusLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString(), statusLineLimitConfig);
-http:Client headerLimitClient = check new("http://localhost:" + responseLimitsTestPort3.toString(), headerLimitConfig);
-http:Client entityBodyLimitClient = check new("http://localhost:" + responseLimitsTestPort4.toString(), entityBodyLimitConfig);
-http:Client http2headerLimitClient = check new("http://localhost:" + responseLimitsTestPort5.toString(), http2headerLimitConfig);
+http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString());
+http:Client statusLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
+        + "/backend/statustest", statusLineLimitConfig);
+http:Client headerLimitClient = check new("http://localhost:" + responseLimitsTestPort3.toString()
+        + "/backend/headertest", headerLimitConfig);
+http:Client entityBodyLimitClient = check new("http://localhost:" + responseLimitsTestPort4.toString()
+        + "/backend/entitybodytest", entityBodyLimitConfig);
+http:Client http2headerLimitClient = check new("http://localhost:" + responseLimitsTestPort5.toString()
+        + "/backend/headertest", http2headerLimitConfig);
 
-service /responseLimit on statusLineEP{
+service /responseLimit on statusLineEP {
 
     resource function get [string clientType](http:Caller caller, http:Request req) {
         http:Client clientEP = entityBodyLimitClient;
@@ -185,8 +189,8 @@ function testInvalidStatusLineLength() {
     var response = limitTestClient->get("/responseLimit/statusline", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error {ballerina/http}GenericClientError message=Response max " +
-                "status line length exceeds: An HTTP line is larger than 1024 bytes.");
+        assertTextPayload(response.getTextPayload(), "error(\"Response max " +
+                "status line length exceeds: An HTTP line is larger than 1024 bytes.\")");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -215,8 +219,8 @@ function testInvalidHeaderLengthOfResponse() {
     var response = limitTestClient->get("/responseLimit/header", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error {ballerina/http}GenericClientError message=Response max " +
-                "header size exceeds: HTTP header is larger than 1024 bytes.");
+        assertTextPayload(response.getTextPayload(), "error(\"Response max " +
+                "header size exceeds: HTTP header is larger than 1024 bytes.\")");
         var header = response.getHeader(X_HEADER);
         if (header is error) {
             test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected output");
@@ -250,8 +254,8 @@ function testInvalidEntityBodyLength() {
     var response = limitTestClient->get("/responseLimit/statusline", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error {ballerina/http}GenericClientError message=Response max " +
-                "entity body size exceeds: Entity body is larger than 1024 bytes. ");
+        assertTextPayload(response.getTextPayload(), "error(\"Response max status line length exceeds: An HTTP line " +
+                "is larger than 1024 bytes.\")");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -280,8 +284,8 @@ function testInvalidHeaderLengthWithHttp2Client() {
     var response = limitTestClient->get("/responseLimit/header", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error {ballerina/http}GenericClientError message=Response max " +
-                "header size exceeds: HTTP header is larger than 1024 bytes.");
+        assertTextPayload(response.getTextPayload(), "error(\"Response max " +
+                "header size exceeds: HTTP header is larger than 1024 bytes.\")");
         var header = response.getHeader(X_HEADER);
         if (header is error) {
             test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected output");
