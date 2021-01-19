@@ -43,7 +43,7 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
     }
 
     resource function get acceptedWithBody() returns http:Accepted {
-        return {body: "accepted response" };
+        return {body: {msg:"accepted response"}};
     }
 
     resource function get acceptedWithoutBody() returns http:Accepted {

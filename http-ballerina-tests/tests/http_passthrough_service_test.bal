@@ -43,7 +43,7 @@ service /passthrough on passthroughEP1 {
         }
     }
 
-    resource function post forward(http:Request clientRequest) returns http:Ok|http:InternalServerError {
+    resource function post forward(http:Request clientRequest) returns @tainted http:Ok|http:InternalServerError {
         http:Client nyseEP1 = checkpanic new("http://localhost:9113");
         var response = nyseEP1->forward("/nyseStock/entityCheck", clientRequest);
         if (response is http:Response) {
