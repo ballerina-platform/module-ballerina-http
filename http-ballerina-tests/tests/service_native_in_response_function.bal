@@ -466,7 +466,7 @@ function testSetReasonPhase() {
     string path = "/response/twelve/" + phase;
     var response = responseClient->get(path);
     if (response is http:Response) {
-        test:assertEquals(response.reasonPhrase, "OK");
+        test:assertEquals(response.reasonPhrase, phase);
     } else if (response is error) {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }

@@ -39,6 +39,7 @@ import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import org.ballerinalang.net.transport.contract.Constants;
+import org.ballerinalang.net.transport.contract.config.InboundMsgSizeValidationConfig;
 import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
 import org.ballerinalang.net.transport.contract.config.ProxyServerConfiguration;
 import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
@@ -61,6 +62,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 
 import static io.netty.handler.logging.LogLevel.TRACE;
+import static org.ballerinalang.net.transport.contract.Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER;
 import static org.ballerinalang.net.transport.contract.Constants.SECURITY;
 import static org.ballerinalang.net.transport.contract.Constants.SSL;
 import static org.ballerinalang.net.transport.contractimpl.common.Util.setHostNameVerfication;
@@ -86,6 +88,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
     private SenderConfiguration senderConfiguration;
     private ConnectionAvailabilityFuture connectionAvailabilityFuture;
     private SSLHandlerFactory sslHandlerFactory;
+    private final InboundMsgSizeValidationConfig responseSizeValidationConfig;
 
     public HttpClientChannelInitializer(SenderConfiguration senderConfiguration, HttpRoute httpRoute,
             ConnectionManager connectionManager, ConnectionAvailabilityFuture connectionAvailabilityFuture) {
@@ -97,6 +100,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         this.httpRoute = httpRoute;
         this.sslConfig = senderConfiguration.getClientSSLConfig();
         this.connectionAvailabilityFuture = connectionAvailabilityFuture;
+        this.responseSizeValidationConfig = senderConfiguration.getMsgSizeValidationConfig();
 
         String httpVersion = senderConfiguration.getHttpVersion();
         if (Constants.HTTP_2_0.equals(httpVersion)) {
@@ -123,7 +127,6 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         // e.g. SSL handler
         ChannelPipeline clientPipeline = socketChannel.pipeline();
         configureProxyServer(clientPipeline);
-        HttpClientCodec sourceCodec = new HttpClientCodec();
         targetHandler = new TargetHandler();
         targetHandler.setHttp2TargetHandler(http2TargetHandler);
         targetHandler.setKeepAliveConfig(getKeepAliveConfig());
@@ -133,7 +136,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
             } else if (senderConfiguration.isForceHttp2()) {
                 configureHttp2Pipeline(clientPipeline);
             } else {
-                configureHttp2UpgradePipeline(clientPipeline, sourceCodec, targetHandler);
+                configureHttp2UpgradePipeline(clientPipeline, targetHandler);
             }
         } else {
             if (sslConfig != null) {
@@ -223,17 +226,19 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
      * Creates the pipeline for handing http2 upgrade.
      *
      * @param pipeline      the client channel pipeline
-     * @param sourceCodec   the source codec handler
      * @param targetHandler the target handler
      */
-    private void configureHttp2UpgradePipeline(ChannelPipeline pipeline, HttpClientCodec sourceCodec,
-                                               TargetHandler targetHandler) {
-        pipeline.addLast(sourceCodec);
+    private void configureHttp2UpgradePipeline(ChannelPipeline pipeline, TargetHandler targetHandler) {
+        HttpClientCodec sourceCodec = new HttpClientCodec(responseSizeValidationConfig.getMaxInitialLineLength(),
+                                                          responseSizeValidationConfig.getMaxHeaderSize(),
+                                                          responseSizeValidationConfig.getMaxChunkSize());
+        pipeline.addLast(Constants.HTTP_CLIENT_CODEC, sourceCodec);
         addCommonHandlers(pipeline);
         Http2ClientUpgradeCodec upgradeCodec = new Http2ClientUpgradeCodec(http2ConnectionHandler);
         HttpClientUpgradeHandler upgradeHandler = new HttpClientUpgradeHandler(sourceCodec, upgradeCodec,
-                Integer.MAX_VALUE);
+                                                                               Integer.MAX_VALUE);
         pipeline.addLast(Constants.HTTP2_UPGRADE_HANDLER, upgradeHandler);
+        addResponseLimitValidationHandlers(pipeline);
         pipeline.addLast(Constants.TARGET_HANDLER, targetHandler);
     }
 
@@ -257,10 +262,23 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
      * @param targetHandler the target handler
      */
     public void configureHttpPipeline(ChannelPipeline pipeline, TargetHandler targetHandler) {
-        pipeline.addLast(Constants.HTTP_CLIENT_CODEC, new HttpClientCodec());
+        HttpClientCodec clientCodec = new HttpClientCodec(responseSizeValidationConfig.getMaxInitialLineLength(),
+                                                          responseSizeValidationConfig.getMaxHeaderSize(),
+                                                          responseSizeValidationConfig.getMaxChunkSize());
+        pipeline.addLast(Constants.HTTP_CLIENT_CODEC, clientCodec);
         addCommonHandlers(pipeline);
+        addResponseLimitValidationHandlers(pipeline);
         pipeline.addLast(Constants.BACK_PRESSURE_HANDLER, new BackPressureHandler());
         pipeline.addLast(Constants.TARGET_HANDLER, targetHandler);
+    }
+
+    private void addResponseLimitValidationHandlers(ChannelPipeline pipeline) {
+        pipeline.addLast(Constants.STATUS_LINE_HEADER_LENGTH_VALIDATION_HANDLER,
+                         new StatusLineAndHeaderLengthValidator());
+        if (responseSizeValidationConfig.getMaxEntityBodySize() > -1) {
+            pipeline.addLast(MAX_ENTITY_BODY_VALIDATION_HANDLER,
+                             new ResponseEntityBodySizeValidator(responseSizeValidationConfig.getMaxEntityBodySize()));
+        }
     }
 
     /**

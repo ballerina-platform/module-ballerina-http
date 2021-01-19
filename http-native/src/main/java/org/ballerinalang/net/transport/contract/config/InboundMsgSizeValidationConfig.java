@@ -19,23 +19,31 @@
 package org.ballerinalang.net.transport.contract.config;
 
 /**
- * Configuration for the request size validation.
+ * Configuration for the inbound request and response size validation.
  */
-public class RequestSizeValidationConfig {
+public class InboundMsgSizeValidationConfig {
 
-    private int maxUriLength = 4096;
+    private int maxInitialLineLength = 4096;
     private int maxHeaderSize = 8192;
     private int maxChunkSize = 8192;
     private long maxEntityBodySize = -1;
 
-    public int getMaxUriLength() {
-        return maxUriLength;
+    /**
+     * The maximum length of the initial line (e.g. {@code "GET / HTTP/1.0"} or {@code "HTTP/1.0 200 OK"}) If the length
+     * of the initial line exceeds this value, a TooLongFrameException will be raised from netty code.
+     */
+    public int getMaxInitialLineLength() {
+        return maxInitialLineLength;
     }
 
-    public void setMaxUriLength(int maxUriLength) {
-        this.maxUriLength = maxUriLength;
+    public void setMaxInitialLineLength(int maxInitialLineLength) {
+        this.maxInitialLineLength = maxInitialLineLength;
     }
 
+    /**
+     * The maximum length of all headers.  If the sum of the length of each header exceeds this value, a
+     * TooLongFrameException will be raised from netty code.
+     */
     public int getMaxHeaderSize() {
         return maxHeaderSize;
     }
@@ -44,6 +52,11 @@ public class RequestSizeValidationConfig {
         this.maxHeaderSize = maxHeaderSize;
     }
 
+    /**
+     * The maximum length of the content or each chunk.  If the content length (or the length of each chunk) exceeds
+     * this value, the content or chunk will be split into multiple HttpContents whose length is {@code maxChunkSize} at
+     * maximum.
+     */
     public int getMaxChunkSize() {
         return maxChunkSize;
     }

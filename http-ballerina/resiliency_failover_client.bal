@@ -474,8 +474,8 @@ isolated function populateErrorsFromLastResponse (Response inResponse, ClientErr
 # | circuitBreaker - Copied from CommonClientConfiguration  |
 # | retryConfig - Copied from CommonClientConfiguration     |
 # | cookieConfig - Copied from CommonClientConfiguration    |
+# | responseLimits - Copied from CommonClientConfiguration  |
 #
-
 # + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be sent on failover
 # + failoverCodes - Array of HTTP response status codes for which the failover behaviour should be triggered
 # + intervalInMillis - Failover delay interval in milliseconds
@@ -501,7 +501,9 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         secureSocket:target.secureSocket,
         cache:foConfig.cache,
         compression:foConfig.compression,
-        auth:foConfig.auth
+        auth:foConfig.auth,
+        cookieConfig:foConfig.cookieConfig,
+        responseLimits:foConfig.responseLimits
     };
     return clientEPConfig;
 }

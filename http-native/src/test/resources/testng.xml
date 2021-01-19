@@ -93,7 +93,8 @@
             <class name="org.ballerinalang.net.transport.unitfunction.BlockingEntityCollectorTestCase" />
 
             <class name="org.ballerinalang.net.transport.encoding.ContentEncodingTestCase"/>
-            <class name="org.ballerinalang.net.transport.urilengthvalidation.Status414And413ResponseTest"/>
+            <class name="org.ballerinalang.net.transport.lengthvalidation.RequestLengthValidationTest"/>
+            <class name="org.ballerinalang.net.transport.lengthvalidation.ResponseLengthValidationTest"/>
             <class name="org.ballerinalang.net.transport.http1point0test.HttpOnePointZeroServerConnectorTestCase"/>
             <class name="org.ballerinalang.net.transport.http1point0test.KeepAliveHttpOnePointZeroClientTestCase"/>
             <class name="org.ballerinalang.net.transport.http1point0test.ChunkAutoHttpOnePointZeroClientTestCase"/>

@@ -339,9 +339,12 @@ public class HttpConstants {
     public static final String ENDPOINT_CONFIG_CHUNKING = "chunking";
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
-    public static final BString REQUEST_LIMITS_MAXIMUM_URL_LENGTH = StringUtils.fromString("maxUriLength");
-    public static final BString REQUEST_LIMITS_MAXIMUM_HEADER_SIZE = StringUtils.fromString("maxHeaderSize");
-    public static final BString REQUEST_LIMITS_MAXIMUM_ENTITY_BODY_SIZE = StringUtils.fromString("maxEntityBodySize");
+
+    public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
+    public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");
+    public static final BString MAX_HEADER_SIZE = StringUtils.fromString("maxHeaderSize");
+    public static final BString MAX_ENTITY_BODY_SIZE = StringUtils.fromString("maxEntityBodySize");
+
     public static final String ENDPOINT_CONFIG_PIPELINING = "pipelining";
     public static final String ENABLE_PIPELINING = "enable";
     public static final BString PIPELINING_REQUEST_LIMIT = StringUtils.fromString("maxPipelinedRequests");
@@ -393,6 +396,8 @@ public class HttpConstants {
     public static final BString HTTP2_PRIOR_KNOWLEDGE = StringUtils.fromString("http2PriorKnowledge");
     public static final BString HTTP1_SETTINGS = StringUtils.fromString("http1Settings");
     public static final BString HTTP2_SETTINGS = StringUtils.fromString("http2Settings");
+    public static final BString REQUEST_LIMITS = StringUtils.fromString("requestLimits");
+    public static final BString RESPONSE_LIMITS = StringUtils.fromString("responseLimits");
 
     //Connection Throttling field names
     public static final String CONNECTION_THROTTLING_STRUCT_REFERENCE = "connectionThrottling";
