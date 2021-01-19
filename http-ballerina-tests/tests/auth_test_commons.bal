@@ -18,6 +18,7 @@
 
 import ballerina/http;
 import ballerina/regex;
+import ballerina/test;
 
 const string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
 const string TRUSTSTORE_PATH = "tests/certsandkeys/ballerinaTruststore.p12";
@@ -35,6 +36,45 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
     http:Request request = createDummyRequest();
     request.addHeader(http:AUTH_HEADER, headerValue);
     return request;
+}
+
+function sendRequest(string path, string token) returns http:Response|http:PayloadType|http:ClientError {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+        auth: {
+            token: token
+        },
+        secureSocket: {
+            trustStore: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    return <@untainted> clientEP->get(path);
+}
+
+isolated function assertSuccess(http:Response|http:PayloadType|http:ClientError response) {
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+isolated function assertForbidden(http:Response|http:PayloadType|http:ClientError response) {
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 403);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+isolated function assertUnauthorized(http:Response|http:PayloadType|http:ClientError response) {
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 401);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
 }
 
 // Mock OAuth2 authorization server implementation, which treats the APIs with successful responses.
