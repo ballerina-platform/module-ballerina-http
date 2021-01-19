@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 
 /**
  * Exceptions that could occur in WebSocket.
@@ -46,13 +47,13 @@ public class WebSocketException extends RuntimeException {
 
     public WebSocketException(String message, BError cause, String typeIdName) {
         this.message = message;
-        this.wsError = ErrorCreator.createDistinctError(typeIdName, WebSocketConstants.PROTOCOL_HTTP_PKG_ID,
+        this.wsError = ErrorCreator.createDistinctError(typeIdName, ModuleUtils.getModule(),
                                                         StringUtils.fromString(message), cause);
     }
 
     public WebSocketException(String message, BMap<BString, Object> details, String typeIdName) {
         this.message = message;
-        this.wsError = ErrorCreator.createDistinctError(typeIdName, WebSocketConstants.PROTOCOL_HTTP_PKG_ID,
+        this.wsError = ErrorCreator.createDistinctError(typeIdName, ModuleUtils.getModule(),
                                                         StringUtils.fromString(message), details);
     }
 

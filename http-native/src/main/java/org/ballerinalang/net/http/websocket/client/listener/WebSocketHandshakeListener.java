@@ -21,8 +21,8 @@ package org.ballerinalang.net.http.websocket.client.listener;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
-import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketService;
 import org.ballerinalang.net.http.websocket.WebSocketUtil;
@@ -89,8 +89,8 @@ public class WebSocketHandshakeListener implements ExtendedHandshakeListener {
         if (response != null) {
             webSocketClient.set(WebSocketConstants.CLIENT_RESPONSE_FIELD, HttpUtil.createResponseStruct(response));
         }
-        BObject webSocketConnector = ValueCreator.createObjectValue(WebSocketConstants.PROTOCOL_HTTP_PKG_ID,
-                WebSocketConstants.WEBSOCKET_CONNECTOR);
+        BObject webSocketConnector = ValueCreator.createObjectValue(ModuleUtils.getModule(),
+                                                                    WebSocketConstants.WEBSOCKET_CONNECTOR);
         setWebSocketOpenConnectionInfo(null, webSocketConnector, webSocketClient, wsService);
         webSocketConnector.addNativeData(WebSocketConstants.NATIVE_DATA_WEBSOCKET_CONNECTION_INFO, connectionInfo);
         webSocketClient.set(WebSocketConstants.CLIENT_CONNECTOR_FIELD, webSocketConnector);
@@ -116,8 +116,8 @@ public class WebSocketHandshakeListener implements ExtendedHandshakeListener {
     }
 
     private static BObject createWebSocketConnector(boolean readyOnConnect) {
-        BObject webSocketConnector = ValueCreator.createObjectValue(HttpConstants.PROTOCOL_HTTP_PKG_ID,
-                WebSocketConstants.WEBSOCKET_CONNECTOR);
+        BObject webSocketConnector = ValueCreator.createObjectValue(ModuleUtils.getModule(),
+                                                                    WebSocketConstants.WEBSOCKET_CONNECTOR);
         // Sets the value of `readyOnConnect` to the created `isReady' field of the webSocketConnector.
         // It checks whether the `readNextFrame` function is already called or not when the `ready()` function
         // is called.

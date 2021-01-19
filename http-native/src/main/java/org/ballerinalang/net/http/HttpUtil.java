@@ -59,6 +59,7 @@ import org.ballerinalang.mime.util.MultipartDataSource;
 import org.ballerinalang.mime.util.MultipartDecoder;
 import org.ballerinalang.net.http.caching.RequestCacheControlObj;
 import org.ballerinalang.net.http.caching.ResponseCacheControlObj;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
@@ -164,7 +165,6 @@ import static org.ballerinalang.net.http.HttpConstants.ONE_BYTE;
 import static org.ballerinalang.net.http.HttpConstants.PASSWORD;
 import static org.ballerinalang.net.http.HttpConstants.PKCS_STORE_TYPE;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTPS;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP_PKG_ID;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_CACHE_CONTROL_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_MUTUAL_SSL_HANDSHAKE_FIELD;
@@ -563,12 +563,12 @@ public class HttpUtil {
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType) {
-        return ErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
+        return ErrorCreator.createDistinctError(errorType.getErrorName(), ModuleUtils.getModule(),
                                                 fromString(message));
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType, BError cause) {
-        return ErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
+        return ErrorCreator.createDistinctError(errorType.getErrorName(), ModuleUtils.getModule(),
                                                 fromString(message), cause);
     }
 
@@ -815,7 +815,7 @@ public class HttpUtil {
 
         String cacheControlHeader = inboundResponseMsg.getHeader(CACHE_CONTROL.toString());
         if (cacheControlHeader != null) {
-            ResponseCacheControlObj responseCacheControl = new ResponseCacheControlObj(PROTOCOL_HTTP_PKG_ID,
+            ResponseCacheControlObj responseCacheControl = new ResponseCacheControlObj(ModuleUtils.getModule(),
                     RESPONSE_CACHE_CONTROL);
             responseCacheControl.populateStruct(cacheControlHeader);
             inboundResponse.set(RESPONSE_CACHE_CONTROL_FIELD, responseCacheControl.getObj());

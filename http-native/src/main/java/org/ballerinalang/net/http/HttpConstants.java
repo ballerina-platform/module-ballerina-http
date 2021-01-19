@@ -18,13 +18,12 @@
 
 package org.ballerinalang.net.http;
 
-import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_BUILTIN_PKG_PREFIX;
-import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
 
 /**
  * Constants for HTTP.
@@ -74,8 +73,6 @@ public class HttpConstants {
     public static final String FORWARDED_DISABLE = "disable";
     public static final String DISABLE = "disable";
     public static final String DEFAULT_HOST = "b7a.default";
-
-    public static final String HTTP_PACKAGE_PATH = "ballerina" + ORG_NAME_SEPARATOR + "http";
 
     public static final BString HTTP_REQUEST_METHOD = StringUtils.fromString("method");
     public static final String HTTP_METHOD_GET = "GET";
@@ -473,18 +470,13 @@ public class HttpConstants {
 
     public static final String HTTP_VERSION_1_1 = "1.1";
 
-    public static final String HTTP_MODULE_VERSION = "1.0.5";
+    public static final String HTTP_MODULE_VERSION = ModuleUtils.getModule().getVersion();
     public static final String REASON_RECORD = "Reason";
-    public static final String PACKAGE = "ballerina";
-    public static final String MODULE = "http";
 
     // Ballerina error types related constants
     public static final String HTTP_ERROR_DETAIL_RECORD = "Detail";
 
-    public static final String PROTOCOL_PACKAGE_HTTP =
-            PACKAGE + ORG_NAME_SEPARATOR + PROTOCOL_HTTP + COLON + HTTP_MODULE_VERSION;
-    public static final Module PROTOCOL_HTTP_PKG_ID =
-            new Module(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION);
+    public static final String PROTOCOL_PACKAGE_HTTP = ModuleUtils.getModuleIdentifier().getValue();
     public static final String HTTP_CALLER_NAME = PROTOCOL_PACKAGE_HTTP + COLON + CALLER;
     public static final String PAYLOAD_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_PAYLOAD;
 

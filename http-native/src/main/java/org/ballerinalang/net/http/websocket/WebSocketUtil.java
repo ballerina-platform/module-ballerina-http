@@ -38,6 +38,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.websocket.client.FailoverContext;
 import org.ballerinalang.net.http.websocket.client.RetryContext;
 import org.ballerinalang.net.http.websocket.client.listener.ClientHandshakeListener;
@@ -87,10 +88,10 @@ public class WebSocketUtil {
     public static BObject createAndPopulateWebSocketCaller(WebSocketConnection webSocketConnection,
                                                                WebSocketServerService wsService,
                                                                WebSocketConnectionManager connectionManager) {
-        BObject webSocketCaller = ValueCreator.createObjectValue(HttpConstants.PROTOCOL_HTTP_PKG_ID,
-                                                                            WebSocketConstants.WEBSOCKET_CALLER);
-        BObject webSocketConnector = ValueCreator.createObjectValue(
-                HttpConstants.PROTOCOL_HTTP_PKG_ID, WebSocketConstants.WEBSOCKET_CONNECTOR);
+        BObject webSocketCaller = ValueCreator.createObjectValue(ModuleUtils.getModule(),
+                                                                 WebSocketConstants.WEBSOCKET_CALLER);
+        BObject webSocketConnector = ValueCreator.createObjectValue(ModuleUtils.getModule(),
+                                                                    WebSocketConstants.WEBSOCKET_CONNECTOR);
 
         webSocketCaller.set(WebSocketConstants.LISTENER_CONNECTOR_FIELD, webSocketConnector);
         populateWebSocketEndpoint(webSocketConnection, webSocketCaller);
@@ -229,7 +230,7 @@ public class WebSocketUtil {
             }
         } else if (throwable instanceof SSLException) {
             cause = createErrorCause(throwable.getMessage(), HttpErrorType.SSL_ERROR.getReason(),
-                    WebSocketConstants.PROTOCOL_HTTP_PKG_ID);
+                                     ModuleUtils.getModule());
             message = "SSL/TLS Error";
         } else if (throwable instanceof IllegalStateException) {
             if (throwable.getMessage().contains("frame continuation")) {

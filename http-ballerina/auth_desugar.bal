@@ -20,9 +20,6 @@ import ballerina/jwt;
 import ballerina/oauth2;
 import ballerina/reflect;
 
-// HTTP module version for auth annotations.
-const string HTTP_MODULE = "ballerina/http:1.0.5";
-
 // Service level annotation name.
 const string SERVICE_ANNOTATION = "ServiceConfig";
 
@@ -120,7 +117,8 @@ isolated function getResourceAuthConfig(Service serviceRef, string methodName, s
     foreach string path in resourcePath {
         resourceName += "$" + path;
     }
-    any resourceAnnotation = reflect:getResourceAnnotations(serviceRef, resourceName, RESOURCE_ANNOTATION, HTTP_MODULE);
+    any resourceAnnotation = reflect:getResourceAnnotations(serviceRef, resourceName, RESOURCE_ANNOTATION,
+                                                            getModuleIdentifier());
     if (resourceAnnotation is ()) {
         return;
     }
@@ -157,4 +155,8 @@ isolated function getAuthorizationHeader() returns string|HeaderNotFoundError = 
 
 isolated function getCaller() returns Caller = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternCaller"
+} external;
+
+isolated function getModuleIdentifier() returns string = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ModuleUtils"
 } external;
