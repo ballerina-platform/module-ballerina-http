@@ -14,10 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/config;
 import ballerina/log;
 import ballerina/test;
 import ballerina/http;
+
+configurable string keystore = ?;
+configurable string truststore = ?;
 
 listener http:Listener echoServiceTestListenerEP = new(echoServiceTestPort);
 http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestPort.toString());
@@ -25,7 +27,7 @@ http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestP
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
     secureSocket: {
         keyStore: {
-            path: config:getAsString("keystore"),
+            path: keystore,
             password: "ballerina"
         }
     }
@@ -36,7 +38,7 @@ listener http:Listener echoHttpsServiceTestListenerEP = new(echoHttpsServiceTest
 http:ClientConfiguration echoHttpsServiceClientConfig = {
     secureSocket: {
         trustStore: {
-            path: config:getAsString("truststore"),
+            path: truststore,
             password: "ballerina"
         }
     }

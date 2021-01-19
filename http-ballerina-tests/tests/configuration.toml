@@ -1,0 +1,5 @@
+[ballerina.http_tests]
+backendEP_port=7070
+basePath="/hello"
+keystore = "tests/certsandkeys/ballerinaKeystore.p12"
+truststore = "tests/certsandkeys/ballerinaTruststore.p12"
