@@ -70,7 +70,6 @@ public class ListenerJwtAuthHandler {
                 return;
             }
         }
-        Forbidden forbidden = {};
-        return forbidden;
+        return {};
     }
 }
