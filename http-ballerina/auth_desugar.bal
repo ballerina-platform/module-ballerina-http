@@ -17,11 +17,9 @@
 import ballerina/auth;
 import ballerina/java;
 import ballerina/jwt;
+import ballerina/log;
 import ballerina/oauth2;
 import ballerina/reflect;
-
-// HTTP module version for auth annotations.
-const string HTTP_MODULE = "ballerina/http:1.0.5";
 
 // Service level annotation name.
 const string SERVICE_ANNOTATION = "ServiceConfig";
@@ -120,7 +118,8 @@ isolated function getResourceAuthConfig(Service serviceRef, string methodName, s
     foreach string path in resourcePath {
         resourceName += "$" + path;
     }
-    any resourceAnnotation = reflect:getResourceAnnotations(serviceRef, resourceName, RESOURCE_ANNOTATION, HTTP_MODULE);
+    any resourceAnnotation = reflect:getResourceAnnotations(serviceRef, resourceName, RESOURCE_ANNOTATION,
+                                                            getModuleIdentifier());
     if (resourceAnnotation is ()) {
         return;
     }
@@ -144,7 +143,7 @@ isolated function sendResponse(Response response) {
     Caller caller = getCaller();
     error? err = caller->respond(response);
     if (err is error) {
-        panic <error>err;
+        log:printError("Failed to respond the 401/403 request.", err = err);
     }
     // This panic is added to break the execution of the implementation inside the resource function after there is
     // an authn/authz failure and responded with 401/403 internally.
@@ -157,4 +156,8 @@ isolated function getAuthorizationHeader() returns string|HeaderNotFoundError = 
 
 isolated function getCaller() returns Caller = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternCaller"
+} external;
+
+isolated function getModuleIdentifier() returns string = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ModuleUtils"
 } external;
