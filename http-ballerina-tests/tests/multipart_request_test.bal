@@ -405,61 +405,63 @@ function testXmlBodyPartAsFileUpload() {
     }
 }
 
-@test:Config {}
-function testBinaryBodyPartAsFileUpload() returns @tainted error? {
-    io:ReadableByteChannel byteChannel = check io:openReadableFile
-                                ("tests/datafiles/test.tmp");
-    mime:Entity binaryFilePart = new;
-    binaryFilePart.setByteChannel(byteChannel);
-    http:Request request = new;
-    mime:Entity[] bodyParts = [binaryFilePart];
-    request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/binarybodypart", request);
-    if (response is http:Response) {
-        var body = response.getByteChannel();
-        if (body is io:ReadableByteChannel) {
-            io:ReadableCharacterChannel sourceChannel = new (body, "UTF-8");
-            string text = check sourceChannel.read(27);
-            test:assertEquals(text, "Ballerina binary file part", msg = errorMessage);
-            close(byteChannel);
-            close(sourceChannel);
-        } else {
-            test:assertFail(msg = errorMessage + body.message());
-        }
-    } else if (response is error) {
-        test:assertFail(msg = errorMessage + response.message());
-    }
-}
+// TODO: Enable with new byteStream API
+// @test:Config {}
+// function testBinaryBodyPartAsFileUpload() returns @tainted error? {
+//     io:ReadableByteChannel byteChannel = check io:openReadableFile
+//                                 ("tests/datafiles/test.tmp");
+//     mime:Entity binaryFilePart = new;
+//     binaryFilePart.setByteChannel(byteChannel);
+//     http:Request request = new;
+//     mime:Entity[] bodyParts = [binaryFilePart];
+//     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
+//     var response = multipartReqClient->post("/test/binarybodypart", request);
+//     if (response is http:Response) {
+//         var body = response.getByteChannel();
+//         if (body is io:ReadableByteChannel) {
+//             io:ReadableCharacterChannel sourceChannel = new (body, "UTF-8");
+//             string text = check sourceChannel.read(27);
+//             test:assertEquals(text, "Ballerina binary file part", msg = errorMessage);
+//             close(byteChannel);
+//             close(sourceChannel);
+//         } else {
+//             test:assertFail(msg = errorMessage + body.message());
+//         }
+//     } else if (response is error) {
+//         test:assertFail(msg = errorMessage + response.message());
+//     }
+// }
 
-@test:Config {}
-function testMultiplePartsWithMultipleBodyTypes() returns @tainted error? {
-    mime:Entity xmlPart = new;
-    xmlPart.setXml(xml `<name>Ballerina xml file part</name>`);
+// TODO: Enable with new byteStream API
+// @test:Config {}
+// function testMultiplePartsWithMultipleBodyTypes() returns @tainted error? {
+//     mime:Entity xmlPart = new;
+//     xmlPart.setXml(xml `<name>Ballerina xml file part</name>`);
 
-    mime:Entity jsonPart = new;
-    jsonPart.setJson({"bodyPart":"jsonPart"});
+//     mime:Entity jsonPart = new;
+//     jsonPart.setJson({"bodyPart":"jsonPart"});
 
-    mime:Entity textPart = new;
-    textPart.setText("Ballerina text body part", contentType = mime:TEXT_PLAIN);
+//     mime:Entity textPart = new;
+//     textPart.setText("Ballerina text body part", contentType = mime:TEXT_PLAIN);
 
-    io:ReadableByteChannel readableByteChannel = check io:openReadableFile
-                                ("tests/datafiles/test.tmp");
-    mime:Entity binaryFilePart = new;
-    binaryFilePart.setByteChannel(readableByteChannel);
+//     io:ReadableByteChannel readableByteChannel = check io:openReadableFile
+//                                 ("tests/datafiles/test.tmp");
+//     mime:Entity binaryFilePart = new;
+//     binaryFilePart.setByteChannel(readableByteChannel);
 
-    mime:Entity[] bodyParts = [xmlPart, jsonPart, textPart, binaryFilePart];
-    http:Request request = new;
-    request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/multipleparts", request);
+//     mime:Entity[] bodyParts = [xmlPart, jsonPart, textPart, binaryFilePart];
+//     http:Request request = new;
+//     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
+//     var response = multipartReqClient->post("/test/multipleparts", request);
 
-    if (response is http:Response) {
-        assertMultipartResponse(response, " -- Ballerina xml file part -- jsonPart -- Ballerina text body part "
-              + "-- Ballerina binary file part");
-        close(readableByteChannel);
-    } else if (response is error) {
-        test:assertFail(msg = errorMessage + response.message());
-    }
-}
+//     if (response is http:Response) {
+//         assertMultipartResponse(response, " -- Ballerina xml file part -- jsonPart -- Ballerina text body part "
+//               + "-- Ballerina binary file part");
+//         close(readableByteChannel);
+//     } else if (response is error) {
+//         test:assertFail(msg = errorMessage + response.message());
+//     }
+// }
 
 @test:Config {}
 function testTextBodyPartWith7BitEncoding() {

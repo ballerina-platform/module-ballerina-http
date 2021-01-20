@@ -51,8 +51,6 @@ isolated function buildRequest(RequestMessage message) returns Request {
         request.setBinaryPayload(message);
     } else if (message is json) {
         request.setJsonPayload(message);
-    } else if (message is io:ReadableByteChannel) {
-        request.setByteChannel(message);
     } else {
         request.setBodyParts(message);
     }
@@ -73,8 +71,6 @@ isolated function buildResponse(ResponseMessage message) returns Response {
         response.setBinaryPayload(message);
     } else if (message is json) {
         response.setJsonPayload(message);
-    } else if (message is io:ReadableByteChannel) {
-        response.setByteChannel(message);
     } else {
         response.setBodyParts(message);
     }

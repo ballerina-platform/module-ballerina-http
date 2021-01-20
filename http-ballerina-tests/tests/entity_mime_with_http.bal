@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/io;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
@@ -23,20 +22,21 @@ listener http:Listener mimeEP = new(mimeTest);
 
 service /test on mimeEP {
 
-    resource function post largepayload(http:Caller caller, http:Request request) {
-        http:Response response = new;
-        mime:Entity responseEntity = new;
+    // TODO: Enable with new byteStream API
+    // resource function post largepayload(http:Caller caller, http:Request request) {
+    //     http:Response response = new;
+    //     mime:Entity responseEntity = new;
 
-        var result = request.getByteChannel();
-        if (result is io:ReadableByteChannel) {
-            responseEntity.setByteChannel(result);
-        } else {
-            io:print("Error in getting byte channel");
-        }
+    //     var result = request.getByteChannel();
+    //     if (result is io:ReadableByteChannel) {
+    //         responseEntity.setByteChannel(result);
+    //     } else {
+    //         io:print("Error in getting byte channel");
+    //     }
 
-        response.setEntity(responseEntity);
-        checkpanic caller->respond(response);
-    }
+    //     response.setEntity(responseEntity);
+    //     checkpanic caller->respond(response);
+    // }
 
     resource function 'default getPayloadFromEntity(http:Caller caller, http:Request request) returns
             http:InternalServerError? {
