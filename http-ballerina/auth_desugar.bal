@@ -34,6 +34,8 @@ const string RESOURCE_ANNOTATION = "ResourceConfig";
 // If this function returns `()`, it will be moved to the execution of business logic, else there will be a 401/403
 // response sent by the `http:Caller` which is taken with an interop call. The execution flow will be broken by panic
 // with a distinct error.
+# Uses for declarative auth design, where the authentication/authorization decision is taken
+# by reading the auth annotations provided in service/resource and the `Authorization` header of request.
 public isolated function authenticateResource(Service servieRef, string methodName, string[] resourcePath) {
     ListenerAuthConfig[]? authConfig = getListenerAuthConfig(servieRef, methodName, resourcePath);
     if (authConfig is ()) {

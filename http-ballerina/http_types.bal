@@ -18,22 +18,17 @@ import ballerina/mime;
 
 # The types of messages that are accepted by HTTP `client` when sending out the outbound request.
 public type RequestMessage Request|string|xml|json|byte[]|mime:Entity[]|();
-// public type RequestMessage Request|string|xml|json|byte[]|();
 
 # The types of messages that are accepted by HTTP `listener` when sending out the outbound response.
 public type ResponseMessage Response|string|xml|json|byte[]|mime:Entity[]|();
-// public type ResponseMessage Response|string|xml|json|byte[]|();
 
 # The HTTP service type
 public type Service service object {
 
 };
 
-# The type of the user-defined custom record
-type CustomRecordType record {| anydata...; |};
-
 # The types of the response payload that are returned by the HTTP `client` after the data binding operation
-public type PayloadType string|xml|json|map<json>|byte[]|CustomRecordType|CustomRecordType[];
+public type PayloadType string|xml|json|map<json>|byte[]|record {| anydata...; |}|record {| anydata...; |}[];
 
 # The types of data values that are expected by the HTTP `client` to return after the data binding operation
 public type TargetType typedesc<Response|PayloadType>;
