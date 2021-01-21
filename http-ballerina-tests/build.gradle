@@ -105,7 +105,6 @@ task updateTomlVerions {
         def stdlibDependentJwtVersion = project.stdlibJwtVersion.split("-")[0]
         def stdlibDependentOAuth2Version = project.stdlibOAuth2Version.split("-")[0]
         def stdlibDependentFileVersion = project.stdlibFileVersion.split("-")[0]
-        def stdlibDependentConfigVersion = project.stdlibConfigVersion.split("-")[0]
 
         def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
@@ -117,7 +116,6 @@ task updateTomlVerions {
         newConfig = newConfig.replace("@stdlib.jwt.version@", stdlibDependentJwtVersion)
         newConfig = newConfig.replace("@stdlib.oauth2.version@", stdlibDependentOAuth2Version)
         newConfig = newConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
-        newConfig = newConfig.replace("@stdlib.config.version@", stdlibDependentConfigVersion)
         ballerinaConfigFile.text = newConfig
     }
 }
@@ -157,9 +155,9 @@ task ballerinaTest {
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys} && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test --offline ${groupParams} ${debugParams} ${certsAndKeys} && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/bal test --offline ${groupParams} ${debugParams} --b7a.config.file=tests/datafiles/service_config.conf ${certsAndKeys}"
+                commandLine 'sh', '-c', "$distributionBinPath/bal test --offline ${groupParams} ${debugParams} ${certsAndKeys}"
             }
         }
     }
