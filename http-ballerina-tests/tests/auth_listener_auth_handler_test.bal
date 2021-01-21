@@ -16,94 +16,96 @@
 
 // NOTE: All the tokens/credentials used in this test are dummy tokens/credentials and used only for testing purposes.
 
-import ballerina/auth;
 import ballerina/http;
 import ballerina/jwt;
 import ballerina/oauth2;
 import ballerina/test;
 
-@test:Config {}
-isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccess() {
-    http:ListenerFileUserStoreBasicAuthHandler handler = new;
-    string basicAuthToken = "YWxpY2U6eHh4";
-    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
-    http:Request request = createSecureRequest(headerValue);
-    auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is auth:UserDetails) {
-        test:assertEquals(authn1.username, "alice");
-        test:assertEquals(authn1.scopes, ["write", "update"]);
-    } else {
-        test:assertFail(msg = "Test Failed!");
-    }
+// TODO: Enable these tests once the configurable features supports for map data types.
+// https://github.com/ballerina-platform/ballerina-standard-library/issues/862
 
-    auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is auth:UserDetails) {
-        test:assertEquals(authn2.username, "alice");
-        test:assertEquals(authn2.scopes, ["write", "update"]);
-    } else {
-        test:assertFail(msg = "Test Failed!");
-    }
-
-    http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "write");
-    if (authz1 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
-    }
-
-    http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "update");
-    if (authz2 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
-    }
-}
-
-@test:Config {}
-isolated function testListenerFileUserStoreBasicAuthHandlerAuthzFailure() {
-    http:ListenerFileUserStoreBasicAuthHandler handler = new;
-    string basicAuthToken = "YWxpY2U6eHh4";
-    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
-    http:Request request = createSecureRequest(headerValue);
-    auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is auth:UserDetails) {
-        test:assertEquals(authn1.username, "alice");
-        test:assertEquals(authn1.scopes, ["write", "update"]);
-    } else {
-        test:assertFail(msg = "Test Failed!");
-    }
-
-    auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is auth:UserDetails) {
-        test:assertEquals(authn2.username, "alice");
-        test:assertEquals(authn2.scopes, ["write", "update"]);
-    } else {
-        test:assertFail(msg = "Test Failed!");
-    }
-
-    http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "read");
-    if (authz1 is ()) {
-        test:assertFail(msg = "Test Failed!");
-    }
-
-    http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "read");
-    if (authz2 is ()) {
-        test:assertFail(msg = "Test Failed!");
-    }
-}
-
-@test:Config {}
-isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
-    http:ListenerFileUserStoreBasicAuthHandler handler = new;
-    string basicAuthToken = "YWxpY2U6aW52YWxpZA==";
-    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
-    http:Request request = createSecureRequest(headerValue);
-    auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is auth:UserDetails) {
-        test:assertFail(msg = "Test Failed!");
-    }
-
-    auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is auth:UserDetails) {
-        test:assertFail(msg = "Test Failed!");
-    }
-}
+//@test:Config {}
+//isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccess() {
+//    http:ListenerFileUserStoreBasicAuthHandler handler = new;
+//    string basicAuthToken = "YWxpY2U6eHh4";
+//    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
+//    http:Request request = createSecureRequest(headerValue);
+//    auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
+//    if (authn1 is auth:UserDetails) {
+//        test:assertEquals(authn1.username, "alice");
+//        test:assertEquals(authn1.scopes, ["write", "update"]);
+//    } else {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//
+//    auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
+//    if (authn2 is auth:UserDetails) {
+//        test:assertEquals(authn2.username, "alice");
+//        test:assertEquals(authn2.scopes, ["write", "update"]);
+//    } else {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//
+//    http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "write");
+//    if (authz1 is http:Forbidden) {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//
+//    http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "update");
+//    if (authz2 is http:Forbidden) {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//}
+//
+//@test:Config {}
+//isolated function testListenerFileUserStoreBasicAuthHandlerAuthzFailure() {
+//    http:ListenerFileUserStoreBasicAuthHandler handler = new;
+//    string basicAuthToken = "YWxpY2U6eHh4";
+//    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
+//    http:Request request = createSecureRequest(headerValue);
+//    auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
+//    if (authn1 is auth:UserDetails) {
+//        test:assertEquals(authn1.username, "alice");
+//        test:assertEquals(authn1.scopes, ["write", "update"]);
+//    } else {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//
+//    auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
+//    if (authn2 is auth:UserDetails) {
+//        test:assertEquals(authn2.username, "alice");
+//        test:assertEquals(authn2.scopes, ["write", "update"]);
+//    } else {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//
+//    http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "read");
+//    if (authz1 is ()) {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//
+//    http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "read");
+//    if (authz2 is ()) {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//}
+//
+//@test:Config {}
+//isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
+//    http:ListenerFileUserStoreBasicAuthHandler handler = new;
+//    string basicAuthToken = "YWxpY2U6aW52YWxpZA==";
+//    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
+//    http:Request request = createSecureRequest(headerValue);
+//    auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
+//    if (authn1 is auth:UserDetails) {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//
+//    auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
+//    if (authn2 is auth:UserDetails) {
+//        test:assertFail(msg = "Test Failed!");
+//    }
+//}
 
 @test:Config {}
 isolated function testListenerLdapUserStoreBasicAuthHandler() {

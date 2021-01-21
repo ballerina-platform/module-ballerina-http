@@ -74,7 +74,7 @@ public client class FailoverClient {
     # The POST remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
@@ -94,8 +94,8 @@ public client class FailoverClient {
     # The HEAD remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -111,7 +111,7 @@ public client class FailoverClient {
     # The PATCH remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
@@ -131,7 +131,7 @@ public client class FailoverClient {
     # The PUT remote function  implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
@@ -151,8 +151,8 @@ public client class FailoverClient {
     # The OPTIONS remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -190,7 +190,7 @@ public client class FailoverClient {
     #
     # + httpVerb - HTTP method to be used for the request
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
@@ -210,7 +210,7 @@ public client class FailoverClient {
     # The DELETE remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
@@ -230,8 +230,8 @@ public client class FailoverClient {
     # The GET remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -253,8 +253,8 @@ public client class FailoverClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns @tainted HttpFuture|ClientError {

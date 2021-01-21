@@ -302,217 +302,217 @@ final StatusGatewayTimeout STATUS_GATEWAY_TIMEOUT_OBJ = new;
 final StatusHttpVersionNotSupported STATUS_HTTP_VERSION_NOT_SUPPORTED_OBJ = new;
 
 // Status code record types
-public type Continue record {
+public type Continue record {|
     *CommonResponse;
     readonly StatusContinue status = STATUS_CONTINUE_OBJ;
-};
+|};
 
-public type SwitchingProtocols record {
+public type SwitchingProtocols record {|
     *CommonResponse;
     readonly StatusSwitchingProtocols status = STATUS_SWITCHING_PROTOCOLS_OBJ;
-};
+|};
 
-public type Ok record {
+public type Ok record {|
     *CommonResponse;
     readonly StatusOK status = STATUS_OK_OBJ;
-};
+|};
 
-public type Created record {
+public type Created record {|
     *CommonResponse;
     readonly StatusCreated status = STATUS_CREATED_OBJ;
-};
+|};
 
-public type Accepted record {
+public type Accepted record {|
     *CommonResponse;
     readonly StatusAccepted status = STATUS_ACCEPTED_OBJ;
-};
+|};
 
-public type NonAuthoritativeInformation record {
+public type NonAuthoritativeInformation record {|
     *CommonResponse;
     readonly StatusNonAuthoritativeInformation status = STATUS_NON_AUTHORITATIVE_INFORMATION_OBJ;
-};
+|};
 
-public type NoContent record {
+public type NoContent record {|
     map<string|string[]> headers?;
     readonly StatusNoContent status = STATUS_NO_CONTENT_OBJ;
-};
+|};
 
-public type ResetContent record {
+public type ResetContent record {|
     *CommonResponse;
     readonly StatusResetContent status = STATUS_RESET_CONTENT_OBJ;
-};
+|};
 
-public type PartialContent record {
+public type PartialContent record {|
     *CommonResponse;
     readonly StatusPartialContent status = STATUS_PARTIAL_CONTENT_OBJ;
-};
+|};
 
-public type MultipleChoices record {
+public type MultipleChoices record {|
     *CommonResponse;
     readonly StatusMultipleChoices status = STATUS_MULTIPLE_CHOICES_OBJ;
-};
+|};
 
-public type MovedPermanently record {
+public type MovedPermanently record {|
     *CommonResponse;
     readonly StatusMovedPermanently status = STATUS_MOVED_PERMANENTLY_OBJ;
-};
+|};
 
-public type Found record {
+public type Found record {|
     *CommonResponse;
     readonly StatusFound status = STATUS_FOUND_OBJ;
-};
+|};
 
-public type SeeOther record {
+public type SeeOther record {|
     *CommonResponse;
     readonly StatusSeeOther status = STATUS_SEE_OTHER_OBJ;
-};
+|};
 
-public type NotModified record {
+public type NotModified record {|
     *CommonResponse;
     readonly StatusNotModified status = STATUS_NOT_MODIFIED_OBJ;
-};
+|};
 
-public type UseProxy record {
+public type UseProxy record {|
     *CommonResponse;
     readonly StatusUseProxy status = STATUS_USE_PROXY_OBJ;
-};
+|};
 
-public type TemporaryRedirect record {
+public type TemporaryRedirect record {|
     *CommonResponse;
     readonly StatusTemporaryRedirect status = STATUS_TEMPORARY_REDIRECT_OBJ;
-};
+|};
 
-public type PermanentRedirect record {
+public type PermanentRedirect record {|
     *CommonResponse;
     readonly StatusPermanentRedirect status = STATUS_PERMANENT_REDIRECT_OBJ;
-};
+|};
 
-public type BadRequest record {
+public type BadRequest record {|
     *CommonResponse;
     readonly StatusBadRequest status = STATUS_BAD_REQUEST_OBJ;
-};
+|};
 
-public type Unauthorized record {
+public type Unauthorized record {|
     *CommonResponse;
     readonly StatusUnauthorized status = STATUS_UNAUTHORIZED_OBJ;
-};
+|};
 
-public type PaymentRequired record {
+public type PaymentRequired record {|
     *CommonResponse;
     readonly StatusPaymentRequired status = STATUS_PAYMENT_REQUIRED_OBJ;
-};
+|};
 
-public type Forbidden record {
+public type Forbidden record {|
     *CommonResponse;
     readonly StatusForbidden status = STATUS_FORBIDDEN_OBJ;
-};
+|};
 
-public type NotFound record {
+public type NotFound record {|
     *CommonResponse;
     readonly StatusNotFound status = STATUS_NOT_FOUND_OBJ;
-};
+|};
 
-public type MethodNotAllowed record {
+public type MethodNotAllowed record {|
     *CommonResponse;
     readonly StatusMethodNotAllowed status = STATUS_METHOD_NOT_ALLOWED_OBJ;
-};
+|};
 
-public type NotAcceptable record {
+public type NotAcceptable record {|
     *CommonResponse;
     readonly StatusNotAcceptable status = STATUS_NOT_ACCEPTABLE_OBJ;
-};
+|};
 
-public type ProxyAuthenticationRequired record {
+public type ProxyAuthenticationRequired record {|
     *CommonResponse;
     readonly StatusProxyAuthenticationRequired status = STATUS_PROXY_AUTHENTICATION_REQUIRED_OBJ;
-};
+|};
 
-public type RequestTimeout record {
+public type RequestTimeout record {|
     *CommonResponse;
     readonly StatusRequestTimeout status = STATUS_REQUEST_TIMEOUT_OBJ;
-};
+|};
 
-public type Conflict record {
+public type Conflict record {|
     *CommonResponse;
     readonly StatusConflict status = STATUS_CONFLICT_OBJ;
-};
+|};
 
-public type Gone record {
+public type Gone record {|
     *CommonResponse;
     readonly StatusGone status = STATUS_GONE_OBJ;
-};
+|};
 
-public type LengthRequired record {
+public type LengthRequired record {|
     *CommonResponse;
     readonly StatusLengthRequired status = STATUS_LENGTH_REQUIRED_OBJ;
-};
+|};
 
-public type PreconditionFailed record {
+public type PreconditionFailed record {|
     *CommonResponse;
     readonly StatusPreconditionFailed status = STATUS_PRECONDITION_FAILED_OBJ;
-};
+|};
 
-public type PayloadTooLarge record {
+public type PayloadTooLarge record {|
     *CommonResponse;
     readonly StatusPayloadTooLarge status = STATUS_PAYLOAD_TOO_LARGE_OBJ;
-};
+|};
 
-public type UriTooLong record {
+public type UriTooLong record {|
     *CommonResponse;
     readonly StatusUriTooLong status = STATUS_URI_TOO_LONG_OBJ;
-};
+|};
 
-public type UnsupportedMediaType record {
+public type UnsupportedMediaType record {|
     *CommonResponse;
     readonly StatusUnsupportedMediaType status = STATUS_UNSUPPORTED_MEDIA_TYPE_OBJ;
-};
+|};
 
-public type RangeNotSatisfiable record {
+public type RangeNotSatisfiable record {|
     *CommonResponse;
     readonly StatusRangeNotSatisfiable status = STATUS_RANGE_NOT_SATISFIABLE_OBJ;
-};
+|};
 
-public type ExpectationFailed record {
+public type ExpectationFailed record {|
     *CommonResponse;
     readonly StatusExpectationFailed status = STATUS_EXPECTATION_FAILED_OBJ;
-};
+|};
 
-public type UpgradeRequired record {
+public type UpgradeRequired record {|
     *CommonResponse;
     readonly StatusUpgradeRequired status = STATUS_UPGRADE_REQUIRED_OBJ;
-};
+|};
 
-public type RequestHeaderFieldsTooLarge record {
+public type RequestHeaderFieldsTooLarge record {|
     *CommonResponse;
     readonly StatusRequestHeaderFieldsTooLarge status = STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE_OBJ;
-};
+|};
 
-public type InternalServerError record {
+public type InternalServerError record {|
     *CommonResponse;
     readonly StatusInternalServerError status = STATUS_INTERNAL_SERVER_ERROR_OBJ;
-};
+|};
 
-public type NotImplemented record {
+public type NotImplemented record {|
     *CommonResponse;
     readonly StatusNotImplemented status = STATUS_NOT_IMPLEMENTED_OBJ;
-};
+|};
 
-public type BadGateway record {
+public type BadGateway record {|
     *CommonResponse;
     readonly StatusBadGateway status = STATUS_BAD_GATEWAY_OBJ;
-};
+|};
 
-public type ServiceUnavailable record {
+public type ServiceUnavailable record {|
     *CommonResponse;
     readonly StatusServiceUnavailable status = STATUS_SERVICE_UNAVAILABLE_OBJ;
-};
+|};
 
-public type GatewayTimeout record {
+public type GatewayTimeout record {|
     *CommonResponse;
     readonly StatusGatewayTimeout status = STATUS_GATEWAY_TIMEOUT_OBJ;
-};
+|};
 
-public type HttpVersionNotSupported record {
+public type HttpVersionNotSupported record {|
     *CommonResponse;
     readonly StatusHttpVersionNotSupported status = STATUS_HTTP_VERSION_NOT_SUPPORTED_OBJ;
-};
+|};

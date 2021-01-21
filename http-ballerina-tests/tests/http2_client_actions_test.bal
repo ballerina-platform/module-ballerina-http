@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/io;
 import ballerina/http;
 import ballerina/mime;
 import ballerina/test;
@@ -28,14 +27,15 @@ service /backEndService on new http:Listener(9122, { httpVersion: "2.0" }) {
         checkpanic caller->respond("Hello");
     }
 
-    resource function post http2SendByteChannel(http:Caller caller, http:Request req) {
-        var byteChannel = req.getByteChannel();
-        if (byteChannel is io:ReadableByteChannel) {
-            checkpanic caller->respond(<@untainted> byteChannel);
-        } else {
-            checkpanic caller->respond(<@untainted> byteChannel.message());
-        }
-    }
+    // TODO: Enable with new byteStream API
+    // resource function post http2SendByteChannel(http:Caller caller, http:Request req) {
+    //     var byteChannel = req.getByteChannel();
+    //     if (byteChannel is io:ReadableByteChannel) {
+    //         checkpanic caller->respond(<@untainted> byteChannel);
+    //     } else {
+    //         checkpanic caller->respond(<@untainted> byteChannel.message());
+    //     }
+    // }
 
     resource function post http2PostReply(http:Caller caller, http:Request req) {
         if (req.hasHeader("content-type")) {
@@ -188,26 +188,27 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         checkpanic caller->respond(<@untainted> value);
     }
 
-    resource function post testHttp2PostWithByteChannel(http:Caller caller, http:Request req) {
-        string value = "";
-        var byteChannel = req.getByteChannel();
-        if (byteChannel is io:ReadableByteChannel) {
-            var res = http2Client->post("/backEndService/http2SendByteChannel", <@untainted> byteChannel);
-            if (res is http:Response) {
-                var result = res.getTextPayload();
-                if (result is string) {
-                    value = result;
-                } else {
-                    value = result.message();
-                }
-            } else if (res is error) {
-                value = res.message();
-            }
-        } else {
-            value = byteChannel.message();
-        }
-        checkpanic caller->respond(<@untainted> value);
-    }
+    // TODO: Enable with new byteStream API
+    // resource function post testHttp2PostWithByteChannel(http:Caller caller, http:Request req) {
+    //     string value = "";
+    //     var byteChannel = req.getByteChannel();
+    //     if (byteChannel is io:ReadableByteChannel) {
+    //         var res = http2Client->post("/backEndService/http2SendByteChannel", <@untainted> byteChannel);
+    //         if (res is http:Response) {
+    //             var result = res.getTextPayload();
+    //             if (result is string) {
+    //                 value = result;
+    //             } else {
+    //                 value = result.message();
+    //             }
+    //         } else if (res is error) {
+    //             value = res.message();
+    //         }
+    //     } else {
+    //         value = byteChannel.message();
+    //     }
+    //     checkpanic caller->respond(<@untainted> value);
+    // }
 }
 
 @test:Config {}
@@ -255,7 +256,8 @@ public function testHttp2PostWithBlob() {
     }
 }
 
-@test:Config {}
+// TODO: Enable with new byteStream API
+@test:Config {enable:false}
 public function testHttp2PostWithByteChannel() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
     var resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteChannel", "Sample Text");

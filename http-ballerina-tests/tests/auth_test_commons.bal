@@ -88,31 +88,27 @@ listener http:Listener oauth2Listener = new(oauth2AuthorizationServerPort, {
 });
 
 service /oauth2 on oauth2Listener {
-    resource function post token(http:Caller caller, http:Request request) {
-        http:Response res = new;
+    resource function post token() returns json {
         json response = {
             "access_token": ACCESS_TOKEN,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
         };
-        res.setPayload(response);
-        checkpanic caller->respond(res);
+        return response;
     }
 
-    resource function post token/refresh(http:Caller caller, http:Request request) {
-        http:Response res = new;
+    resource function post token/refresh() returns json {
         json response = {
             "access_token": ACCESS_TOKEN,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
         };
-        res.setPayload(response);
-        checkpanic caller->respond(res);
+        return response;
     }
 
-    resource function post token/introspect(http:Caller caller, http:Request request) {
+    resource function post token/introspect(http:Request request) returns json {
         string|http:ClientError payload = request.getTextPayload();
         json response = ();
         if (payload is string) {
@@ -129,8 +125,6 @@ service /oauth2 on oauth2Listener {
                 }
             }
         }
-        http:Response res = new;
-        res.setPayload(response);
-        checkpanic caller->respond(res);
+        return response;
     }
 }
