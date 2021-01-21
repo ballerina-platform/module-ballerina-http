@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/log;
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
