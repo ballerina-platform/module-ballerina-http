@@ -37,6 +37,8 @@ public type ListenerAuthConfig LdapUserStoreConfigWithScopes|
                                JwtValidatorConfigWithScopes|
                                OAuth2IntrospectionConfigWithScopes;
 
+// TODO: Enable these tests once the configurable features supports for map data types.
+// https://github.com/ballerina-platform/ballerina-standard-library/issues/862
 //public type FileUserStoreConfigWithScopes record {|
 //   FileUserStoreConfig fileUserStoreConfig;
 //   string|string[] scopes?;

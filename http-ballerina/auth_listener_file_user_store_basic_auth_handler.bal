@@ -14,6 +14,9 @@
 //// specific language governing permissions and limitations
 //// under the License.
 //
+// TODO: Enable these tests once the configurable features supports for map data types.
+// https://github.com/ballerina-platform/ballerina-standard-library/issues/862
+//
 //import ballerina/auth;
 //
 //# Represents file user store configurations for Basic Auth authentication.

@@ -22,6 +22,9 @@ import ballerina/jwt;
 import ballerina/oauth2;
 import ballerina/test;
 
+// TODO: Enable these tests once the configurable features supports for map data types.
+// https://github.com/ballerina-platform/ballerina-standard-library/issues/862
+
 //@test:Config {}
 //isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccess() {
 //    http:ListenerFileUserStoreBasicAuthHandler handler = new;
