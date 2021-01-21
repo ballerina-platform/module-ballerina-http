@@ -79,11 +79,18 @@ public class Listener {
         return externDetach(self, s);
     }
 
-    # Retrieve the port from the HTTP listener.
+    # Retrieves the port of the HTTP listener.
     #
     # + return - The HTTP listener port
     public isolated function getPort() returns int {
         return self.port;
+    }
+
+    # Retrieves the `ListenerConfiguration` of the HTTP listener.
+    #
+    # + return - The readonly HTTP listener configuration
+    public isolated function getConfig() returns readonly & ListenerConfiguration {
+        return <readonly & ListenerConfiguration> self.config.cloneReadOnly();
     }
 }
 
