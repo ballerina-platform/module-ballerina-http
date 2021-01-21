@@ -19,7 +19,7 @@ import ballerina/lang.array;
 import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/regex;
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/time;
 
 # Represents an HTTP request.

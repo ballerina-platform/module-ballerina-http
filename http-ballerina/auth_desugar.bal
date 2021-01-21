@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/auth;
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/jwt;
 import ballerina/log;
 import ballerina/oauth2;

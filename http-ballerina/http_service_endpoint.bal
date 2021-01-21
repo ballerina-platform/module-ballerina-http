@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/crypto;
-import ballerina/java;
+import ballerina/jballerina.java;
 
 /////////////////////////////
 /// HTTP Listener Endpoint ///
