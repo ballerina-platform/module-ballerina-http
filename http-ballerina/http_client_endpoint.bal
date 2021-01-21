@@ -651,20 +651,20 @@ function performDataBinding(Response response, TargetType targetType) returns @t
         return response.getXmlPayload();
     } else if (targetType is typedesc<byte[]>) {
         return response.getBinaryPayload();
-    } else if (targetType is typedesc<CustomRecordType>) {
+    } else if (targetType is typedesc<record {| anydata...; |}>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
             return error GenericClientError("payload binding failed: " + result.message(), result);
         }
-        return <CustomRecordType> checkpanic result;
-    } else if (targetType is typedesc<CustomRecordType[]>) {
+        return <record {| anydata...; |}> checkpanic result;
+    } else if (targetType is typedesc<record {| anydata...; |}[]>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
             return error GenericClientError("payload binding failed: " + result.message(), result);
         }
-        return <CustomRecordType[]> checkpanic result;
+        return <record {| anydata...; |}[]> checkpanic result;
     } else if (targetType is typedesc<map<json>>) {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
