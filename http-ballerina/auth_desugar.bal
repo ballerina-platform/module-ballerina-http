@@ -53,14 +53,14 @@ public isolated function authenticateResource(Service servieRef, string methodNa
 
 isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, string header) returns Unauthorized|Forbidden? {
     foreach ListenerAuthConfig config in authHandlers {
-        if (config is FileUserStoreConfigWithScopes) {
-            ListenerFileUserStoreBasicAuthHandler handler = new(config.fileUserStoreConfig);
-            auth:UserDetails|Unauthorized authn = handler.authenticate(header);
-            if (authn is auth:UserDetails) {
-                Forbidden? authz = handler.authorize(authn, <string|string[]>config?.scopes);
-                return authz;
-            }
-        } else if (config is LdapUserStoreConfigWithScopes) {
+        //if (config is FileUserStoreConfigWithScopes) {
+        //    ListenerFileUserStoreBasicAuthHandler handler = new(config.fileUserStoreConfig);
+        //    auth:UserDetails|Unauthorized authn = handler.authenticate(header);
+        //    if (authn is auth:UserDetails) {
+        //        Forbidden? authz = handler.authorize(authn, <string|string[]>config?.scopes);
+        //        return authz;
+        //    }
+        if (config is LdapUserStoreConfigWithScopes) {
             ListenerLdapUserStoreBasicAuthProvider handler = new(config.ldapUserStoreConfig);
             auth:UserDetails|Unauthorized authn = handler->authenticate(header);
             if (authn is auth:UserDetails) {

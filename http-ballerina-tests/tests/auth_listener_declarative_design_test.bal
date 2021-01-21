@@ -180,9 +180,18 @@ function testResourceAuthnFailure() {
 @http:ServiceConfig {
     auth: [
         {
-            fileUserStoreConfig: {
-                tableName: "b7a.users",
-                scopeKey: "scopes"
+            oauth2IntrospectionConfig: {
+                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                tokenTypeHint: "access_token",
+                scopeKey: "scp",
+                clientConfig: {
+                    secureSocket: {
+                       trustStore: {
+                           path: TRUSTSTORE_PATH,
+                           password: "ballerina"
+                       }
+                    }
+                }
             },
             scopes: ["write", "update"]
         }
@@ -249,13 +258,13 @@ function testServiceResourceAuthnFailure() {
             },
             scopes: ["write", "update"]
         },
-        {
-            fileUserStoreConfig: {
-                tableName: "b7a.users",
-                scopeKey: "scopes"
-            },
-            scopes: ["write", "update"]
-        },
+        //{
+        //    fileUserStoreConfig: {
+        //        tableName: "b7a.users",
+        //        scopeKey: "scopes"
+        //    },
+        //    scopes: ["write", "update"]
+        //},
         {
             jwtValidatorConfig: {
                 issuer: "wso2",
@@ -315,13 +324,13 @@ service /bar on authListener {
                 },
                 scopes: ["write", "update"]
             },
-            {
-                fileUserStoreConfig: {
-                    tableName: "b7a.users",
-                    scopeKey: "scopes"
-                },
-                scopes: ["write", "update"]
-            },
+            //{
+            //    fileUserStoreConfig: {
+            //        tableName: "b7a.users",
+            //        scopeKey: "scopes"
+            //    },
+            //    scopes: ["write", "update"]
+            //},
             {
                 jwtValidatorConfig: {
                     issuer: "wso2",

@@ -33,15 +33,14 @@ public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig
 type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
 
 # Defines the authentication configurations for the HTTP listener.
-public type ListenerAuthConfig FileUserStoreConfigWithScopes|
-                               LdapUserStoreConfigWithScopes|
+public type ListenerAuthConfig LdapUserStoreConfigWithScopes|
                                JwtValidatorConfigWithScopes|
                                OAuth2IntrospectionConfigWithScopes;
 
-public type FileUserStoreConfigWithScopes record {|
-   FileUserStoreConfig fileUserStoreConfig;
-   string|string[] scopes?;
-|};
+//public type FileUserStoreConfigWithScopes record {|
+//   FileUserStoreConfig fileUserStoreConfig;
+//   string|string[] scopes?;
+//|};
 
 public type LdapUserStoreConfigWithScopes record {|
    LdapUserStoreConfig ldapUserStoreConfig;
