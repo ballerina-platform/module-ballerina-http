@@ -16,7 +16,6 @@
 
 // NOTE: All the tokens/credentials used in this test are dummy tokens/credentials and used only for testing purposes.
 
-import ballerina/auth;
 import ballerina/http;
 import ballerina/jwt;
 import ballerina/oauth2;
