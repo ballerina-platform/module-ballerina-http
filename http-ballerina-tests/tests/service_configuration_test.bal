@@ -17,10 +17,10 @@
 import ballerina/test;
 import ballerina/http;
 
-configurable int backendEP_port = ?;
+configurable int backendPort = ?;
 configurable string basePath = ?;
 
-listener http:Listener backendEP = new(backendEP_port);
+listener http:Listener backendEP = new(backendPort);
 http:Client scClient = check new("http://localhost:" + serviceConfigTest.toString());
 
 service /schello on backendEP {
