@@ -31,7 +31,12 @@ This repository only contains the source code for the module.
    * [OpenJDK](https://adoptopenjdk.net/)
    
         > **Note:** Set the JAVA_HOME environment variable to the path name of the directory into which you installed JDK.
-     
+
+2. Export Github Personal access token with read package permissions as follows,
+
+        export packageUser=<Username>
+        export packagePAT=<Personal access token>
+
 ### Building the Source
 
 Execute the commands below to build from source.

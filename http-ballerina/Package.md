@@ -19,7 +19,7 @@ The `Client` supports Server Name Indication (SNI), Certificate Revocation List 
 A `Client` can be defined using the URL of the remote service that the client needs to connect with, as shown below:
 
 ``` ballerina
-http:Client clientEndpoint = new("https://my-simple-backend.com");
+http:Client|http:ClientError clientEndpoint = new("https://my-simple-backend.com");
 ```
 The defined `Client` endpoint can be used to call a remote service as follows:
 
@@ -51,30 +51,24 @@ Then a `Service` can be defined and attached to the above `Listener` endpoint as
 
 ```ballerina
 // By default, Ballerina assumes that the service is to be exposed via HTTP/1.1.
-@http:ServiceConfig { basePath: "/helloWorld" }
-service helloWorld on helloWorldEP {
+service /helloWorld on helloWorldEP {
 
    // All resource functions are invoked with arguments of server connector and request.
-   @http:ResourceConfig {
-       methods: ["POST"],
-       path: "/{name}",
-       body: "message"
-   }
-   resource function sayHello(http:Caller caller, http:Request req, string name, string message) {
+   resource function post [string name](http:Caller caller, http:Request req, @http:Payload {} string message) {
        http:Response res = new;
        // A util method that can be used to set string payload.
        res.setPayload("Hello, World! I’m " + <@untainted> name + ". " + <@untainted> message);
        // Sends the response back to the client.
        var result = caller->respond(res);
        if (result is http:ListenerError) {
-            log:printError("Error sending response", result);
+            log:printError("Error sending response", err = result);
        }
    }
 }
 ```
 
 See the following.
-* [Listener Endpoint Example](https://ballerina.io/swan-lake/learn/by-example/http-data-binding.html)
+* [HTTPS Listener Example](https://ballerina.io/swan-lake/learn/by-example/https-listener.html)
 * [HTTP CORS Example](https://ballerina.io/swan-lake/learn/by-example/http-cors.html)
 * [HTTP Failover Example](https://ballerina.io/swan-lake/learn/by-example/http-failover.html)
 * [HTTP Load Balancer Example](https://ballerina.io/swan-lake/learn/by-example/http-load-balancer.html)
