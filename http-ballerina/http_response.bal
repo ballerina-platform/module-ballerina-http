@@ -264,7 +264,7 @@ public class Response {
     # `Response.getBodyParts()`.
     #
     # + return - A byte channel from which the message payload can be read or `http:ClientError` in case of errors
-    public isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
+    isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -409,17 +409,17 @@ public class Response {
     # + payload - A `ByteChannel` through which the message payload can be read
     # + contentType - The content type of the payload. Set this to override the default `content-type`
     #                 header value
-    public isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
+    isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setByteChannel(payload, contentType);
+        // entity.setByteChannel(payload, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
     # Sets the response payload.
     #
-    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `ByteChannel` or `Entity[]` (i.e: a set
+    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]` or `Entity[]` (i.e: a set
     #             of body parts)
-    public isolated function setPayload(string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[] payload) {
+    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[] payload) {
         if (payload is string) {
             self.setTextPayload(payload);
         } else if (payload is xml) {
@@ -428,8 +428,6 @@ public class Response {
             self.setBinaryPayload(payload);
         } else if (payload is json) {
             self.setJsonPayload(payload);
-        } else if (payload is io:ReadableByteChannel) {
-            self.setByteChannel(payload);
         } else {
             self.setBodyParts(payload);
         }

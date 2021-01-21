@@ -326,17 +326,18 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get GetByteChannel(http:Caller caller, http:Request req) {
-        http:Response res = new;
-        var returnResult = req.getByteChannel();
-        if (returnResult is error) {
-            res.setTextPayload("Error occurred");
-            res.statusCode = 500;
-        } else {
-            res.setByteChannel(returnResult);
-        }
-        checkpanic caller->respond(res);
-    }
+    // TODO: Enable with new byteStream API
+    // resource function get GetByteChannel(http:Caller caller, http:Request req) {
+    //     http:Response res = new;
+    //     var returnResult = req.getByteChannel();
+    //     if (returnResult is error) {
+    //         res.setTextPayload("Error occurred");
+    //         res.statusCode = 500;
+    //     } else {
+    //         res.setByteChannel(returnResult);
+    //     }
+    //     checkpanic caller->respond(res);
+    // }
 
     resource function get RemoveHeader(http:Caller caller, http:Request inReq) {
         http:Request req = new;
@@ -580,9 +581,10 @@ function testGetRequestURLWithInService() {
     }
 }
 
+// TODO: Enable with new byteStream API
 // Test GetByteChannel function within a service. Send a json content as a request and then get a byte channel from
 // the Request and set that ByteChannel as the response content"
-@test:Config {}
+@test:Config {enable:false}
 function testServiceGetByteChannel() {
     string value = "ballerina";
     string path = "/requesthello/GetByteChannel";

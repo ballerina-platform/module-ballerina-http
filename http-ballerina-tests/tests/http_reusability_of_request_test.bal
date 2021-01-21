@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/io;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
@@ -172,44 +171,45 @@ service /reuseObj on reuseRequestListenerEP {
         checkpanic caller->respond(<@untainted> testResponse);
     }
 
-    resource function post request_with_bytechannel(http:Caller caller, http:Request clientRequest) {
-        http:Request clientReq = new;
-        var byteChannel = clientRequest.getByteChannel();
-        if (byteChannel is io:ReadableByteChannel) {
-            clientReq.setByteChannel(byteChannel, "text/plain");
-            var firstResponse = clientEP1 -> post("/consumeChannel", clientReq);
-            if (firstResponse is http:Response) {
-                var secondResponse = clientEP1 -> post("/consumeChannel", clientReq);
-                http:Response testResponse = new;
-                string firstVal = "";
-                string secondVal = "";
-                if (secondResponse is http:Response) {
-                    var result1 = secondResponse.getTextPayload();
-                    if  (result1 is string) {
-                        secondVal = result1;
-                    } else {
-                        secondVal = "Error in parsing payload";
-                    }
-                } else if (secondResponse is error) {
-                    secondVal = secondResponse.message();
-                }
+    // TODO: Enable with new byteStream API
+    // resource function post request_with_bytechannel(http:Caller caller, http:Request clientRequest) {
+    //     http:Request clientReq = new;
+    //     var byteChannel = clientRequest.getByteChannel();
+    //     if (byteChannel is io:ReadableByteChannel) {
+    //         clientReq.setByteChannel(byteChannel, "text/plain");
+    //         var firstResponse = clientEP1 -> post("/consumeChannel", clientReq);
+    //         if (firstResponse is http:Response) {
+    //             var secondResponse = clientEP1 -> post("/consumeChannel", clientReq);
+    //             http:Response testResponse = new;
+    //             string firstVal = "";
+    //             string secondVal = "";
+    //             if (secondResponse is http:Response) {
+    //                 var result1 = secondResponse.getTextPayload();
+    //                 if  (result1 is string) {
+    //                     secondVal = result1;
+    //                 } else {
+    //                     secondVal = "Error in parsing payload";
+    //                 }
+    //             } else if (secondResponse is error) {
+    //                 secondVal = secondResponse.message();
+    //             }
 
-                var result2 = firstResponse.getTextPayload();
-                if (result2 is string) {
-                    firstVal = result2;
-                } else {
-                    firstVal = result2.message();
-                }
+    //             var result2 = firstResponse.getTextPayload();
+    //             if (result2 is string) {
+    //                 firstVal = result2;
+    //             } else {
+    //                 firstVal = result2.message();
+    //             }
 
-                testResponse.setTextPayload(<@untainted> firstVal + <@untainted> secondVal);
-                checkpanic caller->respond(testResponse);
-            } else if (firstResponse is error) {
-                log:printError(firstResponse.message(), err = firstResponse);
-            }
-        } else {
-            log:printError(byteChannel.message(), err = byteChannel);
-        }
-    }
+    //             testResponse.setTextPayload(<@untainted> firstVal + <@untainted> secondVal);
+    //             checkpanic caller->respond(testResponse);
+    //         } else if (firstResponse is error) {
+    //             log:printError(firstResponse.message(), err = firstResponse);
+    //         }
+    //     } else {
+    //         log:printError(byteChannel.message(), err = byteChannel);
+    //     }
+    // }
 }
 
 service /testService_2 on reuseRequestListenerEP {
@@ -286,7 +286,8 @@ function sameRequestWithADatasource() {
     }
 }
 
-@test:Config {}
+// TODO: Enable with new byteStream API
+@test:Config {enable:false}
 function sameRequestWithByteChannel() {
     var response = reuseRequestClient->post("/reuseObj/request_with_bytechannel", "Hello from POST!");
     if (response is http:Response) {

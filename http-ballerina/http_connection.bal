@@ -59,25 +59,6 @@ public client class Caller {
         return externPushPromisedResponse(self, promise, response);
     }
 
-    # Sends an upgrade request with custom headers.
-    #
-    # + headers - A `map` of custom headers for handshake
-    # + return - An `http:WebSocketCaller` instance or else an `http:WebSocketError` on failure to upgrade
-    remote isolated function acceptWebSocketUpgrade(map<string> headers) 
-                                                returns WebSocketCaller | WebSocketError {
-        return externAcceptWebSocketUpgrade(self, headers);
-    }
-
-    # Cancels the handshake.
-    #
-    # + status - Error Status code for cancelling the upgrade and closing the connection.
-    #            This error status code need to be 4xx or 5xx else the default status code would be 400.
-    # + reason - Reason for cancelling the upgrade
-    # + return - An `error` if an error occurs during cancelling the upgrade or nil
-    remote isolated function cancelWebSocketUpgrade(int status, string reason) returns WebSocketError? {
-        return externCancelWebSocketUpgrade(self, status, reason);
-    }
-
     # Sends a `100-continue` response to the caller.
     #
     # + return - An `http:ListenerError` if failed to send the `100-continue` response or else `()`
@@ -276,16 +257,4 @@ isolated function externPushPromisedResponse(Caller caller, PushPromise promise,
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.connection.PushPromisedResponse",
     name: "pushPromisedResponse"
-} external;
-
-isolated function externAcceptWebSocketUpgrade(Caller caller, map<string> headers) returns WebSocketCaller | WebSocketError =
-@java:Method {
-    'class: "org.ballerinalang.net.http.nativeimpl.connection.AcceptWebSocketUpgrade",
-    name: "acceptWebSocketUpgrade"
-} external;
-
-isolated function externCancelWebSocketUpgrade(Caller caller, int status, string reason) returns WebSocketError? =
-@java:Method {
-    'class: "org.ballerinalang.net.http.nativeimpl.connection.CancelWebSocketUpgrade",
-    name: "cancelWebSocketUpgrade"
 } external;

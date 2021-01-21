@@ -148,9 +148,8 @@ task ballerinaTest {
 
     def privateKey = "tests/certsandkeys/private.key"
     def publicCert = "tests/certsandkeys/public.crt"
-    def keyStore = "tests/certsandkeys/ballerinaKeystore.p12"
-    def trustStore = "tests/certsandkeys/ballerinaTruststore.p12"
-    def certsAndKeys = "--certificate.key=${privateKey} --public.cert=${publicCert} --keystore=${keyStore} --truststore=${trustStore}"
+    def certsAndKeys = "--certificate.key=${privateKey} --public.cert=${publicCert}"
+
 
     doLast {
         exec {

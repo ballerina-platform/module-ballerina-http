@@ -66,8 +66,8 @@ public client class Client {
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -87,8 +87,8 @@ public client class Client {
     # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -103,8 +103,8 @@ public client class Client {
     # The `Client.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -123,8 +123,8 @@ public client class Client {
     #
     # + httpVerb - HTTP verb value
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -142,8 +142,8 @@ public client class Client {
     # The `Client.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -161,8 +161,8 @@ public client class Client {
     # The `Client.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -180,8 +180,8 @@ public client class Client {
     # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -199,8 +199,8 @@ public client class Client {
     # The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -238,8 +238,8 @@ public client class Client {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
+    #             or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = buildRequest(message);

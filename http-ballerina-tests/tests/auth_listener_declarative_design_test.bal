@@ -19,7 +19,7 @@
 import ballerina/http;
 import ballerina/test;
 
-const string jwt1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
+const string JWT1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
                     "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTcyNCwgIm" +
                     "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.H99ufLvCLFA5i1gfCt" +
                     "klVdPrBvEl96aobNvtpEaCsO4v6_EgEZYz8Pg0B1Y7yJPbgpuAzXEg_CzowtfCTu3jUFf5FH_6M1fWGko5vpljtCb5Xknt_" +
@@ -27,7 +27,7 @@ const string jwt1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXh
                     "8edbFZ-oa-ffLLls0vlEjUA7JiOSpnMbxRmT-ac6QjPxTQgNcndvIZVP2BHueQ1upyNorFKSMv8HZpATYHZjgnJQSpmt3Oa" +
                     "oFJ6pgzbFuniVNuqYghikCQIizqzQNfC7JUD8wA";
 
-const string jwt2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
+const string JWT2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
                     "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTg3NiwgIm" +
                     "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoicmVhZCJ9.MVx_bJJpRyQryrTZ1-WC" +
                     "1BkJdeBulX2CnxYN5Y4r1XbVd0-rgbCQ86jEbWvLZOybQ8Hx7MB9thKaBvidBnctgMM1JzG-ULahl-afoyTCv_qxMCS-5B7" +
@@ -35,7 +35,7 @@ const string jwt2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXh
                     "5oEM6-Chrn6KFLXo3GFTwLQELgYkIGjgnMQfbyLLaw5oyJUyOCCsdMZ4oeVLO2rdKZs1L8ZDnolUfcdm5mTxxP9A4mTOTd-" +
                     "xC404MKwxkRhkgI4EJkcEwMHce2iCInZer10Q";
 
-const string jwt3 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0Ij" +
+const string JWT3 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0Ij" +
                     "oxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
 listener http:Listener authListener = new(securedListenerPort, {
@@ -77,17 +77,17 @@ service /baz on authListener {
 
 @test:Config {}
 function testNoAuthServiceResourceSuccess() {
-    assertSuccess(sendRequest("/baz/foo", jwt1));
+    assertSuccess(sendRequest("/baz/foo", JWT1));
 }
 
 @test:Config {}
 function testNNoAuthServiceResourceWithRequestSuccess() {
-    assertSuccess(sendRequest("/baz/bar", jwt2));
+    assertSuccess(sendRequest("/baz/bar", JWT2));
 }
 
 @test:Config {}
 function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
-    assertSuccess(sendRequest("/baz/baz", jwt3));
+    assertSuccess(sendRequest("/baz/baz", JWT3));
 }
 
 // JWT auth secured service - Unsecured resource
@@ -95,7 +95,6 @@ function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
 @http:ServiceConfig {
     auth: [
         {
-            scopes: ["write", "update"],
             jwtValidatorConfig: {
                 issuer: "wso2",
                 audience: "ballerina",
@@ -107,7 +106,8 @@ function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
                     certificateAlias: "ballerina"
                 },
                 scopeKey: "scp"
-            }
+            },
+            scopes: ["write", "update"]
         }
     ]
 }
@@ -119,17 +119,17 @@ service /jwtAuth on authListener {
 
 @test:Config {}
 function testServiceAuthSuccess() {
-    assertSuccess(sendRequest("/jwtAuth/foo", jwt1));
+    assertSuccess(sendRequest("/jwtAuth/foo", JWT1));
 }
 
 @test:Config {}
 function testServiceAuthzFailure() {
-    assertForbidden(sendRequest("/jwtAuth/foo", jwt2));
+    assertForbidden(sendRequest("/jwtAuth/foo", JWT2));
 }
 
 @test:Config {}
 function testServiceAuthnFailure() {
-    assertUnauthorized(sendRequest("/jwtAuth/foo", jwt3));
+    assertUnauthorized(sendRequest("/jwtAuth/foo", JWT3));
 }
 
 // Unsecured service - JWT auth secured resource
@@ -139,7 +139,6 @@ service /foo on authListener {
     @http:ResourceConfig {
         auth: [
             {
-                scopes: ["write", "update"],
                 jwtValidatorConfig: {
                     issuer: "wso2",
                     audience: "ballerina",
@@ -151,7 +150,8 @@ service /foo on authListener {
                         certificateAlias: "ballerina"
                     },
                     scopeKey: "scp"
-                }
+                },
+                scopes: ["write", "update"]
             }
         ]
     }
@@ -162,17 +162,17 @@ service /foo on authListener {
 
 @test:Config {}
 function testResourceAuthSuccess() {
-    assertSuccess(sendRequest("/foo/jwtAuth", jwt1));
+    assertSuccess(sendRequest("/foo/jwtAuth", JWT1));
 }
 
 @test:Config {}
 function testResourceAuthzFailure() {
-    assertForbidden(sendRequest("/foo/jwtAuth", jwt2));
+    assertForbidden(sendRequest("/foo/jwtAuth", JWT2));
 }
 
 @test:Config {}
 function testResourceAuthnFailure() {
-    assertUnauthorized(sendRequest("/foo/jwtAuth", jwt3));
+    assertUnauthorized(sendRequest("/foo/jwtAuth", JWT3));
 }
 
 // OAuth2 secured service - JWT auth secured resource
@@ -180,61 +180,6 @@ function testResourceAuthnFailure() {
 @http:ServiceConfig {
     auth: [
         {
-            scopes: ["write", "update"],
-            fileUserStoreConfig: {
-                tableName: "b7a.users",
-                scopeKey: "scopes"
-            }
-        }
-    ]
-}
-service /oauth2 on authListener {
-
-    @http:ResourceConfig {
-        auth: [
-            {
-                scopes: ["write", "update"],
-                jwtValidatorConfig: {
-                    issuer: "wso2",
-                    audience: "ballerina",
-                    trustStoreConfig: {
-                        trustStore: {
-                            path: TRUSTSTORE_PATH,
-                            password: "ballerina"
-                        },
-                        certificateAlias: "ballerina"
-                    },
-                    scopeKey: "scp"
-                }
-            }
-        ]
-    }
-    resource function get jwtAuth() returns string {
-        return "Hello World!";
-    }
-}
-
-@test:Config {}
-function testServiceResourceAuthSuccess() {
-    assertSuccess(sendRequest("/oauth2/jwtAuth", jwt1));
-}
-
-@test:Config {}
-function testServiceResourceAuthzFailure() {
-    assertForbidden(sendRequest("/oauth2/jwtAuth", jwt2));
-}
-
-@test:Config {}
-function testServiceResourceAuthnFailure() {
-    assertUnauthorized(sendRequest("/oauth2/jwtAuth", jwt3));
-}
-
-// OAuth2, Basic auth & JWT auth secured service - Unsecured resource
-
-@http:ServiceConfig {
-    auth: [
-        {
-            scopes: ["write", "update"],
             oauth2IntrospectionConfig: {
                 url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
                 tokenTypeHint: "access_token",
@@ -247,17 +192,82 @@ function testServiceResourceAuthnFailure() {
                        }
                     }
                 }
+            },
+            scopes: ["write", "update"]
+        }
+    ]
+}
+service /oauth2 on authListener {
+
+    @http:ResourceConfig {
+        auth: [
+            {
+                jwtValidatorConfig: {
+                    issuer: "wso2",
+                    audience: "ballerina",
+                    trustStoreConfig: {
+                        trustStore: {
+                            path: TRUSTSTORE_PATH,
+                            password: "ballerina"
+                        },
+                        certificateAlias: "ballerina"
+                    },
+                    scopeKey: "scp"
+                },
+                scopes: ["write", "update"]
             }
-        },
+        ]
+    }
+    resource function get jwtAuth() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {}
+function testServiceResourceAuthSuccess() {
+    assertSuccess(sendRequest("/oauth2/jwtAuth", JWT1));
+}
+
+@test:Config {}
+function testServiceResourceAuthzFailure() {
+    assertForbidden(sendRequest("/oauth2/jwtAuth", JWT2));
+}
+
+@test:Config {}
+function testServiceResourceAuthnFailure() {
+    assertUnauthorized(sendRequest("/oauth2/jwtAuth", JWT3));
+}
+
+// OAuth2, Basic auth & JWT auth secured service - Unsecured resource
+
+@http:ServiceConfig {
+    auth: [
         {
-            scopes: ["write", "update"],
-            fileUserStoreConfig: {
-                tableName: "b7a.users",
-                scopeKey: "scopes"
-            }
+            oauth2IntrospectionConfig: {
+                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                tokenTypeHint: "access_token",
+                scopeKey: "scp",
+                clientConfig: {
+                    secureSocket: {
+                       trustStore: {
+                           path: TRUSTSTORE_PATH,
+                           password: "ballerina"
+                       }
+                    }
+                }
+            },
+            scopes: ["write", "update"]
         },
+        // TODO: Enable these tests once the configurable features supports for map data types.
+        // https://github.com/ballerina-platform/ballerina-standard-library/issues/862
+        //{
+        //    fileUserStoreConfig: {
+        //        tableName: "b7a.users",
+        //        scopeKey: "scopes"
+        //    },
+        //    scopes: ["write", "update"]
+        //},
         {
-            scopes: ["write", "update"],
             jwtValidatorConfig: {
                 issuer: "wso2",
                 audience: "ballerina",
@@ -269,7 +279,8 @@ function testServiceResourceAuthnFailure() {
                     certificateAlias: "ballerina"
                 },
                 scopeKey: "scp"
-            }
+            },
+            scopes: ["write", "update"]
         }
     ]
 }
@@ -281,17 +292,17 @@ service /multipleAuth on authListener {
 
 @test:Config {}
 function testMultipleServiceAuthSuccess() {
-    assertSuccess(sendRequest("/multipleAuth/bar", jwt1));
+    assertSuccess(sendRequest("/multipleAuth/bar", JWT1));
 }
 
 @test:Config {}
 function testMultipleServiceAuthzFailure() {
-    assertForbidden(sendRequest("/multipleAuth/bar", jwt2));
+    assertForbidden(sendRequest("/multipleAuth/bar", JWT2));
 }
 
 @test:Config {}
 function testMultipleServiceAuthnFailure() {
-    assertUnauthorized(sendRequest("/multipleAuth/bar", jwt3));
+    assertUnauthorized(sendRequest("/multipleAuth/bar", JWT3));
 }
 
 // Unsecured service - OAuth2, Basic auth & JWT auth secured resource
@@ -300,7 +311,6 @@ service /bar on authListener {
     @http:ResourceConfig {
         auth: [
             {
-                scopes: ["write", "update"],
                 oauth2IntrospectionConfig: {
                     url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
                     tokenTypeHint: "access_token",
@@ -313,17 +323,19 @@ service /bar on authListener {
                            }
                         }
                     }
-                }
+                },
+                scopes: ["write", "update"]
             },
+            // TODO: Enable these tests once the configurable features supports for map data types.
+            // https://github.com/ballerina-platform/ballerina-standard-library/issues/862
+            //{
+            //    fileUserStoreConfig: {
+            //        tableName: "b7a.users",
+            //        scopeKey: "scopes"
+            //    },
+            //    scopes: ["write", "update"]
+            //},
             {
-                scopes: ["write", "update"],
-                fileUserStoreConfig: {
-                    tableName: "b7a.users",
-                    scopeKey: "scopes"
-                }
-            },
-            {
-                scopes: ["write", "update"],
                 jwtValidatorConfig: {
                     issuer: "wso2",
                     audience: "ballerina",
@@ -335,7 +347,8 @@ service /bar on authListener {
                         certificateAlias: "ballerina"
                     },
                     scopeKey: "scp"
-                }
+                },
+                scopes: ["write", "update"]
             }
         ]
     }
@@ -346,15 +359,15 @@ service /bar on authListener {
 
 @test:Config {}
 function testMultipleResourceAuthSuccess() {
-    assertSuccess(sendRequest("/bar/multipleAuth", jwt1));
+    assertSuccess(sendRequest("/bar/multipleAuth", JWT1));
 }
 
 @test:Config {}
 function testMultipleResourceAuthzFailure() {
-    assertForbidden(sendRequest("/bar/multipleAuth", jwt2));
+    assertForbidden(sendRequest("/bar/multipleAuth", JWT2));
 }
 
 @test:Config {}
 function testMultipleResourceAuthnFailure() {
-    assertUnauthorized(sendRequest("/bar/multipleAuth", jwt3));
+    assertUnauthorized(sendRequest("/bar/multipleAuth", JWT3));
 }
