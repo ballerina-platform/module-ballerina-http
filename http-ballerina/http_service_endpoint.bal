@@ -70,8 +70,7 @@ public class Listener {
         return externRegister(self, s, name);
     }
 
-    # Detaches a Http or WebSocket service from the listener. Note that detaching a WebSocket service would not affect
-    # The functionality of the existing connections.
+    # Detaches a Http service from the listener.
     #
     # + s - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
@@ -148,7 +147,6 @@ public type Local record {|
 # + timeoutInMillis - Period of time in milliseconds that a connection waits for a read/write operation. Use value 0 to
 #                   disable timeout
 # + server - The server name which should appear as a response header
-# + webSocketCompressionEnabled - Enable support for compression in WebSocket
 # + requestLimits - Configurations associated with inbound request size limits
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
@@ -157,7 +155,6 @@ public type ListenerConfiguration record {|
     string httpVersion = "1.1";
     int timeoutInMillis = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
-    boolean webSocketCompressionEnabled = true;
     RequestLimitConfigs requestLimits = {};
 |};
 
