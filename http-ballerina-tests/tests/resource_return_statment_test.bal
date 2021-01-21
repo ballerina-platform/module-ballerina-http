@@ -113,7 +113,7 @@ service http:Service /mytest on resourceReturnTestEP {
         return ok;
     }
 
-    resource function get test15() returns record {*http:Created; RetPerson body;} {
+    resource function get test15() returns record {|*http:Created; RetPerson body;|} {
         RetPerson person = {age:1, name:"Joe"};
         return {
             mediaType: "application/person+json",
