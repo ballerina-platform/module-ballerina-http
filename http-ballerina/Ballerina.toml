@@ -3,66 +3,6 @@ org = "ballerina"
 name = "http"
 version = "@toml.version@"
 
-[[dependency]]
-org = "ballerina"
-name = "io"
-version = "@stdlib.io.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "cache"
-version = "@stdlib.cache.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "file"
-version = "@stdlib.file.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "auth"
-version = "@stdlib.auth.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "jwt"
-version = "@stdlib.jwt.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "oauth2"
-version = "@stdlib.oauth2.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "crypto"
-version = "@stdlib.crypto.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "mime"
-version = "@stdlib.mime.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "time"
-version = "@stdlib.time.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "log"
-version = "@stdlib.log.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "regex"
-version = "@stdlib.regex.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "reflect"
-version = "@stdlib.reflect.version@"
-
 [[platform.java11.dependency]]
 path = "../http-native/build/libs/http-native-@project.version@.jar"
 groupId = "ballerina"
