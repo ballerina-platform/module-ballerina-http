@@ -188,16 +188,6 @@ isolated function setPayload(anydata payload, Response response) {
         response.setTextPayload(payload);
     } else if (payload is byte[]) {
         response.setBinaryPayload(payload);
-    } else if (payload is table<anydata>) {
-        // Can remove this scope after https://github.com/ballerina-platform/ballerina-lang/issues/27860 is fixed
-        castToJsonAndSetPayload(response, payload.toArray(), "table<anydata> to json conversion error: " );
-    } else if (payload is table<anydata>[]) {
-        // Can remove this scope after https://github.com/ballerina-platform/ballerina-lang/issues/27860 is fixed
-        anydata[] tableArr = [];
-        foreach var index in 0 ... payload.length()-1 {
-            tableArr[index] = payload[index].toArray();
-        }
-        castToJsonAndSetPayload(response, tableArr, "table<anydata>[] to json conversion error: " );
     } else {
         castToJsonAndSetPayload(response, payload, "anydata to json conversion error: " );
     }
