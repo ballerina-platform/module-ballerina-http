@@ -21,7 +21,7 @@ package org.ballerinalang.net.http.websocket.client.listener;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
-import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.HttpPackageUtil;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.WebSocketService;
@@ -116,8 +116,8 @@ public class WebSocketHandshakeListener implements ExtendedHandshakeListener {
     }
 
     private static BObject createWebSocketConnector(boolean readyOnConnect) {
-        BObject webSocketConnector = ValueCreator.createObjectValue(HttpConstants.PROTOCOL_HTTP_PKG_ID,
-                WebSocketConstants.WEBSOCKET_CONNECTOR);
+        BObject webSocketConnector = ValueCreator.createObjectValue(HttpPackageUtil.getHttpPackage(),
+                                                                    WebSocketConstants.WEBSOCKET_CONNECTOR);
         // Sets the value of `readyOnConnect` to the created `isReady' field of the webSocketConnector.
         // It checks whether the `readNextFrame` function is already called or not when the `ready()` function
         // is called.

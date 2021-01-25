@@ -22,11 +22,14 @@ import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.HTTPServicesRegistry;
-import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
+import org.ballerinalang.net.http.HttpPackageUtil;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.server.WebSocketServicesRegistry;
+
+import static org.ballerinalang.net.http.HttpConstants.CALLER;
+import static org.ballerinalang.net.http.HttpConstants.COLON;
 
 /**
  * Disengage a service from the listener.
@@ -34,6 +37,8 @@ import org.ballerinalang.net.http.websocket.server.WebSocketServicesRegistry;
  * @since 1.0
  */
 public class Detach extends AbstractHttpNativeFunction {
+    public static final String HTTP_CALLER_NAME = HttpPackageUtil.getHttpPackageIdentifier() + COLON + CALLER;
+
     public static Object detach(BObject serviceEndpoint, BObject serviceObj) {
         HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
         WebSocketServicesRegistry webSocketServicesRegistry = getWebSocketServicesRegistry(serviceEndpoint);
@@ -42,7 +47,7 @@ public class Detach extends AbstractHttpNativeFunction {
         try {
             if (resourceList.length > 0 && (param = resourceList[0].getParameterTypes()[0]) != null) {
                 String callerType = param.getQualifiedName();
-                if (HttpConstants.HTTP_CALLER_NAME.equals(callerType)) {
+                if (HTTP_CALLER_NAME.equals(callerType)) {
                     httpServicesRegistry.unRegisterService(serviceObj);
                 } else if (WebSocketConstants.WEBSOCKET_CALLER_NAME.equals(callerType)) {
                     return webSocketServicesRegistry.unRegisterService(serviceObj);

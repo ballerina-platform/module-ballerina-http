@@ -45,7 +45,7 @@ import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_CALLER_INFO;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PAYLOAD;
 import static org.ballerinalang.net.http.HttpConstants.COLON;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
+import static org.ballerinalang.net.http.HttpPackageUtil.getHttpPackageIdentifier;
 
 /**
  * This class holds the resource signature parameters.
@@ -69,7 +69,8 @@ public class ParamHandler {
             TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
     private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
     private static final String REQ_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST;
-    private static final String CALLER_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_CALLER_INFO;
+    private static final String CALLER_ANNOTATION = getHttpPackageIdentifier() + COLON + ANN_NAME_CALLER_INFO;
+    public static final String PAYLOAD_ANNOTATION = getHttpPackageIdentifier() + COLON + ANN_NAME_PAYLOAD;
 
     public ParamHandler(ResourceMethodType resource, int pathParamCount) {
         this.resource = resource;
@@ -138,7 +139,7 @@ public class ParamHandler {
             validateForMultipleHTTPAnnotations(annotationsKeys, paramName);
             for (Object objKey : annotationsKeys) {
                 String key = ((BString) objKey).getValue();
-                if (HttpConstants.PAYLOAD_ANNOTATION.equals(key)) {
+                if (PAYLOAD_ANNOTATION.equals(key)) {
                     if (payloadParam == null) {
                         createPayloadParam(paramName, annotations);
                     } else {
@@ -164,12 +165,12 @@ public class ParamHandler {
     }
 
     private boolean isAllowedResourceParamAnnotation(String key) {
-        return HttpConstants.PAYLOAD_ANNOTATION.equals(key) || CALLER_ANNOTATION.equals(key);
+        return PAYLOAD_ANNOTATION.equals(key) || CALLER_ANNOTATION.equals(key);
     }
 
     private void createPayloadParam(String paramName, BMap annotations) {
         this.payloadParam = new PayloadParam(paramName);
-        BMap mapValue = annotations.getMapValue(StringUtils.fromString(HttpConstants.PAYLOAD_ANNOTATION));
+        BMap mapValue = annotations.getMapValue(StringUtils.fromString(PAYLOAD_ANNOTATION));
         Object mediaType = mapValue.get(HttpConstants.ANN_FIELD_MEDIA_TYPE);
         if (mediaType instanceof BString) {
             String value = ((BString) mediaType).getValue();

@@ -41,4 +41,8 @@ public class ModuleUtils {
     public static BString getModuleIdentifier() {
         return StringUtils.fromString(httpModule.toString());
     }
+
+    public static Module getModule() {
+        return httpModule;
+    }
 }

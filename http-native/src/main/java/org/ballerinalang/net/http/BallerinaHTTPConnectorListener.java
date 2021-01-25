@@ -37,7 +37,6 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.SERVER_C
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PROTOCOL;
-import static org.ballerinalang.net.http.HttpConstants.ON_MESSAGE_METADATA;
 
 /**
  * HTTP connector listener for Ballerina.
@@ -112,9 +111,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime(),
                                                          httpResource.getReturnMediaType());
         BObject service = httpResource.getParentService().getBalService();
-        httpServicesRegistry.getRuntime()
-                .invokeMethodAsync(service, httpResource.getName(), null, ON_MESSAGE_METADATA, callback, properties,
-                                   httpResource.getBalResource().getReturnType(), signatureParams);
+        httpServicesRegistry.getRuntime().invokeMethodAsync(service, httpResource.getName(), null,
+                                                            HttpUtil.getStrandMetadata("onMessage"), callback,
+                                                            properties, httpResource.getBalResource().getReturnType(),
+                                                            signatureParams);
     }
 
     protected boolean accessed(HttpCarbonMessage inboundMessage) {

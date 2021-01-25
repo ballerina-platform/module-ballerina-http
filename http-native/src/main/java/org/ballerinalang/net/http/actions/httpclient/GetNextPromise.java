@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.HttpPackageUtil;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpClientConnectorListener;
@@ -56,10 +57,10 @@ public class GetNextPromise extends AbstractHTTPAction {
         @Override
         public void onPushPromise(Http2PushPromise pushPromise) {
             BObject pushPromiseObj =
-                    ValueCreator.createObjectValue(HttpConstants.PROTOCOL_HTTP_PKG_ID,
-                                                      HttpConstants.PUSH_PROMISE,
-                                                      StringUtils.fromString(pushPromise.getPath()),
-                                                      StringUtils.fromString(pushPromise.getMethod()));
+                    ValueCreator.createObjectValue(HttpPackageUtil.getHttpPackage(),
+                                                   HttpConstants.PUSH_PROMISE,
+                                                   StringUtils.fromString(pushPromise.getPath()),
+                                                   StringUtils.fromString(pushPromise.getMethod()));
             HttpUtil.populatePushPromiseStruct(pushPromiseObj, pushPromise);
             dataContext.notifyInboundResponseStatus(pushPromiseObj, null);
         }
