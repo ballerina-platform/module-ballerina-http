@@ -1,59 +1,59 @@
 [[dependency]]
 org = "ballerina"
 name = "io"
-version = "0.5.5"
+version = "@stdlib.io.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "cache"
-version = "2.0.5"
+version = "@stdlib.cache.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "file"
-version = "0.6.3"
+version = "@stdlib.file.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "auth"
-version = "1.0.5"
+version = "@stdlib.auth.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "jwt"
-version = "1.0.7"
+version = "@stdlib.jwt.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "oauth2"
-version = "1.0.5"
+version = "@stdlib.oauth2.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "crypto"
-version = "1.0.5"
+version = "@stdlib.crypto.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "mime"
-version = "1.0.5"
+version = "@stdlib.mime.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "time"
-version = "1.0.6"
+version = "@stdlib.time.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "log"
-version = "1.0.5"
+version = "@stdlib.log.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "regex"
-version = "0.6.0"
+version = "@stdlib.regex.version@"
 
 [[dependency]]
 org = "ballerina"
 name = "reflect"
-version = "0.5.5"
+version = "@stdlib.reflect.version@"
