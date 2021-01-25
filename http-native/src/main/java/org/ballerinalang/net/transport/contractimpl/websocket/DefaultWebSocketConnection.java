@@ -12,6 +12,7 @@ import io.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketFrameType;
@@ -19,7 +20,9 @@ import org.ballerinalang.net.transport.contractimpl.listener.WebSocketMessageQue
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
+import static org.ballerinalang.net.transport.contract.Constants.IDLE_STATE_HANDLER;
 import static org.ballerinalang.net.transport.contract.Constants.MESSAGE_QUEUE_HANDLER;
 
 /**
@@ -254,6 +257,19 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
     }
     int getCloseInitiatedStatusCode() {
         return this.closeInitiatedStatusCode;
+    }
+
+    public void removeIdleStateHandler() {
+        if (ctx.pipeline().get(IDLE_STATE_HANDLER) != null) {
+            ctx.pipeline().remove(IDLE_STATE_HANDLER);
+        }
+    }
+
+    public void addIdleStateHandler(long timeOut) {
+        if (ctx.pipeline().get(IDLE_STATE_HANDLER) == null && timeOut > 0) {
+            ctx.pipeline().addBefore(MESSAGE_QUEUE_HANDLER, IDLE_STATE_HANDLER,
+                    new IdleStateHandler(0, 0, timeOut, TimeUnit.MILLISECONDS));
+        }
     }
 
     private ByteBuf getNettyByteBuf(ByteBuffer buffer) {
