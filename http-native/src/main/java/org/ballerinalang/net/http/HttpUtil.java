@@ -20,7 +20,6 @@ package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
-import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.utils.JsonUtils;
@@ -105,7 +104,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_BUILTIN_PKG_PREFIX;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
 import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 import static io.ballerina.runtime.api.utils.StringUtils.fromStringArray;
@@ -165,7 +163,6 @@ import static org.ballerinalang.net.http.HttpConstants.NO_CONTENT_LENGTH_FOUND;
 import static org.ballerinalang.net.http.HttpConstants.ONE_BYTE;
 import static org.ballerinalang.net.http.HttpConstants.PASSWORD;
 import static org.ballerinalang.net.http.HttpConstants.PKCS_STORE_TYPE;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTPS;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_CACHE_CONTROL_FIELD;
@@ -182,7 +179,7 @@ import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_ENABLE_SESSION
 import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_SSL_VERIFY_CLIENT;
 import static org.ballerinalang.net.http.HttpConstants.SSL_PROTOCOL_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.TRANSPORT_MESSAGE;
-import static org.ballerinalang.net.http.HttpPackageUtil.getHttpPackage;
+import static org.ballerinalang.net.http.nativeimpl.ModuleUtils.getHttpPackage;
 import static org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler.sendPipelinedResponse;
 import static org.ballerinalang.net.transport.contract.Constants.ENCODING_GZIP;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_1_1_VERSION;
@@ -1789,11 +1786,6 @@ public class HttpUtil {
         } catch (UnsupportedEncodingException e) {
             throw new BallerinaConnectorException("Error while encoding value: " + value, e);
         }
-    }
-
-    static StrandMetadata getStrandMetadata(String method) {
-        return new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HttpPackageUtil.getHttpPackageVersion(),
-                                  method);
     }
 
     private HttpUtil() {

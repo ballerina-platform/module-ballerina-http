@@ -40,9 +40,9 @@ import org.ballerinalang.net.http.CompressionConfigState;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
-import org.ballerinalang.net.http.HttpPackageUtil;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.http.ValueCreatorUtils;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.contract.HttpClientConnectorListener;
@@ -436,7 +436,7 @@ public abstract class AbstractHTTPAction {
 
         @Override
         public void onResponseHandle(ResponseHandle responseHandle) {
-            BObject httpFuture = ValueCreator.createObjectValue(HttpPackageUtil.getHttpPackage(),
+            BObject httpFuture = ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(),
                                                                 HttpConstants.HTTP_FUTURE);
             httpFuture.addNativeData(HttpConstants.TRANSPORT_HANDLE, responseHandle);
             this.dataContext.notifyInboundResponseStatus(httpFuture, null);

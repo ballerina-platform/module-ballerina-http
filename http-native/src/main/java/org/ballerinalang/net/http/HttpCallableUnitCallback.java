@@ -21,6 +21,7 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 /**
@@ -71,7 +72,7 @@ public class HttpCallableUnitCallback implements Callback {
                 sendFailureResponse(result);
             }
         };
-        runtime.invokeMethodAsync(caller, "returnResponse", null, HttpUtil.getStrandMetadata("notifySuccess"),
+        runtime.invokeMethodAsync(caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
                                   returnCallback, paramFeed);
     }
 

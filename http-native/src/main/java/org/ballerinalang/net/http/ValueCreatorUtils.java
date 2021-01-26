@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 
 import static org.ballerinalang.mime.util.MimeConstants.MEDIA_TYPE;
 import static org.ballerinalang.mime.util.MimeConstants.PROTOCOL_MIME_PKG_ID;
@@ -42,11 +43,11 @@ import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL;
 public class ValueCreatorUtils {
 
     public static BObject createRequestObject() {
-        return createObjectValue(HttpPackageUtil.getHttpPackage(), REQUEST);
+        return createObjectValue(ModuleUtils.getHttpPackage(), REQUEST);
     }
 
     public static BObject createResponseObject() {
-        return createObjectValue(HttpPackageUtil.getHttpPackage(), RESPONSE);
+        return createObjectValue(ModuleUtils.getHttpPackage(), RESPONSE);
     }
 
     public static BObject createEntityObject() {
@@ -58,20 +59,20 @@ public class ValueCreatorUtils {
     }
 
     public static BObject createPushPromiseObject() {
-        return createObjectValue(HttpPackageUtil.getHttpPackage(), PUSH_PROMISE, StringUtils.fromString("/"),
+        return createObjectValue(ModuleUtils.getHttpPackage(), PUSH_PROMISE, StringUtils.fromString("/"),
                                  StringUtils.fromString("GET"));
     }
 
     public static BObject createRequestCacheControlObject() {
-        return createObjectValue(HttpPackageUtil.getHttpPackage(), REQUEST_CACHE_CONTROL);
+        return createObjectValue(ModuleUtils.getHttpPackage(), REQUEST_CACHE_CONTROL);
     }
 
     public static BObject createResponseCacheControlObject() {
-        return createObjectValue(HttpPackageUtil.getHttpPackage(), RESPONSE_CACHE_CONTROL);
+        return createObjectValue(ModuleUtils.getHttpPackage(), RESPONSE_CACHE_CONTROL);
     }
 
     public static BObject createCallerObject() {
-        return createObjectValue(HttpPackageUtil.getHttpPackage(), CALLER);
+        return createObjectValue(ModuleUtils.getHttpPackage(), CALLER);
     }
     
     /**
@@ -81,7 +82,7 @@ public class ValueCreatorUtils {
      * @return value of the record.
      */
     public static BMap<BString, Object> createHTTPRecordValue(String recordTypeName) {
-        return ValueCreator.createRecordValue(HttpPackageUtil.getHttpPackage(), recordTypeName);
+        return ValueCreator.createRecordValue(ModuleUtils.getHttpPackage(), recordTypeName);
     }
 
     /**

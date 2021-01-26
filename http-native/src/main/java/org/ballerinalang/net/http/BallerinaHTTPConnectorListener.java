@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
@@ -112,7 +113,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                                                          httpResource.getReturnMediaType());
         BObject service = httpResource.getParentService().getBalService();
         httpServicesRegistry.getRuntime().invokeMethodAsync(service, httpResource.getName(), null,
-                                                            HttpUtil.getStrandMetadata("onMessage"), callback,
+                                                            ModuleUtils.getOnMessageMetaData(), callback,
                                                             properties, httpResource.getBalResource().getReturnType(),
                                                             signatureParams);
     }

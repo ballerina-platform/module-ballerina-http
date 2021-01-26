@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.ballerinalang.net.uri.URITemplate;
@@ -283,7 +284,7 @@ public class HttpService implements Cloneable {
 //    }
 
     private static BMap getHttpServiceConfigAnnotation(BObject service) {
-        return getServiceConfigAnnotation(service, HttpPackageUtil.getHttpPackageIdentifier(),
+        return getServiceConfigAnnotation(service, ModuleUtils.getHttpPackageIdentifier(),
                                           HttpConstants.ANN_NAME_HTTP_SERVICE_CONFIG);
     }
 

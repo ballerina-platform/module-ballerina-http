@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.signature.ParamHandler;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
@@ -57,7 +58,7 @@ public class HttpResource {
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
     private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
     private static final BString HTTP_RESOURCE_CONFIG =
-            StringUtils.fromString(HttpPackageUtil.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
+            StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
     private static final String RETURN_ANNOT_PREFIX = "$returns$";
 
     private MethodType balResource;

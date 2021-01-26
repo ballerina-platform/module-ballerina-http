@@ -8,7 +8,7 @@ import org.ballerinalang.model.tree.SimpleVariableNode;
 import org.ballerinalang.model.tree.expressions.LiteralNode;
 import org.ballerinalang.model.tree.expressions.RecordLiteralNode;
 import org.ballerinalang.net.http.HttpConstants;
-import org.ballerinalang.net.http.HttpPackageUtil;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangSimpleVariable;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangExpression;
@@ -37,9 +37,9 @@ public class ResourceSignatureValidator {
     public static final int COMPULSORY_PARAM_COUNT = 2;
 
     private static final String ENDPOINT_TYPE =
-            HttpPackageUtil.getHttpPackageIdentifier() + ":" + HTTP_LISTENER_ENDPOINT;
-    private static final String CALLER_TYPE = HttpPackageUtil.getHttpPackageIdentifier() + ":" + CALLER;
-    private static final String HTTP_REQUEST_TYPE = HttpPackageUtil.getHttpPackageIdentifier() + ":" + REQUEST;
+            ModuleUtils.getHttpPackageIdentifier() + ":" + HTTP_LISTENER_ENDPOINT;
+    private static final String CALLER_TYPE = ModuleUtils.getHttpPackageIdentifier() + ":" + CALLER;
+    private static final String HTTP_REQUEST_TYPE = ModuleUtils.getHttpPackageIdentifier() + ":" + REQUEST;
 
     @SuppressWarnings("unchecked")
     public static void validate(FunctionNode resourceNode, DiagnosticLog dlog, Location pos) {

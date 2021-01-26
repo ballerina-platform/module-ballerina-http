@@ -20,8 +20,14 @@ package org.ballerinalang.net.http.nativeimpl;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.net.http.HttpConstants;
+
+import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_BUILTIN_PKG_PREFIX;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
+import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP;
 
 /**
  * This class will hold module related utility functions.
@@ -31,18 +37,64 @@ import io.ballerina.runtime.api.values.BString;
 public class ModuleUtils {
 
     private static Module httpModule;
+    private static StrandMetadata onMessageMetaData;
+    private static StrandMetadata notifySuccessMetaData;
+    private static String packageIdentifier;
 
     private ModuleUtils() {}
 
     public static void setModule(Environment env) {
         httpModule = env.getCurrentModule();
+        onMessageMetaData = new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, httpModule.getVersion(),
+                                               "onMessage");
+        notifySuccessMetaData = new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, httpModule.getVersion(),
+                                                   "notifySuccess");
+        packageIdentifier = HttpConstants.PACKAGE + ORG_NAME_SEPARATOR + HttpConstants.PROTOCOL_HTTP +
+                HttpConstants.COLON + httpModule.getVersion();
     }
 
+    /**
+     * Gets the BString value of module identifier. Used in Auth desugar
+     *
+     * @return module identifier
+     */
     public static BString getModuleIdentifier() {
         return StringUtils.fromString(httpModule.toString());
     }
 
-    public static Module getModule() {
+    /**
+     * Gets ballerina http package.
+     *
+     * @return http package.
+     */
+    public static Module getHttpPackage() {
         return httpModule;
+    }
+
+    /**
+     * Gets the metadata of onMessage() method to invoke resource method.
+     *
+     * @return metadata of onMessage() method
+     */
+    public static StrandMetadata getOnMessageMetaData() {
+        return onMessageMetaData;
+    }
+
+    /**
+     * Gets the metadata of notifySuccess() method to invoke Caller.returnResponse() method.
+     *
+     * @return metadata of notifySuccess() method
+     */
+    public static StrandMetadata getNotifySuccessMetaData() {
+        return notifySuccessMetaData;
+    }
+
+    /**
+     * Gets ballerina http package identifier.
+     *
+     * @return http package identifier.
+     */
+    public static String getHttpPackageIdentifier() {
+        return packageIdentifier;
     }
 }

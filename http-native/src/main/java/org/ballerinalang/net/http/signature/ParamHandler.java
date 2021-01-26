@@ -45,7 +45,7 @@ import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_CALLER_INFO;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PAYLOAD;
 import static org.ballerinalang.net.http.HttpConstants.COLON;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP;
-import static org.ballerinalang.net.http.HttpPackageUtil.getHttpPackageIdentifier;
+import static org.ballerinalang.net.http.nativeimpl.ModuleUtils.getHttpPackageIdentifier;
 
 /**
  * This class holds the resource signature parameters.

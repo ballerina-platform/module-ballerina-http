@@ -23,7 +23,7 @@ import org.ballerinalang.compiler.plugins.SupportedResourceParamTypes;
 import org.ballerinalang.model.tree.AnnotationAttachmentNode;
 import org.ballerinalang.model.tree.ServiceNode;
 import org.ballerinalang.model.tree.expressions.RecordLiteralNode;
-import org.ballerinalang.net.http.HttpPackageUtil;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangFunction;
@@ -57,7 +57,7 @@ import static org.ballerinalang.net.http.HttpConstants.COLON;
 public class WebSocketServiceCompilerPlugin extends AbstractCompilerPlugin {
 
     private DiagnosticLog dlog = null;
-    public static final String HTTP_CALLER_NAME = HttpPackageUtil.getHttpPackageIdentifier() + COLON + CALLER;
+    public static final String HTTP_CALLER_NAME = ModuleUtils.getHttpPackageIdentifier() + COLON + CALLER;
 
     @Override
     public void init(DiagnosticLog diagnosticLog) {

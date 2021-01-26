@@ -23,8 +23,8 @@ import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.HTTPServicesRegistry;
 import org.ballerinalang.net.http.HttpErrorType;
-import org.ballerinalang.net.http.HttpPackageUtil;
 import org.ballerinalang.net.http.HttpUtil;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.net.http.websocket.server.WebSocketServicesRegistry;
 
@@ -37,7 +37,7 @@ import static org.ballerinalang.net.http.HttpConstants.COLON;
  * @since 1.0
  */
 public class Detach extends AbstractHttpNativeFunction {
-    public static final String HTTP_CALLER_NAME = HttpPackageUtil.getHttpPackageIdentifier() + COLON + CALLER;
+    public static final String HTTP_CALLER_NAME = ModuleUtils.getHttpPackageIdentifier() + COLON + CALLER;
 
     public static Object detach(BObject serviceEndpoint, BObject serviceObj) {
         HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
