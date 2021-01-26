@@ -182,4 +182,15 @@ public interface WebSocketConnection {
      * @return Future to represent the completion of asynchronous frame sending
      */
     ChannelFuture terminateConnection(int statusCode, String reason);
+
+    /**
+     * Remove the idle state handler from the pipeline. This will be applied when reading frames from sync client.
+     */
+    void removeIdleStateHandler();
+
+    /**
+     * Add the idle state handler to the pipeline. This will be applied when reading frames from sync client.
+     * @param timeOut Read time out
+     */
+    void addIdleStateHandler(long timeOut);
 }
