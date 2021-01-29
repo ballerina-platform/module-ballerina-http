@@ -23,10 +23,10 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.mime.util.MimeUtil;
 import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 
 import static org.ballerinalang.mime.util.MimeConstants.MEDIA_TYPE;
-import static org.ballerinalang.mime.util.MimeConstants.PROTOCOL_MIME_PKG_ID;
 import static org.ballerinalang.net.http.HttpConstants.CALLER;
 import static org.ballerinalang.net.http.HttpConstants.ENTITY;
 import static org.ballerinalang.net.http.HttpConstants.PUSH_PROMISE;
@@ -51,11 +51,11 @@ public class ValueCreatorUtils {
     }
 
     public static BObject createEntityObject() {
-        return createObjectValue(PROTOCOL_MIME_PKG_ID, ENTITY);
+        return createObjectValue(MimeUtil.getMimePackage(), ENTITY);
     }
 
     public static BObject createMediaTypeObject() {
-        return createObjectValue(PROTOCOL_MIME_PKG_ID, MEDIA_TYPE);
+        return createObjectValue(MimeUtil.getMimePackage(), MEDIA_TYPE);
     }
 
     public static BObject createPushPromiseObject() {
