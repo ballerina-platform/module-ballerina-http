@@ -268,7 +268,7 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
     public void addIdleStateHandler(long timeOut) {
         if (ctx.pipeline().get(IDLE_STATE_HANDLER) == null && timeOut > 0) {
             ctx.pipeline().addBefore(MESSAGE_QUEUE_HANDLER, IDLE_STATE_HANDLER,
-                    new IdleStateHandler(0, 0, timeOut, TimeUnit.MILLISECONDS));
+                    new IdleStateHandler(0, 0, timeOut, TimeUnit.SECONDS));
         }
     }
 
