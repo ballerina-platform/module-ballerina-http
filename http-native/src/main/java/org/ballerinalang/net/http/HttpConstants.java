@@ -19,7 +19,6 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.Module;
-import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
 
@@ -473,27 +472,16 @@ public class HttpConstants {
 
     public static final String HTTP_VERSION_1_1 = "1.1";
 
+    @Deprecated
     public static final String HTTP_MODULE_VERSION = "1.0.6";
-    public static final String REASON_RECORD = "Reason";
     public static final String PACKAGE = "ballerina";
-    public static final String MODULE = "http";
 
-    // Ballerina error types related constants
-    public static final String HTTP_ERROR_DETAIL_RECORD = "Detail";
-
+    @Deprecated
     public static final String PROTOCOL_PACKAGE_HTTP =
             PACKAGE + ORG_NAME_SEPARATOR + PROTOCOL_HTTP + COLON + HTTP_MODULE_VERSION;
+    @Deprecated
     public static final Module PROTOCOL_HTTP_PKG_ID =
             new Module(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION);
-    public static final String HTTP_CALLER_NAME = PROTOCOL_PACKAGE_HTTP + COLON + CALLER;
-    public static final String PAYLOAD_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_PAYLOAD;
-
-    public static final String ON_MESSAGE_RESOURCE = "onMessage";
-    public static final StrandMetadata ON_MESSAGE_METADATA =
-            new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION, ON_MESSAGE_RESOURCE);
-    public static final String NOTIFY_SUCCESS = "notifySuccess";
-    public static final StrandMetadata NOTIFY_SUCCESS_METADATA =
-            new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION, NOTIFY_SUCCESS);
 
     private HttpConstants() {
     }

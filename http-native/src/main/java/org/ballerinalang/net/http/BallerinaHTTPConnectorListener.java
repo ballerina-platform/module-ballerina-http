@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
@@ -37,7 +38,6 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.SERVER_C
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PROTOCOL;
-import static org.ballerinalang.net.http.HttpConstants.ON_MESSAGE_METADATA;
 
 /**
  * HTTP connector listener for Ballerina.
@@ -112,9 +112,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime(),
                                                          httpResource.getReturnMediaType());
         BObject service = httpResource.getParentService().getBalService();
-        httpServicesRegistry.getRuntime()
-                .invokeMethodAsync(service, httpResource.getName(), null, ON_MESSAGE_METADATA, callback, properties,
-                                   httpResource.getBalResource().getReturnType(), signatureParams);
+        httpServicesRegistry.getRuntime().invokeMethodAsync(service, httpResource.getName(), null,
+                                                            ModuleUtils.getOnMessageMetaData(), callback,
+                                                            properties, httpResource.getBalResource().getReturnType(),
+                                                            signatureParams);
     }
 
     protected boolean accessed(HttpCarbonMessage inboundMessage) {

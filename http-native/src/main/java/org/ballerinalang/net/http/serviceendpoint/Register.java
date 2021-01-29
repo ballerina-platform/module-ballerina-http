@@ -41,32 +41,10 @@ public class Register extends AbstractHttpNativeFunction {
     public static Object register(Environment env, BObject serviceEndpoint, BObject service, Object serviceName) {
         try {
             HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
-//            WebSocketServicesRegistry webSocketServicesRegistry = getWebSocketServicesRegistry(serviceEndpoint);
             Runtime runtime = env.getRuntime();
             httpServicesRegistry.setRuntime(runtime);
             String basePath = getBasePath(serviceName);
-
-//            Type param;
-//            MethodType[] resourceList = service.getType().getMethods();
-//
-//            //TODO fix following logic to handle both resource and remote functions - sl
-//            if (resourceList.length > 0 && (param = resourceList[0].getParameterTypes()[0]) != null) {
-//                String callerType = param.getQualifiedName();
-//                if (HttpConstants.HTTP_CALLER_NAME.equals(callerType)) {
-//                    // TODO fix should work with equals - rajith
-//                    httpServicesRegistry.registerService(runtime, service, basePath);
-//                } else if (WebSocketConstants.WEBSOCKET_CALLER_NAME.equals(callerType)) {
-//                    webSocketServicesRegistry.registerService(new WebSocketServerService(service, runtime));
-//                } else if (WebSocketConstants.FULL_WEBSOCKET_CLIENT_NAME.equals(callerType)) {
-//                    return WebSocketUtil.getWebSocketError(
-//                            "Client service cannot be attached to the Listener", null,
-//                            WebSocketConstants.ErrorCode.WsGenericError.errorCode(), null);
-//                } else {
-//                    return HttpUtil.createHttpError("Invalid http Service");
-//                }
-//            } else {
             httpServicesRegistry.registerService(runtime, service, basePath);
-//            }
         } catch (BError ex) {
             return ex;
         }
