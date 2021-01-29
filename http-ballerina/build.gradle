@@ -25,7 +25,7 @@ configurations {
 }
 
 dependencies {
-    jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+    jbalTools("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
     }
     compile project(':http-native')
@@ -145,6 +145,7 @@ def artifactLibParent = file("$project.projectDir/build/lib_parent/")
 def tomlVersion = project.version.split("-")[0]
 def ballerinaCentralAccessToken = System.getenv('BALLERINA_CENTRAL_ACCESS_TOKEN')
 def originalConfig = ballerinaConfigFile.text
+def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
 
 task updateTomlVerions {
     doLast {
@@ -203,26 +204,41 @@ task revertTomlFile {
     }
 }
 
+def groupParams = ""
+def disableGroups = ""
+def debugParams = ""
+def balJavaDebugParam = ""
+
+task initializeVariables {
+    if (project.hasProperty("groups")) {
+        groupParams = "--groups ${project.findProperty("groups")}"
+    }
+    if (project.hasProperty("disable")) {
+        disableGroups = "--disable-groups ${project.findProperty("disable")}"
+    }
+    if (project.hasProperty("debug")) {
+        debugParams = "--debug ${project.findProperty("debug")}"
+    }
+    if (project.hasProperty("balJavaDebug")) {
+        balJavaDebugParam = "BAL_JAVA_DEBUG=${project.findProperty("balJavaDebug")}"
+    }
+}
+
 task ballerinaBuild {
     inputs.dir file(project.projectDir)
+    dependsOn(initializeVariables)
     finalizedBy(revertTomlFile)
     finalizedBy(':http-ballerina-tests:build')
 
     doLast {
-        def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
-        def additionalBuildParams = ""
-
-        if (project.hasProperty("debug")) {
-            additionalBuildParams = "--debug ${project.findProperty("debug")}"
-        }
-
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat build --offline --skip-tests ${additionalBuildParams} -c && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat build --skip-tests " +
+                        "${debugParams} && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/bal build --offline --skip-tests ${additionalBuildParams} -c"
+                commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal build --skip-tests ${debugParams}"
             }
         }
         copy {
@@ -278,7 +294,7 @@ task createArtifactZip(type: Zip) {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        maven(MavenPublication) {
             artifact source: createArtifactZip, extension: 'zip'
         }
     }
