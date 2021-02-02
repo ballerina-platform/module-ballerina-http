@@ -186,11 +186,11 @@ public interface WebSocketConnection {
     /**
      * Remove the idle state handler from the pipeline. This will be applied when reading frames from sync client.
      */
-    void removeIdleStateHandler();
+    void removeReadIdleStateHandler();
 
     /**
      * Add the idle state handler to the pipeline. This will be applied when reading frames from sync client.
      * @param timeOut Read time out
      */
-    void addIdleStateHandler(long timeOut);
+    void addReadIdleStateHandler(long timeOut);
 }
