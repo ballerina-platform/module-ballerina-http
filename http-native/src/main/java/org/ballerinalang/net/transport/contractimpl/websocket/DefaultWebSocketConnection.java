@@ -17,6 +17,8 @@ import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketFrameType;
 import org.ballerinalang.net.transport.contractimpl.listener.WebSocketMessageQueueHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -40,6 +42,7 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
     private int closeInitiatedStatusCode;
     private String id;
     private String negotiatedSubProtocol;
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultWebSocketConnection.class);
 
     public DefaultWebSocketConnection(ChannelHandlerContext ctx, WebSocketInboundFrameHandler frameHandler,
                                       WebSocketMessageQueueHandler webSocketMessageQueueHandler, boolean secure,
@@ -259,16 +262,18 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
         return this.closeInitiatedStatusCode;
     }
 
-    public void removeIdleStateHandler() {
+    public void removeReadIdleStateHandler() {
         if (ctx.pipeline().get(IDLE_STATE_HANDLER) != null) {
             ctx.pipeline().remove(IDLE_STATE_HANDLER);
         }
     }
 
-    public void addIdleStateHandler(long timeOut) {
-        if (ctx.pipeline().get(IDLE_STATE_HANDLER) == null && timeOut > 0) {
+    public void addReadIdleStateHandler(long readTimeOut) {
+        if (ctx.pipeline().get(IDLE_STATE_HANDLER) == null && readTimeOut > 0) {
             ctx.pipeline().addBefore(MESSAGE_QUEUE_HANDLER, IDLE_STATE_HANDLER,
-                    new IdleStateHandler(0, 0, timeOut, TimeUnit.SECONDS));
+                    new IdleStateHandler(readTimeOut, 0, 0, TimeUnit.SECONDS));
+        } else {
+            LOG.warn("Idle state handler already added to the sync client");
         }
     }
 
