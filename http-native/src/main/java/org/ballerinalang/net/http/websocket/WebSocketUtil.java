@@ -57,6 +57,7 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnect
 import org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnectorConfig;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 import org.ballerinalang.stdlib.io.utils.IOConstants;
+import org.ballerinalang.stdlib.io.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -253,7 +254,7 @@ public class WebSocketUtil {
         } else if (throwable instanceof IOException) {
             errorCode = WebSocketConstants.ErrorCode.WsConnectionError.errorCode();
             cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
-                    IOConstants.IO_PACKAGE_ID);
+                                     IOUtils.getIOPackage());
             message = "IO Error";
         }
         return getWebSocketError(message, null, errorCode, cause);
@@ -413,7 +414,7 @@ public class WebSocketUtil {
                     throw getWebSocketError("Waiting for WebSocket handshake has not been successful", null,
                                             WebSocketConstants.ErrorCode.WsInvalidHandshakeError.errorCode(),
                                             WebSocketUtil.createErrorCause("Connection timeout",
-                                    IOConstants.ErrorCode.ConnectionTimedOut.errorCode(), IOConstants.IO_PACKAGE_ID));
+                                    IOConstants.ErrorCode.ConnectionTimedOut.errorCode(), IOUtils.getIOPackage()));
                 }
             }
         } catch (InterruptedException e) {

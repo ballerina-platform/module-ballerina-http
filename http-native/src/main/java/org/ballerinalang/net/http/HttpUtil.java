@@ -83,6 +83,7 @@ import org.ballerinalang.net.transport.message.Http2PushPromise;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.stdlib.io.utils.IOConstants;
+import org.ballerinalang.stdlib.io.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,7 +201,6 @@ import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_C
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
-import static org.ballerinalang.stdlib.io.utils.IOConstants.IO_PACKAGE_ID;
 
 /**
  * Utility class providing utility methods.
@@ -548,14 +548,12 @@ public class HttpUtil {
         } else if (throwable instanceof PromiseRejectedException) {
             return createHttpError(throwable.getMessage(), HttpErrorType.HTTP2_CLIENT_ERROR);
         } else if (throwable instanceof ConnectionTimedOutException) {
-            cause = createErrorCause(throwable.getMessage(),
-                                     IOConstants.ErrorCode.ConnectionTimedOut.errorCode(),
-                                     IO_PACKAGE_ID);
+            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.ConnectionTimedOut.errorCode(),
+                                     IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else if (throwable instanceof ClientConnectorException) {
-            cause = createErrorCause(throwable.getMessage(),
-                                     IOConstants.ErrorCode.GenericError.errorCode(),
-                                     IO_PACKAGE_ID);
+            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
+                                     IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else {
             return createHttpError(throwable.getMessage(), HttpErrorType.GENERIC_CLIENT_ERROR);
