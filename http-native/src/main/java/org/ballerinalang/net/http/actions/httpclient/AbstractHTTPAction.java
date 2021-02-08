@@ -378,7 +378,7 @@ public abstract class AbstractHTTPAction {
 
     /**
      * Serialize multipart entity body. If an array of body parts exist, encode body parts else serialize body content
-     * if it exist as a byte channel.
+     * if it exist as a byte channel/stream.
      *
      * @param env                 Represents the runtime environment
      * @param entityObj           Represents the entity that holds the actual body

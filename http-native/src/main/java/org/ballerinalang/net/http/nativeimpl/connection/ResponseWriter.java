@@ -92,7 +92,7 @@ public class ResponseWriter {
 
     /**
      * Serialize multipart entity body. If an array of body parts exist, encode body parts else serialize body content
-     * if it exist as a byte channel.
+     * if it exist as a byte channel/stream.
      *
      * @param env                 Represents the runtime environment
      * @param boundaryString      Boundary string that should be used in encoding body parts
@@ -100,22 +100,15 @@ public class ResponseWriter {
      * @param messageOutputStream Represents the output stream
      */
     private static void serializeMultiparts(Environment env, String boundaryString, BObject entity,
-                                            OutputStream messageOutputStream) {
+                                             OutputStream messageOutputStream) {
         BArray bodyParts = EntityBodyHandler.getBodyPartArray(entity);
-        try {
-            if (bodyParts != null && bodyParts.size() > 0) {
-                MultipartDataSource multipartDataSource = new MultipartDataSource(env, entity, boundaryString);
-                serializeDataSource(env, multipartDataSource, entity, messageOutputStream);
-                HttpUtil.closeMessageOutputStream(messageOutputStream);
-            } else {
-                EntityBodyHandler.writeByteChannelToOutputStream(entity, messageOutputStream);
-                HttpUtil.closeMessageOutputStream(messageOutputStream);
-            }
-        } catch (IOException ex) {
-            throw ErrorCreator.createError(StringUtils.fromString(SERIALIZATION_ERROR),
-                                            StringUtils.fromString(
-                                                    "error occurred while serializing byte channel content : " +
-                                                            ex.getMessage()));
+        if (bodyParts != null && bodyParts.size() > 0) {
+            MultipartDataSource multipartDataSource = new MultipartDataSource(env, entity, boundaryString);
+            multipartDataSource.serialize(messageOutputStream);
+            HttpUtil.closeMessageOutputStream(messageOutputStream);
+        } else {
+            serializeDataSource(env, EntityBodyHandler.getMessageDataSource(entity), entity,
+                                messageOutputStream);
         }
     }
 
