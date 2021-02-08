@@ -18,7 +18,6 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
-import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -77,7 +76,7 @@ public class ResponseWriter {
         OutputStream messageOutputStream = outboundMsgDataStreamer.getOutputStream();
         if (entityObj != null) {
             if (boundaryString != null) {
-                serializeMultiparts(dataContext.getEnvironment(), boundaryString, entityObj, messageOutputStream);
+                serializeMultiparts(boundaryString, entityObj, messageOutputStream);
             } else {
                 Object outboundMessageSource = EntityBodyHandler.getMessageDataSource(entityObj);
                 serializeDataSource(outboundMessageSource, entityObj, messageOutputStream);
@@ -89,17 +88,16 @@ public class ResponseWriter {
      * Serialize multipart entity body. If an array of body parts exist, encode body parts else serialize body content
      * if it exist as a byte channel.
      *
-     * @param env                 Represents the runtime environment
      * @param boundaryString      Boundary string that should be used in encoding body parts
      * @param entity              Represents the entity that holds the actual body
      * @param messageOutputStream Represents the output stream
      */
-    private static void serializeMultiparts(Environment env, String boundaryString, BObject entity,
+    private static void serializeMultiparts(String boundaryString, BObject entity,
                                             OutputStream messageOutputStream) {
         BArray bodyParts = EntityBodyHandler.getBodyPartArray(entity);
         try {
             if (bodyParts != null && bodyParts.size() > 0) {
-                MultipartDataSource multipartDataSource = new MultipartDataSource(env, entity, boundaryString);
+                MultipartDataSource multipartDataSource = new MultipartDataSource(entity, boundaryString);
                 serializeDataSource(multipartDataSource, entity, messageOutputStream);
                 HttpUtil.closeMessageOutputStream(messageOutputStream);
             } else {
