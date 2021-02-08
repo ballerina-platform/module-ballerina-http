@@ -120,28 +120,6 @@ public class ResponseWriter {
     }
 
     /**
-     * Serialize multipart entity body. If an array of body parts exist, encode body parts else serialize body content
-     * if it exist as a byte channel.
-     *
-     * @param env                 Represents the runtime environment
-     * @param boundaryString      Boundary string that should be used in encoding body parts
-     * @param entity              Represents the entity that holds the actual body
-     * @param messageOutputStream Represents the output stream
-     */
-    private static void serializeMultipartss(Environment env, String boundaryString, BObject entity,
-                                            OutputStream messageOutputStream) {
-        BArray bodyParts = EntityBodyHandler.getBodyPartArray(entity);
-        if (bodyParts != null && bodyParts.size() > 0) {
-            MultipartDataSource multipartDataSource = new MultipartDataSource(env, entity, boundaryString);
-            serializeDataSource(env, multipartDataSource, entity, messageOutputStream);
-            HttpUtil.closeMessageOutputStream(messageOutputStream);
-        } else {
-            serializeDataSource(env, EntityBodyHandler.getMessageDataSource(entity), entity,
-                                messageOutputStream);
-        }
-    }
-
-    /**
      * Serialize message datasource.
      *
      * @param env                   Represents the runtime environment
