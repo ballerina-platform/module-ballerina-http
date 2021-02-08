@@ -51,6 +51,8 @@ isolated function buildRequest(RequestMessage message) returns Request {
         request.setBinaryPayload(message);
     } else if (message is json) {
         request.setJsonPayload(message);
+    } else if (message is stream<byte[], io:Error>) {
+        request.setByteStream(message);
     } else {
         request.setBodyParts(message);
     }
@@ -71,6 +73,8 @@ isolated function buildResponse(ResponseMessage message) returns Response {
         response.setBinaryPayload(message);
     } else if (message is json) {
         response.setJsonPayload(message);
+    } else if (message is stream<byte[], io:Error>) {
+        response.setByteStream(message);
     } else {
         response.setBodyParts(message);
     }
@@ -310,4 +314,9 @@ isolated function externGetByteChannel(mime:Entity entity) returns @tainted io:R
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getByteChannel"
+} external;
+
+isolated function externPopulateInputStream(mime:Entity entity) = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "populateInputStream"
 } external;

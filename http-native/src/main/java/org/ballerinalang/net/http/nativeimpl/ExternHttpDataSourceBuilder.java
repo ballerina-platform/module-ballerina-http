@@ -141,6 +141,11 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
     }
 
     public static Object getByteChannel(BObject entityObj) {
+        populateInputStream(entityObj);
+        return MimeEntityBody.getByteChannel(entityObj);
+    }
+
+    public static void populateInputStream(BObject entityObj) {
         HttpCarbonMessage httpCarbonMessage = (HttpCarbonMessage) entityObj.getNativeData(TRANSPORT_MESSAGE);
         if (httpCarbonMessage != null) {
             HttpMessageDataStreamer httpMessageDataStreamer = new HttpMessageDataStreamer(httpCarbonMessage);
@@ -151,7 +156,6 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
                         new EntityBodyChannel(httpMessageDataStreamer.getInputStream())));
             }
         }
-        return MimeEntityBody.getByteChannel(entityObj);
     }
 
     public static void constructNonBlockingDataSource(Future balFuture, BObject entity,

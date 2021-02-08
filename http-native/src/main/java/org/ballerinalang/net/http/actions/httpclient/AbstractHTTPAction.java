@@ -18,6 +18,7 @@
 
 package org.ballerinalang.net.http.actions.httpclient;
 
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
@@ -345,9 +346,9 @@ public abstract class AbstractHTTPAction {
         try {
             if (entityObj != null) {
                 if (boundaryString != null) {
-                    serializeMultiparts(entityObj, messageOutputStream, boundaryString);
+                    serializeMultiparts(dataContext.getEnvironment(), entityObj, messageOutputStream, boundaryString);
                 } else {
-                    serializeDataSource(entityObj, messageOutputStream);
+                    serializeDataSource(dataContext.getEnvironment(), entityObj, messageOutputStream);
                 }
             }
         } catch (IOException | EncoderException serializerException) {
@@ -379,44 +380,52 @@ public abstract class AbstractHTTPAction {
      * Serialize multipart entity body. If an array of body parts exist, encode body parts else serialize body content
      * if it exist as a byte channel.
      *
+     * @param env                 Represents the runtime environment
      * @param entityObj           Represents the entity that holds the actual body
-     * @param boundaryString      Boundary string that should be used in encoding body parts
      * @param messageOutputStream Output stream to which the payload is written
+     * @param boundaryString      Boundary string that should be used in encoding body parts
      */
-    private static void serializeMultiparts(BObject entityObj, OutputStream messageOutputStream,
+    private static void serializeMultiparts(Environment env, BObject entityObj, OutputStream messageOutputStream,
                                             String boundaryString) throws IOException {
         BArray bodyParts = EntityBodyHandler.getBodyPartArray(entityObj);
         if (bodyParts != null && bodyParts.size() > 0) {
-            serializeMultipartDataSource(messageOutputStream, boundaryString, entityObj);
-        } else { //If the content is in a byte channel
-            serializeDataSource(entityObj, messageOutputStream);
+            serializeMultipartDataSource(env, messageOutputStream, boundaryString, entityObj);
+        } else {
+            serializeDataSource(env, entityObj, messageOutputStream);
         }
     }
 
     /**
      * Encode body parts with the given boundary and send it across the wire.
      *
+     * @param env                 Represents the runtime environment
      * @param boundaryString      Boundary string of multipart entity
      * @param entityObj           Represent ballerina entity struct
      * @param messageOutputStream Output stream to which the payload is written
      */
-    private static void serializeMultipartDataSource(OutputStream messageOutputStream,
+    private static void serializeMultipartDataSource(Environment env, OutputStream messageOutputStream,
                                                      String boundaryString, BObject entityObj) {
-        MultipartDataSource multipartDataSource = new MultipartDataSource(entityObj, boundaryString);
+        MultipartDataSource multipartDataSource = new MultipartDataSource(env, entityObj, boundaryString);
         multipartDataSource.serialize(messageOutputStream);
         HttpUtil.closeMessageOutputStream(messageOutputStream);
     }
 
-    private static void serializeDataSource(BObject entityObj, OutputStream messageOutputStream)
+    private static void serializeDataSource(Environment env, BObject entityObj, OutputStream messageOutputStream)
             throws IOException {
         Object messageDataSource = EntityBodyHandler.getMessageDataSource(entityObj);
         if (messageDataSource != null) {
             HttpUtil.serializeDataSource(messageDataSource, entityObj, messageOutputStream);
             HttpUtil.closeMessageOutputStream(messageOutputStream);
+        } else if (EntityBodyHandler.getByteStream(entityObj) != null) {
+            //When the entity body is a byte stream and when it is not null
+            EntityBodyHandler.writeByteStreamToOutputStream(env, entityObj, messageOutputStream);
+            HttpUtil.closeMessageOutputStream(messageOutputStream);
         } else if (EntityBodyHandler.getByteChannel(entityObj) != null) {
             //When the entity body is a byte channel and when it is not null
             EntityBodyHandler.writeByteChannelToOutputStream(entityObj, messageOutputStream);
             HttpUtil.closeMessageOutputStream(messageOutputStream);
+        } else {
+            logger.debug("Entity does not have a serializable payload");
         }
     }
 

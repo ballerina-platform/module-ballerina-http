@@ -49,9 +49,9 @@ public abstract class ConnectionAction {
         outResponseStatusFuture.setHttpConnectorListener(outboundResStatusConnectorListener);
     }
 
-    static void serializeMsgDataSource(Object outboundMessageSource, BObject entityStruct,
-                                OutputStream messageOutputStream) {
-        serializeDataSource(outboundMessageSource, entityStruct, messageOutputStream);
+    static void serializeMsgDataSource(DataContext dataContext, Object outboundMessageSource, BObject entityStruct,
+                                       OutputStream messageOutputStream) {
+        serializeDataSource(dataContext.getEnvironment(), outboundMessageSource, entityStruct, messageOutputStream);
     }
 
     static HttpMessageDataStreamer getMessageDataStreamer(HttpCarbonMessage outboundResponse) {

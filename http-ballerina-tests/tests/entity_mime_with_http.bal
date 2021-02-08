@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/io;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
@@ -22,7 +23,7 @@ listener http:Listener mimeEP = new(mimeTest);
 
 service /test on mimeEP {
 
-    // TODO: Enable with new byteStream API
+    // TODO: Enable after the I/O revamp
     // resource function post largepayload(http:Caller caller, http:Request request) {
     //     http:Response response = new;
     //     mime:Entity responseEntity = new;
@@ -37,6 +38,19 @@ service /test on mimeEP {
     //     response.setEntity(responseEntity);
     //     checkpanic caller->respond(response);
     // }
+
+    resource function post largepayload(http:Caller caller, http:Request request) {
+        http:Response response = new;
+        mime:Entity responseEntity = new;
+        var result = request.getByteStream();
+        if (result is stream<byte[], io:Error>) {
+            responseEntity.setByteStream(result);
+        } else {
+            io:print("Error in getting byte stream");
+        }
+        response.setEntity(responseEntity);
+        checkpanic caller->respond(response);
+    }
 
     resource function 'default getPayloadFromEntity(http:Caller caller, http:Request request) returns
             http:InternalServerError? {
@@ -159,6 +173,22 @@ function testAccessingPayloadFromEntity() {
     var response = mimeClient->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {"payload":{"lang":"ballerina"}, "header":"text/plain"});
+    } else if (response is error) {
+        test:assertFail(msg = "Test Failed! " + <string>response.message());
+    }
+}
+
+@test:Config {}
+function testStreamResponseSerialize() {
+    string key = "lang";
+    string value = "ballerina";
+    string path = "/test/largepayload";
+    json jsonString = {[key]:value};
+    http:Request req = new;
+    req.setJsonPayload(jsonString);
+    var response = mimeClient->post(path, req);
+    if (response is http:Response) {
+        assertJsonPayload(response.getJsonPayload(), jsonString);
     } else if (response is error) {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
