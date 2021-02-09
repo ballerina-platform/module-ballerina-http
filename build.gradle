@@ -26,7 +26,7 @@ ext.ballerinaLangVersion = project.ballerinaLangVersion
 ext.stdlibMimeVersion = project.stdlibMimeVersion
 ext.stdlibIoVersion = project.stdlibIoVersion
 ext.stdlibLogVersion = project.stdlibLogVersion
-ext.stdlibStringutilsVersion = project.stdlibStringutilsVersion
+ext.stdlibRegexVersion = project.stdlibRegexVersion
 ext.stdlibAuthVersion = project.stdlibAuthVersion
 ext.stdlibJwtVersion = project.stdlibJwtVersion
 ext.stdlibOAuth2Version = project.stdlibOAuth2Version
@@ -34,11 +34,11 @@ ext.stdlibCacheVersion = project.stdlibCacheVersion
 ext.stdlibTimeVersion = project.stdlibTimeVersion
 ext.stdlibCryptoVersion = project.stdlibCryptoVersion
 ext.stdlibFileVersion = project.stdlibFileVersion
-ext.stdlibConfigVersion = project.stdlibConfigVersion
 ext.stdlibOsVersion = project.stdlibOsVersion
 ext.stdlibTaskVersion = project.stdlibTaskVersion
 ext.stdlibUuidVersion = project.stdlibUuidVersion
 ext.stdlibEncodingVersion = project.stdlibEncodingVersion
+ext.stdlibReflectVersion = project.stdlibReflectVersion
 
 ext.slf4jVersion = project.slf4jVersion
 ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
@@ -103,7 +103,7 @@ allprojects {
             }
         }
         maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-stringutils'
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-regex'
             credentials {
                 username System.getenv("packageUser")
                 password System.getenv("packagePAT")
@@ -158,13 +158,7 @@ allprojects {
                 password System.getenv("packagePAT")
             }
         }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-config'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
+
         maven {
             url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-os'
             credentials {
@@ -193,6 +187,13 @@ allprojects {
                 password System.getenv("packagePAT")
             }
         }
+        maven {
+            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-reflect'
+            credentials {
+                username System.getenv("packageUser")
+                password System.getenv("packagePAT")
+            }
+        }
     }
 }
 
@@ -206,7 +207,7 @@ subprojects {
         /* Standard libraries */
         ballerinaStdLibs "org.ballerinalang:io-ballerina:${stdlibIoVersion}"
         ballerinaStdLibs "org.ballerinalang:log-ballerina:${stdlibLogVersion}"
-        ballerinaStdLibs "org.ballerinalang:stringutils-ballerina:${stdlibStringutilsVersion}"
+        ballerinaStdLibs "org.ballerinalang:regex-ballerina:${stdlibRegexVersion}"
         ballerinaStdLibs "org.ballerinalang:mime-ballerina:${stdlibMimeVersion}"
         ballerinaStdLibs "org.ballerinalang:auth-ballerina:${stdlibAuthVersion}"
         ballerinaStdLibs "org.ballerinalang:jwt-ballerina:${stdlibJwtVersion}"
@@ -215,7 +216,7 @@ subprojects {
         ballerinaStdLibs "org.ballerinalang:time-ballerina:${stdlibTimeVersion}"
         ballerinaStdLibs "org.ballerinalang:crypto-ballerina:${stdlibCryptoVersion}"
         ballerinaStdLibs "org.ballerinalang:file-ballerina:${stdlibFileVersion}"
-        ballerinaStdLibs "org.ballerinalang:config-ballerina:${stdlibConfigVersion}"
+        ballerinaStdLibs "org.ballerinalang:reflect-ballerina:${stdlibReflectVersion}"
 
         // Transitive dependencies
         ballerinaStdLibs "org.ballerinalang:os-ballerina:${stdlibOsVersion}"

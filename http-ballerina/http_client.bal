@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
 
 # Provides the HTTP actions for interacting with an HTTP server. Apart from the standard HTTP methods,
 # `HttpClient.forward()` and `HttpClient.execute()` functions are provided. More complex and specific endpoint types
@@ -32,17 +32,18 @@ public client class HttpClient {
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
-    public function init(string url, ClientConfiguration? config = ()) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(string url, ClientConfiguration? config = ()) returns ClientError? {
         self.config = config ?: {};
         self.url = url;
-        createSimpleHttpClient(self, globalHttpClientConnPool);
+        return createSimpleHttpClient(self, globalHttpClientConnPool);
     }
 
     # The `HttpClient.post()` function can be used to send HTTP POST requests to HTTP endpoints.
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -56,7 +57,7 @@ public client class HttpClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -67,7 +68,7 @@ public client class HttpClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -82,7 +83,7 @@ public client class HttpClient {
     # + httpVerb - HTTP verb value
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -96,7 +97,7 @@ public client class HttpClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -110,7 +111,7 @@ public client class HttpClient {
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -124,7 +125,7 @@ public client class HttpClient {
     #
     # + path - Request path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -138,7 +139,7 @@ public client class HttpClient {
     #
     # + path - Request path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -168,7 +169,7 @@ public client class HttpClient {
     # + httpVerb - The HTTP verb value
     # + path - The resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
     remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return externSubmit(self, httpVerb, path, <Request>message);
@@ -282,6 +283,6 @@ public type HttpTimeoutError record {|
 |};
 
 function createClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
-    HttpClient simpleClient = new(url, config);
+    HttpClient simpleClient = check new(url, config);
     return simpleClient;
 }

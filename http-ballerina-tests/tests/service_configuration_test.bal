@@ -14,16 +14,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/config;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener backendEP = new(config:getAsInt("\"backendEP.port\""));
-http:Client scClient = new("http://localhost:" + serviceConfigTest.toString());
+configurable int backendPort = ?;
+configurable string basePath = ?;
+
+listener http:Listener backendEP = new(backendPort);
+http:Client scClient = check new("http://localhost:" + serviceConfigTest.toString());
 
 service /schello on backendEP {
     resource function get sayHello(http:Caller caller, http:Request request) {
-        checkpanic backendEP.attach(testingService, config:getAsString("hello.basePath"));
+        checkpanic backendEP.attach(testingService, basePath);
         checkpanic backendEP.start();
         checkpanic caller->respond("Service started!");
     }

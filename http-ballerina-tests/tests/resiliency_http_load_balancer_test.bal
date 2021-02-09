@@ -22,7 +22,7 @@ import ballerina/http;
 
 listener http:Listener LBbackendListener = new(8093);
 
-http:LoadBalanceClient lbBackendEP = new({
+http:LoadBalanceClient lbBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
@@ -31,7 +31,7 @@ http:LoadBalanceClient lbBackendEP = new({
     timeoutInMillis: 5000
 });
 
-http:LoadBalanceClient lbFailoverBackendEP = new({
+http:LoadBalanceClient lbFailoverBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock4" },
         { url: "http://localhost:8093/LBMock2" },
@@ -41,7 +41,7 @@ http:LoadBalanceClient lbFailoverBackendEP = new({
     timeoutInMillis: 2000
 });
 
-http:LoadBalanceClient delayedBackendEP = new({
+http:LoadBalanceClient delayedBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock4" },
         { url: "http://localhost:8093/LBMock5" }
@@ -52,7 +52,7 @@ http:LoadBalanceClient delayedBackendEP = new({
 
 CustomLoadBalancerRule customLbRule = new CustomLoadBalancerRule(2);
 
-http:LoadBalanceClient customLbBackendEP = new ({
+http:LoadBalanceClient customLbBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
@@ -222,11 +222,9 @@ public class CustomLoadBalancerRule {
 }
 
 //Test for round robin implementation algorithm of load balancer
-http:Client roundRobinLoadBalanceTestClient = new("http://localhost:9313");
+http:Client roundRobinLoadBalanceTestClient = check new("http://localhost:9313");
 
-@test:Config{
-    dataProvider:"roundRobinResponseDataProvider"
-}
+@test:Config{ dataProvider:roundRobinResponseDataProvider }
 function roundRobinLoadBalanceTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/roundRobin", dataFeed);
 }
@@ -241,9 +239,7 @@ function roundRobinResponseDataProvider() returns DataFeed[][] {
 }
 
 //Test for verify failover behavior with load balancer
-@test:Config{
-    dataProvider:"roundRobinWithFailoverResponseDataProvider"
-}
+@test:Config{ dataProvider:roundRobinWithFailoverResponseDataProvider }
 function roundRobinWithFailoverResponseTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/lbFailover", dataFeed);
 }
@@ -264,7 +260,7 @@ function testAllLbEndpointFailure() {
     var response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), expectedMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -272,9 +268,7 @@ function testAllLbEndpointFailure() {
 }
 
 //Test for custom algorithm implementation of load balancer
-@test:Config{
-    dataProvider:"customLbResponseDataProvider"
-}
+@test:Config{ dataProvider:customLbResponseDataProvider }
 function customLbResponseTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/customResource", dataFeed);
 }

@@ -28,7 +28,7 @@ listener http:Listener failoverEP01 = new(9301);
 listener http:Listener backendEP01 = new(8081);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP01 = new({
+http:FailoverClient foBackendEP01 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -41,7 +41,7 @@ http:FailoverClient foBackendEP01 = new({
     ]
 });
 
-http:FailoverClient foBackendFailureEP01 = new({
+http:FailoverClient foBackendFailureEP01 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -53,7 +53,7 @@ http:FailoverClient foBackendFailureEP01 = new({
     ]
 });
 
-http:FailoverClient foStatusCodesEP01 = new({
+http:FailoverClient foStatusCodesEP01 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -164,7 +164,7 @@ service /mock01 on backendEP01 {
         }
         http:Response response = new;
         if (req.hasHeader(mime:CONTENT_TYPE)
-            && req.getHeader(mime:CONTENT_TYPE).startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+            && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
             var mimeEntity = req.getBodyParts();
             if (mimeEntity is error) {
                 log:printError(mimeEntity.message());
@@ -173,7 +173,7 @@ service /mock01 on backendEP01 {
             } else {
                 foreach var bodyPart in mimeEntity {
                     if (bodyPart.hasHeader(mime:CONTENT_TYPE)
-                        && bodyPart.getHeader(mime:CONTENT_TYPE).startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+                        && bodyPart.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
                         var nestedMimeEntity = bodyPart.getBodyParts();
                         if (nestedMimeEntity is error) {
                             log:printError(nestedMimeEntity.message());

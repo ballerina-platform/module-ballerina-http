@@ -15,11 +15,11 @@
 // under the License.
 
 import ballerina/io;
+import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/crypto;
 import ballerina/time;
-import ballerina/stringutils;
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/log;
 
 # Represents an HTTP response.
@@ -102,9 +102,10 @@ public class Response {
     # + headerName - The header name
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
-    # + return - The first header value for the specified header name. Panic if the header is not found. Use the
-    #            `Response.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeader(string headerName, HeaderPosition position = LEADING) returns @tainted string {
+    # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeader(string headerName, HeaderPosition position = LEADING)
+            returns @tainted string|HeaderNotFoundError {
         return externResponseGetHeader(self, headerName, position);
     }
 
@@ -123,9 +124,10 @@ public class Response {
     # + headerName - The header name
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
-    # + return - The header values the specified header key maps to. Panic if the header is not found. Use the
-    #            `Response.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeaders(string headerName, HeaderPosition position = LEADING) returns @tainted string[] {
+    # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeaders(string headerName, HeaderPosition position = LEADING)
+            returns @tainted string[]|HeaderNotFoundError {
         return externResponseGetHeaders(self, headerName, position);
     }
 
@@ -141,7 +143,7 @@ public class Response {
 
 
         // TODO: see if this can be handled in a better manner
-        if (stringutils:equalsIgnoreCase(SERVER, headerName)) {
+        if (strings:equalsIgnoreCaseAscii(SERVER, headerName)) {
             self.server = headerValue;
         }
     }
@@ -184,7 +186,12 @@ public class Response {
     #
     # + return - Returns the `content-type` header value as a string
     public isolated function getContentType() returns @tainted string {
-        return self.getHeader(mime:CONTENT_TYPE);
+        string contentTypeHeaderValue = "";
+        var value = self.getHeader(mime:CONTENT_TYPE);
+        if (value is string) {
+            contentTypeHeaderValue = value;
+        }
+        return contentTypeHeaderValue;
     }
 
     # Extract `json` payload from the response. If the content type is not JSON, an `http:ClientError` is returned.
@@ -198,7 +205,7 @@ public class Response {
             var payload = externGetJson(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the json payload from the response";
                     return error GenericClientError(message, payload);
@@ -220,7 +227,7 @@ public class Response {
             var payload = externGetXml(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the xml payload from the response";
                     return error GenericClientError(message, payload);
@@ -242,7 +249,7 @@ public class Response {
             var payload = externGetText(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the text payload from the response";
                     return error GenericClientError(message, payload);
@@ -257,7 +264,7 @@ public class Response {
     # `Response.getBodyParts()`.
     #
     # + return - A byte channel from which the message payload can be read or `http:ClientError` in case of errors
-    public isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
+    isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -268,6 +275,27 @@ public class Response {
                 return error GenericClientError(message, payload);
             } else {
                 return payload;
+            }
+        }
+    }
+
+    # Gets the response payload as  a stream of byte[], except in the case of multiparts. To retrieve multiparts, use
+    # `Response.getBodyParts()`.
+    #
+    # + arraySize - A defaultable parameter to state the size of the byte array. Default size is 8KB
+    # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
+    public isolated function getByteStream(int arraySize = 8196) returns @tainted stream<byte[], io:Error>|ClientError {
+        var result = self.getEntityWithBodyAndWithoutHeaders();
+        if (result is error) {
+            return result;
+        } else {
+            externPopulateInputStream(result);
+            var byteStream = result.getByteStream(arraySize);
+            if (byteStream is mime:Error) {
+                string message = "Error occurred while retrieving the byte stream from the response";
+                return error GenericClientError(message, byteStream);
+            } else {
+                return byteStream;
             }
         }
     }
@@ -321,7 +349,7 @@ public class Response {
     # Sets the current time as the `last-modified` header.
     public isolated function setLastModified() {
         time:Time currentT = time:currentTime();
-        var lastModified = time:format(currentT, time:TIME_FORMAT_RFC_1123);
+        var lastModified = time:format(currentT, time:RFC_1123_DATE_TIME);
         if (lastModified is string) {
             self.setHeader(LAST_MODIFIED, lastModified);
         } else {
@@ -402,17 +430,31 @@ public class Response {
     # + payload - A `ByteChannel` through which the message payload can be read
     # + contentType - The content type of the payload. Set this to override the default `content-type`
     #                 header value
-    public isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
+    isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setByteChannel(payload, contentType);
+        // entity.setByteChannel(payload, contentType);
+        self.setEntityAndUpdateContentTypeHeader(entity);
+    }
+
+    # Sets a `Stream` as the payload. This method overrides any existing content-type headers with the default 
+    # content-type, which is `application/octet-stream`. This default value can be overridden by passing the 
+    # content-type as an optional parameter.
+    #
+    # + byteStream - Byte stream, which needs to be set to the request
+    # + contentType - Content-type to be used with the payload. This is an optional parameter.
+    #                 The `application/octet-stream` is the default value
+    public isolated function setByteStream(stream<byte[], io:Error> byteStream, 
+            string contentType = "application/octet-stream") {
+        mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
+        entity.setByteStream(byteStream, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
     # Sets the response payload.
     #
-    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `ByteChannel` or `Entity[]` (i.e: a set
-    #             of body parts)
-    public isolated function setPayload(string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[] payload) {
+    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error>` 
+    #             or `Entity[]` (i.e: a set of body parts)
+    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error> payload) {
         if (payload is string) {
             self.setTextPayload(payload);
         } else if (payload is xml) {
@@ -421,8 +463,8 @@ public class Response {
             self.setBinaryPayload(payload);
         } else if (payload is json) {
             self.setJsonPayload(payload);
-        } else if (payload is io:ReadableByteChannel) {
-            self.setByteChannel(payload);
+        } else if (payload is stream<byte[], io:Error>) {
+            self.setByteStream(payload);
         } else {
             self.setBodyParts(payload);
         }
@@ -456,9 +498,11 @@ public class Response {
     # + return - An array of cookie objects, which are included in the response
     public function getCookies() returns @tainted Cookie[] {
         Cookie[] cookiesInResponse = [];
-        string[] cookiesStringValues = self.getHeaders("Set-Cookie");
-        foreach string cookiesStringValue in cookiesStringValues {
-            cookiesInResponse.push(parseSetCookieHeader(cookiesStringValue));
+        string[]|error cookiesStringValues = self.getHeaders("Set-Cookie");
+        if (cookiesStringValues is string[]) {
+            foreach string cookiesStringValue in cookiesStringValues {
+                cookiesInResponse.push(parseSetCookieHeader(cookiesStringValue));
+            }
         }
         return cookiesInResponse;
     }
@@ -502,13 +546,13 @@ isolated function externGetResEntityWithBodyAndWithoutHeaders(Response response)
 
 // HTTP header related external functions
 isolated function externResponseGetHeader(Response response, string headerName, HeaderPosition position)
-                         returns @tainted string = @java:Method {
+                         returns @tainted string|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeader"
 } external;
 
 isolated function externResponseGetHeaders(Response response, string headerName, HeaderPosition position)
-                          returns @tainted string[] = @java:Method {
+                          returns @tainted string[]|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaders"
 } external;

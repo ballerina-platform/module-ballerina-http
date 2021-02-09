@@ -32,12 +32,13 @@ public client class LoadBalanceClient {
     # Load Balancer adds an additional layer to the HTTP client to make network interactions more resilient.
     #
     # + loadBalanceClientConfig - The configurations for the load balance client endpoint
-    public function init(LoadBalanceClientConfiguration loadBalanceClientConfig) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
         self.loadBalanceClientConfig = loadBalanceClientConfig;
         self.failover = loadBalanceClientConfig.failover;
         var lbClients = createLoadBalanceHttpClientArray(loadBalanceClientConfig);
-        if (lbClients is error) {
-            panic lbClients;
+        if (lbClients is ClientError) {
+            return lbClients;
         } else {
             self.loadBalanceClientsArray = lbClients;
             var lbRule = loadBalanceClientConfig.lbRule;
@@ -53,8 +54,8 @@ public client class LoadBalanceClient {
     # The POST remote function implementation of the LoadBalancer Connector.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -69,7 +70,7 @@ public client class LoadBalanceClient {
     #
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -80,8 +81,8 @@ public client class LoadBalanceClient {
     # The PATCH remote function implementation of the LoadBalancer Connector.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -95,8 +96,8 @@ public client class LoadBalanceClient {
     # The PUT remote function implementation of the Load Balance Connector.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -111,7 +112,7 @@ public client class LoadBalanceClient {
     #
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -140,8 +141,8 @@ public client class LoadBalanceClient {
     #
     # + httpVerb - HTTP method to be used for the request
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -155,8 +156,8 @@ public client class LoadBalanceClient {
     # The DELETE remote function implementation of the LoadBalancer Connector.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -171,7 +172,7 @@ public client class LoadBalanceClient {
 
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -187,7 +188,7 @@ public client class LoadBalanceClient {
     # + httpVerb - The HTTP verb value
     # + path - The resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel`, or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
@@ -335,6 +336,7 @@ isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorDa
 # | circuitBreaker - Copied from CommonClientConfiguration  |
 # | retryConfig - Copied from CommonClientConfiguration     |
 # | cookieConfig - Copied from CommonClientConfiguration    |
+# | responseLimits - Copied from CommonClientConfiguration  |
 #
 # + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be distributed
 # + lbRule - LoadBalancing rule
@@ -361,19 +363,21 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         secureSocket:target.secureSocket,
         cache:lbConfig.cache,
         compression:lbConfig.compression,
-        auth:lbConfig.auth
+        auth:lbConfig.auth,
+        cookieConfig:lbConfig.cookieConfig,
+        responseLimits:lbConfig.responseLimits
     };
     return clientEPConfig;
 }
 
 function createLoadBalanceHttpClientArray(LoadBalanceClientConfiguration loadBalanceClientConfig)
-                                                                                    returns Client?[]|error {
+                                                                                    returns Client?[]|ClientError {
     Client cl;
     Client?[] httpClients = [];
     int i = 0;
     foreach var target in loadBalanceClientConfig.targets {
         ClientConfiguration epConfig = createClientEPConfigFromLoalBalanceEPConfig(loadBalanceClientConfig, target);
-        cl =  new(target.url , epConfig);
+        cl =  check new(target.url , epConfig);
         httpClients[i] = cl;
         i += 1;
     }

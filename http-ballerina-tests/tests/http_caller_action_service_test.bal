@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener callerActionListener = new(callerActionTestPort);
-http:Client callerActionTestClient = new("http://localhost:" + callerActionTestPort.toString());
+http:Client callerActionTestClient = check new("http://localhost:" + callerActionTestPort.toString());
 
 string globalLvlStr = "sample value";
 
@@ -53,27 +53,27 @@ function testNonBlockingRespondAction() {
     var response = callerActionTestClient->get("/listener/respond");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "sample value");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-@test:Config {dependsOn:["testNonBlockingRespondAction"]}
+@test:Config {dependsOn:[testNonBlockingRespondAction]}
 function testExecutionAfterRespondAction() {
     test:assertEquals(globalLvlStr, "respond");
     // var response = callerActionTestClient->get("/listener/getChangedValue");
     // if (response is http:Response) {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    //     assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+    //     assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     //     assertTextPayload(response.getTextPayload(), "respond");
     // } else if (response is error) {
     //     test:assertFail(msg = "Found unexpected output type: " + response.message());
     // }
 }
 
-@test:Config {dependsOn:["testExecutionAfterRespondAction"]}
+@test:Config {dependsOn:[testExecutionAfterRespondAction]}
 function testNonBlockingRedirectAction() {
     var response = callerActionTestClient->get("/listener/redirect");
     if (response is http:Response) {
@@ -83,13 +83,13 @@ function testNonBlockingRedirectAction() {
     }
 }
 
-@test:Config {dependsOn:["testNonBlockingRedirectAction"]}
+@test:Config {dependsOn:[testNonBlockingRedirectAction]}
 function testExecutionAfterRedirectAction() {
     test:assertEquals(globalLvlStr, "redirect");
     // var response = callerActionTestClient->get("/listener/getChangedValue");
     // if (response is http:Response) {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    //     assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+    //     assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     //     assertTextPayload(response.getTextPayload(), "redirect");
     // } else if (response is error) {
     //     test:assertFail(msg = "Found unexpected output type: " + response.message());

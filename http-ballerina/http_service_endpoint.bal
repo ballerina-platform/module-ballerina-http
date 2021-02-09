@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/crypto;
-import ballerina/java;
+import ballerina/jballerina.java;
 
 /////////////////////////////
 /// HTTP Listener Endpoint ///
@@ -32,14 +32,11 @@ public class Listener {
     #
     # + port - Listening port of the HTTP service listener
     # + config - Configurations for the HTTP service listener
-    public isolated function init(int port, ListenerConfiguration? config = ()) {
+    public isolated function init(int port, ListenerConfiguration? config = ()) returns ListenerError? {
         self.instanceId = uuid();
         self.config = config ?: {};
         self.port = port;
-        error? err = externInitEndpoint(self);
-        if (err is error) {
-            panic err;
-        }
+        return externInitEndpoint(self);
     }
 
     # Starts the registered service programmatically.
@@ -73,8 +70,7 @@ public class Listener {
         return externRegister(self, s, name);
     }
 
-    # Detaches a Http or WebSocket service from the listener. Note that detaching a WebSocket service would not affect
-    # The functionality of the existing connections.
+    # Detaches a Http service from the listener.
     #
     # + s - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
@@ -82,15 +78,22 @@ public class Listener {
         return externDetach(self, s);
     }
 
-    # Retrieve the port from the HTTP listener.
+    # Retrieves the port of the HTTP listener.
     #
     # + return - The HTTP listener port
     public isolated function getPort() returns int {
         return self.port;
     }
+
+    # Retrieves the `ListenerConfiguration` of the HTTP listener.
+    #
+    # + return - The readonly HTTP listener configuration
+    public isolated function getConfig() returns readonly & ListenerConfiguration {
+        return <readonly & ListenerConfiguration> self.config.cloneReadOnly();
+    }
 }
 
-isolated function externInitEndpoint(Listener listenerObj) returns error? = @java:Method {
+isolated function externInitEndpoint(Listener listenerObj) returns ListenerError? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.InitEndpoint",
     name: "initEndpoint"
 } external;
@@ -141,21 +144,18 @@ public type Local record {|
 # + secureSocket - The SSL configurations for the service endpoint. This needs to be configured in order to
 #                  communicate through HTTPS.
 # + httpVersion - Highest HTTP version supported by the endpoint
-# + filters - If any pre-processing needs to be done to the request before dispatching the request to the
-#             resource, filters can applied
 # + timeoutInMillis - Period of time in milliseconds that a connection waits for a read/write operation. Use value 0 to
 #                   disable timeout
 # + server - The server name which should appear as a response header
-# + webSocketCompressionEnabled - Enable support for compression in WebSocket
+# + requestLimits - Configurations associated with inbound request size limits
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
     ListenerSecureSocket? secureSocket = ();
     string httpVersion = "1.1";
-    (RequestFilter|ResponseFilter)[] filters = [];
     int timeoutInMillis = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
-    boolean webSocketCompressionEnabled = true;
+    RequestLimitConfigs requestLimits = {};
 |};
 
 # Provides settings related to HTTP/1.x protocol.
@@ -163,18 +163,23 @@ public type ListenerConfiguration record {|
 # + keepAlive - Can be set to either `KEEPALIVE_AUTO`, which respects the `connection` header, or `KEEPALIVE_ALWAYS`,
 #               which always keeps the connection alive, or `KEEPALIVE_NEVER`, which always closes the connection
 # + maxPipelinedRequests - Defines the maximum number of requests that can be processed at a given time on a single
-#                          connection. By default 10 requests can be pipelined on a single cinnection and user can
+#                          connection. By default 10 requests can be pipelined on a single connection and user can
 #                          change this limit appropriately.
-# + maxUriLength - Maximum allowed length for a URI. Exceeding this limit will result in a
-#                  `414 - URI Too Long` response.
-# + maxHeaderSize - Maximum allowed size for headers. Exceeding this limit will result in a
-#                   `413 - Payload Too Large` response.
-# + maxEntityBodySize - Maximum allowed size for the entity body. By default it is set to -1 which means there
-#                       is no restriction `maxEntityBodySize`, On the Exceeding this limit will result in a
-#                       `413 - Payload Too Large` response.
 public type ListenerHttp1Settings record {|
     KeepAlive keepAlive = KEEPALIVE_AUTO;
     int maxPipelinedRequests = MAX_PIPELINED_REQUESTS;
+|};
+
+# Provides inbound request URI, total header and entity body size threshold configurations.
+#
+# + maxUriLength - Maximum allowed length for a URI. Exceeding this limit will result in a `414 - URI Too Long`
+#                  response
+# + maxHeaderSize - Maximum allowed size for headers. Exceeding this limit will result in a
+#                   `431 - Request Header Fields Too Large` response
+# + maxEntityBodySize - Maximum allowed size for the entity body. By default it is set to -1 which means there
+#                       is no restriction `maxEntityBodySize`, On the Exceeding this limit will result in a
+#                       `413 - Payload Too Large` response
+public type RequestLimitConfigs record {|
     int maxUriLength = 4096;
     int maxHeaderSize = 8192;
     int maxEntityBodySize = -1;

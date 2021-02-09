@@ -16,9 +16,10 @@
 
 import ballerina/io;
 import ballerina/lang.array;
+import ballerina/lang.'string as strings;
 import ballerina/mime;
-import ballerina/stringutils;
-import ballerina/java;
+import ballerina/regex;
+import ballerina/jballerina.java;
 import ballerina/time;
 
 # Represents an HTTP request.
@@ -139,18 +140,18 @@ public class Request {
     # these values is returned.
     #
     # + headerName - The header name
-    # + return - The first header value for the specified header name. Panic if the header is not found. Use the
-    #            `Request.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeader(string headerName) returns @tainted string {
+    # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeader(string headerName) returns @tainted string|HeaderNotFoundError {
         return externRequestGetHeader(self, headerName);
     }
 
     # Gets all the header values to which the specified header key maps to.
     #
     # + headerName - The header name
-    # + return - The header values the specified header key maps to. Panic if the header is not found. Use the
-    #            `Request.hasHeader()` beforehand to check the existence of a header.
-    public isolated function getHeaders(string headerName) returns @tainted string[] {
+    # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeaders(string headerName) returns @tainted string[]|HeaderNotFoundError {
         return externRequestGetHeaders(self, headerName);
     }
 
@@ -209,7 +210,12 @@ public class Request {
     #
     # + return - The `content-type` header value as a string
     public isolated function getContentType() returns @tainted string {
-        return self.getHeader(mime:CONTENT_TYPE);
+        string contentTypeHeaderValue = "";
+        var value = self.getHeader(mime:CONTENT_TYPE);
+        if (value is string) {
+            contentTypeHeaderValue = value;
+        }
+        return contentTypeHeaderValue;
     }
 
     # Extracts `json` payload from the request. If the content type is not JSON, an `http:ClientError` is returned.
@@ -223,7 +229,7 @@ public class Request {
             var payload = externGetJson(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the json payload from the request";
                     return error GenericClientError(message, payload);
@@ -245,7 +251,7 @@ public class Request {
             var payload = externGetXml(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the xml payload from the request";
                     return error GenericClientError(message, payload);
@@ -267,7 +273,7 @@ public class Request {
             var payload = externGetText(result);
             if (payload is mime:Error) {
                 if (payload.cause() is mime:NoContentError) {
-                    return createErrorForNoPayload(payload);
+                    return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the text payload from the request";
                     return error GenericClientError(message, payload);
@@ -282,7 +288,7 @@ public class Request {
     # `Request.getBodyParts()`.
     #
     # + return - A byte channel from which the message payload can be read or `http:ClientError` in case of errors
-    public isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
+    isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -293,6 +299,27 @@ public class Request {
                 return error GenericClientError(message, payload);
             } else {
                 return payload;
+            }
+        }
+    }
+
+    # Gets the request payload as  a stream of byte[], except in the case of multiparts. To retrieve multiparts, use
+    # `Request.getBodyParts()`.
+    #
+    # + arraySize - A defaultable parameter to state the size of the byte array. Default size is 8KB
+    # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
+    public isolated function getByteStream(int arraySize = 8196) returns @tainted stream<byte[], io:Error>|ClientError {
+        var result = self.getEntityWithBodyAndWithoutHeaders();
+        if (result is error) {
+            return result;
+        } else {
+            externPopulateInputStream(result);
+            var byteStream = result.getByteStream(arraySize);
+            if (byteStream is mime:Error) {
+                string message = "Error occurred while retrieving the byte stream from the request";
+                return error GenericClientError(message, byteStream);
+            } else {
+                return byteStream;
             }
         }
     }
@@ -324,19 +351,20 @@ public class Request {
             return mimeEntity;
         } else {
             string message = "Error occurred while retrieving form parameters from the request";
-            if (!self.hasHeader(mime:CONTENT_TYPE)) {
+            string|error contentTypeValue = self.getHeader(mime:CONTENT_TYPE);
+            if (contentTypeValue is error) {
                 string errMessage = "Content-Type header is not available";
                 mime:HeaderUnavailableError typeError = error mime:HeaderUnavailableError(errMessage);
                 return error GenericClientError(message, typeError);
             }
             string contentTypeHeaderValue = "";
-            var mediaType = mime:getMediaType(self.getHeader(mime:CONTENT_TYPE));
+            var mediaType = mime:getMediaType(checkpanic contentTypeValue);
             if (mediaType is mime:InvalidContentTypeError) {
                 return error GenericClientError(message, mediaType);
             } else {
                 contentTypeHeaderValue = mediaType.primaryType + "/" + mediaType.subType;
             }
-            if (!(stringutils:equalsIgnoreCase(mime:APPLICATION_FORM_URLENCODED, contentTypeHeaderValue))) {
+            if (!(strings:equalsIgnoreCaseAscii(mime:APPLICATION_FORM_URLENCODED, contentTypeHeaderValue))) {
                 string errorMessage = "Invalid content type : expected 'application/x-www-form-urlencoded'";
                 mime:InvalidContentTypeError typeError = error mime:InvalidContentTypeError(errorMessage);
                 return error GenericClientError(message, typeError);
@@ -347,7 +375,7 @@ public class Request {
                 return error GenericClientError(message, formData);
             } else {
                 if (formData != "") {
-                    string[] entries = stringutils:split(formData, "&");
+                    string[] entries = regex:split(formData, "&");
                     int entryIndex = 0;
                     while (entryIndex < entries.length()) {
                         int? index = entries[entryIndex].indexOf("=");
@@ -460,18 +488,32 @@ public class Request {
     # + payload - A `ByteChannel` through which the message payload can be read
     # + contentType - The content type of the payload. Set this to override the default `content-type`
     #                 header value
-    public isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
+    isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setByteChannel(payload, contentType);
+        //  entity.setByteChannel(payload, contentType);
+        self.setEntityAndUpdateContentTypeHeader(entity);
+    }
+
+    # Sets a `Stream` as the payload. This method overrides any existing content-type headers with the default 
+    # content-type, which is `application/octet-stream`. This default value can be overridden by passing the 
+    # content-type as an optional parameter.
+    #
+    # + byteStream - Byte stream, which needs to be set to the request
+    # + contentType - Content-type to be used with the payload. This is an optional parameter.
+    #                 The `application/octet-stream` is the default value
+    public isolated function setByteStream(stream<byte[], io:Error> byteStream, 
+            string contentType = "application/octet-stream") {
+        mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
+        entity.setByteStream(byteStream, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
     # Sets the request payload. Note that any string value is set as `text/plain`. To send a JSON-compatible string,
     # set the content-type header to `application/json` or use the `setJsonPayload` method instead.
     #
-    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `ByteChannel`, or `Entity[]` (i.e., a set
-    # of body parts).
-    public isolated function setPayload(string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[] payload) {
+    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error>` 
+    #             or `Entity[]` (i.e., a set of body parts).
+    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error> payload) {
         if (payload is string) {
             self.setTextPayload(payload);
         } else if (payload is xml) {
@@ -480,8 +522,8 @@ public class Request {
             self.setBinaryPayload(payload);
         } else if (payload is json) {
             self.setJsonPayload(payload);
-        } else if (payload is io:ReadableByteChannel) {
-            self.setByteChannel(payload);
+        } else if (payload is stream<byte[], io:Error>) {
+            self.setByteStream(payload);
         } else {
             self.setBodyParts(payload);
         }
@@ -495,8 +537,8 @@ public class Request {
         }
 
         RequestCacheControl reqCC = new;
-        string cacheControl = self.getHeader(CACHE_CONTROL);
-        string[] directives = stringutils:split(cacheControl, ",");
+        string cacheControl = checkpanic self.getHeader(CACHE_CONTROL);
+        string[] directives = regex:split(cacheControl, ",");
 
         foreach var dir in directives {
             var directive = dir.trim();
@@ -565,10 +607,10 @@ public class Request {
     #
     # + return - An array of cookie objects, which are included in the request
     public function getCookies() returns Cookie[] {
-        string cookiesStringValue = "";
         Cookie[] cookiesInRequest = [];
-        if (self.hasHeader("Cookie")) {
-            cookiesInRequest = parseCookieHeader(self.getHeader("Cookie"));
+        var cookieValue = self.getHeader("Cookie");
+        if (cookieValue is string) {
+            cookiesInRequest = parseCookieHeader(cookieValue);
         }
         return cookiesInRequest;
     }
@@ -654,13 +696,13 @@ public const NONE = ();
 
 // HTTP header related external functions
 isolated function externRequestGetHeader(Request request, string headerName, HeaderPosition position = LEADING)
-                         returns @tainted string = @java:Method {
+                         returns @tainted string|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeader"
 } external;
 
 isolated function externRequestGetHeaders(Request request, string headerName, HeaderPosition position = LEADING)
-                          returns @tainted string[] = @java:Method {
+                          returns @tainted string[]|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaders"
 } external;

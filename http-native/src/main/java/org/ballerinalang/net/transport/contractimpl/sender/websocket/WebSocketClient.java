@@ -57,6 +57,8 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
+import static org.ballerinalang.net.transport.contract.Constants.IDLE_STATE_HANDLER;
+
 /**
  * WebSocket client for sending and receiving messages in WebSocket as a client.
  */
@@ -156,7 +158,7 @@ public class WebSocketClient {
         }
         pipeline.addLast(Utf8FrameValidator.class.getName(), new Utf8FrameValidator());
         if (connectorConfig.getIdleTimeoutInMillis() > 0) {
-            pipeline.addLast(
+            pipeline.addLast(IDLE_STATE_HANDLER,
                     new IdleStateHandler(0, 0, connectorConfig.getIdleTimeoutInMillis(), TimeUnit.MILLISECONDS));
         }
         pipeline.addLast(Constants.WEBSOCKET_CLIENT_HANDSHAKE_HANDLER, clientHandshakeHandler);

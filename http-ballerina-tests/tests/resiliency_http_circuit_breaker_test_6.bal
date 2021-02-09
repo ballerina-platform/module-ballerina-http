@@ -35,7 +35,7 @@ http:ClientConfiguration conf05 = {
     timeoutInMillis: 2000
 };
 
-http:Client backendClientEP05 = new("http://localhost:8091", conf05);
+http:Client backendClientEP05 = check new("http://localhost:8091", conf05);
 
 service /cb on circuitBreakerEP05 {
 
@@ -72,11 +72,9 @@ service /statuscode on new http:Listener(8091) {
 }
 
 //Test for circuit breaker failure status codes functionality 
-http:Client testCBStatusCodesClient = new("http://localhost:9311");
+http:Client testCBStatusCodesClient = check new("http://localhost:9311");
 
-@test:Config{
-    dataProvider:"statusCodeResponseDataProvider"
-}
+@test:Config{ dataProvider:statusCodeResponseDataProvider }
 function httpStatusCodesTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testCBStatusCodesClient, "/cb/statuscode", dataFeed);
 }

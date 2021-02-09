@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/lang.runtime as runtime;
 import ballerina/log;
 import ballerina/mime;
@@ -24,10 +24,10 @@ import ballerina/http;
 
 listener http:Listener retryTestserviceEndpoint1 = new(retryFunctionTestPort1);
 listener http:Listener retryTestserviceEndpoint2 = new(retryFunctionTestPort2);
-http:Client retryFunctionTestClient = new("http://localhost:" + retryFunctionTestPort1.toString());
+http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunctionTestPort1.toString());
 
 // Define the end point to the call the `mockHelloService`.
-http:Client retryBackendClientEP = new ("http://localhost:" + retryFunctionTestPort1.toString(), {
+http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(), {
     // Retry configuration options.
     retryConfig: {
         intervalInMillis: 3000,
@@ -37,7 +37,7 @@ http:Client retryBackendClientEP = new ("http://localhost:" + retryFunctionTestP
     timeoutInMillis: 2000
 });
 
-http:Client internalErrorEP = new("http://localhost:" + retryFunctionTestPort2.toString(), {
+http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
     retryConfig: {
         intervalInMillis: 3000,
         count: 3,
@@ -96,12 +96,12 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             log:print("Request received from the client to healthy service.");
             http:Response response = new;
             if (req.hasHeader(mime:CONTENT_TYPE)
-                && req.getHeader(mime:CONTENT_TYPE).startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+                && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
                 var bodyParts = req.getBodyParts();
                 if (bodyParts is mime:Entity[]) {
                     foreach var bodyPart in bodyParts {
                         if (bodyPart.hasHeader(mime:CONTENT_TYPE)
-                            && bodyPart.getHeader(mime:CONTENT_TYPE).startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+                            && bodyPart.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
                             var nestedParts = bodyPart.getBodyParts();
                             if (nestedParts is error) {
                                 log:printError(nestedParts.message());
@@ -140,7 +140,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
 
 service /retryStatusService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
-        if (request.getHeader("x-retry") == "recover") {
+        if (checkpanic request.getHeader("x-retry") == "recover") {
             var backendResponse = internalErrorEP->get("/mockStatusCodeService/recover", <@untainted> request);
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
@@ -156,7 +156,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                     log:printError("Error sending response", err = responseError);
                 }
             }
-        } else if (request.getHeader("x-retry") == "internalError") {
+        } else if (checkpanic request.getHeader("x-retry") == "internalError") {
             var backendResponse = internalErrorEP->get("/mockStatusCodeService/internalError", <@untainted> request);
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
@@ -216,7 +216,7 @@ function testSimpleRetry() {
     var response = retryFunctionTestClient->post("/retryDemoService", payload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -244,7 +244,7 @@ function testRetryBasedOnHttpStatusCodes() {
     var response = retryFunctionTestClient->post("/retryStatusService", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -260,7 +260,7 @@ function testRetryBasedOnHttpStatusCodesContinuousFailure() {
     var response = retryFunctionTestClient->post("/retryStatusService", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 502, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Gateway Timed out.");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

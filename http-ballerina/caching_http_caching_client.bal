@@ -39,14 +39,14 @@ public client class HttpCachingClient {
     # + url - The URL of the HTTP endpoint to connect to
     # + config - The configurations for the client endpoint associated with the caching client
     # + cacheConfig - The configurations for the HTTP cache to be used with the caching client
-    public function init(string url, ClientConfiguration config, CacheConfig cacheConfig) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
         self.url = url;
         var httpSecureClient = createHttpSecureClient(url, config);
         if (httpSecureClient is HttpClient) {
             self.httpClient = httpSecureClient;
         } else {
-            error clientError = httpSecureClient;
-            panic <error> httpSecureClient;
+            return httpSecureClient;
         }
         self.cache = new HttpCache(cacheConfig);
     }
@@ -55,7 +55,7 @@ public client class HttpCachingClient {
     # origin server. Responses received for POST requests invalidate the cached responses for the same resource.
     #
     # + path - Resource path
-    # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error>`,
     #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
@@ -77,8 +77,8 @@ public client class HttpCachingClient {
     # suitable response cannot be found will the request be directed to the origin server.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -91,7 +91,7 @@ public client class HttpCachingClient {
     # origin server. In addition, PUT requests invalidate the currently stored responses for the given path.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
+    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
@@ -114,8 +114,8 @@ public client class HttpCachingClient {
     #
     # + httpMethod - HTTP method to be used for the request
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -141,8 +141,8 @@ public client class HttpCachingClient {
     # the origin server. Responses received for PATCH requests invalidate the cached responses for the same resource.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -163,8 +163,8 @@ public client class HttpCachingClient {
     # origin server. Responses received for DELETE requests invalidate the cached responses for the same resource.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -185,8 +185,8 @@ public client class HttpCachingClient {
     # response cannot be found will the request be directed to the origin server.
     #
     # + path - Request path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -202,8 +202,8 @@ public client class HttpCachingClient {
     # origin server. Responses received for OPTIONS requests invalidate the cached responses for the same resource.
     #
     # + path - Request path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -247,8 +247,8 @@ public client class HttpCachingClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - An `HttpFuture` that represents an asynchronous service invocation, or an error if the submission fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return self.httpClient->submit(httpVerb, path, <Request>message);
@@ -304,7 +304,7 @@ public client class HttpCachingClient {
 #            or else an `http:ClientError`
 public function createHttpCachingClient(string url, ClientConfiguration config, CacheConfig cacheConfig)
                                                                                       returns HttpClient|ClientError {
-    HttpCachingClient httpCachingClient = new(url, config, cacheConfig);
+    HttpCachingClient httpCachingClient = check new(url, config, cacheConfig);
     // log:printDebug("Created HTTP caching client: " + io:sprintf("%s", httpCachingClient));
     return httpCachingClient;
 }

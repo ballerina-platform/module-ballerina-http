@@ -19,10 +19,10 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener httpRoutingListenerEP = new(httpRoutingTestPort);
-http:Client httpRoutingClient = new("http://localhost:" + httpRoutingTestPort.toString());
+http:Client httpRoutingClient = check new("http://localhost:" + httpRoutingTestPort.toString());
 
-http:Client nasdaqEP = new("http://localhost:" + httpRoutingTestPort.toString() + "/nasdaqStocks");
-http:Client nyseEP2 = new("http://localhost:" + httpRoutingTestPort.toString() + "/nyseStocks");
+http:Client nasdaqEP = check new("http://localhost:" + httpRoutingTestPort.toString() + "/nasdaqStocks");
+http:Client nyseEP2 = check new("http://localhost:" + httpRoutingTestPort.toString() + "/nyseStocks");
 
 service /contentBasedRouting on httpRoutingListenerEP {
 
@@ -64,7 +64,7 @@ service /headerBasedRouting on httpRoutingListenerEP {
 
     resource function get .(http:Caller caller, http:Request req) {
         string nyseString = "nyse";
-        var nameString = req.getHeader("name");
+        var nameString = checkpanic req.getHeader("name");
 
         http:Request clientRequest = new;
         http:Response clientResponse = new;
@@ -121,7 +121,7 @@ function testContentBaseRouting() {
     var response = httpRoutingClient->post("/contentBasedRouting", requestNyseMessage);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNyseMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -130,7 +130,7 @@ function testContentBaseRouting() {
     response = httpRoutingClient->post("/contentBasedRouting", requestNasdaqMessage);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNasdaqMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -145,7 +145,7 @@ function testHeaderBaseRouting() {
     var response = httpRoutingClient->get("/headerBasedRouting", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNyseMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -156,7 +156,7 @@ function testHeaderBaseRouting() {
     response = httpRoutingClient->get("/headerBasedRouting", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNasdaqMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

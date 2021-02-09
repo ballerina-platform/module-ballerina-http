@@ -39,7 +39,7 @@ http:ClientConfiguration conf06 = {
     timeoutInMillis: 2000
 };
 
-http:Client backendClientEP06 = new("http://localhost:8092", conf06);
+http:Client backendClientEP06 = check new("http://localhost:8092", conf06);
 
 service /cb on circuitBreakerEP06 {
 
@@ -86,11 +86,9 @@ service /hello06 on new http:Listener(8092) {
 }
 
 //Test for circuit breaker trail failure functionality
-http:Client testTrialRunFailureClient = new("http://localhost:9312");
+http:Client testTrialRunFailureClient = check new("http://localhost:9312");
 
-@test:Config{
-    dataProvider:"trialRunFailureResponseDataProvider"
-}
+@test:Config{ dataProvider:trialRunFailureResponseDataProvider }
 function testCBTrialRunFailure(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed);
 }

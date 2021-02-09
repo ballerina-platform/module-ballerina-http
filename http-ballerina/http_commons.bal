@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
@@ -51,8 +51,8 @@ isolated function buildRequest(RequestMessage message) returns Request {
         request.setBinaryPayload(message);
     } else if (message is json) {
         request.setJsonPayload(message);
-    } else if (message is io:ReadableByteChannel) {
-        request.setByteChannel(message);
+    } else if (message is stream<byte[], io:Error>) {
+        request.setByteStream(message);
     } else {
         request.setBodyParts(message);
     }
@@ -73,8 +73,8 @@ isolated function buildResponse(ResponseMessage message) returns Response {
         response.setBinaryPayload(message);
     } else if (message is json) {
         response.setJsonPayload(message);
-    } else if (message is io:ReadableByteChannel) {
-        response.setByteChannel(message);
+    } else if (message is stream<byte[], io:Error>) {
+        response.setByteStream(message);
     } else {
         response.setBodyParts(message);
     }
@@ -202,12 +202,12 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
 
 isolated function isMultipartRequest(Request request) returns @tainted boolean {
     return request.hasHeader(mime:CONTENT_TYPE) &&
-        request.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
+        request.getContentType().startsWith(MULTIPART_AS_PRIMARY_TYPE);
 }
 
 isolated function isNestedEntity(mime:Entity entity) returns @tainted boolean {
     return entity.hasHeader(mime:CONTENT_TYPE) &&
-        entity.getHeader(mime:CONTENT_TYPE).startsWith(MULTIPART_AS_PRIMARY_TYPE);
+        entity.getContentType().startsWith(MULTIPART_AS_PRIMARY_TYPE);
 }
 
 isolated function createFailoverRequest(Request request, mime:Entity requestEntity) returns Request|ClientError {
@@ -314,4 +314,9 @@ isolated function externGetByteChannel(mime:Entity entity) returns @tainted io:R
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getByteChannel"
+} external;
+
+isolated function externPopulateInputStream(mime:Entity entity) = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "populateInputStream"
 } external;

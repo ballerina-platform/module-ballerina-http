@@ -19,15 +19,15 @@ import ballerina/http;
 
 listener http:Listener acceptEncodingListenerEP = new(acceptEncodingHeaderTestPort, {server: "Mysql"});
 
-http:Client acceptEncodingAutoEP = new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
+http:Client acceptEncodingAutoEP = check new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
     compression:http:COMPRESSION_AUTO
 });
 
-http:Client acceptEncodingEnableEP = new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
+http:Client acceptEncodingEnableEP = check new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
     compression:http:COMPRESSION_ALWAYS
 });
 
-http:Client acceptEncodingDisableEP = new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
+http:Client acceptEncodingDisableEP = check new("http://localhost:" + acceptEncodingHeaderTestPort.toString() + "/hello", {
     compression:http:COMPRESSION_NEVER
 });
 
@@ -38,7 +38,7 @@ service /hello on acceptEncodingListenerEP {
         json payload = {};
         boolean hasHeader = req.hasHeader(ACCEPT_ENCODING);
         if (hasHeader) {
-            payload = {acceptEncoding:req.getHeader(ACCEPT_ENCODING)};
+            payload = {acceptEncoding: checkpanic req.getHeader(ACCEPT_ENCODING)};
         } else {
             payload = {acceptEncoding:"Accept-Encoding header not present."};
         }

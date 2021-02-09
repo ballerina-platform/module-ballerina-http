@@ -45,7 +45,7 @@ import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_CALLER_INFO;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PAYLOAD;
 import static org.ballerinalang.net.http.HttpConstants.COLON;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
+import static org.ballerinalang.net.http.nativeimpl.ModuleUtils.getHttpPackageIdentifier;
 
 /**
  * This class holds the resource signature parameters.
@@ -69,8 +69,8 @@ public class ParamHandler {
             TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
     private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
     private static final String REQ_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST;
-    private static final String PAYLOAD_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_PAYLOAD;
-    private static final String CALLER_ANNOTATION = PROTOCOL_PACKAGE_HTTP + COLON + ANN_NAME_CALLER_INFO;
+    private static final String CALLER_ANNOTATION = getHttpPackageIdentifier() + COLON + ANN_NAME_CALLER_INFO;
+    public static final String PAYLOAD_ANNOTATION = getHttpPackageIdentifier() + COLON + ANN_NAME_PAYLOAD;
 
     public ParamHandler(ResourceMethodType resource, int pathParamCount) {
         this.resource = resource;
@@ -171,13 +171,11 @@ public class ParamHandler {
     private void createPayloadParam(String paramName, BMap annotations) {
         this.payloadParam = new PayloadParam(paramName);
         BMap mapValue = annotations.getMapValue(StringUtils.fromString(PAYLOAD_ANNOTATION));
-        Object mediaType = mapValue.get(StringUtils.fromString("mediaType"));
+        Object mediaType = mapValue.get(HttpConstants.ANN_FIELD_MEDIA_TYPE);
         if (mediaType instanceof BString) {
             String value = ((BString) mediaType).getValue();
-            if (!value.isEmpty()) {
-                this.payloadParam.getMediaTypes().add(value);
-            }
-        } else {
+            this.payloadParam.getMediaTypes().add(value);
+        } else if (mediaType instanceof BArray) {
             String[] value = ((BArray) mediaType).getStringArray();
             if (value.length != 0) {
                 this.payloadParam.getMediaTypes().add(Arrays.toString(value));

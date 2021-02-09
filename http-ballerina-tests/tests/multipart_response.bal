@@ -20,7 +20,7 @@ import ballerina/mime;
 import ballerina/test;
 
 listener http:Listener mockEP2 = new(9091);
-http:Client multipartRespClient = new("http://localhost:9091");
+http:Client multipartRespClient = check new("http://localhost:9091");
 
 service /multipart on mockEP2 {
     resource function get encode_out_response(http:Caller caller, http:Request request) {
@@ -53,7 +53,7 @@ service /multipart on mockEP2 {
     }
 
     resource function post nested_parts_in_outresponse(http:Caller caller, http:Request request) {
-        string contentType = <@untainted string> request.getHeader("content-type");
+        string contentType = <@untainted> checkpanic request.getHeader("content-type");
         http:Response outResponse = new;
         var bodyParts = request.getBodyParts();
 
@@ -91,7 +91,7 @@ function testMultipartsInOutResponse() {
             } else {
                test:assertFail(msg = errorMessage + textPart.message());
             }
-            io:ReadableByteChannel|error filePart = bodyParts[3].getByteChannel();
+            stream<byte[], io:Error>|error filePart = bodyParts[3].getByteStream();
             if (filePart is error) {
                test:assertFail(msg = errorMessage + filePart.message());
             }

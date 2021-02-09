@@ -1,4 +1,4 @@
-// Copyright (c) 2020 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,22 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/lang.runtime as runtime;
-import ballerina/http;
+import ballerina/jballerina.java;
 
-@http:ServiceConfig {
-    basePath: "/basic"
+function init() {
+    setModule();
 }
-service wsUpgradedService on new http:Listener(21044) {
-    @http:ResourceConfig {
-        webSocketUpgrade: {
-            upgradePath: "/ws",
-            upgradeService: wsUpgradeService
-        }
-    }
-    resource function upgrader(http:Caller caller, http:Request req) {
-        runtime:sleep(30);
-    }
-}
-service wsUpgradeService = @http:WebSocketServiceConfig {} service {
-};
+
+function setModule() = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ModuleUtils"
+} external;

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.ballerinalang.net.transport.urilengthvalidation;
+package org.ballerinalang.net.transport.lengthvalidation;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
@@ -55,11 +55,11 @@ import java.util.HashMap;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
- * This class tests for 414 and 413 responses.
+ * This class tests for 413, 414 and 431 responses.
  */
-public class Status414And413ResponseTest {
+public class RequestLengthValidationTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Status414And413ResponseTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RequestLengthValidationTest.class);
 
     protected ServerConnector serverConnector;
     protected ListenerConfiguration listenerConfiguration;
@@ -67,7 +67,7 @@ public class Status414And413ResponseTest {
     private static final String testValue = "Test Message";
     private URI baseURI = URI.create(String.format("http://%s:%d", "localhost", TestUtil.SERVER_CONNECTOR_PORT));
 
-    Status414And413ResponseTest() {
+    RequestLengthValidationTest() {
         this.listenerConfiguration = new ListenerConfiguration();
     }
 
@@ -75,9 +75,9 @@ public class Status414And413ResponseTest {
     public void setUp() {
         listenerConfiguration.setPort(TestUtil.SERVER_CONNECTOR_PORT);
         listenerConfiguration.setServerHeader(TestUtil.TEST_SERVER);
-        listenerConfiguration.getRequestSizeValidationConfig().setMaxEntityBodySize(1024);
-        listenerConfiguration.getRequestSizeValidationConfig().setMaxHeaderSize(1024);
-        listenerConfiguration.getRequestSizeValidationConfig().setMaxEntityBodySize(1024);
+        listenerConfiguration.getMsgSizeValidationConfig().setMaxEntityBodySize(1024);
+        listenerConfiguration.getMsgSizeValidationConfig().setMaxHeaderSize(1024);
+        listenerConfiguration.getMsgSizeValidationConfig().setMaxInitialLineLength(1024);
 
         ServerBootstrapConfiguration serverBootstrapConfig = new ServerBootstrapConfiguration(new HashMap<>());
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
@@ -130,7 +130,9 @@ public class Status414And413ResponseTest {
             httpRequest.headers().set("X-Test", getLargeHeader());
             FullHttpResponse httpResponse = httpClient.sendRequest(httpRequest);
 
-            assertEntityTooLargeResponse(httpResponse);
+            assertEquals(HttpResponseStatus.REQUEST_HEADER_FIELDS_TOO_LARGE.code(), httpResponse.status().code());
+            assertEquals(Constants.CONNECTION_CLOSE, httpResponse.headers().get(HttpHeaderNames.CONNECTION.toString()));
+            assertEquals(TestUtil.TEST_SERVER, httpResponse.headers().get(HttpHeaderNames.SERVER));
 
             httpClient = new HttpClient(TestUtil.TEST_HOST, TestUtil.SERVER_CONNECTOR_PORT);
             httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,

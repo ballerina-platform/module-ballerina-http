@@ -14,14 +14,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serializeXmlListener = new(serializeXmlTestPort);
-http:Client xmlClientEP = new("http://localhost:" + serializeXmlTestPort.toString());
+http:Client xmlClientEP = check new("http://localhost:" + serializeXmlTestPort.toString());
 
 service /serialize on serializeXmlListener {
 

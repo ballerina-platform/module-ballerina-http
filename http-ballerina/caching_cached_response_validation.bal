@@ -78,12 +78,12 @@ function sendValidationRequest(HttpClient httpClient, string path, Request origi
     // Set the precondition headers only if the user hasn't explicitly set them.
     boolean userProvidedINMHeader = originalRequest.hasHeader(IF_NONE_MATCH);
     if (!userProvidedINMHeader && cachedResponse.hasHeader(ETAG)) {
-        originalRequest.setHeader(IF_NONE_MATCH, cachedResponse.getHeader(ETAG));
+        originalRequest.setHeader(IF_NONE_MATCH, checkpanic cachedResponse.getHeader(ETAG));
     }
 
     boolean userProvidedIMSHeader = originalRequest.hasHeader(IF_MODIFIED_SINCE);
     if (!userProvidedIMSHeader && cachedResponse.hasHeader(LAST_MODIFIED)) {
-        originalRequest.setHeader(IF_MODIFIED_SINCE, cachedResponse.getHeader(LAST_MODIFIED));
+        originalRequest.setHeader(IF_MODIFIED_SINCE, checkpanic cachedResponse.getHeader(LAST_MODIFIED));
     }
 
     // TODO: handle cases where neither of the above 2 headers are present
@@ -109,9 +109,8 @@ function sendValidationRequest(HttpClient httpClient, string path, Request origi
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4
 isolated function handle304Response(Response validationResponse, Response cachedResponse, HttpCache cache, string path,
                            string httpMethod) returns @tainted Response|ClientError {
-    if (validationResponse.hasHeader(ETAG)) {
-        string etag = validationResponse.getHeader(ETAG);
-
+    string|error etag = validationResponse.getHeader(ETAG);
+    if (etag is string) {
         if (isAStrongValidator(etag)) {
             // Assuming ETags are the only strong validators
             Response[] matchingCachedResponses = cache.getAllByETag(getCacheKey(httpMethod, path), etag);

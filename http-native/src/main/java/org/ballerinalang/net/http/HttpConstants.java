@@ -19,7 +19,6 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.Module;
-import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
 
@@ -143,6 +142,7 @@ public class HttpConstants {
     public static final String ANN_NAME_PAYLOAD = "Payload";
     public static final String ANN_NAME_CALLER_INFO = "CallerInfo";
     public static final String DIRTY_RESPONSE = "dirtyResponse";
+    public static final BString ANN_FIELD_MEDIA_TYPE = StringUtils.fromString("mediaType");
 
     public static final String VALUE_ATTRIBUTE = "value";
 
@@ -191,6 +191,7 @@ public class HttpConstants {
     public static final String ANNOTATION_NAME_PATH = "Path";
     public static final String HTTP_CLIENT_EXCEPTION_CATEGORY = "http-client";
     public static final String SERVICE_ENDPOINT = "Listener";
+    public static final String INBOUND_MESSAGE = "INBOUND_MESSAGE";
     public static final String CALLER = "Caller";
     public static final String REMOTE = "Remote";
     public static final String LOCAL = "Local";
@@ -312,6 +313,7 @@ public class HttpConstants {
     public static final String HEADER_VAL_100_CONTINUE = "100-continue";
 
     //Response codes
+    public static final int INVALID_STATUS_CODE = 000;
     public static final String HTTP_BAD_REQUEST = "400";
     public static final String HEADER_X_XID = "x-b7a-xid";
     public static final String HEADER_X_REGISTER_AT_URL = "x-b7a-register-at";
@@ -337,9 +339,12 @@ public class HttpConstants {
     public static final String ENDPOINT_CONFIG_CHUNKING = "chunking";
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
-    public static final BString REQUEST_LIMITS_MAXIMUM_URL_LENGTH = StringUtils.fromString("maxUriLength");
-    public static final BString REQUEST_LIMITS_MAXIMUM_HEADER_SIZE = StringUtils.fromString("maxHeaderSize");
-    public static final BString REQUEST_LIMITS_MAXIMUM_ENTITY_BODY_SIZE = StringUtils.fromString("maxEntityBodySize");
+
+    public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
+    public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");
+    public static final BString MAX_HEADER_SIZE = StringUtils.fromString("maxHeaderSize");
+    public static final BString MAX_ENTITY_BODY_SIZE = StringUtils.fromString("maxEntityBodySize");
+
     public static final String ENDPOINT_CONFIG_PIPELINING = "pipelining";
     public static final String ENABLE_PIPELINING = "enable";
     public static final BString PIPELINING_REQUEST_LIMIT = StringUtils.fromString("maxPipelinedRequests");
@@ -391,6 +396,8 @@ public class HttpConstants {
     public static final BString HTTP2_PRIOR_KNOWLEDGE = StringUtils.fromString("http2PriorKnowledge");
     public static final BString HTTP1_SETTINGS = StringUtils.fromString("http1Settings");
     public static final BString HTTP2_SETTINGS = StringUtils.fromString("http2Settings");
+    public static final BString REQUEST_LIMITS = StringUtils.fromString("requestLimits");
+    public static final BString RESPONSE_LIMITS = StringUtils.fromString("responseLimits");
 
     //Connection Throttling field names
     public static final String CONNECTION_THROTTLING_STRUCT_REFERENCE = "connectionThrottling";
@@ -465,23 +472,16 @@ public class HttpConstants {
 
     public static final String HTTP_VERSION_1_1 = "1.1";
 
-    public static final String HTTP_MODULE_VERSION = "1.0.5";
-    public static final String REASON_RECORD = "Reason";
+    @Deprecated
+    public static final String HTTP_MODULE_VERSION = "1.0.6";
     public static final String PACKAGE = "ballerina";
-    public static final String MODULE = "http";
 
-    // Ballerina error types related constants
-    public static final String HTTP_ERROR_DETAIL_RECORD = "Detail";
-
+    @Deprecated
     public static final String PROTOCOL_PACKAGE_HTTP =
             PACKAGE + ORG_NAME_SEPARATOR + PROTOCOL_HTTP + COLON + HTTP_MODULE_VERSION;
+    @Deprecated
     public static final Module PROTOCOL_HTTP_PKG_ID =
             new Module(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION);
-    public static final String HTTP_CALLER_NAME = PROTOCOL_PACKAGE_HTTP + COLON + CALLER;
-
-    public static final String ON_MESSAGE_RESOURCE = "onMessage";
-    public static final StrandMetadata ON_MESSAGE_METADATA =
-            new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION, ON_MESSAGE_RESOURCE);
 
     private HttpConstants() {
     }

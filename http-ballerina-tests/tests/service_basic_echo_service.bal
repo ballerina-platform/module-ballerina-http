@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serviceTestEP = new(serviceTest);
-http:Client stClient = new("http://localhost:" + serviceTest.toString());
+http:Client stClient = check new("http://localhost:" + serviceTest.toString());
 
 string globalLevelStr = "";
 
@@ -212,7 +212,7 @@ function testSetString() {
     }
 }
 
-@test:Config {dependsOn : ["testSetString"]}
+@test:Config {dependsOn : [testSetString]}
 function testGetString() {
     var response = stClient->get("/echo/getString");
     if (response is http:Response) {
@@ -359,7 +359,8 @@ function testErrorReturn() {
     var response = stClient->post("/echo/parseJSON", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error occurred while retrieving the json payload from the request");
+        assertTextPayload(response.getTextPayload(),
+            "Error occurred while retrieving the json payload from the request");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

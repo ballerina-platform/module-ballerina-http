@@ -19,9 +19,9 @@ import ballerina/http;
 
 listener http:Listener httpUrlListenerEP1 = new(httpUrlTestPort1);
 listener http:Listener httpUrlListenerEP2 = new(httpUrlTestPort2);
-http:Client httpUrlClient = new("http://localhost:" + httpUrlTestPort1.toString());
+http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString());
 
-http:Client urlClient = new ("http://localhost:" + httpUrlTestPort2.toString() + "//url", { cache: { enabled: false }});
+http:Client urlClient = check new("http://localhost:" + httpUrlTestPort2.toString() + "//url", { cache: { enabled: false }});
 
 service "/url//test" on httpUrlListenerEP2 {
 
@@ -53,7 +53,7 @@ function testUrlDoubleSlash() {
     var response = httpUrlClient->get("/url");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -63,11 +64,11 @@ import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
 import org.ballerinalang.net.transport.contract.config.ForwardedExtensionConfig;
+import org.ballerinalang.net.transport.contract.config.InboundMsgSizeValidationConfig;
 import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
 import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
 import org.ballerinalang.net.transport.contract.config.Parameter;
 import org.ballerinalang.net.transport.contract.config.ProxyServerConfiguration;
-import org.ballerinalang.net.transport.contract.config.RequestSizeValidationConfig;
 import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
 import org.ballerinalang.net.transport.contract.config.SslConfiguration;
 import org.ballerinalang.net.transport.contract.exceptions.ClientConnectorException;
@@ -82,6 +83,7 @@ import org.ballerinalang.net.transport.message.Http2PushPromise;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.stdlib.io.utils.IOConstants;
+import org.ballerinalang.stdlib.io.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,7 +165,6 @@ import static org.ballerinalang.net.http.HttpConstants.ONE_BYTE;
 import static org.ballerinalang.net.http.HttpConstants.PASSWORD;
 import static org.ballerinalang.net.http.HttpConstants.PKCS_STORE_TYPE;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTPS;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP_PKG_ID;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_CACHE_CONTROL_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_MUTUAL_SSL_HANDSHAKE_FIELD;
@@ -179,6 +180,7 @@ import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_ENABLE_SESSION
 import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_SSL_VERIFY_CLIENT;
 import static org.ballerinalang.net.http.HttpConstants.SSL_PROTOCOL_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.TRANSPORT_MESSAGE;
+import static org.ballerinalang.net.http.nativeimpl.ModuleUtils.getHttpPackage;
 import static org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler.sendPipelinedResponse;
 import static org.ballerinalang.net.transport.contract.Constants.ENCODING_GZIP;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_1_1_VERSION;
@@ -199,7 +201,6 @@ import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_C
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
-import static org.ballerinalang.stdlib.io.utils.IOConstants.IO_PACKAGE_ID;
 
 /**
  * Utility class providing utility methods.
@@ -214,6 +215,7 @@ public class HttpUtil {
     private static final String METHOD_ACCESSED = "isMethodAccessed";
     private static final String IO_EXCEPTION_OCCURRED = "I/O exception occurred";
     private static final String CHUNKING_CONFIG = "chunking_config";
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal function invocation";
 
     /**
      * Set new entity to in/out request/response struct.
@@ -498,7 +500,6 @@ public class HttpUtil {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         response.waitAndReleaseAllEntities();
         if (payload != null) {
-            payload = lowerCaseTheFirstLetter(payload);
             response.addHttpContent(
                     new DefaultLastHttpContent(Unpooled.wrappedBuffer(payload.getBytes(CharsetUtil.UTF_8))));
         } else {
@@ -507,15 +508,6 @@ public class HttpUtil {
         setHttpStatusCodes(statusCode, response);
 
         return response;
-    }
-
-    private static String lowerCaseTheFirstLetter(String payload) {
-        if (!payload.isEmpty()) {
-            char[] characters = payload.toCharArray();
-            characters[0] = Character.toLowerCase(characters[0]);
-            payload = new String(characters);
-        }
-        return payload;
     }
 
     private static void setHttpStatusCodes(int statusCode, HttpCarbonMessage response) {
@@ -556,27 +548,25 @@ public class HttpUtil {
         } else if (throwable instanceof PromiseRejectedException) {
             return createHttpError(throwable.getMessage(), HttpErrorType.HTTP2_CLIENT_ERROR);
         } else if (throwable instanceof ConnectionTimedOutException) {
-            cause = createErrorCause(throwable.getMessage(),
-                                     IOConstants.ErrorCode.ConnectionTimedOut.errorCode(),
-                                     IO_PACKAGE_ID);
+            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.ConnectionTimedOut.errorCode(),
+                                     IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else if (throwable instanceof ClientConnectorException) {
-            cause = createErrorCause(throwable.getMessage(),
-                                     IOConstants.ErrorCode.GenericError.errorCode(),
-                                     IO_PACKAGE_ID);
+            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
+                                     IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else {
-            return createHttpError(throwable.getMessage());
+            return createHttpError(throwable.getMessage(), HttpErrorType.GENERIC_CLIENT_ERROR);
         }
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType) {
-        return ErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
+        return ErrorCreator.createDistinctError(errorType.getErrorName(), getHttpPackage(),
                                                 fromString(message));
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType, BError cause) {
-        return ErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
+        return ErrorCreator.createDistinctError(errorType.getErrorName(), getHttpPackage(),
                                                 fromString(message), cause);
     }
 
@@ -807,8 +797,8 @@ public class HttpUtil {
         inboundResponse.addNativeData(TRANSPORT_MESSAGE, inboundResponseMsg);
         int statusCode = inboundResponseMsg.getHttpStatusCode();
         inboundResponse.set(RESPONSE_STATUS_CODE_FIELD, (long) statusCode);
-        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD,
-                            fromString(HttpResponseStatus.valueOf(statusCode).reasonPhrase()));
+        String reasonPhrase = inboundResponseMsg.getReasonPhrase();
+        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD, fromString(reasonPhrase));
 
         if (inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) != null) {
             inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD,
@@ -823,8 +813,8 @@ public class HttpUtil {
 
         String cacheControlHeader = inboundResponseMsg.getHeader(CACHE_CONTROL.toString());
         if (cacheControlHeader != null) {
-            ResponseCacheControlObj responseCacheControl = new ResponseCacheControlObj(PROTOCOL_HTTP_PKG_ID,
-                    RESPONSE_CACHE_CONTROL);
+            ResponseCacheControlObj responseCacheControl = new ResponseCacheControlObj(getHttpPackage(),
+                                                                                       RESPONSE_CACHE_CONTROL);
             responseCacheControl.populateStruct(cacheControlHeader);
             inboundResponse.set(RESPONSE_CACHE_CONTROL_FIELD, responseCacheControl.getObj());
         }
@@ -1103,17 +1093,18 @@ public class HttpUtil {
                                              HttpCarbonMessage outboundResponseMsg) {
         serverConnectionStructCheck(reqMsg);
         int statusCode = outboundResponseMsg.getHttpStatusCode();
-        methodInvocationCheck(connectionObj, reqMsg, statusCode);
+        methodInvocationCheck(reqMsg, statusCode, ILLEGAL_FUNCTION_INVOKED);
     }
 
-    private static void methodInvocationCheck(BObject connectionObj, HttpCarbonMessage reqMsg, int statusCode) {
-        if (connectionObj.getNativeData(METHOD_ACCESSED) != null || reqMsg == null) {
-            throw new IllegalStateException("illegal function invocation");
+    static void methodInvocationCheck(HttpCarbonMessage reqMsg, int statusCode, String errMsg) {
+        if (reqMsg == null || reqMsg.getProperty(METHOD_ACCESSED) != null) {
+            throw createHttpError(errMsg, HttpErrorType.GENERIC_CLIENT_ERROR);
         }
 
-        if (!is100ContinueRequest(reqMsg, statusCode)) {
-            connectionObj.addNativeData(METHOD_ACCESSED, true);
+        if (is100ContinueRequest(reqMsg, statusCode) || statusCode == HttpConstants.INVALID_STATUS_CODE) {
+            return;
         }
+        reqMsg.setProperty(METHOD_ACCESSED, true);
     }
 
     public static void serverConnectionStructCheck(HttpCarbonMessage reqMsg) {
@@ -1500,7 +1491,7 @@ public class HttpUtil {
             ((BXmlItem) value).serialize(outputStream);
         } else if (value instanceof BXmlSequence) {
             ((BXmlSequence) value).serialize(outputStream);
-        } else if (value instanceof Long || value instanceof String ||
+        } else if (value instanceof Long || value instanceof String || value instanceof BDecimal ||
                 value instanceof Double || value instanceof Integer || value instanceof Boolean) {
             outputStream.write(value.toString().getBytes(Charset.defaultCharset()));
         } else if (value instanceof BString) {
@@ -1531,18 +1522,24 @@ public class HttpUtil {
         String host = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_HOST).getValue();
         BMap sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURE_SOCKET);
         String httpVersion = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_VERSION).getValue();
-        BMap<BString, Object> http1Settings;
         long idleTimeout = endpointConfig.getIntValue(HttpConstants.ENDPOINT_CONFIG_TIMEOUT);
 
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         if (HTTP_1_1_VERSION.equals(httpVersion)) {
-            http1Settings = (BMap<BString, Object>) endpointConfig.get(HttpConstants.HTTP1_SETTINGS);
+            BMap<BString, Object> http1Settings =
+                    (BMap<BString, Object>) endpointConfig.get(HttpConstants.HTTP1_SETTINGS);
             listenerConfiguration.setPipeliningLimit(http1Settings.getIntValue(HttpConstants.PIPELINING_REQUEST_LIMIT));
             String keepAlive = http1Settings.getStringValue(HttpConstants.ENDPOINT_CONFIG_KEEP_ALIVE).getValue();
             listenerConfiguration.setKeepAliveConfig(HttpUtil.getKeepAliveConfig(keepAlive));
-            // Set Request validation limits.
-            setRequestSizeValidationConfig(http1Settings, listenerConfiguration);
         }
+
+        // Set Request validation limits.
+        BMap<BString, Object> requestLimits =
+                (BMap<BString, Object>) endpointConfig.getMapValue(HttpConstants.REQUEST_LIMITS);
+        setInboundMgsSizeValidationConfig(requestLimits.getIntValue(HttpConstants.MAX_URI_LENGTH),
+                                          requestLimits.getIntValue(HttpConstants.MAX_HEADER_SIZE),
+                                          requestLimits.getIntValue(HttpConstants.MAX_ENTITY_BODY_SIZE),
+                                          listenerConfiguration.getMsgSizeValidationConfig());
 
         if (host == null || host.trim().isEmpty()) {
             listenerConfiguration.setHost(ConfigRegistry.getInstance().getConfigOrDefault("b7a.http.host",
@@ -1587,29 +1584,25 @@ public class HttpUtil {
         return listenerConfiguration;
     }
 
-    private static void setRequestSizeValidationConfig(BMap http1Settings,
-                                                     ListenerConfiguration listenerConfiguration) {
-        long maxUriLength = http1Settings.getIntValue(HttpConstants.REQUEST_LIMITS_MAXIMUM_URL_LENGTH);
-        long maxHeaderSize = http1Settings.getIntValue(HttpConstants.REQUEST_LIMITS_MAXIMUM_HEADER_SIZE);
-        long maxEntityBodySize = http1Settings.getIntValue(HttpConstants.REQUEST_LIMITS_MAXIMUM_ENTITY_BODY_SIZE);
-        RequestSizeValidationConfig requestSizeValidationConfig = listenerConfiguration
-                .getRequestSizeValidationConfig();
-
-        if (maxUriLength >= 0) {
-            requestSizeValidationConfig.setMaxUriLength(Math.toIntExact(maxUriLength));
+    public static void setInboundMgsSizeValidationConfig(long maxInitialLineLength, long maxHeaderSize,
+                                                         long maxEntityBodySize,
+                                                         InboundMsgSizeValidationConfig sizeValidationConfig) {
+        if (maxInitialLineLength >= 0) {
+            sizeValidationConfig.setMaxInitialLineLength(Math.toIntExact(maxInitialLineLength));
         } else {
-            throw new BallerinaConnectorException("Invalid configuration found for maxUriLength : " + maxUriLength);
+            throw new BallerinaConnectorException(
+                    "Invalid configuration found for max initial line length : " + maxInitialLineLength);
         }
 
         if (maxHeaderSize >= 0) {
-            requestSizeValidationConfig.setMaxHeaderSize(Math.toIntExact(maxHeaderSize));
+            sizeValidationConfig.setMaxHeaderSize(Math.toIntExact(maxHeaderSize));
         } else {
             throw new BallerinaConnectorException("Invalid configuration found for maxHeaderSize : " + maxHeaderSize);
         }
 
         if (maxEntityBodySize != -1) {
             if (maxEntityBodySize >= 0) {
-                requestSizeValidationConfig.setMaxEntityBodySize(maxEntityBodySize);
+                sizeValidationConfig.setMaxEntityBodySize(maxEntityBodySize);
             } else {
                 throw new BallerinaConnectorException(
                         "Invalid configuration found for maxEntityBodySize : " + maxEntityBodySize);

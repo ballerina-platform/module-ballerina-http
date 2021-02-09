@@ -51,13 +51,14 @@ public client class FailoverClient {
 
     # Failover caller actions which provides failover capabilities to an HTTP client endpoint.
     #
-    # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance.
-    public function init(FailoverClientConfiguration failoverClientConfig) {
+    # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(FailoverClientConfiguration failoverClientConfig) returns ClientError? {
         self.failoverClientConfig = failoverClientConfig;
         self.succeededEndpointIndex = 0;
         var failoverHttpClientArray = createFailoverHttpClientArray(failoverClientConfig);
-        if (failoverHttpClientArray is error) {
-            panic failoverHttpClientArray;
+        if (failoverHttpClientArray is ClientError) {
+            return failoverHttpClientArray;
         } else {
             Client?[] clients = failoverHttpClientArray;
             boolean[] failoverCodes = populateErrorCodeIndex(failoverClientConfig.failoverCodes);
@@ -73,8 +74,8 @@ public client class FailoverClient {
     # The POST remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -94,7 +95,7 @@ public client class FailoverClient {
     #
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -110,8 +111,8 @@ public client class FailoverClient {
     # The PATCH remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -130,8 +131,8 @@ public client class FailoverClient {
     # The PUT remote function  implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -151,7 +152,7 @@ public client class FailoverClient {
     #
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -189,8 +190,8 @@ public client class FailoverClient {
     #
     # + httpVerb - HTTP method to be used for the request
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -209,8 +210,8 @@ public client class FailoverClient {
     # The DELETE remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -230,7 +231,7 @@ public client class FailoverClient {
     #
     # + path - Resource path
     # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -253,7 +254,7 @@ public client class FailoverClient {
     # + httpVerb - The HTTP verb value
     # + path - The resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns @tainted HttpFuture|ClientError {
@@ -473,8 +474,8 @@ isolated function populateErrorsFromLastResponse (Response inResponse, ClientErr
 # | circuitBreaker - Copied from CommonClientConfiguration  |
 # | retryConfig - Copied from CommonClientConfiguration     |
 # | cookieConfig - Copied from CommonClientConfiguration    |
+# | responseLimits - Copied from CommonClientConfiguration  |
 #
-
 # + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be sent on failover
 # + failoverCodes - Array of HTTP response status codes for which the failover behaviour should be triggered
 # + intervalInMillis - Failover delay interval in milliseconds
@@ -500,13 +501,15 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         secureSocket:target.secureSocket,
         cache:foConfig.cache,
         compression:foConfig.compression,
-        auth:foConfig.auth
+        auth:foConfig.auth,
+        cookieConfig:foConfig.cookieConfig,
+        responseLimits:foConfig.responseLimits
     };
     return clientEPConfig;
 }
 
 function createFailoverHttpClientArray(FailoverClientConfiguration failoverClientConfig)
-                                                                            returns Client?[]|error {
+                                                                            returns Client?[]|ClientError {
 
     Client clientEp;
     Client?[] httpClients = [];
@@ -514,7 +517,7 @@ function createFailoverHttpClientArray(FailoverClientConfiguration failoverClien
 
     foreach var target in failoverClientConfig.targets {
         ClientConfiguration epConfig = createClientEPConfigFromFailoverEPConfig(failoverClientConfig, target);
-        clientEp = new(target.url, epConfig);
+        clientEp = check new(target.url, epConfig);
         httpClients[i] = clientEp;
         i += 1;
     }

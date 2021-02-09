@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener matrixEP = new(uriMatrixParamMatchingTest);
-http:Client matrixClient = new("http://localhost:" + uriMatrixParamMatchingTest.toString());
+http:Client matrixClient = check new("http://localhost:" + uriMatrixParamMatchingTest.toString());
 
 service /hello on matrixEP {
 
@@ -130,7 +130,8 @@ function testErrorReportInURI() {
     var response = matrixClient->get(path);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "found non-matrix parameter 'age' in path 'hello/t2/john;age;color=white/foo;a=5;b=10'");
+        assertTextPayload(response.getTextPayload(),
+            "Found non-matrix parameter 'age' in path 'hello/t2/john;age;color=white/foo;a=5;b=10'");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

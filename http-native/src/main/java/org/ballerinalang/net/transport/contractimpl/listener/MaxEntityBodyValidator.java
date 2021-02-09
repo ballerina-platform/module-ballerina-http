@@ -88,7 +88,7 @@ public class MaxEntityBodyValidator extends ChannelInboundHandlerAdapter {
         this.fullContent.forEach(ReferenceCounted::release);
         this.fullContent.forEach(httpContent -> this.fullContent.remove(httpContent));
 
-        LOG.warn("Inbound request URI length exceeds the max uri length allowed for a request");
+        LOG.warn("Inbound request payload size exceeds the max entity body allowed for a request");
     }
 
     private boolean isContentLengthInvalid(HttpMessage start, long maxContentLength) {

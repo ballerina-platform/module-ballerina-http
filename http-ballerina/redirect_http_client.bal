@@ -35,7 +35,9 @@ public client class RedirectClient {
     # + config - HTTP ClientConfiguration to be used for HTTP client invocation
     # + redirectConfig - Configurations associated with redirect
     # + httpClient - HTTP client for outbound HTTP requests
-    public function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient)
+            returns ClientError? {
         self.url = url;
         self.config = config;
         self.redirectConfig = redirectConfig;
@@ -47,7 +49,7 @@ public client class RedirectClient {
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`,
-    #             `byte[]`, `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `byte[]`, `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -67,7 +69,7 @@ public client class RedirectClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel`, or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -87,7 +89,7 @@ public client class RedirectClient {
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or or any payload of type `string`, `xml`, `json`,
-    #             `byte[]`, `io:ReadableByteChannel`, or `mime:Entity[]`
+    #             `byte[]`, `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -104,7 +106,7 @@ public client class RedirectClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -138,7 +140,7 @@ public client class RedirectClient {
     # + httpVerb - The HTTP verb value
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -164,7 +166,7 @@ public client class RedirectClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -184,7 +186,7 @@ public client class RedirectClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -204,7 +206,7 @@ public client class RedirectClient {
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`,
-    #             `byte[]`, `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `byte[]`, `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -226,7 +228,7 @@ public client class RedirectClient {
     # + httpVerb - The HTTP verb value
     # + path - The resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return self.httpClient->submit(httpVerb, path, <Request>message);
@@ -337,8 +339,8 @@ function redirect(Response response, HttpOperation httpVerb, Request request,
         redirectClient.currentRedirectCount = currentCount;
         var redirectMethod = getRedirectMethod(httpVerb, response);
         if (redirectMethod is HttpOperation) {
-            if (response.hasHeader(LOCATION)) {
-                final string location = response.getHeader(LOCATION);
+             var location = response.getHeader(LOCATION);
+             if (location is string) {
                 // log:printDebug(isolated function() returns string {
                 //     return "Location header value: " + location;
                 // });

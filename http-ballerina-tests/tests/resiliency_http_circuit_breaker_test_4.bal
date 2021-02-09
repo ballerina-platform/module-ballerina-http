@@ -35,7 +35,7 @@ http:ClientConfiguration conf03 = {
     timeoutInMillis: 2000
 };
 
-http:Client simpleClientEP = new("http://localhost:8089", conf03);
+http:Client simpleClientEP = check new("http://localhost:8089", conf03);
 
 service /cb on circuitBreakerEP03 {
 
@@ -74,11 +74,9 @@ service /simple on new http:Listener(8089) {
 }
 
 //Test for circuit breaker getState functionality
-http:Client testGetStateClient = new("http://localhost:9309");
+http:Client testGetStateClient = check new("http://localhost:9309");
 
-@test:Config{
-    dataProvider:"getStateResponseDataProvider"
-}
+@test:Config{ dataProvider:getStateResponseDataProvider }
 function testGetState(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testGetStateClient, "/cb/getstate", dataFeed);
 }

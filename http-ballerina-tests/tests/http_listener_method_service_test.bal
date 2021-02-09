@@ -20,10 +20,10 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener listenerMethodListener = new(listenerMethodTestPort1);
-http:Client listenerMethodTestClient = new("http://localhost:" + listenerMethodTestPort1.toString());
-http:Client backendTestClient = new("http://localhost:" + listenerMethodTestPort2.toString());
+http:Client listenerMethodTestClient = check new("http://localhost:" + listenerMethodTestPort1.toString());
+http:Client backendTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString());
 
-http:Listener listenerMethodbackendEP = new(listenerMethodTestPort2);
+http:Listener listenerMethodbackendEP = check new(listenerMethodTestPort2);
 
 boolean listenerIdle = true;
 boolean listenerStopped = false;
@@ -65,31 +65,31 @@ function testServiceAttachAndStart() {
     var response = listenerMethodTestClient->get("/startService/test");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Backend service started!");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-@test:Config {dependsOn:["testServiceAttachAndStart"]}
+@test:Config {dependsOn:[testServiceAttachAndStart]}
 function testAvailabilityOfAttachedService() {
     var response = backendTestClient->get("/mock1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Mock1 invoked!");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-@test:Config {dependsOn:["testAvailabilityOfAttachedService"]}
+@test:Config {dependsOn:[testAvailabilityOfAttachedService]}
 function testGracefulStopMethod() {
     var response = backendTestClient->get("/mock2");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Mock2 invoked!");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -97,13 +97,13 @@ function testGracefulStopMethod() {
 }
 
 // Disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25675
-@test:Config {dependsOn:["testGracefulStopMethod"], enable:false}
+@test:Config {dependsOn:[testGracefulStopMethod], enable:false}
 function testInvokingStoppedService() {
     runtime:sleep(10);
     var response = backendTestClient->get("/mock1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Mock2 invoked!");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

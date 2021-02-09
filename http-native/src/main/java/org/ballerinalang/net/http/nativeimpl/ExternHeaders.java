@@ -18,24 +18,29 @@
 
 package org.ballerinalang.net.http.nativeimpl;
 
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ballerinalang.mime.util.MimeUtil;
+import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.HttpUtil;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.ballerinalang.mime.util.MimeConstants.HEADER_NOT_FOUND_ERROR;
 import static org.ballerinalang.mime.util.MimeConstants.INVALID_HEADER_OPERATION_ERROR;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_TRAILER_HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.LEADING_HEADER;
+import static org.ballerinalang.net.http.HttpErrorType.HEADER_NOT_FOUND_ERROR;
 
 /**
  * Utilities related to HTTP request/response headers.
@@ -55,15 +60,15 @@ public class ExternHeaders {
         }
     }
 
-    public static BString getHeader(BObject messageObj, BString headerName, Object position) {
+    public static Object getHeader(BObject messageObj, BString headerName, Object position) {
         HttpHeaders httpHeaders = getHeadersBasedOnPosition(messageObj, position);
         if (httpHeaders == null) {
-            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
         if (httpHeaders.get(headerName.getValue()) != null) {
             return StringUtils.fromString(httpHeaders.get(headerName.getValue()));
         } else {
-            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
     }
 
@@ -77,14 +82,14 @@ public class ExternHeaders {
         return StringUtils.fromStringArray(distinctNames.toArray(new String[0]));
     }
 
-    public static BArray getHeaders(BObject messageObj, BString headerName, Object position) {
+    public static Object getHeaders(BObject messageObj, BString headerName, Object position) {
         HttpHeaders httpHeaders = getHeadersBasedOnPosition(messageObj, position);
         if (httpHeaders == null) {
-            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
         List<String> headerValueList = httpHeaders.getAll(headerName.getValue());
         if (headerValueList == null) {
-            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
         return StringUtils.fromStringArray(headerValueList.toArray(new String[0]));
     }
@@ -154,5 +159,14 @@ public class ExternHeaders {
             messageObj.addNativeData(HTTP_TRAILER_HEADERS, httpTrailerHeaders);
         }
         return httpTrailerHeaders;
+    }
+
+    public static Object getAuthorizationHeader(Environment env) {
+        HttpCarbonMessage inboundMessage = (HttpCarbonMessage) env.getStrandLocal(HttpConstants.INBOUND_MESSAGE);
+        String authorizationHeader = inboundMessage.getHeader(HttpHeaderNames.AUTHORIZATION.toString());
+        if (authorizationHeader == null) {
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
+        }
+        return StringUtils.fromString(authorizationHeader);
     }
 }

@@ -17,9 +17,12 @@
 // NOTE: All the tokens/credentials used in this test are dummy tokens/credentials and used only for testing purposes.
 
 import ballerina/http;
+import ballerina/regex;
+import ballerina/test;
 
 const string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
 const string TRUSTSTORE_PATH = "tests/certsandkeys/ballerinaTruststore.p12";
+const string ACCESS_TOKEN = "2YotnFZFEjr1zCsicMWpAA";
 
 isolated function createDummyRequest() returns http:Request {
     http:Request request = new;
@@ -35,6 +38,45 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
     return request;
 }
 
+function sendRequest(string path, string token) returns http:Response|http:PayloadType|http:ClientError {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+        auth: {
+            token: token
+        },
+        secureSocket: {
+            trustStore: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    return <@untainted> clientEP->get(path);
+}
+
+isolated function assertSuccess(http:Response|http:PayloadType|http:ClientError response) {
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+isolated function assertForbidden(http:Response|http:PayloadType|http:ClientError response) {
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 403);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+isolated function assertUnauthorized(http:Response|http:PayloadType|http:ClientError response) {
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 401);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
 // Mock OAuth2 authorization server implementation, which treats the APIs with successful responses.
 listener http:Listener oauth2Listener = new(oauth2AuthorizationServerPort, {
     secureSocket: {
@@ -46,29 +88,43 @@ listener http:Listener oauth2Listener = new(oauth2AuthorizationServerPort, {
 });
 
 service /oauth2 on oauth2Listener {
-    resource function post token(http:Caller caller, http:Request request) {
-        http:Response res = new;
+    resource function post token() returns json {
         json response = {
-            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "access_token": ACCESS_TOKEN,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
         };
-        res.setPayload(response);
-        checkpanic caller->respond(res);
+        return response;
     }
 
-    resource function post token/introspect/success(http:Caller caller, http:Request request) {
-        http:Response res = new;
-        json response = { "active": true, "exp": 3600, "scp": "read write" };
-        res.setPayload(response);
-        checkpanic caller->respond(res);
+    resource function post token/refresh() returns json {
+        json response = {
+            "access_token": ACCESS_TOKEN,
+            "token_type": "example",
+            "expires_in": 3600,
+            "example_parameter": "example_value"
+        };
+        return response;
     }
 
-    resource function post token/introspect/failure(http:Caller caller, http:Request request) {
-        http:Response res = new;
-        json response = { "active": false };
-        res.setPayload(response);
-        checkpanic caller->respond(res);
+    resource function post token/introspect(http:Request request) returns json {
+        string|http:ClientError payload = request.getTextPayload();
+        json response = ();
+        if (payload is string) {
+            string[] parts = regex:split(payload, "&");
+            foreach string part in parts {
+                if (part.indexOf("token=") is int) {
+                    string token = regex:split(part, "=")[1];
+                    if (token == ACCESS_TOKEN) {
+                        response = { "active": true, "exp": 3600, "scp": "read write" };
+                    } else {
+                        response = { "active": false };
+                    }
+                    break;
+                }
+            }
+        }
+        return response;
     }
 }

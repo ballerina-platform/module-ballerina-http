@@ -16,12 +16,12 @@
 
 import ballerina/lang.'float as langfloat;
 import ballerina/lang.'int as langint;
-import ballerina/stringutils;
+import ballerina/lang.'boolean as langboolean;
 import ballerina/test;
 import ballerina/http;
 
 listener http:Listener utmTestEP = new(uriTemplateMatchingTest);
-http:Client utmClient = new("http://localhost:" + uriTemplateMatchingTest.toString());
+http:Client utmClient = check new("http://localhost:" + uriTemplateMatchingTest.toString());
 
 service /hello on utmTestEP {
 
@@ -152,7 +152,11 @@ service /hello on utmTestEP {
         map<string[]> params = req.getQueryParams();
         string[]? barStr = params["foo"];
         string val = barStr is string[] ? barStr[0] : "";
-        boolean bar = stringutils:toBoolean(val);
+        boolean bar = false;
+        boolean|error result = langboolean:fromString(val);
+        if (result is boolean) {
+            bar = result;
+        }
         json responseJson = {"echo15":bar};
 
         http:Response res = new;
@@ -1028,7 +1032,7 @@ function testMultipleNegativeRestParams() {
     var response = utmClient->get("/restParam/int/12.3/4.56");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error in casting path param : For input string: \"12.3\"");
+        assertTextPayload(response.getTextPayload(), "Error in casting path param : For input string: \"12.3\"");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

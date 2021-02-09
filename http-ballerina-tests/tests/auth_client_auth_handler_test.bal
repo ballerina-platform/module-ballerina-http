@@ -29,7 +29,7 @@ isolated function testClientBasicAuthHandler() {
     http:Request request = createDummyRequest();
     http:Request|http:ClientAuthError result = handler.enrich(request);
     if (result is http:Request) {
-        string header = result.getHeader(http:AUTH_HEADER);
+        string header = checkpanic result.getHeader(http:AUTH_HEADER);
         test:assertEquals(header, "Basic YWRtaW46MTIz");
     } else {
         test:assertFail(msg = "Test Failed! " + result.message());
@@ -45,7 +45,7 @@ isolated function testClientBearerTokenAuthHandler() {
     http:Request request = createDummyRequest();
     http:Request|http:ClientAuthError result = handler.enrich(request);
     if (result is http:Request) {
-        string header = result.getHeader(http:AUTH_HEADER);
+        string header = checkpanic result.getHeader(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ");
     } else {
         test:assertFail(msg = "Test Failed! " + result.message());
@@ -71,7 +71,7 @@ isolated function testClientSelfSignedJwtAuthHandler() {
     http:Request request = createDummyRequest();
     http:Request|http:ClientAuthError result = handler.enrich(request);
     if (result is http:Request) {
-        string header = result.getHeader(http:AUTH_HEADER);
+        string header = checkpanic result.getHeader(http:AUTH_HEADER);
         test:assertTrue(header.startsWith("Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"));
     } else {
         test:assertFail(msg = "Test Failed! " + result.message());
@@ -113,20 +113,17 @@ isolated function testClientOAuth2Handler() {
     };
 
     http:OAuth2DirectTokenConfig config3 = {
-        accessToken: "2YotnFZFEjr1zCsicMWpAA",
-        refreshConfig: {
-            refreshUrl: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/refresh",
-            refreshToken: "XlfBs91yquexJqDaKEMzVg==",
-            clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
-            clientSecret: "9205371918321623741",
-            scopes: ["token-scope1", "token-scope2"],
-            clientConfig: {
-                secureSocket: {
-                   trustStore: {
-                       path: TRUSTSTORE_PATH,
-                       password: "ballerina"
-                   }
-                }
+        refreshUrl: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/refresh",
+        refreshToken: "XlfBs91yquexJqDaKEMzVg==",
+        clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
+        clientSecret: "9205371918321623741",
+        scopes: ["token-scope1", "token-scope2"],
+        clientConfig: {
+            secureSocket: {
+               trustStore: {
+                   path: TRUSTSTORE_PATH,
+                   password: "ballerina"
+               }
             }
         }
     };
@@ -135,7 +132,7 @@ isolated function testClientOAuth2Handler() {
     http:ClientOAuth2Handler handler = new(config1);
     http:Request|http:ClientAuthError result = handler->enrich(request);
     if (result is http:Request) {
-        string header = result.getHeader(http:AUTH_HEADER);
+        string header = checkpanic result.getHeader(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
     } else {
         test:assertFail(msg = "Test Failed! " + result.message());
@@ -144,7 +141,7 @@ isolated function testClientOAuth2Handler() {
     handler = new(config2);
     result = handler->enrich(request);
     if (result is http:Request) {
-        string header = result.getHeader(http:AUTH_HEADER);
+        string header = checkpanic result.getHeader(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
     } else {
         test:assertFail(msg = "Test Failed! " + result.message());
@@ -153,7 +150,7 @@ isolated function testClientOAuth2Handler() {
     handler = new(config3);
     result = handler->enrich(request);
     if (result is http:Request) {
-        string header = result.getHeader(http:AUTH_HEADER);
+        string header = checkpanic result.getHeader(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
     } else {
         test:assertFail(msg = "Test Failed! " + result.message());

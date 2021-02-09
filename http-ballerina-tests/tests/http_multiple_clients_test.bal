@@ -20,12 +20,12 @@ import ballerina/http;
 listener http:Listener multipleClientListener1 = new(multipleClientTestPort1, { httpVersion: "2.0" });
 listener http:Listener multipleClientListener2 = new(multipleClientTestPort2, { httpVersion: "2.0" });
 
-http:Client multipleClientTestClient = new("http://localhost:" + multipleClientTestPort1.toString());
+http:Client multipleClientTestClient = check new("http://localhost:" + multipleClientTestPort1.toString());
 
-http:Client h2WithPriorKnowledgeClient = new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "2.0", http2Settings: {
+http:Client h2WithPriorKnowledgeClient = check new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "2.0", http2Settings: {
         http2PriorKnowledge: true }, poolConfig: {} });
 
-http:Client h1Client = new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "1.1", poolConfig: {}});
+http:Client h1Client = check new("http://localhost:" + multipleClientTestPort2.toString(), { httpVersion: "1.1", poolConfig: {}});
 
 service /globalClientTest on multipleClientListener1 {
 
@@ -53,9 +53,9 @@ service /backend on multipleClientListener2 {
     resource function post .(http:Caller caller, http:Request req) {
         string outboundResponse = "";
         if (req.hasHeader("connection") && req.hasHeader("upgrade")) {
-            string[] connHeaders = req.getHeaders("connection");
+            string[] connHeaders = checkpanic req.getHeaders("connection");
             outboundResponse = connHeaders[1];
-            outboundResponse = outboundResponse + "--" + req.getHeader("upgrade");
+            outboundResponse = outboundResponse + "--" + checkpanic req.getHeader("upgrade");
         } else {
             outboundResponse = "Connection and upgrade headers are not present";
         }
@@ -70,7 +70,7 @@ function testH1Client() {
     var response = multipleClientTestClient->get("/globalClientTest/h1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Connection and upgrade headers are not present--HTTP/1.1 request--1.1");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -82,7 +82,7 @@ function testH2Client() {
     var response = multipleClientTestClient->get("/globalClientTest/h2");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Connection and upgrade headers are not present--HTTP/2 with prior knowledge--2.0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

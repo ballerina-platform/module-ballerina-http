@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/log;
-import ballerina/stringutils;
+import ballerina/regex;
 
 # Represents the Authorization header name.
 public const string AUTH_HEADER = "Authorization";
@@ -32,6 +32,33 @@ public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig
 // Defines the client authentication handlers.
 type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
 
+# Defines the authentication configurations for the HTTP listener.
+public type ListenerAuthConfig LdapUserStoreConfigWithScopes|
+                               JwtValidatorConfigWithScopes|
+                               OAuth2IntrospectionConfigWithScopes;
+
+// TODO: Enable these tests once the configurable features supports for map data types.
+// https://github.com/ballerina-platform/ballerina-standard-library/issues/862
+//public type FileUserStoreConfigWithScopes record {|
+//   FileUserStoreConfig fileUserStoreConfig;
+//   string|string[] scopes?;
+//|};
+
+public type LdapUserStoreConfigWithScopes record {|
+   LdapUserStoreConfig ldapUserStoreConfig;
+   string|string[] scopes?;
+|};
+
+public type JwtValidatorConfigWithScopes record {|
+   JwtValidatorConfig jwtValidatorConfig;
+   string|string[] scopes?;
+|};
+
+public type OAuth2IntrospectionConfigWithScopes record {|
+   OAuth2IntrospectionConfig oauth2IntrospectionConfig;
+   string|string[] scopes?;
+|};
+
 // Logs and prepares the `error` as an `http:ClientAuthError`.
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
     log:printError(message, err = err);
@@ -42,12 +69,15 @@ isolated function prepareClientAuthError(string message, error? err = ()) return
 }
 
 // Extract the credential from `http:Request` or `string` header.
-isolated function extractCredential(Request|string data) returns string {
-    if (data is Request) {
-        string header = data.getHeader(AUTH_HEADER);
-        return stringutils:split(header, " ")[1];
+isolated function extractCredential(Request|string data) returns string? {
+    if (data is string) {
+        return regex:split(<string>data, " ")[1];
+    } else {
+        string|error header = data.getHeader(AUTH_HEADER);
+        if (header is string) {
+            return regex:split(header, " ")[1];
+        }
     }
-    return stringutils:split(<string>data, " ")[1];
 }
 
 // Match the expectedScopes with actualScopes and return if there is a match.
@@ -87,21 +117,5 @@ isolated function convertToArray(string spaceSeperatedString) returns string[] {
     if (spaceSeperatedString.length() == 0) {
         return [];
     }
-    return stringutils:split(spaceSeperatedString, " ");
+    return regex:split(spaceSeperatedString, " ");
 }
-
-// TODO: Remove these once all the types are implemented
-public type UNAUTHORIZED_401 "Unauthorized";
-public type Unauthorized record {
-    UNAUTHORIZED_401 unauthorized = "Unauthorized";
-    string message?;
-    map<string|string[]> headers?;
-};
-
-// TODO: Remove these once all the types are implemented
-public type FORBIDDEN_403 "Forbidden";
-public type Forbidden record {
-    FORBIDDEN_403 forbidden = "Forbidden";
-    string message?;
-    map<string|string[]> headers?;
-};

@@ -14,16 +14,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/http;
 import ballerina/io;
+import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
-import ballerina/http;
 
 listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1);
 listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2);
-http:Client httpClientActionClient = new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService");
+http:Client httpClientActionClient = check new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService");
 
-http:Client clientEP2 = new ("http://localhost:" + httpClientActionTestPort1.toString(), { cache: { enabled: false }});
+http:Client clientEP2 = check new("http://localhost:" + httpClientActionTestPort1.toString(), { cache: { enabled: false }});
 
 
 service /httpClientActionBE on httpClientActionListenerEP1 {
@@ -32,12 +33,22 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
         checkpanic caller->respond("Hello");
     }
 
-    resource function post byteChannel(http:Caller caller, http:Request req) {
-        var byteChannel = req.getByteChannel();
-        if (byteChannel is io:ReadableByteChannel) {
-            checkpanic caller->respond(<@untainted> byteChannel);
+    // TODO: Enable after the I/O revamp
+    // resource function post byteChannel(http:Caller caller, http:Request req) {
+    //     var byteChannel = req.getByteChannel();
+    //     if (byteChannel is io:ReadableByteChannel) {
+    //         checkpanic caller->respond(<@untainted> byteChannel);
+    //     } else {
+    //         checkpanic caller->respond(<@untainted> byteChannel.message());
+    //     }
+    // }
+
+    resource function post byteStream(http:Caller caller, http:Request req) {
+        var byteStream = req.getByteStream();
+        if (byteStream is stream<byte[], io:Error>) {
+            checkpanic caller->respond(<@untainted> byteStream);
         } else {
-            checkpanic caller->respond(<@untainted> byteChannel.message());
+            checkpanic caller->respond(<@untainted> byteStream.message());
         }
     }
 
@@ -258,11 +269,59 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
       checkpanic caller->respond(<@untainted> backendPayload);
     }
 
-    resource function post handleByteChannel(http:Caller caller, http:Request req) {
+    // TODO: Enable after the I/O revamp
+    // resource function post handleByteChannel(http:Caller caller, http:Request req) {
+    //     string value = "";
+    //     var byteChannel = req.getByteChannel();
+    //     if (byteChannel is io:ReadableByteChannel) {
+    //         var res = clientEP2->post("/httpClientActionBE/byteChannel", <@untainted> byteChannel);
+    //         if (res is http:Response) {
+    //             var result = res.getTextPayload();
+    //             if (result is string) {
+    //                 value = result;
+    //             } else {
+    //                 value = result.message();
+    //             }
+    //         } else if (res is error) {
+    //             value = res.message();
+    //         }
+    //     } else {
+    //         value = byteChannel.message();
+    //     }
+    //     checkpanic caller->respond(<@untainted> value);
+    // }
+
+    resource function post handleByteStream(http:Caller caller, http:Request req) {
         string value = "";
-        var byteChannel = req.getByteChannel();
-        if (byteChannel is io:ReadableByteChannel) {
-            var res = clientEP2->post("/httpClientActionBE/byteChannel", <@untainted> byteChannel);
+        var byteStream = req.getByteStream();
+        if (byteStream is stream<byte[], io:Error>) {
+            var res = clientEP2->post("/httpClientActionBE/byteStream", <@untainted> byteStream);
+            if (res is http:Response) {
+                stream<byte[], io:Error>|error str = res.getByteStream();
+                if (str is stream<byte[], io:Error>) {
+                    record {|byte[] value;|}|io:Error? arr1 = str.next();
+                    if (arr1 is record {|byte[] value;|}) {
+                        value = checkpanic strings:fromBytes(arr1.value);
+                    } else {
+                        value = "Found unexpected arr1 output type";
+                    }
+                } else {
+                    value = "Found unexpected str output type" + str.message();
+                }
+            } else if (res is error) {
+                value = res.message();
+            }
+        } else {
+            value = byteStream.message();
+        }
+        checkpanic caller->respond(<@untainted> value);
+    }
+
+    resource function post handleByteStreamToText(http:Caller caller, http:Request req) {
+        string value = "";
+        var byteStream = req.getByteStream();
+        if (byteStream is stream<byte[], io:Error>) {
+            var res = clientEP2->post("/httpClientActionBE/byteStream", <@untainted> byteStream);
             if (res is http:Response) {
                 var result = res.getTextPayload();
                 if (result is string) {
@@ -274,7 +333,33 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 value = res.message();
             }
         } else {
-            value = byteChannel.message();
+            value = byteStream.message();
+        }
+        checkpanic caller->respond(<@untainted> value);
+    }
+
+    resource function post handleTextToByteStream(http:Caller caller, http:Request req) {
+        string value = "";
+        var text = req.getTextPayload();
+        if (text is string) {
+            var res = clientEP2->post("/httpClientActionBE/_bulk", <@untainted> text);
+            if (res is http:Response) {
+                stream<byte[], io:Error>|error str = res.getByteStream();
+                if (str is stream<byte[], io:Error>) {
+                    record {|byte[] value;|}|io:Error? arr1 = str.next();
+                    if (arr1 is record {|byte[] value;|}) {
+                        value = checkpanic strings:fromBytes(arr1.value);
+                    } else {
+                        value = "Found unexpected arr1 output type";
+                    }
+                } else {
+                    value = "Found unexpected str output type" + str.message();
+                }
+            } else if (res is error) {
+                value = res.message();
+            }
+        } else {
+            value = text.message();
         }
         checkpanic caller->respond(<@untainted> value);
     }
@@ -341,7 +426,7 @@ function testGetAction() {
     var response = httpClientActionClient->get("/clientGet");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "HelloHelloHello");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -353,7 +438,7 @@ function testPostAction() {
     var response = httpClientActionClient->get("/clientPostWithoutBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No payload");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -365,7 +450,7 @@ function testPostActionWithBody() {
     var response = httpClientActionClient->get("/clientPostWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample TextSample Xml{\"name\":\"apple\", \"color\":\"red\"}");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -377,7 +462,20 @@ function testPostWithBlob() {
     var response = httpClientActionClient->get("/handleBinary");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Sample Text");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+// TODO: Enable after the I/O revamp
+@test:Config {enable:false}
+function testPostWithByteChannel() {
+    var response = httpClientActionClient->post("/handleByteChannel", "Sample Text");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -385,11 +483,35 @@ function testPostWithBlob() {
 }
 
 @test:Config {}
-function testPostWithByteChannel() {
-    var response = httpClientActionClient->post("/handleByteChannel", "Sample Text");
+function testPostWithByteStream() {
+    var response = httpClientActionClient->post("/handleByteStream", "Sample Text");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Sample Text");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testPostWithByteStreamToText() {
+    var response = httpClientActionClient->post("/handleByteStreamToText", "Sample Text");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Sample Text");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testPostWithTextToByteStream() {
+    var response = httpClientActionClient->post("/handleTextToByteStream", "Sample Text");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -401,7 +523,7 @@ function testPostWithBodyParts() {
     var response = httpClientActionClient->get("/handleMultiparts");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"name\":\"wso2\"}Hello");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -414,7 +536,7 @@ function testPostWithStringJson() {
     var response = httpClientActionClient->get("/handleStringJson");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "\"a\\nb\\n\"");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -427,7 +549,7 @@ function testPostWithTextAndJsonContent() {
     var response = httpClientActionClient->get("/handleTextAndJsonContent");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -440,7 +562,7 @@ function testPostWithTextAndXmlContent() {
     var response = httpClientActionClient->get("/handleTextAndXmlContent");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -453,7 +575,7 @@ function testPostWithTextAndJsonAlternateContent() {
     var response = httpClientActionClient->get("/handleTextAndJsonAlternateContent");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "\"a\\nb\\n\"");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -466,7 +588,7 @@ function testPostWithStringJsonAlternate() {
     var response = httpClientActionClient->get("/handleStringJsonAlternate");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -479,7 +601,7 @@ function testClientPathWithWhitespaces() {
     var response = httpClientActionClient->get("/testPathWithWhitespacesForLiteral");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "dispatched to white_spaced literal");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -488,7 +610,7 @@ function testClientPathWithWhitespaces() {
     response = httpClientActionClient->get("/testClientPathWithWhitespacesForExpression");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "dispatched to white_spaced expression");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -18,23 +18,18 @@ import ballerina/io;
 import ballerina/mime;
 
 # The types of messages that are accepted by HTTP `client` when sending out the outbound request.
-public type RequestMessage Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|();
-// public type RequestMessage Request|string|xml|json|byte[]|();
+public type RequestMessage Request|string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error>|();
 
 # The types of messages that are accepted by HTTP `listener` when sending out the outbound response.
-public type ResponseMessage Response|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|();
-// public type ResponseMessage Response|string|xml|json|byte[]|();
+public type ResponseMessage Response|string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error>|();
 
 # The HTTP service type
 public type Service service object {
 
 };
 
-# The type of the user-defined custom record
-type CustomRecordType record {| anydata...; |};
-
 # The types of the response payload that are returned by the HTTP `client` after the data binding operation
-public type PayloadType string|xml|json|map<json>|byte[]|CustomRecordType|CustomRecordType[];
+public type PayloadType string|xml|json|map<json>|byte[]|record {| anydata...; |}|record {| anydata...; |}[];
 
 # The types of data values that are expected by the HTTP `client` to return after the data binding operation
 public type TargetType typedesc<Response|PayloadType>;
@@ -118,6 +113,7 @@ type HTTPError record {
 # + circuitBreaker - Configurations associated with the behaviour of the Circuit Breaker
 # + retryConfig - Configurations associated with retrying
 # + cookieConfig - Configurations associated with cookies
+# + responseLimits - Configurations associated with inbound response size limits
 public type CommonClientConfiguration record {|
     string httpVersion = HTTP_1_1;
     ClientHttp1Settings http1Settings = {};
@@ -132,4 +128,5 @@ public type CommonClientConfiguration record {|
     CircuitBreakerConfig? circuitBreaker = ();
     RetryConfig? retryConfig = ();
     CookieConfig? cookieConfig = ();
+    ResponseLimitConfigs responseLimits = {};
 |};

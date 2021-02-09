@@ -28,7 +28,7 @@ listener http:Listener failoverEP04 = new(9304);
 listener http:Listener backendEP04 = new(8084);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP04 = new({
+http:FailoverClient foBackendEP04 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -41,7 +41,7 @@ http:FailoverClient foBackendEP04 = new({
     ]
 });
 
-http:FailoverClient foBackendFailureEP04 = new({
+http:FailoverClient foBackendFailureEP04 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -53,7 +53,7 @@ http:FailoverClient foBackendFailureEP04 = new({
     ]
 });
 
-http:FailoverClient foStatusCodesEP04 = new({
+http:FailoverClient foStatusCodesEP04 = check new({
     timeoutInMillis: 5000,
     failoverCodes: [501, 502, 503],
     intervalInMillis: 5000,
@@ -164,7 +164,7 @@ service /mock04 on backendEP04 {
         }
         http:Response response = new;
         if (req.hasHeader(mime:CONTENT_TYPE)
-            && req.getHeader(mime:CONTENT_TYPE).startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+            && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
             var mimeEntity = req.getBodyParts();
             if (mimeEntity is error) {
                 log:printError(mimeEntity.message());
@@ -173,7 +173,7 @@ service /mock04 on backendEP04 {
             } else {
                 foreach var bodyPart in mimeEntity {
                     if (bodyPart.hasHeader(mime:CONTENT_TYPE)
-                        && bodyPart.getHeader(mime:CONTENT_TYPE).startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+                        && bodyPart.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
                         var nestedMimeEntity = bodyPart.getBodyParts();
                         if (nestedMimeEntity is error) {
                             log:printError(nestedMimeEntity.message());
@@ -223,11 +223,11 @@ service /failureStatusCodeService04 on backendEP04 {
 function testResponseWithErrorStatusCodes() {
     string expectedMessage = "All the failover endpoints failed. " +
                 "Last endpoint returned response is: 503 Service Unavailable";
-    http:Client testClient = new("http://localhost:9304");
+    http:Client testClient = checkpanic new("http://localhost:9304");
     var response = testClient->post("/failoverDemoService04/invokeAllFailureStatusCodesEndpoint", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), expectedMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

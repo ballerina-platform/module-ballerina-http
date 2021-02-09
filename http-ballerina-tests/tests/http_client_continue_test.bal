@@ -20,15 +20,15 @@ import ballerina/http;
 
 listener http:Listener httpClientContinueListenerEP1 = new(httpClientContinueTestPort1);
 listener http:Listener httpClientContinueListenerEP2 = new(httpClientContinueTestPort2);
-http:Client httpClientContinueClient = new("http://localhost:" + httpClientContinueTestPort2.toString());
+http:Client httpClientContinueClient = check new("http://localhost:" + httpClientContinueTestPort2.toString());
 
-http:Client continueClient = new ("http://localhost:" + httpClientContinueTestPort1.toString(), { cache: { enabled: false }});
+http:Client continueClient = check new("http://localhost:" + httpClientContinueTestPort1.toString(), { cache: { enabled: false }});
 
 service /'continue on httpClientContinueListenerEP1 {
 
     resource function 'default .(http:Caller caller, http:Request request) {
         if (request.expects100Continue()) {
-            string mediaType = request.getHeader("Content-Type");
+            string mediaType = checkpanic request.getHeader("Content-Type");
             if (mediaType.toLowerAscii() == "text/plain") {
                 var result = caller->continue();
                 if (result is error) {
@@ -99,7 +99,7 @@ function testContinueAction() {
     var response = httpClientContinueClient->get("/continue");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!\n");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -107,20 +107,20 @@ function testContinueAction() {
 }
 
 //Negative test case for 100 continue of http client
-@test:Config {dependsOn:["testContinueAction"]}
+@test:Config {dependsOn:[testContinueAction]}
 function testNegativeContinueAction() {
     var response = httpClientContinueClient->get("/continue/failure");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-@test:Config {dependsOn:["testNegativeContinueAction"]}
+@test:Config {dependsOn:[testNegativeContinueAction]}
 function testContinueActionWithMain() {
-    http:Client clientEP = new("http://localhost:" + httpClientContinueTestPort1.toString());
+    http:Client clientEP = checkpanic new("http://localhost:" + httpClientContinueTestPort1.toString());
     http:Request req = new();
     req.addHeader("content-type", "text/plain");
     req.addHeader("Expect", "100-continue");

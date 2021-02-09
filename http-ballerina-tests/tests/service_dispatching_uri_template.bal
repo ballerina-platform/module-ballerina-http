@@ -21,13 +21,13 @@ import ballerina/http;
 listener http:Listener utTestEP = new(uriTemplateTest1);
 listener http:Listener utTestEPWithNoServicesAttached = new(uriTemplateTest2);
 
-http:Client utClient1 = new("http://localhost:" + uriTemplateTest1.toString());
-http:Client utClient2 = new("http://localhost:" + uriTemplateTest2.toString());
+http:Client utClient1 = check new("http://localhost:" + uriTemplateTest1.toString());
+http:Client utClient2 = check new("http://localhost:" + uriTemplateTest2.toString());
 
 service /ecommerceservice on utTestEP {
 
     resource function get products/[string productId]/[string regId](http:Caller caller, http:Request req) {
-        string orderId = req.getHeader("X-ORDER-ID");
+        string orderId = checkpanic req.getHeader("X-ORDER-ID");
         io:println("Order ID " + orderId);
         io:println("Product ID " + productId);
         io:println("Reg ID " + regId);
@@ -201,9 +201,7 @@ service /ech\[o14 on utTestEP {
 }
 
 //Test accessing the variables parsed with URL. /products/{productId}/{regId}
-@test:Config{
-    dataProvider:"validUrl"
-}
+@test:Config{ dataProvider:validUrl }
 function testValidUrlTemplateDispatching(string path) {
     http:Request req = new;
     string xOrderIdHeadeName = "X-ORDER-ID";
@@ -228,9 +226,7 @@ function validUrl() returns (string[][]) {
 }
 
 //Test resource dispatchers with invalid URL. /products/{productId}/{regId}
-@test:Config{
-    dataProvider:"inValidUrl"
-}
+@test:Config{ dataProvider:inValidUrl }
 function testInValidUrlTemplateDispatching(string path) {
     http:Request req = new;
     string xOrderIdHeadeName = "X-ORDER-ID";
@@ -255,9 +251,7 @@ function inValidUrl() returns (string[][]) {
 }
 
 //Test accessing the variables parsed with URL. /products/{productId}
-@test:Config{
-    dataProvider:"validUrlWithQueryParam"
-}
+@test:Config{ dataProvider:validUrlWithQueryParam }
 function testValidUrlTemplateWithQueryParamDispatching(string path) {
     var response = utClient1->get(path);
     if (response is http:Response) {
@@ -368,7 +362,7 @@ function testOPTIONSWithGETMethods() {
     var response = utClient1->options("/options/getme", "hi");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -380,7 +374,7 @@ function testOPTIONSWithPOSTMethods() {
     var response = utClient1->options("/options/post", "hi");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -392,7 +386,7 @@ function testOPTIONSWithPUTMethods() {
     var response = utClient1->options("/options/put/add");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "PUT, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "PUT, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -404,7 +398,7 @@ function testOPTIONSWithPathParams() {
     var response = utClient1->options("/options/put/xyz");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "DELETE, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "DELETE, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -416,7 +410,7 @@ function testOPTIONSWithMultiResources() {
     var response = utClient1->options("/options/test");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -428,7 +422,7 @@ function testOPTIONSAtRootPath() {
     var response = utClient1->options("/options");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
+        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -502,9 +496,7 @@ function testSpecialCharacterEscapedURI() {
 }
 
 //Test a listener with no service registered
-@test:Config{
-    dataProvider:"SomeUrlsWithCorrectHost"
-}
+@test:Config{ dataProvider:SomeUrlsWithCorrectHost }
 function testListenerWithNoServiceRegistered(string path) {
     var response = utClient2->get(path);
     if (response is http:Response) {

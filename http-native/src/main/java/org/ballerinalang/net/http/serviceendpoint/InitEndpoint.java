@@ -51,7 +51,8 @@ public class InitEndpoint extends AbstractHttpNativeFunction {
             resetRegistry(serviceEndpoint);
             return null;
         } catch (BError errorValue) {
-            return errorValue;
+            return HttpUtil.createHttpError(errorValue.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR,
+                                            errorValue.getCause());
         } catch (Exception e) {
             return HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
         }

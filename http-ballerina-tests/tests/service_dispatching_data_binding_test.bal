@@ -21,7 +21,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener dataBindingEP = new(databindingTest);
-http:Client dataBindingClient = new("http://localhost:" + databindingTest.toString());
+http:Client dataBindingClient = check new("http://localhost:" + databindingTest.toString());
 
 type Person record {|
     string name;
@@ -303,9 +303,15 @@ function testDataBindingIncompatibleStructPayload() {
 function testDataBindingWithEmptyJsonPayload() {
     http:Request req = new;
     var response = dataBindingClient->get("/echo/body3");
+    //if (response is http:Response) {
+    //    assertJsonValue(response.getJsonPayload(), "Key", ());
+    //    assertJsonValue(response.getJsonPayload(), "Team", ());
+    //} else if (response is error) {
+    //    test:assertFail(msg = "Found unexpected output type: " + response.message());
+    //}
     if (response is http:Response) {
-        assertJsonValue(response.getJsonPayload(), "Key", ());
-        assertJsonValue(response.getJsonPayload(), "Team", ());
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"empty JSON document\")");            
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

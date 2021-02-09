@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/log;
 import ballerina/lang.runtime as runtime;
 import ballerina/test;
@@ -22,7 +22,7 @@ import ballerina/http;
 
 
 listener http:Listener idleTimeoutListenerEP = new(idleTimeoutTestPort, { timeoutInMillis: 1000, server: "Mysql" });
-http:Client idleTimeoutClient = new("http://localhost:" + idleTimeoutTestPort.toString());
+http:Client idleTimeoutClient = check new("http://localhost:" + idleTimeoutTestPort.toString());
 
 service /idleTimeout on idleTimeoutListenerEP {
 

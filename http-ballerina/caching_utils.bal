@@ -45,8 +45,8 @@ isolated function updateResponse(Response cachedResponse, Response validationRes
 }
 
 isolated function retain2xxWarnings(Response cachedResponse) {
-    if (cachedResponse.hasHeader(WARNING)) {
-        string[] warningHeaders = <@untainted>cachedResponse.getHeaders(WARNING);
+    string[]|error warningHeaders = <@untainted>cachedResponse.getHeaders(WARNING);
+    if (warningHeaders is string[]) {
         cachedResponse.removeHeader(WARNING);
         // TODO: Need to handle this in a better way using regex when the required regex APIs are there
         foreach var warningHeader in warningHeaders {
@@ -67,9 +67,11 @@ isolated function replaceHeaders(Response cachedResponse, Response validationRes
 
     foreach var headerName in headerNames {
         cachedResponse.removeHeader(headerName);
-        string[] headerValues = <@untainted>validationResponse.getHeaders(headerName);
-        foreach var value in headerValues {
-            cachedResponse.addHeader(headerName, value);
+        string[]|error headerValues = <@untainted> validationResponse.getHeaders(headerName);
+        if (headerValues is string[]) {
+            foreach var value in headerValues {
+                cachedResponse.addHeader(headerName, value);
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ import org.ballerinalang.model.tree.SimpleVariableNode;
 import org.ballerinalang.model.tree.expressions.LiteralNode;
 import org.ballerinalang.model.tree.expressions.RecordLiteralNode;
 import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangSimpleVariable;
 import org.wso2.ballerinalang.compiler.tree.expressions.BLangExpression;
@@ -24,7 +25,6 @@ import static org.ballerinalang.net.http.HttpConstants.ANN_RESOURCE_ATTR_PATH;
 import static org.ballerinalang.net.http.HttpConstants.ANN_WEBSOCKET_ATTR_UPGRADE_PATH;
 import static org.ballerinalang.net.http.HttpConstants.CALLER;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_LISTENER_ENDPOINT;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST;
 
 /**
@@ -36,9 +36,10 @@ public class ResourceSignatureValidator {
 
     public static final int COMPULSORY_PARAM_COUNT = 2;
 
-    private static final String ENDPOINT_TYPE = PROTOCOL_PACKAGE_HTTP + ":" + HTTP_LISTENER_ENDPOINT;
-    private static final String CALLER_TYPE = PROTOCOL_PACKAGE_HTTP + ":" + CALLER;
-    private static final String HTTP_REQUEST_TYPE = PROTOCOL_PACKAGE_HTTP + ":" + REQUEST;
+    private static final String ENDPOINT_TYPE =
+            ModuleUtils.getHttpPackageIdentifier() + ":" + HTTP_LISTENER_ENDPOINT;
+    private static final String CALLER_TYPE = ModuleUtils.getHttpPackageIdentifier() + ":" + CALLER;
+    private static final String HTTP_REQUEST_TYPE = ModuleUtils.getHttpPackageIdentifier() + ":" + REQUEST;
 
     @SuppressWarnings("unchecked")
     public static void validate(FunctionNode resourceNode, DiagnosticLog dlog, Location pos) {

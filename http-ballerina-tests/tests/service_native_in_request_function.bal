@@ -34,7 +34,7 @@ function testGetContentLength() {
     http:Request req = new;
     string payload = "ballerina";
     req.setHeader(CONTENT_LENGTH, payload.length().toString());
-    test:assertEquals(req.getHeader(CONTENT_LENGTH), payload.length().toString(), msg = "Mismatched content length");
+    test:assertEquals(checkpanic req.getHeader(CONTENT_LENGTH), payload.length().toString(), msg = "Mismatched content length");
 }
 
 @test:Config {}
@@ -44,7 +44,7 @@ function testAddHeader() {
     string value = "abc, xyz";
     req.setHeader(key, "1stHeader");
     req.addHeader(key, value);
-    string[] headers = req.getHeaders(key);
+    string[] headers = checkpanic req.getHeaders(key);
     test:assertEquals(headers[0], "1stHeader", msg = "Mismatched header value");
     test:assertEquals(headers[1], "abc, xyz", msg = "Mismatched header value");
 }
@@ -56,7 +56,7 @@ function testSetHeader() {
     string value = "ballerina; a=6";
     req.setHeader(key, "abc");
     req.setHeader(key, value);
-    test:assertEquals(req.getHeader(key), value, msg = "Mismatched header value");
+    test:assertEquals(checkpanic req.getHeader(key), value, msg = "Mismatched header value");
 }
 
 @test:Config {}
@@ -124,7 +124,7 @@ function testGetHeader() {
     string key = "lang";
     string value = "ballerina; a=6";
     req.setHeader(key, value);
-    test:assertEquals(req.getHeader(key), value, msg = "Mismatched header value");
+    test:assertEquals(checkpanic req.getHeader(key), value, msg = "Mismatched header value");
 }
 
 @test:Config {}
@@ -134,7 +134,7 @@ function testGetHeaders() {
     string value = "abc, xyz";
     req.setHeader(key, "1stHeader");
     req.addHeader(key, value);
-    string[] headers = req.getHeaders(key);
+    string[] headers = checkpanic req.getHeaders(key);
     test:assertEquals(headers[0], "1stHeader", msg = "Mismatched header value");
     test:assertEquals(headers[1], "abc, xyz", msg = "Mismatched header value");
 }
@@ -237,7 +237,7 @@ service /requesthello on requestListner {
     resource function get addheader/[string key]/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
         req.addHeader(<@untainted string> key, value);
-        string result = <@untainted string> req.getHeader(<@untainted string> key);
+        string result = <@untainted> checkpanic req.getHeader(<@untainted string> key);
         http:Response res = new;
         res.setJsonPayload({ lang: result });
         checkpanic caller->respond(res);
@@ -266,7 +266,7 @@ service /requesthello on requestListner {
 
     resource function get getHeader(http:Caller caller, http:Request req) {
         http:Response res = new;
-        string header = <@untainted string> req.getHeader("content-type");
+        string header = <@untainted> checkpanic req.getHeader("content-type");
         res.setJsonPayload({ value: header });
         checkpanic caller->respond(res);
     }
@@ -326,14 +326,27 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get GetByteChannel(http:Caller caller, http:Request req) {
+    // TODO: Enable after the I/O revamp
+    // resource function get GetByteChannel(http:Caller caller, http:Request req) {
+    //     http:Response res = new;
+    //     var returnResult = req.getByteChannel();
+    //     if (returnResult is error) {
+    //         res.setTextPayload("Error occurred");
+    //         res.statusCode = 500;
+    //     } else {
+    //         res.setByteChannel(returnResult);
+    //     }
+    //     checkpanic caller->respond(res);
+    // }
+
+    resource function get GetByteStream(http:Caller caller, http:Request req) {
         http:Response res = new;
-        var returnResult = req.getByteChannel();
+        var returnResult = req.getByteStream();
         if (returnResult is error) {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setByteChannel(returnResult);
+            res.setByteStream(returnResult);
         }
         checkpanic caller->respond(res);
     }
@@ -370,7 +383,7 @@ service /requesthello on requestListner {
         http:Request req = new;
         req.setHeader(<@untainted string> key, "abc");
         req.setHeader(<@untainted string> key, value);
-        string result = <@untainted string> req.getHeader(<@untainted string> key);
+        string result = <@untainted> checkpanic req.getHeader(<@untainted string> key);
 
         http:Response res = new;
         res.setJsonPayload({ value: result });
@@ -457,7 +470,7 @@ service /requesthello on requestListner {
         cookie3.path = "/sample";
         http:Cookie[] cookiesToAdd = [cookie1, cookie2, cookie3];
         req.addCookies(cookiesToAdd);
-        string result = <@untainted string> req.getHeader("Cookie");
+        string result = <@untainted> checkpanic req.getHeader("Cookie");
         http:Response res = new;
         res.setJsonPayload({ cookieHeader: result });
         checkpanic caller->respond(res);
@@ -476,7 +489,7 @@ service /requesthello on requestListner {
     }
 }
 
-http:Client requestClient = new("http://localhost:" + requestTest.toString());
+http:Client requestClient = check new("http://localhost:" + requestTest.toString());
 
 // Test addHeader function within a service
 @test:Config {}
@@ -580,12 +593,32 @@ function testGetRequestURLWithInService() {
     }
 }
 
+// TODO: Enable after the I/O revamp
 // Test GetByteChannel function within a service. Send a json content as a request and then get a byte channel from
 // the Request and set that ByteChannel as the response content"
-@test:Config {}
+@test:Config {enable:false}
 function testServiceGetByteChannel() {
     string value = "ballerina";
     string path = "/requesthello/GetByteChannel";
+    json payload = {lang: value };
+    string contentType = "application/json";
+    http:Request req = new;
+    req.setHeader("content-type", contentType);
+    req.setJsonPayload(payload);
+    var response = requestClient->get(path, req);
+    if (response is http:Response) {
+        assertJsonPayload(response.getJsonPayload(), payload);
+    } else if (response is error) {
+        test:assertFail(msg = "Test Failed! " + <string>response.message());
+    }
+}
+
+// Test GetByteStream function within a service. Send a json content as a request and then get a byte Stream from
+// the Request and set that ByteStream as the response content"
+@test:Config {}
+function testServiceGetByteStream() {
+    string value = "ballerina";
+    string path = "/requesthello/GetByteStream";
     json payload = {lang: value };
     string contentType = "application/json";
     http:Request req = new;

@@ -25,7 +25,7 @@ configurations {
 }
 
 dependencies {
-    jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+    jbalTools("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
     }
     compile project(':http-native')
@@ -125,8 +125,8 @@ task copyStdlibs(type: Copy) {
     /* Standard Libraries */
     configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
         def artifactExtractedPath = "${buildDir}/target/extracted-distributions/" + artifact.name + "-zip"
-        into("repo/balo") {
-            from "${artifactExtractedPath}/balo"
+        into("repo/bala") {
+            from "${artifactExtractedPath}/bala"
         }
         into("repo/cache") {
             from "${artifactExtractedPath}/cache"
@@ -138,19 +138,21 @@ task copyStdlibs(type: Copy) {
 def packageName = "http"
 def packageOrg = "ballerina"
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
+def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
 def artifactBallerinaDocs = file("$project.projectDir/build/docs_parent/")
 def artifactCacheParent = file("$project.projectDir/build/cache_parent/")
 def artifactLibParent = file("$project.projectDir/build/lib_parent/")
 def tomlVersion = project.version.split("-")[0]
 def ballerinaCentralAccessToken = System.getenv('BALLERINA_CENTRAL_ACCESS_TOKEN')
 def originalConfig = ballerinaConfigFile.text
+def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
 
 task updateTomlVerions {
     doLast {
         def stdlibDependentMimeNativeVersion = project.stdlibMimeVersion
         def stdlibDependentIoVersion = project.stdlibIoVersion.split("-")[0]
         def stdlibDependentLogVersion = project.stdlibLogVersion.split("-")[0]
-        def stdlibDependentStringutilsVersion = project.stdlibStringutilsVersion.split("-")[0]
+        def stdlibDependentRegexVersion = project.stdlibRegexVersion.split("-")[0]
         def stdlibDependentMimeVersion = project.stdlibMimeVersion.split("-")[0]
         def stdlibDependentAuthVersion = project.stdlibAuthVersion.split("-")[0]
         def stdlibDependentJwtVersion = project.stdlibJwtVersion.split("-")[0]
@@ -159,7 +161,7 @@ task updateTomlVerions {
         def stdlibDependentTimeVersion = project.stdlibTimeVersion.split("-")[0]
         def stdlibDependentCryptoVersion = project.stdlibCryptoVersion.split("-")[0]
         def stdlibDependentFileVersion = project.stdlibFileVersion.split("-")[0]
-        def stdlibDependentConfigVersion = project.stdlibConfigVersion.split("-")[0]
+        def stdlibDependentReflectVersion = project.stdlibReflectVersion.split("-")[0]
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
         def stdlibDependentWso2SnakeYamlVersion = project.wso2SnakeYamlVersion
@@ -170,18 +172,6 @@ task updateTomlVerions {
 
         def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
-        newConfig = newConfig.replace("@stdlib.io.version@", stdlibDependentIoVersion)
-        newConfig = newConfig.replace("@stdlib.log.version@", stdlibDependentLogVersion)
-        newConfig = newConfig.replace("@stdlib.stringutils.version@", stdlibDependentStringutilsVersion)
-        newConfig = newConfig.replace("@stdlib.mime.version@", stdlibDependentMimeVersion)
-        newConfig = newConfig.replace("@stdlib.auth.version@", stdlibDependentAuthVersion)
-        newConfig = newConfig.replace("@stdlib.jwt.version@", stdlibDependentJwtVersion)
-        newConfig = newConfig.replace("@stdlib.oauth2.version@", stdlibDependentOAuth2Version)
-        newConfig = newConfig.replace("@stdlib.cache.version@", stdlibDependentCacheVersion)
-        newConfig = newConfig.replace("@stdlib.time.version@", stdlibDependentTimeVersion)
-        newConfig = newConfig.replace("@stdlib.crypto.version@", stdlibDependentCryptoVersion)
-        newConfig = newConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
-        newConfig = newConfig.replace("@stdlib.config.version@", stdlibDependentConfigVersion)
         newConfig = newConfig.replace("@stdlib.mimenative.version@", stdlibDependentMimeNativeVersion)
         newConfig = newConfig.replace("@netty.version@", stdlibDependentNettyVersion)
         newConfig = newConfig.replace("@commmon.pool.version@", stdlibDependentWso2CommonsPoolVersion)
@@ -191,6 +181,20 @@ task updateTomlVerions {
         newConfig = newConfig.replace("@mimepull.version@", stdlibDependentMimepullVersion)
         newConfig = newConfig.replace("@testng.version@", stdlibDependentTestngVersion)
         ballerinaConfigFile.text = newConfig
+
+        def newDependencyConfig = ballerinaDependencyFile.text.replace("@stdlib.io.version@", stdlibDependentIoVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.log.version@", stdlibDependentLogVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.regex.version@", stdlibDependentRegexVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.mime.version@", stdlibDependentMimeVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.auth.version@", stdlibDependentAuthVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.jwt.version@", stdlibDependentJwtVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.oauth2.version@", stdlibDependentOAuth2Version)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.cache.version@", stdlibDependentCacheVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.time.version@", stdlibDependentTimeVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.crypto.version@", stdlibDependentCryptoVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.reflect.version@", stdlibDependentReflectVersion)
+        ballerinaDependencyFile.text = newDependencyConfig
     }
 }
 
@@ -200,31 +204,46 @@ task revertTomlFile {
     }
 }
 
+def groupParams = ""
+def disableGroups = ""
+def debugParams = ""
+def balJavaDebugParam = ""
+
+task initializeVariables {
+    if (project.hasProperty("groups")) {
+        groupParams = "--groups ${project.findProperty("groups")}"
+    }
+    if (project.hasProperty("disable")) {
+        disableGroups = "--disable-groups ${project.findProperty("disable")}"
+    }
+    if (project.hasProperty("debug")) {
+        debugParams = "--debug ${project.findProperty("debug")}"
+    }
+    if (project.hasProperty("balJavaDebug")) {
+        balJavaDebugParam = "BAL_JAVA_DEBUG=${project.findProperty("balJavaDebug")}"
+    }
+}
+
 task ballerinaBuild {
     inputs.dir file(project.projectDir)
+    dependsOn(initializeVariables)
     finalizedBy(revertTomlFile)
     finalizedBy(':http-ballerina-tests:build')
 
     doLast {
-        def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
-        def additionalBuildParams = ""
-
-        if (project.hasProperty("debug")) {
-            additionalBuildParams = "--debug ${project.findProperty("debug")}"
-        }
-
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat build --offline --skip-tests ${additionalBuildParams} -c && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat build --skip-tests " +
+                        "${debugParams} && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/ballerina build --offline --skip-tests ${additionalBuildParams} -c"
+                commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal build --skip-tests ${debugParams}"
             }
         }
         copy {
-            from file("$project.projectDir/target/balo")
-            into file("$artifactCacheParent/balo/${packageOrg}/${packageName}/${tomlVersion}")
+            from file("$project.projectDir/target/bala")
+            into file("$artifactCacheParent/bala/${packageOrg}/${packageName}/${tomlVersion}")
         }
         copy {
             from file("$project.projectDir/target/cache")
@@ -240,9 +259,9 @@ task ballerinaBuild {
                 workingDir project.projectDir
                 environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat push && exit %%ERRORLEVEL%%"
+                    commandLine 'cmd', '/c', "$distributionBinPath/bal.bat push && exit %%ERRORLEVEL%%"
                 } else {
-                    commandLine 'sh', '-c', "$distributionBinPath/ballerina push"
+                    commandLine 'sh', '-c', "$distributionBinPath/bal push"
                 }
             }
 
@@ -252,9 +271,9 @@ task ballerinaBuild {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$distributionBinPath/ballerina.bat doc && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat doc && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/ballerina doc"
+                commandLine 'sh', '-c', "$distributionBinPath/bal doc"
             }
         }
         copy {
@@ -275,7 +294,7 @@ task createArtifactZip(type: Zip) {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        maven(MavenPublication) {
             artifact source: createArtifactZip, extension: 'zip'
         }
     }

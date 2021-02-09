@@ -18,73 +18,64 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener httpStatusCodeListenerEP = new(httpStatusCodeTestPort);
-http:Client httpStatusCodeClient = new("http://localhost:" + httpStatusCodeTestPort.toString());
+http:Client httpStatusCodeClient = check new("http://localhost:" + httpStatusCodeTestPort.toString());
 
 service /differentStatusCodes on httpStatusCodeListenerEP {
 
-    resource function get okWithBody(http:Caller caller, http:Request req) {
-       checkpanic caller->ok("OK Response");
+    resource function get okWithBody() returns http:Ok {
+       return {body: "OK Response"};
     }
 
-    resource function get okWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->ok();
+    resource function get okWithoutBody() returns http:Ok {
+        return {};
     }
 
-    resource function get createdWithBody(http:Caller caller, http:Request req) {
-        checkpanic caller->created("/newResourceURI", "Created Response");
+    resource function get createdWithBody() returns http:Created {
+        return {headers:{"Location":"/newResourceURI"}, body: "Created Response"};
     }
 
-    resource function get createdWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->created("/newResourceURI");
+    resource function get createdWithoutBody() returns http:Created {
+        return {headers:{"Location":"/newResourceURI"}};
     }
 
-    resource function get createdWithEmptyURI(http:Caller caller, http:Request req) {
-        checkpanic caller->created("");
+    resource function get createdWithEmptyURI() returns http:Created {
+        return {headers:{"Location":""}};
     }
 
-    resource function get acceptedWithBody(http:Caller caller, http:Request req) {
-        checkpanic caller->accepted({ msg: "accepted response" });
+    resource function get acceptedWithBody() returns http:Accepted {
+        return {body: {msg:"accepted response"}};
     }
 
-    resource function get acceptedWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->accepted();
+    resource function get acceptedWithoutBody() returns http:Accepted {
+        return {};
     }
 
-    resource function get noContentWithBody(http:Caller caller, http:Request req) {
-        http:Response res = new;
-        res.setHeader("x-custom-header", "custom-header-value");
-        res.setPayload(xml `<test>No Content</test>`);
-        checkpanic caller->noContent(res); //Body will be removed
+    resource function get noContentWithoutBody() returns http:NoContent {
+        return {}; //Does not have body, media type field
     }
 
-    resource function get noContentWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->noContent();
+    resource function get badRequestWithBody() returns http:BadRequest {
+        return {body: xml `<test>Bad Request</test>`};
     }
 
-    resource function get badRequestWithBody(http:Caller caller, http:Request req) {
-        http:Response res = new;
-        res.setPayload(xml `<test>Bad Request</test>`);
-        checkpanic caller->badRequest(res);
+    resource function get badRequestWithoutBody() returns http:BadRequest {
+        return {};
     }
 
-    resource function get badRequestWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->badRequest();
+    resource function get notFoundWithBody() returns http:NotFound {
+        return {body: xml `<test>artifacts not found</test>`};
     }
 
-    resource function get notFoundWithBody(http:Caller caller, http:Request req) {
-        checkpanic caller->notFound(xml `<test>artifacts not found</test>`);
+    resource function get notFoundWithoutBody() returns http:NotFound {
+        return {};
     }
 
-    resource function get notFoundWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->notFound();
+    resource function get serverErrWithBody() returns http:InternalServerError {
+        return {body: xml `<test>Internal Server Error Occurred</test>`};
     }
 
-    resource function get serverErrWithBody(http:Caller caller, http:Request req) {
-        checkpanic caller->internalServerError(xml `<test>Internal Server Error Occurred</test>`);
-    }
-
-    resource function get serverErrWithoutBody(http:Caller caller, http:Request req) {
-        checkpanic caller->internalServerError();
+    resource function get serverErrWithoutBody() returns http:InternalServerError {
+        return {};
     }
 }
 
@@ -94,7 +85,7 @@ function testOKWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/okWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "OK Response");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -107,7 +98,7 @@ function testOKWithoutBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/okWithoutBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_LENGTH), "0");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -119,8 +110,8 @@ function testCreatedWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/createdWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(response.getHeader(LOCATION), "/newResourceURI");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(LOCATION), "/newResourceURI");
         assertTextPayload(response.getTextPayload(), "Created Response");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -133,8 +124,8 @@ function testCreatedWithoutBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/createdWithoutBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(LOCATION), "/newResourceURI");
-        assertHeaderValue(response.getHeader(CONTENT_LENGTH), "0");
+        assertHeaderValue(checkpanic response.getHeader(LOCATION), "/newResourceURI");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -146,8 +137,8 @@ function testCreatedWithEmptyURI() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/createdWithEmptyURI");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
-        test:assertFalse(response.hasHeader(LOCATION));
-        assertHeaderValue(response.getHeader(CONTENT_LENGTH), "0");
+        test:assertTrue(response.hasHeader(LOCATION));
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -159,7 +150,7 @@ function testAcceptedWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/acceptedWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {msg:"accepted response"});
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -172,19 +163,7 @@ function testAcceptedWithoutBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/acceptedWithoutBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_LENGTH), "0");
-    } else if (response is error) {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-//Test ballerina noContent() function with entity body
-@test:Config {}
-function testNoContentWithBody() {
-    var response = httpStatusCodeClient->get("/differentStatusCodes/noContentWithBody");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("x-custom-header"), "custom-header-value");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -207,7 +186,7 @@ function testBadRequestWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/badRequestWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         test:assertEquals(response.getXmlPayload(), xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -231,7 +210,7 @@ function testNotFoundWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/notFoundWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         test:assertEquals(response.getXmlPayload(), xml `<test>artifacts not found</test>`, msg = "Mismatched xml payload");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -255,7 +234,7 @@ function testInternalServerErrWithBody() {
     var response = httpStatusCodeClient->get("/differentStatusCodes/serverErrWithBody");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         test:assertEquals(response.getXmlPayload(), xml `<test>Internal Server Error Occurred</test>`, msg = "Mismatched xml payload");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

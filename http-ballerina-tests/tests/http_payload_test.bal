@@ -20,9 +20,9 @@ import ballerina/http;
 
 listener http:Listener httpPayloadListenerEP1 = new(httpPayloadTestPort1);
 listener http:Listener httpPayloadListenerEP2 = new(httpPayloadTestPort2);
-http:Client httpPayloadClient = new("http://localhost:" + httpPayloadTestPort1.toString());
+http:Client httpPayloadClient = check new("http://localhost:" + httpPayloadTestPort1.toString());
 
-http:Client clientEP19 = new("http://localhost:" + httpPayloadTestPort2.toString());
+http:Client clientEP19 = check new("http://localhost:" + httpPayloadTestPort2.toString());
 
 service /testService16 on httpPayloadListenerEP1 {
 
@@ -101,7 +101,7 @@ function testXmlPayload() {
     var response = httpPayloadClient->get("/testService16/");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "W3Schools Home PageRSS Tutorial");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -115,7 +115,7 @@ function testGetXmlPayloadReturnParserError() {
     var response = httpPayloadClient->get("/testService16/getPayloadForParseError");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(),
                 "Error occurred while extracting xml data from entity: error(\"failed to create xml");
     } else if (response is error) {

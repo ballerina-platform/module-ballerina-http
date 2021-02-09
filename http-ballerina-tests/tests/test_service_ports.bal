@@ -95,6 +95,14 @@ const int clientDatabindingTestPort2 = 9550;
 const int clientDatabindingTestPort3 = 9551;
 const int queryParamBindingTest = 9552;
 const int basePathTest = 9553;
+const int resourceReturnTest = 9554;
+const int requestLimitsTestPort5 = 9555;
+const int requestLimitsTestPort6 = 9556;
+const int responseLimitsTestPort1 = 9557;
+const int responseLimitsTestPort2 = 9558;
+const int responseLimitsTestPort3 = 9559;
+const int responseLimitsTestPort4 = 9560;
+const int responseLimitsTestPort5 = 9561;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
@@ -104,5 +112,5 @@ const int http2RedirectTestPort2 = 9604;
 const int http2RedirectTestPort3 = 9605;
 
 //Security
-const int filterTestPort = 9400;
 const int oauth2AuthorizationServerPort = 9401;
+const int securedListenerPort = 9402;

@@ -19,9 +19,9 @@ import ballerina/http;
 
 listener http:Listener trailingHeaderListenerEP1 = new(trailingHeaderTestPort1);
 listener http:Listener trailingHeaderListenerEP2 = new(trailingHeaderTestPort2);
-http:Client trailingHeaderClient = new("http://localhost:" + trailingHeaderTestPort1.toString());
+http:Client trailingHeaderClient = check new("http://localhost:" + trailingHeaderTestPort1.toString());
 
-http:Client clientEp = new ("http://localhost:" + trailingHeaderTestPort2.toString());
+http:Client clientEp = check new("http://localhost:" + trailingHeaderTestPort2.toString());
 
 service /initiator on trailingHeaderListenerEP1 {
 
@@ -32,15 +32,15 @@ service /initiator on trailingHeaderListenerEP1 {
 
             string trailerHeaderValue = "No trailer header";
             if (responseFromBackend.hasHeader("trailer")) {
-                trailerHeaderValue = responseFromBackend.getHeader("trailer");
+                trailerHeaderValue = checkpanic responseFromBackend.getHeader("trailer");
             }
             string firstTrailer = "No trailer header foo";
             if (responseFromBackend.hasHeader("foo", position = "trailing")) {
-                firstTrailer = responseFromBackend.getHeader("foo", position = "trailing");
+                firstTrailer = checkpanic responseFromBackend.getHeader("foo", position = "trailing");
             }
             string secondTrailer = "No trailer header baz";
             if (responseFromBackend.hasHeader("baz", position = "trailing")) {
-                secondTrailer = responseFromBackend.getHeader("baz", position = "trailing");
+                secondTrailer = checkpanic responseFromBackend.getHeader("baz", position = "trailing");
             }
 
             int headerCount = responseFromBackend.getHeaderNames(position = "trailing").length();
@@ -126,7 +126,7 @@ function testSmallPayloadResponseTrailers() {
     var response = trailingHeaderClient->post("/initiator/chunkingBackend/echo", "Small payload");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("response-trailer"), "foo, baz");
+        assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for chunked payload", baz:"The second " +
                 "trailer", count:2});
     } else if (response is error) {
@@ -140,7 +140,7 @@ function testLargePayloadResponseTrailers() {
     var response = trailingHeaderClient->post("/initiator/chunkingBackend/echo", LARGE_ENTITY);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("response-trailer"), "foo, baz");
+        assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for chunked payload", baz:"The second " +
                 "trailer", count:2});
     } else if (response is error) {
@@ -154,7 +154,7 @@ function testEmptyPayloadResponseTrailers() {
     var response = trailingHeaderClient->get("/initiator/chunkingBackend/empty");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("response-trailer"), "foo, baz");
+        assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for empty payload", baz:"The second " +
                 "trailer for empty payload", count:2});
     } else if (response is error) {
@@ -168,7 +168,7 @@ function testSmallPayloadForNonChunkedResponse() {
     var response = trailingHeaderClient->post("/initiator/nonChunkingBackend/echo", "Small payload");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("response-trailer"), "No trailer header");
+        assertHeaderValue(checkpanic response.getHeader("response-trailer"), "No trailer header");
         assertJsonPayload(response.getJsonPayload(), {foo:"No trailer header foo", baz:"No trailer header baz", count:0});
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -181,7 +181,7 @@ function testLargePayloadForNonChunkedResponse() {
     var response = trailingHeaderClient->post("/initiator/nonChunkingBackend/echo", LARGE_ENTITY);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("response-trailer"), "No trailer header");
+        assertHeaderValue(checkpanic response.getHeader("response-trailer"), "No trailer header");
         assertJsonPayload(response.getJsonPayload(), {foo:"No trailer header foo", baz:"No trailer header baz", count:0});
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -194,7 +194,7 @@ function testProxiedTrailers() {
     var response = trailingHeaderClient->post("/initiator/passthroughsvc/forward", "Small payload");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("response-trailer"), "foo, baz");
+        assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for chunked payload", baz:"The second " +
                 "trailer", count:2});
     } else if (response is error) {
@@ -208,7 +208,7 @@ function testPassThroughButBuildPayload() {
     var response = trailingHeaderClient->post("/initiator/passthroughsvc/buildPayload", "Small payload");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("response-trailer"), "foo, baz, barr");
+        assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz, barr");
         assertJsonPayload(response.getJsonPayload(), {foo:"Trailer for chunked payload", baz:"this trailer " +
                 "will get replaced", count:3});
     } else if (response is error) {

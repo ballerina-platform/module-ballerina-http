@@ -53,7 +53,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie2);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -79,7 +79,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie2);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -109,7 +109,7 @@ service /cookie on new http:Listener(9253) {
             res.removeCookiesFromRemoteStore(cookie1);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -138,7 +138,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie3);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -166,7 +166,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie3); // Adds a similar persistent cookie.
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -194,7 +194,7 @@ service /cookie on new http:Listener(9253) {
             res.addCookie(cookie3); // Adds a similar session cookie.
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -225,7 +225,7 @@ service /cookie on new http:Listener(9253) {
             res.removeCookiesFromRemoteStore(cookie1);
             var result = caller->respond(res);
         } else {
-            string cookieHeader = req.getHeader("Cookie");
+            string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             var result = caller->respond(res);
         }
@@ -251,7 +251,7 @@ service /cookie on new http:Listener(9253) {
 @test:Config {}
 public function testSendRequestsByCookieClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-1.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     http:Request req = new;
@@ -273,7 +273,7 @@ public function testSendRequestsByCookieClient() {
 @test:Config {}
 public function testRemoveSessionCookieByClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-2.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     http:Request req = new;
@@ -301,7 +301,7 @@ public function testRemoveSessionCookieByClient() {
 // cookie in the cookie store
 @test:Config {}
 public function testAddSimilarSessionCookies() {
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true }
         });
     http:Request req = new;
@@ -320,7 +320,7 @@ public function testAddSimilarSessionCookies() {
 @test:Config {}
 public function testRemoveSessionCookieByServer() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookies-test-data/client-4.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     http:Request req = new;
@@ -343,7 +343,7 @@ public function testRemoveSessionCookieByServer() {
 }
 public function testSendConcurrentRequests() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-5.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     worker w1 {
@@ -388,7 +388,7 @@ public function testSendConcurrentRequests() {
 @test:Config {}
 public function testSendRequestsByClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-6.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             retryConfig: {
                 intervalInMillis: 3000,
                 count: 3,
@@ -429,7 +429,7 @@ public function testSendRequestsByClient() {
 @test:Config {}
 public function testRemovePersistentCookieByClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-7.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     http:Request req = new;
@@ -458,7 +458,7 @@ public function testRemovePersistentCookieByClient() {
 @test:Config {}
 public function testAddSimilarPersistentCookies() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-8.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     http:Request req = new;
@@ -479,7 +479,7 @@ public function testAddSimilarPersistentCookies() {
 @test:Config {}
 public function testSendSimilarPersistentAndSessionCookies_1() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-9.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     http:Request req = new;
@@ -500,7 +500,7 @@ public function testSendSimilarPersistentAndSessionCookies_1() {
 @test:Config {}
 public function testSendSimilarPersistentAndSessionCookies_2() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-10.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     http:Request req = new;
@@ -520,7 +520,7 @@ public function testSendSimilarPersistentAndSessionCookies_2() {
 @test:Config {}
 public function testRemovePersistentCookieByServer() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-11.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     http:Request req = new;
@@ -542,7 +542,7 @@ public function testRemovePersistentCookieByServer() {
 @test:Config {}
 public function testSendPersistentCookiesWithoutPersistentCookieHandler() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-12.csv");
-    http:Client cookieClientEndpoint = new ("http://localhost:9253", {
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true }
         });
     http:Request req = new;
@@ -563,7 +563,7 @@ public function testSendPersistentCookiesWithoutPersistentCookieHandler() {
 // Test the cookie validation when using the getCookies()
 @test:Config {}
 public function testCookieValidation() {
-    http:Client clientEP = new("http://localhost:9253");
+    http:Client clientEP = checkpanic new("http://localhost:9253");
     http:Request req = new;
     req.addHeader("Cookie", "user=John; asd=; =sdsdfsf; =gffg; ");
     var response = clientEP->get("/cookie/validateCookie", req);

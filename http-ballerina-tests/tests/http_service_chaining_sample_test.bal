@@ -19,10 +19,10 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serviceChainingListenerEP = new(serviceChainingTestPort);
-http:Client serviceChainingClient = new("http://localhost:" + serviceChainingTestPort.toString());
+http:Client serviceChainingClient = check new("http://localhost:" + serviceChainingTestPort.toString());
 
-http:Client bankInfoService = new("http://localhost:" + serviceChainingTestPort.toString() + "/bankinfo/product");
-http:Client branchLocatorService = new("http://localhost:" + serviceChainingTestPort.toString() + "/branchlocator/product");
+http:Client bankInfoService = check new("http://localhost:" + serviceChainingTestPort.toString() + "/bankinfo/product");
+http:Client branchLocatorService = check new("http://localhost:" + serviceChainingTestPort.toString() + "/branchlocator/product");
 
 service /ABCBank on serviceChainingListenerEP {
 
@@ -127,7 +127,7 @@ function testServiceChaining() {
     var response = serviceChainingClient->post("/ABCBank/locator", requestMessage);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

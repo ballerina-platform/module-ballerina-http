@@ -19,9 +19,9 @@ import ballerina/http;
 
 listener http:Listener cachingProxyListener = new(cachingTestPort3);
 listener http:Listener cachingBackendListener = new(cachingTestPort4);
-http:Client cachingProxyTestClient = new("http://localhost:" + cachingTestPort3.toString(), { cache: { enabled: false }});
+http:Client cachingProxyTestClient = check new("http://localhost:" + cachingTestPort3.toString(), { cache: { enabled: false }});
 
-http:Client cachingEP1 = new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
+http:Client cachingEP1 = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
 
 service /cachingProxyService on cachingProxyListener {
 
@@ -68,8 +68,8 @@ function testNoCacheCacheControl() {
     var response = cachingProxyTestClient->get("/cachingProxyService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"1st response"});
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -78,8 +78,8 @@ function testNoCacheCacheControl() {
     response = cachingProxyTestClient->get("/cachingProxyService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(serviceHitCount), "2");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "2");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"2nd response"});
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -88,8 +88,8 @@ function testNoCacheCacheControl() {
     response = cachingProxyTestClient->get("/cachingProxyService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(serviceHitCount), "3");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "3");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"2nd response"});
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

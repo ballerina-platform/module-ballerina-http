@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serviceDetachTestEP = new(serviceDetachTest);
-http:Client serviceDetachClient = new("http://localhost:" + serviceDetachTest.toString());
+http:Client serviceDetachClient = check new("http://localhost:" + serviceDetachTest.toString());
 
 service /mock1 on serviceDetachTestEP {
     resource function get .(http:Caller caller, http:Request req) {
@@ -116,7 +116,8 @@ function testServiceDetach() {
     response = serviceDetachClient->get("/mock3/mock3Resource");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "service registration failed: two services have the same basePath : '/mock4'");
+        assertTextPayload(response.getTextPayload(),
+            "Service registration failed: two services have the same basePath : '/mock4'");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

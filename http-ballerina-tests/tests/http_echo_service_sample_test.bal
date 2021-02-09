@@ -14,18 +14,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/config;
 import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
+configurable string keystore = ?;
+configurable string truststore = ?;
+
 listener http:Listener echoServiceTestListenerEP = new(echoServiceTestPort);
-http:Client echoServiceClient = new("http://localhost:" + echoServiceTestPort.toString());
+http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestPort.toString());
 
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
     secureSocket: {
         keyStore: {
-            path: config:getAsString("keystore"),
+            path: keystore,
             password: "ballerina"
         }
     }
@@ -36,12 +38,12 @@ listener http:Listener echoHttpsServiceTestListenerEP = new(echoHttpsServiceTest
 http:ClientConfiguration echoHttpsServiceClientConfig = {
     secureSocket: {
         trustStore: {
-            path: config:getAsString("truststore"),
+            path: truststore,
             password: "ballerina"
         }
     }
 };
-http:Client echoHttpsServiceClient = new("https://localhost:" + echoHttpsServiceTestPort.toString(), echoHttpsServiceClientConfig);
+http:Client echoHttpsServiceClient = check new("https://localhost:" + echoHttpsServiceTestPort.toString(), echoHttpsServiceClientConfig);
 
 service /echoServiceTest1 on echoServiceTestListenerEP {
 
@@ -89,7 +91,7 @@ function testEchoServiceByBasePath() {
     var response = echoServiceClient->post("/echoServiceTest1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), requestMessage);
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -104,7 +106,7 @@ function testEchoServiceWithDynamicPortShared() {
     var response = echoServiceClient->post("/echoServiceTest1One/abc", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -119,7 +121,7 @@ function testEchoServiceWithDynamicPortHttpsByBasePath() {
     var response = echoHttpsServiceClient->post("/echoServiceTest1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -134,7 +136,7 @@ function testEchoServiceWithDynamicPortHttpsShared() {
     var response = echoHttpsServiceClient->post("/echoServiceTest1One/abc", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

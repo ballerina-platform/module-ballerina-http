@@ -38,6 +38,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.websocket.client.FailoverContext;
 import org.ballerinalang.net.http.websocket.client.RetryContext;
 import org.ballerinalang.net.http.websocket.client.listener.ClientHandshakeListener;
@@ -56,6 +57,7 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnect
 import org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnectorConfig;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 import org.ballerinalang.stdlib.io.utils.IOConstants;
+import org.ballerinalang.stdlib.io.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,10 +89,10 @@ public class WebSocketUtil {
     public static BObject createAndPopulateWebSocketCaller(WebSocketConnection webSocketConnection,
                                                                WebSocketServerService wsService,
                                                                WebSocketConnectionManager connectionManager) {
-        BObject webSocketCaller = ValueCreator.createObjectValue(HttpConstants.PROTOCOL_HTTP_PKG_ID,
-                                                                            WebSocketConstants.WEBSOCKET_CALLER);
+        BObject webSocketCaller = ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(),
+                                                                 WebSocketConstants.WEBSOCKET_CALLER);
         BObject webSocketConnector = ValueCreator.createObjectValue(
-                HttpConstants.PROTOCOL_HTTP_PKG_ID, WebSocketConstants.WEBSOCKET_CONNECTOR);
+                ModuleUtils.getHttpPackage(), WebSocketConstants.WEBSOCKET_CONNECTOR);
 
         webSocketCaller.set(WebSocketConstants.LISTENER_CONNECTOR_FIELD, webSocketConnector);
         populateWebSocketEndpoint(webSocketConnection, webSocketCaller);
@@ -252,7 +254,7 @@ public class WebSocketUtil {
         } else if (throwable instanceof IOException) {
             errorCode = WebSocketConstants.ErrorCode.WsConnectionError.errorCode();
             cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
-                    IOConstants.IO_PACKAGE_ID);
+                                     IOUtils.getIOPackage());
             message = "IO Error";
         }
         return getWebSocketError(message, null, errorCode, cause);
@@ -412,7 +414,7 @@ public class WebSocketUtil {
                     throw getWebSocketError("Waiting for WebSocket handshake has not been successful", null,
                                             WebSocketConstants.ErrorCode.WsInvalidHandshakeError.errorCode(),
                                             WebSocketUtil.createErrorCause("Connection timeout",
-                                    IOConstants.ErrorCode.ConnectionTimedOut.errorCode(), IOConstants.IO_PACKAGE_ID));
+                                    IOConstants.ErrorCode.ConnectionTimedOut.errorCode(), IOUtils.getIOPackage()));
                 }
             }
         } catch (InterruptedException e) {

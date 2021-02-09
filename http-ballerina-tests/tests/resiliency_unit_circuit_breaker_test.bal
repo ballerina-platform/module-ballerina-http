@@ -14,9 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/io;
-import ballerina/mime;
+import ballerina/http;
 import ballerina/lang.runtime as runtime;
 import ballerina/test;
 
@@ -38,8 +37,8 @@ const int CB_CLIENT_FORCE_OPEN_INDEX = 4;
 
 function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -78,8 +77,8 @@ function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
 
 function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -119,8 +118,8 @@ function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
 
 function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -155,8 +154,8 @@ function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]
 
 function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -194,8 +193,8 @@ function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
 
 function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -234,8 +233,8 @@ function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
 
 function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -271,8 +270,8 @@ function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [h
 
 function testRequestVolumeThresholdFailureResponseScenario() returns @tainted [http:Response[], error?[]] {
     actualRequestNumber = 0;
-    MockClient mockClient = new("http://localhost:8080");
-    http:Client backendClientEP = new("http://localhost:8080", {
+    MockClient mockClient = checkpanic new("http://localhost:8080");
+    http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
                 timeWindowInMillis:10000,
@@ -332,8 +331,8 @@ public client class MockClient {
     public http:ClientConfiguration config = {};
     public http:HttpClient httpClient;
 
-    public function init(string url, http:ClientConfiguration? config = ()) {
-        http:HttpClient simpleClient = new(url);
+    public function init(string url, http:ClientConfiguration? config = ()) returns http:ClientError? {
+        http:HttpClient simpleClient = checkpanic new(url);
         self.url = url;
         self.config = config ?: {};
         self.httpClient = simpleClient;
@@ -344,9 +343,7 @@ public client class MockClient {
         return getUnsupportedError();
     }
 
-    remote function head(string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message = ())
-                                                                                returns http:Response|http:ClientError {
+    remote function head(string path, http:RequestMessage message = ()) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
@@ -375,7 +372,7 @@ public client class MockClient {
         http:Request req = buildRequest(message);
         http:Response response = new;
         actualRequestNumber = actualRequestNumber + 1;
-        string scenario = req.getHeader(TEST_SCENARIO_HEADER);
+        string scenario = checkpanic req.getHeader(TEST_SCENARIO_HEADER);
 
         if (scenario == SCENARIO_TYPICAL) {
             var result = handleBackendFailureScenario(actualRequestNumber);
@@ -434,8 +431,7 @@ public client class MockClient {
         return getUnsupportedError();
     }
 
-    remote function submit(string httpVerb, string path,
-                           http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message)
+    remote function submit(string httpVerb, string path, http:RequestMessage message)
                                                                             returns http:HttpFuture|http:ClientError {
         return getUnsupportedError();
     }
@@ -531,8 +527,7 @@ function getUnsupportedError() returns http:ClientError {
     return error http:GenericClientError("Unsupported function for MockClient");
 }
 
-function buildRequest(http:Request|string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[]|() message) returns
-http:Request {
+function buildRequest(http:RequestMessage message) returns http:Request {
     http:Request request = new;
     if (message is ()) {
         return request;
@@ -546,8 +541,8 @@ http:Request {
         request.setBinaryPayload(message);
     } else if (message is json) {
         request.setJsonPayload(message);
-    } else if (message is io:ReadableByteChannel) {
-        request.setByteChannel(message);
+    } else if (message is stream<byte[], io:Error>) {
+        request.setByteStream(message);
     } else {
         request.setBodyParts(message);
     }
@@ -556,7 +551,7 @@ http:Request {
 
 listener http:Listener mockEP3 = new(9095);
 
-http:Client clientEP = new("http://localhost:8080", {
+http:Client clientEP = check new("http://localhost:8080", {
     circuitBreaker: {
         rollingWindow: {
             timeWindowInMillis: 10000,
@@ -740,7 +735,7 @@ function cBRequestVolumeThresholdFailureResponseScenarioTest() {
 @test:Config {}
 function cBGetCurrentStatausScenarioTest() {
     string expected = "Circuit Breaker is in CLOSED state";
-    http:Client reqClient = new("http://localhost:9095");
+    http:Client reqClient = checkpanic new("http://localhost:9095");
     var response = reqClient->get("/circuitBreakerService/getState");
     if (response is http:Response) {
         var body = response.getTextPayload();

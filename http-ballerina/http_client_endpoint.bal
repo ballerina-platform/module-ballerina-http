@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/crypto;
 import ballerina/time;
 import ballerina/observe;
@@ -45,7 +45,8 @@ public client class Client {
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
-    public function init(string url, ClientConfiguration? config = ()) {
+    # + return - The `client` or an `http:ClientError` if the initialization failed
+    public function init(string url, ClientConfiguration? config = ()) returns ClientError? {
         self.config = config ?: {};
         self.url = url;
         var cookieConfigVal = self.config.cookieConfig;
@@ -55,8 +56,8 @@ public client class Client {
             }
         }
         var result = initialize(url, self.config, self.cookieStore);
-        if (result is error) {
-            panic result;
+        if (result is ClientError) {
+            return result;
         } else {
             self.httpClient = result;
         }
@@ -66,7 +67,7 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -87,7 +88,7 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -103,7 +104,7 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -123,7 +124,7 @@ public client class Client {
     # + httpVerb - HTTP verb value
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -142,7 +143,7 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -161,7 +162,7 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -180,7 +181,7 @@ public client class Client {
     #
     # + path - Request path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -199,7 +200,7 @@ public client class Client {
     #
     # + path - Request path
     # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -238,7 +239,7 @@ public client class Client {
     # + httpVerb - The HTTP verb value
     # + path - The resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = buildRequest(message);
@@ -348,6 +349,19 @@ public type ClientHttp1Settings record {|
     ProxyConfig? proxy = ();
 |};
 
+# Provides inbound response status line, total header and entity body size threshold configurations.
+#
+# + maxStatusLineLength - Maximum allowed length for response status line(`HTTP/1.1 200 OK`). Exceeding this limit will
+#                         result in a `ClientError`
+# + maxHeaderSize - Maximum allowed size for headers. Exceeding this limit will result in a `ClientError`
+# + maxEntityBodySize - Maximum allowed size for the entity body. By default it is set to -1 which means there is no
+#                       restriction `maxEntityBodySize`, On the Exceeding this limit will result in a `ClientError`
+public type ResponseLimitConfigs record {|
+    int maxStatusLineLength = 4096;
+    int maxHeaderSize = 8192;
+    int maxEntityBodySize = -1;
+|};
+
 isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig) = @java:Method {
    'class: "org.ballerinalang.net.http.clientendpoint.CreateSimpleHttpClient",
    name: "createSimpleHttpClient"
@@ -454,7 +468,7 @@ public type CookieConfig record {|
      PersistentCookieHandler persistentCookieHandler?;
 |};
 
-function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|error {
+function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
     boolean httpClientRequired = false;
     string url = serviceUrl;
     if (url.endsWith("/")) {
@@ -637,20 +651,20 @@ function performDataBinding(Response response, TargetType targetType) returns @t
         return response.getXmlPayload();
     } else if (targetType is typedesc<byte[]>) {
         return response.getBinaryPayload();
-    } else if (targetType is typedesc<CustomRecordType>) {
+    } else if (targetType is typedesc<record {| anydata...; |}>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
             return error GenericClientError("payload binding failed: " + result.message(), result);
         }
-        return <CustomRecordType> checkpanic result;
-    } else if (targetType is typedesc<CustomRecordType[]>) {
+        return <record {| anydata...; |}> checkpanic result;
+    } else if (targetType is typedesc<record {| anydata...; |}[]>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
             return error GenericClientError("payload binding failed: " + result.message(), result);
         }
-        return <CustomRecordType[]> checkpanic result;
+        return <record {| anydata...; |}[]> checkpanic result;
     } else if (targetType is typedesc<map<json>>) {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;

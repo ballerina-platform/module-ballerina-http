@@ -35,7 +35,7 @@ http:ClientConfiguration conf04 = {
     timeoutInMillis: 2000
 };
 
-http:Client errornousClientEP = new("http://localhost:8090", conf04);
+http:Client errornousClientEP = check new("http://localhost:8090", conf04);
 
 service /cb on circuitBreakerEP04 {
 
@@ -72,11 +72,9 @@ service /errornous on new http:Listener(8090) {
 }
 
 //Test for circuit breaker requestVolumeThreshold functionality
-http:Client testRequestVolumeClient = new("http://localhost:9310");
+http:Client testRequestVolumeClient = check new("http://localhost:9310");
 
-@test:Config{
-    dataProvider:"requestVolumeResponseDataProvider"
-}
+@test:Config{ dataProvider:requestVolumeResponseDataProvider }
 function requestVolumeTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed);
 }

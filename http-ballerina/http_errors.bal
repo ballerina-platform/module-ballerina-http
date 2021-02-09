@@ -117,6 +117,9 @@ public type SslError distinct error;
 # Represents a cookie error that occurred when using the cookies
 public type CookieHandlingError distinct error;
 
+# Represents a header not found error when retrieving headers
+public type HeaderNotFoundError distinct error;
+
 # Represents an illegal data-binding  state error
 public type IllegalDataBindingStateError distinct error<Detail>;
 
@@ -156,7 +159,7 @@ public type OutboundResponseError InitializingOutboundResponseError|WritingOutbo
 public type ClientError ResiliencyError|ClientAuthError|OutboundRequestError|
                             InboundResponseError|UnsupportedActionError|Http2ClientError|
                             MaximumWaitTimeExceededError|SslError|GenericClientError|CookieHandlingError|
-                            RemoteServerError|ClientRequestError|IllegalDataBindingStateError;
+                            RemoteServerError|ClientRequestError|IllegalDataBindingStateError|HeaderNotFoundError;
 
 # Defines the possible listener error types
 public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError;

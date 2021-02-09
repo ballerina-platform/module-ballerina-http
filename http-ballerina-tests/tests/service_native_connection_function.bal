@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener connectionNativeTestEP = new(connectionNativeTest);
-http:Client connectionNativeClient = new("http://localhost:" + connectionNativeTest.toString());
+http:Client connectionNativeClient = check new("http://localhost:" + connectionNativeTest.toString());
 
 service /connectionNativeHello on connectionNativeTestEP {
     
@@ -35,7 +35,7 @@ function testRedirect() {
     var response = connectionNativeClient->get("/connectionNativeHello/redirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 301, msg = "Found unexpected output");
-        assertHeaderValue(response.getHeader("Location"), "location1");
+        assertHeaderValue(checkpanic response.getHeader("Location"), "location1");
     } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
