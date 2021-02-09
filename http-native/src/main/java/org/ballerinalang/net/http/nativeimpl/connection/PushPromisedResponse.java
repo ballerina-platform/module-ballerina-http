@@ -73,7 +73,7 @@ public class PushPromisedResponse extends ConnectionAction {
         BObject entityObj = extractEntity(outboundResponseObj);
         if (entityObj != null) {
             Object outboundMessageSource = EntityBodyHandler.getMessageDataSource(entityObj);
-            serializeMsgDataSource(outboundMessageSource, entityObj, messageOutputStream);
+            serializeMsgDataSource(dataContext, outboundMessageSource, entityObj, messageOutputStream);
         }
     }
 }

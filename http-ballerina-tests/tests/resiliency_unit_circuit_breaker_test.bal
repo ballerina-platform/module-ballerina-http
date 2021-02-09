@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/io;
 import ballerina/http;
-import ballerina/mime;
 import ballerina/lang.runtime as runtime;
 import ballerina/test;
 
@@ -343,9 +343,7 @@ public client class MockClient {
         return getUnsupportedError();
     }
 
-    remote function head(string path,
-                           http:Request|string|xml|json|byte[]|mime:Entity[]|() message = ())
-                                                                                returns http:Response|http:ClientError {
+    remote function head(string path, http:RequestMessage message = ()) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
@@ -433,8 +431,7 @@ public client class MockClient {
         return getUnsupportedError();
     }
 
-    remote function submit(string httpVerb, string path,
-                           http:Request|string|xml|json|byte[]|mime:Entity[]|() message)
+    remote function submit(string httpVerb, string path, http:RequestMessage message)
                                                                             returns http:HttpFuture|http:ClientError {
         return getUnsupportedError();
     }
@@ -530,8 +527,7 @@ function getUnsupportedError() returns http:ClientError {
     return error http:GenericClientError("Unsupported function for MockClient");
 }
 
-function buildRequest(http:Request|string|xml|json|byte[]|mime:Entity[]|() message) returns
-http:Request {
+function buildRequest(http:RequestMessage message) returns http:Request {
     http:Request request = new;
     if (message is ()) {
         return request;
@@ -545,6 +541,8 @@ http:Request {
         request.setBinaryPayload(message);
     } else if (message is json) {
         request.setJsonPayload(message);
+    } else if (message is stream<byte[], io:Error>) {
+        request.setByteStream(message);
     } else {
         request.setBodyParts(message);
     }

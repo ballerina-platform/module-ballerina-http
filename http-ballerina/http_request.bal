@@ -303,6 +303,27 @@ public class Request {
         }
     }
 
+    # Gets the request payload as  a stream of byte[], except in the case of multiparts. To retrieve multiparts, use
+    # `Request.getBodyParts()`.
+    #
+    # + arraySize - A defaultable parameter to state the size of the byte array. Default size is 8KB
+    # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
+    public isolated function getByteStream(int arraySize = 8196) returns @tainted stream<byte[], io:Error>|ClientError {
+        var result = self.getEntityWithBodyAndWithoutHeaders();
+        if (result is error) {
+            return result;
+        } else {
+            externPopulateInputStream(result);
+            var byteStream = result.getByteStream(arraySize);
+            if (byteStream is mime:Error) {
+                string message = "Error occurred while retrieving the byte stream from the request";
+                return error GenericClientError(message, byteStream);
+            } else {
+                return byteStream;
+            }
+        }
+    }
+
     # Gets the request payload as a `byte[]`.
     #
     # + return - The byte[] representation of the message payload or `http:ClientError` in case of errors
@@ -473,12 +494,26 @@ public class Request {
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
+    # Sets a `Stream` as the payload. This method overrides any existing content-type headers with the default 
+    # content-type, which is `application/octet-stream`. This default value can be overridden by passing the 
+    # content-type as an optional parameter.
+    #
+    # + byteStream - Byte stream, which needs to be set to the request
+    # + contentType - Content-type to be used with the payload. This is an optional parameter.
+    #                 The `application/octet-stream` is the default value
+    public isolated function setByteStream(stream<byte[], io:Error> byteStream, 
+            string contentType = "application/octet-stream") {
+        mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
+        entity.setByteStream(byteStream, contentType);
+        self.setEntityAndUpdateContentTypeHeader(entity);
+    }
+
     # Sets the request payload. Note that any string value is set as `text/plain`. To send a JSON-compatible string,
     # set the content-type header to `application/json` or use the `setJsonPayload` method instead.
     #
-    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]` or `Entity[]` (i.e., a set
-    # of body parts).
-    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[] payload) {
+    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error>` 
+    #             or `Entity[]` (i.e., a set of body parts).
+    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error> payload) {
         if (payload is string) {
             self.setTextPayload(payload);
         } else if (payload is xml) {
@@ -487,6 +522,8 @@ public class Request {
             self.setBinaryPayload(payload);
         } else if (payload is json) {
             self.setJsonPayload(payload);
+        } else if (payload is stream<byte[], io:Error>) {
+            self.setByteStream(payload);
         } else {
             self.setBodyParts(payload);
         }

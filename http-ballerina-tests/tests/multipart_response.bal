@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/io;
 import ballerina/mime;
 import ballerina/test;
 
@@ -90,11 +91,10 @@ function testMultipartsInOutResponse() {
             } else {
                test:assertFail(msg = errorMessage + textPart.message());
             }
-            // TODO: Enable with new byteStream API
-            // io:ReadableByteChannel|error filePart = bodyParts[3].getByteChannel();
-            // if (filePart is error) {
-            //    test:assertFail(msg = errorMessage + filePart.message());
-            // }
+            stream<byte[], io:Error>|error filePart = bodyParts[3].getByteStream();
+            if (filePart is error) {
+               test:assertFail(msg = errorMessage + filePart.message());
+            }
         } else {
             test:assertFail(msg = errorMessage + bodyParts.message());
         }
