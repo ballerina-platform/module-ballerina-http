@@ -242,8 +242,7 @@ public class HttpDispatcher {
                     continue;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                    throw new BallerinaConnectorException("no query param value found for '" + token + "'. Make the " +
-                                                                  "query param type nilable if it's not mandatory");
+                    throw new BallerinaConnectorException("no query param value found for '" + token + "'");
                 }
             }
             try {
@@ -268,22 +267,21 @@ public class HttpDispatcher {
             String token = headerParam.getHeaderName();
             int index = headerParam.getIndex();
             List<String> headerValues = httpHeaders.getAll(token);
-            if (headerValues == null) {
+            if (headerValues.isEmpty()) {
                 if (headerParam.isNilable()) {
                     paramFeed[index++] = null;
                     paramFeed[index] = true;
                     continue;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                    throw new BallerinaConnectorException("no header value found for '" + token + "'. Make the header" +
-                                                                  " param type nilable if it's not mandatory");
+                    throw new BallerinaConnectorException("no header value found for '" + token + "'");
                 }
             }
             if (headerParam.getTypeTag() == ARRAY_TAG) {
                 String[] headerArray = headerValues.toArray(new String[0]);
                 paramFeed[index++] = StringUtils.fromStringArray(headerArray);
             } else {
-                paramFeed[index++] = headerValues.get(0);
+                paramFeed[index++] = StringUtils.fromString(headerValues.get(0));
             }
             paramFeed[index] = true;
         }

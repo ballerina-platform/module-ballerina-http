@@ -127,7 +127,6 @@ public class ParamHandler {
                     }
                     break;
                 default:
-                    // TODO handle query, payload, header params
                     String paramName = resource.getParamNames()[index];
                     HeaderParam headerParam;
                     if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
@@ -142,6 +141,9 @@ public class ParamHandler {
         }
         if (queryParams.isNotEmpty()) {
             getOtherParamList().add(this.queryParams);
+        }
+        if (headerParams.isNotEmpty()) {
+            getOtherParamList().add(this.headerParams);
         }
     }
 

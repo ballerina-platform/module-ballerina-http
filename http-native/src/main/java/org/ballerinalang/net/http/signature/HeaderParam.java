@@ -59,7 +59,7 @@ public class HeaderParam {
             if (size > 2 || !this.type.isNilable()) {
                 throw HttpUtil.createHttpError(
                         "invalid header param type '" + this.type.getName() + "': a string or an array " +
-                                "of a string can only be union with '()' Eg: string|() or string[]|()");
+                                "of a string can only be union with '()'. Eg: string|() or string[]|()");
             }
             this.nilable = true;
             for (Type type : memberTypes) {
@@ -70,19 +70,20 @@ public class HeaderParam {
                 break;
             }
         } else {
-            validateBasicType(type);
+            validateBasicType(this.type);
         }
     }
 
     // Note the validation is only done for the non-object header params. i.e for the string, string[] types
     private void validateBasicType(Type type) {
-        if (isValidBasicType(typeTag) || (typeTag == TypeTags.ARRAY_TAG && isValidBasicType(
+        if (isValidBasicType(type.getTag()) || (type.getTag() == TypeTags.ARRAY_TAG && isValidBasicType(
                 ((ArrayType) type).getElementType().getTag()))) {
+            // Assign element type as the type of header param
+            this.typeTag = type.getTag();
             return;
         }
         throw HttpUtil.createHttpError("incompatible header parameter type: '" + type.getName() + "'. " +
-                                               "expected: string, string[] or http:Headers",
-                                       HttpErrorType.GENERIC_LISTENER_ERROR);
+                                               "expected: string or string[]", HttpErrorType.GENERIC_LISTENER_ERROR);
     }
 
     private boolean isValidBasicType(int typeTag) {
@@ -105,15 +106,11 @@ public class HeaderParam {
         return this.index * 2;
     }
 
-    public Type getType() {
-        return this.type;
-    }
-
     public String getHeaderName() {
         return headerName;
     }
 
-    public void setHeaderName(String headerName) {
+    void setHeaderName(String headerName) {
         this.headerName = headerName;
     }
 }

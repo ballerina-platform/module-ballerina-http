@@ -103,6 +103,7 @@ const int responseLimitsTestPort2 = 9558;
 const int responseLimitsTestPort3 = 9559;
 const int responseLimitsTestPort4 = 9560;
 const int responseLimitsTestPort5 = 9561;
+const int headerParamBindingTest = 9562;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
