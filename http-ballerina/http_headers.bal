@@ -15,12 +15,15 @@
 // under the License.
 
 # Represents the headers of the inbound request.
-public class Header {
+public class Headers {
 
-    private Request request = new;
+    private Request? request = ();
 
-    public isolated function init(Request request) {
-        self.request = request;
+    isolated function getRequest() returns Request {
+        if (self.request is Request) {
+            return self.request;
+        }
+        panic error GenericListenerError("Request is not initialized to retrived headers");
     }
 
     # Checks whether the requested header key exists in the header map.
@@ -28,7 +31,7 @@ public class Header {
     # + headerName - The header name
     # + return - Returns true if the specified header key exists
     public isolated function hasHeader(string headerName) returns boolean {
-        return self.request.hasHeader(headerName);
+        return self.getRequest().hasHeader(headerName);
     }
 
     # Returns the value of the specified header. If the specified header key maps to multiple values, the first of
@@ -38,7 +41,7 @@ public class Header {
     # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
     #            found.
     public isolated function getHeader(string headerName) returns @tainted string|HeaderNotFoundError {
-        return self.request.getHeader(headerName);
+        return self.getRequest().getHeader(headerName);
     }
 
     # Gets all the header values to which the specified header key maps to.
@@ -47,14 +50,14 @@ public class Header {
     # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
     #            found.
     public isolated function getHeaders(string headerName) returns @tainted string[]|HeaderNotFoundError {
-        return self.request.getHeaders(headerName);
+        return self.getRequest().getHeaders(headerName);
     }
 
     # Gets all the names of the headers of the request.
     #
     # + return - An array of all the header names
     public isolated function getHeaderNames() returns @tainted string[] {
-        return self.request.getHeaderNames();
+        return self.getRequest().getHeaderNames();
     }
 }
 

@@ -29,6 +29,7 @@ import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import static org.ballerinalang.mime.util.MimeConstants.MEDIA_TYPE;
 import static org.ballerinalang.net.http.HttpConstants.CALLER;
 import static org.ballerinalang.net.http.HttpConstants.ENTITY;
+import static org.ballerinalang.net.http.HttpConstants.HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.PUSH_PROMISE;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_CACHE_CONTROL;
@@ -71,8 +72,12 @@ public class ValueCreatorUtils {
         return createObjectValue(ModuleUtils.getHttpPackage(), RESPONSE_CACHE_CONTROL);
     }
 
-    public static BObject createCallerObject() {
+    static BObject createCallerObject() {
         return createObjectValue(ModuleUtils.getHttpPackage(), CALLER);
+    }
+
+    static BObject createHeadersObject() {
+        return createObjectValue(ModuleUtils.getHttpPackage(), HEADERS);
     }
     
     /**

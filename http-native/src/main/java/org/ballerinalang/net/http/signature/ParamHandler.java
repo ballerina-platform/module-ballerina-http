@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_CALLER_INFO;
+import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_HEADER;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PAYLOAD;
 import static org.ballerinalang.net.http.HttpConstants.COLON;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP;
@@ -62,15 +63,19 @@ public class ParamHandler {
     private PayloadParam payloadParam = null;
     private NonRecurringParam callerParam = null;
     private NonRecurringParam requestParam = null;
+    private NonRecurringParam headerObjectParam = null;
     private AllQueryParams queryParams = new AllQueryParams();
+    private AllHeaderParams headerParams = new AllHeaderParams();
 
     private static final String PARAM_ANNOT_PREFIX = "$param$.";
     private static final MapType MAP_TYPE = TypeCreator.createMapType(
             TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
     private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
     private static final String REQ_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST;
+    private static final String HEADERS_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.HEADERS;
     private static final String CALLER_ANNOTATION = getHttpPackageIdentifier() + COLON + ANN_NAME_CALLER_INFO;
     public static final String PAYLOAD_ANNOTATION = getHttpPackageIdentifier() + COLON + ANN_NAME_PAYLOAD;
+    public static final String HEADER_ANNOTATION = getHttpPackageIdentifier() + COLON + ANN_NAME_HEADER;
 
     public ParamHandler(ResourceMethodType resource, int pathParamCount) {
         this.resource = resource;
@@ -113,12 +118,23 @@ public class ParamHandler {
                         throw HttpUtil.createHttpError("invalid multiple '" + REQ_TYPE + "' parameter");
                     }
                     break;
+                case HEADERS_TYPE:
+                    if (this.headerObjectParam == null) {
+                        this.headerObjectParam = new NonRecurringParam(index, HttpConstants.HEADERS);
+                        getOtherParamList().add(this.headerObjectParam);
+                    } else {
+                        throw HttpUtil.createHttpError("invalid multiple '" + HEADERS_TYPE + "' parameter");
+                    }
+                    break;
                 default:
                     // TODO handle query, payload, header params
                     String paramName = resource.getParamNames()[index];
+                    HeaderParam headerParam;
                     if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
                         payloadParam.init(parameterType, index);
                         getOtherParamList().add(payloadParam);
+                    } else if ((headerParam = headerParams.get(paramName)) != null) {
+                        headerParam.init(parameterType, index);
                     } else {
                         validateQueryParam(index, resource, parameterType);
                     }
@@ -136,7 +152,7 @@ public class ParamHandler {
                 continue;
             }
             Object[] annotationsKeys = annotations.getKeys();
-            validateForMultipleHTTPAnnotations(annotationsKeys, paramName);
+            validateForMultipleHTTPAnnotationsOnSingleParam(annotationsKeys, paramName);
             for (Object objKey : annotationsKeys) {
                 String key = ((BString) objKey).getValue();
                 if (PAYLOAD_ANNOTATION.equals(key)) {
@@ -146,12 +162,14 @@ public class ParamHandler {
                         throw HttpUtil.createHttpError(
                                 "invalid multiple '" + PROTOCOL_HTTP + COLON + ANN_NAME_PAYLOAD + "' annotation usage");
                     }
+                } else if (HEADER_ANNOTATION.equals(key)) {
+                    createHeaderParam(paramName, annotations);
                 }
             }
         }
     }
 
-    private void validateForMultipleHTTPAnnotations(Object[] annotationsKeys, String paramName) {
+    private void validateForMultipleHTTPAnnotationsOnSingleParam(Object[] annotationsKeys, String paramName) {
         boolean alreadyAnnotated = false;
         for (Object objKey : annotationsKeys) {
             String key = ((BString) objKey).getValue();
@@ -165,7 +183,7 @@ public class ParamHandler {
     }
 
     private boolean isAllowedResourceParamAnnotation(String key) {
-        return PAYLOAD_ANNOTATION.equals(key) || CALLER_ANNOTATION.equals(key);
+        return PAYLOAD_ANNOTATION.equals(key) || CALLER_ANNOTATION.equals(key) || HEADER_ANNOTATION.equals(key);
     }
 
     private void createPayloadParam(String paramName, BMap annotations) {
@@ -181,6 +199,20 @@ public class ParamHandler {
                 this.payloadParam.getMediaTypes().add(Arrays.toString(value));
             }
         }
+    }
+
+    private void createHeaderParam(String paramName, BMap annotations) {
+        HeaderParam headerParam = new HeaderParam(paramName);
+        BMap mapValue = annotations.getMapValue(StringUtils.fromString(HEADER_ANNOTATION));
+        Object headerName = mapValue.get(HttpConstants.ANN_FIELD_NAME);
+        if (headerName instanceof BString) {
+            String value = ((BString) headerName).getValue();
+            headerParam.setHeaderName(value);
+        } else {
+            // if the name field is not stated, use the param token as header key
+            headerParam.setHeaderName(paramName);
+        }
+        this.headerParams.add(headerParam);
     }
 
     private void validateQueryParam(int index, ResourceMethodType balResource, Type parameterType) {

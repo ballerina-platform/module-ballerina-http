@@ -140,9 +140,11 @@ public class HttpConstants {
     public static final BString ANN_FIELD_PATH_PARAM_ORDER = StringUtils.fromString("pathParamOrder");
     public static final BString ANN_FIELD_ALL_PARAM_ORDER = StringUtils.fromString("allParamOrder");
     public static final String ANN_NAME_PAYLOAD = "Payload";
+    public static final String ANN_NAME_HEADER = "Header";
     public static final String ANN_NAME_CALLER_INFO = "CallerInfo";
     public static final String DIRTY_RESPONSE = "dirtyResponse";
     public static final BString ANN_FIELD_MEDIA_TYPE = StringUtils.fromString("mediaType");
+    public static final BString ANN_FIELD_NAME = StringUtils.fromString("name");
 
     public static final String VALUE_ATTRIBUTE = "value";
 
@@ -184,6 +186,7 @@ public class HttpConstants {
     public static final String DOT_IDENTIFIER = ".";
     public static final String QUERY_PARAM = "query";
     public static final String PAYLOAD_PARAM = "payload";
+    public static final String HEADER_PARAM = "header";
 
     /* Annotations */
     public static final String ANNOTATION_NAME_SOURCE = "Source";
@@ -197,6 +200,7 @@ public class HttpConstants {
     public static final String LOCAL = "Local";
     public static final String REQUEST = "Request";
     public static final String RESPONSE = "Response";
+    public static final String HEADERS = "Headers";
     public static final String HTTP_FUTURE = "HttpFuture";
     public static final String PUSH_PROMISE = "PushPromise";
     public static final String ENTITY = "Entity";
@@ -218,6 +222,7 @@ public class HttpConstants {
     public static final String HTTP_HEADERS = "http_headers";
     public static final String HTTP_TRAILER_HEADERS = "http_trailer_headers";
     public static final String LEADING_HEADER = "leading";
+    public static final BString HEADER_REQUEST_FIELD = StringUtils.fromString("request");
 
     public static final String HTTP_TRANSPORT_CONF = "transports.netty.conf";
     public static final String CIPHERS = "ciphers";
