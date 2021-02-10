@@ -233,16 +233,6 @@ public client class LoadBalanceClient {
     remote function rejectPromise(PushPromise promise) {}
 }
 
-# Represents the error attributes in addition to the message and the cause of the `LoadBalanceActionError`.
-#
-# + httpActionErr - Array of errors occurred at each endpoint
-public type LoadBalanceActionErrorData record {
-    error?[] httpActionErr = [];
-};
-
-# Represents an error occurred in an remote function of the Load Balance connector.
-public type LoadBalanceActionError distinct error<LoadBalanceActionErrorData>;
-
 // Performs execute action of the Load Balance connector. extract the corresponding http integer value representation
 // of the http verb and invokes the perform action method.
 function performLoadBalanceExecuteAction(LoadBalanceClient lb, string path, Request request,

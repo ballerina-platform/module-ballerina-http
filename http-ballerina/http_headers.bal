@@ -24,7 +24,7 @@ public class Headers {
         if (req is Request) {
             return req;
         }
-        panic error GenericListenerError("Request is not initialized to retrived headers");
+        panic error GenericListenerError("Request is not initialized to retrieve headers");
     }
 
     # Checks whether the requested header key exists in the header map.

@@ -14,152 +14,232 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Holds the details of an HTTP error
+# Represents the details of an HTTP error.
 # 
 # + statusCode - The status code, if the inbound error response exists
 public type Detail record {
     int statusCode?;
 };
 
-// Ballerina HTTP Client Error Types
+# Represents the details of the `LoadBalanceActionError`.
+#
+# + httpActionErr - Array of errors occurred at each endpoint
+public type LoadBalanceActionErrorData record {
+    error?[] httpActionErr = [];
+};
 
-// Resiliency errors
-# Represents a client error that occurred due to all the failover endpoint failure
-public type FailoverAllEndpointsFailedError distinct error;
+// Level 1
+# Defines the common error type for the module
+public type Error distinct error;
 
-# Represents a client error that occurred due to failover action failure
-public type FailoverActionFailedError distinct error;
+// Level 2
+# Defines the possible listener error types
+public type ListenerError distinct Error;
 
-# Represents a client error that occurred due to upstream service unavailability
-public type UpstreamServiceUnavailableError distinct error;
+# Defines the possible client error types
+public type ClientError distinct Error;
 
-# Represents a client error that occurred due to all the load balance endpoint failure
-public type AllLoadBalanceEndpointsFailedError distinct error;
+// Level 3
+# Defines the listener error types that returned while receiving inbound request
+public type InboundRequestError distinct ListenerError;
 
-# Represents a client error that occurred due to circuit breaker configuration error.
-public type CircuitBreakerConfigError distinct error;
+# Defines the listener error types that returned while sending outbound response
+public type OutboundResponseError distinct ListenerError;
 
-# Represents a client error that occurred due to all the the retry attempts failure
-public type AllRetryAttemptsFailed distinct error;
+# Represents a generic listener error
+public type GenericListenerError distinct ListenerError;
 
-# Represents the error that triggered upon a request/response idle timeout
-public type IdleTimeoutError distinct error;
+# Defines the client error types that returned while sending outbound request
+public type OutboundRequestError distinct ClientError;
 
-// Outbound request errors in client
-# Represents a client error that occurred due to outbound request initialization failure
-public type InitializingOutboundRequestError distinct error;
+# Defines the client error types that returned while receiving inbound response
+public type InboundResponseError distinct ClientError;
 
-# Represents a client error that occurred while writing outbound request headers
-public type WritingOutboundRequestHeadersError distinct error;
+# Defines the Auth error types that returned from client
+public type ClientAuthError distinct ClientError;
 
-# Represents a client error that occurred while writing outbound request entity body
-public type WritingOutboundRequestBodyError distinct error;
-
-// Inbound response errors in client
-# Represents a client error that occurred due to inbound response initialization failure
-public type InitializingInboundResponseError distinct error;
-
-# Represents a client error that occurred while reading inbound response headers
-public type ReadingInboundResponseHeadersError distinct error;
-
-# Represents a client error that occurred while reading inbound response entity body
-public type ReadingInboundResponseBodyError distinct error;
-
-//Inbound request errors in listener
-# Represents a listener error that occurred due to inbound request initialization failure
-public type InitializingInboundRequestError distinct error;
-
-# Represents a listener error that occurred while reading inbound request headers
-public type ReadingInboundRequestHeadersError distinct error;
-
-# Represents a listener error that occurred while writing the inbound request entity body
-public type ReadingInboundRequestBodyError distinct error;
-
-// Outbound response errors in listener
-# Represents a listener error that occurred due to outbound response initialization failure
-public type InitializingOutboundResponseError distinct error;
-
-# Represents a listener error that occurred while writing outbound response headers
-public type WritingOutboundResponseHeadersError distinct error;
-
-# Represents a listener error that occurred while writing outbound response entity body
-public type WritingOutboundResponseBodyError distinct error;
-
-# Represents an error that occurred due to 100 continue response initialization failure
-public type Initiating100ContinueResponseError distinct error;
-
-# Represents an error that occurred while writing 100 continue response
-public type Writing100ContinueResponseError distinct error;
-
-# Represents a cookie error that occurred when sending cookies in the response
-public type InvalidCookieError distinct error;
+# Defines the resiliency error types that returned from client
+public type ResiliencyError distinct ClientError;
 
 // Generic errors (mostly to wrap errors from other modules)
 # Represents a generic client error
-public type GenericClientError distinct error;
+public type GenericClientError distinct ClientError;
 
-# Represents a generic listener error
-public type GenericListenerError distinct error;
+# Represents an HTTP/2 client generic error
+public type Http2ClientError distinct ClientError;
+
+# Represents a client error that occurred due to SSL failure
+public type SslError distinct ClientError;
+
+# Represents an client data-binding error
+public type DataBindingError distinct ClientError;
+
+// Level 4
+# Represents a header not found error when retrieving headers
+public type HeaderNotFoundError distinct GenericListenerError;
 
 // Other client-related errors
 # Represents a client error that occurred due to unsupported action invocation
-public type UnsupportedActionError distinct error;
-
-# Represents an HTTP/2 client generic error
-public type Http2ClientError distinct error;
+public type UnsupportedActionError distinct GenericClientError;
 
 # Represents a client error that occurred exceeding maximum wait time
-public type MaximumWaitTimeExceededError distinct error;
-
-# Represents a client error that occurred due to SSL failure
-public type SslError distinct error;
+public type MaximumWaitTimeExceededError distinct GenericClientError;
 
 # Represents a cookie error that occurred when using the cookies
-public type CookieHandlingError distinct error;
-
-# Represents a header not found error when retrieving headers
-public type HeaderNotFoundError distinct error;
+public type CookieHandlingError distinct GenericClientError;
 
 # Represents an illegal data-binding  state error
-public type IllegalDataBindingStateError distinct error<Detail>;
+public type IllegalDataBindingStateError distinct DataBindingError & error<Detail>;
 
 # Represents an error, which occurred due to bad syntax or incomplete info in the client request(4xx HTTP response)
-public type ClientRequestError distinct error<Detail>;
+public type ClientRequestError distinct DataBindingError & error<Detail>;
 
 # Represents an error, which occurred due to a failure of the remote server(5xx HTTP response)
-public type RemoteServerError distinct error<Detail>;
+public type RemoteServerError distinct DataBindingError & error<Detail>;
 
-// Ballerina HTTP Union Errors
-# Defines the resiliency error types that returned from client
-public type ResiliencyError FailoverAllEndpointsFailedError|FailoverActionFailedError|
-                            UpstreamServiceUnavailableError|AllLoadBalanceEndpointsFailedError|
-                            AllRetryAttemptsFailed|IdleTimeoutError;
+// Resiliency errors
+# Represents a client error that occurred due to all the failover endpoint failure
+public type FailoverAllEndpointsFailedError distinct ResiliencyError;
 
-# Defines the Auth error types that returned from client
-public type ClientAuthError distinct error;
+# Represents a client error that occurred due to failover action failure
+public type FailoverActionFailedError distinct ResiliencyError;
 
-# Defines the client error types that returned while sending outbound request
-public type OutboundRequestError InitializingOutboundRequestError|WritingOutboundRequestHeadersError|
-                            WritingOutboundRequestBodyError;
+# Represents a client error that occurred due to upstream service unavailability
+public type UpstreamServiceUnavailableError distinct ResiliencyError;
 
-# Defines the client error types that returned while receiving inbound response
-public type InboundResponseError InitializingInboundResponseError|ReadingInboundResponseHeadersError|
-                            ReadingInboundResponseBodyError;
+# Represents a client error that occurred due to all the load balance endpoint failure
+public type AllLoadBalanceEndpointsFailedError distinct ResiliencyError;
 
-# Defines the listener error types that returned while receiving inbound request
-public type InboundRequestError InitializingInboundRequestError|ReadingInboundRequestHeadersError|
-                            ReadingInboundRequestBodyError;
+# Represents a client error that occurred due to circuit breaker configuration error.
+public type CircuitBreakerConfigError distinct ResiliencyError;
 
-# Defines the listener error types that returned while sending outbound response
-public type OutboundResponseError InitializingOutboundResponseError|WritingOutboundResponseHeadersError|
-                            WritingOutboundResponseBodyError|Initiating100ContinueResponseError|
-                            Writing100ContinueResponseError|InvalidCookieError;
+# Represents a client error that occurred due to all the the retry attempts failure
+public type AllRetryAttemptsFailed distinct ResiliencyError;
 
-# Defines the possible client error types
-public type ClientError ResiliencyError|ClientAuthError|OutboundRequestError|
-                            InboundResponseError|UnsupportedActionError|Http2ClientError|
-                            MaximumWaitTimeExceededError|SslError|GenericClientError|CookieHandlingError|
-                            RemoteServerError|ClientRequestError|IllegalDataBindingStateError|HeaderNotFoundError;
+# Represents the error that triggered upon a request/response idle timeout
+public type IdleTimeoutError distinct ResiliencyError;
 
-# Defines the possible listener error types
-public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError;
+# Represents an error occurred in an remote function of the Load Balance connector.
+public type LoadBalanceActionError distinct ResiliencyError & error<LoadBalanceActionErrorData>;
+
+// Outbound request errors in client
+# Represents a client error that occurred due to outbound request initialization failure
+public type InitializingOutboundRequestError distinct OutboundRequestError;
+
+# Represents a client error that occurred while writing outbound request headers
+public type WritingOutboundRequestHeadersError distinct OutboundRequestError;
+
+# Represents a client error that occurred while writing outbound request entity body
+public type WritingOutboundRequestBodyError distinct OutboundRequestError;
+
+// Inbound response errors in client
+# Represents a client error that occurred due to inbound response initialization failure
+public type InitializingInboundResponseError distinct InboundResponseError;
+
+# Represents a client error that occurred while reading inbound response headers
+public type ReadingInboundResponseHeadersError distinct InboundResponseError;
+
+# Represents a client error that occurred while reading inbound response entity body
+public type ReadingInboundResponseBodyError distinct InboundResponseError;
+
+//Inbound request errors in listener
+# Represents a listener error that occurred due to inbound request initialization failure
+public type InitializingInboundRequestError distinct InboundRequestError;
+
+# Represents a listener error that occurred while reading inbound request headers
+public type ReadingInboundRequestHeadersError distinct InboundRequestError;
+
+# Represents a listener error that occurred while writing the inbound request entity body
+public type ReadingInboundRequestBodyError distinct InboundRequestError;
+
+// Outbound response errors in listener
+# Represents a listener error that occurred due to outbound response initialization failure
+public type InitializingOutboundResponseError distinct OutboundResponseError;
+
+# Represents a listener error that occurred while writing outbound response headers
+public type WritingOutboundResponseHeadersError distinct OutboundResponseError;
+
+# Represents a listener error that occurred while writing outbound response entity body
+public type WritingOutboundResponseBodyError distinct OutboundResponseError;
+
+# Represents an error that occurred due to 100 continue response initialization failure
+public type Initiating100ContinueResponseError distinct OutboundResponseError;
+
+# Represents an error that occurred while writing 100 continue response
+public type Writing100ContinueResponseError distinct OutboundResponseError;
+
+# Represents a cookie error that occurred when sending cookies in the response
+public type InvalidCookieError distinct OutboundResponseError;
+
+// // Generic errors (mostly to wrap errors from other modules)
+// # Represents a generic client error
+// public type GenericClientError distinct ClientError;
+
+// # Represents a generic listener error
+// public type GenericListenerError distinct error;
+
+// // Other client-related errors
+// # Represents a client error that occurred due to unsupported action invocation
+// public type UnsupportedActionError distinct error;
+
+// # Represents an HTTP/2 client generic error
+// public type Http2ClientError distinct error;
+
+// # Represents a client error that occurred exceeding maximum wait time
+// public type MaximumWaitTimeExceededError distinct error;
+
+// # Represents a client error that occurred due to SSL failure
+// public type SslError distinct error;
+
+// # Represents a cookie error that occurred when using the cookies
+// public type CookieHandlingError distinct error;
+
+// # Represents a header not found error when retrieving headers
+// public type HeaderNotFoundError distinct error;
+
+// # Represents an illegal data-binding  state error
+// public type IllegalDataBindingStateError distinct error<Detail>;
+
+// # Represents an error, which occurred due to bad syntax or incomplete info in the client request(4xx HTTP response)
+// public type ClientRequestError distinct error<Detail>;
+
+// # Represents an error, which occurred due to a failure of the remote server(5xx HTTP response)
+// public type RemoteServerError distinct error<Detail>;
+
+// // Ballerina HTTP Union Errors
+// # Defines the resiliency error types that returned from client
+// public type ResiliencyError FailoverAllEndpointsFailedError|FailoverActionFailedError|
+//                             UpstreamServiceUnavailableError|AllLoadBalanceEndpointsFailedError|
+//                             AllRetryAttemptsFailed|IdleTimeoutError;
+
+// # Defines the Auth error types that returned from client
+// public type ClientAuthError distinct ClientError;
+
+// # Defines the client error types that returned while sending outbound request
+// public type OutboundRequestError InitializingOutboundRequestError|WritingOutboundRequestHeadersError|
+//                             WritingOutboundRequestBodyError;
+
+// # Defines the client error types that returned while receiving inbound response
+// public type InboundResponseError InitializingInboundResponseError|ReadingInboundResponseHeadersError|
+//                             ReadingInboundResponseBodyError;
+
+// # Defines the listener error types that returned while receiving inbound request
+// public type InboundRequestError InitializingInboundRequestError|ReadingInboundRequestHeadersError|
+//                             ReadingInboundRequestBodyError;
+
+// # Defines the listener error types that returned while sending outbound response
+// public type OutboundResponseError InitializingOutboundResponseError|WritingOutboundResponseHeadersError|
+//                             WritingOutboundResponseBodyError|Initiating100ContinueResponseError|
+//                             Writing100ContinueResponseError|InvalidCookieError;
+
+// # Defines the possible client error types
+// public type ClientError ResiliencyError|ClientAuthError|OutboundRequestError|
+//                             InboundResponseError|UnsupportedActionError|Http2ClientError|
+//                             MaximumWaitTimeExceededError|SslError|GenericClientError|CookieHandlingError|
+//                             RemoteServerError|ClientRequestError|IllegalDataBindingStateError|HeaderNotFoundError;
+
+// # Defines the possible listener error types
+// public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError;
+
+// # Defines the common error type for the module
+// public type Error ListenerError|ClientError;
