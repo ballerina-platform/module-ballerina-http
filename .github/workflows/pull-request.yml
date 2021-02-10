@@ -18,19 +18,19 @@ jobs:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew build
-      - name: Archive Error Log
-        uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-            name: Ballerina Internal Log
-            path: http-ballerina-tests/ballerina-internal.log
-            if-no-files-found: ignore
       - name: Archive Module Compilation Error Log
         uses: actions/upload-artifact@v2
         if: failure()
         with:
             name: Ballerina Internal Log
             path: http-ballerina/ballerina-internal.log
+            if-no-files-found: ignore
+      - name: Archive Test Error Log
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+            name: Ballerina Internal Log
+            path: http-ballerina-tests/ballerina-internal.log
             if-no-files-found: ignore
       - name: Archive Code Coverage JSON
         uses: actions/upload-artifact@v2

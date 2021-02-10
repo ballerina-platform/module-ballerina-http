@@ -71,9 +71,6 @@ public type Http2ClientError distinct ClientError;
 # Represents a client error that occurred due to SSL failure
 public type SslError distinct ClientError;
 
-# Represents an client data-binding error
-public type DataBindingError distinct ClientError;
-
 // Level 4
 # Represents a header not found error when retrieving headers
 public type HeaderNotFoundError distinct GenericListenerError;
@@ -88,14 +85,15 @@ public type MaximumWaitTimeExceededError distinct GenericClientError;
 # Represents a cookie error that occurred when using the cookies
 public type CookieHandlingError distinct GenericClientError;
 
+// DataBinding errors
 # Represents an illegal data-binding  state error
-public type IllegalDataBindingStateError distinct DataBindingError & error<Detail>;
+public type IllegalDataBindingStateError distinct error<Detail>;
 
 # Represents an error, which occurred due to bad syntax or incomplete info in the client request(4xx HTTP response)
-public type ClientRequestError distinct DataBindingError & error<Detail>;
+public type ClientRequestError distinct error<Detail>;
 
 # Represents an error, which occurred due to a failure of the remote server(5xx HTTP response)
-public type RemoteServerError distinct DataBindingError & error<Detail>;
+public type RemoteServerError distinct error<Detail>;
 
 // Resiliency errors
 # Represents a client error that occurred due to all the failover endpoint failure
@@ -120,7 +118,7 @@ public type AllRetryAttemptsFailed distinct ResiliencyError;
 public type IdleTimeoutError distinct ResiliencyError;
 
 # Represents an error occurred in an remote function of the Load Balance connector.
-public type LoadBalanceActionError distinct ResiliencyError & error<LoadBalanceActionErrorData>;
+public type LoadBalanceActionError distinct error<LoadBalanceActionErrorData>;
 
 // Outbound request errors in client
 # Represents a client error that occurred due to outbound request initialization failure
