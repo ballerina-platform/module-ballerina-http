@@ -14,6 +14,53 @@
 // specific language governing permissions and limitations
 // under the License.
 
+# Represents the headers of the inbound request.
+public class Headers {
+
+    private Request? request = ();
+
+    isolated function getRequest() returns Request {
+        var req = self.request;
+        if (req is Request) {
+            return req;
+        }
+        panic error GenericListenerError("Request is not initialized to retrived headers");
+    }
+
+    # Checks whether the requested header key exists in the header map.
+    #
+    # + headerName - The header name
+    # + return - Returns true if the specified header key exists
+    public isolated function hasHeader(string headerName) returns boolean {
+        return self.getRequest().hasHeader(headerName);
+    }
+
+    # Returns the value of the specified header. If the specified header key maps to multiple values, the first of
+    # these values is returned.
+    #
+    # + headerName - The header name
+    # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeader(string headerName) returns @tainted string|HeaderNotFoundError {
+        return self.getRequest().getHeader(headerName);
+    }
+
+    # Gets all the header values to which the specified header key maps to.
+    #
+    # + headerName - The header name
+    # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
+    #            found.
+    public isolated function getHeaders(string headerName) returns @tainted string[]|HeaderNotFoundError {
+        return self.getRequest().getHeaders(headerName);
+    }
+
+    # Gets all the names of the headers of the request.
+    #
+    # + return - An array of all the header names
+    public isolated function getHeaderNames() returns @tainted string[] {
+        return self.getRequest().getHeaderNames();
+    }
+}
 
 // Please maintain alphabetical order when adding new header names
 # HTTP header key `age`. Gives the current age of a cached HTTP response. 

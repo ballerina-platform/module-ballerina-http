@@ -31,9 +31,12 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BXml;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
+import org.ballerinalang.net.http.signature.AllHeaderParams;
 import org.ballerinalang.net.http.signature.AllQueryParams;
+import org.ballerinalang.net.http.signature.HeaderParam;
 import org.ballerinalang.net.http.signature.NonRecurringParam;
 import org.ballerinalang.net.http.signature.ParamHandler;
 import org.ballerinalang.net.http.signature.Parameter;
@@ -197,8 +200,19 @@ public class HttpDispatcher {
                     paramFeed[index++] = inRequest;
                     paramFeed[index] = true;
                     break;
+                case HttpConstants.HEADERS:
+                    if (inRequest == null) {
+                        inRequest = createRequest(httpCarbonMessage);
+                    }
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = createHeadersObject(inRequest);
+                    paramFeed[index] = true;
+                    break;
                 case HttpConstants.QUERY_PARAM:
                     populateQueryParams(httpCarbonMessage, paramHandler, paramFeed, (AllQueryParams) param);
+                    break;
+                case HttpConstants.HEADER_PARAM:
+                    populateHeaderParams(httpCarbonMessage, paramFeed, (AllHeaderParams) param);
                     break;
                 case HttpConstants.PAYLOAD_PARAM:
                     if (inRequest == null) {
@@ -243,6 +257,33 @@ public class HttpDispatcher {
             } catch (Exception ex) {
                 throw new BallerinaConnectorException("Error in casting query param : " + ex.getMessage());
             }
+        }
+    }
+
+    private static void populateHeaderParams(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed,
+                                             AllHeaderParams headerParams) {
+        HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
+        for (HeaderParam headerParam : headerParams.getAllHeaderParams()) {
+            String token = headerParam.getHeaderName();
+            int index = headerParam.getIndex();
+            List<String> headerValues = httpHeaders.getAll(token);
+            if (headerValues.isEmpty()) {
+                if (headerParam.isNilable()) {
+                    paramFeed[index++] = null;
+                    paramFeed[index] = true;
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no header value found for '" + token + "'");
+                }
+            }
+            if (headerParam.getTypeTag() == ARRAY_TAG) {
+                String[] headerArray = headerValues.toArray(new String[0]);
+                paramFeed[index++] = StringUtils.fromStringArray(headerArray);
+            } else {
+                paramFeed[index++] = StringUtils.fromString(headerValues.get(0));
+            }
+            paramFeed[index] = true;
         }
     }
 
@@ -313,6 +354,12 @@ public class HttpDispatcher {
         HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
         httpCarbonMessage.setProperty(HttpConstants.CALLER, httpCaller);
         return httpCaller;
+    }
+
+    private static Object createHeadersObject(BObject inRequest) {
+        BObject headers = ValueCreatorUtils.createHeadersObject();
+        headers.set(HttpConstants.HEADER_REQUEST_FIELD, inRequest);
+        return headers;
     }
 
     private static void populatePathParams(HttpResource httpResource, Object[] paramFeed,
