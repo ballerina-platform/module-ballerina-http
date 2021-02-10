@@ -72,7 +72,7 @@ public class ValueCreatorUtils {
         return createObjectValue(ModuleUtils.getHttpPackage(), RESPONSE_CACHE_CONTROL);
     }
 
-    static BObject createCallerObject() {
+    public static BObject createCallerObject() {
         return createObjectValue(ModuleUtils.getHttpPackage(), CALLER);
     }
 
