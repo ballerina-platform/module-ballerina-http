@@ -117,12 +117,14 @@ isolated function testListenerJwtAuthHandlerAuthSuccess() {
     http:JwtValidatorConfig config = {
         issuer: "wso2",
         audience: "ballerina",
-        trustStoreConfig: {
-            trustStore: {
-                path: TRUSTSTORE_PATH,
-                password: "ballerina"
-            },
-            certificateAlias: "ballerina"
+        signatureConfig: {
+            trustStoreConfig: {
+                trustStore: {
+                    path: TRUSTSTORE_PATH,
+                    password: "ballerina"
+                },
+                certAlias: "ballerina"
+            }
         },
         scopeKey: "scp"
     };
@@ -175,12 +177,14 @@ isolated function testListenerJwtAuthHandlerAuthzFailure() {
     http:JwtValidatorConfig config = {
         issuer: "wso2",
         audience: "ballerina",
-        trustStoreConfig: {
-            trustStore: {
-                path: TRUSTSTORE_PATH,
-                password: "ballerina"
-            },
-            certificateAlias: "ballerina"
+        signatureConfig: {
+            trustStoreConfig: {
+                trustStore: {
+                    path: TRUSTSTORE_PATH,
+                    password: "ballerina"
+                },
+                certAlias: "ballerina"
+            }
         }
     };
     http:ListenerJwtAuthHandler handler = new(config);
@@ -230,12 +234,14 @@ isolated function testListenerJwtAuthHandlerAuthnFailure() {
     http:JwtValidatorConfig config = {
         issuer: "invalid",
         audience: "ballerina",
-        trustStoreConfig: {
-            trustStore: {
-                path: TRUSTSTORE_PATH,
-                password: "ballerina"
-            },
-            certificateAlias: "ballerina"
+        signatureConfig: {
+            trustStoreConfig: {
+                trustStore: {
+                    path: TRUSTSTORE_PATH,
+                    password: "ballerina"
+                },
+                certAlias: "ballerina"
+            }
         }
     };
     http:ListenerJwtAuthHandler handler = new(config);

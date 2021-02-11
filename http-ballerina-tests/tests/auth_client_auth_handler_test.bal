@@ -58,13 +58,15 @@ isolated function testClientSelfSignedJwtAuthHandler() {
         username: "admin",
         issuer: "wso2",
         audience: ["ballerina"],
-        keyStoreConfig: {
-            keyStore: {
-                path: KEYSTORE_PATH,
-                password: "ballerina"
-            },
-            keyAlias: "ballerina",
-            keyPassword: "ballerina"
+        signatureConfig: {
+            config: {
+                keyStore: {
+                    path: KEYSTORE_PATH,
+                    password: "ballerina"
+                },
+                keyAlias: "ballerina",
+                keyPassword: "ballerina"
+            }
         }
     };
     http:ClientSelfSignedJwtAuthHandler handler = new(config);
