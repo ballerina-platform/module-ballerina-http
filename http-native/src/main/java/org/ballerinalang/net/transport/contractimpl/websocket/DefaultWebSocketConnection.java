@@ -2,6 +2,7 @@ package org.ballerinalang.net.transport.contractimpl.websocket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -275,6 +276,11 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
         } else {
             LOG.warn("Idle state handler already added to the sync client");
         }
+    }
+
+    @Override
+    public Channel getChannel() {
+        return ctx.channel();
     }
 
     private ByteBuf getNettyByteBuf(ByteBuffer buffer) {
