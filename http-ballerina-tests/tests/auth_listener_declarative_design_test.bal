@@ -98,12 +98,14 @@ function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
             jwtValidatorConfig: {
                 issuer: "wso2",
                 audience: "ballerina",
-                trustStoreConfig: {
-                    trustStore: {
-                        path: TRUSTSTORE_PATH,
-                        password: "ballerina"
-                    },
-                    certificateAlias: "ballerina"
+                signatureConfig: {
+                    trustStoreConfig: {
+                        trustStore: {
+                            path: TRUSTSTORE_PATH,
+                            password: "ballerina"
+                        },
+                        certAlias: "ballerina"
+                    }
                 },
                 scopeKey: "scp"
             },
@@ -142,12 +144,14 @@ service /foo on authListener {
                 jwtValidatorConfig: {
                     issuer: "wso2",
                     audience: "ballerina",
-                    trustStoreConfig: {
-                        trustStore: {
-                            path: TRUSTSTORE_PATH,
-                            password: "ballerina"
-                        },
-                        certificateAlias: "ballerina"
+                    signatureConfig: {
+                        trustStoreConfig: {
+                            trustStore: {
+                                path: TRUSTSTORE_PATH,
+                                password: "ballerina"
+                            },
+                            certAlias: "ballerina"
+                        }
                     },
                     scopeKey: "scp"
                 },
@@ -205,12 +209,14 @@ service /oauth2 on authListener {
                 jwtValidatorConfig: {
                     issuer: "wso2",
                     audience: "ballerina",
-                    trustStoreConfig: {
-                        trustStore: {
-                            path: TRUSTSTORE_PATH,
-                            password: "ballerina"
-                        },
-                        certificateAlias: "ballerina"
+                    signatureConfig: {
+                        trustStoreConfig: {
+                            trustStore: {
+                                path: TRUSTSTORE_PATH,
+                                password: "ballerina"
+                            },
+                            certAlias: "ballerina"
+                        }
                     },
                     scopeKey: "scp"
                 },
@@ -271,12 +277,14 @@ function testServiceResourceAuthnFailure() {
             jwtValidatorConfig: {
                 issuer: "wso2",
                 audience: "ballerina",
-                trustStoreConfig: {
-                    trustStore: {
-                        path: TRUSTSTORE_PATH,
-                        password: "ballerina"
-                    },
-                    certificateAlias: "ballerina"
+                signatureConfig: {
+                    trustStoreConfig: {
+                        trustStore: {
+                            path: TRUSTSTORE_PATH,
+                            password: "ballerina"
+                        },
+                        certAlias: "ballerina"
+                    }
                 },
                 scopeKey: "scp"
             },
@@ -339,12 +347,14 @@ service /bar on authListener {
                 jwtValidatorConfig: {
                     issuer: "wso2",
                     audience: "ballerina",
-                    trustStoreConfig: {
-                        trustStore: {
-                            path: TRUSTSTORE_PATH,
-                            password: "ballerina"
-                        },
-                        certificateAlias: "ballerina"
+                    signatureConfig: {
+                        trustStoreConfig: {
+                            trustStore: {
+                                path: TRUSTSTORE_PATH,
+                                password: "ballerina"
+                            },
+                            certAlias: "ballerina"
+                        }
                     },
                     scopeKey: "scp"
                 },
