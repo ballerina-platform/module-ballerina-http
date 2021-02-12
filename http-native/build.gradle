@@ -58,15 +58,15 @@ dependencies {
     testCompile group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
 }
 
-//test {
-//    useTestNG() {
-//        suites 'src/test/resources/testng.xml'
-//    }
-//    testLogging.showStandardStreams = true
-//    testLogging {
-//        events "PASSED", "FAILED", "SKIPPED"
-//    }
-//}
+test {
+    useTestNG() {
+        suites 'src/test/resources/testng.xml'
+    }
+    testLogging.showStandardStreams = true
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
 
 checkstyle {
     toolVersion '7.8.2'
