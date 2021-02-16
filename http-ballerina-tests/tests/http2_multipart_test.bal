@@ -196,7 +196,7 @@ public function testMultipart() {
     var resp = clientEP->get("/multiparts/initial", req);
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -209,7 +209,7 @@ public function testMultipartsWithPriorKnowledge() {
     var resp = clientEP->get("/multiparts/initial", req);
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

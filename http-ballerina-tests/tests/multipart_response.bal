@@ -98,7 +98,7 @@ function testMultipartsInOutResponse() {
         } else {
             test:assertFail(msg = errorMessage + bodyParts.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = errorMessage + response.message());
     }
 }
@@ -123,7 +123,7 @@ function testNestedPartsInOutResponse() {
         } else {
             test:assertFail(msg = errorMessage + bodyParts.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = errorMessage + response.message());
     }
 }

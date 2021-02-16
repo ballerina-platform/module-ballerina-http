@@ -54,7 +54,7 @@ public function testServerDown() {
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Call to backend failed due to:Something wrong with the connection--Call to backend " +
                                     "failed due to:Something wrong with the connection");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

@@ -56,14 +56,14 @@ function testStringQueryBinding() {
     var response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=56");
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"WSO2", value2:56});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = queryBindingClient->get("/queryparamservice?foo=bal&bar=12");
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"bal", value2:12});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -75,7 +75,7 @@ function testNegativeStringQueryBindingCaseSensitivity() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "no query param value found for 'foo'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -86,7 +86,7 @@ function testNegativeIntQueryBindingCastingError() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500);
         assertTextPayload(response.getTextPayload(), "Error in casting query param : For input string: \"go\"");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -98,7 +98,7 @@ function testAllTypeQueryBinding() {
     json expected = {iValue:324441, sValue:"hello", fValue: 1.11, bValue: true, dValue: 5.67};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -108,7 +108,7 @@ function testAllTypeQueryBinding() {
     expected = {iValue:5652, sValue:"no", fValue: 53.9, bValue: false, dValue: 4.78 };
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -121,7 +121,7 @@ function testAllTypeArrQueryBinding() {
             bValue:[true, false], dValue:[4.78, 5.67]};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -132,7 +132,7 @@ function testNilableAllTypeQueryBinding() {
     json expected = {iValue: null, sValue: null, fValue: null, bValue: null, dValue: null};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -142,7 +142,7 @@ function testNilableAllTypeQueryBinding() {
     expected = {iValue:5652, sValue:"no", fValue: 53.9, bValue: false, dValue: 4.78};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -153,7 +153,7 @@ function testNilableAllTypeQueryArrBinding() {
     json expected = {iValue: null, sValue: null, fValue: null, bValue: null, dValue: null};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -163,7 +163,7 @@ function testNilableAllTypeQueryArrBinding() {
             bValue:[true, false], dValue:[4.78, 5.67]};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

@@ -41,7 +41,7 @@
 //     var response = clientEP->forward("", req);
 //     if (response is http:Response) {
 //         checkpanic caller->respond(<@untainted>response);
-//     } else if (response is error) {
+//     } else {
 //         checkpanic caller->respond(<@untainted>response.message());
 //     }
 // }
@@ -67,7 +67,7 @@
 //         } else {
 //             test:assertFail(msg = "Found unexpected output: " +  payload.message());
 //         }
-//     } else if (resp is error) {
+//     } else {
 //         test:assertFail(msg = "Found unexpected output: " +  resp.message());
 //     }
 // }

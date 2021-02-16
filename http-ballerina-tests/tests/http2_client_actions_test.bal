@@ -131,7 +131,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
             } else {
                 value = returnValue.message();
             }
-        } else if (clientResponse is error) {
+        } else {
             value = <string>clientResponse.message();
         }
 
@@ -218,7 +218,7 @@ public function testHttp2GetAction() {
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "HelloHelloHello");
         assertHeaderValue(checkpanic resp.getHeader("content-type"), "text/plain");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -229,7 +229,7 @@ public function testHttp2PostAction() {
     var resp = clientEP->get("/testHttp2Service/clientPostWithoutBody");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "No payload");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -240,7 +240,7 @@ public function testHttp2PostActionWithBody() {
     var resp = clientEP->get("/testHttp2Service/clientPostWithBody");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample TextSample Xml{\"name\":\"apple\", \"color\":\"red\"}");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -251,7 +251,7 @@ public function testHttp2PostWithBlob() {
     var resp = clientEP->get("/testHttp2Service/testHttp2PostWithBinaryData");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -263,7 +263,7 @@ public function testHttp2PostWithByteChannel() {
     var resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteChannel", "Sample Text");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

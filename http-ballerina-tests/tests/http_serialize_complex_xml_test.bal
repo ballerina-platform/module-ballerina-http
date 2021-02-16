@@ -42,7 +42,7 @@ service /serialize on serializeXmlListener {
             if (result is error) {
                 log:printError("Error sending response", err = result);
             }
-        } else if (returnResponse is error) {
+        } else {
             http:Response response = new;
             response.setPayload("Error occurred while sending multipart request!");
             response.statusCode = 500;

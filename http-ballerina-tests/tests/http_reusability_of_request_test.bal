@@ -39,7 +39,7 @@ service /reuseObj on reuseRequestListenerEP {
             } else {
                 firstVal = result.message();
             }
-        } else if (firstResponse is error) {
+        } else {
             firstVal = firstResponse.message();
         }
 
@@ -51,7 +51,7 @@ service /reuseObj on reuseRequestListenerEP {
             } else {
                 secondVal = result.message();
             }
-        } else if (secondResponse is error) {
+        } else {
             secondVal = secondResponse.message();
         }
         http:Response testResponse = new;
@@ -75,7 +75,7 @@ service /reuseObj on reuseRequestListenerEP {
             } else {
                 firstVal = result.message();
             }
-        } else if (firstResponse is error) {
+        } else {
             firstVal = firstResponse.message();
         }
 
@@ -87,7 +87,7 @@ service /reuseObj on reuseRequestListenerEP {
             } else {
                 secondVal = result.message();
             }
-        } else if (secondResponse is error) {
+        } else {
             secondVal = secondResponse.message();
         }
         http:Response testResponse = new;
@@ -124,10 +124,10 @@ service /reuseObj on reuseRequestListenerEP {
                     } else {
                         secondVal = result2.message();
                     }
-                } else if (secondResponse is error) {
+                } else {
                     log:printError(secondResponse.message(), err = secondResponse);
                 }
-            } else if (firstResponse is error) {
+            } else {
                 log:printError(firstResponse.message(), err = firstResponse);
             }
         } else {
@@ -151,7 +151,7 @@ service /reuseObj on reuseRequestListenerEP {
             } else {
                 firstVal = result.message();
             }
-        } else if (firstResponse is error) {
+        } else {
             firstVal = firstResponse.message();
         }
 
@@ -163,7 +163,7 @@ service /reuseObj on reuseRequestListenerEP {
             } else {
                 secondVal = result.message();
             }
-        } else if (secondResponse is error) {
+        } else {
             secondVal = secondResponse.message();
         }
         http:Response testResponse = new;
@@ -190,7 +190,7 @@ service /reuseObj on reuseRequestListenerEP {
     //                 } else {
     //                     secondVal = "Error in parsing payload";
     //                 }
-    //             } else if (secondResponse is error) {
+    //             } else {
     //                 secondVal = secondResponse.message();
     //             }
 
@@ -203,7 +203,7 @@ service /reuseObj on reuseRequestListenerEP {
 
     //             testResponse.setTextPayload(<@untainted> firstVal + <@untainted> secondVal);
     //             checkpanic caller->respond(testResponse);
-    //         } else if (firstResponse is error) {
+    //         } else {
     //             log:printError(firstResponse.message(), err = firstResponse);
     //         }
     //     } else {
@@ -245,7 +245,7 @@ function reuseRequestWithoutEntity() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -257,7 +257,7 @@ function reuseRequestWithEmptyEntity() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -269,7 +269,7 @@ function twoRequestsSameEntity() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -281,7 +281,7 @@ function sameRequestWithADatasource() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!Hello from POST!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -294,7 +294,7 @@ function sameRequestWithByteChannel() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!No payload");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
