@@ -264,15 +264,10 @@ function testServiceResourceAuthnFailure() {
             },
             scopes: ["write", "update"]
         },
-        // TODO: Enable these tests once the configurable features supports for map data types.
-        // https://github.com/ballerina-platform/ballerina-standard-library/issues/862
-        //{
-        //    fileUserStoreConfig: {
-        //        tableName: "b7a.users",
-        //        scopeKey: "scopes"
-        //    },
-        //    scopes: ["write", "update"]
-        //},
+        {
+            fileUserStoreConfig: {},
+            scopes: ["write", "update"]
+        },
         {
             jwtValidatorConfig: {
                 issuer: "wso2",
@@ -334,15 +329,10 @@ service /bar on authListener {
                 },
                 scopes: ["write", "update"]
             },
-            // TODO: Enable these tests once the configurable features supports for map data types.
-            // https://github.com/ballerina-platform/ballerina-standard-library/issues/862
-            //{
-            //    fileUserStoreConfig: {
-            //        tableName: "b7a.users",
-            //        scopeKey: "scopes"
-            //    },
-            //    scopes: ["write", "update"]
-            //},
+            {
+                fileUserStoreConfig: {},
+                scopes: ["write", "update"]
+            },
             {
                 jwtValidatorConfig: {
                     issuer: "wso2",

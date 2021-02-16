@@ -33,16 +33,15 @@ public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig
 type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
 
 # Defines the authentication configurations for the HTTP listener.
-public type ListenerAuthConfig LdapUserStoreConfigWithScopes|
+public type ListenerAuthConfig FileUserStoreConfigWithScopes|
+                               LdapUserStoreConfigWithScopes|
                                JwtValidatorConfigWithScopes|
                                OAuth2IntrospectionConfigWithScopes;
 
-// TODO: Enable these tests once the configurable features supports for map data types.
-// https://github.com/ballerina-platform/ballerina-standard-library/issues/862
-//public type FileUserStoreConfigWithScopes record {|
-//   FileUserStoreConfig fileUserStoreConfig;
-//   string|string[] scopes?;
-//|};
+public type FileUserStoreConfigWithScopes record {|
+   FileUserStoreConfig fileUserStoreConfig;
+   string|string[] scopes?;
+|};
 
 public type LdapUserStoreConfigWithScopes record {|
    LdapUserStoreConfig ldapUserStoreConfig;
