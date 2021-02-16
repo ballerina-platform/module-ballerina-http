@@ -40,9 +40,9 @@ public client class HttpCachingClient {
     # + config - The configurations for the client endpoint associated with the caching client
     # + cacheConfig - The configurations for the HTTP cache to be used with the caching client
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
+    function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
         self.url = url;
-        var httpSecureClient = createHttpSecureClient(url, config);
+        var httpSecureClient = createClient(url, config);
         if (httpSecureClient is HttpClient) {
             self.httpClient = httpSecureClient;
         } else {
@@ -57,11 +57,9 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(string path, RequestMessage message, TargetType targetType = Response)
+    remote function post(string path, RequestMessage message)
             returns Response|PayloadType|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);

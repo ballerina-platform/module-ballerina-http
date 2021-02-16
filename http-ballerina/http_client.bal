@@ -33,7 +33,7 @@ public client class HttpClient {
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(string url, ClientConfiguration? config = ()) returns ClientError? {
+    function init(string url, ClientConfiguration? config = ()) returns ClientError? {
         self.config = config ?: {};
         self.url = url;
         return createSimpleHttpClient(self, globalHttpClientConnPool);
@@ -44,12 +44,9 @@ public client class HttpClient {
     # + path - Resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
-                returns Response|PayloadType|ClientError {
+    remote function post(@untainted string path, RequestMessage message) returns Response|PayloadType|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_POST);
     }
 
