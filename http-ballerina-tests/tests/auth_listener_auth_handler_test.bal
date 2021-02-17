@@ -16,6 +16,7 @@
 
 // NOTE: All the tokens/credentials used in this test are dummy tokens/credentials and used only for testing purposes.
 
+import ballerina/auth;
 import ballerina/http;
 import ballerina/jwt;
 import ballerina/oauth2;
@@ -30,7 +31,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccess() {
     auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
     if (authn1 is auth:UserDetails) {
         test:assertEquals(authn1.username, "alice");
-        test:assertEquals(authn1.scopes, ["write", "update"]);
+        test:assertEquals(authn1?.scopes, ["write", "update"]);
     } else {
         test:assertFail(msg = "Test Failed!");
     }
@@ -38,7 +39,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccess() {
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
     if (authn2 is auth:UserDetails) {
         test:assertEquals(authn2.username, "alice");
-        test:assertEquals(authn2.scopes, ["write", "update"]);
+        test:assertEquals(authn2?.scopes, ["write", "update"]);
     } else {
         test:assertFail(msg = "Test Failed!");
     }
@@ -63,7 +64,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthzFailure() {
     auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
     if (authn1 is auth:UserDetails) {
         test:assertEquals(authn1.username, "alice");
-        test:assertEquals(authn1.scopes, ["write", "update"]);
+        test:assertEquals(authn1?.scopes, ["write", "update"]);
     } else {
         test:assertFail(msg = "Test Failed!");
     }
@@ -71,7 +72,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthzFailure() {
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
     if (authn2 is auth:UserDetails) {
         test:assertEquals(authn2.username, "alice");
-        test:assertEquals(authn2.scopes, ["write", "update"]);
+        test:assertEquals(authn2?.scopes, ["write", "update"]);
     } else {
         test:assertFail(msg = "Test Failed!");
     }
