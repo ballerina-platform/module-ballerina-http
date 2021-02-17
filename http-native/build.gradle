@@ -58,15 +58,15 @@ dependencies {
     testCompile group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
 }
 
-//test {
-//    useTestNG() {
-//        suites 'src/test/resources/testng.xml'
-//    }
-//    testLogging.showStandardStreams = true
-//    testLogging {
-//        events "PASSED", "FAILED", "SKIPPED"
-//    }
-//}
+test {
+   useTestNG() {
+       suites 'src/test/resources/testng.xml'
+   }
+   testLogging.showStandardStreams = true
+   testLogging {
+       events "PASSED", "FAILED", "SKIPPED"
+   }
+}
 
 checkstyle {
     toolVersion '7.8.2'
@@ -129,3 +129,32 @@ compileJava {
         classpath = files()
     }
 }
+
+task extractJavaClassFiles(type: Copy) {
+    def jar = file("../http-ballerina-tests/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-2.0.0-alpha3-SNAPSHOT/repo/bala/ballerina/http/1.1.0-alpha2/platform/java11/http-native-1.1.0-alpha2-SNAPSHOT.jar")
+
+    println(jar.name)
+    from zipTree(jar).matching {
+        exclude '**/tests/*'
+        exclude 'module-info.class'
+        include '**/*.class'
+    }
+    into "${project.rootDir.absolutePath}/build/classes"
+}
+
+task codeCoverageReportJava(type: JacocoReport) {
+    dependsOn(extractJavaClassFiles)
+    executionData file("${project.rootDir.absolutePath}/http-native/build/jacoco/test.exec")
+    additionalClassDirs files("${project.rootDir.absolutePath}/build/classes")
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        xml.destination = new File("${buildDir}/reports/jacoco/report.xml")
+        html.destination = new File("${buildDir}/reports/jacoco/report.html")
+    }
+
+    onlyIf = {
+        true
+    }
+} 
