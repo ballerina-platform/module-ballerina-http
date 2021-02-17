@@ -72,8 +72,11 @@ service /passthrough on clientDBProxyListener {
 
     resource function get allMethods(http:Caller caller, http:Request request) returns error? {
         string payload = "";
-        // Remove second param once the https://github.com/ballerina-platform/ballerina-lang/issues/28671 is resolved
-        json p = checkpanic clientDBBackendClient->get("/backend/getJson", "hello", targetType = json);
+
+        // This is to check any compile failures with multiple default-able args
+        json hello = checkpanic clientDBBackendClient->get("/backend/getJson", "hi", json);
+
+        json p = checkpanic clientDBBackendClient->get("/backend/getJson", targetType = json);
         payload = payload + p.toJsonString();
 
         http:Response v = checkpanic clientDBBackendClient->head("/backend/getXml", "want xml");
