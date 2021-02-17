@@ -27,6 +27,7 @@ jobs:
           packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           ./gradlew publish
+          ./gradlew codeCoverageReport
       - name: Archive Error Log
         uses: actions/upload-artifact@v2
         if: failure()
@@ -40,6 +41,8 @@ jobs:
             name: Code Coverage JSON
             path: http-ballerina-tests/target/report/test_results.json
             if-no-files-found: ignore
+      - name: Generate CodeCov report
+        uses: codecov/codecov-action@v1  
       - name: Dispatch Dependent Module Builds
         if: github.event.action != 'stdlib-publish-snapshot'
         run: |
