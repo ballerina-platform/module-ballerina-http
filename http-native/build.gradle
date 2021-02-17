@@ -131,7 +131,8 @@ compileJava {
 }
 
 task extractJavaClassFiles(type: Copy) {
-    def jar = file("../http-ballerina-tests/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-2.0.0-alpha3-SNAPSHOT/repo/bala/ballerina/http/1.1.0-alpha2/platform/java11/http-native-1.1.0-alpha2-SNAPSHOT.jar")
+    def tomlVersion = project.version.replace("-SNAPSHOT", "")
+    def jar = file("../http-ballerina-tests/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${project.ballerinaLangVersion}/repo/bala/ballerina/http/${tomlVersion}/platform/java11/http-native-${project.version}.jar")
 
     println(jar.name)
     from zipTree(jar).matching {
