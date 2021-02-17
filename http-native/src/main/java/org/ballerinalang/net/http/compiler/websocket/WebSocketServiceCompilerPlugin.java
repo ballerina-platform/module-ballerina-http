@@ -23,7 +23,7 @@ import org.ballerinalang.compiler.plugins.SupportedResourceParamTypes;
 import org.ballerinalang.model.tree.AnnotationAttachmentNode;
 import org.ballerinalang.model.tree.ServiceNode;
 import org.ballerinalang.model.tree.expressions.RecordLiteralNode;
-import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.websocket.WebSocketConstants;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangFunction;
@@ -33,6 +33,9 @@ import org.wso2.ballerinalang.compiler.tree.expressions.BLangRecordLiteral;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.ballerinalang.net.http.HttpConstants.CALLER;
+import static org.ballerinalang.net.http.HttpConstants.COLON;
 
 /**
  * Compiler plugin for validating WebSocket server service.
@@ -54,6 +57,7 @@ import java.util.Optional;
 public class WebSocketServiceCompilerPlugin extends AbstractCompilerPlugin {
 
     private DiagnosticLog dlog = null;
+    public static final String HTTP_CALLER_NAME = ModuleUtils.getHttpPackageIdentifier() + COLON + CALLER;
 
     @Override
     public void init(DiagnosticLog diagnosticLog) {
@@ -67,7 +71,7 @@ public class WebSocketServiceCompilerPlugin extends AbstractCompilerPlugin {
         // If first resource's first parameter is HttpCaller, do not process in this plugin.
         // This is done on the assumption of resources does not mix each other (HTTP and WebSocket)
         if (!resources.isEmpty() && !resources.get(0).getParameters().isEmpty()
-                && HttpConstants.HTTP_CALLER_NAME.equals(resources.get(0).getParameters().get(0).type.toString())) {
+                && HTTP_CALLER_NAME.equals(resources.get(0).getParameters().get(0).type.toString())) {
             return;
         }
         validateAnnotationCountAndPath(serviceNode, annotations);

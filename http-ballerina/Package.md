@@ -1,6 +1,6 @@
-## Module Overview
+## Package Overview
 
-This module provides an implementation for connecting and interacting with HTTP and HTTP2 endpoints. The module facilitates two types of network entry points as ‘Client’ and ‘Listener’.
+This package provides an implementation for connecting and interacting with HTTP and HTTP2 endpoints. The package facilitates two types of network entry points as ‘Client’ and ‘Listener’.
 
 ### Client
 
@@ -29,10 +29,10 @@ var response = clientEndpoint->get("/get?id=123");
 ```
 
 For more information, see the following.
-* [Client Endpoint Example](https://ballerina.io/swan-lake/learn/by-example/http-client-endpoint.html)
-* [Circuit Breaker Example](https://ballerina.io/swan-lake/learn/by-example/http-circuit-breaker.html)
-* [HTTP Redirects Example](https://ballerina.io/swan-lake/learn/by-example/http-redirects.html)
-* [HTTP Cookies](https://ballerina.io/swan-lake/learn/by-example/http-cookies.html)
+* [Client Endpoint Example](https://ballerina.io/learn/by-example/http-client-endpoint.html)
+* [Circuit Breaker Example](https://ballerina.io/learn/by-example/http-circuit-breaker.html)
+* [HTTP Redirects Example](https://ballerina.io/learn/by-example/http-redirects.html)
+* [HTTP Cookies](https://ballerina.io/learn/by-example/http-cookies.html)
 
 ### Listener
 
@@ -68,20 +68,20 @@ service /helloWorld on helloWorldEP {
 ```
 
 See the following.
-* [HTTPS Listener Example](https://ballerina.io/swan-lake/learn/by-example/https-listener.html)
-* [HTTP CORS Example](https://ballerina.io/swan-lake/learn/by-example/http-cors.html)
-* [HTTP Failover Example](https://ballerina.io/swan-lake/learn/by-example/http-failover.html)
-* [HTTP Load Balancer Example](https://ballerina.io/swan-lake/learn/by-example/http-load-balancer.html)
+* [HTTPS Listener Example](https://ballerina.io/learn/by-example/https-listener.html)
+* [HTTP CORS Example](https://ballerina.io/learn/by-example/http-cors.html)
+* [HTTP Failover Example](https://ballerina.io/learn/by-example/http-failover.html)
+* [HTTP Load Balancer Example](https://ballerina.io/learn/by-example/http-load-balancer.html)
 
 `Listener` endpoints can be exposed via SSL. They support Mutual SSL, Hostname Verification, and Application Layer Protocol Negotiation (ALPN) for HTTP2. `Listener` endpoints also support Certificate Revocation List (CRL), Online Certificate Status Protocol (OCSP), OCSP Stapling, HTTP2, keep-alive, chunking, HTTP caching, data compression/decompression, and authentication/authorization.
 
-For more information, see [Mutual SSL Example](https://ballerina.io/swan-lake/learn/by-example/mutual-ssl.html).
+For more information, see [Mutual SSL Example](https://ballerina.io/learn/by-example/mutual-ssl.html).
 
-For more information, see [Caching Example](https://ballerina.io/swan-lake/learn/by-example/cache.html), [HTTP Disable Chunking Example](https://ballerina.io/swan-lake/learn/by-example/http-disable-chunking.html).
+For more information, see [Caching Example](https://ballerina.io/learn/by-example/cache.html), [HTTP Disable Chunking Example](https://ballerina.io/learn/by-example/http-disable-chunking.html).
 
 ### Logging
 
-This module supports two types of logs:
+This package supports two types of logs:
 - HTTP access logs: These are standard HTTP access logs that are formatted using the combined log format and logged at the `INFO` level. Logs can be published to the console or a file using the following configurations:
     - `b7a.http.accesslog.console=true`
     - `b7a.http.accesslog.path=<path_to_log_file>`
@@ -93,4 +93,4 @@ This module supports two types of logs:
 
 To publish logs to a socket, both the host and port configurations must be provided.
 
-See [HTTP Access Logs Example](https://ballerina.io/swan-lake/learn/by-example/http-access-logs.html), [HTTP Trace Logs Example](https://ballerina.io/swan-lake/learn/by-example/http-trace-logs.html)
+See [HTTP Access Logs Example](https://ballerina.io/learn/by-example/http-access-logs.html), [HTTP Trace Logs Example](https://ballerina.io/learn/by-example/http-trace-logs.html)

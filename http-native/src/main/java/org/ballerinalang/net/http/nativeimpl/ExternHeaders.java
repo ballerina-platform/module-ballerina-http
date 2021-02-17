@@ -88,7 +88,7 @@ public class ExternHeaders {
             return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
         List<String> headerValueList = httpHeaders.getAll(headerName.getValue());
-        if (headerValueList == null) {
+        if (headerValueList == null || headerValueList.isEmpty()) {
             return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
         return StringUtils.fromStringArray(headerValueList.toArray(new String[0]));

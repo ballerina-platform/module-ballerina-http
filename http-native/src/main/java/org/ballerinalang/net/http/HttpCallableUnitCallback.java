@@ -21,9 +21,8 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
-
-import static org.ballerinalang.net.http.HttpConstants.NOTIFY_SUCCESS_METADATA;
 
 /**
  * {@code HttpCallableUnitCallback} is the responsible for acting on notifications received from Ballerina side.
@@ -62,7 +61,7 @@ public class HttpCallableUnitCallback implements Callback {
         paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[3] = true;
 
-        runtime.invokeMethodAsync(caller, "returnResponse", null, NOTIFY_SUCCESS_METADATA, new Callback() {
+        Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
                 requestMessage.waitAndReleaseAllEntities();
@@ -72,7 +71,9 @@ public class HttpCallableUnitCallback implements Callback {
             public void notifyFailure(BError result) {
                 sendFailureResponse(result);
             }
-        }, paramFeed);
+        };
+        runtime.invokeMethodAsync(caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                                  returnCallback, paramFeed);
     }
 
     @Override

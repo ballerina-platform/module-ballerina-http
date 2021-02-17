@@ -2,6 +2,7 @@ package org.ballerinalang.net.transport.contractimpl.websocket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -12,14 +13,19 @@ import io.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketFrameType;
 import org.ballerinalang.net.transport.contractimpl.listener.WebSocketMessageQueueHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
+import static org.ballerinalang.net.transport.contract.Constants.IDLE_STATE_HANDLER;
 import static org.ballerinalang.net.transport.contract.Constants.MESSAGE_QUEUE_HANDLER;
 
 /**
@@ -37,6 +43,7 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
     private int closeInitiatedStatusCode;
     private String id;
     private String negotiatedSubProtocol;
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultWebSocketConnection.class);
 
     public DefaultWebSocketConnection(ChannelHandlerContext ctx, WebSocketInboundFrameHandler frameHandler,
                                       WebSocketMessageQueueHandler webSocketMessageQueueHandler, boolean secure,
@@ -254,6 +261,26 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
     }
     int getCloseInitiatedStatusCode() {
         return this.closeInitiatedStatusCode;
+    }
+
+    public void removeReadIdleStateHandler() {
+        if (ctx.pipeline().get(IDLE_STATE_HANDLER) != null) {
+            ctx.pipeline().remove(IDLE_STATE_HANDLER);
+        }
+    }
+
+    public void addReadIdleStateHandler(long readTimeOut) {
+        if (ctx.pipeline().get(IDLE_STATE_HANDLER) == null && readTimeOut > 0) {
+            ctx.pipeline().addBefore(MESSAGE_QUEUE_HANDLER, IDLE_STATE_HANDLER,
+                    new IdleStateHandler(readTimeOut, 0, 0, TimeUnit.SECONDS));
+        } else {
+            LOG.warn("Idle state handler already added to the sync client");
+        }
+    }
+
+    @Override
+    public Channel getChannel() {
+        return ctx.channel();
     }
 
     private ByteBuf getNettyByteBuf(ByteBuffer buffer) {
