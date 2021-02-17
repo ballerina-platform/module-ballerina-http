@@ -37,14 +37,12 @@ service /general on ep {
     }
 }
 
-function handleResponse(http:Response|http:PayloadType|error result) returns string {
-    string response = "";
+function handleResponse(http:Response|error result) returns string {
     if (result is http:Response) {
-        response = "Call succeeded";
-    } else if (result is error) {
-        response = "Call to backend failed due to:" + result.message();
+        return "Call succeeded";
+    } else {
+        return "Call to backend failed due to:" + result.message();
     }
-    return response;
 }
 
 @test:Config {}

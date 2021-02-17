@@ -52,7 +52,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
     }
 
     resource function get initial(http:Caller caller, http:Request request) {
-        http:Response|http:PayloadType|error finalResponse;
+        http:Response|error finalResponse;
         http:Request req = new;
         if (checkpanic request.getHeader("priorKnowledge") == "true") {
             req.setHeader("priorKnowledge", "true");
@@ -61,9 +61,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
             req.setHeader("priorKnowledge", "false");
             finalResponse = mimeClientEP2->get("/multiparts/encode", req);
         }
-        if (finalResponse is error) {
-            log:printError("Error sending response", err = finalResponse);
-        } else if (finalResponse is http:Response) {
+        if (finalResponse is http:Response) {
             var respBodyParts = finalResponse.getBodyParts();
             string finalMessage = "";
             if (respBodyParts is mime:Entity[]) {
@@ -72,6 +70,8 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
                 }
             }
             var result = caller->respond(finalMessage);
+        } else {
+            log:printError("Error sending response", err = finalResponse);
         }
     }
 
@@ -88,7 +88,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
         mime:Entity[] bodyParts = [jsonBodyPart, xmlFilePart, textPart];
         http:Request request = new;
         request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-        http:Response|http:PayloadType|error returnResponse;
+        http:Response|error returnResponse;
         if (checkpanic req.getHeader("priorKnowledge") == "true") {
             returnResponse = priorKnowclientEP1->post("/multiparts/decode", request);
         } else {

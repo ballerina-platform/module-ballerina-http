@@ -91,28 +91,28 @@ public function invokeEndpoint (string path, Request outRequest, HttpOperation r
 
     if (HTTP_GET == requestAction) {
         var result = httpClient->get(path, message = outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_POST == requestAction) {
         var result = httpClient->post(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_OPTIONS == requestAction) {
         var result = httpClient->options(path, message = outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_PUT == requestAction) {
         var result = httpClient->put(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_DELETE == requestAction) {
         var result = httpClient->delete(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_PATCH == requestAction) {
         var result = httpClient->patch(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_FORWARD == requestAction) {
         var result = httpClient->forward(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_HEAD == requestAction) {
         var result = httpClient->head(path, message = outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_SUBMIT == requestAction) {
         return httpClient->submit(verb, path, outRequest);
     } else {
@@ -258,19 +258,6 @@ isolated function addObservabilityInformation(string path, string method, int st
     _ = checkpanic observe:addTagToMetrics(HTTP_METHOD, method);
     _ = checkpanic observe:addTagToMetrics(HTTP_BASE_URL, url);
     _ = checkpanic observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCodeConverted));
-}
-
-isolated function getIllegalDataBindingStateError() returns IllegalDataBindingStateError {
-    IllegalDataBindingStateError payloadRetrievalErr = error IllegalDataBindingStateError("Payload cannot be retrieved");
-    return payloadRetrievalErr;
-}
-
-isolated function getResponseOrError(Response|PayloadType|ClientError result) returns HttpResponse|ClientError {
-    if (result is HttpResponse|ClientError) {
-        return result;
-    } else {
-        panic getIllegalDataBindingStateError();
-    }
 }
 
 //Resolve a given path against a given URI.

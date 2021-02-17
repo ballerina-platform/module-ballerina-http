@@ -137,7 +137,6 @@ public class HttpClientAction extends AbstractHTTPAction {
             @Override
             public void notifyFailure(BError bError) {
                 balFuture.complete(bError);
-                System.out.println(bError.getErrorMessage());
             }
         }, paramFeed);
         return null;

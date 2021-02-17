@@ -338,39 +338,35 @@ public client class MockClient {
         self.httpClient = newClient.httpClient;
     }
 
-    remote function post(@untainted string path, http:RequestMessage message) 
-            returns http:Response|http:PayloadType|http:ClientError {
+    remote function post(@untainted string path, http:RequestMessage message) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function head(string path,
-                           http:Request|string|xml|json|byte[]|mime:Entity[]|() message = ())
-                                                                                returns http:Response|http:ClientError {
+    remote function head(string path, http:RequestMessage message = ()) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function put(@untainted string path, http:RequestMessage message,
-            http:TargetType targetType = http:Response) returns http:Response|http:PayloadType|http:ClientError {
+    remote function put(@untainted string path, http:RequestMessage message) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message,
-           http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message) 
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function patch(@untainted string path, http:RequestMessage message, http:TargetType targetType = http:Response)
-                                             returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function patch(@untainted string path, http:RequestMessage message) 
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function delete(@untainted string path, http:RequestMessage message = (),
-          http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function delete(@untainted string path, http:RequestMessage message = ()) 
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function get(@untainted string path, http:RequestMessage message = (),
-           http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function get(@untainted string path, http:RequestMessage message = ()) 
+            returns @tainted http:Response|http:ClientError {
         http:Request req = buildRequest(message);
         http:Response response = new;
         actualRequestNumber = actualRequestNumber + 1;
@@ -422,20 +418,18 @@ public client class MockClient {
         return response;
     }
 
-    remote function options(@untainted string path, http:RequestMessage message = (),
-           http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function options(@untainted string path, http:RequestMessage message = ()) 
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function forward(@untainted string path, http:Request request, http:TargetType targetType =
-    http:Response)
-                                               returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function forward(@untainted string path, http:Request request)
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function submit(string httpVerb, string path,
-                           http:Request|string|xml|json|byte[]|mime:Entity[]|() message)
-                                                                            returns http:HttpFuture|http:ClientError {
+    remote function submit(string httpVerb, string path, http:RequestMessage message)
+            returns http:HttpFuture|http:ClientError {
         return getUnsupportedError();
     }
 

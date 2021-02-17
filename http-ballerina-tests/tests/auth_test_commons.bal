@@ -38,7 +38,7 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
     return request;
 }
 
-function sendRequest(string path, string token) returns http:Response|http:PayloadType|http:ClientError {
+function sendRequest(string path, string token) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             token: token
@@ -53,7 +53,7 @@ function sendRequest(string path, string token) returns http:Response|http:Paylo
     return <@untainted> clientEP->get(path);
 }
 
-isolated function assertSuccess(http:Response|http:PayloadType|http:ClientError response) {
+isolated function assertSuccess(http:Response|http:ClientError response) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200);
     } else {
@@ -61,7 +61,7 @@ isolated function assertSuccess(http:Response|http:PayloadType|http:ClientError 
     }
 }
 
-isolated function assertForbidden(http:Response|http:PayloadType|http:ClientError response) {
+isolated function assertForbidden(http:Response|http:ClientError response) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 403);
     } else {
@@ -69,7 +69,7 @@ isolated function assertForbidden(http:Response|http:PayloadType|http:ClientErro
     }
 }
 
-isolated function assertUnauthorized(http:Response|http:PayloadType|http:ClientError response) {
+isolated function assertUnauthorized(http:Response|http:ClientError response) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 401);
     } else {

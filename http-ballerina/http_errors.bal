@@ -120,8 +120,8 @@ public type CookieHandlingError distinct error;
 # Represents a header not found error when retrieving headers
 public type HeaderNotFoundError distinct error;
 
-# Represents an illegal data-binding  state error
-public type IllegalDataBindingStateError distinct error<Detail>;
+//# Represents an illegal data-binding  state error
+//public type IllegalDataBindingStateError distinct error<Detail>;
 
 # Represents an error, which occurred due to bad syntax or incomplete info in the client request(4xx HTTP response)
 public type ClientRequestError distinct error<Detail>;
@@ -159,7 +159,7 @@ public type OutboundResponseError InitializingOutboundResponseError|WritingOutbo
 public type ClientError ResiliencyError|ClientAuthError|OutboundRequestError|
                             InboundResponseError|UnsupportedActionError|Http2ClientError|
                             MaximumWaitTimeExceededError|SslError|GenericClientError|CookieHandlingError|
-                            RemoteServerError|ClientRequestError|IllegalDataBindingStateError|HeaderNotFoundError;
+                            RemoteServerError|ClientRequestError|HeaderNotFoundError;
 
 # Defines the possible listener error types
 public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError;
