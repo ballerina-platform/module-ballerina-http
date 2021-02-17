@@ -381,3 +381,45 @@ function testMultipleResourceAuthzFailure() {
 function testMultipleResourceAuthnFailure() {
     assertUnauthorized(sendRequest("/bar/multipleAuth", JWT3));
 }
+
+// JWT auth secured service (without scopes) - Unsecured resource
+
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {
+                    trustStoreConfig: {
+                        trustStore: {
+                            path: TRUSTSTORE_PATH,
+                            password: "ballerina"
+                        },
+                        certAlias: "ballerina"
+                    }
+                }
+            }
+        }
+    ]
+}
+service /noscopes on authListener {
+    resource function get auth() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {}
+function testServiceAuthWithoutScopesAuthSuccess1() {
+    assertSuccess(sendRequest("/noscopes/auth", JWT1));
+}
+
+@test:Config {}
+function testServiceAuthWithoutScopesAuthSuccess2() {
+    assertSuccess(sendRequest("/noscopes/auth", JWT2));
+}
+
+@test:Config {}
+function testServiceAuthWithoutScopesAuthnFailure() {
+    assertUnauthorized(sendRequest("/noscopes/auth", JWT3));
+}
