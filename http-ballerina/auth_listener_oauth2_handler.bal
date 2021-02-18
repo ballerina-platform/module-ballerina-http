@@ -47,17 +47,28 @@ public client class ListenerOAuth2Handler {
     remote isolated function authorize(Request|string data, string|string[]? expectedScopes = (),
                                        map<string>? optionalParams = ())
                                        returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
-        string? credential = extractCredential(data);
-        if (credential is ()) {
-            Unauthorized unauthorized = {};
+        string|ListenerAuthError credential = extractCredential(data);
+        if (credential is ListenerAuthError) {
+            Unauthorized unauthorized = {
+                body: credential.message()
+            };
             return unauthorized;
         }
-        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(<string>credential, optionalParams);
-        if (details is oauth2:Error || !details.active) {
-            Unauthorized unauthorized = {};
+        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(checkpanic credential, optionalParams);
+        if (details is oauth2:Error) {
+            Unauthorized unauthorized = {
+                body: buildCompleteErrorMessage(details)
+            };
             return unauthorized;
         }
         oauth2:IntrospectionResponse introspectionResponse = checkpanic details;
+        if (!introspectionResponse.active) {
+            Unauthorized unauthorized = {
+                body: "The provided access-token is not active."
+            };
+            return unauthorized;
+        }
+
         if (expectedScopes is ()) {
             return introspectionResponse;
         }
