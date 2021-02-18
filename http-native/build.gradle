@@ -131,7 +131,7 @@ compileJava {
 }
 
 task extractJavaClassFiles(type: Copy) {
-    def jar = file("${buildDir}/libs/http-native-${project.ballerinaLangVersion}.jar")
+    def jar = file("${buildDir}/libs/http-native-${version}.jar")
 
     println(jar.name)
     from zipTree(jar).matching {
