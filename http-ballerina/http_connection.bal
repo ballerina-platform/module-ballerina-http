@@ -33,8 +33,7 @@ public client class Caller {
 
     # Sends the outbound response to the caller.
     #
-    # + message - The outbound response or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - The outbound response or any allowed payload
     # + return - An `http:ListenerError` if failed to respond or else `()`
     remote isolated function respond(ResponseMessage message = ()) returns ListenerError? {
         Response response = buildResponse(message);

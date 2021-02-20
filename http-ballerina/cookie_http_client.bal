@@ -52,8 +52,7 @@ public client class CookieClient {
     # the cookie functionality for a given endpoint.
     #
     # + path - Request path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -70,8 +69,7 @@ public client class CookieClient {
     # the cookie functionality for a given endpoint.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -88,8 +86,7 @@ public client class CookieClient {
     # the cookie functionality for a given endpoint.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -108,8 +105,7 @@ public client class CookieClient {
     # the cookie functionality for a given endpoint.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -143,8 +139,7 @@ public client class CookieClient {
     #
     # + httpVerb - HTTP verb value
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -161,8 +156,7 @@ public client class CookieClient {
     # the cookie functionality for a given endpoint.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -179,8 +173,7 @@ public client class CookieClient {
     # the cookie functionality for a given endpoint.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -197,8 +190,7 @@ public client class CookieClient {
     # the cookie functionality for a given endpoint.
     #
     # + path - Request path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -217,8 +209,7 @@ public client class CookieClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - An `HttpFuture`, which represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request request = <Request>message;
