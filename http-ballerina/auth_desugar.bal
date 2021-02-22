@@ -67,22 +67,29 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, string head
         if (config is LdapUserStoreConfigWithScopes) {
             ListenerLdapUserStoreBasicAuthProvider handler = new(config.ldapUserStoreConfig);
             auth:UserDetails|Unauthorized authn = handler->authenticate(header);
+            string|string[]? scopes = config?.scopes;
             if (authn is auth:UserDetails) {
-                Forbidden? authz = handler->authorize(authn, <string|string[]>config?.scopes);
-                return authz;
+                if (scopes is string|string[]) {
+                    Forbidden? authz = handler->authorize(authn, scopes);
+                    return authz;
+                }
+                return;
             }
         } else if (config is JwtValidatorConfigWithScopes) {
             ListenerJwtAuthHandler handler = new(config.jwtValidatorConfig);
             jwt:Payload|Unauthorized authn = handler.authenticate(header);
+            string|string[]? scopes = config?.scopes;
             if (authn is jwt:Payload) {
-                Forbidden? authz = handler.authorize(authn, <string|string[]>config?.scopes);
-                return authz;
+                if (scopes is string|string[]) {
+                    Forbidden? authz = handler.authorize(authn, scopes);
+                    return authz;
+                }
+                return;
             }
         } else {
             // Here, config is OAuth2IntrospectionConfigWithScopes
             ListenerOAuth2Handler handler = new(config.oauth2IntrospectionConfig);
-            oauth2:IntrospectionResponse|Unauthorized|Forbidden auth =
-                                                            handler->authorize(header, <string|string[]>config?.scopes);
+            oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(header, config?.scopes);
             if (auth is oauth2:IntrospectionResponse) {
                 return;
             } else if (auth is Forbidden) {
