@@ -58,9 +58,13 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, string head
         if (config is FileUserStoreConfigWithScopes) {
             ListenerFileUserStoreBasicAuthHandler handler = new(config.fileUserStoreConfig);
             auth:UserDetails|Unauthorized authn = handler.authenticate(header);
+            string|string[]? scopes = config?.scopes;
             if (authn is auth:UserDetails) {
-                Forbidden? authz = handler.authorize(authn, <string|string[]>config?.scopes);
-                return authz;
+                if (scopes is string|string[]) {
+                    Forbidden? authz = handler.authorize(authn, scopes);
+                    return authz;
+                }
+                return;
             }
         } else if (config is LdapUserStoreConfigWithScopes) {
             ListenerLdapUserStoreBasicAuthProvider handler = new(config.ldapUserStoreConfig);
