@@ -23,6 +23,8 @@ plugins {
 
 description = 'Ballerina - HTTP/WS Java Utils'
 
+def packageName = "http"
+
 dependencies {
     checkstyle project(':build-config:checkstyle')
     checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
@@ -58,14 +60,24 @@ dependencies {
     testCompile group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
 }
 
+task conditionCheck {
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":${packageName}-ballerina:publish")
+                || graph.hasTask(":${packageName}-ballerina:publishToMavenLocal")) {
+            test.enabled = false
+        }
+    }
+}
+
 test {
-   useTestNG() {
-       suites 'src/test/resources/testng.xml'
-   }
-   testLogging.showStandardStreams = true
-   testLogging {
-       events "PASSED", "FAILED", "SKIPPED"
-   }
+    dependsOn(conditionCheck)
+    useTestNG() {
+        suites 'src/test/resources/testng.xml'
+    }
+    testLogging.showStandardStreams = true
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
 }
 
 checkstyle {
@@ -133,7 +145,6 @@ compileJava {
 task extractJavaClassFiles(type: Copy) {
     def jar = file("${buildDir}/libs/http-native-${version}.jar")
 
-    println(jar.name)
     from zipTree(jar).matching {
         exclude '**/tests/*'
         exclude 'module-info.class'

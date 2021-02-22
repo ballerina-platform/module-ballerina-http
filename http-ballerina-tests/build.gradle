@@ -158,6 +158,13 @@ task initializeVariables {
     if (project.hasProperty("balJavaDebug")) {
         balJavaDebugParam = "BAL_JAVA_DEBUG=${project.findProperty("balJavaDebug")}"
     }
+
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":${packageName}-ballerina:publish")
+                || graph.hasTask(":${packageName}-ballerina:publishToMavenLocal")) {
+            ballerinaTest.enabled = false
+        }
+    }
 }
 
 task ballerinaTest {
@@ -223,7 +230,6 @@ task extractBallerinaClassFiles(type: Copy) {
     }
 
     jars.forEach { file ->
-        println(file.name)
         from zipTree(file).matching {
             exclude '**/tests/*'
             include '**/*.class'

@@ -149,7 +149,7 @@ task copyStdlibs(type: Copy) {
     }
 }
 
-task updateTomlVerions {
+task updateTomlVersions {
     doLast {
         def stdlibDependentMimeNativeVersion = project.stdlibMimeVersion
         def stdlibDependentIoVersion = project.stdlibIoVersion.replace("${snapshotVersion}", "")
@@ -285,17 +285,22 @@ task ballerinaBuild {
 
 task ballerinaPublish {
     doLast {
+        if (project.version.endsWith('-SNAPSHOT')) {
+            return
+        }
         if (ballerinaCentralAccessToken != null) {
             println("Publishing to the ballerina central...")
             exec {
                 workingDir project.projectDir
                 environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine 'cmd', '/c', "$distributionBinPath/bal.bat push ${packageName} && exit %%ERRORLEVEL%%"
+                    commandLine 'cmd', '/c', "$distributionBinPath/bal.bat push && exit %%ERRORLEVEL%%"
                 } else {
-                    commandLine 'sh', '-c', "$distributionBinPath/bal push ${packageName}"
+                    commandLine 'sh', '-c', "$distributionBinPath/bal push"
                 }
             }
+        } else {
+            throw new InvalidUserDataException("Central Access Token is not present")
         }
     }
 }
@@ -328,9 +333,13 @@ ballerinaBuild.dependsOn ":${packageName}-native:build"
 unpackJballerinaTools.dependsOn copyToLib
 unpackStdLibs.dependsOn unpackJballerinaTools
 copyStdlibs.dependsOn unpackStdLibs
-updateTomlVerions.dependsOn copyStdlibs
-ballerinaBuild.dependsOn updateTomlVerions
+updateTomlVersions.dependsOn copyStdlibs
+ballerinaBuild.dependsOn updateTomlVersions
 build.dependsOn ballerinaBuild
 
+ballerinaPublish.finalizedBy revertTomlFile
+ballerinaPublish.dependsOn initializeVariables
+ballerinaPublish.dependsOn updateTomlVersions
+ballerinaPublish.dependsOn ":${packageName}-native:build"
 ballerinaPublish.dependsOn ballerinaBuild
 publish.dependsOn ballerinaPublish
