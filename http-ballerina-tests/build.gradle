@@ -223,7 +223,6 @@ task extractBallerinaClassFiles(type: Copy) {
     }
 
     jars.forEach { file ->
-        println(file.name)
         from zipTree(file).matching {
             exclude '**/tests/*'
             include '**/*.class'
