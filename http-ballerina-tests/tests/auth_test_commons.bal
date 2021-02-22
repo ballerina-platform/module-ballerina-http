@@ -110,21 +110,20 @@ service /oauth2 on oauth2Listener {
 
     resource function post token/introspect(http:Request request) returns json {
         string|http:ClientError payload = request.getTextPayload();
-        json response = ();
         if (payload is string) {
             string[] parts = regex:split(payload, "&");
             foreach string part in parts {
                 if (part.indexOf("token=") is int) {
                     string token = regex:split(part, "=")[1];
                     if (token == ACCESS_TOKEN) {
-                        response = { "active": true, "exp": 3600, "scp": "read write" };
+                        json response = { "active": true, "exp": 3600, "scp": "read write" };
+                        return response;
                     } else {
-                        response = { "active": false };
+                        json response = { "active": false };
+                        return response;
                     }
-                    break;
                 }
             }
         }
-        return response;
     }
 }
