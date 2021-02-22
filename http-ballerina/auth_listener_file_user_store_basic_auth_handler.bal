@@ -60,8 +60,8 @@ public class ListenerFileUserStoreBasicAuthHandler {
         string[]? actualScopes = userDetails?.scopes;
         if (actualScopes is string[]) {
             boolean matched = matchScopes(actualScopes, expectedScopes);
-            if (!matched) {
-                return {};
+            if (matched) {
+                return;
             }
         }
         return {};
