@@ -121,8 +121,10 @@ public class Cookie {
         return true;
     }
 
-    // Gets the Cookie object in its string representation to be used in the ‘Set-Cookie’ header of the response.
-    function toStringValue() returns string {
+    # Gets the Cookie object in its string representation to be used in the ‘Set-Cookie’ header of the response.
+    #
+    # + return  - The string value of the ‘http:Cookie’
+    public function toStringValue() returns string {
         string setCookieHeaderValue = "";
         var temp1 = self.name;
         var temp2 = self.value;
