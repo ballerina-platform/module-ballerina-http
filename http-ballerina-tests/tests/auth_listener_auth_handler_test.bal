@@ -281,7 +281,7 @@ function testListenerOAuth2HandlerAuthSuccess() {
     string oauth2Token = "2YotnFZFEjr1zCsicMWpAA";
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
-    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request, "read");
+    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request, ["write", "update"]);
     if (auth is oauth2:IntrospectionResponse) {
         test:assertEquals(auth.active, true);
     } else {
@@ -308,7 +308,7 @@ function testListenerOAuth2HandlerAuthzFailure() {
     string oauth2Token = "2YotnFZFEjr1zCsicMWpAA";
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
-    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request, "update");
+    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request, "read");
     if (auth is oauth2:IntrospectionResponse || auth is http:Unauthorized) {
         test:assertFail(msg = "Test Failed!");
     }
