@@ -25,9 +25,7 @@ jobs:
         env:
           packageUser: ${{ secrets.BALLERINA_BOT_USERNAME }}
           packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
-        run: |
-          ./gradlew publish
-          ./gradlew codeCoverageReport
+        run: ./gradlew build codeCoverageReport publish
       - name: Archive Error Log
         uses: actions/upload-artifact@v2
         if: failure()
