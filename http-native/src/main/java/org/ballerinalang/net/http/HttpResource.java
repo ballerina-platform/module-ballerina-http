@@ -21,10 +21,12 @@ import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
+import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.signature.ParamHandler;
@@ -237,6 +239,30 @@ public class HttpResource {
      */
     public static BMap getResourceConfigAnnotation(MethodType resource) {
         return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
+    }
+
+    /**
+     * Returns resource annotation value of provided resource attached to provided service.
+     *
+     * @param service service name
+     * @param resourceName resource name
+     * @param identifier annotation qualified identifier
+     * @return annotation value object
+     */
+    public static Object getResourceAnnotation(BObject service, BString resourceName, BString identifier) {
+        ServiceType serviceType = (ServiceType) service.getType();
+        ResourceMethodType[] functions = serviceType.getResourceMethods();
+
+        for (ResourceMethodType function : functions) {
+            if (function.getName().equals(resourceName.getValue().strip())) {
+                Object resourceAnnotation = function.getAnnotation(identifier);
+                if (resourceAnnotation instanceof String) {
+                    return StringUtils.fromString((String) resourceAnnotation);
+                }
+                return resourceAnnotation;
+            }
+        }
+        return null;
     }
 
     private static List<String> getAsStringList(Object[] values) {
