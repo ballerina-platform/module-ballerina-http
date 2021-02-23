@@ -3,3 +3,17 @@ backendPort=7070
 basePath="/hello"
 keystore = "tests/certsandkeys/ballerinaKeystore.p12"
 truststore = "tests/certsandkeys/ballerinaTruststore.p12"
+
+[[auth.users]]
+username="alice"
+password="xxx"
+scopes=["write", "update"]
+
+[[auth.users]]
+username="bob"
+password="yyy"
+scopes=["read"]
+
+[[auth.users]]
+username="eve"
+password="123"

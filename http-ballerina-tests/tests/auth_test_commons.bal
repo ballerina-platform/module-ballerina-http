@@ -22,7 +22,6 @@ import ballerina/test;
 
 const string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
 const string TRUSTSTORE_PATH = "tests/certsandkeys/ballerinaTruststore.p12";
-const string ACCESS_TOKEN = "2YotnFZFEjr1zCsicMWpAA";
 
 isolated function createDummyRequest() returns http:Request {
     http:Request request = new;
@@ -38,7 +37,23 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
     return request;
 }
 
-function sendRequest(string path, string token) returns http:Response|http:PayloadType|http:ClientError {
+function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:PayloadType|http:ClientError {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+        auth: {
+            username: username,
+            password: password
+        },
+        secureSocket: {
+            trustStore: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    return <@untainted> clientEP->get(path);
+}
+
+function sendBearerTokenRequest(string path, string token) returns http:Response|http:PayloadType|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             token: token
@@ -90,7 +105,7 @@ listener http:Listener oauth2Listener = new(oauth2AuthorizationServerPort, {
 service /oauth2 on oauth2Listener {
     resource function post token() returns json {
         json response = {
-            "access_token": ACCESS_TOKEN,
+            "access_token": ACCESS_TOKEN_1,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
@@ -100,7 +115,7 @@ service /oauth2 on oauth2Listener {
 
     resource function post token/refresh() returns json {
         json response = {
-            "access_token": ACCESS_TOKEN,
+            "access_token": ACCESS_TOKEN_1,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
@@ -110,21 +125,23 @@ service /oauth2 on oauth2Listener {
 
     resource function post token/introspect(http:Request request) returns json {
         string|http:ClientError payload = request.getTextPayload();
-        json response = ();
         if (payload is string) {
             string[] parts = regex:split(payload, "&");
             foreach string part in parts {
                 if (part.indexOf("token=") is int) {
                     string token = regex:split(part, "=")[1];
-                    if (token == ACCESS_TOKEN) {
-                        response = { "active": true, "exp": 3600, "scp": "read write" };
+                    if (token == ACCESS_TOKEN_1) {
+                        json response = { "active": true, "exp": 3600, "scp": "write update" };
+                        return response;
+                    } else if (token == ACCESS_TOKEN_2) {
+                        json response = { "active": true, "exp": 3600, "scp": "read" };
+                        return response;
                     } else {
-                        response = { "active": false };
+                        json response = { "active": false };
+                        return response;
                     }
-                    break;
                 }
             }
         }
-        return response;
     }
 }
