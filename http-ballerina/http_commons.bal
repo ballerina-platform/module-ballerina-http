@@ -46,7 +46,7 @@ public isolated function parseHeader(string headerValue) returns [string, map<an
 # + return - The `string` value of the encoded URL or an `http:Error` that occurred during encoding
 public isolated function encode(string url, string charset) returns string|Error = @java:Method {
     name: "encode",
-    'class: "org.ballerinalang.net.uri.nativeimpl.Encode",
+    'class: "org.ballerinalang.net.uri.nativeimpl.Encode"
 } external;
 
 # Decodes the given URL into a `string` using the provided charset.
@@ -60,7 +60,7 @@ public isolated function encode(string url, string charset) returns string|Error
 # + return - The `string` value of the decoded URL or an `http:Error` that occurred during decoding
 public isolated function decode(string url, string charset) returns string|Error = @java:Method {
     name: "decode",
-    'class: "org.ballerinalang.net.uri.nativeimpl.Decode",
+    'class: "org.ballerinalang.net.uri.nativeimpl.Decode"
 } external;
 
 isolated function buildRequest(RequestMessage message) returns Request {
