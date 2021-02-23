@@ -290,7 +290,7 @@ function testAddPersistentCookieWithoutPersistentStore() {
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
     if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore 
-            && validCookie1 is booleans && validCookie1) {
+            && validCookie1 is boolean && validCookie1) {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         if (result is error) {
             io:println(result);
