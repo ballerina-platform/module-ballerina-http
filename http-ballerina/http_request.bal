@@ -195,7 +195,11 @@ public class Request {
     #
     # + return - Returns true if the client expects a `100-continue` response
     public isolated function expects100Continue() returns boolean {
-        return <@untainted> (self.hasHeader(EXPECT) ? self.getHeader(EXPECT) == "100-continue" : false);
+        if (self.hasHeader(EXPECT)) {
+            string|error value = self.getHeader(EXPECT);
+            return value is string && value == "100-continue";
+        }
+        return false;
     }
 
     # Sets the `content-type` header to the request.
