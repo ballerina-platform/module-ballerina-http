@@ -95,13 +95,13 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
     http:Request request = createSecureRequest(headerValue);
     auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is auth:UserDetails) {
-        test:assertFail(msg = "Test Failed!");
+    if (authn1 is http:Unauthorized) {
+        test:assertEquals(authn1?.body, "Failed to authenticate username 'alice' from file user store.");
     }
 
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is auth:UserDetails) {
-        test:assertFail(msg = "Test Failed!");
+    if (authn2 is http:Unauthorized) {
+        test:assertEquals(authn2?.body, "Failed to authenticate username 'alice' from file user store.");
     }
 }
 
@@ -252,13 +252,13 @@ isolated function testListenerJwtAuthHandlerAuthnFailure() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + jwt;
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is jwt:Payload) {
-        test:assertFail(msg = "Test Failed!");
+    if (authn1 is http:Unauthorized) {
+        test:assertEquals(authn1?.body, "JWT validation failed. JWT contained invalid issuer name 'wso2'");
     }
 
     jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn1 is jwt:Payload) {
-        test:assertFail(msg = "Test Failed!");
+    if (authn2 is http:Unauthorized) {
+        test:assertEquals(authn2?.body, "JWT validation failed. JWT contained invalid issuer name 'wso2'");
     }
 }
 
@@ -334,7 +334,7 @@ function testListenerOAuth2HandlerAuthnFailure() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
     oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request);
-    if (auth is oauth2:IntrospectionResponse || auth is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if (auth is http:Unauthorized) {
+        test:assertEquals(auth?.body, "The provided access-token is not active.");
     }
 }
