@@ -57,10 +57,13 @@ public client class ListenerLdapUserStoreBasicAuthProvider {
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + return - `()`, if it is successful or else `Forbidden` type in case of an error
     remote isolated function authorize(auth:UserDetails userDetails, string|string[] expectedScopes) returns Forbidden? {
-        string[] actualScopes = userDetails.scopes;
-        boolean matched = matchScopes(actualScopes, expectedScopes);
-        if (!matched) {
-            return {};
+        string[]? actualScopes = userDetails?.scopes;
+        if (actualScopes is string[]) {
+            boolean matched = matchScopes(actualScopes, expectedScopes);
+            if (matched) {
+                return;
+            }
         }
+        return {};
     }
 }
