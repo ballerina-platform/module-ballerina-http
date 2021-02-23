@@ -141,3 +141,31 @@ compileJava {
         classpath = files()
     }
 }
+
+task extractJavaClassFiles(type: Copy) {
+    def jar = file("${buildDir}/libs/http-native-${version}.jar")
+
+    from zipTree(jar).matching {
+        exclude '**/tests/*'
+        exclude 'module-info.class'
+        include '**/*.class'
+    }
+    into "${project.rootDir.absolutePath}/build/classes"
+}
+
+task codeCoverageReportJava(type: JacocoReport) {
+    dependsOn(extractJavaClassFiles)
+    executionData file("${project.rootDir.absolutePath}/http-native/build/jacoco/test.exec")
+    additionalClassDirs files("${project.rootDir.absolutePath}/build/classes")
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        xml.destination = new File("${buildDir}/reports/jacoco/report.xml")
+        html.destination = new File("${buildDir}/reports/jacoco/report.html")
+    }
+
+    onlyIf = {
+        true
+    }
+} 
