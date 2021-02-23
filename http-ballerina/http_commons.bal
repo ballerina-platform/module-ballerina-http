@@ -35,6 +35,34 @@ public isolated function parseHeader(string headerValue) returns [string, map<an
     name: "parseHeader"
 } external;
 
+# Encodes the given URL into a `string` using the provided charset.
+# ```ballerina
+# string url = "https://www.example.com/?param1=http://xyz.com/?a=12&b=55¶m2=99";
+# string|http:Error encodedUrl = http:encode(url, "UTF-8");
+# ```
+#
+# + url - URL to be encoded
+# + charset - Character set to be used in encoding the URL
+# + return - The `string` value of the encoded URL or an `http:Error` that occurred during encoding
+public isolated function encode(string url, string charset) returns string|ClientError = @java:Method {
+    name: "encode",
+    'class: "org.ballerinalang.net.uri.nativeimpl.Encode",
+} external;
+
+# Decodes the given URL into a `string` using the provided charset.
+# ```ballerina
+# string encodedUrl = "https://www.example.com/?param1=http%3A%2F%2Fxyz.com%2F%3Fa%3D12%26b%3D55¶m2=99";
+# string|http:Error decodedUrl = http:decode(encodedUrl, "UTF-8");
+# ```
+#
+# + url - URL to be decoded
+# + charset - Character set to be used in decoding the URL
+# + return - The `string` value of the decoded URL or an `http:Error` that occurred during decoding
+public isolated function decode(string url, string charset) returns string|ClientError = @java:Method {
+    name: "decode",
+    'class: "org.ballerinalang.net.uri.nativeimpl.Decode",
+} external;
+
 isolated function buildRequest(RequestMessage message) returns Request {
     Request request = new;
     if (message is ()) {
