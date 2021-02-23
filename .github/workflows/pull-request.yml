@@ -15,9 +15,7 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-            ./gradlew build
-            ./gradlew codeCoverageReport
+        run: ./gradlew build codeCoverageReport
       - name: Archive Error Log
         uses: actions/upload-artifact@v2
         if: failure()
