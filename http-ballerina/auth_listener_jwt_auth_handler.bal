@@ -43,14 +43,18 @@ public class ListenerJwtAuthHandler {
     # + data - The `http:Request` instance or `string` Authorization header
     # + return - The `jwt:Payload` instance or else `Unauthorized` type in case of an error
     public isolated function authenticate(Request|string data) returns jwt:Payload|Unauthorized {
-        string? credential = extractCredential(data);
-        if (credential is ()) {
-            Unauthorized unauthorized = {};
+        string|ListenerAuthError credential = extractCredential(data);
+        if (credential is ListenerAuthError) {
+            Unauthorized unauthorized = {
+                body: credential.message()
+            };
             return unauthorized;
         }
-        jwt:Payload|jwt:Error details = self.provider.authenticate(<string>credential);
+        jwt:Payload|jwt:Error details = self.provider.authenticate(checkpanic credential);
         if (details is jwt:Error) {
-            Unauthorized unauthorized = {};
+            Unauthorized unauthorized = {
+                body: buildCompleteErrorMessage(details)
+            };
             return unauthorized;
         }
         return checkpanic details;

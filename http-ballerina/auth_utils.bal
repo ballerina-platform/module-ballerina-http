@@ -67,14 +67,36 @@ isolated function prepareClientAuthError(string message, error? err = ()) return
     return error ClientAuthError(message);
 }
 
+// Logs and prepares the `error` as an `http:ListenerAuthError`.
+isolated function prepareListenerAuthError(string message, error? err = ()) returns ListenerAuthError {
+    log:printError(message, err = err);
+    if (err is error) {
+        return error ListenerAuthError(message, err);
+    }
+    return error ListenerAuthError(message);
+}
+
+// Build complete error message by evaluating all the inner causes.
+isolated function buildCompleteErrorMessage(error err) returns string {
+    string message = err.message();
+    error? cause = err.cause();
+    while (cause is error) {
+        message += " " + cause.message();
+        cause = cause.cause();
+    }
+    return message;
+}
+
 // Extract the credential from `http:Request` or `string` header.
-isolated function extractCredential(Request|string data) returns string? {
+isolated function extractCredential(Request|string data) returns string|ListenerAuthError {
     if (data is string) {
         return regex:split(<string>data, " ")[1];
     } else {
-        string|error header = data.getHeader(AUTH_HEADER);
+        string|HeaderNotFoundError header = data.getHeader(AUTH_HEADER);
         if (header is string) {
             return regex:split(header, " ")[1];
+        } else {
+            return prepareListenerAuthError("Authorization header not available.", header);
         }
     }
 }
