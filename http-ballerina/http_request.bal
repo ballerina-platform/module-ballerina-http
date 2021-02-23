@@ -197,9 +197,7 @@ public class Request {
     public isolated function expects100Continue() returns boolean {
         if (self.hasHeader(EXPECT)) {
             string|error value = self.getHeader(EXPECT);
-            if (value is string && value == "100-continue") {
-                return true;
-            }
+            return value is string && value == "100-continue";
         }
         return false;
     }
