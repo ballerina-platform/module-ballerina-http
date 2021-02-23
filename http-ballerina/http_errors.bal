@@ -163,3 +163,6 @@ public type ClientError ResiliencyError|ClientAuthError|OutboundRequestError|
 
 # Defines the possible listener error types
 public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError;
+
+# Represents a generic error
+public type Error distinct error;
