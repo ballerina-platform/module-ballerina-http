@@ -288,7 +288,9 @@ function testAddPersistentCookieWithoutPersistentStore() {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
-    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore && cookie1.isValid() == true) {
+    boolean|error validCookie1 = cookie1.isValid();
+    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore 
+            && validCookie1 is booleans && validCookie1) {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         if (result is error) {
             io:println(result);
@@ -311,7 +313,9 @@ function testRemovePersistentCookieFromCookieStore_1() {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
-    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore && cookie1.isValid() == true) {
+    boolean|error validCookie1 = cookie1.isValid();
+    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore 
+            && validCookie1 is boolean && validCookie1) {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         error? result1 = trap cookieStore.removeCookie("SID003", "google.com", "/sample");
         if (result1 is error) {

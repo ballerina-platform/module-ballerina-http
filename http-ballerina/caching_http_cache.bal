@@ -119,7 +119,8 @@ public class HttpCache {
         }
 
         foreach var cachedResp in cachedResponses {
-            if (cachedResp.getHeader(ETAG) == etag && !etag.startsWith(WEAK_VALIDATOR_TAG)) {
+            string|error headerValue = cachedResp.getHeader(ETAG);
+            if (headerValue is string && headerValue == etag && !etag.startsWith(WEAK_VALIDATOR_TAG)) {
                 matchingResponses[i] = cachedResp;
                 i = i + 1;
             }
