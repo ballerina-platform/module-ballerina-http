@@ -95,13 +95,13 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
     http:Request request = createSecureRequest(headerValue);
     auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is auth:UserDetails) {
-        test:assertFail(msg = "Test Failed!");
+    if (authn1 is http:Unauthorized) {
+        test:assertEquals(authn1?.body, "Failed to authenticate username 'alice' from file user store.");
     }
 
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is auth:UserDetails) {
-        test:assertFail(msg = "Test Failed!");
+    if (authn1 is http:Unauthorized) {
+        test:assertEquals(authn2?.body, "Failed to authenticate username 'alice' from file user store.");
     }
 }
 
