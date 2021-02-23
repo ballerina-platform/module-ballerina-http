@@ -100,7 +100,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
     }
 
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn1 is http:Unauthorized) {
+    if (authn2 is http:Unauthorized) {
         test:assertEquals(authn2?.body, "Failed to authenticate username 'alice' from file user store.");
     }
 }
