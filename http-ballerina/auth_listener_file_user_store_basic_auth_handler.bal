@@ -38,14 +38,18 @@ public class ListenerFileUserStoreBasicAuthHandler {
     # + data - The `http:Request` instance or `string` Authorization header
     # + return - The `auth:UserDetails` instance or else `Unauthorized` type in case of an error
     public isolated function authenticate(Request|string data) returns auth:UserDetails|Unauthorized {
-        string? credential = extractCredential(data);
-        if (credential is ()) {
-            Unauthorized unauthorized = {};
+        string|ListenerAuthError credential = extractCredential(data);
+        if (credential is ListenerAuthError) {
+            Unauthorized unauthorized = {
+                body: credential.message()
+            };
             return unauthorized;
         }
-        auth:UserDetails|auth:Error details = self.provider.authenticate(<string>credential);
+        auth:UserDetails|auth:Error details = self.provider.authenticate(checkpanic credential);
         if (details is auth:Error) {
-            Unauthorized unauthorized = {};
+            Unauthorized unauthorized = {
+                body: buildCompleteErrorMessage(details)
+            };
             return unauthorized;
         }
         return checkpanic details;
