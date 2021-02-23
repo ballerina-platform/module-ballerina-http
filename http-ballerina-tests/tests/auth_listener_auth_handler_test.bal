@@ -253,12 +253,12 @@ isolated function testListenerJwtAuthHandlerAuthnFailure() {
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
     if (authn1 is http:Unauthorized) {
-        test:assertEquals(authn1?.body, "JWT validation failed. JWT contained invalid issuer name : wso2");
+        test:assertEquals(authn1?.body, "JWT validation failed. JWT contained invalid issuer name 'wso2'");
     }
 
     jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
     if (authn2 is http:Unauthorized) {
-        test:assertEquals(authn2?.body, "JWT validation failed. JWT contained invalid issuer name : wso2");
+        test:assertEquals(authn2?.body, "JWT validation failed. JWT contained invalid issuer name 'wso2'");
     }
 }
 
