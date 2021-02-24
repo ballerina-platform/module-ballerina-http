@@ -14,6 +14,9 @@
  * limitations under the License.
  *
  */
+plugins {
+    id 'jacoco'
+}
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
@@ -26,6 +29,7 @@ def tomlVersion = project.version.replace("${snapshotVersion}", "")
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
 def artifactCodeCoverageReport = file("$project.projectDir/target/cache/tests_cache/coverage/ballerina.exec")
+def artifactJar = file("$project.projectDir/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${project.ballerinaLangVersion}/repo/cache/ballerina/http/${tomlVersion}/java11/")
 def originalConfig = ballerinaConfigFile.text
 def originalDependency = ballerinaDependencyFile.text
 def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
@@ -154,6 +158,13 @@ task initializeVariables {
     if (project.hasProperty("balJavaDebug")) {
         balJavaDebugParam = "BAL_JAVA_DEBUG=${project.findProperty("balJavaDebug")}"
     }
+
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":${packageName}-ballerina:publish")
+                || graph.hasTask(":${packageName}-ballerina:publishToMavenLocal")) {
+            ballerinaTest.enabled = false
+        }
+    }
 }
 
 task ballerinaTest {
@@ -212,3 +223,34 @@ publishing {
         }
     }
 }
+
+task extractBallerinaClassFiles(type: Copy) {
+    def jars = fileTree(artifactJar).findAll {
+         it.name.endsWith(".jar")
+    }
+
+    jars.forEach { file ->
+        from zipTree(file).matching {
+            exclude '**/tests/*'
+            include '**/*.class'
+        }
+        into "${project.rootDir.absolutePath}/build/classes"
+    }
+}
+
+task codeCoverageReportBal(type: JacocoReport) {
+    dependsOn(extractBallerinaClassFiles)
+    executionData artifactCodeCoverageReport
+    additionalClassDirs files("${project.rootDir.absolutePath}/build/classes")
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        xml.destination = new File("${buildDir}/reports/jacoco/report.xml")
+        html.destination = new File("${buildDir}/reports/jacoco/report.html")
+    }
+
+    onlyIf = {
+        true
+    }
+} 
