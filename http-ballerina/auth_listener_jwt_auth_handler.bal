@@ -40,9 +40,9 @@ public class ListenerJwtAuthHandler {
 
     # Authenticates with the relevant authentication requirements.
     #
-    # + data - The `http:Request` instance or `string` Authorization header
+    # + data - The `http:Request` instance or `http:Headers` instance or `string` Authorization header
     # + return - The `jwt:Payload` instance or else `Unauthorized` type in case of an error
-    public isolated function authenticate(Request|string data) returns jwt:Payload|Unauthorized {
+    public isolated function authenticate(Request|Headers|string data) returns jwt:Payload|Unauthorized {
         string|ListenerAuthError credential = extractCredential(data);
         if (credential is ListenerAuthError) {
             Unauthorized unauthorized = {
