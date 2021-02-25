@@ -93,7 +93,7 @@ isolated function extractCredential(Request|Headers|string data) returns string|
         return regex:split(<string>data, " ")[1];
     } else {
         object {
-            public function getHeader() returns string|HeaderNotFoundError;
+            public function getHeader(string headerName) returns string|HeaderNotFoundError;
         } headers = data;
         var header = headers.getHeader(AUTH_HEADER);
         if (header is string) {
