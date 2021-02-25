@@ -17,6 +17,8 @@
 import ballerina/io;
 import ballerina/http;
 import ballerina/lang.runtime as runtime;
+import ballerina/lang.value as val;
+import ballerina/mime;
 import ballerina/test;
 
 const string TEST_SCENARIO_HEADER = "test-scenario";
@@ -539,12 +541,19 @@ function buildRequest(http:RequestMessage message) returns http:Request {
         request.setXmlPayload(message);
     } else if (message is byte[]) {
         request.setBinaryPayload(message);
-    } else if (message is json) {
-        request.setJsonPayload(message);
     } else if (message is stream<byte[], io:Error>) {
         request.setByteStream(message);
-    } else {
+    } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
+    } else if (message is json) {
+        request.setJsonPayload(message);
+    } else {
+        var result = trap val:toJson(message);
+        if (result is error) {
+            panic error http:InitializingOutboundRequestError("json conversion error: " + result.message(), result);
+        } else {
+            request.setJsonPayload(result);
+        }
     }
     return request;
 }
