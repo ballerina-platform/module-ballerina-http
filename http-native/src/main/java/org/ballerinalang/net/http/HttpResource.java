@@ -255,11 +255,7 @@ public class HttpResource {
 
         for (ResourceMethodType function : functions) {
             if (function.getName().equals(resourceName.getValue().strip())) {
-                Object resourceAnnotation = function.getAnnotation(identifier);
-                if (resourceAnnotation instanceof String) {
-                    return StringUtils.fromString((String) resourceAnnotation);
-                }
-                return resourceAnnotation;
+                return function.getAnnotation(identifier);
             }
         }
         return null;
