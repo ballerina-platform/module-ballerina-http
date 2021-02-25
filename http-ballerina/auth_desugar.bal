@@ -124,8 +124,7 @@ isolated function getResourceAuthConfig(Service serviceRef, string methodName, s
     foreach string path in resourcePath {
         resourceName += "$" + path;
     }
-    string annotationQualifiedIdentifier = getModuleIdentifier() + ":ResourceConfig";
-    any resourceAnnotation = getResourceAnnotation(serviceRef, resourceName, annotationQualifiedIdentifier);
+    any resourceAnnotation = getResourceAnnotation(serviceRef, resourceName);
     if (resourceAnnotation is ()) {
         return;
     }
@@ -164,11 +163,6 @@ isolated function getCaller() returns Caller = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternCaller"
 } external;
 
-isolated function getModuleIdentifier() returns string = @java:Method {
-    'class: "org.ballerinalang.net.http.nativeimpl.ModuleUtils"
-} external;
-
-isolated function getResourceAnnotation(service object {} serviceType, string resourceName, string identifier)
-                                         returns any = @java:Method {
-    'class: "org.ballerinalang.net.http.HttpResource"
+isolated function getResourceAnnotation(service object {} serviceType, string resourceName) returns any = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternResource"
 } external;

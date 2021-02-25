@@ -241,26 +241,6 @@ public class HttpResource {
         return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
     }
 
-    /**
-     * Returns resource annotation value of provided resource attached to provided service.
-     *
-     * @param service service name
-     * @param resourceName resource name
-     * @param identifier annotation qualified identifier
-     * @return annotation value object
-     */
-    public static Object getResourceAnnotation(BObject service, BString resourceName, BString identifier) {
-        ServiceType serviceType = (ServiceType) service.getType();
-        ResourceMethodType[] functions = serviceType.getResourceMethods();
-
-        for (ResourceMethodType function : functions) {
-            if (function.getName().equals(resourceName.getValue().strip())) {
-                return function.getAnnotation(identifier);
-            }
-        }
-        return null;
-    }
-
     private static List<String> getAsStringList(Object[] values) {
         if (values == null) {
             return null;
