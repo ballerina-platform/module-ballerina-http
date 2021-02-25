@@ -239,7 +239,7 @@ task extractBallerinaClassFiles(type: Copy) {
 }
 
 task codeCoverageReportBal(type: JacocoReport) {
-    dependsOn('http-ballerina:build')
+    dependsOn(':http-ballerina:build')
     dependsOn(extractBallerinaClassFiles)
     executionData artifactCodeCoverageReport
     additionalClassDirs files("${project.rootDir.absolutePath}/build/classes")
