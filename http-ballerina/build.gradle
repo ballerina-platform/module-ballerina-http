@@ -163,7 +163,6 @@ task updateTomlVersions {
         def stdlibDependentTimeVersion = project.stdlibTimeVersion.replace("${snapshotVersion}", "")
         def stdlibDependentCryptoVersion = project.stdlibCryptoVersion.replace("${snapshotVersion}", "")
         def stdlibDependentFileVersion = project.stdlibFileVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentReflectVersion = project.stdlibReflectVersion.replace("${snapshotVersion}", "")
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
         def stdlibDependentWso2SnakeYamlVersion = project.wso2SnakeYamlVersion
@@ -195,7 +194,6 @@ task updateTomlVersions {
         newDependencyConfig = newDependencyConfig.replace("@stdlib.time.version@", stdlibDependentTimeVersion)
         newDependencyConfig = newDependencyConfig.replace("@stdlib.crypto.version@", stdlibDependentCryptoVersion)
         newDependencyConfig = newDependencyConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.reflect.version@", stdlibDependentReflectVersion)
         ballerinaDependencyFile.text = newDependencyConfig
     }
 }

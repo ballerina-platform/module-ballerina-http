@@ -21,8 +21,6 @@ package org.ballerinalang.net.http.nativeimpl;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.async.StrandMetadata;
-import io.ballerina.runtime.api.utils.StringUtils;
-import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HttpConstants;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_BUILTIN_PKG_PREFIX;
@@ -51,15 +49,6 @@ public class ModuleUtils {
                                                    "notifySuccess");
         packageIdentifier = HttpConstants.PACKAGE + ORG_NAME_SEPARATOR + HttpConstants.PROTOCOL_HTTP +
                 HttpConstants.COLON + httpModule.getVersion();
-    }
-
-    /**
-     * Gets the BString value of module identifier. Used in Auth desugar
-     *
-     * @return module identifier
-     */
-    public static BString getModuleIdentifier() {
-        return StringUtils.fromString(httpModule.toString());
     }
 
     /**
