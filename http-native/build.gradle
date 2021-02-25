@@ -154,6 +154,7 @@ task extractJavaClassFiles(type: Copy) {
 }
 
 task codeCoverageReportJava(type: JacocoReport) {
+    dependsOn(':http-ballerina:build')
     dependsOn(extractJavaClassFiles)
     executionData file("${project.rootDir.absolutePath}/http-native/build/jacoco/test.exec")
     additionalClassDirs files("${project.rootDir.absolutePath}/build/classes")
