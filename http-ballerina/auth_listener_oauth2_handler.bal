@@ -40,7 +40,7 @@ public client class ListenerOAuth2Handler {
 
     # Authorizes with the relevant authentication & authorization requirements.
     #
-    # + data - The `http:Request` instanceor `http:Headers` instance  or `string` Authorization header
+    # + data - The `http:Request` instance or `http:Headers` instance or `string` Authorization header
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + optionalParams - Map of optional parameters that need to be sent to introspection endpoint
     # + return - The `oauth2:IntrospectionResponse` instance or else `Unauthorized` or `Forbidden` type in case of an error
