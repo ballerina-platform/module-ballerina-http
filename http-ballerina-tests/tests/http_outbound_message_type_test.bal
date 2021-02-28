@@ -30,7 +30,7 @@ public function testSendingNil() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "0");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -43,7 +43,7 @@ public function testSendingInt() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), 139);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -56,7 +56,7 @@ public function testSendingFloat() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 1.39);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -69,7 +69,7 @@ public function testSendingDecimal() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 1.3);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -82,7 +82,7 @@ public function testSendingBoolean() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), true);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -95,7 +95,7 @@ public function testSendingMap() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {sam: 50, jhon: 60});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -109,7 +109,7 @@ public function testSendingMapArray() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), val);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -126,7 +126,7 @@ public function testSendingTable() {
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{id: 13 , fname: "Dan", lname: "Bing"}, 
             {id: 23 , fname: "Hay" , lname: "Kelsey"}]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -143,7 +143,7 @@ public function testSendingTableArray() {
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [[{id: 13 , fname: "Dan", lname: "Bing"}], 
             [{id: 13 , fname: "Dan", lname: "Bing"}]]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -214,7 +214,7 @@ public function testGettingNil() {
     if (resp is http:Response) {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_LENGTH), "0");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -226,7 +226,7 @@ public function testGettingInt() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), 1395767);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -238,7 +238,7 @@ public function testGettingFloat() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 13.95767);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -250,7 +250,7 @@ public function testGettingDecimal() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 6.7);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -262,7 +262,7 @@ public function testGettingBoolean() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), true);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -274,7 +274,7 @@ public function testGettingMap() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {line1: "a", line2: "b"});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -286,7 +286,7 @@ public function testGettingMapArray() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{line1: "a", line2: "b"}, {line3: "c", line4: "d"}]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -299,7 +299,7 @@ public function testGettingTable() {
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{fname: "John", lname: "Wick"},
             {fname: "Robert", lname: "Downey"}]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -312,7 +312,7 @@ public function testGettingTableArray() {
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [[{fname: "John", lname: "Wick"}], 
             [{name: 23, lname: {a:"go"}}]]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

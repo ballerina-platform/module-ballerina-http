@@ -304,8 +304,8 @@ function testDataBindingWithEmptyJsonPayload() {
     http:Request req = new;
     var response = dataBindingClient->get("/echo/body3");
     if (response is http:Response) {
-        assertJsonValue(response.getJsonPayload(), "Key", ());
-        assertJsonValue(response.getJsonPayload(), "Team", ());
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"empty JSON document\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

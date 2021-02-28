@@ -42,7 +42,7 @@ public client class HttpCachingClient {
     # + return - The `client` or an `http:ClientError` if the initialization failed
     function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
         self.url = url;
-        var httpSecureClient = createClient(url, config);
+        var httpSecureClient = createHttpSecureClient(url, config);
         if (httpSecureClient is HttpClient) {
             self.httpClient = httpSecureClient;
         } else {

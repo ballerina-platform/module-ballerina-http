@@ -212,7 +212,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
     //             } else {
     //                 value = result.message();
     //             }
-    //         } else if (res is error) {
+    //         } else {
     //             value = res.message();
     //         }
     //     } else {
@@ -238,7 +238,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
                 } else {
                     value = "Found unexpected str output type" + str.message();
                 }
-            } else if (res is error) {
+            } else {
                 value = res.message();
             }
         } else {
@@ -264,7 +264,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
                 } else {
                     value = "Found unexpected str output type" + str.message();
                 }
-            } else if (res is error) {
+            } else {
                 value = res.message();
             }
         } else {
@@ -285,7 +285,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
                 } else {
                     value = result.message();
                 }
-            } else if (res is error) {
+            } else {
                 value = res.message();
             }
         } else {
@@ -358,7 +358,7 @@ public function testHttp2PostWithTextToStream() {
     var resp = clientEP->post("/testHttp2Service/testHttp2PostWithTextToStream", "Sample Text");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -369,7 +369,7 @@ public function testHttp2PostWithByteStream() {
     var resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteStream", "Sample Text");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -380,7 +380,7 @@ public function testHttp2PostWithByteStreamToTextPayloadOfClient() {
     var resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteStreamToText", "Sample Text");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

@@ -458,7 +458,7 @@ function testBinaryBodyPartAsFileUploadUsingStream() returns @tainted error? {
         } else {
             test:assertFail(msg = "Found unexpected str output type" + str.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = errorMessage + response.message());
     }
 }
@@ -520,7 +520,7 @@ function testMultiplePartsWithMultipleBodyTypesIncludingStreams() returns @taint
         assertMultipartResponse(response, " -- Ballerina xml file part -- jsonPart -- Ballerina text body part "
               + "-- Ballerina binary file part");
         close(byteChannel);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = errorMessage + response.message());
     }
 }

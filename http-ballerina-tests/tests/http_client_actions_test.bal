@@ -309,7 +309,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 } else {
                     value = "Found unexpected str output type" + str.message();
                 }
-            } else if (res is error) {
+            } else {
                 value = res.message();
             }
         } else {
@@ -330,7 +330,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 } else {
                     value = result.message();
                 }
-            } else if (res is error) {
+            } else {
                 value = res.message();
             }
         } else {
@@ -356,7 +356,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 } else {
                     value = "Found unexpected str output type" + str.message();
                 }
-            } else if (res is error) {
+            } else {
                 value = res.message();
             }
         } else {
@@ -490,7 +490,7 @@ function testPostWithByteStream() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -502,7 +502,7 @@ function testPostWithByteStreamToText() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -514,7 +514,7 @@ function testPostWithTextToByteStream() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

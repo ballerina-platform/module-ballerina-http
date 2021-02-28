@@ -230,7 +230,7 @@ service /reuseObj on reuseRequestListenerEP {
                     } else {
                         secondVal = "Error in parsing payload";
                     }
-                } else if (secondResponse is error) {
+                } else {
                     secondVal = secondResponse.message();
                 }
 
@@ -243,7 +243,7 @@ service /reuseObj on reuseRequestListenerEP {
 
                 testResponse.setTextPayload(<@untainted> firstVal + <@untainted> secondVal);
                 checkpanic caller->respond(testResponse);
-            } else if (firstResponse is error) {
+            } else {
                 log:printError(firstResponse.message(), err = firstResponse);
             }
         } else {
@@ -346,7 +346,7 @@ function sameRequestWithByteStream() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!No payload");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

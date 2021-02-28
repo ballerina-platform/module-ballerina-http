@@ -508,7 +508,6 @@ function initialize(string serviceUrl, ClientConfiguration config, CookieStore? 
         int lastIndex = url.length() - 1;
         url = url.substring(0, lastIndex);
     }
-    //return createHttpCachingClient(url, config, config.cache);
     var cbConfig = config.circuitBreaker;
     if (cbConfig is CircuitBreakerConfig) {
         if (url.endsWith("/")) {

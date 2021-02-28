@@ -627,7 +627,7 @@ function testServiceGetByteStream() {
     var response = requestClient->get(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), payload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
