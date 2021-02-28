@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/lang.value as val;
 import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
@@ -49,10 +50,19 @@ isolated function buildRequest(RequestMessage message) returns Request {
         request.setXmlPayload(message);
     } else if (message is byte[]) {
         request.setBinaryPayload(message);
+    } else if (message is stream<byte[], io:Error>) {
+        request.setByteStream(message);
+    } else if (message is mime:Entity[]) {
+        request.setBodyParts(message);
     } else if (message is json) {
         request.setJsonPayload(message);
     } else {
-        request.setBodyParts(message);
+        var result = trap val:toJson(message);
+        if (result is error) {
+            panic error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
+        } else {
+            request.setJsonPayload(result);
+        }
     }
     return request;
 }
@@ -69,10 +79,19 @@ isolated function buildResponse(ResponseMessage message) returns Response {
         response.setXmlPayload(message);
     } else if (message is byte[]) {
         response.setBinaryPayload(message);
+    } else if (message is stream<byte[], io:Error>) {
+        response.setByteStream(message);
+    } else if (message is mime:Entity[]) {
+        response.setBodyParts(message);
     } else if (message is json) {
         response.setJsonPayload(message);
     } else {
-        response.setBodyParts(message);
+        var result = trap val:toJson(message);
+        if (result is error) {
+            panic error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
+        } else {
+            response.setJsonPayload(result);
+        }
     }
     return response;
 }
@@ -297,4 +316,9 @@ isolated function externGetByteChannel(mime:Entity entity) returns @tainted io:R
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getByteChannel"
+} external;
+
+isolated function externPopulateInputStream(mime:Entity entity) = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "populateInputStream"
 } external;

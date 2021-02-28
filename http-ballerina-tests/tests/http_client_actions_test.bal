@@ -14,9 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/http;
+import ballerina/io;
+import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
-import ballerina/http;
 
 listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1);
 listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2);
@@ -31,7 +33,7 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
         checkpanic caller->respond("Hello");
     }
 
-    // TODO: Enable with new byteStream API
+    // TODO: Enable after the I/O revamp
     // resource function post byteChannel(http:Caller caller, http:Request req) {
     //     var byteChannel = req.getByteChannel();
     //     if (byteChannel is io:ReadableByteChannel) {
@@ -40,6 +42,15 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
     //         checkpanic caller->respond(<@untainted> byteChannel.message());
     //     }
     // }
+
+    resource function post byteStream(http:Caller caller, http:Request req) {
+        var byteStream = req.getByteStream();
+        if (byteStream is stream<byte[], io:Error>) {
+            checkpanic caller->respond(<@untainted> byteStream);
+        } else {
+            checkpanic caller->respond(<@untainted> byteStream.message());
+        }
+    }
 
     resource function post directPayload(http:Caller caller, http:Request req) {
         if (req.hasHeader("content-type")) {
@@ -259,7 +270,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
       checkpanic caller->respond(<@untainted> backendPayload);
     }
 
-    // TODO: Enable with new byteStream API
+    // TODO: Enable after the I/O revamp
     // resource function post handleByteChannel(http:Caller caller, http:Request req) {
     //     string value = "";
     //     var byteChannel = req.getByteChannel();
@@ -280,6 +291,79 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     //     }
     //     checkpanic caller->respond(<@untainted> value);
     // }
+
+    resource function post handleByteStream(http:Caller caller, http:Request req) {
+        string value = "";
+        var byteStream = req.getByteStream();
+        if (byteStream is stream<byte[], io:Error>) {
+            var res = clientEP2->post("/httpClientActionBE/byteStream", <@untainted> byteStream);
+            if (res is http:Response) {
+                stream<byte[], io:Error>|error str = res.getByteStream();
+                if (str is stream<byte[], io:Error>) {
+                    record {|byte[] value;|}|io:Error? arr1 = str.next();
+                    if (arr1 is record {|byte[] value;|}) {
+                        value = checkpanic strings:fromBytes(arr1.value);
+                    } else {
+                        value = "Found unexpected arr1 output type";
+                    }
+                } else {
+                    value = "Found unexpected str output type" + str.message();
+                }
+            } else if (res is error) {
+                value = res.message();
+            }
+        } else {
+            value = byteStream.message();
+        }
+        checkpanic caller->respond(<@untainted> value);
+    }
+
+    resource function post handleByteStreamToText(http:Caller caller, http:Request req) {
+        string value = "";
+        var byteStream = req.getByteStream();
+        if (byteStream is stream<byte[], io:Error>) {
+            var res = clientEP2->post("/httpClientActionBE/byteStream", <@untainted> byteStream);
+            if (res is http:Response) {
+                var result = res.getTextPayload();
+                if (result is string) {
+                    value = result;
+                } else {
+                    value = result.message();
+                }
+            } else if (res is error) {
+                value = res.message();
+            }
+        } else {
+            value = byteStream.message();
+        }
+        checkpanic caller->respond(<@untainted> value);
+    }
+
+    resource function post handleTextToByteStream(http:Caller caller, http:Request req) {
+        string value = "";
+        var text = req.getTextPayload();
+        if (text is string) {
+            var res = clientEP2->post("/httpClientActionBE/_bulk", <@untainted> text);
+            if (res is http:Response) {
+                stream<byte[], io:Error>|error str = res.getByteStream();
+                if (str is stream<byte[], io:Error>) {
+                    record {|byte[] value;|}|io:Error? arr1 = str.next();
+                    if (arr1 is record {|byte[] value;|}) {
+                        value = checkpanic strings:fromBytes(arr1.value);
+                    } else {
+                        value = "Found unexpected arr1 output type";
+                    }
+                } else {
+                    value = "Found unexpected str output type" + str.message();
+                }
+            } else if (res is error) {
+                value = res.message();
+            }
+        } else {
+            value = text.message();
+        }
+        checkpanic caller->respond(<@untainted> value);
+    }
 
     resource function get handleMultiparts(http:Caller caller, http:Request req) {
         string value = "";
@@ -386,7 +470,7 @@ function testPostWithBlob() {
     }
 }
 
-// TODO: Enable with new byteStream API
+// TODO: Enable after the I/O revamp
 @test:Config {enable:false}
 function testPostWithByteChannel() {
     var response = httpClientActionClient->post("/handleByteChannel", "Sample Text");
@@ -395,6 +479,42 @@ function testPostWithByteChannel() {
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
     } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testPostWithByteStream() {
+    var response = httpClientActionClient->post("/handleByteStream", "Sample Text");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Sample Text");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testPostWithByteStreamToText() {
+    var response = httpClientActionClient->post("/handleByteStreamToText", "Sample Text");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Sample Text");
+    } else if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testPostWithTextToByteStream() {
+    var response = httpClientActionClient->post("/handleTextToByteStream", "Sample Text");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Sample Text");
+    } else if (response is error) {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

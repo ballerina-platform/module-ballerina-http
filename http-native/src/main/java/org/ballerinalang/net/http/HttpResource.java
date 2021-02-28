@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.http.signature.ParamHandler;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
@@ -40,8 +41,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
 import static org.ballerinalang.net.http.HttpUtil.checkConfigAnnotationAvailability;
+import static org.ballerinalang.net.http.signature.ParamHandler.PAYLOAD_ANNOTATION;
 
 /**
  * {@code HttpResource} This is the http wrapper for the {@code Resource} implementation.
@@ -57,7 +58,7 @@ public class HttpResource {
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
     private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
     private static final BString HTTP_RESOURCE_CONFIG =
-            StringUtils.fromString(PROTOCOL_PACKAGE_HTTP + ":" + ANN_NAME_RESOURCE_CONFIG);
+            StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
     private static final String RETURN_ANNOT_PREFIX = "$returns$";
 
     private MethodType balResource;
@@ -288,7 +289,7 @@ public class HttpResource {
         Object[] annotationsKeys = annotations.getKeys();
         for (Object objKey : annotationsKeys) {
             BString key = ((BString) objKey);
-            if (!HttpConstants.PAYLOAD_ANNOTATION.equals(key.getValue())) {
+            if (!PAYLOAD_ANNOTATION.equals(key.getValue())) {
                 continue;
             }
             Object mediaType = annotations.getMapValue(key).get(HttpConstants.ANN_FIELD_MEDIA_TYPE);

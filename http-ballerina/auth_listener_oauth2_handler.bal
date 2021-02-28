@@ -40,24 +40,35 @@ public client class ListenerOAuth2Handler {
 
     # Authorizes with the relevant authentication & authorization requirements.
     #
-    # + data - The `http:Request` instance or `string` Authorization header
+    # + data - The `http:Request` instance or `http:Headers` instance or `string` Authorization header
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + optionalParams - Map of optional parameters that need to be sent to introspection endpoint
     # + return - The `oauth2:IntrospectionResponse` instance or else `Unauthorized` or `Forbidden` type in case of an error
-    remote isolated function authorize(Request|string data, string|string[]? expectedScopes = (),
+    remote isolated function authorize(Request|Headers|string data, string|string[]? expectedScopes = (),
                                        map<string>? optionalParams = ())
                                        returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
-        string? credential = extractCredential(data);
-        if (credential is ()) {
-            Unauthorized unauthorized = {};
+        string|ListenerAuthError credential = extractCredential(data);
+        if (credential is ListenerAuthError) {
+            Unauthorized unauthorized = {
+                body: credential.message()
+            };
             return unauthorized;
         }
-        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(<string>credential, optionalParams);
-        if (details is oauth2:Error || !details.active) {
-            Unauthorized unauthorized = {};
+        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(checkpanic credential, optionalParams);
+        if (details is oauth2:Error) {
+            Unauthorized unauthorized = {
+                body: buildCompleteErrorMessage(details)
+            };
             return unauthorized;
         }
         oauth2:IntrospectionResponse introspectionResponse = checkpanic details;
+        if (!introspectionResponse.active) {
+            Unauthorized unauthorized = {
+                body: "The provided access-token is not active."
+            };
+            return unauthorized;
+        }
+
         if (expectedScopes is ()) {
             return introspectionResponse;
         }

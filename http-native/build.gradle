@@ -23,6 +23,8 @@ plugins {
 
 description = 'Ballerina - HTTP/WS Java Utils'
 
+def packageName = "http"
+
 dependencies {
     checkstyle project(':build-config:checkstyle')
     checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
@@ -58,7 +60,17 @@ dependencies {
     testCompile group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
 }
 
+task conditionCheck {
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":${packageName}-ballerina:publish")
+                || graph.hasTask(":${packageName}-ballerina:publishToMavenLocal")) {
+            test.enabled = false
+        }
+    }
+}
+
 test {
+    dependsOn(conditionCheck)
     useTestNG() {
         suites 'src/test/resources/testng.xml'
     }
@@ -129,3 +141,31 @@ compileJava {
         classpath = files()
     }
 }
+
+task extractJavaClassFiles(type: Copy) {
+    def jar = file("${buildDir}/libs/http-native-${version}.jar")
+
+    from zipTree(jar).matching {
+        exclude '**/tests/*'
+        exclude 'module-info.class'
+        include '**/*.class'
+    }
+    into "${project.rootDir.absolutePath}/build/classes"
+}
+
+task codeCoverageReportJava(type: JacocoReport) {
+    dependsOn(extractJavaClassFiles)
+    executionData file("${project.rootDir.absolutePath}/http-native/build/jacoco/test.exec")
+    additionalClassDirs files("${project.rootDir.absolutePath}/build/classes")
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        xml.destination = new File("${buildDir}/reports/jacoco/report.xml")
+        html.destination = new File("${buildDir}/reports/jacoco/report.html")
+    }
+
+    onlyIf = {
+        true
+    }
+} 

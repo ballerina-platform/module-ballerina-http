@@ -48,8 +48,7 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.get()` function.
     #
     # + path - Resource path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`,
-    #             `byte[]` or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_GET);
@@ -64,8 +63,7 @@ public client class RedirectClient {
     # be performed automatically by this `RedirectClient.post()` function.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote function post(string path, RequestMessage message) returns @tainted Response|ClientError {
@@ -81,8 +79,7 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.head()` function.
     #
     # + path - Resource path
-    # + message - An optional HTTP outbound request message or or any payload of type `string`, `xml`, `json`,
-    #             `byte[]` or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -98,8 +95,7 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.put()` function.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PUT);
@@ -124,8 +120,7 @@ public client class RedirectClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
         Request request = <Request>message;
@@ -146,8 +141,7 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.patch()` function.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PATCH);
@@ -162,8 +156,7 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.delete()` function.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_DELETE);
@@ -178,8 +171,7 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.options()` function.
     #
     # + path - Resource path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`
-    #             `byte[]` or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_OPTIONS);
@@ -196,8 +188,7 @@ public client class RedirectClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return self.httpClient->submit(httpVerb, path, <Request>message);

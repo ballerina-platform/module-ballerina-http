@@ -157,8 +157,7 @@ public client class CircuitBreakerClient {
     # function of the underlying HTTP remote functions provider.
     #
     # + path - Resource path
-    # + message - A Request or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function post(string path, RequestMessage message) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
@@ -177,8 +176,7 @@ public client class CircuitBreakerClient {
     # function of the underlying HTTP remote functions provider.
     #
     # + path - Resource path
-    # + message - A Request or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
@@ -197,8 +195,7 @@ public client class CircuitBreakerClient {
     # function of the underlying HTTP remote functions provider.
     #
     # + path - Resource path
-    # + message - A Request or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
@@ -218,8 +215,7 @@ public client class CircuitBreakerClient {
     #
     # + httpVerb - HTTP verb to be used for the request
     # + path - Resource path
-    # + message - A Request or any payload of type `string`, `xml`, `json`, `byte[]` or
-    #             `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
@@ -238,8 +234,7 @@ public client class CircuitBreakerClient {
     # function of the underlying HTTP remote functions provider.
     #
     # + path - Resource path
-    # + message - A Request or any payload of type `string`, `xml`, `json`, `byte[]` or
-    #             `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
@@ -258,8 +253,7 @@ public client class CircuitBreakerClient {
     # function of the underlying HTTP remote functions provider.
     #
     # + path - Resource path
-    # + message - A Request or any payload of type `string`, `xml`, `json`, `byte[]` or
-    #             `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
@@ -278,8 +272,7 @@ public client class CircuitBreakerClient {
     # function of the underlying HTTP remote functions provider.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
@@ -298,8 +291,7 @@ public client class CircuitBreakerClient {
     # function of the underlying HTTP remote functions provider.
     #
     # + path - Resource path
-    # + message - An optional HTTP Request or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
@@ -339,8 +331,7 @@ public client class CircuitBreakerClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {

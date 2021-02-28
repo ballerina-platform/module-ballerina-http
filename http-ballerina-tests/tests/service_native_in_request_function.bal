@@ -326,7 +326,7 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    // TODO: Enable with new byteStream API
+    // TODO: Enable after the I/O revamp
     // resource function get GetByteChannel(http:Caller caller, http:Request req) {
     //     http:Response res = new;
     //     var returnResult = req.getByteChannel();
@@ -338,6 +338,18 @@ service /requesthello on requestListner {
     //     }
     //     checkpanic caller->respond(res);
     // }
+
+    resource function get GetByteStream(http:Caller caller, http:Request req) {
+        http:Response res = new;
+        var returnResult = req.getByteStream();
+        if (returnResult is error) {
+            res.setTextPayload("Error occurred");
+            res.statusCode = 500;
+        } else {
+            res.setByteStream(returnResult);
+        }
+        checkpanic caller->respond(res);
+    }
 
     resource function get RemoveHeader(http:Caller caller, http:Request inReq) {
         http:Request req = new;
@@ -581,7 +593,7 @@ function testGetRequestURLWithInService() {
     }
 }
 
-// TODO: Enable with new byteStream API
+// TODO: Enable after the I/O revamp
 // Test GetByteChannel function within a service. Send a json content as a request and then get a byte channel from
 // the Request and set that ByteChannel as the response content"
 @test:Config {enable:false}
@@ -597,6 +609,25 @@ function testServiceGetByteChannel() {
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), payload);
     } else {
+        test:assertFail(msg = "Test Failed! " + <string>response.message());
+    }
+}
+
+// Test GetByteStream function within a service. Send a json content as a request and then get a byte Stream from
+// the Request and set that ByteStream as the response content"
+@test:Config {}
+function testServiceGetByteStream() {
+    string value = "ballerina";
+    string path = "/requesthello/GetByteStream";
+    json payload = {lang: value };
+    string contentType = "application/json";
+    http:Request req = new;
+    req.setHeader("content-type", contentType);
+    req.setJsonPayload(payload);
+    var response = requestClient->get(path, req);
+    if (response is http:Response) {
+        assertJsonPayload(response.getJsonPayload(), payload);
+    } else if (response is error) {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }

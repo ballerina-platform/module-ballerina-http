@@ -138,6 +138,9 @@ public type ResiliencyError FailoverAllEndpointsFailedError|FailoverActionFailed
 # Defines the Auth error types that returned from client
 public type ClientAuthError distinct error;
 
+# Defines the Auth error types that returned from listener
+public type ListenerAuthError distinct error;
+
 # Defines the client error types that returned while sending outbound request
 public type OutboundRequestError InitializingOutboundRequestError|WritingOutboundRequestHeadersError|
                             WritingOutboundRequestBodyError;
@@ -162,4 +165,4 @@ public type ClientError ResiliencyError|ClientAuthError|OutboundRequestError|
                             RemoteServerError|ClientRequestError|HeaderNotFoundError;
 
 # Defines the possible listener error types
-public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError;
+public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError|ListenerAuthError;

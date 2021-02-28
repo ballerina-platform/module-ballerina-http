@@ -529,9 +529,13 @@ function testRemoveTrailingHeader() {
     res.setHeader("HeADEr2", "totally different value", position = "trailing");
     res.removeHeader("HEADER1", position = "trailing");
     res.removeHeader("NONE_EXISTENCE_HEADER", position = "trailing");
-    string[] output = checkpanic res.getHeaders("header1", position = "trailing");
+    string[]|error output = res.getHeaders("header1", position = "trailing");
     test:assertEquals(checkpanic res.getHeader("header2", position = "trailing"), "totally different value");
-    test:assertEquals(output.length(), 0);
+    if (output is error) {
+        test:assertEquals(output.message(), "Http header does not exist", msg = "Outptut mismatched");
+    } else {
+        test:assertFail("Test failed");
+    }
 }
 
 @test:Config {}

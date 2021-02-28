@@ -33,16 +33,15 @@ public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig
 type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
 
 # Defines the authentication configurations for the HTTP listener.
-public type ListenerAuthConfig LdapUserStoreConfigWithScopes|
+public type ListenerAuthConfig FileUserStoreConfigWithScopes|
+                               LdapUserStoreConfigWithScopes|
                                JwtValidatorConfigWithScopes|
                                OAuth2IntrospectionConfigWithScopes;
 
-// TODO: Enable these tests once the configurable features supports for map data types.
-// https://github.com/ballerina-platform/ballerina-standard-library/issues/862
-//public type FileUserStoreConfigWithScopes record {|
-//   FileUserStoreConfig fileUserStoreConfig;
-//   string|string[] scopes?;
-//|};
+public type FileUserStoreConfigWithScopes record {|
+   FileUserStoreConfig fileUserStoreConfig;
+   string|string[] scopes?;
+|};
 
 public type LdapUserStoreConfigWithScopes record {|
    LdapUserStoreConfig ldapUserStoreConfig;
@@ -68,14 +67,39 @@ isolated function prepareClientAuthError(string message, error? err = ()) return
     return error ClientAuthError(message);
 }
 
-// Extract the credential from `http:Request` or `string` header.
-isolated function extractCredential(Request|string data) returns string? {
+// Logs and prepares the `error` as an `http:ListenerAuthError`.
+isolated function prepareListenerAuthError(string message, error? err = ()) returns ListenerAuthError {
+    log:printError(message, err = err);
+    if (err is error) {
+        return error ListenerAuthError(message, err);
+    }
+    return error ListenerAuthError(message);
+}
+
+// Build complete error message by evaluating all the inner causes.
+isolated function buildCompleteErrorMessage(error err) returns string {
+    string message = err.message();
+    error? cause = err.cause();
+    while (cause is error) {
+        message += " " + cause.message();
+        cause = cause.cause();
+    }
+    return message;
+}
+
+// Extract the credential from `http:Request`, `http:Headers` or `string` header.
+isolated function extractCredential(Request|Headers|string data) returns string|ListenerAuthError {
     if (data is string) {
         return regex:split(<string>data, " ")[1];
     } else {
-        string|error header = data.getHeader(AUTH_HEADER);
+        object {
+            public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
+        } headers = data;
+        var header = headers.getHeader(AUTH_HEADER);
         if (header is string) {
             return regex:split(header, " ")[1];
+        } else {
+            return prepareListenerAuthError("Authorization header not available.", header);
         }
     }
 }

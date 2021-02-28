@@ -14,9 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/io;
 import ballerina/http;
-import ballerina/mime;
 import ballerina/lang.runtime as runtime;
+import ballerina/lang.value as val;
+import ballerina/mime;
 import ballerina/test;
 
 const string TEST_SCENARIO_HEADER = "test-scenario";
@@ -350,22 +352,22 @@ public client class MockClient {
         return getUnsupportedError();
     }
 
-    remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message) 
+    remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message)
             returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function patch(@untainted string path, http:RequestMessage message) 
+    remote function patch(@untainted string path, http:RequestMessage message)
             returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function delete(@untainted string path, http:RequestMessage message = ()) 
+    remote function delete(@untainted string path, http:RequestMessage message = ())
             returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function get(@untainted string path, http:RequestMessage message = ()) 
+    remote function get(@untainted string path, http:RequestMessage message = ())
             returns @tainted http:Response|http:ClientError {
         http:Request req = buildRequest(message);
         http:Response response = new;
@@ -418,7 +420,7 @@ public client class MockClient {
         return response;
     }
 
-    remote function options(@untainted string path, http:RequestMessage message = ()) 
+    remote function options(@untainted string path, http:RequestMessage message = ())
             returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
@@ -524,8 +526,7 @@ function getUnsupportedError() returns http:ClientError {
     return error http:GenericClientError("Unsupported function for MockClient");
 }
 
-function buildRequest(http:Request|string|xml|json|byte[]|mime:Entity[]|() message) returns
-http:Request {
+function buildRequest(http:RequestMessage message) returns http:Request {
     http:Request request = new;
     if (message is ()) {
         return request;
@@ -537,10 +538,19 @@ http:Request {
         request.setXmlPayload(message);
     } else if (message is byte[]) {
         request.setBinaryPayload(message);
+    } else if (message is stream<byte[], io:Error>) {
+        request.setByteStream(message);
+    } else if (message is mime:Entity[]) {
+        request.setBodyParts(message);
     } else if (message is json) {
         request.setJsonPayload(message);
     } else {
-        request.setBodyParts(message);
+        var result = trap val:toJson(message);
+        if (result is error) {
+            panic error http:InitializingOutboundRequestError("json conversion error: " + result.message(), result);
+        } else {
+            request.setJsonPayload(result);
+        }
     }
     return request;
 }

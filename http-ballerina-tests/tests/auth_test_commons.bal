@@ -22,7 +22,29 @@ import ballerina/test;
 
 const string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
 const string TRUSTSTORE_PATH = "tests/certsandkeys/ballerinaTruststore.p12";
-const string ACCESS_TOKEN = "2YotnFZFEjr1zCsicMWpAA";
+
+const string JWT1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
+                    "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTcyNCwgIm" +
+                    "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.H99ufLvCLFA5i1gfCt" +
+                    "klVdPrBvEl96aobNvtpEaCsO4v6_EgEZYz8Pg0B1Y7yJPbgpuAzXEg_CzowtfCTu3jUFf5FH_6M1fWGko5vpljtCb5Xknt_" +
+                    "YPqvbk5fJbifKeXqbkCGfM9c0GS0uQO5ss8StquQcofxNgvImRV5eEGcDdybkKBNkbA-sJFHd1jEhb8rMdT0M0SZFLnhrPL" +
+                    "8edbFZ-oa-ffLLls0vlEjUA7JiOSpnMbxRmT-ac6QjPxTQgNcndvIZVP2BHueQ1upyNorFKSMv8HZpATYHZjgnJQSpmt3Oa" +
+                    "oFJ6pgzbFuniVNuqYghikCQIizqzQNfC7JUD8wA";
+
+const string JWT2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
+                    "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTg3NiwgIm" +
+                    "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoicmVhZCJ9.MVx_bJJpRyQryrTZ1-WC" +
+                    "1BkJdeBulX2CnxYN5Y4r1XbVd0-rgbCQ86jEbWvLZOybQ8Hx7MB9thKaBvidBnctgMM1JzG-ULahl-afoyTCv_qxMCS-5B7" +
+                    "AUA1f-sOQHzq-n7T3b0FKsWtmOEXbGmRxQFv89_v8xwUzIItXtZ6IjkoiZn5GerGrozX0DEBDAeG-2BOj8gSlsFENdPB5Sn" +
+                    "5oEM6-Chrn6KFLXo3GFTwLQELgYkIGjgnMQfbyLLaw5oyJUyOCCsdMZ4oeVLO2rdKZs1L8ZDnolUfcdm5mTxxP9A4mTOTd-" +
+                    "xC404MKwxkRhkgI4EJkcEwMHce2iCInZer10Q";
+
+const string JWT3 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0Ij" +
+                    "oxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
+const string ACCESS_TOKEN_1 = "2YotnFZFEjr1zCsicMWpAA";
+const string ACCESS_TOKEN_2 = "1zCsicMWpAA2YotnFZFEjr";
+const string ACCESS_TOKEN_3 = "invalid-token";
 
 isolated function createDummyRequest() returns http:Request {
     http:Request request = new;
@@ -38,7 +60,23 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
     return request;
 }
 
-function sendRequest(string path, string token) returns http:Response|http:ClientError {
+function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:ClientError {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+        auth: {
+            username: username,
+            password: password
+        },
+        secureSocket: {
+            trustStore: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    return <@untainted> clientEP->get(path);
+}
+
+function sendBearerTokenRequest(string path, string token) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             token: token
@@ -90,7 +128,7 @@ listener http:Listener oauth2Listener = new(oauth2AuthorizationServerPort, {
 service /oauth2 on oauth2Listener {
     resource function post token() returns json {
         json response = {
-            "access_token": ACCESS_TOKEN,
+            "access_token": ACCESS_TOKEN_1,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
@@ -100,7 +138,7 @@ service /oauth2 on oauth2Listener {
 
     resource function post token/refresh() returns json {
         json response = {
-            "access_token": ACCESS_TOKEN,
+            "access_token": ACCESS_TOKEN_1,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
@@ -110,21 +148,23 @@ service /oauth2 on oauth2Listener {
 
     resource function post token/introspect(http:Request request) returns json {
         string|http:ClientError payload = request.getTextPayload();
-        json response = ();
         if (payload is string) {
             string[] parts = regex:split(payload, "&");
             foreach string part in parts {
                 if (part.indexOf("token=") is int) {
                     string token = regex:split(part, "=")[1];
-                    if (token == ACCESS_TOKEN) {
-                        response = { "active": true, "exp": 3600, "scp": "read write" };
+                    if (token == ACCESS_TOKEN_1) {
+                        json response = { "active": true, "exp": 3600, "scp": "write update" };
+                        return response;
+                    } else if (token == ACCESS_TOKEN_2) {
+                        json response = { "active": true, "exp": 3600, "scp": "read" };
+                        return response;
                     } else {
-                        response = { "active": false };
+                        json response = { "active": false };
+                        return response;
                     }
-                    break;
                 }
             }
         }
-        return response;
     }
 }

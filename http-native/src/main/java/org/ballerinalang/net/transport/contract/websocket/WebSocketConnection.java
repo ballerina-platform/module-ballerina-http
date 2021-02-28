@@ -1,5 +1,6 @@
 package org.ballerinalang.net.transport.contract.websocket;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
 import java.nio.ByteBuffer;
@@ -182,4 +183,20 @@ public interface WebSocketConnection {
      * @return Future to represent the completion of asynchronous frame sending
      */
     ChannelFuture terminateConnection(int statusCode, String reason);
+
+    /**
+     * Remove the idle state handler from the pipeline. This will be applied when reading frames from sync client.
+     */
+    void removeReadIdleStateHandler();
+
+    /**
+     * Add the idle state handler to the pipeline. This will be applied when reading frames from sync client.
+     * @param timeOut Read time out
+     */
+    void addReadIdleStateHandler(long timeOut);
+
+    /**
+     * Get the channel from the ctx.
+     */
+    Channel getChannel();
 }
