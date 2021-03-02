@@ -125,7 +125,7 @@ public function testMutualSsl() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

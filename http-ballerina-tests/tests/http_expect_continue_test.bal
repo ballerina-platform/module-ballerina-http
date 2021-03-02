@@ -106,7 +106,7 @@ service /'continue on expectContinueListenerEP1 {
             if (responseError is error) {
                 log:printError("Error sending response", err = responseError);
             }
-        } else if (res is error) {
+        } else {
             log:printError(res.message(), err = res);
         }
     }

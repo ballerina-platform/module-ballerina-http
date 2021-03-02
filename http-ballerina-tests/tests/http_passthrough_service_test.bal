@@ -28,7 +28,7 @@ service /passthrough on passthroughEP1 {
         var response = nyseEP1->get("/nyseStock/stocks", <@untainted> clientRequest);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
-        } else if (response is error) {
+        } else {
             checkpanic caller->respond({ "error": "error occurred while invoking the service" });
         }
     }
@@ -38,7 +38,7 @@ service /passthrough on passthroughEP1 {
         var response = nyseEP1->forward("/nyseStock/stocksAsMultiparts", clientRequest);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
-        } else if (response is error) {
+        } else {
             checkpanic caller->respond({ "error": "error occurred while invoking the service" });
         }
     }
@@ -62,7 +62,7 @@ service /passthrough on passthroughEP1 {
                 return err;
             }
         } else {
-            http:InternalServerError err = {body: (<error>response).toString()};
+            http:InternalServerError err = {body: response.toString()};
             return err;
         }
     }
@@ -117,7 +117,7 @@ public function testPassthroughServiceByBasePath() {
         } else {
             test:assertFail(msg = "Found unexpected output: " + body.message());
         } 
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -135,7 +135,7 @@ public function testPassthroughServiceWithMimeEntity() {
         } else {
             test:assertFail(msg = "Found unexpected output: " + body.message());
         } 
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -174,7 +174,7 @@ public function testPassthroughWithMultiparts() {
                 test:assertFail(msg = errorMessage + txtPart2.message());
             }
         }         
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

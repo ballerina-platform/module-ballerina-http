@@ -65,7 +65,7 @@ function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
             var serviceResponse = backendClientEP->get("/hello", request);
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
-            } else if (serviceResponse is error) {
+            } else {
                 errs[counter] = serviceResponse;
             }
             counter = counter + 1;
@@ -106,7 +106,7 @@ function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
             var serviceResponse = backendClientEP->get("/hello", request);
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
-            } else if (serviceResponse is error) {
+            } else {
                 errs[counter] = serviceResponse;
             }
             counter = counter + 1;
@@ -146,7 +146,7 @@ function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]
             var serviceResponse = backendClientEP->get("/hello", request);
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
-            } else if (serviceResponse is error) {
+            } else {
                 errs[counter] = serviceResponse;
             }
             counter = counter + 1;
@@ -185,7 +185,7 @@ function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
         var serviceResponse = backendClientEP->get("/hello", request);
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
-        } else if (serviceResponse is error) {
+        } else {
             errs[counter] = serviceResponse;
         }
         counter = counter + 1;
@@ -225,7 +225,7 @@ function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
         var serviceResponse = backendClientEP->get("/hello", request);
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
-        } else if (serviceResponse is error) {
+        } else {
             errs[counter] = serviceResponse;
         }
         counter = counter + 1;
@@ -262,7 +262,7 @@ function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [h
         var serviceResponse = backendClientEP->get("/hello", request);
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
-        } else if (serviceResponse is error) {
+        } else {
             errs[counter] = serviceResponse;
         }
         counter = counter + 1;
@@ -299,7 +299,7 @@ function testRequestVolumeThresholdFailureResponseScenario() returns @tainted [h
         var serviceResponse = backendClientEP->get("/hello", request);
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
-        } else if (serviceResponse is error) {
+        } else {
             errs[counter] = serviceResponse;
         }
         counter = counter + 1;
@@ -334,14 +334,13 @@ public client class MockClient {
     public http:HttpClient httpClient;
 
     public function init(string url, http:ClientConfiguration? config = ()) returns http:ClientError? {
-        http:HttpClient simpleClient = checkpanic new(url);
+        http:Client newClient = checkpanic new(url);
         self.url = url;
         self.config = config ?: {};
-        self.httpClient = simpleClient;
+        self.httpClient = newClient.httpClient;
     }
 
-    remote function post(@untainted string path, http:RequestMessage message,
-            http:TargetType targetType = http:Response) returns http:Response|http:PayloadType|http:ClientError {
+    remote function post(@untainted string path, http:RequestMessage message) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
@@ -349,28 +348,27 @@ public client class MockClient {
         return getUnsupportedError();
     }
 
-    remote function put(@untainted string path, http:RequestMessage message,
-            http:TargetType targetType = http:Response) returns http:Response|http:PayloadType|http:ClientError {
+    remote function put(@untainted string path, http:RequestMessage message) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message,
-           http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message)
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function patch(@untainted string path, http:RequestMessage message, http:TargetType targetType = http:Response)
-                                             returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function patch(@untainted string path, http:RequestMessage message)
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function delete(@untainted string path, http:RequestMessage message = (),
-          http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function delete(@untainted string path, http:RequestMessage message = ())
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function get(@untainted string path, http:RequestMessage message = (),
-           http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function get(@untainted string path, http:RequestMessage message = ())
+            returns @tainted http:Response|http:ClientError {
         http:Request req = buildRequest(message);
         http:Response response = new;
         actualRequestNumber = actualRequestNumber + 1;
@@ -422,19 +420,18 @@ public client class MockClient {
         return response;
     }
 
-    remote function options(@untainted string path, http:RequestMessage message = (),
-           http:TargetType targetType = http:Response) returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function options(@untainted string path, http:RequestMessage message = ())
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function forward(@untainted string path, http:Request request, http:TargetType targetType =
-    http:Response)
-                                               returns @tainted http:Response|http:PayloadType|http:ClientError {
+    remote function forward(@untainted string path, http:Request request)
+            returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
     remote function submit(string httpVerb, string path, http:RequestMessage message)
-                                                                            returns http:HttpFuture|http:ClientError {
+            returns http:HttpFuture|http:ClientError {
         return getUnsupportedError();
     }
 
@@ -753,7 +750,7 @@ function cBGetCurrentStatausScenarioTest() {
         } else {
             test:assertFail(msg = body.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Didn't receive an http response" + response.message());
     }
 }

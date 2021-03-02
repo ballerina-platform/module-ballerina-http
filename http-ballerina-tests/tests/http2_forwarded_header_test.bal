@@ -48,7 +48,7 @@ public function testForwardHeader() {
     var resp = clientEP->get("/initiatingService/initiatingResource");
     if (resp is http:Response) {
         assertHeaderValue(checkpanic resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

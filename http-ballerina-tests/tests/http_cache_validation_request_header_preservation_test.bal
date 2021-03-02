@@ -26,7 +26,7 @@ service /validation\-request on cachingProxyListener {
         var response = cachingEP4->forward("/validation-req-be", req);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
-        } else if (response is error) {
+        } else {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted> response.message());
@@ -67,7 +67,7 @@ function testCallerRequestHeaderPreservation() {
         test:assertFalse(response.hasHeader(IF_MODIFIED_SINCE));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -82,7 +82,7 @@ function testCallerRequestHeaderPreservation() {
         test:assertFalse(response.hasHeader(IF_MODIFIED_SINCE));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -99,7 +99,7 @@ function testCallerRequestHeaderPreservation() {
         test:assertFalse(response.hasHeader(IF_MODIFIED_SINCE));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -113,7 +113,7 @@ function testCallerRequestHeaderPreservation2() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 304, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Hello from POST!Hello from POST!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

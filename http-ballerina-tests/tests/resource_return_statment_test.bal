@@ -201,7 +201,7 @@ public function testRespondAndReturnNil() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "hello");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -214,7 +214,7 @@ public function testReturnString() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "world");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -227,7 +227,7 @@ public function testReturnStringWithMediaType() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN + "+id");
         assertTextPayload(resp.getTextPayload(), "world");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -240,7 +240,7 @@ public function testReturnJson() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {hello: "world"});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -253,7 +253,7 @@ public function testReturnJsonWithMediaType() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON + "+123");
         assertJsonPayload(resp.getJsonPayload(), {hello: "world"});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -266,7 +266,7 @@ public function testReturnXml() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), "text/xml");
         test:assertEquals(resp.getXmlPayload(), xml `<book>Hello World</book>`, msg = "Mismatched xml payload");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -284,7 +284,7 @@ public function testReturnByte() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  blobValue.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -298,7 +298,7 @@ public function testReturnResponse() {
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertEquals(checkpanic resp.getHeader("x-test"), "header");
         assertTextPayload(resp.getTextPayload(), "Hello");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -311,7 +311,7 @@ public function testReturnInt() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), 32);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -324,7 +324,7 @@ public function testReturnIntWithMediaType() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "56");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -337,7 +337,7 @@ public function testReturnFloat() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 3.2456);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -351,7 +351,7 @@ public function testReturnDecimal() {
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         decimal dValue = 3.2;
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 3.2);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -364,7 +364,7 @@ public function testReturnBoolean() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), true);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -377,7 +377,7 @@ public function testReturnError() {
         test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "Don't panic. This is to test the error!");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -391,7 +391,7 @@ public function testReturnStatusCodeRecord() {
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON + "+id");
         test:assertEquals(checkpanic resp.getHeader("xtest"), "Elle");
         assertJsonPayload(resp.getJsonPayload(), {hello: "World"});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -405,7 +405,7 @@ public function testReturnStatusCodeRecordWithMediaType() {
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON + "+id");
         test:assertEquals(checkpanic resp.getHeader("xtest"), "Elle");
         assertJsonPayload(resp.getJsonPayload(), {hello: "World"});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -420,7 +420,7 @@ public function testReturnStatusCodeRecordWithArrayOfHeaders() {
         test:assertEquals(checkpanic resp.getHeader("xtest"), "Go");
         test:assertEquals(checkpanic resp.getHeader("ytest"), "foo");
         assertTextPayload(resp.getTextPayload(), "hello world");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -434,7 +434,7 @@ public function testReturnInlineRecord() {
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), "application/person+json");
         test:assertEquals(checkpanic resp.getHeader("X-Server"), "myServer");
         assertJsonPayload(resp.getJsonPayload(), {age:1, name:"Joe"});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -447,7 +447,7 @@ public function testReturnStringArr() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), ["Abc", "Xyz"]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -460,7 +460,7 @@ public function testReturnJsonAsString() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"Monica\", \"age\":10}");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -473,7 +473,7 @@ public function testReturnRecordArr() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{"name":"Monica","age":10},{"name":"Chandler","age":15}]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -487,7 +487,7 @@ public function testReturnTable() {
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), [{"id":1, "name":"John", "salary":300.5}, 
             {"id":2, "name":"Bella", "salary":500.5}]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -500,7 +500,7 @@ public function testReturnMapOfInt() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {"sam":50, "jon":60} );
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -513,7 +513,7 @@ public function testReturnMapOfJson() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {"sam":{"hello":"world"},"jon":{"no":56}});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -527,7 +527,7 @@ public function testReturnMapOfJsonArr() {
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{"sam":{"hello":"world"},"jon":{"no":56}},
             {"sam":{"hello":"world"},"jon":{"no":56}}]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -542,7 +542,7 @@ public function testReturnTableArr() {
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), [[{"id":1, "name":"John", "salary":300.5}, 
             {"id":2, "name":"Bella", "salary":500.5}], [{"id":1, "name":"John", "salary":300.5}, 
             {"id":2, "name":"Bella", "salary":500.5}]] );
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -555,7 +555,7 @@ public function testReturnXmlArr() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), ["<book>Hello World</book>","<book>Hello World</book>"]);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -568,7 +568,7 @@ public function testReturnMapOfXml() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {"sam":"<book>Hello World</book>","jon":"<book>Hello World</book>"});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -582,7 +582,7 @@ public function testReturnMultipleTypes() {
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertEquals(checkpanic resp.getHeader("xtest"), "Go");
         assertTextPayload(resp.getTextPayload(), "hello world");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 
@@ -591,7 +591,7 @@ public function testReturnMultipleTypes() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {jh:"hello"});
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 
@@ -600,7 +600,7 @@ public function testReturnMultipleTypes() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), "application/custom+json");
         assertTextPayload(resp.getTextPayload(), "hello");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

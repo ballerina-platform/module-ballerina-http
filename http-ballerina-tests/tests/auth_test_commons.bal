@@ -60,7 +60,7 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
     return request;
 }
 
-function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:PayloadType|http:ClientError {
+function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             username: username,
@@ -76,7 +76,7 @@ function sendBasicTokenRequest(string path, string username, string password) re
     return <@untainted> clientEP->get(path);
 }
 
-function sendBearerTokenRequest(string path, string token) returns http:Response|http:PayloadType|http:ClientError {
+function sendBearerTokenRequest(string path, string token) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             token: token
@@ -91,7 +91,7 @@ function sendBearerTokenRequest(string path, string token) returns http:Response
     return <@untainted> clientEP->get(path);
 }
 
-isolated function assertSuccess(http:Response|http:PayloadType|http:ClientError response) {
+isolated function assertSuccess(http:Response|http:ClientError response) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200);
     } else {
@@ -99,7 +99,7 @@ isolated function assertSuccess(http:Response|http:PayloadType|http:ClientError 
     }
 }
 
-isolated function assertForbidden(http:Response|http:PayloadType|http:ClientError response) {
+isolated function assertForbidden(http:Response|http:ClientError response) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 403);
     } else {
@@ -107,7 +107,7 @@ isolated function assertForbidden(http:Response|http:PayloadType|http:ClientErro
     }
 }
 
-isolated function assertUnauthorized(http:Response|http:PayloadType|http:ClientError response) {
+isolated function assertUnauthorized(http:Response|http:ClientError response) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 401);
     } else {

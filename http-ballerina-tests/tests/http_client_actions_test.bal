@@ -143,7 +143,8 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
             }
         }
 
-        future<error|http:Response> asyncInvocation = start clientEP2->get("/httpClientActionBE/greeting", ());
+        // Enable once the https://github.com/ballerina-platform/ballerina-lang/issues/28672 is fixed
+        // future<error|http:Response> asyncInvocation = start clientEP2->get("/httpClientActionBE/greeting", ());
 
         http:Request httpReq = new;
         //Request as message
@@ -170,7 +171,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
             } else {
                 value = returnValue.message();
             }
-        } else if (clientResponse is error) {
+        } else {
             value = clientResponse.message();
         }
 
@@ -282,7 +283,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     //             } else {
     //                 value = result.message();
     //             }
-    //         } else if (res is error) {
+    //         } else {
     //             value = res.message();
     //         }
     //     } else {
@@ -308,7 +309,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 } else {
                     value = "Found unexpected str output type" + str.message();
                 }
-            } else if (res is error) {
+            } else {
                 value = res.message();
             }
         } else {
@@ -329,7 +330,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 } else {
                     value = result.message();
                 }
-            } else if (res is error) {
+            } else {
                 value = res.message();
             }
         } else {
@@ -355,7 +356,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 } else {
                     value = "Found unexpected str output type" + str.message();
                 }
-            } else if (res is error) {
+            } else {
                 value = res.message();
             }
         } else {
@@ -403,7 +404,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
             } else {
                 value = returnParts.message();
             }
-        } else if (res is error) {
+        } else {
             value = res.message();
         }
         checkpanic caller->respond(<@untainted> value);
@@ -428,7 +429,7 @@ function testGetAction() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "HelloHelloHello");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -440,7 +441,7 @@ function testPostAction() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No payload");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -452,7 +453,7 @@ function testPostActionWithBody() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample TextSample Xml{\"name\":\"apple\", \"color\":\"red\"}");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -464,7 +465,7 @@ function testPostWithBlob() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -477,7 +478,7 @@ function testPostWithByteChannel() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -489,7 +490,7 @@ function testPostWithByteStream() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -501,7 +502,7 @@ function testPostWithByteStreamToText() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -513,7 +514,7 @@ function testPostWithTextToByteStream() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -525,7 +526,7 @@ function testPostWithBodyParts() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"name\":\"wso2\"}Hello");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -538,7 +539,7 @@ function testPostWithStringJson() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "\"a\\nb\\n\"");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -551,7 +552,7 @@ function testPostWithTextAndJsonContent() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -564,7 +565,7 @@ function testPostWithTextAndXmlContent() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -577,7 +578,7 @@ function testPostWithTextAndJsonAlternateContent() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "\"a\\nb\\n\"");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -590,7 +591,7 @@ function testPostWithStringJsonAlternate() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -603,7 +604,7 @@ function testClientPathWithWhitespaces() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "dispatched to white_spaced literal");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -612,7 +613,7 @@ function testClientPathWithWhitespaces() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "dispatched to white_spaced expression");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

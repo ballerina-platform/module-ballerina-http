@@ -173,7 +173,7 @@ function testAccessingPayloadFromEntity() {
     var response = mimeClient->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {"payload":{"lang":"ballerina"}, "header":"text/plain"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -186,10 +186,10 @@ function testStreamResponseSerialize() {
     json jsonString = {[key]:value};
     http:Request req = new;
     req.setJsonPayload(jsonString);
-    var response = mimeClient->post(path, req);
-    if (response is http:Response) {
-        assertJsonPayload(response.getJsonPayload(), jsonString);
-    } else if (response is error) {
-        test:assertFail(msg = "Test Failed! " + <string>response.message());
+    json|error response = mimeClient->post(path, req, json);
+    if (response is json) {
+        assertJsonPayload(response, jsonString);
+    } else {
+        test:assertFail(msg = "Test Failed! " + response.message());
     }
 }

@@ -59,7 +59,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             if (responseToCaller is error) {
                 log:printError("Error sending response", err = responseToCaller);
             }
-        } else if (backendResponse is error) {
+        } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendResponse.message());
@@ -147,7 +147,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                 if (responseError is error) {
                     log:printError("Error sending response", err = responseError);
                 }
-            } else if (backendResponse is error) {
+            } else {
                 http:Response errorResponse = new;
                 errorResponse.statusCode = 500;
                 errorResponse.setPayload(<@untainted> backendResponse.message());
@@ -163,7 +163,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                 if (responseError is error) {
                     log:printError("Error sending response", err = responseError);
                 }
-            } else if (backendResponse is error) {
+            } else {
                 http:Response errorResponse = new;
                 errorResponse.statusCode = 500;
                 errorResponse.setPayload(<@untainted> backendResponse.message());
@@ -218,7 +218,7 @@ function testSimpleRetry() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -246,7 +246,7 @@ function testRetryBasedOnHttpStatusCodes() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -262,7 +262,7 @@ function testRetryBasedOnHttpStatusCodesContinuousFailure() {
         test:assertEquals(response.statusCode, 502, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Gateway Timed out.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

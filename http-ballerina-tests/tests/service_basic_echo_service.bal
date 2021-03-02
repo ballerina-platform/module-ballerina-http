@@ -140,7 +140,7 @@ function testServiceDispatching() {
     var response = stClient->get("/echo/message");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -151,7 +151,7 @@ function testMostSpecificBasePathIdentificationWithDuplicatedPath() {
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), 
                 "no matching resource found for path : /echo/message/echo/message , method : GET");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -162,7 +162,7 @@ function testMostSpecificBasePathIdentificationWithUnmatchedBasePath() {
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), 
                 "no matching service found for path : /abcd/message/echo/message");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -172,7 +172,7 @@ function testServiceDispatchingWithWorker() {
     var response = stClient->get("/echo/message_worker");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -183,7 +183,7 @@ function testServiceAvailabilityCheck() {
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), 
                 "no matching service found for path : /foo/message");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -194,7 +194,7 @@ function testResourceAvailabilityCheck() {
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), 
                 "no matching resource found for path : /echo/bar , method : GET");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -207,7 +207,7 @@ function testSetString() {
     var response = stClient->post("/echo/setString", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "hello");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -217,7 +217,7 @@ function testGetString() {
     var response = stClient->get("/echo/getString");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "hello");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -229,7 +229,7 @@ function testRemoveHeadersNativeFunction() {
         test:assertFalse(response.hasHeader("header1"));
         test:assertFalse(response.hasHeader("header2"));
         test:assertFalse(response.hasHeader("header3"));
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -243,7 +243,7 @@ function testGetFormParamsNativeFunction() {
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Name", "WSO2");
         assertJsonValue(response.getJsonPayload(), "Team", "BalDance");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -256,7 +256,7 @@ function testGetFormParamsForUndefinedKey() {
     var response = stClient->post("/echo/getFormParams", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Team", "");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -269,7 +269,7 @@ function testGetFormParamsEmptyResponseMsgPayload() {
     var response = stClient->post("/echo/getFormParams", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Error occurred while extracting text data from entity");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -282,7 +282,7 @@ function testGetFormParamsWithUnsupportedMediaType() {
     var response = stClient->post("/echo/getFormParams", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Invalid content type : expected 'application/x-www-form-urlencoded'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -295,7 +295,7 @@ function testGetFormParamsWithDifferentMediaTypeMutations() {
     var response = stClient->post("/echo/getFormParams", req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {Name:"WSO2", Team:""});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -305,7 +305,7 @@ function testGetFormParamsWithDifferentMediaTypeMutations() {
     response = stClient->post("/echo/getFormParams", newReq);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {Name:"WSO2", Team:""});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -317,7 +317,7 @@ function testGetFormParamsWithoutContentType() {
     var response = stClient->post("/echo/getFormParams", req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Invalid content type : expected 'application/x-www-form-urlencoded'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -327,7 +327,7 @@ function testPATCHMethodWithBody() {
     var response = stClient->patch("/echo/modify", "WSO2");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -337,7 +337,7 @@ function testUninitializedAnnotations() {
     var response = stClient->get("/hello/echo");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Uninitialized configs");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -347,7 +347,7 @@ function testNonRemoteFunctionInvocation() {
     var response = stClient->get("/hello/testFunctionCall");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Non remote function invoked");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -361,7 +361,7 @@ function testErrorReturn() {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
             "Error occurred while retrieving the json payload from the request");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
