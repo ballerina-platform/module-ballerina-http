@@ -23,6 +23,29 @@ import ballerina/test;
 const string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
 const string TRUSTSTORE_PATH = "tests/certsandkeys/ballerinaTruststore.p12";
 
+const string JWT1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
+                    "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTcyNCwgIm" +
+                    "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.H99ufLvCLFA5i1gfCt" +
+                    "klVdPrBvEl96aobNvtpEaCsO4v6_EgEZYz8Pg0B1Y7yJPbgpuAzXEg_CzowtfCTu3jUFf5FH_6M1fWGko5vpljtCb5Xknt_" +
+                    "YPqvbk5fJbifKeXqbkCGfM9c0GS0uQO5ss8StquQcofxNgvImRV5eEGcDdybkKBNkbA-sJFHd1jEhb8rMdT0M0SZFLnhrPL" +
+                    "8edbFZ-oa-ffLLls0vlEjUA7JiOSpnMbxRmT-ac6QjPxTQgNcndvIZVP2BHueQ1upyNorFKSMv8HZpATYHZjgnJQSpmt3Oa" +
+                    "oFJ6pgzbFuniVNuqYghikCQIizqzQNfC7JUD8wA";
+
+const string JWT2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
+                    "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTg3NiwgIm" +
+                    "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoicmVhZCJ9.MVx_bJJpRyQryrTZ1-WC" +
+                    "1BkJdeBulX2CnxYN5Y4r1XbVd0-rgbCQ86jEbWvLZOybQ8Hx7MB9thKaBvidBnctgMM1JzG-ULahl-afoyTCv_qxMCS-5B7" +
+                    "AUA1f-sOQHzq-n7T3b0FKsWtmOEXbGmRxQFv89_v8xwUzIItXtZ6IjkoiZn5GerGrozX0DEBDAeG-2BOj8gSlsFENdPB5Sn" +
+                    "5oEM6-Chrn6KFLXo3GFTwLQELgYkIGjgnMQfbyLLaw5oyJUyOCCsdMZ4oeVLO2rdKZs1L8ZDnolUfcdm5mTxxP9A4mTOTd-" +
+                    "xC404MKwxkRhkgI4EJkcEwMHce2iCInZer10Q";
+
+const string JWT3 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0Ij" +
+                    "oxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
+const string ACCESS_TOKEN_1 = "2YotnFZFEjr1zCsicMWpAA";
+const string ACCESS_TOKEN_2 = "1zCsicMWpAA2YotnFZFEjr";
+const string ACCESS_TOKEN_3 = "invalid-token";
+
 isolated function createDummyRequest() returns http:Request {
     http:Request request = new;
     request.rawPath = "/helloWorld/sayHello";
@@ -37,7 +60,7 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
     return request;
 }
 
-function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:PayloadType|http:ClientError {
+function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             username: username,
@@ -53,7 +76,7 @@ function sendBasicTokenRequest(string path, string username, string password) re
     return <@untainted> clientEP->get(path);
 }
 
-function sendBearerTokenRequest(string path, string token) returns http:Response|http:PayloadType|http:ClientError {
+function sendBearerTokenRequest(string path, string token) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             token: token
@@ -68,7 +91,7 @@ function sendBearerTokenRequest(string path, string token) returns http:Response
     return <@untainted> clientEP->get(path);
 }
 
-isolated function assertSuccess(http:Response|http:PayloadType|http:ClientError response) {
+isolated function assertSuccess(http:Response|http:ClientError response) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200);
     } else {
@@ -76,7 +99,7 @@ isolated function assertSuccess(http:Response|http:PayloadType|http:ClientError 
     }
 }
 
-isolated function assertForbidden(http:Response|http:PayloadType|http:ClientError response) {
+isolated function assertForbidden(http:Response|http:ClientError response) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 403);
     } else {
@@ -84,7 +107,7 @@ isolated function assertForbidden(http:Response|http:PayloadType|http:ClientErro
     }
 }
 
-isolated function assertUnauthorized(http:Response|http:PayloadType|http:ClientError response) {
+isolated function assertUnauthorized(http:Response|http:ClientError response) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 401);
     } else {

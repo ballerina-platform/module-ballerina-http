@@ -111,7 +111,7 @@ function testAutoCompress() {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the identity which means no compression " +
                         "should be done to the response");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -128,7 +128,7 @@ function testAutoCompressWithAcceptEncoding() {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
                         "be used for compression from the backend");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -142,7 +142,7 @@ function testAutoCompressWithContentTypes() {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the identity which means no compression " +
                                   "should be done to the response");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -156,7 +156,7 @@ function testAlwaysCompress() {
     if (response is http:Response) {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP, 
             msg = "The content-encoding header should be gzip.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -173,7 +173,7 @@ function testAlwaysCompressWithAcceptEncoding() {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be set to null and the transport will use the original" +
                         "Accept-Encoding value for compression.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -187,7 +187,7 @@ function testAlwaysCompressWithContentTypes() {
     if (response is http:Response) {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP, 
             msg = "The content-encoding header should be gzip.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -202,7 +202,7 @@ function testNeverCompress() {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY, 
             msg = "The content-encoding header of the response that was sent " +
                         "to transport should be set to identity.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -220,7 +220,7 @@ function testNeverCompressWithAcceptEncoding() {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE, 
             msg = "The content-encoding header of the response that was sent " +
                         "to transport should be set to identity.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -234,7 +234,7 @@ function testNeverCompressWithContentTypes() {
     if (response is http:Response) {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY, 
             msg = "The content-encoding header of the response that was sent to transport should be set to identity.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -248,7 +248,7 @@ function testAutoCompressWithIncompatibleContentTypes() {
     if (response is http:Response) {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY, 
             msg = "The content-encoding header of the response that was sent to transport should be set to identity.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -262,7 +262,7 @@ function testAlwaysCompressWithEmptyContentTypes() {
     if (response is http:Response) {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP, 
             msg = "The content-encoding header should be gzip.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

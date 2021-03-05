@@ -500,7 +500,7 @@ function testServiceAddHeader() {
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {lang:"ballerina"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -515,7 +515,7 @@ function testServiceGetHeader() {
     var response = requestClient->get(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { value: contentType});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -533,7 +533,7 @@ function testServiceGetJsonPayload() {
     var response = requestClient->get(path, req);
     if (response is http:Response) {
         test:assertEquals(response.getJsonPayload(), value, msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -550,7 +550,7 @@ function testServiceGetTextPayload() {
     var response = requestClient->get(path, req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), value);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -566,7 +566,7 @@ function testServiceGetXmlPayload() {
     var response = requestClient->get(path, req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -577,7 +577,7 @@ function testGetMethodWithInService() {
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "GET");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -588,7 +588,7 @@ function testGetRequestURLWithInService() {
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), path);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -608,7 +608,7 @@ function testServiceGetByteChannel() {
     var response = requestClient->get(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), payload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -627,7 +627,7 @@ function testServiceGetByteStream() {
     var response = requestClient->get(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), payload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -639,7 +639,7 @@ function testServiceRemoveAllHeaders() {
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { value: "value is null" });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -653,7 +653,7 @@ function testServiceSetHeader() {
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { value: value });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -666,7 +666,7 @@ function testServiceSetJsonPayload() {
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { "lang": value });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -679,7 +679,7 @@ function testServiceSetStringPayload() {
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "{\"lang\":\"ballerina\"}");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -692,7 +692,7 @@ function testServiceSetXmlPayload() {
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { "lang": value });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -705,7 +705,7 @@ function testServiceSetBinaryPayload() {
     var response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { "lang": value });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -721,7 +721,7 @@ public function testServiceGetBinaryPayload() {
     var response = requestClient->get(path, req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }

@@ -71,7 +71,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             if (responseToCaller is error) {
                 log:printError("Error sending response", err = responseToCaller);
             }
-        } else if (response is error) {
+        } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
@@ -90,7 +90,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             if (responseToCaller is error) {
                 log:printError("Error sending response", err = responseToCaller);
             }
-        } else if (response is error) {
+        } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
@@ -109,7 +109,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             if (responseToCaller is error) {
                 log:printError("Error sending response", err = responseToCaller);
             }
-        } else if (response is error) {
+        } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
@@ -128,7 +128,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             if (responseToCaller is error) {
                 log:printError("Error sending response", err = responseToCaller);
             }
-        } else if (response is error) {
+        } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
@@ -262,7 +262,7 @@ function testAllLbEndpointFailure() {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), expectedMessage);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

@@ -28,7 +28,6 @@ def snapshotVersion = "-SNAPSHOT"
 def tomlVersion = project.version.replace("${snapshotVersion}", "")
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
-def artifactCodeCoverageReport = file("$project.projectDir/target/cache/tests_cache/coverage/ballerina.exec")
 def artifactJar = file("$project.projectDir/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${project.ballerinaLangVersion}/repo/cache/ballerina/http/${tomlVersion}/java11/")
 def originalConfig = ballerinaConfigFile.text
 def originalDependency = ballerinaDependencyFile.text
@@ -206,12 +205,6 @@ build {
 }
 
 publishing {
-    publications {
-        maven(MavenPublication) {
-            artifact source: artifactCodeCoverageReport, classifier: 'jacoco'
-        }
-    }
-
     repositories {
         maven {
             name = "GitHubPackages"
@@ -226,7 +219,7 @@ publishing {
 
 task extractBallerinaClassFiles(type: Copy) {
     def jars = fileTree(artifactJar).findAll {
-         it.name.endsWith(".jar")
+        it.name.endsWith(".jar")
     }
 
     jars.forEach { file ->
@@ -239,8 +232,9 @@ task extractBallerinaClassFiles(type: Copy) {
 }
 
 task codeCoverageReportBal(type: JacocoReport) {
+    dependsOn(':http-ballerina:build')
+    dependsOn(':http-ballerina-tests:build')
     dependsOn(extractBallerinaClassFiles)
-    executionData artifactCodeCoverageReport
     additionalClassDirs files("${project.rootDir.absolutePath}/build/classes")
 
     reports {

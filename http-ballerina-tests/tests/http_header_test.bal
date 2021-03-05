@@ -32,7 +32,7 @@ service /headerService on httpHeaderListenerEP1 {
         var result = stockqEP->get("/quoteService1/stocks", <@untainted> req);
         if (result is http:Response) {
             checkpanic caller->respond(<@untainted> result);
-        } else if (result is error) {
+        } else {
             checkpanic caller->respond(<@untainted> result.message());
         }
     }
@@ -53,7 +53,7 @@ service /headerService on httpHeaderListenerEP1 {
                 payload = {"response":"person header not available"};
             }
             checkpanic caller->respond(payload);
-        } else if (clientResponse is error) {
+        } else {
             checkpanic caller->respond(<@untainted> clientResponse.message());
         }
     }
@@ -62,7 +62,7 @@ service /headerService on httpHeaderListenerEP1 {
         var result = stockqEP->get("/quoteService1/entitySizeChecker");
         if (result is http:Response) {
             checkpanic caller->respond(<@untainted> result);
-        } else if (result is error) {
+        } else {
             checkpanic caller->respond(<@untainted> result.message());
         }
     }
@@ -71,7 +71,7 @@ service /headerService on httpHeaderListenerEP1 {
         var result = stockqEP->get("/quoteService1/entitySizeChecker", "hello");
         if (result is http:Response) {
             checkpanic caller->respond(<@untainted> result);
-        } else if (result is error) {
+        } else {
             checkpanic caller->respond(<@untainted> result.message());
         }
     }
@@ -82,7 +82,7 @@ service /headerService on httpHeaderListenerEP1 {
         var result = stockqEP->get("/quoteService1/entitySizeChecker", request);
         if (result is http:Response) {
             checkpanic caller->respond(<@untainted> result);
-        } else if (result is error) {
+        } else {
             checkpanic caller->respond(<@untainted> result.message());
         }
     }
@@ -91,7 +91,7 @@ service /headerService on httpHeaderListenerEP1 {
         var result = stockqEP->forward("/quoteService1/entitySizeChecker", req);
         if (result is http:Response) {
             checkpanic caller->respond(<@untainted> result);
-        } else if (result is error) {
+        } else {
             checkpanic caller->respond(<@untainted> result.message());
         }
     }
@@ -100,7 +100,7 @@ service /headerService on httpHeaderListenerEP1 {
         var result = stockqEP->execute("GET", "/quoteService1/entitySizeChecker", "hello ballerina");
         if (result is http:Response) {
             checkpanic caller->respond(<@untainted> result);
-        } else if (result is error) {
+        } else {
             checkpanic caller->respond(<@untainted> result.message());
         }
     }
@@ -109,7 +109,7 @@ service /headerService on httpHeaderListenerEP1 {
         var result = stockqEP->execute("GET", "/quoteService1/entitySizeChecker", ());
         if (result is http:Response) {
             checkpanic caller->respond(<@untainted> result);
-        } else if (result is error) {
+        } else {
             checkpanic caller->respond(<@untainted> result.message());
         }
     }
@@ -118,7 +118,7 @@ service /headerService on httpHeaderListenerEP1 {
         var result = stockqEP->get("/quoteService1/entitySizeChecker", <@untainted> req);
         if (result is http:Response) {
             checkpanic caller->respond(<@untainted> result);
-        } else if (result is error) {
+        } else {
             checkpanic caller->respond(<@untainted> result.message());
         }
     }
@@ -167,7 +167,7 @@ function testOutboundRequestHeaders() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {header1:"aaa", header2:"bbb"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -180,7 +180,7 @@ function testInboundResponseHeaders() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {header1:"kkk", header2:"jjj"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -193,7 +193,7 @@ function testOutboundNonEntityBodyGetRequestHeaders() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No Content size related header present");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -206,7 +206,7 @@ function testOutboundEntityBodyGetRequestHeaders() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Content-length header available");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -219,7 +219,7 @@ function testOutboundEntityGetRequestHeaders() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No Content size related header present");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -232,7 +232,7 @@ function testOutboundForwardNoEntityBodyRequestHeaders() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No Content size related header present");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -245,7 +245,7 @@ function testHeadersWithExecuteAction() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Content-length header available");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -258,7 +258,7 @@ function testHeadersWithExecuteActionWithoutBody() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No Content size related header present");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -271,7 +271,7 @@ function testPassthruWithBody() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Content-length header available");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

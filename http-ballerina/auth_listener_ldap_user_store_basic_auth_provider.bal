@@ -35,9 +35,9 @@ public client class ListenerLdapUserStoreBasicAuthProvider {
 
     # Authenticates with the relevant authentication requirements.
     #
-    # + data - The `http:Request` instance or `string` Authorization header
+    # + data - The `http:Request` instance or `http:Headers` instance or `string` Authorization header
     # + return - The `auth:UserDetails` instance or else `Unauthorized` type in case of an error
-    remote isolated function authenticate(Request|string data) returns auth:UserDetails|Unauthorized {
+    remote isolated function authenticate(Request|Headers|string data) returns auth:UserDetails|Unauthorized {
         string|ListenerAuthError credential = extractCredential(data);
         if (credential is ListenerAuthError) {
             Unauthorized unauthorized = {

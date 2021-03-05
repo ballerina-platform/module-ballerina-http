@@ -44,7 +44,7 @@ function invokeApiAndVerifyResponse(http:Client testClient, string path, DataFee
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

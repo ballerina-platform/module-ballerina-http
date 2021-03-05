@@ -44,7 +44,7 @@ public function testBasePathSpecialChars() {
     var resp = basePathTestClient->get("/my/Tes%40tHello/go/foo");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "special dispatched");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -55,7 +55,7 @@ public function testBasePathAsString() {
     var resp = basePathTestClient->get("/Tes%40tHello/go/foo");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "string dispatched");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -67,7 +67,7 @@ public function testMGWVersionBasePath() {
     var resp = basePathTestClient->get("/myservice/andversion/a%2Fb/id");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "service/version/1/1/id");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

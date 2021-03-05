@@ -87,12 +87,15 @@ isolated function buildCompleteErrorMessage(error err) returns string {
     return message;
 }
 
-// Extract the credential from `http:Request` or `string` header.
-isolated function extractCredential(Request|string data) returns string|ListenerAuthError {
+// Extract the credential from `http:Request`, `http:Headers` or `string` header.
+isolated function extractCredential(Request|Headers|string data) returns string|ListenerAuthError {
     if (data is string) {
         return regex:split(<string>data, " ")[1];
     } else {
-        string|HeaderNotFoundError header = data.getHeader(AUTH_HEADER);
+        object {
+            public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
+        } headers = data;
+        var header = headers.getHeader(AUTH_HEADER);
         if (header is string) {
             return regex:split(header, " ")[1];
         } else {

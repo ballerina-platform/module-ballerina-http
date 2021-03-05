@@ -19,13 +19,6 @@ import ballerina/jballerina.java;
 import ballerina/jwt;
 import ballerina/log;
 import ballerina/oauth2;
-import ballerina/reflect;
-
-// Service level annotation name.
-const string SERVICE_ANNOTATION = "ServiceConfig";
-
-// Resource level annotation name.
-const string RESOURCE_ANNOTATION = "ResourceConfig";
 
 // This function is used for declarative auth design, where the authentication/authorization decision is taken by
 // reading the auth annotations provided in service/resource and the `Authorization` header taken with an interop call.
@@ -131,8 +124,7 @@ isolated function getResourceAuthConfig(Service serviceRef, string methodName, s
     foreach string path in resourcePath {
         resourceName += "$" + path;
     }
-    any resourceAnnotation = reflect:getResourceAnnotations(serviceRef, resourceName, RESOURCE_ANNOTATION,
-                                                            getModuleIdentifier());
+    any resourceAnnotation = getResourceAnnotation(serviceRef, resourceName);
     if (resourceAnnotation is ()) {
         return;
     }
@@ -171,6 +163,6 @@ isolated function getCaller() returns Caller = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternCaller"
 } external;
 
-isolated function getModuleIdentifier() returns string = @java:Method {
-    'class: "org.ballerinalang.net.http.nativeimpl.ModuleUtils"
+isolated function getResourceAnnotation(service object {} serviceType, string resourceName) returns any = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternResource"
 } external;

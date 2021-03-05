@@ -36,7 +36,7 @@ function testRedirect() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 301, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("Location"), "location1");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
