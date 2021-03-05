@@ -187,41 +187,69 @@ public type RequestLimitConfigs record {|
 
 # Configures the SSL/TLS options to be used for HTTP service.
 #
-# + trustStore - Configures the trust store to be used
-# + keyStore - Configures the key store to be used
-# + certFile - A file containing the certificate of the server
-# + keyFile - A file containing the private key of the server
-# + keyPassword - Password of the private key if it is encrypted
-# + trustedCertFile - A file containing a list of certificates or a single certificate that the server trusts
+# + key - Configurations associated with `crypto:KeyStore` or combination of certificate and private key of the server
+# + mutualSsl - Configures associated with mutual SSL operations
 # + protocol - SSL/TLS protocol related options
-# + certValidation - Certificate validation against CRL or OCSP related options
-# + ciphers - List of ciphers to be used (e.g.: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-#             TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
-# + sslVerifyClient - The type of client certificate verification. (e.g.: "require" or "optional")
-# + shareSession - Enable/disable new SSL session creation
-# + handshakeTimeoutInSeconds - SSL handshake time out
-# + sessionTimeoutInSeconds - SSL session time out
-# + ocspStapling - Enable/disable OCSP stapling
+# + certValidation - Certificate validation against CRL_OCSP, OCSP_STAPLING related options
+# + ciphers - List of ciphers to be used
+#             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+# + shareSession - Enable/Disable new SSL session creation
+# + handshakeTimeout - SSL handshake time out
+# + sessionTimeout - SSL session time out
 public type ListenerSecureSocket record {|
-    crypto:TrustStore? trustStore = ();
-    crypto:KeyStore? keyStore = ();
-    string certFile = "";
-    string keyFile = "";
-    string keyPassword = "";
-    string trustedCertFile = "";
-    Protocols? protocol = ();
-    ValidateCert? certValidation = ();
+    crypto:KeyStore|CertKey key;
+    record {|
+        VerifyClient verifyClient = REQUIRE;
+        crypto:TrustStore|string cert;
+    |} mutualSsl?;
+    record {|
+        Protocol name;
+        string[] versions = [];
+    |} protocol?;
+    record {|
+        CertValidationType 'type = OCSP_STAPLING;
+        int cacheSize;
+        int cacheValidityPeriod;
+    |} certValidation?;
     string[] ciphers = ["TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
                         "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
                         "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA", "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
                         "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
                         "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"];
-    string sslVerifyClient = "";
     boolean shareSession = true;
-    int? handshakeTimeoutInSeconds = ();
-    int? sessionTimeoutInSeconds = ();
-    ListenerOcspStapling? ocspStapling = ();
+    decimal handshakeTimeout?;
+    decimal sessionTimeout?;
 |};
+
+# Represents combination of certificate, private key and private key password if encrypted.
+#
+# + certFile - A file containing the certificate
+# + keyFile - A file containing the private key
+# + keyPassword - Password of the private key if it is encrypted
+public type CertKey record {|
+   string certFile;
+   string keyFile;
+   string keyPassword?;
+|};
+
+# Represents client verify options.
+public enum VerifyClient {
+   REQUIRE,
+   OPTIONAL
+}
+
+# Represents protocol options.
+public enum Protocol {
+   SSL,
+   TLS,
+   DTLS
+}
+
+# Represents certification validation type options.
+public enum CertValidationType {
+   OCSP_CRL,
+   OCSP_STAPLING
+}
 
 # Defines the possible values for the keep-alive configuration in service and client endpoints.
 public type KeepAlive KEEPALIVE_AUTO|KEEPALIVE_ALWAYS|KEEPALIVE_NEVER;
