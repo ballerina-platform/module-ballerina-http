@@ -375,12 +375,15 @@ public class HttpConstants {
             StringUtils.fromString("cacheValidityPeriod");
     public static final BString SECURESOCKET_CONFIG_CIPHERS = StringUtils.fromString("ciphers");
     public static final BString SECURESOCKET_CONFIG_HOST_NAME_VERIFICATION_ENABLED =
-            StringUtils.fromString("verifyHostname");
+            StringUtils.fromString("verifyHostName");
     public static final BString SECURESOCKET_CONFIG_SHARE_SESSION = StringUtils.fromString("shareSession");
     public static final BString SECURESOCKET_CONFIG_HANDSHAKE_TIMEOUT = StringUtils.fromString("handshakeTimeout");
     public static final BString SECURESOCKET_CONFIG_SESSION_TIMEOUT = StringUtils.fromString("sessionTimeout");
     public static final BString SECURESOCKET_CONFIG_MUTUAL_SSL = StringUtils.fromString("mutualSsl");
     public static final BString SECURESOCKET_CONFIG_VERIFY_CLIENT = StringUtils.fromString("verifyClient");
+
+    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING =
+            StringUtils.fromString("OCSP_STAPLING");
 
     //Client Endpoint (CallerActions)
     public static final BString CLIENT_ENDPOINT_SERVICE_URI = StringUtils.fromString("url");
