@@ -20,7 +20,7 @@ import ballerina/test;
 
 http:ListenerConfiguration helloWorldEPConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }

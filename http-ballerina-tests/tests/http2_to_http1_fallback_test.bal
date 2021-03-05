@@ -22,7 +22,7 @@ listener http:Listener serviceEndpointWithoutSSL = new(9101, { httpVersion: "2.0
 listener http:Listener serviceEndpointWithSSL = new(9105, {
     httpVersion: "2.0",
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }
@@ -58,7 +58,7 @@ public function testFallback() {
 public function testFallbackWithSSL() {
     http:Client clientEP = checkpanic new("https://localhost:9105", {
         secureSocket: {
-            trustStore: {
+            cert: {
                 path: "tests/certsandkeys/ballerinaTruststore.p12",
                 password: "ballerina"
             }

@@ -19,28 +19,24 @@ import ballerina/test;
 
 http:ListenerConfiguration mutualSslServiceConf = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
-        trustStore: {
-            path: "tests/certsandkeys/ballerinaTruststore.p12",
-            password: "ballerina"
+        mutualSsl: {
+            verifyClient: http:REQUIRE,
+            cert: {
+                path: "tests/certsandkeys/ballerinaTruststore.p12",
+                password: "ballerina"
+            }
         },
         protocol: {
             name: "TLS",
             versions: ["TLSv1.1"]
         },
-        ciphers:["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"],
-        sslVerifyClient: "require",
-        certValidation: {
-            enable: false
-        },
-        ocspStapling: {
-            enable: false
-        },
-        handshakeTimeoutInSeconds: 20,
-        sessionTimeoutInSeconds: 30
+        ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"],
+        handshakeTimeout: 20,
+        sessionTimeout: 30
     }
 };
 
@@ -92,25 +88,21 @@ service /echoDummyService15 on echoDummy15 {
 
 http:ClientConfiguration mutualSslClientConf = {
     secureSocket:{
-        keyStore:{
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
-        trustStore:{
+        cert: {
             path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
-        protocol:{
-            name: "TLS",
+        protocol: {
+            name: http:SSL,
             versions: ["TLSv1.1"]
         },
         ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"],
-        certValidation: {
-            enable: false
-        },
-        ocspStapling: false,
-        handshakeTimeoutInSeconds: 20,
-        sessionTimeoutInSeconds: 30
+        handshakeTimeout: 20,
+        sessionTimeout: 30
     }
 };
 

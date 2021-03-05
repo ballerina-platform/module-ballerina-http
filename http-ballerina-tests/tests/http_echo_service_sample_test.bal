@@ -26,7 +26,7 @@ http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestP
 
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: keystore,
             password: "ballerina"
         }
@@ -37,7 +37,7 @@ listener http:Listener echoHttpsServiceTestListenerEP = new(echoHttpsServiceTest
 
 http:ClientConfiguration echoHttpsServiceClientConfig = {
     secureSocket: {
-        trustStore: {
+        cert: {
             path: truststore,
             password: "ballerina"
         }
