@@ -21,7 +21,7 @@ import ballerina/test;
 
 listener http:Listener authListener = new(securedListenerPort, {
     secureSocket: {
-        keyStore: {
+        key: {
             path: KEYSTORE_PATH,
             password: "ballerina"
         }

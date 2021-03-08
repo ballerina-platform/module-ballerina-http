@@ -424,38 +424,35 @@ public type RetryConfig record {|
 
 # Provides configurations for facilitating secure communication with a remote HTTP endpoint.
 #
-# + disable - Disable ssl validation.
-# + trustStore - Configurations associated with TrustStore
-# + keyStore - Configurations associated with KeyStore
-# + certFile - A file containing the certificate of the client
-# + keyFile - A file containing the private key of the client
-# + keyPassword - Password of the private key if it is encrypted
-# + trustedCertFile - A file containing a list of certificates or a single certificate that the client trusts
+# + enable - Enable SSL validation
+# + cert - Configurations associated with `crypto:TrustStore` or single certificate file that the client trusts
+# + key - Configurations associated with `crypto:KeyStore` or combination of certificate and private key of the client
 # + protocol - SSL/TLS protocol related options
-# + certValidation - Certificate validation against CRL or OCSP related options
+# + certValidation - Certificate validation against OCSP_CRL, OCSP_STAPLING related options
 # + ciphers - List of ciphers to be used
 #             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 # + verifyHostname - Enable/disable host name verification
 # + shareSession - Enable/disable new SSL session creation
-# + ocspStapling - Enable/disable OCSP stapling
-# + handshakeTimeoutInSeconds - SSL handshake time out
-# + sessionTimeoutInSeconds - SSL session time out
+# + handshakeTimeout - SSL handshake time out
+# + sessionTimeout - SSL session time out
 public type ClientSecureSocket record {|
-    boolean disable = false;
-    crypto:TrustStore? trustStore = ();
-    crypto:KeyStore? keyStore = ();
-    string certFile = "";
-    string keyFile = "";
-    string keyPassword = "";
-    string trustedCertFile = "";
-    Protocols? protocol = ();
-    ValidateCert? certValidation = ();
-    string[] ciphers = [];
-    boolean verifyHostname = true;
+    boolean enable = true;
+    crypto:TrustStore|string cert?;
+    crypto:KeyStore|CertKey key?;
+    record {|
+        Protocol name;
+        string[] versions = [];
+    |} protocol?;
+    record {|
+        CertValidationType 'type = OCSP_STAPLING;
+        int cacheSize;
+        int cacheValidityPeriod;
+    |} certValidation?;
+    string[] ciphers?;
+    boolean verifyHostName = true;
     boolean shareSession = true;
-    boolean ocspStapling = false;
-    int handshakeTimeoutInSeconds?;
-    int sessionTimeoutInSeconds?;
+    decimal handshakeTimeout?;
+    decimal sessionTimeout?;
 |};
 
 # Provides configurations for controlling the endpoint's behaviour in response to HTTP redirect related responses.

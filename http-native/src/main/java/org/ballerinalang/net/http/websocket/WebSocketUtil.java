@@ -492,7 +492,7 @@ public class WebSocketUtil {
 
         BMap<BString, Object> secureSocket =
                 (BMap<BString, Object>) clientEndpointConfig.getMapValue(
-                        HttpConstants.ENDPOINT_CONFIG_SECURE_SOCKET);
+                        HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         if (secureSocket != null) {
             HttpUtil.populateSSLConfiguration(clientConnectorConfig, secureSocket);
         } else if (scheme.equals(WebSocketConstants.WSS_SCHEME)) {
