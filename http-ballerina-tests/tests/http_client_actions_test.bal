@@ -146,9 +146,8 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         // Enable once the https://github.com/ballerina-platform/ballerina-lang/issues/28672 is fixed
         // future<error|http:Response> asyncInvocation = start clientEP2->get("/httpClientActionBE/greeting", ());
 
-        http:Request httpReq = new;
         //Request as message
-        var response3 = clientEP2->get("/httpClientActionBE/greeting", httpReq);
+        var response3 = clientEP2->get("/httpClientActionBE/greeting");
         if (response3 is http:Response) {
             var result = response3.getTextPayload();
             if (result is string) {
@@ -232,7 +231,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
       http:Request req = new;
       string payload = "a" + "\n" + "b" + "\n";
       req.setJsonPayload(payload);
-      string backendPayload = <string> checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, string);
+      string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
       checkpanic caller->respond(<@untainted> backendPayload);
     }
 
@@ -240,7 +239,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         http:Request req = new;
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "application/json");
-        string backendPayload = <string> checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, string);
+        string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
         checkpanic caller->respond(<@untainted> backendPayload);
     }
 
@@ -248,7 +247,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         http:Request req = new;
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "text/xml");
-        string backendPayload = <string> checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, string);
+        string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
         checkpanic caller->respond(<@untainted> backendPayload);
     }
 
@@ -257,7 +256,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "application/json");
         req.setJsonPayload(payload);
-        string backendPayload = <string> checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, string);
+        string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
         checkpanic caller->respond(<@untainted> backendPayload);
     }
 
@@ -266,7 +265,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
       string payload = "a" + "\n" + "b" + "\n";
       req.setJsonPayload(payload);
       req.setTextPayload(payload, contentType = "application/json");
-      string backendPayload = <string> checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, string);
+      string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
       checkpanic caller->respond(<@untainted> backendPayload);
     }
 

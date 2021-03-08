@@ -203,11 +203,9 @@ service /ech\[o14 on utTestEP {
 //Test accessing the variables parsed with URL. /products/{productId}/{regId}
 @test:Config{ dataProvider:validUrl }
 function testValidUrlTemplateDispatching(string path) {
-    http:Request req = new;
     string xOrderIdHeadeName = "X-ORDER-ID";
     string xOrderIdHeadeValue = "ORD12345";
-    req.setHeader(xOrderIdHeadeName, xOrderIdHeadeValue);
-    var response = utClient1->get(path, req);
+    var response = utClient1->get(path, {[xOrderIdHeadeName]:[xOrderIdHeadeValue]});
     if (response is http:Response) {
         //Expected Json message : {"X-ORDER-ID":"ORD12345","ProductID":"PID123","RegID":"RID123"}
         assertJsonValue(response.getJsonPayload(), xOrderIdHeadeName, xOrderIdHeadeValue);
@@ -228,11 +226,9 @@ function validUrl() returns (string[][]) {
 //Test resource dispatchers with invalid URL. /products/{productId}/{regId}
 @test:Config{ dataProvider:inValidUrl }
 function testInValidUrlTemplateDispatching(string path) {
-    http:Request req = new;
     string xOrderIdHeadeName = "X-ORDER-ID";
     string xOrderIdHeadeValue = "ORD12345";
-    req.setHeader(xOrderIdHeadeName, xOrderIdHeadeValue);
-    var response = utClient1->get(path, req);
+    var response = utClient1->get(path, {[xOrderIdHeadeName]:[xOrderIdHeadeValue]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "no matching resource found for path");
@@ -359,7 +355,7 @@ function testOPTIONSMethods() {
 //Test dispatching with OPTIONS request with GET method
 @test:Config{}
 function testOPTIONSWithGETMethods() {
-    var response = utClient1->options("/options/getme", "hi");
+    var response = utClient1->options("/options/getme");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
@@ -371,7 +367,7 @@ function testOPTIONSWithGETMethods() {
 //Test dispatching with OPTIONS request with POST method
 @test:Config{}
 function testOPTIONSWithPOSTMethods() {
-    var response = utClient1->options("/options/post", "hi");
+    var response = utClient1->options("/options/post");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");

@@ -44,17 +44,17 @@ service /passthrough on clientDBProxyListener {
         json p = checkpanic clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
         payload = payload + p.toJsonString();
 
-        map<json> p1 = checkpanic clientDBBackendClient->post("/backend/getJson", "want json", MapOfJson);
+        map<json> p1 = checkpanic clientDBBackendClient->post("/backend/getJson", "want json", targetType = MapOfJson);
         json name = check p1.id;
         payload = payload + " | " + name.toJsonString();
 
-        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml", xml);
+        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml", targetType = xml);
         payload = payload + " | " + q.toString();
 
         string r = checkpanic clientDBBackendClient->post("/backend/getString", "want string", targetType = string);
         payload = payload + " | " + r;
 
-        byte[] val = checkpanic clientDBBackendClient->post("/backend/getByteArray", "want byte[]", ByteArray);
+        byte[] val = checkpanic clientDBBackendClient->post("/backend/getByteArray", "want byte[]", targetType = ByteArray);
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
@@ -74,18 +74,18 @@ service /passthrough on clientDBProxyListener {
         string payload = "";
 
         // This is to check any compile failures with multiple default-able args
-        json hello = checkpanic clientDBBackendClient->get("/backend/getJson", "hi", json);
+        json hello = checkpanic clientDBBackendClient->get("/backend/getJson", targetType = json);
 
         json p = checkpanic clientDBBackendClient->get("/backend/getJson", targetType = json);
         payload = payload + p.toJsonString();
 
-        http:Response v = checkpanic clientDBBackendClient->head("/backend/getXml", "want xml");
+        http:Response v = checkpanic clientDBBackendClient->head("/backend/getXml");
         payload = payload + " | " + checkpanic v.getHeader("Content-type");
 
         string r = checkpanic clientDBBackendClient->delete("/backend/getString", "want string", targetType = string);
         payload = payload + " | " + r;
 
-        byte[] val = checkpanic clientDBBackendClient->put("/backend/getByteArray", "want byte[]", ByteArray);
+        byte[] val = checkpanic clientDBBackendClient->put("/backend/getByteArray", "want byte[]", targetType = ByteArray);
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 

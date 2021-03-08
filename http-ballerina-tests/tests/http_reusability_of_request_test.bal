@@ -28,11 +28,10 @@ http:Client clientEP1 = check new("http://localhost:" + reuseRequestTestPort.toS
 service /reuseObj on reuseRequestListenerEP {
 
     resource function get request_without_entity(http:Caller caller, http:Request clientRequest) {
-        http:Request clientReq = new;
         string firstVal = "";
         string secondVal = "";
 
-        var firstResponse = clientEP1 -> get("", clientReq);
+        var firstResponse = clientEP1 -> get("");
         if (firstResponse is http:Response) {
             var result = <@untainted> firstResponse.getTextPayload();
             if (result is string) {
@@ -44,7 +43,7 @@ service /reuseObj on reuseRequestListenerEP {
             firstVal = firstResponse.message();
         }
 
-        var secondResponse = clientEP1 -> get("", clientReq);
+        var secondResponse = clientEP1 -> get("");
         if (secondResponse is http:Response) {
             var result = <@untainted> secondResponse.getTextPayload();
             if (result is string) {
@@ -68,7 +67,7 @@ service /reuseObj on reuseRequestListenerEP {
         string firstVal = "";
         string secondVal = "";
 
-        var firstResponse = clientEP1 -> get("", clientReq);
+        var firstResponse = clientEP1 -> execute("GET", "", clientReq);
         if (firstResponse is http:Response) {
             var result = <@untainted> firstResponse.getTextPayload();
             if (result is string) {
@@ -80,7 +79,7 @@ service /reuseObj on reuseRequestListenerEP {
             firstVal = firstResponse.message();
         }
 
-        var secondResponse = clientEP1 -> get("", clientReq);
+        var secondResponse = clientEP1 -> execute("GET", "", clientReq);
         if (secondResponse is http:Response) {
             var result = <@untainted> secondResponse.getTextPayload();
             if (result is string) {
@@ -107,10 +106,10 @@ service /reuseObj on reuseRequestListenerEP {
         var entity = clientReq.getEntity();
         if (entity is mime:Entity) {
             newRequest.setEntity(entity);
-            var firstResponse = clientEP1 -> get("", clientReq);
+            var firstResponse = clientEP1 -> execute("GET", "", clientReq);
             if (firstResponse is http:Response) {
                 newRequest.setHeader("test2", "value2");
-                var secondResponse = clientEP1 -> get("", newRequest);
+                var secondResponse = clientEP1 -> execute("GET", "", newRequest);
                 if (secondResponse is http:Response) {
                     var result1 = <@untainted> firstResponse.getTextPayload();
                     if (result1 is string) {

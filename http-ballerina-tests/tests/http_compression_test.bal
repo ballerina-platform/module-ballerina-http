@@ -78,9 +78,7 @@ function testCompressionAnnotAutoCompress() {
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
 function testCompressionAnnotAutoCompressWithAcceptEncoding() {
-    http:Request req = new;
-    req.setHeader(ACCEPT_ENCODING, ENCODING_GZIP);
-    var response = compressionAnnotClient->get("/autoCompress", req);
+    var response = compressionAnnotClient->get("/autoCompress", {[ACCEPT_ENCODING]:[ENCODING_GZIP]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -93,9 +91,7 @@ function testCompressionAnnotAutoCompressWithAcceptEncoding() {
 //Test Accept-Encoding header with a q value of 0, which means not acceptable
 @test:Config {}
 function testAcceptEncodingWithQValueZero() {
-    http:Request req = new;
-    req.setHeader(ACCEPT_ENCODING, "gzip;q=0");
-    var response = compressionAnnotClient->get("/autoCompress", req);
+    var response = compressionAnnotClient->get("/autoCompress", {[ACCEPT_ENCODING]:"gzip;q=0"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -123,9 +119,7 @@ function testCompressionAnnotAlwaysCompress() {
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
 function testCompressionAnnotAlwaysCompressWithAcceptEncoding() {
-    http:Request req = new;
-    req.setHeader(ACCEPT_ENCODING, "deflate;q=1.0, gzip;q=0.8");
-    var response = compressionAnnotClient->get("/alwaysCompress", req);
+    var response = compressionAnnotClient->get("/alwaysCompress", {[ACCEPT_ENCODING]:"deflate;q=1.0, gzip;q=0.8"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -151,9 +145,7 @@ function testCompressionAnnotNeverCompress() {
 //Test Compression.NEVER, with Accept-Encoding header.
 @test:Config {}
 function testCompressionAnnotNeverCompressWithAcceptEncoding() {
-    http:Request req = new;
-    req.setHeader(ACCEPT_ENCODING, "deflate;q=1.0, gzip;q=0.8");
-    var response = compressionAnnotClient->get("/neverCompress", req);
+    var response = compressionAnnotClient->get("/neverCompress", {[ACCEPT_ENCODING]:"deflate;q=1.0, gzip;q=0.8"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -167,9 +159,7 @@ function testCompressionAnnotNeverCompressWithAcceptEncoding() {
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
 function testCompressionAnnotNeverCompressWithUserOverridenValue() {
-    http:Request req = new;
-    req.setHeader(ACCEPT_ENCODING, "deflate;q=1.0, gzip;q=0.8");
-    var response = compressionAnnotClient->get("/userOverridenValue", req);
+    var response = compressionAnnotClient->get("/userOverridenValue", {[ACCEPT_ENCODING]:"deflate;q=1.0, gzip;q=0.8"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

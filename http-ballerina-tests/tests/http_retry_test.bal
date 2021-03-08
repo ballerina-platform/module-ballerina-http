@@ -141,7 +141,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
 service /retryStatusService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         if (checkpanic request.getHeader("x-retry") == "recover") {
-            var backendResponse = internalErrorEP->get("/mockStatusCodeService/recover", <@untainted> request);
+            var backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", <@untainted> request);
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
                 if (responseError is error) {
@@ -157,7 +157,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                 }
             }
         } else if (checkpanic request.getHeader("x-retry") == "internalError") {
-            var backendResponse = internalErrorEP->get("/mockStatusCodeService/internalError", <@untainted> request);
+            var backendResponse = internalErrorEP->post("/mockStatusCodeService/internalError", <@untainted> request);
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
                 if (responseError is error) {

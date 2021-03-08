@@ -99,7 +99,7 @@ service /http2service on http2HeaderLimitEP {
 
 service /requestPayloadLimit on lowPayloadLimitEP {
 
-    resource function get test(http:Caller caller, http:Request req) {
+    resource function post test(http:Caller caller, http:Request req) {
         checkpanic caller->respond("Hello World!!!");
     }
 }
@@ -148,10 +148,8 @@ function testValidHeaderLength() {
 //Tests the behaviour when header size is greater than the configured threshold
 @test:Config {}
 function testInvalidHeaderLength() {
-    http:Request req = new;
-    req.setHeader("X-Test", getLargeHeader());
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort3.toString());
-    var response = limitClient->get("/lowRequestHeaderLimit/invalidHeaderSize", req);
+    var response = limitClient->get("/lowRequestHeaderLimit/invalidHeaderSize", {"X-Test":getLargeHeader()});
     if (response is http:Response) {
         //431 Request Header Fields Too Large
         test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
@@ -173,10 +171,8 @@ function getLargeHeader() returns string {
 // Tests the fallback behaviour when header size is greater than the configured http2 service
 @test:Config {}
 function testHttp2ServiceInvalidHeaderLength() {
-    http:Request req = new;
-    req.setHeader("X-Test", getLargeHeader());
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort5.toString());
-    var response = limitClient->get("/http2service/invalidHeaderSize", req);
+    var response = limitClient->get("/http2service/invalidHeaderSize", {"X-Test":getLargeHeader()});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
     } else {
@@ -190,7 +186,7 @@ function testInvalidPayloadSize() {
     http:Request req = new;
     req.setTextPayload("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort6.toString());
-    var response = limitClient->get("/requestPayloadLimit/test", req);
+    var response = limitClient->post("/requestPayloadLimit/test", req);
     if (response is http:Response) {
         //413 Payload Too Large
         test:assertEquals(response.statusCode, 413, msg = "Found unexpected output");

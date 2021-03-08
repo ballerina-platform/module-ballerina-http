@@ -154,7 +154,7 @@ public function testHttp2ProxiedTrailers() {
 @test:Config {}
 public function testHttp2PassThroughButBuildPayload() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->get("/trailerInitiator/passthroughservice/buildPayload", "Small payload");
+    var resp = clientEP->post("/trailerInitiator/passthroughservice/buildPayload", "Small payload");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {

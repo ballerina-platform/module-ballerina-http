@@ -72,8 +72,7 @@ service /headQuote on httpVerbListenerEP {
 service /sampleHead on httpVerbListenerEP {
 
     resource function head .(http:Caller caller, http:Request req) {
-        http:Request clientRequest = new;
-        var response = endPoint -> get("/getQuote/stocks", clientRequest);
+        var response = endPoint -> get("/getQuote/stocks");
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {

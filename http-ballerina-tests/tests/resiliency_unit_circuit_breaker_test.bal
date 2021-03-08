@@ -58,11 +58,9 @@ function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
     error?[] errs = [];
     int counter = 0;
         while (counter < 8) {
-            http:Request request = new;
-            request.setHeader(TEST_SCENARIO_HEADER, SCENARIO_TYPICAL);
             http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
             tempClient.httpClient = mockClient;
-            var serviceResponse = backendClientEP->get("/hello", request);
+            var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_TYPICAL]});
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
             } else {
@@ -99,11 +97,9 @@ function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
     int counter = 0;
 
         while (counter < 8) {
-            http:Request request = new;
-            request.setHeader(TEST_SCENARIO_HEADER, SCENARIO_TRIAL_RUN_FAILURE);
             http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
             tempClient.httpClient = mockClient;
-            var serviceResponse = backendClientEP->get("/hello", request);
+            var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_TRIAL_RUN_FAILURE]});
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
             } else {
@@ -139,11 +135,9 @@ function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]
     error?[] errs = [];
     int counter = 0;
         while (counter < 8) {
-            http:Request request = new;
-            request.setHeader(TEST_SCENARIO_HEADER, SCENARIO_HTTP_SC_FAILURE);
             http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
             tempClient.httpClient = mockClient;
-            var serviceResponse = backendClientEP->get("/hello", request);
+            var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_HTTP_SC_FAILURE]});
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
             } else {
@@ -175,14 +169,12 @@ function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
     error?[] errs = [];
     int counter = 0;
     while (counter < 8) {
-        http:Request request = new;
-        request.setHeader(TEST_SCENARIO_HEADER, SCENARIO_CB_FORCE_OPEN);
         if (counter > 3) {
             backendClientEP.httpClient = getForcedOpenCircuitBreakerClient(backendClientEP.httpClient);
         }
         http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
         tempClient.httpClient = mockClient;
-        var serviceResponse = backendClientEP->get("/hello", request);
+        var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_CB_FORCE_OPEN]});
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
         } else {
@@ -215,14 +207,12 @@ function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
     int counter = 0;
 
     while (counter < 8) {
-        http:Request request = new;
-        request.setHeader(TEST_SCENARIO_HEADER, SCENARIO_CB_FORCE_CLOSE);
         if (counter > 2) {
             backendClientEP.httpClient = getForcedCloseCircuitBreakerClient(backendClientEP.httpClient);
         }
         http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
         tempClient.httpClient = mockClient;
-        var serviceResponse = backendClientEP->get("/hello", request);
+        var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_CB_FORCE_CLOSE]});
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
         } else {
@@ -255,11 +245,10 @@ function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [h
     int counter = 0;
 
     while (counter < 6) {
-        http:Request request = new;
-        request.setHeader(TEST_SCENARIO_HEADER, SCENARIO_REQUEST_VOLUME_THRESHOLD_SUCCESS);
         http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
         tempClient.httpClient = mockClient;
-        var serviceResponse = backendClientEP->get("/hello", request);
+        var serviceResponse = backendClientEP->get("/hello", 
+            {[TEST_SCENARIO_HEADER]:[SCENARIO_REQUEST_VOLUME_THRESHOLD_SUCCESS]});
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
         } else {
@@ -292,11 +281,10 @@ function testRequestVolumeThresholdFailureResponseScenario() returns @tainted [h
     int counter = 0;
 
     while (counter < 6) {
-        http:Request request = new;
-        request.setHeader(TEST_SCENARIO_HEADER, SCENARIO_REQUEST_VOLUME_THRESHOLD_FAILURE);
         http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
         tempClient.httpClient = mockClient;
-        var serviceResponse = backendClientEP->get("/hello", request);
+        var serviceResponse = backendClientEP->get("/hello", 
+            {[TEST_SCENARIO_HEADER]:[SCENARIO_REQUEST_VOLUME_THRESHOLD_FAILURE]});
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
         } else {
