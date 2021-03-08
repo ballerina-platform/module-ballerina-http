@@ -1678,11 +1678,12 @@ public class HttpUtil {
         String type = certValidation.getStringValue(SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE).getValue();
         if (type.equals(SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING.getValue())) {
             sslConfiguration.setOcspStaplingEnabled(true);
+        } else {
+            sslConfiguration.setValidateCertEnabled(true);
         }
         long cacheSize = certValidation.getIntValue(SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE).intValue();
         long cacheValidityPeriod = ((BDecimal) certValidation.get(
                 SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD)).intValue();
-        sslConfiguration.setValidateCertEnabled(true);
         if (cacheValidityPeriod != 0) {
             sslConfiguration.setCacheValidityPeriod(Math.toIntExact(cacheValidityPeriod));
         }
