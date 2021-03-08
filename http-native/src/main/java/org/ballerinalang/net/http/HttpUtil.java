@@ -97,7 +97,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -888,9 +887,8 @@ public class HttpUtil {
         for (BString entryKey : entityHeaders.getKeys()) {
             BArray entryValues = (BArray) entityHeaders.get(entryKey);
             if (entryValues.size() > 1) {
-                Iterator<String> valueIterator = Arrays.stream(entryValues.getStringArray()).map(String::valueOf)
-                        .iterator();
-                httpHeaders.add(entryKey.getValue(), valueIterator);
+                Iterable<String> values = Arrays.asList(entryValues.getStringArray());
+                httpHeaders.add(entryKey.getValue(), values);
             } else if (entryValues.size() == 1) {
                 httpHeaders.set(entryKey.getValue(), entryValues.getBString(0).getValue());
             }

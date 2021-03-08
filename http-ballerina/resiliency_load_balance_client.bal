@@ -57,87 +57,173 @@ public client class LoadBalanceClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
+    remote function post(@untainted string path, RequestMessage message, string? mediaType = (), 
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
     
-    private function processPost(@untainted string path, RequestMessage message, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
+    private function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_POST);
-    }
-
-    # The HEAD remote function implementation of the LoadBalancer Connector.
-    #
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
-    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_HEAD);
-    }
-
-    # The PATCH remote function implementation of the LoadBalancer Connector.
-    #
-    # + path - Resource path
-    # + message - An HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function patch(@untainted string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
-    } external;
-    
-    private function processPatch(string path, RequestMessage message, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_PATCH);
+        populateOptions(req, mediaType, headers);
+        var result = performLoadBalanceAction(self, path, req, HTTP_POST);
+        return processResponse(result, targetType);
     }
 
     # The PUT remote function implementation of the Load Balance Connector.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function put(@untainted string path, RequestMessage message, TargetType targetType = Response)
+    remote function put(@untainted string path, RequestMessage message, string? mediaType = (), 
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
     
-    private function processPut(string path, RequestMessage message, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
+    private function processPut(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_PUT);
+        populateOptions(req, mediaType, headers);
+        var result = performLoadBalanceAction(self, path, req, HTTP_PUT);
+        return processResponse(result, targetType);
+    }
+
+    # The PATCH remote function implementation of the LoadBalancer Connector.
+    #
+    # + path - Resource path
+    # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote function patch(@untainted string path, RequestMessage message, string? mediaType = (), 
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+    } external;
+    
+    private function processPatch(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
+        var result = performLoadBalanceAction(self, path, req, HTTP_PATCH);
+        return processResponse(result, targetType);
+    }
+
+    # The DELETE remote function implementation of the LoadBalancer Connector.
+    #
+    # + path - Resource path
+    # + message - An optional HTTP outbound request message or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote function delete(@untainted string path, RequestMessage message = (), string? mediaType = (), 
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+    } external;
+    
+    private function processDelete(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
+        var result = performLoadBalanceAction(self, path, req, HTTP_DELETE);
+        return processResponse(result, targetType);
+    }
+
+    # The HEAD remote function implementation of the LoadBalancer Connector.
+    #
+    # + path - Resource path
+    # + headers - The entity headers
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
+            Response|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        return performLoadBalanceAction(self, path, req, HTTP_HEAD);
+    }
+
+    # The GET remote function implementation of the LoadBalancer Connector.
+    # 
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+    } external;
+    
+    private function processGet(string path, map<string|string[]>? headers, TargetType targetType)
+            returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        var result = performLoadBalanceAction(self, path, req, HTTP_GET);
+        return processResponse(result, targetType);
     }
 
     # The OPTIONS remote function implementation of the LoadBalancer Connector.
     #
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
+    # + path - Request path
+    # + mediaType - The MIME type header of the request entity
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function options(@untainted string path, RequestMessage message = (), TargetType targetType = Response)
+    remote function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
     
-    private function processOptions(string path, RequestMessage message, TargetType targetType)
+    private function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
+            returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        var result = performLoadBalanceAction(self, path, req, HTTP_OPTIONS);
+        return processResponse(result, targetType);
+    }
+
+    # The EXECUTE remote function implementation of the LoadBalancer Connector.
+    #
+    # + httpVerb - HTTP verb value
+    # + path - Resource path
+    # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message, 
+            string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = Response) 
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+    } external;
+    
+    private function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+            TargetType targetType, string? mediaType, map<string|string[]>? headers) 
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_OPTIONS);
+        populateOptions(req, mediaType, headers);
+        var result = performLoadBalanceExecuteAction(self, path, req, httpVerb);
+        return processResponse(result, targetType);
     }
 
     # The FORWARD remote function implementation of the LoadBalancer Connector.
@@ -155,65 +241,8 @@ public client class LoadBalanceClient {
 
     private function processForward(string path, Request request, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
-        return performLoadBalanceAction(self, path, request, HTTP_FORWARD);
-    }
-
-    # The EXECUTE remote function implementation of the LoadBalancer Connector.
-    #
-    # + httpVerb - HTTP method to be used for the request
-    # + path - Resource path
-    # + message - An HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message, 
-            TargetType targetType = Response) returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
-    } external;
-    
-    private function processExecute(string httpVerb, string path, RequestMessage message, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceExecuteAction(self, path, req, httpVerb);
-    }
-
-    # The DELETE remote function implementation of the LoadBalancer Connector.
-    #
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function delete(@untainted string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
-    } external;
-    
-    private function processDelete(string path, RequestMessage message, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_DELETE);
-    }
-
-    # The GET remote function implementation of the LoadBalancer Connector.
-
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function get(@untainted string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
-    } external;
-    
-    private function processGet(string path, RequestMessage message, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_GET);
+        var result = performLoadBalanceAction(self, path, request, HTTP_FORWARD);
+        return processResponse(result, targetType);
     }
 
     # The submit implementation of the LoadBalancer Connector.

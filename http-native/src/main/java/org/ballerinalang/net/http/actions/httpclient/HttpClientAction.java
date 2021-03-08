@@ -28,6 +28,7 @@ import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.message.Http2PushPromise;
@@ -65,33 +66,37 @@ public class HttpClientAction extends AbstractHTTPAction {
         clientConnector.rejectPushResponse(http2PushPromise);
     }
 
-    public static Object post(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
-        return invokeClientMethod(env, client, path, message, targetType, "processPost");
+    public static Object post(Environment env, BObject client, BString path, Object message, Object mediaType,
+                              Object headers, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processPost");
     }
 
-    public static Object put(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
-        return invokeClientMethod(env, client, path, message, targetType, "processPut");
+    public static Object put(Environment env, BObject client, BString path, Object message, Object mediaType,
+                             Object headers, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processPut");
     }
 
-    public static Object patch(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
-        return invokeClientMethod(env, client, path, message, targetType, "processPatch");
+    public static Object patch(Environment env, BObject client, BString path, Object message, Object mediaType,
+                               Object headers, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processPatch");
     }
 
-    public static Object delete(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
-        return invokeClientMethod(env, client, path, message, targetType, "processDelete");
+    public static Object delete(Environment env, BObject client, BString path, Object message, Object mediaType,
+                                Object headers, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processDelete");
     }
 
-    public static Object get(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
-        return invokeClientMethod(env, client, path, message, targetType, "processGet");
+    public static Object get(Environment env, BObject client, BString path, Object headers, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, headers, targetType, "processGet");
     }
 
-    public static Object options(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
-        return invokeClientMethod(env, client, path, message, targetType, "processOptions");
+    public static Object options(Environment env, BObject client, BString path, Object headers, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, headers, targetType, "processOptions");
     }
 
     public static Object execute(Environment env, BObject client, BString httpVerb, BString path, Object message,
-                                 BTypedesc targetType) {
-        Object[] paramFeed = new Object[8];
+                                 Object mediaType, Object headers, BTypedesc targetType) {
+        Object[] paramFeed = new Object[12];
         paramFeed[0] = httpVerb;
         paramFeed[1] = true;
         paramFeed[2] = path;
@@ -100,6 +105,10 @@ public class HttpClientAction extends AbstractHTTPAction {
         paramFeed[5] = true;
         paramFeed[6] = targetType;
         paramFeed[7] = true;
+        paramFeed[8] = mediaType;
+        paramFeed[9] = true;
+        paramFeed[10] = headers;
+        paramFeed[11] = true;
         return invokeClientMethod(env, client, "processExecute", paramFeed);
     }
 
@@ -126,6 +135,23 @@ public class HttpClientAction extends AbstractHTTPAction {
         return invokeClientMethod(env, client, methodName, paramFeed);
     }
 
+    private static Object invokeClientMethod(Environment env, BObject client, BString path, Object message,
+                                             Object mediaType, Object headers, BTypedesc targetType,
+                                             String methodName) {
+        Object[] paramFeed = new Object[10];
+        paramFeed[0] = path;
+        paramFeed[1] = true;
+        paramFeed[2] = message;
+        paramFeed[3] = true;
+        paramFeed[4] = targetType;
+        paramFeed[5] = true;
+        paramFeed[6] = mediaType;
+        paramFeed[7] = true;
+        paramFeed[8] = headers;
+        paramFeed[9] = true;
+        return invokeClientMethod(env, client, methodName, paramFeed);
+    }
+
     private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {
         Future balFuture = env.markAsync();
         env.getRuntime().invokeMethodAsync(client, methodName, null, null, new Callback() {
@@ -136,7 +162,10 @@ public class HttpClientAction extends AbstractHTTPAction {
 
             @Override
             public void notifyFailure(BError bError) {
-                balFuture.complete(bError);
+                BError invocationError = HttpUtil.createHttpError("client method invocation failed: " +
+                                                                          bError.getErrorMessage(),
+                                                                  HttpErrorType.GENERIC_CLIENT_ERROR, bError);
+                balFuture.complete(invocationError);
             }
         }, paramFeed);
         return null;
