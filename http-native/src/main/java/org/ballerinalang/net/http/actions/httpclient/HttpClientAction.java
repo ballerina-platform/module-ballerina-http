@@ -20,6 +20,7 @@ package org.ballerinalang.net.http.actions.httpclient;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
@@ -138,7 +139,7 @@ public class HttpClientAction extends AbstractHTTPAction {
             public void notifyFailure(BError bError) {
                 balFuture.complete(bError);
             }
-        }, paramFeed);
+        }, env.getStrandLocalProperties(), PredefinedTypes.TYPE_NULL, paramFeed);
         return null;
     }
 }
