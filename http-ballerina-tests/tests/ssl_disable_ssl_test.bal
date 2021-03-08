@@ -39,7 +39,7 @@ service /httpsService on httpsListener {
 
 http:ClientConfiguration disableSslClientConf = {
     secureSocket: {
-        disable: true
+        enable: false
     }
 };
 

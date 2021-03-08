@@ -41,7 +41,7 @@ service /hello on sslServerEp {
 
 http:ClientConfiguration sslDisabledConfig = {
     secureSocket: {
-        disable: true
+        enable: false
     },
     httpVersion: "2.0"
 };

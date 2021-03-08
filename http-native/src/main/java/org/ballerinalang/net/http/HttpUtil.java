@@ -1331,8 +1331,8 @@ public class HttpUtil {
     public static void populateSSLConfiguration(SslConfiguration senderConfiguration,
                                                 BMap<BString, Object> secureSocket) {
         List<Parameter> clientParamList = new ArrayList<>();
-        boolean disableSslValidation = secureSocket.getBooleanValue(SECURESOCKET_CONFIG_DISABLE_SSL);
-        if (disableSslValidation) {
+        boolean enable = secureSocket.getBooleanValue(SECURESOCKET_CONFIG_DISABLE_SSL);
+        if (!enable) {
             senderConfiguration.disableSsl();
             return;
         }

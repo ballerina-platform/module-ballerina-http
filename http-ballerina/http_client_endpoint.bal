@@ -424,7 +424,7 @@ public type RetryConfig record {|
 
 # Provides configurations for facilitating secure communication with a remote HTTP endpoint.
 #
-# + disable - Disable ssl validation.
+# + enable - Enable SSL validation
 # + cert - Configurations associated with `crypto:TrustStore` or single certificate file that the client trusts
 # + key - Configurations associated with `crypto:KeyStore` or combination of certificate and private key of the client
 # + protocol - SSL/TLS protocol related options
@@ -436,7 +436,7 @@ public type RetryConfig record {|
 # + handshakeTimeout - SSL handshake time out
 # + sessionTimeout - SSL session time out
 public type ClientSecureSocket record {|
-    boolean disable = false;
+    boolean enable = true;
     crypto:TrustStore|string cert?;
     crypto:KeyStore|CertKey key?;
     record {|

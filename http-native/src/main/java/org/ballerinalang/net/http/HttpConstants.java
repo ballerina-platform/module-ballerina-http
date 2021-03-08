@@ -355,7 +355,7 @@ public class HttpConstants {
     public static final BString PIPELINING_REQUEST_LIMIT = StringUtils.fromString("maxPipelinedRequests");
 
     public static final BString ENDPOINT_CONFIG_SECURESOCKET = StringUtils.fromString("secureSocket");
-    public static final BString SECURESOCKET_CONFIG_DISABLE_SSL = StringUtils.fromString("disable");
+    public static final BString SECURESOCKET_CONFIG_DISABLE_SSL = StringUtils.fromString("enable");
     public static final BString SECURESOCKET_CONFIG_CERT = StringUtils.fromString("cert");
     public static final BString SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH = StringUtils.fromString("path");
     public static final BString SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD = StringUtils.fromString("password");
