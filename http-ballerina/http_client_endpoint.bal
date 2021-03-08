@@ -428,7 +428,7 @@ public type RetryConfig record {|
 # + cert - Configurations associated with `crypto:TrustStore` or single certificate file that the client trusts
 # + key - Configurations associated with `crypto:KeyStore` or combination of certificate and private key of the client
 # + protocol - SSL/TLS protocol related options
-# + certValidation - Certificate validation against CRL_OCSP, OCSP_STAPLING related options
+# + certValidation - Certificate validation against OCSP_CRL, OCSP_STAPLING related options
 # + ciphers - List of ciphers to be used
 #             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 # + verifyHostname - Enable/disable host name verification

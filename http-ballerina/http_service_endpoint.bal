@@ -190,7 +190,7 @@ public type RequestLimitConfigs record {|
 # + key - Configurations associated with `crypto:KeyStore` or combination of certificate and private key of the server
 # + mutualSsl - Configures associated with mutual SSL operations
 # + protocol - SSL/TLS protocol related options
-# + certValidation - Certificate validation against CRL_OCSP, OCSP_STAPLING related options
+# + certValidation - Certificate validation against OCSP_CRL, OCSP_STAPLING related options
 # + ciphers - List of ciphers to be used
 #             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 # + shareSession - Enable/Disable new SSL session creation
