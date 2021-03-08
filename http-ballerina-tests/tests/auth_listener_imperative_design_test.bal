@@ -60,8 +60,8 @@ service /imperative on authListener {
         return "Hello World!";
     }
 
-    resource function get baz(@http:Header { name: "Authorization" } string headers) returns string|http:Unauthorized|http:Forbidden {
-        jwt:Payload|http:Unauthorized authn = handler.authenticate(headers);
+    resource function get baz(@http:Header { name: "Authorization" } string header) returns string|http:Unauthorized|http:Forbidden {
+        jwt:Payload|http:Unauthorized authn = handler.authenticate(header);
         if (authn is http:Unauthorized) {
             return authn;
         }

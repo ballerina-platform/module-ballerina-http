@@ -62,7 +62,7 @@ function testNoAuthServiceResourceSuccess() {
 }
 
 @test:Config {}
-function testNNoAuthServiceResourceWithRequestSuccess() {
+function testNoAuthServiceResourceWithRequestSuccess() {
     assertSuccess(sendBearerTokenRequest("/baz/bar", JWT2));
 }
 
