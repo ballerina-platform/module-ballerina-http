@@ -62,7 +62,7 @@ function testNoAuthServiceResourceSuccess() {
 }
 
 @test:Config {}
-function testNNoAuthServiceResourceWithRequestSuccess() {
+function testNoAuthServiceResourceWithRequestSuccess() {
     assertSuccess(sendBearerTokenRequest("/baz/bar", JWT2));
 }
 
@@ -157,7 +157,7 @@ function testJwtAuthServiceAuthnFailure() {
                 scopeKey: "scp",
                 clientConfig: {
                     secureSocket: {
-                       trustStore: {
+                       cert: {
                            path: TRUSTSTORE_PATH,
                            password: "ballerina"
                        }
@@ -239,7 +239,7 @@ service /foo on authListener {
                     scopeKey: "scp",
                     clientConfig: {
                         secureSocket: {
-                           trustStore: {
+                           cert: {
                                path: TRUSTSTORE_PATH,
                                password: "ballerina"
                            }
@@ -312,7 +312,7 @@ function testOAuth2ResourceAuthnFailure() {
                 scopeKey: "scp",
                 clientConfig: {
                     secureSocket: {
-                       trustStore: {
+                       cert: {
                            path: TRUSTSTORE_PATH,
                            password: "ballerina"
                        }
@@ -378,7 +378,7 @@ function testServiceResourceAuthnFailure() {
                 scopeKey: "scp",
                 clientConfig: {
                     secureSocket: {
-                       trustStore: {
+                       cert: {
                            path: TRUSTSTORE_PATH,
                            password: "ballerina"
                        }
@@ -445,7 +445,7 @@ service /bar on authListener {
                     scopeKey: "scp",
                     clientConfig: {
                         secureSocket: {
-                           trustStore: {
+                           cert: {
                                path: TRUSTSTORE_PATH,
                                password: "ballerina"
                            }
