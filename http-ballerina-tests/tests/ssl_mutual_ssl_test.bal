@@ -87,7 +87,7 @@ service /echoDummyService15 on echoDummy15 {
 }
 
 http:ClientConfiguration mutualSslClientConf = {
-    secureSocket:{
+    secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
