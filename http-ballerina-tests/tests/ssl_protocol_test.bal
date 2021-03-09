@@ -21,11 +21,12 @@ import ballerina/test;
 
 http:ListenerConfiguration sslProtocolServiceConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
          },
          protocol: {
+             name: http:TLS,
              versions: ["TLSv1.1"]
          }
     }
@@ -45,11 +46,12 @@ service /protocol on sslProtocolListener {
 
 http:ClientConfiguration sslProtocolClientConfig = {
     secureSocket: {
-        trustStore: {
+        cert: {
             path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
         protocol: {
+            name: http:TLS,
             versions: ["TLSv1.2"]
         }
     }

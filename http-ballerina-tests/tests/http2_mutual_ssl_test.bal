@@ -19,20 +19,22 @@ import ballerina/test;
 
 http:ListenerConfiguration http2MutualSslServiceConf = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
-        trustStore: {
-            path: "tests/certsandkeys/ballerinaTruststore.p12",
-            password: "ballerina"
+        mutualSsl: {
+            verifyClient: http:REQUIRE,
+            cert: {
+                path: "tests/certsandkeys/ballerinaTruststore.p12",
+                password: "ballerina"
+            }
         },
         protocol: {
-            name: "TLSv1.2",
+            name: http:TLS,
             versions: ["TLSv1.2","TLSv1.1"]
         },
-        ciphers:["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"],
-        sslVerifyClient: "require"
+        ciphers:["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
     },
     httpVersion: "2.0"
 };
@@ -76,16 +78,16 @@ service /http2Service on http2Listener {
 
 http:ClientConfiguration http2MutualSslClientConf = {
     secureSocket:{
-        keyStore:{
+        key:{
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
-        trustStore:{
+        cert: {
             path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
         protocol:{
-            name: "TLSv1.2",
+            name: http:TLS,
             versions: ["TLSv1.2", "TLSv1.1"]
         },
         ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
