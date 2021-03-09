@@ -187,7 +187,7 @@ public type RequestLimitConfigs record {|
 
 # Configures the SSL/TLS options to be used for HTTP service.
 #
-# + key - Configurations associated with `crypto:KeyStore` or combination of certificate and private key of the server
+# + key - Configurations associated with `crypto:KeyStore` or combination of certificate and (PKCS8) private key of the server
 # + mutualSsl - Configures associated with mutual SSL operations
 # + protocol - SSL/TLS protocol related options
 # + certValidation - Certificate validation against OCSP_CRL, OCSP_STAPLING related options
@@ -224,7 +224,7 @@ public type ListenerSecureSocket record {|
 # Represents combination of certificate, private key and private key password if encrypted.
 #
 # + certFile - A file containing the certificate
-# + keyFile - A file containing the private key
+# + keyFile - A file containing the private key in PKCS8 format
 # + keyPassword - Password of the private key if it is encrypted
 public type CertKey record {|
    string certFile;
