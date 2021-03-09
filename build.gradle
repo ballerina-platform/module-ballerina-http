@@ -227,8 +227,3 @@ release {
 task build {
     dependsOn('http-ballerina:build')
 }
-
-task codeCoverageReport {
-    dependsOn('http-ballerina-tests:codeCoverageReportBal')
-    dependsOn('http-native:codeCoverageReportJava')
-}
