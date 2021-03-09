@@ -32,6 +32,7 @@ def originalConfig = ballerinaConfigFile.text
 def originalDependency = ballerinaDependencyFile.text
 def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
 def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
+def testCoverageParam = "--code-coverage --includes=org.ballerinalang.net.*:ballerina.*"
 
 configurations {
     jbalTools
@@ -185,11 +186,11 @@ task ballerinaTest {
             // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat test " +
-                        "--code-coverage --includes=ballerina*:io.ballerina.stdlib.http* ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
+                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
                         "exit %%ERRORLEVEL%%"
             } else {
                 commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal test " +
-                        "--code-coverage --includes=ballerina*:io.ballerina.stdlib.http* ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
+                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
             }
         }
     }
