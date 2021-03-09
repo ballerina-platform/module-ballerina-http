@@ -21,7 +21,6 @@ jobs:
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
             ./gradlew build 
-            ./gradlew codeCoverageReport
       - name: Archive Error Log
         uses: actions/upload-artifact@v2
         if: failure()
