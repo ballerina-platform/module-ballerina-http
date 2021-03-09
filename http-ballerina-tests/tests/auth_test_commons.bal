@@ -67,7 +67,7 @@ function sendBasicTokenRequest(string path, string username, string password) re
             password: password
         },
         secureSocket: {
-            trustStore: {
+            cert: {
                 path: TRUSTSTORE_PATH,
                 password: "ballerina"
             }
@@ -82,7 +82,7 @@ function sendBearerTokenRequest(string path, string token) returns http:Response
             token: token
         },
         secureSocket: {
-            trustStore: {
+            cert: {
                 path: TRUSTSTORE_PATH,
                 password: "ballerina"
             }
@@ -118,7 +118,7 @@ isolated function assertUnauthorized(http:Response|http:ClientError response) {
 // Mock OAuth2 authorization server implementation, which treats the APIs with successful responses.
 listener http:Listener oauth2Listener = new(oauth2AuthorizationServerPort, {
     secureSocket: {
-        keyStore: {
+        key: {
             path: KEYSTORE_PATH,
             password: "ballerina"
         }

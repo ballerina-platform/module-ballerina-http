@@ -28,7 +28,14 @@ jobs:
         run: |
             ./gradlew publish
             ./gradlew codeCoverageReport
-      - name: Archive Error Log
+      - name: Archive Module Compilation Error Log
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+            name: Ballerina Internal Log
+            path: http-ballerina/ballerina-internal.log
+            if-no-files-found: ignore
+      - name: Archive Test Error Log
         uses: actions/upload-artifact@v2
         if: failure()
         with:
