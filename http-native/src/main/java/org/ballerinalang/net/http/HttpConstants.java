@@ -479,6 +479,8 @@ public class HttpConstants {
 
     public static final String HTTP_VERSION_1_1 = "1.1";
 
+    public static final String CURRENT_TRANSACTION_CONTEXT_PROPERTY = "currentTrxContext";
+
     @Deprecated
     public static final String HTTP_MODULE_VERSION = "1.0.6";
     public static final String PACKAGE = "ballerina";
