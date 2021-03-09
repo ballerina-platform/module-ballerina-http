@@ -76,7 +76,7 @@ service /'continue on httpClientContinueListenerEP2  {
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            checkpanic caller->respond("Error: " + <@untainted> (<error>response).toString());
+            checkpanic caller->respond("Error: " + <@untainted> response.toString());
         }
     }
 
@@ -88,7 +88,7 @@ service /'continue on httpClientContinueListenerEP2  {
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            checkpanic caller->respond("Error: " + <@untainted> (<error>response).toString());
+            checkpanic caller->respond("Error: " + <@untainted> response.toString());
         }
     }
 }
@@ -101,7 +101,7 @@ function testContinueAction() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!\n");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -113,7 +113,7 @@ function testNegativeContinueAction() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -134,7 +134,7 @@ function testContinueActionWithMain() {
         } else {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

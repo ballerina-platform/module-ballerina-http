@@ -76,7 +76,7 @@ function testHeaderTokenBinding() {
     var response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56", req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"Ballerina", value2:56});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     
@@ -84,7 +84,7 @@ function testHeaderTokenBinding() {
     response = headerBindingClient->get("/headerparamservice?foo=bal&bar=12", req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"WSO2", value2:12});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -97,7 +97,7 @@ function testHeaderBindingCaseInSensitivity() {
     var response = headerBindingClient->get("/headerparamservice/?baz=WSO2&bar=56", req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"HTtP", value2:56});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -109,7 +109,7 @@ function testHeaderUnavailability() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -122,7 +122,7 @@ function testHeaderArrayUnavailability() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -137,7 +137,7 @@ function testAllParamBinding() {
     if (response is http:Response) {
         json expected = {xType:["Hello", "World"], path: "hello", payload: "All in one", page: "hi"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -151,7 +151,7 @@ function testHeaderBindingArrayAndString() {
     if (response is http:Response) {
         json expected = {firstValue: "Hello", allValue:["Hello", "World"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -170,7 +170,7 @@ function testNilableHeaderBinding() {
     if (response is http:Response) {
         json expected = { val1: "World", val2: ["Write", "Language"], val3: "Ballerina"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -184,7 +184,7 @@ function testNilableHeaderBinding() {
     if (response is http:Response) {
         json expected = { val1: "foo header not found", val2: ["Write", "All"], val3: "Language"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -197,7 +197,7 @@ function testNilableHeaderBinding() {
     if (response is http:Response) {
         json expected = { val1: "Write", val2: ["bar header not found"], val3: "Hello"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -217,7 +217,7 @@ function testHeaderObjectBinding() {
         json expected = { val1: "World", val2: "Write", val3: true, val4: ["All", "Ballerina"], 
                                 val5: ["bar", "baz", "connection", "daz", "Foo", "host", "X-Type"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -230,7 +230,7 @@ function testHeaderObjectBinding() {
         json expected = { val1: "foo header not found", val2: "Http header does not exist", val3: false, 
                                 val4: ["Http header does not exist"],  val5: ["bar", "connection", "host", "X-Type"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

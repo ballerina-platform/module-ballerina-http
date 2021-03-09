@@ -73,7 +73,7 @@ service /failoverDemoService00 on failoverEP00 {
             if (responseToCaller is error) {
                 log:printError("Error sending response", err = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
@@ -91,7 +91,7 @@ service /failoverDemoService00 on failoverEP00 {
             if (responseToCaller is error) {
                 log:printError("Error sending response", err = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
@@ -109,7 +109,7 @@ service /failoverDemoService00 on failoverEP00 {
             if (responseToCaller is error) {
                 log:printError("Error sending response", err = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
@@ -129,7 +129,7 @@ service /failoverDemoService00 on failoverEP00 {
             if (responseToCaller is error) {
                 log:printError("Error sending response", err = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
@@ -227,7 +227,7 @@ function testSimpleFailover() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Mock Resource is Invoked.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

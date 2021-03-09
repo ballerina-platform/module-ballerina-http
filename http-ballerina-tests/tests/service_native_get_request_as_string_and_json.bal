@@ -56,7 +56,7 @@ public function testAccessingPayloadAsTextAndJSON()  {
     var response = requestClient2->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getTextPayload(), "bar");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }

@@ -132,7 +132,7 @@ function testPassthroughSampleForGET() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "wso2");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -145,7 +145,7 @@ function testPassthroughSampleForPOST() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -170,7 +170,7 @@ function testOutboundPUT() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("Method"), "any");
         assertTextPayload(response.getTextPayload(), "default");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -182,7 +182,7 @@ function testForwardActionWithGET() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "wso2");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -194,7 +194,7 @@ function testForwardActionWithPOST() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -207,7 +207,7 @@ function testDataBindingJsonPayload() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonPayload(response.getJsonPayload(), payload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -220,7 +220,7 @@ function testDataBindingWithIncompatiblePayload() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'name:WSO2,team:ballerina'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

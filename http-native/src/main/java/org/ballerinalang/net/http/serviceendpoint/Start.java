@@ -24,10 +24,10 @@ import org.ballerinalang.net.http.HttpConnectorPortBindingListener;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
-import org.ballerinalang.net.http.websocket.server.WebSocketServerListener;
 import org.ballerinalang.net.transport.contract.ServerConnector;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 
+import static org.ballerinalang.net.http.HttpConstants.SERVER_CONNECTOR_FUTURE;
 import static org.ballerinalang.net.http.HttpConstants.SERVICE_ENDPOINT_CONFIG;
 
 /**
@@ -49,12 +49,9 @@ public class Start extends AbstractHttpNativeFunction {
         BallerinaHTTPConnectorListener httpListener =
                 new BallerinaHTTPConnectorListener(getHttpServicesRegistry(serviceEndpoint),
                                                    serviceEndpoint.getMapValue(SERVICE_ENDPOINT_CONFIG));
-        WebSocketServerListener wsListener =
-                new WebSocketServerListener(getWebSocketServicesRegistry(serviceEndpoint),
-                                            serviceEndpoint.getMapValue(SERVICE_ENDPOINT_CONFIG));
+        serviceEndpoint.addNativeData(SERVER_CONNECTOR_FUTURE, serverConnectorFuture);
         HttpConnectorPortBindingListener portBindingListener = new HttpConnectorPortBindingListener();
         serverConnectorFuture.setHttpConnectorListener(httpListener);
-        serverConnectorFuture.setWebSocketConnectorListener(wsListener);
         serverConnectorFuture.setPortBindingEventListener(portBindingListener);
 
         try {

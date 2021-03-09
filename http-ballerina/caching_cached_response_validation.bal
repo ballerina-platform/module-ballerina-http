@@ -98,12 +98,7 @@ function sendValidationRequest(HttpClient httpClient, string path, Request origi
     if (!userProvidedIMSHeader) {
         originalRequest.removeHeader(IF_MODIFIED_SINCE);
     }
-
-    if (resp is Response|ClientError) {
-        return resp;
-    } else {
-        panic getIllegalDataBindingStateError();
-    }
+    return resp;
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4

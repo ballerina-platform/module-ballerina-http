@@ -85,7 +85,7 @@ service /responseLimit on statusLineEP {
         } else {
             http:Response res = new;
             res.statusCode = 500;
-            res.setPayload(<@untainted>(<error>clientResponse).toString());
+            res.setPayload(<@untainted>clientResponse.toString());
             var result = caller->respond(<@untainted>res);
             if (result is error) {
                 log:printError("Error sending error response", err = result);
@@ -176,7 +176,7 @@ function testValidStatusLineLength() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.reasonPhrase, "HELLO", msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -191,7 +191,7 @@ function testInvalidStatusLineLength() {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "error(\"Response max " +
                 "status line length exceeds: An HTTP line is larger than 1024 bytes.\")");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -206,7 +206,7 @@ function testValidHeaderLengthOfResponse() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(X_HEADER), "Validated");
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -227,7 +227,7 @@ function testInvalidHeaderLengthOfResponse() {
         } else {
             test:assertFail(msg = "Found unexpected output type");
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -241,7 +241,7 @@ function testValidEntityBodyLength() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Small payload");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -256,7 +256,7 @@ function testInvalidEntityBodyLength() {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "error(\"Response max status line length exceeds: An HTTP line " +
                 "is larger than 1024 bytes.\")");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -271,7 +271,7 @@ function testValidHeaderLengthWithHttp2Client() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(X_HEADER), "Validated");
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -292,7 +292,7 @@ function testInvalidHeaderLengthWithHttp2Client() {
         } else {
             test:assertFail(msg = "Found unexpected output type");
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

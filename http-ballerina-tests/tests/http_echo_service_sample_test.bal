@@ -26,7 +26,7 @@ http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestP
 
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: keystore,
             password: "ballerina"
         }
@@ -37,7 +37,7 @@ listener http:Listener echoHttpsServiceTestListenerEP = new(echoHttpsServiceTest
 
 http:ClientConfiguration echoHttpsServiceClientConfig = {
     secureSocket: {
-        trustStore: {
+        cert: {
             path: truststore,
             password: "ballerina"
         }
@@ -93,7 +93,7 @@ function testEchoServiceByBasePath() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), requestMessage);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -108,7 +108,7 @@ function testEchoServiceWithDynamicPortShared() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -123,7 +123,7 @@ function testEchoServiceWithDynamicPortHttpsByBasePath() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -138,7 +138,7 @@ function testEchoServiceWithDynamicPortHttpsShared() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

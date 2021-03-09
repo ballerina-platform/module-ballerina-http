@@ -89,7 +89,7 @@ isolated function testClientOAuth2Handler() {
         scopes: ["token-scope1", "token-scope2"],
         clientConfig: {
             secureSocket: {
-               trustStore: {
+               cert: {
                    path: TRUSTSTORE_PATH,
                    password: "ballerina"
                }
@@ -106,7 +106,7 @@ isolated function testClientOAuth2Handler() {
         scopes: ["token-scope1", "token-scope2"],
         clientConfig: {
             secureSocket: {
-               trustStore: {
+               cert: {
                    path: TRUSTSTORE_PATH,
                    password: "ballerina"
                }
@@ -122,7 +122,7 @@ isolated function testClientOAuth2Handler() {
         scopes: ["token-scope1", "token-scope2"],
         clientConfig: {
             secureSocket: {
-               trustStore: {
+               cert: {
                    path: TRUSTSTORE_PATH,
                    password: "ballerina"
                }

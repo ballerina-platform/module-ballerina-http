@@ -81,7 +81,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock1 invoked. Mock2 attached. Mock3 attached");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -90,7 +90,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock2 resource was invoked");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -99,7 +99,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock3 invoked. Mock2 detached. Mock4 attached");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -108,7 +108,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching service found for path : /mock2/mock2Resource");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -118,7 +118,7 @@ function testServiceDetach() {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
             "Service registration failed: two services have the same basePath : '/mock4'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -127,7 +127,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock4 invoked. Mock2 attached");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -136,7 +136,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock2 resource was invoked");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

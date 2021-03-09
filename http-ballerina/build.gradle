@@ -21,6 +21,7 @@ description = 'Ballerina - HTTP/WS Ballerina Generator'
 
 def packageName = "http"
 def packageOrg = "ballerina"
+def platform = "java11"
 def snapshotVersion = "-SNAPSHOT"
 def tomlVersion = project.version.replace("${snapshotVersion}", "")
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
@@ -163,7 +164,6 @@ task updateTomlVersions {
         def stdlibDependentTimeVersion = project.stdlibTimeVersion.replace("${snapshotVersion}", "")
         def stdlibDependentCryptoVersion = project.stdlibCryptoVersion.replace("${snapshotVersion}", "")
         def stdlibDependentFileVersion = project.stdlibFileVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentReflectVersion = project.stdlibReflectVersion.replace("${snapshotVersion}", "")
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
         def stdlibDependentWso2SnakeYamlVersion = project.wso2SnakeYamlVersion
@@ -195,7 +195,6 @@ task updateTomlVersions {
         newDependencyConfig = newDependencyConfig.replace("@stdlib.time.version@", stdlibDependentTimeVersion)
         newDependencyConfig = newDependencyConfig.replace("@stdlib.crypto.version@", stdlibDependentCryptoVersion)
         newDependencyConfig = newDependencyConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.reflect.version@", stdlibDependentReflectVersion)
         ballerinaDependencyFile.text = newDependencyConfig
     }
 }
@@ -252,9 +251,12 @@ task ballerinaBuild {
                 commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal build --skip-tests ${debugParams}"
             }
         }
-        copy {
-            from file("$project.projectDir/target/bala")
-            into file("$artifactCacheParent/bala/${packageOrg}/${packageName}/${tomlVersion}")
+        // extract bala file to artifact cache directory
+        file("$project.projectDir/target/bala").eachFileMatch(~/.*.bala/) { balaFile ->
+            copy {
+                from zipTree(balaFile)
+                into file("$artifactCacheParent/bala/${packageOrg}/${packageName}/${tomlVersion}/${platform}")
+            }
         }
         copy {
             from file("$project.projectDir/target/cache")

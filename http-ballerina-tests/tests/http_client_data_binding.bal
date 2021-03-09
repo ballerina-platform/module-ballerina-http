@@ -41,38 +41,30 @@ service /passthrough on clientDBProxyListener {
     resource function get allTypes(http:Caller caller, http:Request request) returns @tainted error? {
         string payload = "";
 
-        var res = clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
-        json p = <json> checkpanic res;
+        json p = checkpanic clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
         payload = payload + p.toJsonString();
 
-        res = clientDBBackendClient->post("/backend/getJson", "want json", MapOfJson);
-        map<json> p1 = <map<json>> checkpanic res;
+        map<json> p1 = checkpanic clientDBBackendClient->post("/backend/getJson", "want json", MapOfJson);
         json name = check p1.id;
         payload = payload + " | " + name.toJsonString();
 
-        res = clientDBBackendClient->post("/backend/getXml", "want xml", xml);
-        xml q = <xml> checkpanic res;
+        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml", xml);
         payload = payload + " | " + q.toString();
 
-        res = clientDBBackendClient->post("/backend/getString", "want string", targetType = string);
-        string r = <string> checkpanic res;
+        string r = checkpanic clientDBBackendClient->post("/backend/getString", "want string", targetType = string);
         payload = payload + " | " + r;
 
-        res = clientDBBackendClient->post("/backend/getByteArray", "want byte[]", ByteArray);
-        byte[] val = <byte[]> checkpanic res;
+        byte[] val = checkpanic clientDBBackendClient->post("/backend/getByteArray", "want byte[]", ByteArray);
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
-        res = clientDBBackendClient->post("/backend/getRecord", "want record", targetType = ClientDBPerson);
-        ClientDBPerson t = <ClientDBPerson> checkpanic res;
+        ClientDBPerson t = checkpanic clientDBBackendClient->post("/backend/getRecord", "want record", targetType = ClientDBPerson);
         payload = payload + " | " + t.name;
 
-        res = clientDBBackendClient->post("/backend/getRecordArr", "want record[]", targetType = ClientDBPersonArray);
-        ClientDBPerson[] u = <ClientDBPerson[]> checkpanic res;
+        ClientDBPerson[] u = checkpanic clientDBBackendClient->post("/backend/getRecordArr", "want record[]", targetType = ClientDBPersonArray);
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
-        res = clientDBBackendClient->post("/backend/getResponse", "want record[]", targetType = http:Response);
-        http:Response v = <http:Response> checkpanic res;
+        http:Response v = checkpanic clientDBBackendClient->post("/backend/getResponse", "want record[]", targetType = http:Response);
         payload = payload + " | " + checkpanic v.getHeader("x-fact");
 
         var result = caller->respond(<@untainted>payload);
@@ -81,29 +73,26 @@ service /passthrough on clientDBProxyListener {
     resource function get allMethods(http:Caller caller, http:Request request) returns error? {
         string payload = "";
 
-        var res = clientDBBackendClient->get("/backend/getJson", targetType = json);
-        json p = <json> checkpanic res;
+        // This is to check any compile failures with multiple default-able args
+        json hello = checkpanic clientDBBackendClient->get("/backend/getJson", "hi", json);
+
+        json p = checkpanic clientDBBackendClient->get("/backend/getJson", targetType = json);
         payload = payload + p.toJsonString();
 
-        res = clientDBBackendClient->head("/backend/getXml", "want xml");
-        http:Response v = <http:Response> checkpanic res;
+        http:Response v = checkpanic clientDBBackendClient->head("/backend/getXml", "want xml");
         payload = payload + " | " + checkpanic v.getHeader("Content-type");
 
-        res = clientDBBackendClient->delete("/backend/getString", "want string", targetType = string);
-        string r = <string> checkpanic res;
+        string r = checkpanic clientDBBackendClient->delete("/backend/getString", "want string", targetType = string);
         payload = payload + " | " + r;
 
-        res = clientDBBackendClient->put("/backend/getByteArray", "want byte[]", ByteArray);
-        byte[] val = <byte[]> checkpanic res;
+        byte[] val = checkpanic clientDBBackendClient->put("/backend/getByteArray", "want byte[]", ByteArray);
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
-        res = clientDBBackendClient->execute("POST", "/backend/getRecord", "want record", targetType = ClientDBPerson);
-        ClientDBPerson t = <ClientDBPerson> checkpanic res;
+        ClientDBPerson t = checkpanic clientDBBackendClient->execute("POST", "/backend/getRecord", "want record", targetType = ClientDBPerson);
         payload = payload + " | " + t.name;
 
-        res = clientDBBackendClient->forward("/backend/getRecordArr", request, targetType = ClientDBPersonArray);
-        ClientDBPerson[] u = <ClientDBPerson[]> checkpanic res;
+        ClientDBPerson[] u = checkpanic clientDBBackendClient->forward("/backend/getRecordArr", request, targetType = ClientDBPersonArray);
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
         var result = caller->respond(<@untainted>payload);
@@ -112,8 +101,7 @@ service /passthrough on clientDBProxyListener {
     resource function get redirect(http:Caller caller, http:Request req) {
         http:Client redirectClient = checkpanic new("http://localhost:" + clientDatabindingTestPort3.toString(),
                                                         {followRedirects: {enabled: true, maxCount: 5}});
-        var res = redirectClient->post("/redirect1/", "want json", targetType = json);
-        json p = <json> checkpanic res;
+        json p = checkpanic redirectClient->post("/redirect1/", "want json", targetType = json);
         var result = caller->respond(<@untainted>p);
     }
 
@@ -123,20 +111,12 @@ service /passthrough on clientDBProxyListener {
                 maxWaitIntervalInMillis: 20000 },  timeoutInMillis: 2000
             }
         );
-        var backendResponse = retryClient->forward("/backend/getRetryResponse", request, targetType = string);
-        string r = <string> checkpanic backendResponse;
+        string r = checkpanic retryClient->forward("/backend/getRetryResponse", request, targetType = string);
         var responseToCaller = caller->respond(<@untainted>r);
     }
 
-    resource function 'default cast(http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
-        xml p = <xml> checkpanic res;
-        var responseToCaller = caller->respond(<@untainted>p);
-    }
-
     resource function 'default '500(http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/get5XX", "want 500", targetType = json);
-        json p = <json> checkpanic res;
+        json p = checkpanic clientDBBackendClient->post("/backend/get5XX", "want 500", targetType = json);
         var responseToCaller = caller->respond(<@untainted>p);
     }
 
@@ -148,14 +128,13 @@ service /passthrough on clientDBProxyListener {
             resp.setPayload(<@untainted>res.message());
             var responseToCaller = caller->respond(<@untainted>resp);
         } else {
-            json p = <json> checkpanic res;
+            json p = checkpanic res;
             var responseToCaller = caller->respond(<@untainted>p);
         }
     }
 
     resource function 'default '404(http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500", targetType = json);
-        json p = <json> checkpanic res;
+        json p = checkpanic clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500", targetType = json);
         var responseToCaller = caller->respond(<@untainted>p);
     }
 
@@ -167,7 +146,7 @@ service /passthrough on clientDBProxyListener {
             resp.setPayload(<@untainted>res.message());
             var responseToCaller = caller->respond(<@untainted>resp);
         } else {
-            json p = <json> checkpanic res;
+            json p = checkpanic res;
             var responseToCaller = caller->respond(<@untainted>p);
         }
     }
@@ -262,7 +241,7 @@ function testAllBindingDataTypes() {
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
                  "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | chamil | <name>Ballerina</name> | " +
                  "This is my @4491*&&#$^($@ | BinaryPayload is textVal | chamil | wso2 | 3 | data-binding");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -277,7 +256,7 @@ function testDifferentMethods() {
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
                 "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | application/xml | This is my @4491*&&#$^($@ | BinaryPayload" +
                 " is textVal | chamil | wso2 | 3");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -291,7 +270,7 @@ function testRedirectClientDataBinding() {
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         json j = {id:"chamil", values:{a:2, b:45, c:{x:"mnb", y:"uio"}}};
         assertJsonPayload(response.getJsonPayload(), j);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -304,21 +283,7 @@ function testRetryClientDataBinding() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
-    } else if (response is error) {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-// Test cast error panic for incompatible types
-@test:Config {}
-function testCastError() {
-    var response = clientDBTestClient->get("/passthrough/cast");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "incompatible types: 'map<json>' cannot be cast to " +
-                            "'xml<lang.xml:Element|lang.xml:Comment|lang.xml:ProcessingInstruction|lang.xml:Text>'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -331,7 +296,7 @@ function test5XXErrorPanic() {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -344,7 +309,7 @@ function test5XXHandleError() {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -358,7 +323,7 @@ function test4XXErrorPanic() {
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), 
             "no matching resource found for path : /backend/getIncorrectPath404 , method : POST");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -371,7 +336,7 @@ function test4XXHandleError() {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /backend/handle , method : POST");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -384,7 +349,7 @@ function test405HandleError() {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Method not allowed");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

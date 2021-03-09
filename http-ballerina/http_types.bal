@@ -18,10 +18,12 @@ import ballerina/io;
 import ballerina/mime;
 
 # The types of messages that are accepted by HTTP `client` when sending out the outbound request.
-public type RequestMessage Request|string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error>|();
+public type RequestMessage Request|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
+                           (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error>|();
 
 # The types of messages that are accepted by HTTP `listener` when sending out the outbound response.
-public type ResponseMessage Response|string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error>|();
+public type ResponseMessage Response|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
+                            (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error>|();
 
 # The HTTP service type
 public type Service service object {
@@ -53,37 +55,6 @@ type safeHttpOperation HTTP_GET|HTTP_HEAD|HTTP_OPTIONS;
 
 // Common type used for HttpFuture and Response used for resiliency clients.
 type HttpResponse Response|HttpFuture;
-
-# A record for configuring SSL/TLS protocol and version to be used.
-#
-# + name - SSL Protocol to be used (e.g.: TLS1.2)
-# + versions - SSL/TLS protocols to be enabled (e.g.: TLSv1,TLSv1.1,TLSv1.2)
-public type Protocols record {|
-    string name = "";
-    string[] versions = [];
-|};
-
-# A record for providing configurations for certificate revocation status checks.
-#
-# + enable - The status of `validateCertEnabled`
-# + cacheSize - Maximum size of the cache
-# + cacheValidityPeriod - The time period for which a cache entry is valid
-public type ValidateCert record {|
-    boolean enable = false;
-    int cacheSize = 0;
-    int cacheValidityPeriod = 0;
-|};
-
-# A record for providing configurations for certificate revocation status checks.
-#
-# + enable - The status of OCSP stapling
-# + cacheSize - Maximum size of the cache
-# + cacheValidityPeriod - The time period for which a cache entry is valid
-public type ListenerOcspStapling record {|
-    boolean enable = false;
-    int cacheSize = 0;
-    int cacheValidityPeriod = 0;
-|};
 
 # A record for providing configurations for content compression.
 #

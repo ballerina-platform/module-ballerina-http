@@ -19,9 +19,13 @@
 package org.ballerinalang.net.http.actions.httpclient;
 
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTypedesc;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpUtil;
@@ -59,5 +63,82 @@ public class HttpClientAction extends AbstractHTTPAction {
         }
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
         clientConnector.rejectPushResponse(http2PushPromise);
+    }
+
+    public static Object post(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, targetType, "processPost");
+    }
+
+    public static Object put(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, targetType, "processPut");
+    }
+
+    public static Object patch(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, targetType, "processPatch");
+    }
+
+    public static Object delete(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, targetType, "processDelete");
+    }
+
+    public static Object get(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, targetType, "processGet");
+    }
+
+    public static Object options(Environment env, BObject client, BString path, Object message, BTypedesc targetType) {
+        return invokeClientMethod(env, client, path, message, targetType, "processOptions");
+    }
+
+    public static Object execute(Environment env, BObject client, BString httpVerb, BString path, Object message,
+                                 BTypedesc targetType) {
+        Object[] paramFeed = new Object[8];
+        paramFeed[0] = httpVerb;
+        paramFeed[1] = true;
+        paramFeed[2] = path;
+        paramFeed[3] = true;
+        paramFeed[4] = message;
+        paramFeed[5] = true;
+        paramFeed[6] = targetType;
+        paramFeed[7] = true;
+        return invokeClientMethod(env, client, "processExecute", paramFeed);
+    }
+
+    public static Object forward(Environment env, BObject client, BString path, BObject message, BTypedesc targetType) {
+        Object[] paramFeed = new Object[6];
+        paramFeed[0] = path;
+        paramFeed[1] = true;
+        paramFeed[2] = message;
+        paramFeed[3] = true;
+        paramFeed[4] = targetType;
+        paramFeed[5] = true;
+        return invokeClientMethod(env, client, "processForward", paramFeed);
+    }
+
+    private static Object invokeClientMethod(Environment env, BObject client, BString path, Object message,
+                                             BTypedesc targetType, String methodName) {
+        Object[] paramFeed = new Object[6];
+        paramFeed[0] = path;
+        paramFeed[1] = true;
+        paramFeed[2] = message;
+        paramFeed[3] = true;
+        paramFeed[4] = targetType;
+        paramFeed[5] = true;
+        return invokeClientMethod(env, client, methodName, paramFeed);
+    }
+
+    private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {
+        Future balFuture = env.markAsync();
+        env.getRuntime().invokeMethodAsync(client, methodName, null, null, new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                balFuture.complete(result);
+            }
+
+            @Override
+            public void notifyFailure(BError bError) {
+                balFuture.complete(bError);
+            }
+        }, paramFeed);
+        return null;
     }
 }

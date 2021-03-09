@@ -98,7 +98,7 @@ public function testHttp2SmallPayloadResponseTrailers() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -114,7 +114,7 @@ public function testHttp2LargePayloadResponseTrailers() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -130,7 +130,7 @@ public function testHttp2EmptyPayloadResponseTrailers() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -146,7 +146,7 @@ public function testHttp2ProxiedTrailers() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -162,7 +162,7 @@ public function testHttp2PassThroughButBuildPayload() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

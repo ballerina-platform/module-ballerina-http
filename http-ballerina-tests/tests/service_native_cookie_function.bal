@@ -407,8 +407,10 @@ function testRemoveAllCookiesInCookieStore() {
                                             persistentCookieHandler: myPersistentStore } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
-    if (cookieConfigVal is http:CookieConfig  && cookieStore is http:CookieStore && cookie1.isValid() == true &&
-        cookie2.isValid() == true) {
+    boolean|error validCookie1 = cookie1.isValid();
+    boolean|error validCookie2 = cookie2.isValid();
+    if (cookieConfigVal is http:CookieConfig  && cookieStore is http:CookieStore && validCookie1 is boolean && 
+        validCookie1 && validCookie2 is boolean && validCookie2) {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         result = cookieStore.addCookie(cookie2, cookieConfigVal, "http://google.com", "/sample");
         result = cookieStore.removeAllCookies();
@@ -434,7 +436,9 @@ function testAddPersistentCookieToCookieStore() {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
-    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore && cookie1.isValid() == true) {
+    boolean|error validCookie1 = cookie1.isValid();
+    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore 
+            && validCookie1 is boolean && validCookie1) {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         cookies = cookieStore.getAllCookies();
     }
@@ -455,7 +459,9 @@ function testAddPersistentCookieToCookieStore_2() {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
-    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore && cookie1.isValid() == true) {
+    boolean|error validCookie1 = cookie1.isValid();
+    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore 
+            && validCookie1 is boolean && validCookie1) {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         cookies = cookieStore.getAllCookies();
     }
@@ -476,7 +482,9 @@ function testGetPersistentCookieFromCookieStore() {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
-    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore && cookie1.isValid() == true) {
+    boolean|error validCookie1 = cookie1.isValid();
+    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore 
+            && validCookie1 is boolean && validCookie1) {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         cookies = cookieStore.getCookies("http://google.com", "/sample");
     }
@@ -497,7 +505,9 @@ function testRemovePersistentCookieFromCookieStore() {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
-    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore && cookie1.isValid() == true) {
+    boolean|error validCookie1 = cookie1.isValid();
+    if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore 
+            && validCookie1 is boolean && validCookie1) {
         var result = cookieStore.addCookie(cookie1, cookieConfigVal, "http://google.com", "/sample");
         result = cookieStore.removeCookie("SID002", "google.com", "/sample");
         if (result is error) {
