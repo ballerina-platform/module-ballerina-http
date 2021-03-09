@@ -40,7 +40,7 @@ service /serialize on serializeXmlListener {
         if (returnResponse is http:Response) {
             var result = caller->respond(<@untainted> returnResponse);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         } else {
             http:Response response = new;
@@ -48,7 +48,7 @@ service /serialize on serializeXmlListener {
             response.statusCode = 500;
             var result = caller->respond(response);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         }
     }
@@ -74,7 +74,7 @@ service /serialize on serializeXmlListener {
         }
         var result = caller->respond(response);
         if (result is error) {
-            log:printError("Error sending response", err = result);
+            log:printError("Error sending response", 'error = result);
         }
     }
 }

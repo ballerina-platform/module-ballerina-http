@@ -94,7 +94,7 @@ public class CookieStore {
         foreach var cookie in cookiesInResponse {
             var result = self.addCookie(cookie, cookieConfig, url, requestPath);
             if (result is error) {
-                log:printError("Error in adding cookies to cookie store: ", err = result);
+                log:printError("Error in adding cookies to cookie store: ", 'error = result);
             }
         }
     }
@@ -151,7 +151,7 @@ public class CookieStore {
         if (persistentCookieHandler is PersistentCookieHandler) {
             var result = persistentCookieHandler.getAllCookies();
             if (result is error) {
-                log:printError("Error in getting persistent cookies: ", err = result);
+                log:printError("Error in getting persistent cookies: ", 'error = result);
             } else {
                 foreach var cookie in result {
                     allCookies.push(cookie);

@@ -176,7 +176,7 @@ function readFile(string fileName) returns @tainted error|table<myCookie> key(na
 function closeReadableCSVChannel(io:ReadableCSVChannel csvChannel) {
     var result = csvChannel.close();
     if (result is error) {
-        log:printError("Error occurred while closing the channel: ", err = result);
+        log:printError("Error occurred while closing the channel: ", 'error = result);
     }
 }
 
@@ -229,7 +229,7 @@ function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string[]... dat
 function closeWritableCSVChannel(io:WritableCSVChannel csvChannel) {
     var result = csvChannel.close();
     if (result is error) {
-        log:printError("Error occurred while closing the channel: ", err = result);
+        log:printError("Error occurred while closing the channel: ", 'error = result);
     }
 }
 

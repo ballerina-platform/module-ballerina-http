@@ -27,7 +27,7 @@ service /mock1 on serviceDetachTestEP {
         checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
         var responseToCaller = caller->respond("Mock1 invoked. Mock2 attached. Mock3 attached");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -38,7 +38,7 @@ http:Service mock2 = service object {
         checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
         var responseToCaller = caller->respond("Mock2 resource was invoked");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -49,7 +49,7 @@ http:Service mock3 = service object {
         checkpanic serviceDetachTestEP.attach(mock4, "/mock4");
         var responseToCaller = caller->respond("Mock3 invoked. Mock2 detached. Mock4 attached");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -60,7 +60,7 @@ http:Service mock4 = service object {
         checkpanic serviceDetachTestEP.detach(mock5);
         var responseToCaller = caller->respond("Mock4 invoked. Mock2 attached");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -69,7 +69,7 @@ http:Service mock5 = service object {
     resource function get mock5Resource(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock5 invoked");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
