@@ -36,7 +36,7 @@ public client class RedirectClient {
     # + redirectConfig - Configurations associated with redirect
     # + httpClient - HTTP client for outbound HTTP requests
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient)
+    isolated function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient)
             returns ClientError? {
         self.url = url;
         self.config = config;
@@ -50,7 +50,7 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_GET);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -66,7 +66,7 @@ public client class RedirectClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function post(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result =  performRedirectIfEligible(self, path, <Request>message, HTTP_POST);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -81,7 +81,7 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
+    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_HEAD);
         if (result is HttpFuture) {
@@ -97,7 +97,7 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PUT);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -111,7 +111,7 @@ public client class RedirectClient {
     # + path - Resource path
     # + request - An HTTP inbound request message
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function forward(string path, Request request) returns @tainted Response|ClientError {
+    remote isolated function forward(string path, Request request) returns @tainted Response|ClientError {
         return self.httpClient->forward(path, request);
     }
 
@@ -122,7 +122,7 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
         Request request = <Request>message;
         //Redirection is performed only for HTTP methods
         if (HTTP_NONE == extractHttpOperation(httpVerb)) {
@@ -143,7 +143,7 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PATCH);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -158,7 +158,7 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_DELETE);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -173,7 +173,7 @@ public client class RedirectClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_OPTIONS);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -190,7 +190,7 @@ public client class RedirectClient {
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
-    remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return self.httpClient->submit(httpVerb, path, <Request>message);
     }
 
@@ -198,7 +198,7 @@ public client class RedirectClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         return self.httpClient->getResponse(httpFuture);
     }
 
@@ -206,7 +206,7 @@ public client class RedirectClient {
     #
     # + httpFuture - The `HttpFuture` relates to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns (boolean) {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns (boolean) {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -214,7 +214,7 @@ public client class RedirectClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -222,7 +222,7 @@ public client class RedirectClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return self.httpClient->getPromisedResponse(promise);
     }
 
@@ -230,13 +230,13 @@ public client class RedirectClient {
     # When an `http:PushPromise` is rejected, there is no chance of fetching a promised response using the rejected promise.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise) {
+    remote isolated function rejectPromise(PushPromise promise) {
         self.httpClient->rejectPromise(promise);
     }
 }
 
 //Invoke relevant HTTP client action and check the response for redirect eligibility.
-function performRedirectIfEligible(RedirectClient redirectClient, string path, Request request,
+isolated function performRedirectIfEligible(RedirectClient redirectClient, string path, Request request,
                                    HttpOperation httpOperation) returns @tainted HttpResponse|ClientError {
     final string originalUrl = redirectClient.url + path;
     // log:printDebug(isolated function() returns string {
@@ -256,7 +256,7 @@ function performRedirectIfEligible(RedirectClient redirectClient, string path, R
 }
 
 //Inspect the response for redirect eligibility.
-function checkRedirectEligibility(HttpResponse|ClientError response, string resolvedRequestedURI,
+isolated function checkRedirectEligibility(HttpResponse|ClientError response, string resolvedRequestedURI,
                                   HttpOperation httpVerb, Request request, RedirectClient redirectClient)
                                     returns @untainted HttpResponse|ClientError {
     if (response is Response) {
@@ -283,7 +283,7 @@ isolated function isRedirectResponse(int statusCode) returns boolean {
 }
 
 //If max redirect count is not reached, perform redirection.
-function redirect(Response response, HttpOperation httpVerb, Request request,
+isolated function redirect(Response response, HttpOperation httpVerb, Request request,
                   RedirectClient redirectClient, string resolvedRequestedURI) returns @untainted HttpResponse|ClientError {
     int currentCount = redirectClient.currentRedirectCount;
     int maxCount = redirectClient.redirectConfig.maxCount;
@@ -327,7 +327,7 @@ function redirect(Response response, HttpOperation httpVerb, Request request,
     return response;
 }
 
-function performRedirection(string location, RedirectClient redirectClient, HttpOperation redirectMethod,
+isolated function performRedirection(string location, RedirectClient redirectClient, HttpOperation redirectMethod,
                             Request request, Response response) returns @untainted HttpResponse|ClientError {
     CookieStore? cookieStore = ();
     var cookieConfigVal = redirectClient.config.cookieConfig;

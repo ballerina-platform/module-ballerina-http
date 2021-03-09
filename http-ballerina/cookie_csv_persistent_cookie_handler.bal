@@ -33,10 +33,6 @@ type myCookie record {
     boolean hostOnly;
 };
 
-string? cookieNameToRemove = ();
-string? cookieDomainToRemove = ();
-string? cookiePathToRemove = ();
-
 # Represents a default persistent cookie handler, which stores persistent cookies in a CSV file.
 #
 # + fileName - Name of the CSV file to store persistent cookies
@@ -46,7 +42,7 @@ public class CsvPersistentCookieHandler {
     string fileName = "";
     table<myCookie> key(name, domain, path) cookiesTable = table [];
 
-    public function init(string fileName) {
+    public isolated function init(string fileName) {
         self.fileName = checkpanic validateFileExtension(fileName);
     }
 
@@ -54,7 +50,7 @@ public class CsvPersistentCookieHandler {
     #
     # + cookie - Cookie to be added
     # + return - An error will be returned if there is any error occurred during the storing process of the cookie or else nil is returned
-    public function storeCookie(Cookie cookie) returns @tainted CookieHandlingError? {
+    public isolated function storeCookie(Cookie cookie) returns @tainted CookieHandlingError? {
         if (fileExist(self.fileName) && self.cookiesTable.length() == 0) {
             var tblResult = readFile(self.fileName);
             if (tblResult is table<myCookie> key(name, domain, path)) {
@@ -79,7 +75,7 @@ public class CsvPersistentCookieHandler {
     # Gets all the persistent cookies.
     #
     # + return - Array of persistent cookies stored in the cookie store or else an error is returned if one occurred during the retrieval of the cookies
-    public function getAllCookies() returns @tainted Cookie[]|CookieHandlingError {
+    public isolated function getAllCookies() returns @tainted Cookie[]|CookieHandlingError {
         Cookie[] cookies = [];
         if (fileExist(self.fileName)) {
             var tblResult = readFile(self.fileName);
@@ -117,10 +113,10 @@ public class CsvPersistentCookieHandler {
     # + domain - Domain of the persistent cookie to be removed
     # + path - Path of the persistent cookie to be removed
     # + return - An error will be returned if there is any error occurred during the removal of the cookie or else nil is returned
-    public function removeCookie(string name, string domain, string path) returns @tainted CookieHandlingError? {
-        cookieNameToRemove = name;
-        cookieDomainToRemove = domain;
-        cookiePathToRemove = path;
+    public isolated function removeCookie(string name, string domain, string path) returns @tainted CookieHandlingError? {
+        string cookieNameToRemove = name;
+        string cookieDomainToRemove = domain;
+        string cookiePathToRemove = path;
         if (fileExist(self.fileName)) {
             if(self.cookiesTable.length() == 0) {
                 var tblResult = readFile(self.fileName);
@@ -147,7 +143,7 @@ public class CsvPersistentCookieHandler {
     # Removes all persistent cookies.
     #
     # + return - An error will be returned if there is any error occurred during the removal of all the cookies or else nil is returned
-    public function removeAllCookies() returns CookieHandlingError? {
+    public isolated function removeAllCookies() returns CookieHandlingError? {
         error? removeResults = file:remove(self.fileName);
         if (removeResults is error) {
             return error CookieHandlingError("Error in removing the csv file", removeResults);
@@ -155,14 +151,14 @@ public class CsvPersistentCookieHandler {
     }
 }
 
-function validateFileExtension(string fileName) returns string|CookieHandlingError {
+isolated function validateFileExtension(string fileName) returns string|CookieHandlingError {
     if (fileName.toLowerAscii().endsWith(".csv")) {
         return fileName;
     }
     return error CookieHandlingError("Invalid file format");
 }
 
-function readFile(string fileName) returns @tainted error|table<myCookie> key(name, domain, path) {
+isolated function readFile(string fileName) returns @tainted error|table<myCookie> key(name, domain, path) {
     io:ReadableCSVChannel rCsvChannel2 = check io:openReadableCsvFile(fileName);
     var tblResult = rCsvChannel2.getTable(myCookie, ["name", "domain", "path"]);
     closeReadableCSVChannel(rCsvChannel2);
@@ -173,7 +169,7 @@ function readFile(string fileName) returns @tainted error|table<myCookie> key(na
     }
 }
 
-function closeReadableCSVChannel(io:ReadableCSVChannel csvChannel) {
+isolated function closeReadableCSVChannel(io:ReadableCSVChannel csvChannel) {
     var result = csvChannel.close();
     if (result is error) {
         log:printError("Error occurred while closing the channel: ", err = result);
@@ -181,7 +177,7 @@ function closeReadableCSVChannel(io:ReadableCSVChannel csvChannel) {
 }
 
 // Updates the table with new cookie.
-function addNewCookieToTable(table<myCookie> key(name, domain, path) cookiesTable, Cookie cookieToAdd)
+isolated function addNewCookieToTable(table<myCookie> key(name, domain, path) cookiesTable, Cookie cookieToAdd)
 returns table<myCookie> key(name, domain, path)|error {
     table<myCookie> key(name, domain, path) tableToReturn = cookiesTable;
     var name = cookieToAdd.name;
@@ -203,7 +199,7 @@ returns table<myCookie> key(name, domain, path)|error {
 }
 
 // Writes the updated table to the file.
-function writeToFile(table<myCookie> key(name, domain, path) cookiesTable, string fileName) returns @tainted error? {
+isolated function writeToFile(table<myCookie> key(name, domain, path) cookiesTable, string fileName) returns @tainted error? {
     io:WritableCSVChannel wCsvChannel2 = check io:openWritableCsvFile(fileName);
     foreach var entry in cookiesTable {
         string[] rec = [entry.name, entry.value, entry.domain, entry.path, entry.expires, entry.maxAge.toString(),
@@ -217,7 +213,7 @@ function writeToFile(table<myCookie> key(name, domain, path) cookiesTable, strin
     closeWritableCSVChannel(wCsvChannel2);
 }
 
-function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string[]... data) returns error? {
+isolated function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string[]... data) returns error? {
     foreach var rec in data {
         var returnedVal = csvChannel.write(rec);
         if (returnedVal is error) {
@@ -226,14 +222,14 @@ function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string[]... dat
     }
 }
 
-function closeWritableCSVChannel(io:WritableCSVChannel csvChannel) {
+isolated function closeWritableCSVChannel(io:WritableCSVChannel csvChannel) {
     var result = csvChannel.close();
     if (result is error) {
         log:printError("Error occurred while closing the channel: ", err = result);
     }
 }
 
-function fileExist(string fileName) returns boolean {
+isolated function fileExist(string fileName) returns boolean {
     boolean|error fileTestResult = file:test(fileName, file:EXISTS);
     if (fileTestResult is boolean) {
         return fileTestResult;

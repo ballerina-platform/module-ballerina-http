@@ -29,8 +29,12 @@ import ballerina/oauth2;
 // with a distinct error.
 # Uses for declarative auth design, where the authentication/authorization decision is taken
 # by reading the auth annotations provided in service/resource and the `Authorization` header of request.
-public isolated function authenticateResource(Service servieRef, string methodName, string[] resourcePath) {
-    ListenerAuthConfig[]? authConfig = getListenerAuthConfig(servieRef, methodName, resourcePath);
+# 
+# + serviceRef - The service reference where the resource locates
+# + methodName - The name of the subjected resource
+# + resourcePath - The relative path
+public isolated function authenticateResource(Service serviceRef, string methodName, string[] resourcePath) {
+    ListenerAuthConfig[]? authConfig = getListenerAuthConfig(serviceRef, methodName, resourcePath);
     if (authConfig is ()) {
         return;
     }

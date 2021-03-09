@@ -139,7 +139,7 @@ public client class CircuitBreakerClient {
     # + httpClient - The underlying `HttpActions` instance, which will be making the actual network calls
     # + circuitHealth - The circuit health monitor
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    function init(string url, ClientConfiguration config, CircuitBreakerInferredConfig
+    isolated function init(string url, ClientConfiguration config, CircuitBreakerInferredConfig
         circuitBreakerInferredConfig, HttpClient httpClient, CircuitHealth circuitHealth) returns ClientError? {
         RollingWindow rollingWindow = circuitBreakerInferredConfig.rollingWindow;
         if (rollingWindow.timeWindowInMillis < rollingWindow.bucketSizeInMillis) {
@@ -159,7 +159,7 @@ public client class CircuitBreakerClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function post(string path, RequestMessage message) returns Response|ClientError {
+    remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -178,7 +178,7 @@ public client class CircuitBreakerClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -197,7 +197,7 @@ public client class CircuitBreakerClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -217,7 +217,7 @@ public client class CircuitBreakerClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -236,7 +236,7 @@ public client class CircuitBreakerClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -255,7 +255,7 @@ public client class CircuitBreakerClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -274,7 +274,7 @@ public client class CircuitBreakerClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -293,7 +293,7 @@ public client class CircuitBreakerClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -312,7 +312,7 @@ public client class CircuitBreakerClient {
     # + path - Resource path
     # + request - A Request struct
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function forward(string path, Request request) returns @tainted Response|ClientError {
+    remote isolated function forward(string path, Request request) returns @tainted Response|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -334,7 +334,7 @@ public client class CircuitBreakerClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
-    remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.currentCircuitState = updateCircuitState(self.circuitHealth, self.currentCircuitState, cbic);
 
@@ -357,7 +357,7 @@ public client class CircuitBreakerClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         // No need to check for the response as we already check for the response in the submit method
         return self.httpClient->getResponse(httpFuture);
     }
@@ -367,7 +367,7 @@ public client class CircuitBreakerClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -375,7 +375,7 @@ public client class CircuitBreakerClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -383,7 +383,7 @@ public client class CircuitBreakerClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return self.httpClient->getPromisedResponse(promise);
     }
 
@@ -391,19 +391,19 @@ public client class CircuitBreakerClient {
     # HTTP remote functions provider.
     #
     # + promise - The `http:PushPromise` to be rejected
-    remote function rejectPromise(PushPromise promise) {
+    remote isolated function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
 
     # Force the circuit into a closed state in which it will allow requests regardless of the error percentage
     # until the failure threshold exceeds.
-    public function forceClose() {
+    public isolated function forceClose() {
         self.currentCircuitState = CB_CLOSED_STATE;
     }
 
     # Force the circuit into a open state in which it will suspend all requests
     # until `resetTimeInMillis` interval exceeds.
-    public function forceOpen() {
+    public isolated function forceOpen() {
         self.currentCircuitState = CB_OPEN_STATE;
         self.circuitHealth.lastForcedOpenTime = time:currentTime();
     }
@@ -411,7 +411,7 @@ public client class CircuitBreakerClient {
     # Provides the `http:CircuitState` of the circuit breaker.
     #
     # + return - The current `http:CircuitState` of the circuit breaker
-    public function getCurrentState() returns CircuitState {
+    public isolated function getCurrentState() returns CircuitState {
         return self.currentCircuitState;
     }
 }

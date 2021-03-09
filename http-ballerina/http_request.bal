@@ -481,7 +481,7 @@ public class Request {
     # + filePath - Path to the file to be set as the payload
     # + contentType - The content type of the specified file. Set this to override the default `content-type`
     #                 header value
-    public function setFileAsPayload(string filePath, string contentType = "application/octet-stream") {
+    public isolated function setFileAsPayload(string filePath, string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setFileAsEntityBody(filePath, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
@@ -579,7 +579,7 @@ public class Request {
     # Adds cookies to the request.
     #
     # + cookiesToAdd - Represents the cookies to be added
-    public function addCookies(Cookie[] cookiesToAdd) {
+    public isolated function addCookies(Cookie[] cookiesToAdd) {
         string cookieheader = "";
         Cookie[] sortedCookies = cookiesToAdd.sort(array:ASCENDING, isolated function(Cookie c) returns int {
             var cookiePath = c.path;
@@ -610,7 +610,7 @@ public class Request {
     # Gets cookies from the request.
     #
     # + return - An array of cookie objects, which are included in the request
-    public function getCookies() returns Cookie[] {
+    public isolated function getCookies() returns Cookie[] {
         Cookie[] cookiesInRequest = [];
         var cookieValue = self.getHeader("Cookie");
         if (cookieValue is string) {

@@ -481,6 +481,7 @@ public type NonAuthoritativeInformation record {|
 
 # The status code response record of `NoContent`.
 #
+# + headers - The response headers
 # + status - The response status code obj
 public type NoContent record {|
     map<string|string[]> headers?;

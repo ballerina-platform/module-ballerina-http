@@ -27,7 +27,7 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, string? mediaType = (), 
+    remote isolated function post(@untainted string path, RequestMessage message, string? mediaType = (),
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError;
 
@@ -41,7 +41,7 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function put(@untainted string path, RequestMessage message, string? mediaType = (), 
+    remote isolated function  put(@untainted string path, RequestMessage message, string? mediaType = (), 
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError;
 
@@ -55,7 +55,7 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function patch(@untainted string path, RequestMessage message, string? mediaType = (), 
+    remote isolated function  patch(@untainted string path, RequestMessage message, string? mediaType = (), 
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError;
 
@@ -69,7 +69,7 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function delete(@untainted string path, RequestMessage message = (), string? mediaType = (), 
+    remote isolated function  delete(@untainted string path, RequestMessage message = (), string? mediaType = (), 
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError;
 
@@ -78,7 +78,7 @@ public type ClientObject client object {
     # + path - Resource path
     # + headers - The entity headers
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
+    remote isolated function  head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
             Response|ClientError;
     
     # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
@@ -89,18 +89,18 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
+    remote isolated function  get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError;
 
     # The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
     #
     # + path - Request path
-    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
+    remote isolated function  options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError;
 
     # Invokes an HTTP call with the specified HTTP verb.
@@ -114,7 +114,7 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message, 
+    remote isolated function  execute(@untainted string httpVerb, @untainted string path, RequestMessage message, 
             string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError;
 
@@ -126,7 +126,7 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function forward(@untainted string path, Request request, TargetType targetType = Response) 
+    remote isolated function  forward(@untainted string path, Request request, TargetType targetType = Response) 
             returns @tainted targetType|ClientError;
 
     # Submits an HTTP request to a service with the specified HTTP verb.
@@ -138,35 +138,35 @@ public type ClientObject client object {
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
-    remote function submit(@untainted string httpVerb, string path, RequestMessage message)
+    remote isolated function  submit(@untainted string httpVerb, string path, RequestMessage message)
         returns HttpFuture|ClientError;
 
     # This just pass the request to actual network call.
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http: ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError;
+    remote isolated function  getResponse(HttpFuture httpFuture) returns Response|ClientError;
 
     # This just pass the request to actual network call.
     #
     # + httpFuture - The `http:HttpFuture` relates to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns boolean;
+    remote isolated function  hasPromise(HttpFuture httpFuture) returns boolean;
 
     # This just pass the request to actual network call.
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError;
+    remote isolated function  getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError;
 
     # Passes the request to an actual network call.
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError;
+    remote isolated function  getPromisedResponse(PushPromise promise) returns Response|ClientError;
 
     # This just pass the request to actual network call.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise);
+    remote isolated function  rejectPromise(PushPromise promise);
 };
