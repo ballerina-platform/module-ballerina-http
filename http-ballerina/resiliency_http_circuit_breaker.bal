@@ -441,12 +441,12 @@ isolated function updateCircuitState(CircuitHealth circuitHealth, CircuitState c
                 if (!circuitHealth.lastRequestSuccess) {
                     // If the trial run has failed, trip the circuit again
                     currentState = CB_OPEN_STATE;
-                    log:print("CircuitBreaker trial run has failed. Circuit switched from HALF_OPEN to OPEN state.")
+                    log:printInfo("CircuitBreaker trial run has failed. Circuit switched from HALF_OPEN to OPEN state.")
                     ;
                 } else {
                     // If the trial run was successful reset the circuit
                     currentState = CB_CLOSED_STATE;
-                    log:print(
+                    log:printInfo(
                         "CircuitBreaker trial run  was successful. Circuit switched from HALF_OPEN to CLOSE state.");
                 }
             } else {
@@ -454,7 +454,7 @@ isolated function updateCircuitState(CircuitHealth circuitHealth, CircuitState c
 
                 if (currentFailureRate > circuitBreakerInferredConfig.failureThreshold) {
                     currentState = CB_OPEN_STATE;
-                    log:print("CircuitBreaker failure threshold exceeded. Circuit tripped from CLOSE to OPEN state."
+                    log:printInfo("CircuitBreaker failure threshold exceeded. Circuit tripped from CLOSE to OPEN state."
                     );
                 }
             }
@@ -712,7 +712,7 @@ isolated function switchCircuitStateOpenToHalfOpenOnResetTime(CircuitBreakerInfe
         int elapsedTime = time:currentTime().time - effectiveErrorTime.time;
         if (elapsedTime > circuitBreakerInferredConfig.resetTimeInMillis) {
             currentCircuitState = CB_HALF_OPEN_STATE;
-            log:print("CircuitBreaker reset timeout reached. Circuit switched from OPEN to HALF_OPEN state.");
+            log:printInfo("CircuitBreaker reset timeout reached. Circuit switched from OPEN to HALF_OPEN state.");
         }
     }
     return currentCircuitState;

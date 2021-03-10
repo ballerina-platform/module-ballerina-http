@@ -35,7 +35,7 @@ service /startService on listenerMethodListener {
         checkpanic listenerMethodbackendEP.start();
         var result = caller->respond("Backend service started!");
         if (result is error) {
-            log:printError("Error sending response", err = result);
+            log:printError("Error sending response", 'error = result);
         }
     }
 }
@@ -44,7 +44,7 @@ http:Service listenerMethodMock1 = service object {
     resource function get .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock1 invoked!");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -55,7 +55,7 @@ http:Service listenerMethodMock2 = service object {
         runtime:sleep(2);
         var responseToCaller = caller->respond("Mock2 invoked!");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };

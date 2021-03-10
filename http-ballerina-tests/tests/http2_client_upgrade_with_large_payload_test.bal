@@ -138,7 +138,7 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
         req.setPayload(jsonPayload);
         var finalResponse = eP1->post("/http2EchoService/echoResource", req);
         if (finalResponse is error) {
-            log:printError("Error sending response", err = finalResponse);
+            log:printError("Error sending response", 'error = finalResponse);
         } else {
             var result = caller->respond(<@untainted> finalResponse);
         }

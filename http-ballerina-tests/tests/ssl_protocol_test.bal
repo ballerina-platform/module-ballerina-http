@@ -39,7 +39,7 @@ service /protocol on sslProtocolListener {
     resource function get protocolResource(http:Caller caller, http:Request req) {
         var result = caller->respond("Hello World!");
         if (result is error) {
-           log:printError("Failed to respond", err = result);
+           log:printError("Failed to respond", 'error = result);
         }
     }
 }

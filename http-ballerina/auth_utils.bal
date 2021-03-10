@@ -60,7 +60,7 @@ public type OAuth2IntrospectionConfigWithScopes record {|
 
 // Logs and prepares the `error` as an `http:ClientAuthError`.
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
-    log:printError(message, err = err);
+    log:printError(message, 'error = err);
     if (err is error) {
         return error ClientAuthError(message, err);
     }
@@ -69,7 +69,7 @@ isolated function prepareClientAuthError(string message, error? err = ()) return
 
 // Logs and prepares the `error` as an `http:ListenerAuthError`.
 isolated function prepareListenerAuthError(string message, error? err = ()) returns ListenerAuthError {
-    log:printError(message, err = err);
+    log:printError(message, 'error = err);
     if (err is error) {
         return error ListenerAuthError(message, err);
     }
