@@ -17,22 +17,22 @@
 import ballerina/time;
 
 isolated function isFreshResponse(Response cachedResponse, boolean isSharedCache) returns @tainted boolean {
-    int currentAge = getResponseAge(cachedResponse);
-    int freshnessLifetime = getFreshnessLifetime(cachedResponse, isSharedCache);
+    time:Seconds currentAge = getResponseAge(cachedResponse);
+    time:Seconds freshnessLifetime = getFreshnessLifetime(cachedResponse, isSharedCache);
     return freshnessLifetime > currentAge;
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.2.1
-isolated function getFreshnessLifetime(Response cachedResponse, boolean isSharedCache) returns int {
+isolated function getFreshnessLifetime(Response cachedResponse, boolean isSharedCache) returns time:Seconds {
     // TODO: Ensure that duplicate directives are not counted towards freshness lifetime.
     var responseCacheControl = cachedResponse.cacheControl;
     if (responseCacheControl is ResponseCacheControl) {
         if (isSharedCache && responseCacheControl.sMaxAge >= 0) {
-            return responseCacheControl.sMaxAge;
+            return <time:Seconds> responseCacheControl.sMaxAge;
         }
 
         if (responseCacheControl.maxAge >= 0) {
-            return responseCacheControl.maxAge;
+            return <time:Seconds> responseCacheControl.maxAge;
         }
     }
 
@@ -40,30 +40,30 @@ isolated function getFreshnessLifetime(Response cachedResponse, boolean isShared
     // When adding heuristic calculations, the condition would change to >1.
     string[]|error expiresHeader = cachedResponse.getHeaders(EXPIRES);
     if (expiresHeader is error) {
-        return STALE;
+        return <time:Seconds> STALE;
     } else {
         if (expiresHeader.length() != 1) {
-            return STALE;
+            return <time:Seconds> STALE;
         }
 
         string[]|error dateHeader = cachedResponse.getHeaders(DATE);
         if (dateHeader is error) {
-            return STALE;
+            return <time:Seconds> STALE;
         } else {
             if (dateHeader.length() != 1) {
-                return STALE;
+                return <time:Seconds> STALE;
             }
 
-            var tExpiresHeader = time:parse(expiresHeader[0], time:RFC_1123_DATE_TIME);
-            var tDateHeader = time:parse(dateHeader[0], time:RFC_1123_DATE_TIME);
-            if (tExpiresHeader is time:Time && tDateHeader is time:Time) {
-                int freshnessLifetime = (tExpiresHeader.time - tDateHeader.time) /1000;
+            var tExpiresHeader = createUtcFromRfc1123String(expiresHeader[0]);
+            var tDateHeader = createUtcFromRfc1123String(dateHeader[0]);
+            if (tExpiresHeader is time:Utc && tDateHeader is time:Utc) {
+                time:Seconds freshnessLifetime = time:utcDiffSeconds(tExpiresHeader, tDateHeader);
                 return freshnessLifetime;
             }
 
             // TODO: Add heuristic freshness lifetime calculation
 
-            return STALE;
+            return <time:Seconds> STALE;
         }
     }
 }

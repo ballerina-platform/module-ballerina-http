@@ -39,8 +39,8 @@ public class Response {
     public string resolvedRequestedURI = "";
     public ResponseCacheControl? cacheControl = ();
 
-    int receivedTime = 0;
-    int requestTime = 0;
+    time:Utc receivedTime = [0, 0.0];
+    time:Utc requestTime = [0, 0.0];
     private mime:Entity? entity = ();
 
     public isolated function init() {
@@ -348,8 +348,8 @@ public class Response {
 
     # Sets the current time as the `last-modified` header.
     public isolated function setLastModified() {
-        time:Time currentT = time:currentTime();
-        var lastModified = time:format(currentT, time:RFC_1123_DATE_TIME);
+        time:Utc currentT = time:utcNow();
+        var lastModified = createRfc1123FromUtc(currentT);
         if (lastModified is string) {
             self.setHeader(LAST_MODIFIED, lastModified);
         } else {

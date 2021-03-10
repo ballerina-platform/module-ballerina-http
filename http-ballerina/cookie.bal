@@ -19,6 +19,7 @@ import ballerina/lang.'string as strings;
 import ballerina/log;
 import ballerina/regex;
 import ballerina/time;
+import ballerina/io;
 
 # Represents a Cookie.
 # 
@@ -43,8 +44,8 @@ public class Cookie {
     public int maxAge = 0;
     public boolean httpOnly = false;
     public boolean secure = false;
-    public time:Time createdTime = time:currentTime();
-    public time:Time lastAccessedTime = time:currentTime();
+    public time:Utc createdTime = time:utcNow();
+    public time:Utc lastAccessedTime = time:utcNow();
     public boolean hostOnly = false;
 
     # Initializes the `http:Cookie` object.
@@ -56,7 +57,7 @@ public class Cookie {
         self.value = value;
     }
 
-    # Checks the persistance of the cookie.
+    # Checks the persistence of the cookie.
     #
     # + return  - `false` if the cookie will be discarded at the end of the "session" or else `true`.
     public function isPersistent() returns boolean {
@@ -159,11 +160,17 @@ public class Cookie {
 
 // Converts the cookie's expiry time into the GMT format.
 function toGmtFormat(Cookie cookie, string expires) returns boolean {
-    time:Time|error t1 = time:parse(expires, "yyyy-MM-dd HH:mm:ss");
-    if (t1 is time:Time) {
-        string|error timeString = time:format(<time:Time>t1, "E, dd MMM yyyy HH:mm:ss ");
+    // TODO check this formatter with new time API
+    // time:Utc|error t1 = time:parse(expires, "yyyy-MM-dd HH:mm:ss");
+    time:Utc|error t1 = utcFromString(expires, "yyyy-MM-dd HH:mm:ss");
+    if (t1 is time:Utc) {
+        // TODO check this formatter with new time API
+        // string|error timeString = time:format(<time:Utc>t1, "E, dd MMM yyyy HH:mm:ss ");
+        string|error timeString = utcToString(t1, "E, dd MMM yyyy HH:mm:ss");
+        // string|error timeString = createRfc1123FromUtc(t1);
         if (timeString is string) {
             cookie.expires = timeString + "GMT";
+            io:println("timeString: " + timeString);
             return true;
         }
     }
@@ -265,5 +272,5 @@ function comparator(Cookie c1, Cookie c2) returns int {
     if (l1 != l2) {
         return l2 - l1;
     }
-    return c1.createdTime.time - c2.createdTime.time;
+    return <int> time:utcDiffSeconds(c1.createdTime, c2.createdTime);
 }

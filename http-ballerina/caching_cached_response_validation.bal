@@ -18,7 +18,7 @@ import ballerina/log;
 import ballerina/time;
 
 function getValidationResponse(HttpClient httpClient, Request req, Response cachedResponse, HttpCache cache,
-                               time:Time currentT, string path, string httpMethod, boolean isFreshResponse)
+                               time:Utc currentT, string path, string httpMethod, boolean isFreshResponse)
                                                                                 returns @tainted Response|ClientError {
     // If the no-cache directive is set, always validate the response before serving
     if (isFreshResponse) {
@@ -35,7 +35,7 @@ function getValidationResponse(HttpClient httpClient, Request req, Response cach
         // if the connection is refused or the connection times out.
         // TODO: Verify that this behaviour is valid: returning a fresh response when 'no-cache' is present and
         // origin server couldn't be reached.
-        updateResponseTimestamps(cachedResponse, currentT.time, time:currentTime().time);
+        updateResponseTimestamps(cachedResponse, currentT, time:utcNow());
         setAgeHeader(<@untainted> cachedResponse);
 
         if (!isFreshResponse) {
@@ -64,7 +64,7 @@ function getValidationResponse(HttpClient httpClient, Request req, Response cach
         return validationResponse;
     } else {
         // Forward the received response and replace the stored responses
-        validationResponse.requestTime = currentT.time;
+        validationResponse.requestTime = currentT;
         if (req.cacheControl is RequestCacheControl) {
             cache.put(getCacheKey(httpMethod, path), req.cacheControl, validationResponse);
         }

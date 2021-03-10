@@ -270,7 +270,7 @@ public function createHttpCachingClient(string url, ClientConfiguration config, 
 
 function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Request req, string httpMethod, string path,
                            boolean isShared, boolean forwardRequest) returns @tainted Response|ClientError {
-    time:Time currentT = time:currentTime();
+    time:Utc currentT = time:utcNow();
     req.parseCacheControlHeader();
 
     if (cache.hasKey(getCacheKey(httpMethod, path))) {
@@ -280,7 +280,7 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
 
         // Based on https://tools.ietf.org/html/rfc7234#section-4
 
-        updateResponseTimestamps(cachedResponse, currentT.time, currentT.time);
+        updateResponseTimestamps(cachedResponse, currentT, currentT);
         setAgeHeader(<@untainted> cachedResponse);
 
         RequestCacheControl? reqCache = req.cacheControl;
@@ -313,7 +313,7 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
         var validatedResponse = getValidationResponse(httpClient, req, cachedResponse, cache, currentT, path,
                                                             httpMethod, false);
         if (validatedResponse is Response) {
-            updateResponseTimestamps(validatedResponse, currentT.time, time:currentTime().time);
+            updateResponseTimestamps(validatedResponse, currentT, time:utcNow());
             setAgeHeader(validatedResponse);
         }
         return validatedResponse;
@@ -325,8 +325,8 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
     var response = sendNewRequest(httpClient, req, path, httpMethod, forwardRequest);
     if (response is Response) {
         if (cache.isAllowedToCache(response)) {
-            response.requestTime = currentT.time;
-            response.receivedTime = time:currentTime().time;
+            response.requestTime = currentT;
+            response.receivedTime = time:utcNow();
             cache.put(<@untainted> getCacheKey(httpMethod, path), <@untainted> req.cacheControl, <@untainted> response);
         }
         return response;

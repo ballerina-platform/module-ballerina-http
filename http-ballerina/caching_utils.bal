@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/log;
+import ballerina/time;
 
 isolated function isNoCacheSet(RequestCacheControl? reqCC, ResponseCacheControl? resCC) returns boolean {
     if (reqCC is RequestCacheControl && reqCC.noCache) {
@@ -28,7 +29,7 @@ isolated function isNoCacheSet(RequestCacheControl? reqCC, ResponseCacheControl?
     return false;
 }
 
-isolated function updateResponseTimestamps(Response response, int requestedTime, int receivedTime) {
+isolated function updateResponseTimestamps(Response response, time:Utc requestedTime, time:Utc receivedTime) {
     response.requestTime = requestedTime;
     response.receivedTime = receivedTime;
 }

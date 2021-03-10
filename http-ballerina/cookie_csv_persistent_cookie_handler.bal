@@ -55,6 +55,8 @@ public class CsvPersistentCookieHandler {
     # + cookie - Cookie to be added
     # + return - An error will be returned if there is any error occurred during the storing process of the cookie or else nil is returned
     public function storeCookie(Cookie cookie) returns @tainted CookieHandlingError? {
+
+            io:println("----***********************storeCookie-----");
         if (fileExist(self.fileName) && self.cookiesTable.length() == 0) {
             var tblResult = readFile(self.fileName);
             if (tblResult is table<myCookie> key(name, domain, path)) {
@@ -80,6 +82,8 @@ public class CsvPersistentCookieHandler {
     #
     # + return - Array of persistent cookies stored in the cookie store or else an error is returned if one occurred during the retrieval of the cookies
     public function getAllCookies() returns @tainted Cookie[]|CookieHandlingError {
+
+        io:println("-----++++++++++++++++++++++ persi cook hand-----getAllCookies-------");
         Cookie[] cookies = [];
         if (fileExist(self.fileName)) {
             var tblResult = readFile(self.fileName);
@@ -92,12 +96,12 @@ public class CsvPersistentCookieHandler {
                     cookie.maxAge = rec.maxAge;
                     cookie.httpOnly = rec.httpOnly;
                     cookie.secure = rec.secure;
-                    time:Time|error t1 = time:parse(rec.createdTime, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-                    if (t1 is time:Time) {
+                    time:Utc|error t1 = time:utcFromString(rec.createdTime);
+                    if (t1 is time:Utc) {
                         cookie.createdTime = t1;
                     }
-                    time:Time|error t2 = time:parse(rec.lastAccessedTime, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-                    if (t2 is time:Time) {
+                    time:Utc|error t2 = time:utcFromString(rec.lastAccessedTime);
+                    if (t2 is time:Utc) {
                         cookie.lastAccessedTime = t2;
                     }
                     cookie.hostOnly = rec.hostOnly;
@@ -189,14 +193,19 @@ returns table<myCookie> key(name, domain, path)|error {
     var domain = cookieToAdd.domain;
     var path = cookieToAdd.path;
     var expires = cookieToAdd.expires;
-    var createdTime = time:format(cookieToAdd.createdTime, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    var lastAccessedTime = time:format(cookieToAdd.lastAccessedTime, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    if (name is string && value is string && domain is string && path is string && createdTime is string &&
-    lastAccessedTime is string) {
+    io:println("-----((((((((((((((1-------");
+    string createdTime = time:utcToString(cookieToAdd.createdTime);
+        io:println("-----((((((((((((((1---createdTime----" + createdTime);
+    string lastAccessedTime = time:utcToString(cookieToAdd.lastAccessedTime);
+        io:println("-----((((((((((((((1----lastAccessedTime---" + lastAccessedTime);
+    if (name is string && value is string && domain is string && path is string) {
         myCookie c1 = { name: name, value: value, domain: domain, path: path, expires: expires is string ?
         expires : "-", maxAge: cookieToAdd.maxAge, httpOnly: cookieToAdd.httpOnly, secure: cookieToAdd.secure,
         createdTime: createdTime, lastAccessedTime: lastAccessedTime, hostOnly: cookieToAdd.hostOnly };
         var result = tableToReturn.add(c1);
+
+        io:println("-----((((((((((((((addNewCookieToTable-------");
+        io:println(c1.toString());
         return tableToReturn;
     }
     return error CookieHandlingError("Invalid data types for cookie attributes");

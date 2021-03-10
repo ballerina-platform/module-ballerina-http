@@ -19,6 +19,7 @@ import ballerina/lang.value as val;
 import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
+import ballerina/time;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
@@ -321,4 +322,24 @@ isolated function externGetByteChannel(mime:Entity entity) returns @tainted io:R
 isolated function externPopulateInputStream(mime:Entity entity) = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "populateInputStream"
+} external;
+
+//parse a string format of RFC_1123_DATE_TIME to utc
+isolated function createUtcFromRfc1123String(string input) returns time:Utc|error = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternFormatter"
+} external;
+
+//format the utc to the RFC_1123_DATE_TIME format
+isolated function createRfc1123FromUtc(time:Utc utc) returns string|error = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternFormatter"
+} external;
+
+// Returns utc value from a given string and pattern.
+isolated function utcFromString(string input, string pattern) returns time:Utc|error = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternFormatter"
+} external;
+
+// Returns the formatted string from a given utc value and pattern.
+isolated function utcToString(time:Utc utc, string pattern) returns string|error = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternFormatter"
 } external;
