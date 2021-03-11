@@ -20,6 +20,7 @@ package org.ballerinalang.net.http.actions.httpclient;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
@@ -33,8 +34,12 @@ import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.message.Http2PushPromise;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
+import static org.ballerinalang.net.http.HttpConstants.CURRENT_TRANSACTION_CONTEXT_PROPERTY;
 
 /**
  * Utilities related to HTTP client actions.
@@ -128,6 +133,7 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {
         Future balFuture = env.markAsync();
+        Map<String, Object> propertyMap = getPropertiesToPropagate(env, CURRENT_TRANSACTION_CONTEXT_PROPERTY);
         env.getRuntime().invokeMethodAsync(client, methodName, null, null, new Callback() {
             @Override
             public void notifySuccess(Object result) {
@@ -138,7 +144,18 @@ public class HttpClientAction extends AbstractHTTPAction {
             public void notifyFailure(BError bError) {
                 balFuture.complete(bError);
             }
-        }, paramFeed);
+        }, propertyMap, PredefinedTypes.TYPE_NULL, paramFeed);
         return null;
+    }
+
+    private static Map<String, Object> getPropertiesToPropagate(Environment env, String... keys) {
+        Map<String, Object> subMap = new HashMap<>();
+        for (String key : keys) {
+            Object value = env.getStrandLocal(key);
+            if (value != null) {
+                subMap.put(key, value);
+            }
+        }
+        return subMap;
     }
 }

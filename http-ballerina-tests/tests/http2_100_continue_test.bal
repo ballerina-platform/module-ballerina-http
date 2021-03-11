@@ -63,7 +63,7 @@ service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
 
 function handleRespError(error? result) {
     if (result is error) {
-        log:printError(result.message(), err = result);
+        log:printError(result.message(), 'error = result);
     }
 }
 

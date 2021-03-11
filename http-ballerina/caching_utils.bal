@@ -14,6 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/log;
+import ballerina/time;
+
 isolated function isNoCacheSet(RequestCacheControl? reqCC, ResponseCacheControl? resCC) returns boolean {
     if (reqCC is RequestCacheControl && reqCC.noCache) {
         return true;
@@ -26,7 +29,7 @@ isolated function isNoCacheSet(RequestCacheControl? reqCC, ResponseCacheControl?
     return false;
 }
 
-isolated function updateResponseTimestamps(Response response, int requestedTime, int receivedTime) {
+isolated function updateResponseTimestamps(Response response, time:Utc requestedTime, time:Utc receivedTime) {
     response.requestTime = requestedTime;
     response.receivedTime = receivedTime;
 }
@@ -51,7 +54,7 @@ isolated function retain2xxWarnings(Response cachedResponse) {
         // TODO: Need to handle this in a better way using regex when the required regex APIs are there
         foreach var warningHeader in warningHeaders {
             if (warningHeader.indexOf("214") is int || warningHeader.indexOf("299") is int) {
-                // log:printDebug(() => "Adding warning header: " + warningHeader);
+                log:printDebug("Adding warning header: " + warningHeader);
                 cachedResponse.addHeader(WARNING, warningHeader);
                 continue;
             }
@@ -63,7 +66,7 @@ isolated function retain2xxWarnings(Response cachedResponse) {
 isolated function replaceHeaders(Response cachedResponse, Response validationResponse) {
     string[] headerNames = <@untainted>validationResponse.getHeaderNames();
 
-    // log:printDebug("Updating response headers using validation response.");
+    log:printDebug("Updating response headers using validation response.");
 
     foreach var headerName in headerNames {
         cachedResponse.removeHeader(headerName);

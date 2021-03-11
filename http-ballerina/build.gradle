@@ -245,10 +245,10 @@ task ballerinaBuild {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat build --skip-tests " +
+                commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat build -c --skip-tests " +
                         "${debugParams} && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal build --skip-tests ${debugParams}"
+                commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal build -c --skip-tests ${debugParams}"
             }
         }
         // extract bala file to artifact cache directory
