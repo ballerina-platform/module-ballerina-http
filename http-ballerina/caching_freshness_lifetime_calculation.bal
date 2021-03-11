@@ -40,22 +40,22 @@ isolated function getFreshnessLifetime(Response cachedResponse, boolean isShared
     // When adding heuristic calculations, the condition would change to >1.
     string[]|error expiresHeader = cachedResponse.getHeaders(EXPIRES);
     if (expiresHeader is error) {
-        return <time:Seconds> STALE;
+        return STALE;
     } else {
         if (expiresHeader.length() != 1) {
-            return <time:Seconds> STALE;
+            return STALE;
         }
 
         string[]|error dateHeader = cachedResponse.getHeaders(DATE);
         if (dateHeader is error) {
-            return <time:Seconds> STALE;
+            return STALE;
         } else {
             if (dateHeader.length() != 1) {
-                return <time:Seconds> STALE;
+                return STALE;
             }
 
-            var tExpiresHeader = createUtcFromRfc1123String(expiresHeader[0]);
-            var tDateHeader = createUtcFromRfc1123String(dateHeader[0]);
+            var tExpiresHeader = utcFromString(expiresHeader[0], RFC_1123_DATE_TIME);
+            var tDateHeader = utcFromString(dateHeader[0], RFC_1123_DATE_TIME);
             if (tExpiresHeader is time:Utc && tDateHeader is time:Utc) {
                 time:Seconds freshnessLifetime = time:utcDiffSeconds(tExpiresHeader, tDateHeader);
                 return freshnessLifetime;
@@ -63,7 +63,7 @@ isolated function getFreshnessLifetime(Response cachedResponse, boolean isShared
 
             // TODO: Add heuristic freshness lifetime calculation
 
-            return <time:Seconds> STALE;
+            return STALE;
         }
     }
 }

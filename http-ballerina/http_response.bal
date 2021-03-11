@@ -349,7 +349,7 @@ public class Response {
     # Sets the current time as the `last-modified` header.
     public isolated function setLastModified() {
         time:Utc currentT = time:utcNow();
-        var lastModified = createRfc1123FromUtc(currentT);
+        var lastModified = utcToString(currentT, RFC_1123_DATE_TIME);
         if (lastModified is string) {
             self.setHeader(LAST_MODIFIED, lastModified);
         } else {

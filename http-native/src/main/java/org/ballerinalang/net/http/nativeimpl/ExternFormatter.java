@@ -41,50 +41,18 @@ import java.util.Arrays;
  * Utilities related to time formatting.
  */
 public class ExternFormatter {
-
-    //TODO Remove redundant code
-    public static Object createUtcFromRfc1123String(BString inputString) {
-        try {
-            Instant instant = Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(inputString.getValue()));
-            long secondsFromEpoc = instant.getEpochSecond();
-            BigDecimal lastSecondFraction = new BigDecimal(instant.getNano()).divide(
-                    new BigDecimal(1000000000), MathContext.DECIMAL128).setScale(9, RoundingMode.HALF_UP);
-            BArray utcTuple = ValueCreator.createTupleValue(TypeCreator.createTupleType(
-                    Arrays.asList(PredefinedTypes.TYPE_INT, PredefinedTypes.TYPE_DECIMAL)));
-            utcTuple.add(0, secondsFromEpoc);
-            utcTuple.add(1, ValueCreator.createDecimalValue(lastSecondFraction));
-            utcTuple.freezeDirect();
-            return utcTuple;
-        } catch (Exception e) {
-            return HttpUtil.createHttpError("failed parsing: " + e.getMessage(),
-                                            HttpErrorType.GENERIC_LISTENER_ERROR);
-        }
-    }
-
-    public static Object createRfc1123FromUtc(BArray utc) {
-        try {
-            long secondsFromEpoc = 0;
-            BigDecimal lastSecondFraction = new BigDecimal(0);
-            if (utc.getLength() == 2) {
-                secondsFromEpoc = utc.getInt(0);
-                lastSecondFraction = new BigDecimal(utc.getValues()[1].toString()).multiply(new BigDecimal(1000000000));
-            } else if (utc.getLength() == 1) {
-                secondsFromEpoc = utc.getInt(0);
-            }
-            Instant instant = Instant.ofEpochSecond(secondsFromEpoc, lastSecondFraction.intValue());
-            ZonedDateTime zonedDateTime = instant.atZone(ZoneId.of("Z"));
-            return StringUtils.fromString(zonedDateTime.format(DateTimeFormatter.RFC_1123_DATE_TIME));
-        } catch (Exception e) {
-            return HttpUtil.createHttpError("failed formatting: " + e.getMessage(),
-                                            HttpErrorType.GENERIC_LISTENER_ERROR);
-        }
-    }
+    private static final String RFC_1123_DATE_TIME = "RFC_1123_DATE_TIME";
 
     public static Object utcFromString(BString inputString, BString pattern) {
         try {
-            java.util.Date formatter = new SimpleDateFormat(pattern.getValue())
-                    .parse(inputString.getValue());
-            Instant instant = formatter.toInstant();
+            Instant instant;
+            if (RFC_1123_DATE_TIME.equals(pattern.getValue())) {
+                instant = Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(inputString.getValue()));
+            } else {
+                java.util.Date formatter = new SimpleDateFormat(pattern.getValue())
+                        .parse(inputString.getValue());
+                instant = formatter.toInstant();
+            }
             long secondsFromEpoc = instant.getEpochSecond();
             BigDecimal lastSecondFraction = new BigDecimal(instant.getNano()).divide(
                     new BigDecimal(1000000000), MathContext.DECIMAL128).setScale(9, RoundingMode.HALF_UP);
@@ -112,7 +80,13 @@ public class ExternFormatter {
             }
             Instant instant = Instant.ofEpochSecond(secondsFromEpoc, lastSecondFraction.intValue());
             ZonedDateTime zonedDateTime = instant.atZone(ZoneId.of("Z"));
-            return StringUtils.fromString(zonedDateTime.format(DateTimeFormatter.ofPattern(pattern.getValue())));
+            DateTimeFormatter dateTimeFormatter;
+            if (RFC_1123_DATE_TIME.equals(pattern.getValue())) {
+                dateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME;
+            } else {
+                dateTimeFormatter = DateTimeFormatter.ofPattern(pattern.getValue());
+            }
+            return StringUtils.fromString(zonedDateTime.format(dateTimeFormatter));
         } catch (Exception e) {
             return HttpUtil.createHttpError("failed formatting: " + e.getMessage(),
                                             HttpErrorType.GENERIC_LISTENER_ERROR);

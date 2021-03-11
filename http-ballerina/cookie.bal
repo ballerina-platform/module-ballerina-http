@@ -19,7 +19,6 @@ import ballerina/lang.'string as strings;
 import ballerina/log;
 import ballerina/regex;
 import ballerina/time;
-import ballerina/io;
 
 # Represents a Cookie.
 # 
@@ -161,16 +160,11 @@ public class Cookie {
 // Converts the cookie's expiry time into the GMT format.
 function toGmtFormat(Cookie cookie, string expires) returns boolean {
     // TODO check this formatter with new time API
-    // time:Utc|error t1 = time:parse(expires, "yyyy-MM-dd HH:mm:ss");
     time:Utc|error t1 = utcFromString(expires, "yyyy-MM-dd HH:mm:ss");
     if (t1 is time:Utc) {
-        // TODO check this formatter with new time API
-        // string|error timeString = time:format(<time:Utc>t1, "E, dd MMM yyyy HH:mm:ss ");
         string|error timeString = utcToString(t1, "E, dd MMM yyyy HH:mm:ss");
-        // string|error timeString = createRfc1123FromUtc(t1);
         if (timeString is string) {
             cookie.expires = timeString + "GMT";
-            io:println("timeString: " + timeString);
             return true;
         }
     }

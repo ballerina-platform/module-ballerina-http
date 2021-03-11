@@ -52,7 +52,7 @@ isolated function getDateValue(Response inboundResponse) returns time:Utc {
     string|error dateHeader = inboundResponse.getHeader(DATE);
     if (dateHeader is string) {
         // TODO: May need to handle invalid date headers
-        var dateHeaderTime = createUtcFromRfc1123String(dateHeader);
+        var dateHeaderTime = utcFromString(dateHeader, RFC_1123_DATE_TIME);
         return (dateHeaderTime is time:Utc) ? dateHeaderTime : [0, 0.0];
     }
 
@@ -60,7 +60,7 @@ isolated function getDateValue(Response inboundResponse) returns time:Utc {
 
     // Based on https://tools.ietf.org/html/rfc7231#section-7.1.1.2
     time:Utc currentT = time:utcNow();
-    string timeStr = <string> checkpanic createRfc1123FromUtc(currentT);
+    string timeStr = <string> checkpanic utcToString(currentT, RFC_1123_DATE_TIME);
 
     inboundResponse.setHeader(DATE, timeStr);
     return currentT;

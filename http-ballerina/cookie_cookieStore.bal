@@ -16,7 +16,6 @@
 
 import ballerina/log;
 import ballerina/time;
-import ballerina/io;
 
 # Represents the cookie store.
 #
@@ -39,66 +38,49 @@ public class CookieStore {
     # + requestPath - Resource path
     # + return - An `http:CookieHandlingError` if there is any error occurred when adding a cookie or else `()`
     public function addCookie(Cookie cookie, CookieConfig cookieConfig, string url, string requestPath) returns CookieHandlingError? {
-        io:println("----***********************addCookie 1-----");
         if (self.getAllCookies().length() == cookieConfig.maxTotalCookieCount) {
             return error CookieHandlingError("Number of total cookies in the cookie store can not exceed the maximum amount");
         }
-                io:println("----***********************addCookie----2-");
         string domain = getDomain(url);
         if (self.getCookiesByDomain(domain).length() == cookieConfig.maxCookiesPerDomain) {
             return error CookieHandlingError("Number of total cookies for the domain: " + domain + " in the cookie store can not exceed the maximum amount per domain");
         }
-                io:println("----***********************addCookie---3--");
         string path  = requestPath;
         int? index = requestPath.indexOf("?");
         if (index is int) {
             path = requestPath.substring(0, index);
         }
-                io:println("----***********************addCookie--4---");
         lock {
             Cookie? identicalCookie = getIdenticalCookie(cookie, self);
-                    io:println("----***********************addCookie---5--");
             if (!isDomainMatched(cookie, domain, cookieConfig)) {
-                    io:println("----***********************addCookie---6--");
-
                 return;
             }
             if (!isPathMatched(cookie, path, cookieConfig)) {
-            io:println("----***********************addCookie---7--");
-
                 return;
             }
             if (!isExpiresAttributeValid(cookie)) {
-            io:println("----***********************addCookie---8--");
                 return;
             }
             if (!((url.startsWith(HTTP) && cookie.httpOnly) || cookie.httpOnly == false)) {
-            io:println("----***********************addCookie---9--");
                 return;
             }
             if (cookie.isPersistent()) {
-            io:println("----***********************addCookie---10--");
                 var persistentCookieHandler = self.persistentCookieHandler;
                 if (persistentCookieHandler is PersistentCookieHandler) {
-            io:println("----***********************addCookie---11--");
                     var result = addPersistentCookie(identicalCookie, cookie, url, persistentCookieHandler, self);
                     if (result is error) {
                         return error CookieHandlingError("Error in adding persistent cookies", result);
                     }
                 } else if (isFirstRequest(self.allSessionCookies, domain)) {
-            io:println("----***********************addCookie---12--");
                     log:printError("Client is not configured to use persistent cookies. Hence, persistent cookies from "
                                         + domain + " will be discarded.");
                 }
-            io:println("----***********************addCookie---15--");
             } else {
-            io:println("----***********************addCookie---13--");
                 var result = addSessionCookie(identicalCookie, cookie, url, self);
                 if (result is error) {
                     return error CookieHandlingError("Error in adding session cookie", result);
                 }
             }
-            io:println("----***********************addCookie---14--");
         }
     }
 
@@ -161,31 +143,20 @@ public class CookieStore {
     #
     # + return - Array of all the cookie objects
     public function getAllCookies() returns Cookie[] {
-                io:println("----------getAllCookies-------inside");
         var persistentCookieHandler = self.persistentCookieHandler;
         Cookie[] allCookies = [];
         foreach var cookie in self.allSessionCookies {
-                    io:println("----------allSessionCookies-------inside");
-                    io:println(cookie.toStringValue());
             allCookies.push(cookie);
         }
         if (persistentCookieHandler is PersistentCookieHandler) {
-                    io:println("---------persistentCookieHandler is PersistentCookieHandler--------inside");
             var result = persistentCookieHandler.getAllCookies();
             if (result is error) {
-                io:println("---------result is error--------inside");
                 log:printError("Error in getting persistent cookies: ", 'error = result);
             } else {
                 foreach var cookie in result {
-                io:println("--------------foreach var cookie in result ---inside");
-                io:println(cookie.toStringValue());
                     allCookies.push(cookie);
                 }
-
-                io:println("---------result is Cookie[] --------length: " + result.length().toString());
             }
-        } else {
-                    io:println("---------persistentCookieHandler is not PersistentCookieHandler-----------inside");
         }
         return allCookies;
     }
@@ -409,28 +380,18 @@ function checkPath(string path, Cookie cookie) returns boolean {
 
 // Returns true if the cookie expires attribute value is valid according to [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.1.1).
 function isExpiresAttributeValid(Cookie cookie) returns boolean {
-    io:println("----***********************isExpiresAttributeValid");
     var expiryTime = cookie.expires;
     if (expiryTime is ()) {
-    io:println("----***********************expiryTime is ()");
          return true;
     } else {
-    io:println("----***********************expiryTime is not ()");
-    io:println("expiryTime: " + expiryTime);
-        // TODO check this formatter with new time API
-        // time:Utc|error t1 = time:parse(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
         time:Utc|error t1 = utcFromString(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
         if (t1 is time:Utc) {
             time:Civil civil = time:utcToCivil(t1);
             int year = civil.year;
-            io:println("year " + year.toString());
             if (year <= 69 && year >= 0) {
                 // Adds 2000 years which is 63072000000 seconds
                 time:Utc tmAdd = time:utcAddSeconds(t1, 63072000000);
-                // TODO check this formatter with new time API
-                // string|error timeString = time:format(tmAdd, "E, dd MMM yyyy HH:mm:ss");
                 string|error timeString = utcToString(tmAdd, "E, dd MMM yyyy HH:mm:ss");
-                // string|error timeString = createRfc1123FromUtc(tmAdd);
                 if (timeString is string) {
                     cookie.expires = timeString + "GMT";
                     return true;
@@ -438,8 +399,6 @@ function isExpiresAttributeValid(Cookie cookie) returns boolean {
                 return false;
             }
             return true;
-        } else {
-            io:println("----***********************utcFromString is error" + t1.message());
         }
         return false;
     }
@@ -458,7 +417,6 @@ function isFirstRequest(Cookie[] allSessionCookies, string domain) returns boole
 
 // Adds a persistent cookie to the cookie store according to the rules in [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.3 , https://tools.ietf.org/html/rfc6265#section-4.1.2).
 function addPersistentCookie(Cookie? identicalCookie, Cookie cookie, string url, PersistentCookieHandler persistentCookieHandler, CookieStore cookieStore) returns error? {
-    io:println("addPersistentCookie root");
     if (identicalCookie is Cookie) {
         var identicalCookieName = identicalCookie.name;
         var identicalCookieDomain = identicalCookie.domain;
@@ -490,20 +448,13 @@ function addPersistentCookie(Cookie? identicalCookie, Cookie cookie, string url,
 
 // Returns true if the cookie is expired according to the rules in [RFC-6265](https://tools.ietf.org/html/rfc6265#section-4.1.2.2).
 function isExpired(Cookie cookie) returns boolean {
-    io:println("isExpired");
     if (cookie.maxAge > 0) {
-    io:println("cookie.maxAge > 0");
-    io:println(cookie.maxAge.toString());
         time:Utc expTime = time:utcAddSeconds(cookie.createdTime, <time:Seconds> cookie.maxAge);
         time:Utc curTime = time:utcNow();
         return (time:utcDiffSeconds(expTime, curTime) < 0);
     }
     var expiryTime = cookie.expires;
-    io:println("cookie.expires");
     if (expiryTime is string) {
-    io:println("expiryTime: " + expiryTime);
-        // TODO check this formatter with new time API
-        // time:Utc|error cookieExpires = time:parse(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
         time:Utc|error cookieExpires = utcFromString(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
         time:Utc curTime = time:utcNow();
         if ((cookieExpires is time:Utc) && (time:utcDiffSeconds(cookieExpires, curTime) < 0)) {
