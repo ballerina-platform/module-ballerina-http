@@ -125,13 +125,13 @@ service /reuseObj on reuseRequestListenerEP {
                         secondVal = result2.message();
                     }
                 } else {
-                    log:printError(secondResponse.message(), err = secondResponse);
+                    log:printError(secondResponse.message(), 'error = secondResponse);
                 }
             } else {
-                log:printError(firstResponse.message(), err = firstResponse);
+                log:printError(firstResponse.message(), 'error = firstResponse);
             }
         } else {
-            log:printError(entity.message(), err = entity);
+            log:printError(entity.message(), 'error = entity);
         }
         testResponse.setTextPayload(firstVal + secondVal);
         checkpanic caller->respond(testResponse);
@@ -204,10 +204,10 @@ service /reuseObj on reuseRequestListenerEP {
     //             testResponse.setTextPayload(<@untainted> firstVal + <@untainted> secondVal);
     //             checkpanic caller->respond(testResponse);
     //         } else {
-    //             log:printError(firstResponse.message(), err = firstResponse);
+    //             log:printError(firstResponse.message(), 'error = firstResponse);
     //         }
     //     } else {
-    //         log:printError(byteChannel.message(), err = byteChannel);
+    //         log:printError(byteChannel.message(), 'error = byteChannel);
     //     }
     // }
 
@@ -243,10 +243,10 @@ service /reuseObj on reuseRequestListenerEP {
                 testResponse.setTextPayload(<@untainted> firstVal + <@untainted> secondVal);
                 checkpanic caller->respond(testResponse);
             } else {
-                log:printError(firstResponse.message(), err = firstResponse);
+                log:printError(firstResponse.message(), 'error = firstResponse);
             }
         } else {
-            log:printError(byteStream.message(), err = byteStream);
+            log:printError(byteStream.message(), 'error = byteStream);
         }
     }
 }

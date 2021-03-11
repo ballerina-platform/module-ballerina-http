@@ -354,34 +354,36 @@ public class HttpConstants {
     public static final String ENABLE_PIPELINING = "enable";
     public static final BString PIPELINING_REQUEST_LIMIT = StringUtils.fromString("maxPipelinedRequests");
 
-    public static final BString ENDPOINT_CONFIG_SECURE_SOCKET = StringUtils.fromString("secureSocket");
+    public static final BString ENDPOINT_CONFIG_SECURESOCKET = StringUtils.fromString("secureSocket");
+    public static final BString SECURESOCKET_CONFIG_DISABLE_SSL = StringUtils.fromString("enable");
+    public static final BString SECURESOCKET_CONFIG_CERT = StringUtils.fromString("cert");
+    public static final BString SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH = StringUtils.fromString("path");
+    public static final BString SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD = StringUtils.fromString("password");
+    public static final BString SECURESOCKET_CONFIG_KEY = StringUtils.fromString("key");
+    public static final BString SECURESOCKET_CONFIG_CERTKEY_CERT_FILE = StringUtils.fromString("certFile");
+    public static final BString SECURESOCKET_CONFIG_CERTKEY_KEY_FILE = StringUtils.fromString("keyFile");
+    public static final BString SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD = StringUtils.fromString("keyPassword");
+    public static final BString SECURESOCKET_CONFIG_KEYSTORE_FILE_PATH = StringUtils.fromString("path");
+    public static final BString SECURESOCKET_CONFIG_KEYSTORE_PASSWORD = StringUtils.fromString("password");
+    public static final BString SECURESOCKET_CONFIG_PROTOCOL = StringUtils.fromString("protocol");
+    public static final BString SECURESOCKET_CONFIG_PROTOCOL_NAME = StringUtils.fromString("name");
+    public static final BString SECURESOCKET_CONFIG_PROTOCOL_VERSIONS = StringUtils.fromString("versions");
+    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION = StringUtils.fromString("certValidation");
+    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE = StringUtils.fromString("cacheSize");
+    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE = StringUtils.fromString("cacheSize");
+    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD =
+            StringUtils.fromString("cacheValidityPeriod");
+    public static final BString SECURESOCKET_CONFIG_CIPHERS = StringUtils.fromString("ciphers");
+    public static final BString SECURESOCKET_CONFIG_HOST_NAME_VERIFICATION_ENABLED =
+            StringUtils.fromString("verifyHostName");
+    public static final BString SECURESOCKET_CONFIG_SHARE_SESSION = StringUtils.fromString("shareSession");
+    public static final BString SECURESOCKET_CONFIG_HANDSHAKE_TIMEOUT = StringUtils.fromString("handshakeTimeout");
+    public static final BString SECURESOCKET_CONFIG_SESSION_TIMEOUT = StringUtils.fromString("sessionTimeout");
+    public static final BString SECURESOCKET_CONFIG_MUTUAL_SSL = StringUtils.fromString("mutualSsl");
+    public static final BString SECURESOCKET_CONFIG_VERIFY_CLIENT = StringUtils.fromString("verifyClient");
 
-    public static final BString ENDPOINT_CONFIG_TRUST_STORE = StringUtils.fromString("trustStore");
-    public static final BString FILE_PATH = StringUtils.fromString("path");
-    public static final BString PASSWORD = StringUtils.fromString("password");
-    public static final BString SSL_PROTOCOL_VERSION = StringUtils.fromString("name");
-    public static final BString ENABLED_PROTOCOLS = StringUtils.fromString("versions");
-    public static final BString ENABLE = StringUtils.fromString("enable");
-    public static final BString ENDPOINT_CONFIG_OCSP_STAPLING = StringUtils.fromString("ocspStapling");
-    public static final BString ENDPOINT_CONFIG_KEY_STORE = StringUtils.fromString("keyStore");
-    public static final BString ENDPOINT_CONFIG_PROTOCOLS = StringUtils.fromString("protocol");
-    public static final BString ENDPOINT_CONFIG_VALIDATE_CERT = StringUtils.fromString("certValidation");
-    public static final BString ENDPOINT_CONFIG_CERTIFICATE = StringUtils.fromString("certFile");
-    public static final BString ENDPOINT_CONFIG_KEY = StringUtils.fromString("keyFile");
-    public static final BString ENDPOINT_CONFIG_KEY_PASSWORD = StringUtils.fromString("keyPassword");
-    public static final BString ENDPOINT_CONFIG_TRUST_CERTIFICATES = StringUtils.fromString("trustedCertFile");
-    public static final BString ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT =
-            StringUtils.fromString("handshakeTimeoutInSeconds");
-    public static final BString ENDPOINT_CONFIG_SESSION_TIMEOUT = StringUtils.fromString("sessionTimeoutInSeconds");
-    public static final BString ENDPOINT_CONFIG_DISABLE_SSL = StringUtils.fromString("disable");
-
-    //SslConfiguration indexes
-    public static final BString SSL_CONFIG_SSL_VERIFY_CLIENT = StringUtils.fromString("sslVerifyClient");
-    public static final BString SSL_CONFIG_CIPHERS = StringUtils.fromString("ciphers");
-    public static final BString SSL_CONFIG_CACHE_SIZE = StringUtils.fromString("cacheSize");
-    public static final BString SSL_CONFIG_CACHE_VALIDITY_PERIOD = StringUtils.fromString("cacheValidityPeriod");
-    public static final BString SSL_CONFIG_HOST_NAME_VERIFICATION_ENABLED = StringUtils.fromString("verifyHostname");
-    public static final BString SSL_CONFIG_ENABLE_SESSION_CREATION = StringUtils.fromString("shareSession");
+    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING =
+            StringUtils.fromString("OCSP_STAPLING");
 
     //Client Endpoint (CallerActions)
     public static final BString CLIENT_ENDPOINT_SERVICE_URI = StringUtils.fromString("url");
@@ -474,6 +476,8 @@ public class HttpConstants {
     public static final String SINGLE_SLASH = "/";
     public static final String DOUBLE_SLASH = "//";
     public static final String REGEX = "(?<!(http:|https:))//";
+
+    public static final String SERVER_CONNECTOR_FUTURE = "ServerConnectorFuture";
 
     public static final String HTTP_VERSION_1_1 = "1.1";
 

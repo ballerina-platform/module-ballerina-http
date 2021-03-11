@@ -270,7 +270,7 @@ function testListenerOAuth2HandlerAuthSuccess() {
         scopeKey: "scp",
         clientConfig: {
             secureSocket: {
-               trustStore: {
+               cert: {
                    path: TRUSTSTORE_PATH,
                    password: "ballerina"
                }
@@ -297,7 +297,7 @@ function testListenerOAuth2HandlerAuthzFailure() {
         scopeKey: "scp",
         clientConfig: {
             secureSocket: {
-               trustStore: {
+               cert: {
                    path: TRUSTSTORE_PATH,
                    password: "ballerina"
                }
@@ -322,7 +322,7 @@ function testListenerOAuth2HandlerAuthnFailure() {
         scopeKey: "scp",
         clientConfig: {
             secureSocket: {
-               trustStore: {
+               cert: {
                    path: TRUSTSTORE_PATH,
                    password: "ballerina"
                }

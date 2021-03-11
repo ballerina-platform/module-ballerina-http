@@ -28,11 +28,11 @@ def snapshotVersion = "-SNAPSHOT"
 def tomlVersion = project.version.replace("${snapshotVersion}", "")
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
-def artifactJar = file("$project.projectDir/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${project.ballerinaLangVersion}/repo/cache/ballerina/http/${tomlVersion}/java11/")
 def originalConfig = ballerinaConfigFile.text
 def originalDependency = ballerinaDependencyFile.text
 def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
 def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
+def testCoverageParam = "--code-coverage --includes=org.ballerinalang.net.*:ballerina.*"
 
 configurations {
     jbalTools
@@ -98,8 +98,8 @@ task copyHttpStdlib {
     doLast {
         /* Copy HTTP module */
         copy {
-            from "$project.rootDir/http-ballerina/target/bala"
-            into "${ballerinaDist}/repo/bala/${packageOrg}/http/${tomlVersion}"
+            from "$project.rootDir/http-ballerina/build/cache_parent/bala"
+            into "${ballerinaDist}/repo/bala"
         }
     }
 }
@@ -186,11 +186,11 @@ task ballerinaTest {
             // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat test " +
-                        "--code-coverage --includes=* ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
+                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
                         "exit %%ERRORLEVEL%%"
             } else {
                 commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal test " +
-                        "--code-coverage --includes=* ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
+                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
             }
         }
     }
@@ -216,35 +216,3 @@ publishing {
         }
     }
 }
-
-task extractBallerinaClassFiles(type: Copy) {
-    def jars = fileTree(artifactJar).findAll {
-        it.name.endsWith(".jar")
-    }
-
-    jars.forEach { file ->
-        from zipTree(file).matching {
-            exclude '**/tests/*'
-            include '**/*.class'
-        }
-        into "${project.rootDir.absolutePath}/build/classes"
-    }
-}
-
-task codeCoverageReportBal(type: JacocoReport) {
-    dependsOn(':http-ballerina:build')
-    dependsOn(':http-ballerina-tests:build')
-    dependsOn(extractBallerinaClassFiles)
-    additionalClassDirs files("${project.rootDir.absolutePath}/build/classes")
-
-    reports {
-        xml.enabled = true
-        html.enabled = true
-        xml.destination = new File("${buildDir}/reports/jacoco/report.xml")
-        html.destination = new File("${buildDir}/reports/jacoco/report.html")
-    }
-
-    onlyIf = {
-        true
-    }
-} 

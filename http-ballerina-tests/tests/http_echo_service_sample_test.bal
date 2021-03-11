@@ -26,7 +26,7 @@ http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestP
 
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: keystore,
             password: "ballerina"
         }
@@ -37,7 +37,7 @@ listener http:Listener echoHttpsServiceTestListenerEP = new(echoHttpsServiceTest
 
 http:ClientConfiguration echoHttpsServiceClientConfig = {
     secureSocket: {
-        trustStore: {
+        cert: {
             path: truststore,
             password: "ballerina"
         }
@@ -58,7 +58,7 @@ service /echoServiceTest1 on echoServiceTestListenerEP {
             log:printError("Failed to retrieve payload from request: " + payload.message());
             var responseError = caller->respond(resp);
             if (responseError is error) {
-                log:printError("Error sending response", err = responseError);
+                log:printError("Error sending response", 'error = responseError);
             }
         }
     }

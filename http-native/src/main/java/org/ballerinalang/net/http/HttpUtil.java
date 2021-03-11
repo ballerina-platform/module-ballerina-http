@@ -115,9 +115,6 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
 import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.ballerinalang.mime.util.EntityBodyHandler.checkEntityBodyAvailability;
 import static org.ballerinalang.mime.util.MimeConstants.BOUNDARY;
 import static org.ballerinalang.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
@@ -137,20 +134,6 @@ import static org.ballerinalang.net.http.HttpConstants.AUTO;
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_MANAGER;
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION;
 import static org.ballerinalang.net.http.HttpConstants.DOUBLE_SLASH;
-import static org.ballerinalang.net.http.HttpConstants.ENABLED_PROTOCOLS;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_CERTIFICATE;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_DISABLE_SSL;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_KEY;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_KEY_PASSWORD;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_KEY_STORE;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_OCSP_STAPLING;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_PROTOCOLS;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_SESSION_TIMEOUT;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_TRUST_CERTIFICATES;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_TRUST_STORE;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_VALIDATE_CERT;
-import static org.ballerinalang.net.http.HttpConstants.FILE_PATH;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_ERROR_MESSAGE;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_ERROR_STATUS_CODE;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_HEADERS;
@@ -161,7 +144,6 @@ import static org.ballerinalang.net.http.HttpConstants.MUTUAL_SSL_HANDSHAKE_RECO
 import static org.ballerinalang.net.http.HttpConstants.NEVER;
 import static org.ballerinalang.net.http.HttpConstants.NO_CONTENT_LENGTH_FOUND;
 import static org.ballerinalang.net.http.HttpConstants.ONE_BYTE;
-import static org.ballerinalang.net.http.HttpConstants.PASSWORD;
 import static org.ballerinalang.net.http.HttpConstants.PKCS_STORE_TYPE;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTPS;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST;
@@ -174,10 +156,32 @@ import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_REASON_PHRASE_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_STATUS_CODE_FIELD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERTKEY_CERT_FILE;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERTKEY_KEY_FILE;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CIPHERS;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_HANDSHAKE_TIMEOUT;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_HOST_NAME_VERIFICATION_ENABLED;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_KEY;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_KEYSTORE_FILE_PATH;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_KEYSTORE_PASSWORD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_MUTUAL_SSL;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_PROTOCOL;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_PROTOCOL_NAME;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_PROTOCOL_VERSIONS;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_SHARE_SESSION;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_VERIFY_CLIENT;
 import static org.ballerinalang.net.http.HttpConstants.SERVER_NAME;
-import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_ENABLE_SESSION_CREATION;
-import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_SSL_VERIFY_CLIENT;
-import static org.ballerinalang.net.http.HttpConstants.SSL_PROTOCOL_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.TRANSPORT_MESSAGE;
 import static org.ballerinalang.net.http.nativeimpl.ModuleUtils.getHttpPackage;
 import static org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler.sendPipelinedResponse;
@@ -1221,7 +1225,8 @@ public class HttpUtil {
     public static void populateSenderConfigurations(SenderConfiguration senderConfiguration,
             BMap<BString, Object> clientEndpointConfig, String scheme) {
         ProxyServerConfiguration proxyServerConfiguration;
-        BMap secureSocket = clientEndpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURE_SOCKET);
+        BMap<BString, Object> secureSocket = (BMap<BString, Object>) clientEndpointConfig
+                .getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();
         if (secureSocket != null) {
             HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
@@ -1318,123 +1323,44 @@ public class HttpUtil {
     /**
      * Populates SSL configuration instance with secure socket configuration.
      *
-     * @param sslConfiguration  ssl configuration instance.
-     * @param secureSocket    secure socket configuration.
+     * @param senderConfiguration SSL configuration instance.
+     * @param secureSocket        Secure socket configuration.
      */
-    public static void populateSSLConfiguration(SslConfiguration sslConfiguration, BMap secureSocket) {
-        BMap trustStore = secureSocket.getMapValue(ENDPOINT_CONFIG_TRUST_STORE);
-        BMap keyStore = secureSocket.getMapValue(ENDPOINT_CONFIG_KEY_STORE);
-        BMap protocols = secureSocket.getMapValue(ENDPOINT_CONFIG_PROTOCOLS);
-        BMap validateCert = secureSocket.getMapValue(ENDPOINT_CONFIG_VALIDATE_CERT);
-        String keyFile = secureSocket.getStringValue(ENDPOINT_CONFIG_KEY).getValue();
-        String certFile = secureSocket.getStringValue(ENDPOINT_CONFIG_CERTIFICATE).getValue();
-        String trustCerts = secureSocket.getStringValue(ENDPOINT_CONFIG_TRUST_CERTIFICATES).getValue();
-        String keyPassword = secureSocket.getStringValue(ENDPOINT_CONFIG_KEY_PASSWORD).getValue();
-        boolean disableSslValidation = secureSocket.getBooleanValue(ENDPOINT_CONFIG_DISABLE_SSL);
-        List<Parameter> clientParams = new ArrayList<>();
-        if (disableSslValidation) {
-            sslConfiguration.disableSsl();
-            return;
-        } else if (isEmpty(trustCerts) && trustStore == null) {
-            sslConfiguration.useJavaDefaults();
+    public static void populateSSLConfiguration(SslConfiguration senderConfiguration,
+                                                BMap<BString, Object> secureSocket) {
+        List<Parameter> clientParamList = new ArrayList<>();
+        boolean enable = secureSocket.getBooleanValue(SECURESOCKET_CONFIG_DISABLE_SSL);
+        if (!enable) {
+            senderConfiguration.disableSsl();
             return;
         }
-        if (trustStore != null && isNotBlank(trustCerts)) {
-            throw createHttpError("Cannot configure both trustStore and trustCerts at the same time.",
-                    HttpErrorType.SSL_ERROR);
+        Object cert = secureSocket.get(SECURESOCKET_CONFIG_CERT);
+        if (cert == null) {
+            throw createHttpError("Need to configure 'crypto:TrustStore' or 'cert' with client SSL certificates file.",
+                                  HttpErrorType.SSL_ERROR);
         }
-        if (trustStore != null) {
-            String trustStoreFile = trustStore.getStringValue(FILE_PATH).getValue();
-            if (isNotBlank(trustStoreFile)) {
-                sslConfiguration.setTrustStoreFile(trustStoreFile);
-            }
-            String trustStorePassword = trustStore.getStringValue(PASSWORD).getValue();
-            if (isNotBlank(trustStorePassword)) {
-                sslConfiguration.setTrustStorePass(trustStorePassword);
-            }
-        } else if (isNotBlank(trustCerts)) {
-            sslConfiguration.setClientTrustCertificates(trustCerts);
+        evaluateCertField(cert, senderConfiguration);
+        BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_KEY);
+        if (key != null) {
+            evaluateKeyField(key, senderConfiguration);
         }
-        if (keyStore != null && isNotBlank(keyFile)) {
-            throw createHttpError("Cannot configure both keyStore and keyFile.", HttpErrorType.SSL_ERROR);
-        } else if (isNotBlank(keyFile) && isBlank(certFile)) {
-            throw createHttpError("Need to configure certFile containing client ssl certificates.",
-                    HttpErrorType.SSL_ERROR);
+        BMap<BString, Object> protocol = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_PROTOCOL);
+        if (protocol != null) {
+            evaluateProtocolField(protocol, senderConfiguration, clientParamList);
         }
-        if (keyStore != null) {
-            String keyStoreFile = keyStore.getStringValue(FILE_PATH).getValue();
-            if (isNotBlank(keyStoreFile)) {
-                sslConfiguration.setKeyStoreFile(keyStoreFile);
-            }
-            String keyStorePassword = keyStore.getStringValue(PASSWORD).getValue();
-            if (isNotBlank(keyStorePassword)) {
-                sslConfiguration.setKeyStorePass(keyStorePassword);
-            }
-        } else if (isNotBlank(keyFile)) {
-            sslConfiguration.setClientKeyFile(keyFile);
-            sslConfiguration.setClientCertificates(certFile);
-            if (isNotBlank(keyPassword)) {
-                sslConfiguration.setClientKeyPassword(keyPassword);
-            }
+        BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_CERT_VALIDATION);
+        if (certValidation != null) {
+            evaluateCertValidationField(certValidation, senderConfiguration);
         }
-        if (protocols != null) {
-            List<String> sslEnabledProtocolsValueList = Arrays.asList(
-                    protocols.getArrayValue(ENABLED_PROTOCOLS).getStringArray());
-            if (!sslEnabledProtocolsValueList.isEmpty()) {
-                String sslEnabledProtocols = sslEnabledProtocolsValueList.stream()
-                        .collect(Collectors.joining(",", "", ""));
-                Parameter clientProtocols = new Parameter(ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS, sslEnabledProtocols);
-                clientParams.add(clientProtocols);
-            }
+        BArray ciphers = secureSocket.containsKey(SECURESOCKET_CONFIG_CIPHERS) ?
+                secureSocket.getArrayValue(SECURESOCKET_CONFIG_CIPHERS) : null;
+        if (ciphers != null) {
+            evaluateCiphersField(ciphers, clientParamList);
+        }
+        evaluateCommonFields(secureSocket, senderConfiguration, clientParamList);
 
-            String sslProtocol = protocols.getStringValue(SSL_PROTOCOL_VERSION).getValue();
-            if (isNotBlank(sslProtocol)) {
-                sslConfiguration.setSSLProtocol(sslProtocol);
-            }
-        }
-
-        if (validateCert != null) {
-            boolean validateCertEnabled = validateCert.getBooleanValue(HttpConstants.ENABLE);
-            int cacheSize = validateCert.getIntValue(HttpConstants.SSL_CONFIG_CACHE_SIZE).intValue();
-            int cacheValidityPeriod = validateCert.getIntValue(HttpConstants.SSL_CONFIG_CACHE_VALIDITY_PERIOD)
-                    .intValue();
-            sslConfiguration.setValidateCertEnabled(validateCertEnabled);
-            if (cacheValidityPeriod != 0) {
-                sslConfiguration.setCacheValidityPeriod(cacheValidityPeriod);
-            }
-            if (cacheSize != 0) {
-                sslConfiguration.setCacheSize(cacheSize);
-            }
-        }
-        boolean hostNameVerificationEnabled = secureSocket
-                .getBooleanValue(HttpConstants.SSL_CONFIG_HOST_NAME_VERIFICATION_ENABLED);
-        boolean ocspStaplingEnabled = secureSocket.getBooleanValue(HttpConstants.ENDPOINT_CONFIG_OCSP_STAPLING);
-        sslConfiguration.setOcspStaplingEnabled(ocspStaplingEnabled);
-        sslConfiguration.setHostNameVerificationEnabled(hostNameVerificationEnabled);
-
-        sslConfiguration.setSslSessionTimeOut(
-                (int) ((secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT)));
-
-        sslConfiguration.setSslHandshakeTimeOut(
-                (secureSocket).getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
-
-        Object[] cipherConfigs = secureSocket.getArrayValue(HttpConstants.SSL_CONFIG_CIPHERS).getStringArray();
-        if (cipherConfigs != null) {
-            List<Object> ciphersValueList = Arrays.asList(cipherConfigs);
-            if (ciphersValueList.size() > 0) {
-                String ciphers = ciphersValueList.stream().map(Object::toString)
-                        .collect(Collectors.joining(",", "", ""));
-                Parameter clientCiphers = new Parameter(HttpConstants.CIPHERS, ciphers);
-                clientParams.add(clientCiphers);
-            }
-        }
-        String enableSessionCreation = String.valueOf(
-                secureSocket.getBooleanValue(HttpConstants.SSL_CONFIG_ENABLE_SESSION_CREATION));
-        Parameter clientEnableSessionCreation = new Parameter(
-                HttpConstants.SSL_CONFIG_ENABLE_SESSION_CREATION.getValue(), enableSessionCreation);
-        clientParams.add(clientEnableSessionCreation);
-        if (!clientParams.isEmpty()) {
-            sslConfiguration.setParameters(clientParams);
+        if (!clientParamList.isEmpty()) {
+            senderConfiguration.setParameters(clientParamList);
         }
     }
 
@@ -1518,7 +1444,7 @@ public class HttpUtil {
      */
     public static ListenerConfiguration getListenerConfig(long port, BMap endpointConfig) {
         String host = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_HOST).getValue();
-        BMap sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURE_SOCKET);
+        BMap<BString, Object> sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_VERSION).getValue();
         long idleTimeout = endpointConfig.getIntValue(HttpConstants.ENDPOINT_CONFIG_TIMEOUT);
 
@@ -1619,139 +1545,184 @@ public class HttpUtil {
         return userAgent;
     }
 
-    private static ListenerConfiguration setSslConfig(BMap sslConfig, ListenerConfiguration listenerConfiguration) {
-        listenerConfiguration.setScheme(PROTOCOL_HTTPS);
-        BMap trustStore = sslConfig.getMapValue(ENDPOINT_CONFIG_TRUST_STORE);
-        BMap keyStore = sslConfig.getMapValue(ENDPOINT_CONFIG_KEY_STORE);
-        BMap protocols = sslConfig.getMapValue(ENDPOINT_CONFIG_PROTOCOLS);
-        BMap validateCert = sslConfig.getMapValue(ENDPOINT_CONFIG_VALIDATE_CERT);
-        BMap ocspStapling = sslConfig.getMapValue(ENDPOINT_CONFIG_OCSP_STAPLING);
-        String keyFile = sslConfig.getStringValue(ENDPOINT_CONFIG_KEY).getValue();
-        String certFile = sslConfig.getStringValue(ENDPOINT_CONFIG_CERTIFICATE).getValue();
-        String trustCerts = sslConfig.getStringValue(ENDPOINT_CONFIG_TRUST_CERTIFICATES).getValue();
-        String keyPassword = sslConfig.getStringValue(ENDPOINT_CONFIG_KEY_PASSWORD).getValue();
-
-        if (keyStore != null && isNotBlank(keyFile)) {
-            throw createHttpError("Cannot configure both keyStore and keyFile at the same time.",
-                                  HttpErrorType.SSL_ERROR);
-        } else if (keyStore == null && (isBlank(keyFile) || isBlank(certFile))) {
-            throw createHttpError("Either keystore or certificateKey and server certificates must be provided "
-                                          + "for secure connection", HttpErrorType.SSL_ERROR);
-        }
-        if (keyStore != null) {
-            String keyStoreFile = keyStore.getStringValue(FILE_PATH).getValue();
-            if (isBlank(keyStoreFile)) {
-                throw createHttpError("Keystore file location must be provided for secure connection.",
-                        HttpErrorType.SSL_ERROR);
-            }
-            String keyStorePassword = keyStore.getStringValue(PASSWORD).getValue();
-            if (isBlank(keyStorePassword)) {
-                throw createHttpError("Keystore password must be provided for secure connection",
-                        HttpErrorType.SSL_ERROR);
-            }
-            listenerConfiguration.setKeyStoreFile(keyStoreFile);
-            listenerConfiguration.setKeyStorePass(keyStorePassword);
-        } else {
-            listenerConfiguration.setServerKeyFile(keyFile);
-            listenerConfiguration.setServerCertificates(certFile);
-            if (isNotBlank(keyPassword)) {
-                listenerConfiguration.setServerKeyPassword(keyPassword);
-            }
-        }
-        String sslVerifyClient = sslConfig.getStringValue(SSL_CONFIG_SSL_VERIFY_CLIENT).getValue();
-        listenerConfiguration.setVerifyClient(sslVerifyClient);
-        listenerConfiguration
-                .setSslSessionTimeOut((int) (sslConfig).getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT));
-        listenerConfiguration
-                .setSslHandshakeTimeOut((sslConfig).getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
-        if (trustStore == null && isNotBlank(sslVerifyClient) && isBlank(trustCerts)) {
-            throw createHttpError("Truststore location or trustCertificates must be provided to enable Mutual SSL",
-                    HttpErrorType.SSL_ERROR);
-        }
-        if (trustStore != null) {
-            String trustStoreFile = trustStore.getStringValue(FILE_PATH).getValue();
-            String trustStorePassword = trustStore.getStringValue(PASSWORD).getValue();
-            if (isBlank(trustStoreFile) && isNotBlank(sslVerifyClient)) {
-                throw createHttpError("Truststore location must be provided to enable Mutual SSL",
-                                      HttpErrorType.SSL_ERROR);
-            }
-            if (isBlank(trustStorePassword) && isNotBlank(sslVerifyClient)) {
-                throw createHttpError("Truststore password value must be provided to enable Mutual SSL",
-                                      HttpErrorType.SSL_ERROR);
-            }
-            listenerConfiguration.setTrustStoreFile(trustStoreFile);
-            listenerConfiguration.setTrustStorePass(trustStorePassword);
-        } else if (isNotBlank(trustCerts)) {
-            listenerConfiguration.setServerTrustCertificates(trustCerts);
-        }
+    private static ListenerConfiguration setSslConfig(BMap<BString, Object> secureSocket,
+                                                      ListenerConfiguration listenerConfiguration) {
         List<Parameter> serverParamList = new ArrayList<>();
-        Parameter serverParameters;
-        if (protocols != null) {
-            List<String> sslEnabledProtocolsValueList = Arrays.asList(
-                    protocols.getArrayValue(ENABLED_PROTOCOLS).getStringArray());
-            if (!sslEnabledProtocolsValueList.isEmpty()) {
-                String sslEnabledProtocols = sslEnabledProtocolsValueList.stream()
-                        .collect(Collectors.joining(",", "", ""));
-                serverParameters = new Parameter(ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS, sslEnabledProtocols);
-                serverParamList.add(serverParameters);
-            }
+        listenerConfiguration.setScheme(PROTOCOL_HTTPS);
+        BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_KEY);
+        assert key != null; // This validation happens at Ballerina level
+        evaluateKeyField(key, listenerConfiguration);
+        BMap<BString, Object> mutualSsl = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_MUTUAL_SSL);
+        if (mutualSsl != null) {
+            String verifyClient = mutualSsl.getStringValue(SECURESOCKET_CONFIG_VERIFY_CLIENT).getValue();
+            listenerConfiguration.setVerifyClient(verifyClient);
+            Object cert = mutualSsl.get(SECURESOCKET_CONFIG_CERT);
+            evaluateCertField(cert, listenerConfiguration);
+        }
+        BMap<BString, Object> protocol = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_PROTOCOL);
+        if (protocol != null) {
+            evaluateProtocolField(protocol, listenerConfiguration, serverParamList);
+        }
+        BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_CERT_VALIDATION);
+        if (certValidation != null) {
+            evaluateCertValidationField(certValidation, listenerConfiguration);
+        }
+        BArray ciphers = secureSocket.containsKey(SECURESOCKET_CONFIG_CIPHERS) ?
+                secureSocket.getArrayValue(SECURESOCKET_CONFIG_CIPHERS) : null;
+        if (ciphers != null) {
+            evaluateCiphersField(ciphers, serverParamList);
+        }
+        evaluateCommonFields(secureSocket, listenerConfiguration, serverParamList);
 
-            String sslProtocol = protocols.getStringValue(SSL_PROTOCOL_VERSION).getValue();
-            if (isNotBlank(sslProtocol)) {
-                listenerConfiguration.setSSLProtocol(sslProtocol);
-            }
-        }
-
-        List<String> ciphersValueList = Arrays.asList(
-                sslConfig.getArrayValue(HttpConstants.SSL_CONFIG_CIPHERS).getStringArray());
-        if (!ciphersValueList.isEmpty()) {
-            String ciphers = ciphersValueList.stream().collect(Collectors.joining(",", "", ""));
-            serverParameters = new Parameter(HttpConstants.CIPHERS, ciphers);
-            serverParamList.add(serverParameters);
-        }
-        if (validateCert != null) {
-            boolean validateCertificateEnabled = validateCert.getBooleanValue(HttpConstants.ENABLE);
-            long cacheSize = validateCert.getIntValue(HttpConstants.SSL_CONFIG_CACHE_SIZE);
-            long cacheValidationPeriod = validateCert.getIntValue(HttpConstants.SSL_CONFIG_CACHE_VALIDITY_PERIOD);
-            listenerConfiguration.setValidateCertEnabled(validateCertificateEnabled);
-            if (validateCertificateEnabled) {
-                if (cacheSize != 0) {
-                    listenerConfiguration.setCacheSize(Math.toIntExact(cacheSize));
-                }
-                if (cacheValidationPeriod != 0) {
-                    listenerConfiguration.setCacheValidityPeriod(Math.toIntExact(cacheValidationPeriod));
-                }
-            }
-        }
-        if (ocspStapling != null) {
-            boolean ocspStaplingEnabled = ocspStapling.getBooleanValue(HttpConstants.ENABLE);
-            listenerConfiguration.setOcspStaplingEnabled(ocspStaplingEnabled);
-            long cacheSize = ocspStapling.getIntValue(HttpConstants.SSL_CONFIG_CACHE_SIZE);
-            long cacheValidationPeriod = ocspStapling.getIntValue(HttpConstants.SSL_CONFIG_CACHE_VALIDITY_PERIOD);
-            listenerConfiguration.setValidateCertEnabled(ocspStaplingEnabled);
-            if (ocspStaplingEnabled) {
-                if (cacheSize != 0) {
-                    listenerConfiguration.setCacheSize(Math.toIntExact(cacheSize));
-                }
-                if (cacheValidationPeriod != 0) {
-                    listenerConfiguration.setCacheValidityPeriod(Math.toIntExact(cacheValidationPeriod));
-                }
-            }
-        }
         listenerConfiguration.setTLSStoreType(PKCS_STORE_TYPE);
-        String serverEnableSessionCreation = String
-                .valueOf(sslConfig.getBooleanValue(SSL_CONFIG_ENABLE_SESSION_CREATION));
-        Parameter enableSessionCreationParam = new Parameter(SSL_CONFIG_ENABLE_SESSION_CREATION.getValue(),
-                                                             serverEnableSessionCreation);
-        serverParamList.add(enableSessionCreationParam);
         if (!serverParamList.isEmpty()) {
             listenerConfiguration.setParameters(serverParamList);
         }
-
-        listenerConfiguration
-                .setId(HttpUtil.getListenerInterface(listenerConfiguration.getHost(), listenerConfiguration.getPort()));
-
+        listenerConfiguration.setId(HttpUtil.getListenerInterface(listenerConfiguration.getHost(),
+                                                                  listenerConfiguration.getPort()));
         return listenerConfiguration;
+    }
+
+    private static void evaluateKeyField(BMap<BString, Object> key, SslConfiguration sslConfiguration) {
+        if (key.containsKey(SECURESOCKET_CONFIG_KEYSTORE_FILE_PATH)) {
+            String keyStoreFile = key.getStringValue(SECURESOCKET_CONFIG_KEYSTORE_FILE_PATH).getValue();
+            if (keyStoreFile.isBlank()) {
+                throw createHttpError("KeyStore file location must be provided for secure connection.",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            String keyStorePassword = key.getStringValue(SECURESOCKET_CONFIG_KEYSTORE_PASSWORD).getValue();
+            if (keyStorePassword.isBlank()) {
+                throw createHttpError("KeyStore password must be provided for secure connection.",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            sslConfiguration.setKeyStoreFile(keyStoreFile);
+            sslConfiguration.setKeyStorePass(keyStorePassword);
+        } else {
+            String certFile = key.getStringValue(SECURESOCKET_CONFIG_CERTKEY_CERT_FILE).getValue();
+            String keyFile = key.getStringValue(SECURESOCKET_CONFIG_CERTKEY_KEY_FILE).getValue();
+            BString keyPassword = key.containsKey(SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD) ?
+                    key.getStringValue(SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD) : null;
+             if (certFile.isBlank()) {
+                throw createHttpError("Certificate file location must be provided for secure connection.",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            if (keyFile.isBlank()) {
+                throw createHttpError("Private key file location must be provided for secure connection.",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            if (sslConfiguration instanceof ListenerConfiguration) {
+                sslConfiguration.setServerCertificates(certFile);
+                sslConfiguration.setServerKeyFile(keyFile);
+                if (keyPassword != null && !keyPassword.getValue().isBlank()) {
+                    sslConfiguration.setServerKeyPassword(keyPassword.getValue());
+                }
+            } else {
+                sslConfiguration.setClientCertificates(certFile);
+                sslConfiguration.setClientKeyFile(keyFile);
+                if (keyPassword != null && !keyPassword.getValue().isBlank()) {
+                    sslConfiguration.setClientKeyPassword(keyPassword.getValue());
+                }
+            }
+        }
+    }
+
+    private static void evaluateCertField(Object cert, SslConfiguration sslConfiguration) {
+        if (cert instanceof BMap) {
+            BMap<BString, BString> trustStore = (BMap<BString, BString>) cert;
+            String trustStoreFile = trustStore.getStringValue(SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH).getValue();
+            String trustStorePassword = trustStore.getStringValue(SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD).getValue();
+            if (trustStoreFile.isBlank()) {
+                throw createHttpError("TrustStore file location must be provided for secure connection.",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            if (trustStorePassword.isBlank()) {
+                throw createHttpError("TrustStore password must be provided for secure connection.",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            sslConfiguration.setTrustStoreFile(trustStoreFile);
+            sslConfiguration.setTrustStorePass(trustStorePassword);
+        } else {
+            String certFile = ((BString) cert).getValue();
+            if (certFile.isBlank()) {
+                throw createHttpError("Certificate file location must be provided for secure connection.",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            if (sslConfiguration instanceof ListenerConfiguration) {
+                sslConfiguration.setServerTrustCertificates(certFile);
+            } else {
+                sslConfiguration.setClientTrustCertificates(certFile);
+            }
+        }
+    }
+
+    private static void evaluateProtocolField(BMap<BString, Object> protocol,
+                                              SslConfiguration sslConfiguration,
+                                              List<Parameter> paramList) {
+        List<String> sslEnabledProtocolsValueList = Arrays.asList(
+                protocol.getArrayValue(SECURESOCKET_CONFIG_PROTOCOL_VERSIONS).getStringArray());
+        if (!sslEnabledProtocolsValueList.isEmpty()) {
+            String sslEnabledProtocols = sslEnabledProtocolsValueList.stream().collect(Collectors.joining(",", "", ""));
+            Parameter serverProtocols = new Parameter(ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS, sslEnabledProtocols);
+            paramList.add(serverProtocols);
+        }
+        String sslProtocol = protocol.getStringValue(SECURESOCKET_CONFIG_PROTOCOL_NAME).getValue();
+        if (!sslProtocol.isBlank()) {
+            sslConfiguration.setSSLProtocol(sslProtocol);
+        }
+    }
+
+    private static void evaluateCertValidationField(BMap<BString, Object> certValidation,
+                                                    SslConfiguration sslConfiguration) {
+        String type = certValidation.getStringValue(SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE).getValue();
+        if (type.equals(SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING.getValue())) {
+            sslConfiguration.setOcspStaplingEnabled(true);
+        } else {
+            sslConfiguration.setValidateCertEnabled(true);
+        }
+        long cacheSize = certValidation.getIntValue(SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE).intValue();
+        long cacheValidityPeriod = ((BDecimal) certValidation.get(
+                SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD)).intValue();
+        if (cacheValidityPeriod != 0) {
+            sslConfiguration.setCacheValidityPeriod(Math.toIntExact(cacheValidityPeriod));
+        }
+        if (cacheSize != 0) {
+            sslConfiguration.setCacheSize(Math.toIntExact(cacheSize));
+        }
+    }
+
+    private static void evaluateCiphersField(BArray ciphers, List<Parameter> paramList) {
+        Object[] ciphersArray = ciphers.getStringArray();
+        List<Object> ciphersList = Arrays.asList(ciphersArray);
+        if (ciphersList.size() > 0) {
+            String ciphersString = ciphersList.stream().map(Object::toString).collect(Collectors.joining(",", "", ""));
+            Parameter serverParameters = new Parameter(HttpConstants.CIPHERS, ciphersString);
+            paramList.add(serverParameters);
+        }
+    }
+
+    private static void evaluateCommonFields(BMap<BString, Object> secureSocket, SslConfiguration sslConfiguration,
+                                             List<Parameter> paramList) {
+        if (!(sslConfiguration instanceof ListenerConfiguration)) {
+            boolean hostNameVerificationEnabled = secureSocket.getBooleanValue(
+                    SECURESOCKET_CONFIG_HOST_NAME_VERIFICATION_ENABLED);
+            sslConfiguration.setHostNameVerificationEnabled(hostNameVerificationEnabled);
+        }
+        sslConfiguration.setSslSessionTimeOut((int) getLongValueOrDefault(secureSocket,
+                                                                          SECURESOCKET_CONFIG_SESSION_TIMEOUT));
+        sslConfiguration.setSslHandshakeTimeOut(getLongValueOrDefault(secureSocket,
+                                                                      SECURESOCKET_CONFIG_HANDSHAKE_TIMEOUT));
+        String enableSessionCreation = String.valueOf(secureSocket.getBooleanValue(SECURESOCKET_CONFIG_SHARE_SESSION));
+        Parameter enableSessionCreationParam = new Parameter(SECURESOCKET_CONFIG_SHARE_SESSION.getValue(),
+                                                             enableSessionCreation);
+        paramList.add(enableSessionCreationParam);
+    }
+
+    private static BMap<BString, Object> getBMapValueIfPresent(BMap<BString, Object> map, BString key) {
+        return map.containsKey(key) ? (BMap<BString, Object>) map.getMapValue(key) : null;
+    }
+
+    private static long getLongValueOrDefault(BMap<BString, Object> map, BString key) {
+        return map.containsKey(key) ? ((BDecimal) map.get(key)).intValue() : 0L;
     }
 
     public static String getServiceName(BObject balService) {
