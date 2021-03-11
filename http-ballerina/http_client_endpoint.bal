@@ -576,7 +576,7 @@ function createCircuitBreakerClient(string uri, ClientConfiguration configuratio
             }
         }
 
-        time:Time circuitStartTime = time:currentTime();
+        time:Utc circuitStartTime = time:utcNow();
         int numberOfBuckets = (cbConfig.rollingWindow.timeWindowInMillis / cbConfig.rollingWindow.bucketSizeInMillis);
         Bucket?[] bucketArray = [];
         int bucketIndex = 0;

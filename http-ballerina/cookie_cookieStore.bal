@@ -384,19 +384,16 @@ function isExpiresAttributeValid(Cookie cookie) returns boolean {
     if (expiryTime is ()) {
          return true;
     } else {
-        time:Time|error t1 = time:parse(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
-        if (t1 is time:Time) {
-            var yearResult = time:getYear(t1);
-            if (yearResult is error) {
-                return false;
-            }
-            int year = <int> checkpanic yearResult;
+        time:Utc|error t1 = utcFromString(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
+        if (t1 is time:Utc) {
+            time:Civil civil = time:utcToCivil(t1);
+            int year = civil.year;
             if (year <= 69 && year >= 0) {
-                time:Duration delta = {years: 2000};
-                time:Time tmAdd = checkpanic time:addDuration(t1, delta);
-                string|error timeString = time:format(tmAdd, "E, dd MMM yyyy HH:mm:ss");
+                // Adds 2000 years which is 63072000000 seconds
+                time:Utc tmAdd = time:utcAddSeconds(t1, 63072000000);
+                string|error timeString = utcToString(tmAdd, "E, dd MMM yyyy HH:mm:ss");
                 if (timeString is string) {
-                    cookie.expires = timeString + " GMT";
+                    cookie.expires = timeString + "GMT";
                     return true;
                 }
                 return false;
@@ -435,15 +432,15 @@ function addPersistentCookie(Cookie? identicalCookie, Cookie cookie, string url,
                     return removeResult;
                 }
                 cookie.createdTime = identicalCookie.createdTime;
-                cookie.lastAccessedTime = time:currentTime();
+                cookie.lastAccessedTime = time:utcNow();
                 return persistentCookieHandler.storeCookie(cookie);
             }
         }
     } else {
         // If cookie is not expired, adds that cookie.
         if (!isExpired(cookie)) {
-            cookie.createdTime = time:currentTime();
-            cookie.lastAccessedTime = time:currentTime();
+            cookie.createdTime = time:utcNow();
+            cookie.lastAccessedTime = time:utcNow();
             return persistentCookieHandler.storeCookie(cookie);
         }
     }
@@ -452,16 +449,15 @@ function addPersistentCookie(Cookie? identicalCookie, Cookie cookie, string url,
 // Returns true if the cookie is expired according to the rules in [RFC-6265](https://tools.ietf.org/html/rfc6265#section-4.1.2.2).
 function isExpired(Cookie cookie) returns boolean {
     if (cookie.maxAge > 0) {
-        time:Duration delta = {seconds: cookie.maxAge};
-        time:Time expTime = checkpanic time:addDuration(cookie.createdTime, delta);
-        time:Time curTime = time:currentTime();
-        return (expTime.time < curTime.time);
+        time:Utc expTime = time:utcAddSeconds(cookie.createdTime, <time:Seconds> cookie.maxAge);
+        time:Utc curTime = time:utcNow();
+        return (time:utcDiffSeconds(expTime, curTime) < 0);
     }
     var expiryTime = cookie.expires;
     if (expiryTime is string) {
-        time:Time|error cookieExpires = time:parse(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
-        time:Time curTime = time:currentTime();
-        if ((cookieExpires is time:Time) && cookieExpires.time < curTime.time) {
+        time:Utc|error cookieExpires = utcFromString(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
+        time:Utc curTime = time:utcNow();
+        if ((cookieExpires is time:Utc) && (time:utcDiffSeconds(cookieExpires, curTime) < 0)) {
             return true;
         }
         return false;
@@ -483,13 +479,13 @@ function addSessionCookie(Cookie? identicalCookie, Cookie cookie, string url, Co
                 return removeResult;
             }
             cookie.createdTime = identicalCookie.createdTime;
-            cookie.lastAccessedTime = time:currentTime();
+            cookie.lastAccessedTime = time:utcNow();
             cookieStore.allSessionCookies.push(cookie);
         }
     } else {
         // Adds the session cookie.
-        cookie.createdTime = time:currentTime();
-        cookie.lastAccessedTime = time:currentTime();
+        cookie.createdTime = time:utcNow();
+        cookie.lastAccessedTime = time:utcNow();
         cookieStore.allSessionCookies.push(cookie);
     }
 }
