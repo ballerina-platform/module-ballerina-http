@@ -33,7 +33,7 @@ public client class HttpClient {
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(string url, ClientConfiguration? config = ()) returns ClientError? {
+    function init(string url, ClientConfiguration? config = ()) returns ClientError? {
         self.config = config ?: {};
         self.url = url;
         return createSimpleHttpClient(self, globalHttpClientConnPool);
@@ -42,39 +42,27 @@ public client class HttpClient {
     # The `HttpClient.post()` function can be used to send HTTP POST requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
-                returns Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function post(@untainted string path, RequestMessage message) returns Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_POST);
     }
 
     # The `HttpClient.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
+    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_HEAD);
     }
 
     # The `HttpClient.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function put(@untainted string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function put(@untainted string path, RequestMessage message) returns @tainted  Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PUT);
     }
 
@@ -82,70 +70,46 @@ public client class HttpClient {
     #
     # + httpVerb - HTTP verb value
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message)
+             returns @tainted Response|ClientError {
         return externExecute(self, httpVerb, path, <Request>message);
     }
 
     # The `HttpClient.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function patch(@untainted string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function patch(@untainted string path, RequestMessage message) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PATCH);
     }
 
     # The `HttpClient.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function delete(@untainted string path, RequestMessage message = (),
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function delete(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_DELETE);
     }
 
     # The `HttpClient.get()` function can be used to send HTTP GET requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function get(@untainted string path, RequestMessage message = (),
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function get(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_GET);
     }
 
     # The `HttpClient.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function options(@untainted string path, RequestMessage message = (),
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function options(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_OPTIONS);
     }
 
@@ -153,12 +117,8 @@ public client class HttpClient {
     #
     # + path - Request path
     # + request - An HTTP inbound request message
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function forward(@untainted string path, Request request, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function forward(@untainted string path, Request request) returns @tainted Response|ClientError {
         return externForward(self, path, request);
     }
 
@@ -168,8 +128,7 @@ public client class HttpClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
     remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return externSubmit(self, httpVerb, path, <Request>message);

@@ -36,7 +36,7 @@ service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
             log:printError("Failed to retrieve payload from request: " + payload.message());
             var responseError = caller->respond(resp);
             if (responseError is error) {
-                log:printError("Error sending response", err = responseError);
+                log:printError("Error sending response", 'error = responseError);
             }
         }
     }
@@ -49,7 +49,7 @@ function testHeaderServerFromSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -64,7 +64,7 @@ function testSetServerHeaderManuallyFromSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -76,7 +76,7 @@ function testHeaderServerFromUnSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -90,7 +90,7 @@ function testHeaderServerFromUnSuccessResponse1() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -105,7 +105,7 @@ function testDefaultHeaderServerFromSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -117,7 +117,7 @@ function testDefaultHeaderServerFromUnSuccessResponse() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -132,7 +132,7 @@ function testDefaultHeaderServerFromUnSuccessResponse1() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

@@ -143,3 +143,6 @@ public const LEADING = "leading";
 
 # Header is placed after the payload of the request/response.
 public const TRAILING = "trailing";
+
+# Represents RFC_1123_DATE_TIME formatter
+const string RFC_1123_DATE_TIME = "RFC_1123_DATE_TIME";

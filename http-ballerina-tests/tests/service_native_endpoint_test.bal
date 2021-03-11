@@ -46,7 +46,7 @@ function testGetProtocolConnectionStruct() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "protocol", "http");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -64,7 +64,7 @@ function testLocalStructInConnection() {
         } else if payload is error {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

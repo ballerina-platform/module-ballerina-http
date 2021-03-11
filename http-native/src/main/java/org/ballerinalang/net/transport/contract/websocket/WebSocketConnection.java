@@ -1,5 +1,6 @@
 package org.ballerinalang.net.transport.contract.websocket;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
 import java.nio.ByteBuffer;
@@ -193,4 +194,9 @@ public interface WebSocketConnection {
      * @param timeOut Read time out
      */
     void addReadIdleStateHandler(long timeOut);
+
+    /**
+     * Get the channel from the ctx.
+     */
+    Channel getChannel();
 }

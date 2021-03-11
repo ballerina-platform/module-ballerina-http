@@ -138,8 +138,8 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
         req.setPayload(jsonPayload);
         var finalResponse = eP1->post("/http2EchoService/echoResource", req);
         if (finalResponse is error) {
-            log:printError("Error sending response", err = finalResponse);
-        } else if (finalResponse is http:Response) {
+            log:printError("Error sending response", 'error = finalResponse);
+        } else {
             var result = caller->respond(<@untainted> finalResponse);
         }
     }
@@ -189,7 +189,7 @@ public function testClientUpgradewithLargePayload() {
                         + "\"cofax.tld\", \"taglib-location\":\"/WEB-INF/tlds/cofax.tld\"}}}";
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), expectedPayload);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

@@ -20,7 +20,7 @@ import ballerina/test;
 
 http:ListenerConfiguration helloWorldEPConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }
@@ -34,14 +34,14 @@ service /hello on sslServerEp {
     resource function get .(http:Caller caller, http:Request req) {
         var result = caller->respond("Hello World!");
         if (result is error) {
-            log:printError("Failed to respond", err = result);
+            log:printError("Failed to respond", 'error = result);
         }
     }
 }
 
 http:ClientConfiguration sslDisabledConfig = {
     secureSocket: {
-        disable: true
+        enable: false
     },
     httpVersion: "2.0"
 };
@@ -52,7 +52,7 @@ public function disableSslTest() {
     var resp = clientEP->get("/hello/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Hello World!");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

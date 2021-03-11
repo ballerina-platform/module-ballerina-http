@@ -32,7 +32,7 @@ service /'continue on httpClientContinueListenerEP1 {
             if (mediaType.toLowerAscii() == "text/plain") {
                 var result = caller->continue();
                 if (result is error) {
-                    log:printError("Error sending response", err = result);
+                    log:printError("Error sending response", 'error = result);
                 }
             } else {
                 http:Response res = new;
@@ -40,7 +40,7 @@ service /'continue on httpClientContinueListenerEP1 {
                 res.setPayload("Unprocessable Entity");
                 var result = caller->respond(res);
                 if (result is error) {
-                    log:printError("Error sending response", err = result);
+                    log:printError("Error sending response", 'error = result);
                 }
                 return;
             }
@@ -48,19 +48,18 @@ service /'continue on httpClientContinueListenerEP1 {
         http:Response res = new;
         var payload = request.getTextPayload();
         if (payload is string) {
-            log:print(payload);
             res.statusCode = 200;
             res.setPayload("Hello World!\n");
             var result = caller->respond(res);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         } else {
             res.statusCode = 500;
             res.setPayload(<@untainted> payload.message());
             var result = caller->respond(res);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         }
     }
@@ -76,7 +75,7 @@ service /'continue on httpClientContinueListenerEP2  {
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            checkpanic caller->respond("Error: " + <@untainted> (<error>response).toString());
+            checkpanic caller->respond("Error: " + <@untainted> response.toString());
         }
     }
 
@@ -88,7 +87,7 @@ service /'continue on httpClientContinueListenerEP2  {
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            checkpanic caller->respond("Error: " + <@untainted> (<error>response).toString());
+            checkpanic caller->respond("Error: " + <@untainted> response.toString());
         }
     }
 }
@@ -101,7 +100,7 @@ function testContinueAction() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!\n");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -113,7 +112,7 @@ function testNegativeContinueAction() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -134,7 +133,7 @@ function testContinueActionWithMain() {
         } else {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

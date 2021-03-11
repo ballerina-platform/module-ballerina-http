@@ -47,12 +47,12 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
         }
         var result = caller->respond(response);
         if (result is error) {
-            log:printError("Error sending response", err = result);
+            log:printError("Error sending response", 'error = result);
         }
     }
 
     resource function get initial(http:Caller caller, http:Request request) {
-        http:Response|http:PayloadType|error finalResponse;
+        http:Response|error finalResponse;
         http:Request req = new;
         if (checkpanic request.getHeader("priorKnowledge") == "true") {
             req.setHeader("priorKnowledge", "true");
@@ -61,9 +61,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
             req.setHeader("priorKnowledge", "false");
             finalResponse = mimeClientEP2->get("/multiparts/encode", req);
         }
-        if (finalResponse is error) {
-            log:printError("Error sending response", err = finalResponse);
-        } else if (finalResponse is http:Response) {
+        if (finalResponse is http:Response) {
             var respBodyParts = finalResponse.getBodyParts();
             string finalMessage = "";
             if (respBodyParts is mime:Entity[]) {
@@ -72,6 +70,8 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
                 }
             }
             var result = caller->respond(finalMessage);
+        } else {
+            log:printError("Error sending response", 'error = finalResponse);
         }
     }
 
@@ -88,7 +88,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
         mime:Entity[] bodyParts = [jsonBodyPart, xmlFilePart, textPart];
         http:Request request = new;
         request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-        http:Response|http:PayloadType|error returnResponse;
+        http:Response|error returnResponse;
         if (checkpanic req.getHeader("priorKnowledge") == "true") {
             returnResponse = priorKnowclientEP1->post("/multiparts/decode", request);
         } else {
@@ -97,7 +97,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
         if (returnResponse is http:Response) {
             var result = caller->respond(<@untainted> returnResponse);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         } else {
             http:Response response = new;
@@ -105,7 +105,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
             response.statusCode = 500;
             var result = caller->respond(response);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         }
     }
@@ -196,7 +196,7 @@ public function testMultipart() {
     var resp = clientEP->get("/multiparts/initial", req);
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -209,7 +209,7 @@ public function testMultipartsWithPriorKnowledge() {
     var resp = clientEP->get("/multiparts/initial", req);
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

@@ -19,7 +19,7 @@ import ballerina/test;
 
 http:ListenerConfiguration serviceConf = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }
@@ -38,8 +38,8 @@ service /httpsService on httpsListener {
 }
 
 http:ClientConfiguration disableSslClientConf = {
-    secureSocket:{
-        disable:true
+    secureSocket: {
+        enable: false
     }
 };
 
@@ -54,7 +54,7 @@ public function testSslDisabledClient() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

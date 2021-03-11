@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/time;
 
 // Cache-control directives
 # Forces the cache to validate a cached response with the origin server before serving.
@@ -75,7 +76,7 @@ final string WARNING_110_RESPONSE_IS_STALE = "110 " + WARNING_AGENT + " \"Respon
 final string WARNING_111_REVALIDATION_FAILED = "111 " + WARNING_AGENT + " \"Revalidation Failed\"";
 
 const string WEAK_VALIDATOR_TAG = "W/";
-const int STALE = 0;
+const time:Seconds STALE = 0;
 
 isolated function getWarningAgent() returns string {
     string ballerinaVersion = getProperty("ballerina.version");

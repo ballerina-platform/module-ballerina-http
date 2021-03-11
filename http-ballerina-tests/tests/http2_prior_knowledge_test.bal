@@ -71,7 +71,7 @@ public function testPriorKnowledgeOn() {
     var resp = clientEP->get("/priorKnowledge/on");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Connection and upgrade headers are not present--Prior knowledge is enabled");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -82,7 +82,7 @@ public function testPriorKnowledgeOff() {
     var resp = clientEP->get("/priorKnowledge/off");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "HTTP2-Settings,upgrade--h2c--Prior knowledge is disabled");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

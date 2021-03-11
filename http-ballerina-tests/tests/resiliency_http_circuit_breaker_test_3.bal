@@ -54,15 +54,15 @@ service /cb on circuitBreakerEP02 {
         if (backendRes is http:Response) {
             var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());
             var responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -79,7 +79,7 @@ service /unhealthy on new http:Listener(8088) {
         }
         var responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

@@ -14,10 +14,25 @@
  * limitations under the License.
  *
  */
+plugins {
+    id 'jacoco'
+}
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
 description = 'Ballerina - HTTP/WS Ballerina Tests'
+
+def packageName = "http"
+def packageOrg = "ballerina"
+def snapshotVersion = "-SNAPSHOT"
+def tomlVersion = project.version.replace("${snapshotVersion}", "")
+def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
+def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
+def originalConfig = ballerinaConfigFile.text
+def originalDependency = ballerinaDependencyFile.text
+def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
+def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
+def testCoverageParam = "--code-coverage --includes=org.ballerinalang.net.*:ballerina.*"
 
 configurations {
     jbalTools
@@ -59,15 +74,6 @@ task unpackStdLibs() {
     }
 }
 
-def packageOrg = "ballerina"
-def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
-def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
-def artifactCodeCoverageReport = file("$project.projectDir/target/cache/tests_cache/coverage/ballerina.exec")
-def tomlVersion = project.version.split("-")[0]
-def originalConfig = ballerinaConfigFile.text
-def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
-def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
-
 task copyStdlibsForTest(type: Copy) {
     dependsOn(unpackJballerinaTools)
     dependsOn(unpackStdLibs)
@@ -92,22 +98,22 @@ task copyHttpStdlib {
     doLast {
         /* Copy HTTP module */
         copy {
-            from "$project.rootDir/http-ballerina/target/bala"
-            into "${ballerinaDist}/repo/bala/${packageOrg}/http/${tomlVersion}"
+            from "$project.rootDir/http-ballerina/build/cache_parent/bala"
+            into "${ballerinaDist}/repo/bala"
         }
     }
 }
 
 task updateTomlVerions {
     doLast {
-        def stdlibDependentIoVersion = project.stdlibIoVersion.split("-")[0]
-        def stdlibDependentLogVersion = project.stdlibLogVersion.split("-")[0]
-        def stdlibDependentRegexVersion = project.stdlibRegexVersion.split("-")[0]
-        def stdlibDependentMimeVersion = project.stdlibMimeVersion.split("-")[0]
-        def stdlibDependentAuthVersion = project.stdlibAuthVersion.split("-")[0]
-        def stdlibDependentJwtVersion = project.stdlibJwtVersion.split("-")[0]
-        def stdlibDependentOAuth2Version = project.stdlibOAuth2Version.split("-")[0]
-        def stdlibDependentFileVersion = project.stdlibFileVersion.split("-")[0]
+        def stdlibDependentIoVersion = project.stdlibIoVersion.replace("${snapshotVersion}", "")
+        def stdlibDependentLogVersion = project.stdlibLogVersion.replace("${snapshotVersion}", "")
+        def stdlibDependentRegexVersion = project.stdlibRegexVersion.replace("${snapshotVersion}", "")
+        def stdlibDependentMimeVersion = project.stdlibMimeVersion.replace("${snapshotVersion}", "")
+        def stdlibDependentAuthVersion = project.stdlibAuthVersion.replace("${snapshotVersion}", "")
+        def stdlibDependentJwtVersion = project.stdlibJwtVersion.replace("${snapshotVersion}", "")
+        def stdlibDependentOAuth2Version = project.stdlibOAuth2Version.replace("${snapshotVersion}", "")
+        def stdlibDependentFileVersion = project.stdlibFileVersion.replace("${snapshotVersion}", "")
 
         def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
@@ -129,6 +135,7 @@ task updateTomlVerions {
 task revertTomlFile {
     doLast {
         ballerinaConfigFile.text = originalConfig
+        ballerinaDependencyFile.text = originalDependency
     }
 }
 
@@ -150,11 +157,18 @@ task initializeVariables {
     if (project.hasProperty("balJavaDebug")) {
         balJavaDebugParam = "BAL_JAVA_DEBUG=${project.findProperty("balJavaDebug")}"
     }
+
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":${packageName}-ballerina:publish")
+                || graph.hasTask(":${packageName}-ballerina:publishToMavenLocal")) {
+            ballerinaTest.enabled = false
+        }
+    }
 }
 
 task ballerinaTest {
     inputs.dir file(project.projectDir)
-    dependsOn(":http-ballerina:build")
+    dependsOn(":${packageName}-${packageOrg}:build")
     dependsOn(updateTomlVerions)
     dependsOn(copyHttpStdlib)
     dependsOn(initializeVariables)
@@ -172,11 +186,11 @@ task ballerinaTest {
             // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat test " +
-                        "--code-coverage --includes=* ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
+                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
                         "exit %%ERRORLEVEL%%"
             } else {
                 commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal test " +
-                        "--code-coverage --includes=* ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
+                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
             }
         }
     }
@@ -191,16 +205,10 @@ build {
 }
 
 publishing {
-    publications {
-        maven(MavenPublication) {
-            artifact source: artifactCodeCoverageReport, classifier: 'jacoco'
-        }
-    }
-
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/ballerina-platform/module-ballerina-http")
+            url = uri("https://maven.pkg.github.com/ballerina-platform/module-${packageOrg}-${packageName}")
             credentials {
                 username = System.getenv("packageUser")
                 password = System.getenv("packagePAT")

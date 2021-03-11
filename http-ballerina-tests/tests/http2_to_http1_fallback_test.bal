@@ -22,7 +22,7 @@ listener http:Listener serviceEndpointWithoutSSL = new(9101, { httpVersion: "2.0
 listener http:Listener serviceEndpointWithSSL = new(9105, {
     httpVersion: "2.0",
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }
@@ -49,7 +49,7 @@ public function testFallback() {
     var resp = clientEP->get("/helloWorldWithoutSSL");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -58,7 +58,7 @@ public function testFallback() {
 public function testFallbackWithSSL() {
     http:Client clientEP = checkpanic new("https://localhost:9105", {
         secureSocket: {
-            trustStore: {
+            cert: {
                 path: "tests/certsandkeys/ballerinaTruststore.p12",
                 password: "ballerina"
             }
@@ -67,7 +67,7 @@ public function testFallbackWithSSL() {
     var resp = clientEP->get("/helloWorldWithSSL");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

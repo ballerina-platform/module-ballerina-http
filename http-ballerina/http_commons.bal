@@ -15,9 +15,11 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/lang.value as val;
 import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
+import ballerina/time;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
@@ -49,12 +51,19 @@ isolated function buildRequest(RequestMessage message) returns Request {
         request.setXmlPayload(message);
     } else if (message is byte[]) {
         request.setBinaryPayload(message);
-    } else if (message is json) {
-        request.setJsonPayload(message);
     } else if (message is stream<byte[], io:Error>) {
         request.setByteStream(message);
-    } else {
+    } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
+    } else if (message is json) {
+        request.setJsonPayload(message);
+    } else {
+        var result = trap val:toJson(message);
+        if (result is error) {
+            panic error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
+        } else {
+            request.setJsonPayload(result);
+        }
     }
     return request;
 }
@@ -71,12 +80,19 @@ isolated function buildResponse(ResponseMessage message) returns Response {
         response.setXmlPayload(message);
     } else if (message is byte[]) {
         response.setBinaryPayload(message);
-    } else if (message is json) {
-        response.setJsonPayload(message);
     } else if (message is stream<byte[], io:Error>) {
         response.setByteStream(message);
-    } else {
+    } else if (message is mime:Entity[]) {
         response.setBodyParts(message);
+    } else if (message is json) {
+        response.setJsonPayload(message);
+    } else {
+        var result = trap val:toJson(message);
+        if (result is error) {
+            panic error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
+        } else {
+            response.setJsonPayload(result);
+        }
     }
     return response;
 }
@@ -95,28 +111,28 @@ public function invokeEndpoint (string path, Request outRequest, HttpOperation r
 
     if (HTTP_GET == requestAction) {
         var result = httpClient->get(path, message = outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_POST == requestAction) {
         var result = httpClient->post(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_OPTIONS == requestAction) {
         var result = httpClient->options(path, message = outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_PUT == requestAction) {
         var result = httpClient->put(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_DELETE == requestAction) {
         var result = httpClient->delete(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_PATCH == requestAction) {
         var result = httpClient->patch(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_FORWARD == requestAction) {
         var result = httpClient->forward(path, outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_HEAD == requestAction) {
         var result = httpClient->head(path, message = outRequest);
-        return getResponseOrError(result);
+        return result;
     } else if (HTTP_SUBMIT == requestAction) {
         return httpClient->submit(verb, path, outRequest);
     } else {
@@ -264,19 +280,6 @@ isolated function addObservabilityInformation(string path, string method, int st
     _ = checkpanic observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCodeConverted));
 }
 
-isolated function getIllegalDataBindingStateError() returns IllegalDataBindingStateError {
-    IllegalDataBindingStateError payloadRetrievalErr = error IllegalDataBindingStateError("Payload cannot be retrieved");
-    return payloadRetrievalErr;
-}
-
-isolated function getResponseOrError(Response|PayloadType|ClientError result) returns HttpResponse|ClientError {
-    if (result is HttpResponse|ClientError) {
-        return result;
-    } else {
-        panic getIllegalDataBindingStateError();
-    }
-}
-
 //Resolve a given path against a given URI.
 isolated function resolve(string baseUrl, string path) returns string|ClientError = @java:Method {
     'class: "org.ballerinalang.net.uri.nativeimpl.Resolve",
@@ -319,4 +322,14 @@ isolated function externGetByteChannel(mime:Entity entity) returns @tainted io:R
 isolated function externPopulateInputStream(mime:Entity entity) = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "populateInputStream"
+} external;
+
+// Returns utc value from a given string and pattern.
+isolated function utcFromString(string input, string pattern) returns time:Utc|error = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternFormatter"
+} external;
+
+// Returns the formatted string from a given utc value and pattern.
+isolated function utcToString(time:Utc utc, string pattern) returns string|error = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternFormatter"
 } external;

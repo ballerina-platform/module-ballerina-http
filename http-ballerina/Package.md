@@ -1,6 +1,6 @@
-## Module Overview
+## Package Overview
 
-This module provides an implementation for connecting and interacting with HTTP and HTTP2 endpoints. The module facilitates two types of network entry points as ‘Client’ and ‘Listener’.
+This package provides an implementation for connecting and interacting with HTTP and HTTP2 endpoints. The package facilitates two types of network entry points as ‘Client’ and ‘Listener’.
 
 ### Client
 
@@ -81,7 +81,7 @@ For more information, see [Caching Example](https://ballerina.io/learn/by-exampl
 
 ### Logging
 
-This module supports two types of logs:
+This package supports two types of logs:
 - HTTP access logs: These are standard HTTP access logs that are formatted using the combined log format and logged at the `INFO` level. Logs can be published to the console or a file using the following configurations:
     - `b7a.http.accesslog.console=true`
     - `b7a.http.accesslog.path=<path_to_log_file>`

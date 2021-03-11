@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/cache;
+import ballerina/log;
 import ballerina/time;
 
 # An HTTP caching client implementation which takes an `HttpActions` instance and wraps it with an HTTP caching layer.
@@ -40,7 +41,7 @@ public client class HttpCachingClient {
     # + config - The configurations for the client endpoint associated with the caching client
     # + cacheConfig - The configurations for the HTTP cache to be used with the caching client
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
+    function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
         self.url = url;
         var httpSecureClient = createHttpSecureClient(url, config);
         if (httpSecureClient is HttpClient) {
@@ -55,14 +56,9 @@ public client class HttpCachingClient {
     # origin server. Responses received for POST requests invalidate the cached responses for the same resource.
     #
     # + path - Resource path
-    # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error>`,
-    #             or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function post(string path, RequestMessage message, TargetType targetType = Response)
-            returns Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function post(string path, RequestMessage message) returns Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -77,11 +73,9 @@ public client class HttpCachingClient {
     # suitable response cannot be found will the request be directed to the origin server.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
+    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
         return getCachedResponse(self.cache, self.httpClient, req, HTTP_HEAD, path, self.cacheConfig.isShared, false);
@@ -91,14 +85,9 @@ public client class HttpCachingClient {
     # origin server. In addition, PUT requests invalidate the currently stored responses for the given path.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`
-    #             or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function put(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -114,14 +103,9 @@ public client class HttpCachingClient {
     #
     # + httpMethod - HTTP method to be used for the request
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(string httpMethod, string path, RequestMessage message,
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function execute(string httpMethod, string path, RequestMessage message) returns @tainted Response|ClientError {
         Request request = <Request>message;
         setRequestCacheControlHeader(request);
 
@@ -141,14 +125,9 @@ public client class HttpCachingClient {
     # the origin server. Responses received for PATCH requests invalidate the cached responses for the same resource.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function patch(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -163,14 +142,9 @@ public client class HttpCachingClient {
     # origin server. Responses received for DELETE requests invalidate the cached responses for the same resource.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -185,14 +159,9 @@ public client class HttpCachingClient {
     # response cannot be found will the request be directed to the origin server.
     #
     # + path - Request path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An optinal HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
         return getCachedResponse(self.cache, self.httpClient, req, HTTP_GET, path, self.cacheConfig.isShared, false);
@@ -202,14 +171,9 @@ public client class HttpCachingClient {
     # origin server. Responses received for OPTIONS requests invalidate the cached responses for the same resource.
     #
     # + path - Request path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -225,12 +189,8 @@ public client class HttpCachingClient {
     #
     # + path - Request path
     # + request - The HTTP request to be forwarded
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function forward(string path, @tainted Request request, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function forward(string path, @tainted Request request) returns @tainted Response|ClientError {
         if (request.method == HTTP_GET || request.method == HTTP_HEAD) {
             return getCachedResponse(self.cache, self.httpClient, request, request.method, path,
                                      self.cacheConfig.isShared, true);
@@ -247,8 +207,7 @@ public client class HttpCachingClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - An `HttpFuture` that represents an asynchronous service invocation, or an error if the submission fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return self.httpClient->submit(httpVerb, path, <Request>message);
@@ -305,23 +264,23 @@ public client class HttpCachingClient {
 public function createHttpCachingClient(string url, ClientConfiguration config, CacheConfig cacheConfig)
                                                                                       returns HttpClient|ClientError {
     HttpCachingClient httpCachingClient = check new(url, config, cacheConfig);
-    // log:printDebug("Created HTTP caching client: " + io:sprintf("%s", httpCachingClient));
+    log:printDebug("Created HTTP caching client");
     return httpCachingClient;
 }
 
 function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Request req, string httpMethod, string path,
                            boolean isShared, boolean forwardRequest) returns @tainted Response|ClientError {
-    time:Time currentT = time:currentTime();
+    time:Utc currentT = time:utcNow();
     req.parseCacheControlHeader();
 
     if (cache.hasKey(getCacheKey(httpMethod, path))) {
         Response cachedResponse = cache.get(getCacheKey(httpMethod, path));
 
-        // log:printDebug("Cached response found for: '" + httpMethod + " " + path + "'");
+        log:printDebug("Cached response found for: '" + httpMethod + " " + path + "'");
 
         // Based on https://tools.ietf.org/html/rfc7234#section-4
 
-        updateResponseTimestamps(cachedResponse, currentT.time, currentT.time);
+        updateResponseTimestamps(cachedResponse, currentT, currentT);
         setAgeHeader(<@untainted> cachedResponse);
 
         RequestCacheControl? reqCache = req.cacheControl;
@@ -331,11 +290,11 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
             // If the no-cache directive is not set, responses can be served straight from the cache, without
             // validating with the origin server.
             if (!isNoCacheSet(reqCache, resCache) && !req.hasHeader(PRAGMA)) {
-                // log:printDebug("Serving a cached fresh response without validating with the origin server");
+                log:printDebug("Serving a cached fresh response without validating with the origin server");
                 return cachedResponse;
             }
 
-            // log:printDebug("Serving a cached fresh response after validating with the origin server");
+            log:printDebug("Serving a cached fresh response after validating with the origin server");
             return getValidationResponse(httpClient, req, cachedResponse, cache, currentT, path, httpMethod, true);
         }
 
@@ -344,35 +303,33 @@ function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Requ
         if (isAllowedToBeServedStale(req.cacheControl, cachedResponse, isShared) && !req.hasHeader(PRAGMA)) {
             // If the no-cache directive is not set, responses can be served straight from the cache, without
             // validating with the origin server.
-            // log:printDebug("Serving cached stale response without validating with the origin server");
+            log:printDebug("Serving cached stale response without validating with the origin server");
             cachedResponse.setHeader(WARNING, WARNING_110_RESPONSE_IS_STALE);
             return cachedResponse;
         }
 
-        // log:printDebug("Validating a stale response for '" + path + "' with the origin server.");
+        log:printDebug("Validating a stale response for '" + path + "' with the origin server.");
 
         var validatedResponse = getValidationResponse(httpClient, req, cachedResponse, cache, currentT, path,
                                                             httpMethod, false);
         if (validatedResponse is Response) {
-            updateResponseTimestamps(validatedResponse, currentT.time, time:currentTime().time);
+            updateResponseTimestamps(validatedResponse, currentT, time:utcNow());
             setAgeHeader(validatedResponse);
         }
         return validatedResponse;
     }
 
-    // log:printDebug("Cached response not found for: '" + httpMethod + " " + path + "'");
-    // log:printDebug("Sending new request to: " + path);
+    log:printDebug("Cached response not found for: '" + httpMethod + " " + path + "'");
+    log:printDebug("Sending new request to: " + path);
 
     var response = sendNewRequest(httpClient, req, path, httpMethod, forwardRequest);
     if (response is Response) {
         if (cache.isAllowedToCache(response)) {
-            response.requestTime = currentT.time;
-            response.receivedTime = time:currentTime().time;
+            response.requestTime = currentT;
+            response.receivedTime = time:utcNow();
             cache.put(<@untainted> getCacheKey(httpMethod, path), <@untainted> req.cacheControl, <@untainted> response);
         }
         return response;
-    } else if (response is PayloadType) {
-        panic getIllegalDataBindingStateError();
     } else {
         return response;
     }
@@ -387,7 +344,7 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
         if (httpCache.cache.hasKey(getMethodCacheKey)) {
             cache:Error? result = httpCache.cache.invalidate(getMethodCacheKey);
             if (result is cache:Error) {
-                // log:printDebug("Failed to remove the key: " + getMethodCacheKey + " from the cache.");
+                log:printDebug("Failed to remove the key: " + getMethodCacheKey + " from the cache.");
             }
         }
 
@@ -395,14 +352,14 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
         if (httpCache.cache.hasKey(headMethodCacheKey)) {
             cache:Error? result = httpCache.cache.invalidate(headMethodCacheKey);
             if (result is cache:Error) {
-                // log:printDebug("Failed to remove the key: " + headMethodCacheKey + " from the cache.");
+                log:printDebug("Failed to remove the key: " + headMethodCacheKey + " from the cache.");
             }
         }
     }
 }
 
 function sendNewRequest(HttpClient httpClient, Request request, string path, string httpMethod, boolean forwardRequest)
-                                                                returns @tainted Response|PayloadType|ClientError {
+                                                                returns @tainted Response|ClientError {
     if (forwardRequest) {
         return httpClient->forward(path, request);
     }

@@ -37,8 +37,6 @@ ext.stdlibFileVersion = project.stdlibFileVersion
 ext.stdlibOsVersion = project.stdlibOsVersion
 ext.stdlibTaskVersion = project.stdlibTaskVersion
 ext.stdlibUuidVersion = project.stdlibUuidVersion
-ext.stdlibEncodingVersion = project.stdlibEncodingVersion
-ext.stdlibReflectVersion = project.stdlibReflectVersion
 
 ext.slf4jVersion = project.slf4jVersion
 ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
@@ -180,20 +178,6 @@ allprojects {
                 password System.getenv("packagePAT")
             }
         }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-encoding'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-reflect'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
     }
 }
 
@@ -216,25 +200,21 @@ subprojects {
         ballerinaStdLibs "org.ballerinalang:time-ballerina:${stdlibTimeVersion}"
         ballerinaStdLibs "org.ballerinalang:crypto-ballerina:${stdlibCryptoVersion}"
         ballerinaStdLibs "org.ballerinalang:file-ballerina:${stdlibFileVersion}"
-        ballerinaStdLibs "org.ballerinalang:reflect-ballerina:${stdlibReflectVersion}"
 
         // Transitive dependencies
         ballerinaStdLibs "org.ballerinalang:os-ballerina:${stdlibOsVersion}"
         ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
         ballerinaStdLibs "org.ballerinalang:uuid-ballerina:${stdlibUuidVersion}"
-        ballerinaStdLibs "org.ballerinalang:encoding-ballerina:${stdlibEncodingVersion}"
     }
 }
 
-def moduleVersion = project.version
-if (moduleVersion.indexOf('-') != -1) {
-    moduleVersion = moduleVersion.substring(0, moduleVersion.indexOf('-'))
-}
+def moduleVersion = project.version.replace("-SNAPSHOT", "")
 
 release {
     failOnPublishNeeded = false
 
     buildTasks = ['build']
+    failOnSnapshotDependencies = true
     versionPropertyFile = 'gradle.properties'
     tagTemplate = 'v$version'
 
@@ -246,25 +226,4 @@ release {
 
 task build {
     dependsOn('http-ballerina:build')
-}
-
-task codeCoverageReport(type: JacocoReport) {
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/coverage-reports/*.exec")
-
-    subprojects.each {
-        sourceSets it.sourceSets.main
-    }
-
-    reports {
-        xml.enabled = true
-        html.enabled = true
-        csv.enabled = true
-        xml.destination = new File("${buildDir}/reports/jacoco/report.xml")
-        html.destination = new File("${buildDir}/reports/jacoco/report.html")
-        csv.destination = new File("${buildDir}/reports/jacoco/report.csv")
-    }
-
-    onlyIf = {
-        true
-    }
 }

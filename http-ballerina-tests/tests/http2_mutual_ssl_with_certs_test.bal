@@ -19,10 +19,14 @@ import ballerina/test;
 
 http:ListenerConfiguration sslConf = {
     secureSocket: {
-        keyFile: "tests/certsandkeys/private.key",
-        certFile: "tests/certsandkeys/public.crt",
-        trustedCertFile: "tests/certsandkeys/public.crt",
-        sslVerifyClient: "require"
+        key: {
+            certFile: "tests/certsandkeys/public.crt",
+            keyFile: "tests/certsandkeys/private.key"
+        },
+        mutualSsl: {
+            verifyClient: http:REQUIRE,
+            cert: "tests/certsandkeys/public.crt"
+        }
     },
     httpVersion: "2.0"
 };
@@ -65,9 +69,11 @@ service /mutualSslService on mutualSslistener {
 
 http:ClientConfiguration certsClientConf = {
     secureSocket:{
-        keyFile: "tests/certsandkeys/private.key",
-        certFile: "tests/certsandkeys/public.crt",
-        trustedCertFile: "tests/certsandkeys/public.crt"
+        cert: "tests/certsandkeys/public.crt",
+        key: {
+            keyFile: "tests/certsandkeys/private.key",
+            certFile: "tests/certsandkeys/public.crt"
+        }
     }
 };
 
@@ -77,7 +83,7 @@ public function mutualSslWithCerts() {
     var resp = clientEP->get("/mutualSslService/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Response received");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

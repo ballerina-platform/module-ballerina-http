@@ -213,7 +213,7 @@ function testValidUrlTemplateDispatching(string path) {
         assertJsonValue(response.getJsonPayload(), xOrderIdHeadeName, xOrderIdHeadeValue);
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID123");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID123");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -236,7 +236,7 @@ function testInValidUrlTemplateDispatching(string path) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "no matching resource found for path");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type" + response.message());
     }
 }
@@ -258,7 +258,7 @@ function testValidUrlTemplateWithQueryParamDispatching(string path) {
         assertJsonValue(response.getJsonPayload(), "Template", "T4");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID123");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID123");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -277,7 +277,7 @@ function testValidUrlTemplate2Dispatching() {
         assertJsonValue(response.getJsonPayload(), "Template", "T2");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID125");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID125");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -290,7 +290,7 @@ function testValidUrlTemplate3Dispatching() {
         assertJsonValue(response.getJsonPayload(), "Template", "T3");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID125");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID125");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -303,7 +303,7 @@ function testValidUrlTemplate5Dispatching() {
         assertJsonValue(response.getJsonPayload(), "Template", "T5");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID125");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID125");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -316,7 +316,7 @@ function testUrlTemplateWithMultipleQueryParamDispatching() {
         assertJsonValue(response.getJsonPayload(), "Template", "T6");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID123");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID123");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -329,7 +329,7 @@ function testUrlTemplateWithMultipleQueryParamWithURIEncodeCharacterDispatching(
         assertJsonValue(response.getJsonPayload(), "Template", "T6");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID 123");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID 123");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -340,7 +340,7 @@ function testEmptyStringResourcepath() {
     var response = utClient1->get("/ecommerceservice/echo1");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo11", "echo11");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -351,7 +351,7 @@ function testOPTIONSMethods() {
     var response = utClient1->options("/options/hi");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", "wso2");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -363,7 +363,7 @@ function testOPTIONSWithGETMethods() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -375,7 +375,7 @@ function testOPTIONSWithPOSTMethods() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -387,7 +387,7 @@ function testOPTIONSWithPUTMethods() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "PUT, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -399,7 +399,7 @@ function testOPTIONSWithPathParams() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "DELETE, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -411,7 +411,7 @@ function testOPTIONSWithMultiResources() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -423,7 +423,7 @@ function testOPTIONSAtRootPath() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -435,7 +435,7 @@ function testOPTIONSAtWrongRootPath() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching service found for path : /optionss");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -447,7 +447,7 @@ function testOPTIONSWhenNoResourcesAvailable() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /noResource , method : OPTIONS");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -459,7 +459,7 @@ function testOPTIONSWithWildCards() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /options/un , method : OPTIONS");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -470,7 +470,7 @@ function testBasePathEndingWithSlash() {
     var response = utClient1->get("/hello/test");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", "sanitized");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -480,7 +480,7 @@ function testSpecialCharacterURI() {
     var response = utClient1->get("/ech%5Bo/ech%5Bo/b%5Bar");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo113", "b[ar");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -490,7 +490,7 @@ function testSpecialCharacterEscapedURI() {
     var response = utClient1->get("/ech%5Bo14/ech%5Bo14/b%5Bar14");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo114", "b[ar14");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -502,7 +502,7 @@ function testListenerWithNoServiceRegistered(string path) {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "no service has registered for listener :");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type" + response.message());
     }
 }

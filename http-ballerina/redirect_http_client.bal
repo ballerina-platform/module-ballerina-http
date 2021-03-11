@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/log;
+
 # Provides redirect functionality for HTTP client remote functions.
 #
 # + url - Target service url
@@ -36,7 +38,7 @@ public client class RedirectClient {
     # + redirectConfig - Configurations associated with redirect
     # + httpClient - HTTP client for outbound HTTP requests
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient)
+    function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient)
             returns ClientError? {
         self.url = url;
         self.config = config;
@@ -48,14 +50,9 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.get()` function.
     #
     # + path - Resource path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`,
-    #             `byte[]`, `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_GET);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -68,14 +65,10 @@ public client class RedirectClient {
     # be performed automatically by this `RedirectClient.post()` function.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + message - An HTTP outbound request or any allowed payload
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    remote function post(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result =  performRedirectIfEligible(self, path, <Request>message, HTTP_POST);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -88,8 +81,7 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.head()` function.
     #
     # + path - Resource path
-    # + message - An optional HTTP outbound request message or or any payload of type `string`, `xml`, `json`,
-    #             `byte[]`, `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
@@ -105,14 +97,9 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.put()` function.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function put(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PUT);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -125,12 +112,8 @@ public client class RedirectClient {
     #
     # + path - Resource path
     # + request - An HTTP inbound request message
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function forward(string path, Request request, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function forward(string path, Request request) returns @tainted Response|ClientError {
         return self.httpClient->forward(path, request);
     }
 
@@ -139,14 +122,9 @@ public client class RedirectClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(string httpVerb, string path, RequestMessage message,
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
         Request request = <Request>message;
         //Redirection is performed only for HTTP methods
         if (HTTP_NONE == extractHttpOperation(httpVerb)) {
@@ -165,14 +143,9 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.patch()` function.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function patch(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_PATCH);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -185,14 +158,9 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.delete()` function.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_DELETE);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -205,14 +173,9 @@ public client class RedirectClient {
     # performed automatically by this `RedirectClient.options()` function.
     #
     # + path - Resource path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`,
-    #             `byte[]`, `stream<byte[], io:Error>`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRedirectIfEligible(self, path, <Request>message, HTTP_OPTIONS);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -227,8 +190,7 @@ public client class RedirectClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `stream<byte[], io:Error>`, or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return self.httpClient->submit(httpVerb, path, <Request>message);
@@ -279,9 +241,7 @@ public client class RedirectClient {
 function performRedirectIfEligible(RedirectClient redirectClient, string path, Request request,
                                    HttpOperation httpOperation) returns @tainted HttpResponse|ClientError {
     final string originalUrl = redirectClient.url + path;
-    // log:printDebug(isolated function() returns string {
-    //    return "Checking redirect eligibility for original request " + originalUrl;
-    // });
+    log:printDebug("Checking redirect eligibility for original request " + originalUrl);
 
     Request inRequest = request;
     if !(httpOperation is safeHttpOperation) {
@@ -315,9 +275,7 @@ function checkRedirectEligibility(HttpResponse|ClientError response, string reso
 //Check the response status for redirect eligibility.
 isolated function isRedirectResponse(int statusCode) returns boolean {
     final string statusCodeValue = statusCode.toString();
-    // log:printDebug(isolated function() returns string {
-    //    return "Response Code : " + statusCodeValue;
-    // });
+    log:printDebug("Response Code : " + statusCodeValue);
     return (statusCode == 300 || statusCode == 301 || statusCode == 302 || statusCode == 303 || statusCode == 305 ||
         statusCode == 307 || statusCode == 308);
 }
@@ -328,22 +286,18 @@ function redirect(Response response, HttpOperation httpVerb, Request request,
     int currentCount = redirectClient.currentRedirectCount;
     int maxCount = redirectClient.redirectConfig.maxCount;
     if (currentCount >= maxCount) {
-        //log:printDebug("Maximum redirect count reached!");
+        log:printDebug("Maximum redirect count reached!");
         setCountAndResolvedURL(redirectClient, response, resolvedRequestedURI);
     } else {
         currentCount += 1;
         final string currentCountValue = currentCount.toString();
-        // log:printDebug(isolated function() returns string {
-        //     return "Redirect count : " + currentCountValue;
-        // });
+        log:printDebug("Redirect count : " + currentCountValue);
         redirectClient.currentRedirectCount = currentCount;
         var redirectMethod = getRedirectMethod(httpVerb, response);
         if (redirectMethod is HttpOperation) {
              var location = response.getHeader(LOCATION);
              if (location is string) {
-                // log:printDebug(isolated function() returns string {
-                //     return "Location header value: " + location;
-                // });
+                log:printDebug("Location header value: " + location);
                 if (!isAbsolute(location)) {
                     var resolvedURI = resolve(resolvedRequestedURI, location);
                     if (resolvedURI is string) {
@@ -379,9 +333,7 @@ function performRedirection(string location, RedirectClient redirectClient, Http
     var retryClient = createRetryClient(location, createNewEndpointConfig(redirectClient.config), cookieStore);
     if (retryClient is HttpClient) {
         final string locationValue = location;
-        // log:printDebug(isolated function() returns string {
-        //         return "Redirect using new clientEP : " + locationValue;
-        //     });
+        log:printDebug("Redirect using new clientEP : " + locationValue);
         HttpResponse|ClientError result = invokeEndpoint("",
             createRedirectRequest(request, redirectClient.redirectConfig.allowAuthHeaders),
             redirectMethod, retryClient);
@@ -431,9 +383,7 @@ isolated function getRedirectMethod(HttpOperation httpVerb, Response response) r
         return httpVerb;
     }
     final string statusCodeValue = statusCode.toString();
-    // log:printDebug(isolated function() returns string {
-    //    return "unsupported redirect status code" + statusCodeValue;
-    // });
+    log:printDebug("unsupported redirect status code" + statusCodeValue);
     return ();
 }
 
@@ -453,9 +403,7 @@ isolated function isAbsolute(string locationUrl) returns boolean {
 //Reset the current redirect count to 0 and set the resolved requested URI.
 isolated function setCountAndResolvedURL(RedirectClient redirectClient, Response response, string resolvedRequestedURI) {
     final string resolvedRequestedURIValue = resolvedRequestedURI;
-    // log:printDebug(isolated function() returns string {
-    //     return "Ultimate response coming from the request: " + resolvedRequestedURIValue;
-    // });
+    log:printDebug("ultimate response coming from the request: " + resolvedRequestedURIValue);
     redirectClient.currentRedirectCount = 0;
     response.resolvedRequestedURI = resolvedRequestedURI;
 }

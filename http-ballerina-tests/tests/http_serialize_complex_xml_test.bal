@@ -40,15 +40,15 @@ service /serialize on serializeXmlListener {
         if (returnResponse is http:Response) {
             var result = caller->respond(<@untainted> returnResponse);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
-        } else if (returnResponse is error) {
+        } else {
             http:Response response = new;
             response.setPayload("Error occurred while sending multipart request!");
             response.statusCode = 500;
             var result = caller->respond(response);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         }
     }
@@ -74,7 +74,7 @@ service /serialize on serializeXmlListener {
         }
         var result = caller->respond(response);
         if (result is error) {
-            log:printError("Error sending response", err = result);
+            log:printError("Error sending response", 'error = result);
         }
     }
 }

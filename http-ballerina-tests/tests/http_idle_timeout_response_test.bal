@@ -29,13 +29,13 @@ service /idleTimeout on idleTimeoutListenerEP {
     resource function post timeout408(http:Caller caller, http:Request req) {
         var result = req.getTextPayload();
         if (result is string) {
-            log:print(result);
+            log:printInfo(result);
         } else  {
-            log:printError("Error reading request", err = result);
+            log:printError("Error reading request", 'error = result);
         }
         var responseError = caller->respond("some");
         if (responseError is error) {
-            log:printError("Error sending response", err = responseError);
+            log:printError("Error sending response", 'error = responseError);
         }
     }
 
@@ -43,7 +43,7 @@ service /idleTimeout on idleTimeoutListenerEP {
         runtime:sleep(3);
         var responseError = caller->respond("some");
         if (responseError is error) {
-            log:printError("Error sending response", err = responseError);
+            log:printError("Error sending response", 'error = responseError);
         }
     }
 }
@@ -55,7 +55,7 @@ function test500Response() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 408, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

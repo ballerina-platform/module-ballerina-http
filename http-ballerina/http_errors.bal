@@ -195,9 +195,6 @@ public type InvalidCookieError distinct OutboundResponseError;
 // # Represents a header not found error when retrieving headers
 // public type HeaderNotFoundError distinct error;
 
-// # Represents an illegal data-binding  state error
-// public type IllegalDataBindingStateError distinct error<Detail>;
-
 // # Represents an error, which occurred due to bad syntax or incomplete info in the client request(4xx HTTP response)
 // public type ClientRequestError distinct error<Detail>;
 
@@ -212,6 +209,9 @@ public type InvalidCookieError distinct OutboundResponseError;
 
 // # Defines the Auth error types that returned from client
 // public type ClientAuthError distinct ClientError;
+
+# Defines the Auth error types that returned from listener
+public type ListenerAuthError distinct error;
 
 // # Defines the client error types that returned while sending outbound request
 // public type OutboundRequestError InitializingOutboundRequestError|WritingOutboundRequestHeadersError|
@@ -234,10 +234,10 @@ public type InvalidCookieError distinct OutboundResponseError;
 // public type ClientError ResiliencyError|ClientAuthError|OutboundRequestError|
 //                             InboundResponseError|UnsupportedActionError|Http2ClientError|
 //                             MaximumWaitTimeExceededError|SslError|GenericClientError|CookieHandlingError|
-//                             RemoteServerError|ClientRequestError|IllegalDataBindingStateError|HeaderNotFoundError;
+//                             RemoteServerError|ClientRequestError|HeaderNotFoundError;
 
 // # Defines the possible listener error types
-// public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError;
+// public type ListenerError GenericListenerError|InboundRequestError|OutboundResponseError|ListenerAuthError;
 
 // # Defines the common error type for the module
 // public type Error ListenerError|ClientError;
