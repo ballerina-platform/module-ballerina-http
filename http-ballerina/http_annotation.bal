@@ -47,7 +47,7 @@ public type CorsConfig record {|
     string[] allowOrigins = [];
     string[] exposeHeaders = [];
     boolean allowCredentials = false;
-    int maxAge= -1;
+    decimal maxAge= -1;
 |};
 
 // TODO: Enable this when Ballerina supports service life time

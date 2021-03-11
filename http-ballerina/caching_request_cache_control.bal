@@ -29,9 +29,9 @@ public class RequestCacheControl {
     public boolean noStore = false;
     public boolean noTransform = false;
     public boolean onlyIfCached = false;
-    public int maxAge = -1;
-    public int maxStale = -1;
-    public int minFresh = -1;
+    public decimal maxAge = -1;
+    public decimal maxStale = -1;
+    public decimal minFresh = -1;
 
     # Builds the cache control directives string from the current `http:RequestCacheControl` configurations.
     #

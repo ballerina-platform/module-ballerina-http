@@ -37,7 +37,7 @@ const string HTTP_SCHEME = "http://";
 const string HTTPS_SCHEME = "https://";
 
 # Constant for the default listener endpoint timeout
-const int DEFAULT_LISTENER_TIMEOUT = 120000; //2 mins
+const decimal DEFAULT_LISTENER_TIMEOUT = 120; //2 mins
 
 # Constant for the default failover starting index for failover endpoints
 const int DEFAULT_FAILOVER_EP_STARTING_INDEX = 0;

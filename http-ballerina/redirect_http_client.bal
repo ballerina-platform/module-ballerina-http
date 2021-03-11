@@ -349,7 +349,7 @@ isolated function createNewEndpointConfig(ClientConfiguration config) returns Cl
         http1Settings: config.http1Settings,
         http2Settings: config.http2Settings,
         circuitBreaker: config.circuitBreaker,
-        timeoutInMillis: config.timeoutInMillis,
+        timeout: config.timeout,
         httpVersion: config.httpVersion,
         forwarded: config.forwarded,
         followRedirects: config.followRedirects,

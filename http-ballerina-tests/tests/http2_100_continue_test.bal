@@ -24,7 +24,7 @@ http:Client h2Client = check new("http://localhost:9127", {
     http2Settings: {
         http2PriorKnowledge: true
     },
-    timeoutInMillis: 300000
+    timeout: 300
 });
 
 service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {

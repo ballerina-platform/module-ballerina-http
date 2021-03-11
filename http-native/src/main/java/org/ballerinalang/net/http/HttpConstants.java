@@ -340,7 +340,7 @@ public class HttpConstants {
     public static final BString ENDPOINT_CONFIG_HOST = StringUtils.fromString("host");
     public static final BString ENDPOINT_CONFIG_PORT = StringUtils.fromString("port");
     public static final BString ENDPOINT_CONFIG_KEEP_ALIVE = StringUtils.fromString("keepAlive");
-    public static final BString ENDPOINT_CONFIG_TIMEOUT = StringUtils.fromString("timeoutInMillis");
+    public static final BString ENDPOINT_CONFIG_TIMEOUT = StringUtils.fromString("timeout");
     public static final String ENDPOINT_CONFIG_CHUNKING = "chunking";
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
@@ -394,7 +394,7 @@ public class HttpConstants {
 
     //Client Endpoint Config
     public static final BString CLIENT_EP_CHUNKING = StringUtils.fromString("chunking");
-    public static final BString CLIENT_EP_ENDPOINT_TIMEOUT = StringUtils.fromString("timeoutInMillis");
+    public static final BString CLIENT_EP_ENDPOINT_TIMEOUT = StringUtils.fromString("timeout");
     public static final BString CLIENT_EP_IS_KEEP_ALIVE = StringUtils.fromString("keepAlive");
     public static final BString CLIENT_EP_HTTP_VERSION = StringUtils.fromString("httpVersion");
     public static final BString CLIENT_EP_FORWARDED = StringUtils.fromString("forwarded");
@@ -417,7 +417,7 @@ public class HttpConstants {
     public static final BString CONNECTION_POOLING_MAX_ACTIVE_CONNECTIONS = StringUtils.fromString(
             "maxActiveConnections");
     public static final BString CONNECTION_POOLING_MAX_IDLE_CONNECTIONS = StringUtils.fromString("maxIdleConnections");
-    public static final BString CONNECTION_POOLING_WAIT_TIME = StringUtils.fromString("waitTimeInMillis");
+    public static final BString CONNECTION_POOLING_WAIT_TIME = StringUtils.fromString("waitTime");
     public static final BString CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION = StringUtils.fromString(
             "maxActiveStreamsPerConnection");
     public static final String HTTP_CLIENT_CONNECTION_POOL = "PoolConfiguration";

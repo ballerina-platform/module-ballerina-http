@@ -74,7 +74,7 @@ type HTTPError record {
 # + httpVersion - The HTTP version understood by the client
 # + http1Settings - Configurations related to HTTP/1.x protocol
 # + http2Settings - Configurations related to HTTP/2 protocol
-# + timeoutInMillis - The maximum time to wait (in milliseconds) for a response before closing the connection
+# + timeout - The maximum time to wait (in seconds) for a response before closing the connection
 # + forwarded - The choice of setting `forwarded`/`x-forwarded` header
 # + followRedirects - Configurations associated with Redirection
 # + poolConfig - Configurations associated with request pooling
@@ -89,7 +89,7 @@ public type CommonClientConfiguration record {|
     string httpVersion = HTTP_1_1;
     ClientHttp1Settings http1Settings = {};
     ClientHttp2Settings http2Settings = {};
-    int timeoutInMillis = 60000;
+    decimal timeout = 60;
     string forwarded = "disable";
     FollowRedirects? followRedirects = ();
     PoolConfiguration? poolConfig = ();

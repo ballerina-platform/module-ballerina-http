@@ -43,15 +43,15 @@ function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
-                timeWindowInMillis:10000,
-                bucketSizeInMillis:2000,
+                timeWindow:10,
+                bucketSize:2,
                 requestVolumeThreshold: 0
             },
             failureThreshold:0.3,
-            resetTimeInMillis:1000,
+            resetTime:1,
             statusCodes:[400, 404, 500, 502, 503]
         },
-        timeoutInMillis:2000
+        timeout:2
     });
 
     http:Response[] responses = [];
@@ -83,15 +83,15 @@ function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
-                timeWindowInMillis:10000,
-                bucketSizeInMillis:2000,
+                timeWindow:10,
+                bucketSize:2,
                 requestVolumeThreshold: 0
             },
             failureThreshold:0.3,
-            resetTimeInMillis:1000,
+            resetTime:1,
             statusCodes:[400, 404, 500, 502, 503]
         },
-        timeoutInMillis:2000
+        timeout:2
     });
 
     http:Response[] responses = [];
@@ -124,15 +124,15 @@ function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
-                timeWindowInMillis:10000,
-                bucketSizeInMillis:2000,
+                timeWindow:10,
+                bucketSize:2,
                 requestVolumeThreshold: 0
             },
             failureThreshold:0.3,
-            resetTimeInMillis:1000,
+            resetTime:1,
             statusCodes:[400, 404, 500, 502, 503]
         },
-        timeoutInMillis:2000
+        timeout:2
     });
 
     http:Response[] responses = [];
@@ -160,15 +160,15 @@ function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
-                timeWindowInMillis:10000,
-                bucketSizeInMillis:2000,
+                timeWindow:10,
+                bucketSize:2,
                 requestVolumeThreshold: 0
             },
             failureThreshold:0.3,
-            resetTimeInMillis:1000,
+            resetTime:1,
             statusCodes:[500, 502, 503]
         },
-        timeoutInMillis:2000
+        timeout:2
     });
 
     http:Response[] responses = [];
@@ -199,15 +199,15 @@ function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
-                timeWindowInMillis:10000,
-                bucketSizeInMillis:2000,
+                timeWindow:10,
+                bucketSize:2,
                 requestVolumeThreshold: 0
             },
             failureThreshold:0.3,
-            resetTimeInMillis:1000,
+            resetTime:1,
             statusCodes:[500, 502, 503]
         },
-        timeoutInMillis:2000
+        timeout:2
     });
 
     http:Response[] responses = [];
@@ -239,15 +239,15 @@ function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [h
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
-                timeWindowInMillis:10000,
-                bucketSizeInMillis:2000,
+                timeWindow:10,
+                bucketSize:2,
                 requestVolumeThreshold: 6
             },
             failureThreshold:0.3,
-            resetTimeInMillis:1000,
+            resetTime:1,
             statusCodes:[500, 502, 503]
         },
-        timeoutInMillis:2000
+        timeout:2
     });
 
     http:Response[] responses = [];
@@ -276,15 +276,15 @@ function testRequestVolumeThresholdFailureResponseScenario() returns @tainted [h
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
-                timeWindowInMillis:10000,
-                bucketSizeInMillis:2000,
+                timeWindow:10,
+                bucketSize:2,
                 requestVolumeThreshold: 6
             },
             failureThreshold:0.3,
-            resetTimeInMillis:1000,
+            resetTime:1,
             statusCodes:[500, 502, 503]
         },
-        timeoutInMillis:2000
+        timeout:2
     });
 
     http:Response[] responses = [];
@@ -311,15 +311,15 @@ function testInvalidRollingWindowConfiguration() returns error? {
     var backendClientEP = trap new http:Client("http://localhost:8080", {
         circuitBreaker: {
             rollingWindow: {
-                timeWindowInMillis: 2000,
-                bucketSizeInMillis: 3000,
+                timeWindow: 2,
+                bucketSize: 3,
                 requestVolumeThreshold: 0
             },
             failureThreshold:0.3,
-            resetTimeInMillis:1000,
+            resetTime:1,
             statusCodes:[400, 404, 500, 502, 503]
         },
-        timeoutInMillis:2000
+        timeout:2
     });
     if (backendClientEP is error) {
         return backendClientEP;
@@ -560,14 +560,14 @@ listener http:Listener mockEP3 = new(9095);
 http:Client clientEP = check new("http://localhost:8080", {
     circuitBreaker: {
         rollingWindow: {
-            timeWindowInMillis: 10000,
-            bucketSizeInMillis: 2000
+            timeWindow: 10,
+            bucketSize: 2
         },
         failureThreshold: 0.3,
-        resetTimeInMillis: 1000,
+        resetTime: 1,
         statusCodes: [500, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 service /circuitBreakerService on mockEP3 {
@@ -757,7 +757,7 @@ function cBGetCurrentStatausScenarioTest() {
 
 @test:Config {}
 function invalidRollingWindowConfigTest() {
-    string expected = "Circuit breaker 'timeWindowInMillis' value should be greater than the 'bucketSizeInMillis' value.";
+    string expected = "Circuit breaker 'timeWindow' value should be greater than the 'bucketSize' value.";
     error? err = testInvalidRollingWindowConfiguration();
     if (err is error) {
        test:assertEquals(err.message(), expected);  

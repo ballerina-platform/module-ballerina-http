@@ -27,15 +27,15 @@ listener http:Listener circuitBreakerEP02 = new(9308);
 http:ClientConfiguration conf02 = {
     circuitBreaker: {
         rollingWindow: {
-            timeWindowInMillis: 60000,
-            bucketSizeInMillis: 20000,
+            timeWindow: 60,
+            bucketSize: 20,
             requestVolumeThreshold: 2
         },
         failureThreshold: 0.6,
-        resetTimeInMillis: 1000,
+        resetTime: 1,
         statusCodes: [501, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 };
 
 http:Client unhealthyClientEP = check new("http://localhost:8088", conf02);

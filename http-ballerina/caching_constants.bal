@@ -66,7 +66,7 @@ public const string S_MAX_AGE = "s-maxage";
 
 // Other constants
 # Setting this as the `max-stale` directives indicates that the `max-stale` directive does not specify a limit.
-public const int MAX_STALE_ANY_AGE = 9223372036854775807;
+public const decimal MAX_STALE_ANY_AGE = 9223372036854775807;
 
 
 // Non-public constants/final vars
