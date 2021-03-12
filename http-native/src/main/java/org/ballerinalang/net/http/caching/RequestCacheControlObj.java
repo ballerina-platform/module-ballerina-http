@@ -18,8 +18,10 @@
 
 package org.ballerinalang.net.http.caching;
 
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.values.BObject;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.ballerinalang.net.http.HttpConstants.REQ_CACHE_CONTROL_MAX_AGE_FIELD;
@@ -46,9 +48,12 @@ public class RequestCacheControlObj {
 
         // Initialize the struct fields to default values we use
         requestCacheControl.set(REQ_CACHE_CONTROL_NO_TRANSFORM_FIELD, TRUE);
-        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_AGE_FIELD, -1);
-        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_STALE_FIELD, -1);
-        requestCacheControl.set(REQ_CACHE_CONTROL_MIN_FRESH_FIELD, -1);
+        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_AGE_FIELD,
+                                ValueCreator.createDecimalValue(BigDecimal.valueOf(-1)));
+        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_STALE_FIELD,
+                                ValueCreator.createDecimalValue(BigDecimal.valueOf(-1)));
+        requestCacheControl.set(REQ_CACHE_CONTROL_MIN_FRESH_FIELD,
+                                ValueCreator.createDecimalValue(BigDecimal.valueOf(-1)));
     }
 
     public BObject getObj() {
@@ -76,17 +81,20 @@ public class RequestCacheControlObj {
     }
 
     public RequestCacheControlObj setMaxAge(long maxAge) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_AGE_FIELD, maxAge);
+        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_AGE_FIELD,
+                                ValueCreator.createDecimalValue(BigDecimal.valueOf(maxAge)));
         return this;
     }
 
     public RequestCacheControlObj setMaxStale(long maxStale) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_STALE_FIELD, maxStale);
+        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_STALE_FIELD,
+                                ValueCreator.createDecimalValue(BigDecimal.valueOf(maxStale)));
         return this;
     }
 
     public RequestCacheControlObj setMinFresh(long minFresh) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_MIN_FRESH_FIELD, minFresh);
+        requestCacheControl.set(REQ_CACHE_CONTROL_MIN_FRESH_FIELD,
+                                ValueCreator.createDecimalValue(BigDecimal.valueOf(minFresh)));
         return this;
     }
 
@@ -109,26 +117,32 @@ public class RequestCacheControlObj {
                     break;
                 case MAX_AGE:
                     try {
-                        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_AGE_FIELD, Long.parseLong(value));
+                        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_AGE_FIELD, ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(Long.parseLong(value))));
                     } catch (NumberFormatException e) {
                         // Ignore the exception and set max-age to 0.
-                        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_AGE_FIELD, 0);
+                        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_AGE_FIELD, ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(0)));
                     }
                     break;
                 case MAX_STALE:
                     try {
-                        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_STALE_FIELD, Long.parseLong(value));
+                        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_STALE_FIELD, ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(Long.parseLong(value))));
                     } catch (NumberFormatException e) {
                         // Ignore the exception and set max-stale to 0.
-                        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_STALE_FIELD, 0);
+                        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_STALE_FIELD, ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(0)));
                     }
                     break;
                 case MIN_FRESH:
                     try {
-                        requestCacheControl.set(REQ_CACHE_CONTROL_MIN_FRESH_FIELD, Long.parseLong(value));
+                        requestCacheControl.set(REQ_CACHE_CONTROL_MIN_FRESH_FIELD, ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(Long.parseLong(value))));
                     } catch (NumberFormatException e) {
                         // Ignore the exception and set min-fresh to 0.
-                        requestCacheControl.set(REQ_CACHE_CONTROL_MIN_FRESH_FIELD, 0);
+                        requestCacheControl.set(REQ_CACHE_CONTROL_MIN_FRESH_FIELD, ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(0)));
                     }
                     break;
                 default:

@@ -25,9 +25,9 @@ listener http:Listener failoverEP06 = new(9314, { httpVersion: "2.0" });
 listener http:Listener backendEP06 = new(8094, { httpVersion: "2.0" });
 
 http:FailoverClient foBackendEP06 = check new({
-    timeoutInMillis: 5000,
+    timeout: 5,
     failoverCodes: [500, 501, 502, 503],
-    intervalInMillis: 5000,
+    interval: 5,
     httpVersion: "2.0",
     // Define set of HTTP Clients that needs to be Failover.
     targets: [
@@ -65,7 +65,7 @@ service /delay on backendEP06 {
         runtime:sleep(10);
         var responseToCaller = caller->respond("Delayed resource is invoked");
         if (responseToCaller is error) {
-            log:printError("Error sending response from delay service", err = responseToCaller);
+            log:printError("Error sending response from delay service", 'error = responseToCaller);
         }
     }
 }
@@ -79,7 +79,7 @@ service /'error on backendEP06 {
         response.setPayload("Response from error Service with error status code.");
         var responseToCaller = caller->respond(response);
         if (responseToCaller is error) {
-            log:printError("Error sending response from error service", err = responseToCaller);
+            log:printError("Error sending response from error service", 'error = responseToCaller);
         }
     }
 }
@@ -90,14 +90,14 @@ service /mock on backendEP06 {
     resource function get .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
 
 function handleResponseToCaller(error? responseToCaller) {
     if (responseToCaller is error) {
-        log:printError("Error sending response from failover service.", err = responseToCaller);
+        log:printError("Error sending response from failover service.", 'error = responseToCaller);
     }
 }
 

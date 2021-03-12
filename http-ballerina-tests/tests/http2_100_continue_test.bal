@@ -24,7 +24,7 @@ http:Client h2Client = check new("http://localhost:9127", {
     http2Settings: {
         http2PriorKnowledge: true
     },
-    timeoutInMillis: 300000
+    timeout: 300
 });
 
 service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
@@ -63,7 +63,7 @@ service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
 
 function handleRespError(error? result) {
     if (result is error) {
-        log:printError(result.message(), err = result);
+        log:printError(result.message(), 'error = result);
     }
 }
 

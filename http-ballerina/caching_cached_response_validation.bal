@@ -14,16 +14,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/log;
 import ballerina/time;
 
 isolated function getValidationResponse(HttpClient httpClient, Request req, Response cachedResponse, HttpCache cache,
-                               time:Time currentT, string path, string httpMethod, boolean isFreshResponse)
+                               time:Utc currentT, string path, string httpMethod, boolean isFreshResponse)
                                                                                 returns @tainted Response|ClientError {
     // If the no-cache directive is set, always validate the response before serving
     if (isFreshResponse) {
-        // log:printDebug("Sending validation request for a fresh response");
+        log:printDebug("Sending validation request for a fresh response");
     } else {
-        // log:printDebug("Sending validation request for a stale response");
+        log:printDebug("Sending validation request for a stale response");
     }
 
     var response = sendValidationRequest(httpClient, path, req, cachedResponse);
@@ -34,16 +35,16 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
         // if the connection is refused or the connection times out.
         // TODO: Verify that this behaviour is valid: returning a fresh response when 'no-cache' is present and
         // origin server couldn't be reached.
-        updateResponseTimestamps(cachedResponse, currentT.time, time:currentTime().time);
+        updateResponseTimestamps(cachedResponse, currentT, time:utcNow());
         setAgeHeader(<@untainted> cachedResponse);
 
         if (!isFreshResponse) {
             // If the origin server cannot be reached and a fresh response is unavailable, serve a stale
             // response (unless it is prohibited through a directive).
             cachedResponse.setHeader(WARNING, WARNING_111_REVALIDATION_FAILED);
-            // log:printDebug("Cannot reach origin server. Serving a stale response");
+            log:printDebug("Cannot reach origin server. Serving a stale response");
         } else {
-            // log:printDebug("Cannot reach origin server. Serving a fresh response");
+            log:printDebug("Cannot reach origin server. Serving a fresh response");
         }
 
         return response;
@@ -51,7 +52,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
 
     Response validationResponse = <Response> checkpanic response;
 
-    // log:printDebug("Response for validation request received");
+    log:printDebug("Response for validation request received");
 
     // Based on https://tools.ietf.org/html/rfc7234#section-4.3.3
     if (validationResponse.statusCode == STATUS_NOT_MODIFIED) {
@@ -63,11 +64,11 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
         return validationResponse;
     } else {
         // Forward the received response and replace the stored responses
-        validationResponse.requestTime = currentT.time;
+        validationResponse.requestTime = currentT;
         if (req.cacheControl is RequestCacheControl) {
             cache.put(getCacheKey(httpMethod, path), req.cacheControl, validationResponse);
         }
-        // log:printDebug("Received a full response. Storing it in cache and forwarding to the client");
+        log:printDebug("Received a full response. Storing it in cache and forwarding to the client");
         return validationResponse;
     }
 }
@@ -113,7 +114,7 @@ isolated function handle304Response(Response validationResponse, Response cached
             foreach var resp in matchingCachedResponses {
                 updateResponse(resp, <@untainted> validationResponse);
             }
-            // log:printDebug("304 response received, with a strong validator. Response(s) updated");
+            log:printDebug("304 response received, with a strong validator. Response(s) updated");
             return cachedResponse;
         } else if (hasAWeakValidator(validationResponse, etag)) {
             // The weak validator should be either an ETag or a last modified date. Precedence given to ETag
@@ -122,7 +123,7 @@ isolated function handle304Response(Response validationResponse, Response cached
             foreach var resp in matchingCachedResponses {
                 updateResponse(resp, validationResponse);
             }
-            // log:printDebug("304 response received, with a weak validator. Response(s) updated");
+            log:printDebug("304 response received, with a weak validator. Response(s) updated");
             return cachedResponse;
         }
     }
@@ -131,12 +132,11 @@ isolated function handle304Response(Response validationResponse, Response cached
     // TODO: Need to check whether cachedResponse is the only matching response
     if (!cachedResponse.hasHeader(ETAG) && !cachedResponse.hasHeader(LAST_MODIFIED) &&
                                                         !validationResponse.hasHeader(LAST_MODIFIED)) {
-        // log:printDebug("304 response received and stored response do not have validators. Updating the stored
-        // response.");
+        log:printDebug("304 response received and stored response do not have validators. Updating the stored response.");
         updateResponse(<@untainted> cachedResponse, validationResponse);
     }
 
-    // log:printDebug("304 response received, but stored responses were not updated.");
+    log:printDebug("304 response received, but stored responses were not updated.");
     // TODO: Check if this behaviour is the expected one
     return cachedResponse;
 }

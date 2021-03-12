@@ -24,15 +24,15 @@ listener http:Listener circuitBreakerEP04 = new(9310);
 http:ClientConfiguration conf04 = {
     circuitBreaker: {
         rollingWindow: {
-            timeWindowInMillis: 60000,
-            bucketSizeInMillis: 20000,
+            timeWindow: 60,
+            bucketSize: 20,
             requestVolumeThreshold: 6
         },
         failureThreshold: 0.3,
-        resetTimeInMillis: 10000,
+        resetTime: 10,
         statusCodes: [500, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 };
 
 http:Client errornousClientEP = check new("http://localhost:8090", conf04);
@@ -44,7 +44,7 @@ service /cb on circuitBreakerEP04 {
         if (backendRes is http:Response) {
             var responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -52,7 +52,7 @@ service /cb on circuitBreakerEP04 {
             response.setPayload(<@untainted> backendRes.message());
             var responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -66,7 +66,7 @@ service /errornous on new http:Listener(8090) {
         res.setPayload("Internal error occurred while processing the request.");
         var responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

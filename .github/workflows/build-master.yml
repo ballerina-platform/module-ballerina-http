@@ -27,7 +27,6 @@ jobs:
           packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
             ./gradlew publish
-            ./gradlew codeCoverageReport
       - name: Archive Module Compilation Error Log
         uses: actions/upload-artifact@v2
         if: failure()

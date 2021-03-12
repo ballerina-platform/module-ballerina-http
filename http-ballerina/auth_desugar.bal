@@ -152,7 +152,7 @@ isolated function sendResponse(Response response) {
     Caller caller = getCaller();
     error? err = caller->respond(response);
     if (err is error) {
-        log:printError("Failed to respond the 401/403 request.", err = err);
+        log:printError("Failed to respond the 401/403 request.", 'error = err);
     }
     // This panic is added to break the execution of the implementation inside the resource function after there is
     // an authn/authz failure and responded with 401/403 internally.

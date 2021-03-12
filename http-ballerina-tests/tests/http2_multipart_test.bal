@@ -47,7 +47,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
         }
         var result = caller->respond(response);
         if (result is error) {
-            log:printError("Error sending response", err = result);
+            log:printError("Error sending response", 'error = result);
         }
     }
 
@@ -68,7 +68,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
             }
             var result = caller->respond(finalMessage);
         } else {
-            log:printError("Error sending response", err = finalResponse);
+            log:printError("Error sending response", 'error = finalResponse);
         }
     }
 
@@ -94,7 +94,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
         if (returnResponse is http:Response) {
             var result = caller->respond(<@untainted> returnResponse);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         } else {
             http:Response response = new;
@@ -102,7 +102,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
             response.statusCode = 500;
             var result = caller->respond(response);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         }
     }

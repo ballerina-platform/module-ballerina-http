@@ -30,22 +30,22 @@ http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunct
 http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(), {
     // Retry configuration options.
     retryConfig: {
-        intervalInMillis: 3000,
+        interval: 3,
         count: 3,
         backOffFactor: 0.5
     },
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
     retryConfig: {
-        intervalInMillis: 3000,
+        interval: 3,
         count: 3,
         backOffFactor: 2.0,
-        maxWaitIntervalInMillis: 20000,
+        maxWaitInterval: 20,
         statusCodes: [501, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 service /retryDemoService on retryTestserviceEndpoint1 {
@@ -57,7 +57,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
         if (backendResponse is http:Response) {
             var responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -65,7 +65,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.setPayload(<@untainted> backendResponse.message());
             var responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -80,7 +80,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request req) {
         retryCount = retryCount + 1;
         if (retryCount % 4 != 0) {
-            log:print(
+            log:printInfo(
                 "Request received from the client to delayed service.");
             // Delay the response by 5000 milliseconds to
             // mimic network level delays.
@@ -90,10 +90,10 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             var result = caller->respond(res);
 
             if (result is error) {
-                log:printError("Error sending response from mock service", err = result);
+                log:printError("Error sending response from mock service", 'error = result);
             }
         } else {
-            log:print("Request received from the client to healthy service.");
+            log:printInfo("Request received from the client to healthy service.");
             http:Response response = new;
             if (req.hasHeader(mime:CONTENT_TYPE)
                 && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
@@ -132,7 +132,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             }
             var responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response from mock service", err = responseToCaller);
+                log:printError("Error sending response from mock service", 'error = responseToCaller);
             }
         }
     }
@@ -145,7 +145,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
                 if (responseError is error) {
-                    log:printError("Error sending response", err = responseError);
+                    log:printError("Error sending response", 'error = responseError);
                 }
             } else {
                 http:Response errorResponse = new;
@@ -153,7 +153,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                 errorResponse.setPayload(<@untainted> backendResponse.message());
                 var responseError = caller->respond(errorResponse);
                 if (responseError is error) {
-                    log:printError("Error sending response", err = responseError);
+                    log:printError("Error sending response", 'error = responseError);
                 }
             }
         } else if (checkpanic request.getHeader("x-retry") == "internalError") {
@@ -161,7 +161,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
                 if (responseError is error) {
-                    log:printError("Error sending response", err = responseError);
+                    log:printError("Error sending response", 'error = responseError);
                 }
             } else {
                 http:Response errorResponse = new;
@@ -169,7 +169,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                 errorResponse.setPayload(<@untainted> backendResponse.message());
                 var responseError = caller->respond(errorResponse);
                 if (responseError is error) {
-                    log:printError("Error sending response", err = responseError);
+                    log:printError("Error sending response", 'error = responseError);
                 }
             }
         }
@@ -187,12 +187,12 @@ service /mockStatusCodeService on retryTestserviceEndpoint2 {
             res.setPayload("Gateway Timed out.");
             var responseError = caller->respond(res);
             if (responseError is error) {
-                log:printError("Error sending response from the service", err = responseError);
+                log:printError("Error sending response from the service", 'error = responseError);
             }
         } else {
             var responseError = caller->respond("Hello World!!!");
             if (responseError is error) {
-                log:printError("Error sending response from the service", err = responseError);
+                log:printError("Error sending response from the service", 'error = responseError);
             }
         }
     }
@@ -203,7 +203,7 @@ service /mockStatusCodeService on retryTestserviceEndpoint2 {
         res.setPayload("Gateway Timed out.");
         var responseError = caller->respond(res);
         if (responseError is error) {
-            log:printError("Error sending response from the service", err = responseError);
+            log:printError("Error sending response from the service", 'error = responseError);
         }
     }
 }

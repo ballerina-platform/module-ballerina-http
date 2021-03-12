@@ -18,19 +18,19 @@ import ballerina/jballerina.java;
 
 final configurable int maxActiveConnections = -1;
 final configurable int maxIdleConnections = 100;
-final configurable int waitTimeInMillis = 30000;
+final configurable decimal waitTime = 30;
 final configurable int maxActiveStreamsPerConnection = 50;
 
 # Configurations for managing HTTP client connection pool.
 #
 # + maxActiveConnections - Max active connections per route(host:port). Default value is -1 which indicates unlimited.
 # + maxIdleConnections - Maximum number of idle connections allowed per pool.
-# + waitTimeInMillis - Maximum amount of time, the client should wait for an idle connection before it sends an error when the pool is exhausted
+# + waitTime - Maximum amount of time (in seconds), the client should wait for an idle connection before it sends an error when the pool is exhausted
 # + maxActiveStreamsPerConnection - Maximum active streams per connection. This only applies to HTTP/2.
 public type PoolConfiguration record {|
     int maxActiveConnections = maxActiveConnections;
     int maxIdleConnections = maxIdleConnections;
-    int waitTimeInMillis = waitTimeInMillis;
+    decimal waitTime = waitTime;
     int maxActiveStreamsPerConnection = maxActiveStreamsPerConnection;
 |};
 //This is a hack to get the global map initialized, without involving locking.

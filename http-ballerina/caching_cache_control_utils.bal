@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/lang.'int;
+import ballerina/lang.'decimal;
 import ballerina/regex;
 
 isolated function appendFields (string[] fields) returns string {
@@ -37,7 +37,7 @@ isolated function buildCommaSeparatedString (string[] values) returns string {
     return delimitedValues;
 }
 
-isolated function getDirectiveValue (string directive) returns int {
+isolated function getDirectiveValue (string directive) returns decimal {
     string[] directiveParts = regex:split(directive, "=");
 
     // Disregarding the directive if a value isn't provided
@@ -45,8 +45,8 @@ isolated function getDirectiveValue (string directive) returns int {
         return -1;
     }
 
-    var age = 'int:fromString(directiveParts[1]);
-    if (age is int) {
+    var age = 'decimal:fromString(directiveParts[1]);
+    if (age is decimal) {
         return age;
     }
     return -1; // Disregarding the directive if the value cannot be parsed

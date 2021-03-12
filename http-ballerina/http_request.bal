@@ -595,7 +595,7 @@ public class Request {
             if (cookieName is string && cookieValue is string) {
                 cookieheader = cookieheader + cookieName + EQUALS + cookieValue + SEMICOLON + SPACE;
             }
-            cookie.lastAccessedTime = time:currentTime();
+            cookie.lastAccessedTime = time:utcNow();
         }
         if (cookieheader != "") {
             cookieheader = cookieheader.substring(0, cookieheader.length() - 2);

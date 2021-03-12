@@ -387,7 +387,7 @@ isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorDa
 # | httpVersion - Copied from CommonClientConfiguration     |
 # | http1Settings - Copied from CommonClientConfiguration   |
 # | http2Settings - Copied from CommonClientConfiguration   |
-# | timeoutInMillis - Copied from CommonClientConfiguration |
+# | timeout - Copied from CommonClientConfiguration |
 # | forwarded - Copied from CommonClientConfiguration       |
 # | followRedirects - Copied from CommonClientConfiguration |
 # | poolConfig - Copied from CommonClientConfiguration      |
@@ -415,7 +415,7 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         http1Settings: lbConfig.http1Settings,
         http2Settings: lbConfig.http2Settings,
         circuitBreaker:lbConfig.circuitBreaker,
-        timeoutInMillis:lbConfig.timeoutInMillis,
+        timeout:lbConfig.timeout,
         httpVersion:lbConfig.httpVersion,
         forwarded:lbConfig.forwarded,
         followRedirects:lbConfig.followRedirects,

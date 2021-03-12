@@ -36,7 +36,7 @@ service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
             log:printError("Failed to retrieve payload from request: " + payload.message());
             var responseError = caller->respond(resp);
             if (responseError is error) {
-                log:printError("Error sending response", err = responseError);
+                log:printError("Error sending response", 'error = responseError);
             }
         }
     }

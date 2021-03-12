@@ -14,52 +14,54 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/lang.'int;
+import ballerina/log;
+import ballerina/lang.'decimal;
 import ballerina/time;
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.2.3
 isolated function calculateCurrentResponseAge(Response cachedResponse) returns @tainted int {
-    int ageValue = getResponseAge(cachedResponse);
-    int dateValue = getDateValue(cachedResponse);
-    int now = time:currentTime().time;
-    int responseTime = cachedResponse.receivedTime;
-    int requestTime = cachedResponse.requestTime;
+    time:Seconds ageValue = getResponseAge(cachedResponse);
+    time:Utc dateValue = getDateValue(cachedResponse);
+    time:Utc now = time:utcNow();
+    time:Utc responseTime = cachedResponse.receivedTime;
+    time:Utc requestTime = cachedResponse.requestTime;
 
-    int apparentAge = (responseTime - dateValue) >= 0 ? (responseTime - dateValue) : 0;
+    time:Seconds ageDiff = time:utcDiffSeconds(responseTime, dateValue);
+    time:Seconds apparentAge = ageDiff >= 0 ? ageDiff : 0;
 
-    int responseDelay = responseTime - requestTime;
-    int correctedAgeValue = ageValue + responseDelay;
+    time:Seconds responseDelay = time:utcDiffSeconds(responseTime, requestTime);
+    time:Seconds correctedAgeValue = ageValue + responseDelay;
 
-    int correctedInitialAge = apparentAge > correctedAgeValue ? apparentAge : correctedAgeValue;
-    int residentTime = now - responseTime;
+    time:Seconds correctedInitialAge = apparentAge > correctedAgeValue ? apparentAge : correctedAgeValue;
+    time:Seconds residentTime = time:utcDiffSeconds(now, responseTime);
 
-    return (correctedInitialAge + residentTime) / 1000;
+    return <int>((correctedInitialAge + residentTime)*1000);
 }
 
-isolated function getResponseAge(Response cachedResponse) returns @tainted int {
+isolated function getResponseAge(Response cachedResponse) returns @tainted time:Seconds {
     string|error ageHeaderString = cachedResponse.getHeader(AGE);
     if (ageHeaderString is error) {
         return 0;
     } else {
-        var ageValue = 'int:fromString(ageHeaderString);
-        return (ageValue is int) ? ageValue : 0;
+        var ageValue = 'decimal:fromString(ageHeaderString);
+        return (ageValue is decimal) ? <time:Seconds> ageValue/1000 : 0;
     }
 }
 
-isolated function getDateValue(Response inboundResponse) returns int {
+isolated function getDateValue(Response inboundResponse) returns time:Utc {
     string|error dateHeader = inboundResponse.getHeader(DATE);
     if (dateHeader is string) {
         // TODO: May need to handle invalid date headers
-        var dateHeaderTime = time:parse(dateHeader, time:RFC_1123_DATE_TIME);
-        return (dateHeaderTime is time:Time) ? dateHeaderTime.time : 0;
+        var dateHeaderTime = utcFromString(dateHeader, RFC_1123_DATE_TIME);
+        return (dateHeaderTime is time:Utc) ? dateHeaderTime : [0, 0.0];
     }
 
-    // log:printDebug("Date header not found. Using current time for the Date header.");
+    log:printDebug("Date header not found. Using current time for the Date header.");
 
     // Based on https://tools.ietf.org/html/rfc7231#section-7.1.1.2
-    time:Time currentT = time:currentTime();
-    string timeStr = <string> checkpanic time:format(currentT, time:RFC_1123_DATE_TIME);
+    time:Utc currentT = time:utcNow();
+    string timeStr = <string> checkpanic utcToString(currentT, RFC_1123_DATE_TIME);
 
     inboundResponse.setHeader(DATE, timeStr);
-    return currentT.time;
+    return currentT;
 }

@@ -28,7 +28,7 @@ http:LoadBalanceClient lbBackendEP = check new({
         { url: "http://localhost:8093/LBMock2" },
         { url: "http://localhost:8093/LBMock3" }
     ],
-    timeoutInMillis: 5000
+    timeout: 5
 });
 
 http:LoadBalanceClient lbFailoverBackendEP = check new({
@@ -38,7 +38,7 @@ http:LoadBalanceClient lbFailoverBackendEP = check new({
         { url: "http://localhost:8093/LBMock3" }
     ],
     failover: true,
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 http:LoadBalanceClient delayedBackendEP = check new({
@@ -47,7 +47,7 @@ http:LoadBalanceClient delayedBackendEP = check new({
         { url: "http://localhost:8093/LBMock5" }
     ],
     failover: true,
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 CustomLoadBalancerRule customLbRule = new CustomLoadBalancerRule(2);
@@ -59,7 +59,7 @@ http:LoadBalanceClient customLbBackendEP = check new({
         { url: "http://localhost:8093/LBMock3" }
     ],
     lbRule: customLbRule,
-    timeoutInMillis: 5000
+    timeout: 5
 });
 
 service /loadBalancerDemoService on new http:Listener(9313) {
@@ -69,7 +69,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
         if (response is http:Response) {
             var responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
@@ -77,7 +77,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             outResponse.setPayload(<@untainted> response.message());
             var responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -88,7 +88,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
         if (response is http:Response) {
             var responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
@@ -96,7 +96,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             outResponse.setPayload(<@untainted> response.message());
             var responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -107,7 +107,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
         if (response is http:Response) {
             var responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
@@ -115,7 +115,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             outResponse.setPayload(<@untainted> response.message());
             var responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -126,7 +126,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
         if (response is http:Response) {
             var responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
@@ -134,7 +134,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             outResponse.setPayload(<@untainted> response.message());
             var responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -144,7 +144,7 @@ service /LBMock1 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock1 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -153,7 +153,7 @@ service /LBMock2 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock2 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -162,7 +162,7 @@ service /LBMock3 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
         var responseToCaller = caller->respond("Mock3 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -172,7 +172,7 @@ service /LBMock4 on LBbackendListener {
         runtime:sleep(5);
         var responseToCaller = caller->respond("Mock4 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -182,7 +182,7 @@ service /LBMock5 on LBbackendListener {
         runtime:sleep(5);
         var responseToCaller = caller->respond("Mock5 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

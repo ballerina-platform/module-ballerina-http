@@ -32,7 +32,7 @@ service /'continue on httpClientContinueListenerEP1 {
             if (mediaType.toLowerAscii() == "text/plain") {
                 var result = caller->continue();
                 if (result is error) {
-                    log:printError("Error sending response", err = result);
+                    log:printError("Error sending response", 'error = result);
                 }
             } else {
                 http:Response res = new;
@@ -40,7 +40,7 @@ service /'continue on httpClientContinueListenerEP1 {
                 res.setPayload("Unprocessable Entity");
                 var result = caller->respond(res);
                 if (result is error) {
-                    log:printError("Error sending response", err = result);
+                    log:printError("Error sending response", 'error = result);
                 }
                 return;
             }
@@ -48,19 +48,18 @@ service /'continue on httpClientContinueListenerEP1 {
         http:Response res = new;
         var payload = request.getTextPayload();
         if (payload is string) {
-            log:print(payload);
             res.statusCode = 200;
             res.setPayload("Hello World!\n");
             var result = caller->respond(res);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         } else {
             res.statusCode = 500;
             res.setPayload(<@untainted> payload.message());
             var result = caller->respond(res);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         }
     }

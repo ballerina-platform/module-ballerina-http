@@ -375,7 +375,7 @@ public type TargetService record {|
 # | httpVersion - Copied from CommonClientConfiguration     |
 # | http1Settings - Copied from CommonClientConfiguration   |
 # | http2Settings - Copied from CommonClientConfiguration   |
-# | timeoutInMillis - Copied from CommonClientConfiguration |
+# | timeout - Copied from CommonClientConfiguration         |
 # | forwarded - Copied from CommonClientConfiguration       |
 # | followRedirects - Copied from CommonClientConfiguration |
 # | poolConfig - Copied from CommonClientConfiguration      |
@@ -430,15 +430,15 @@ public type ClientHttp2Settings record {|
 # Provides configurations for controlling the retrying behavior in failure scenarios.
 #
 # + count - Number of retry attempts before giving up
-# + intervalInMillis - Retry interval in milliseconds
+# + interval - Retry interval in seconds
 # + backOffFactor - Multiplier, which increases the retry interval exponentially.
-# + maxWaitIntervalInMillis - Maximum time of the retry interval in milliseconds
+# + maxWaitInterval - Maximum time of the retry interval in seconds
 # + statusCodes - HTTP response status codes which are considered as failures
 public type RetryConfig record {|
     int count = 0;
-    int intervalInMillis = 0;
+    decimal interval = 0;
     float backOffFactor = 0.0;
-    int maxWaitIntervalInMillis = 0;
+    decimal maxWaitInterval = 0;
     int[] statusCodes = [];
 |};
 
@@ -596,8 +596,8 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
             }
         }
 
-        time:Time circuitStartTime = time:currentTime();
-        int numberOfBuckets = (cbConfig.rollingWindow.timeWindowInMillis / cbConfig.rollingWindow.bucketSizeInMillis);
+        time:Utc circuitStartTime = time:utcNow();
+        int numberOfBuckets = <int> (cbConfig.rollingWindow.timeWindow / cbConfig.rollingWindow.bucketSize);
         Bucket?[] bucketArray = [];
         int bucketIndex = 0;
         while (bucketIndex < numberOfBuckets) {
@@ -607,7 +607,7 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
 
         CircuitBreakerInferredConfig circuitBreakerInferredConfig = {
             failureThreshold: cbConfig.failureThreshold,
-            resetTimeInMillis: cbConfig.resetTimeInMillis,
+            resetTime: cbConfig.resetTime,
             statusCodes: statusCodes,
             noOfBuckets: numberOfBuckets,
             rollingWindow: cbConfig.rollingWindow
@@ -631,9 +631,9 @@ isolated function createRetryClient(string url, ClientConfiguration configuratio
         boolean[] statusCodes = populateErrorCodeIndex(retryConfig.statusCodes);
         RetryInferredConfig retryInferredConfig = {
             count: retryConfig.count,
-            intervalInMillis: retryConfig.intervalInMillis,
+            interval: retryConfig.interval,
             backOffFactor: retryConfig.backOffFactor,
-            maxWaitIntervalInMillis: retryConfig.maxWaitIntervalInMillis,
+            maxWaitInterval: retryConfig.maxWaitInterval,
             statusCodes: statusCodes
         };
         var httpCookieClient = createCookieClient(url, configuration, cookieStore);

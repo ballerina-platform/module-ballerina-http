@@ -21,10 +21,10 @@ import ballerina/mime;
 # Provides a set of configurations for controlling the failover behaviour of the endpoint.
 #
 # + failoverCodes - Array of HTTP response status codes for which the failover mechanism triggers
-# + intervalInMillis - Failover delay intervalInMillis in milliseconds
+# + interval - Failover delay interval in seconds
 public type FailoverConfig record {|
     int[] failoverCodes = [];
-    int intervalInMillis = 0;
+    decimal interval = 0;
 |};
 
 // TODO: This can be made package private
@@ -32,11 +32,11 @@ public type FailoverConfig record {|
 #
 # + failoverClientsArray - Array of HTTP Clients that needs to be Failover
 # + failoverCodesIndex - An indexed array of HTTP response status codes for which the failover mechanism triggers
-# + failoverInterval - Failover delay interval in milliseconds
+# + failoverInterval - Failover delay interval in seconds
 public type FailoverInferredConfig record {|
     Client?[] failoverClientsArray = [];
     boolean[] failoverCodesIndex = [];
-    int failoverInterval = 0;
+    decimal failoverInterval = 0;
 |};
 
 # An HTTP client endpoint which provides failover support over multiple HTTP clients.
@@ -67,7 +67,7 @@ public client class FailoverClient {
             FailoverInferredConfig failoverInferredConfig = {
                 failoverClientsArray:clients,
                 failoverCodesIndex:failoverCodes,
-                failoverInterval:failoverClientConfig.intervalInMillis
+                failoverInterval:failoverClientConfig.interval
             };
             self.failoverInferredConfig = failoverInferredConfig;
         }
@@ -385,7 +385,7 @@ isolated function performFailoverAction (string path, Request request, HttpOpera
     int currentIndex = failoverClient.succeededEndpointIndex;
     int initialIndex = failoverClient.succeededEndpointIndex;
     int startIndex = -1;
-    int failoverInterval = failoverInferredConfig.failoverInterval;
+    decimal failoverInterval = failoverInferredConfig.failoverInterval;
 
     Response inResponse = new;
     HttpFuture inFuture = new;
@@ -462,7 +462,7 @@ isolated function performFailoverAction (string path, Request request, HttpOpera
             }
         }
         failoverRequest = check createFailoverRequest(failoverRequest, requestEntity);
-        runtime:sleep(<decimal>failoverInterval/1000);
+        runtime:sleep(failoverInterval);
 
         var tmpClnt = failoverClients[currentIndex];
         if (tmpClnt is Client) {
@@ -518,7 +518,7 @@ isolated function populateErrorsFromLastResponse (Response inResponse, ClientErr
 # | httpVersion - Copied from CommonClientConfiguration     |
 # | http1Settings - Copied from CommonClientConfiguration   |
 # | http2Settings - Copied from CommonClientConfiguration   |
-# | timeoutInMillis - Copied from CommonClientConfiguration |
+# | timeout - Copied from CommonClientConfiguration |
 # | forwarded - Copied from CommonClientConfiguration       |
 # | followRedirects - Copied from CommonClientConfiguration |
 # | poolConfig - Copied from CommonClientConfiguration      |
@@ -532,12 +532,12 @@ isolated function populateErrorsFromLastResponse (Response inResponse, ClientErr
 #
 # + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be sent on failover
 # + failoverCodes - Array of HTTP response status codes for which the failover behaviour should be triggered
-# + intervalInMillis - Failover delay interval in milliseconds
+# + interval - Failover delay interval in seconds
 public type FailoverClientConfiguration record {|
     *CommonClientConfiguration;
     TargetService[] targets = [];
     int[] failoverCodes = [501, 502, 503, 504];
-    int intervalInMillis = 0;
+    decimal interval = 0;
 |};
 
 isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfiguration foConfig,
@@ -546,7 +546,7 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         http1Settings: foConfig.http1Settings,
         http2Settings: foConfig.http2Settings,
         circuitBreaker:foConfig.circuitBreaker,
-        timeoutInMillis:foConfig.timeoutInMillis,
+        timeout:foConfig.timeout,
         httpVersion:foConfig.httpVersion,
         forwarded:foConfig.forwarded,
         followRedirects:foConfig.followRedirects,

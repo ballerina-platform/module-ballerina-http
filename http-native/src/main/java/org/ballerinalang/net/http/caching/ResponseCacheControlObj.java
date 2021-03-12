@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -71,8 +72,10 @@ public class ResponseCacheControlObj {
     public void init() {
         // Initialize the struct fields to default values we use
         responseCacheControl.set(RES_CACHE_CONTROL_NO_TRANSFORM_FIELD, TRUE);
-        responseCacheControl.set(RES_CACHE_CONTROL_MAX_AGE_FIELD, -1);
-        responseCacheControl.set(RES_CACHE_CONTROL_S_MAXAGE_FIELD, -1);
+        responseCacheControl.set(RES_CACHE_CONTROL_MAX_AGE_FIELD,
+                                 ValueCreator.createDecimalValue(BigDecimal.valueOf(-1)));
+        responseCacheControl.set(RES_CACHE_CONTROL_S_MAXAGE_FIELD,
+                                 ValueCreator.createDecimalValue(BigDecimal.valueOf(-1)));
     }
 
     public ResponseCacheControlObj setMustRevalidate(boolean mustRevalidate) {
@@ -118,12 +121,14 @@ public class ResponseCacheControlObj {
     }
 
     public ResponseCacheControlObj setMaxAge(long maxAge) {
-        responseCacheControl.set(RES_CACHE_CONTROL_MAX_AGE_FIELD, maxAge);
+        responseCacheControl.set(RES_CACHE_CONTROL_MAX_AGE_FIELD,
+                                 ValueCreator.createDecimalValue(BigDecimal.valueOf(maxAge)));
         return this;
     }
 
     public ResponseCacheControlObj setSMaxAge(long sMaxAge) {
-        responseCacheControl.set(RES_CACHE_CONTROL_S_MAXAGE_FIELD, sMaxAge);
+        responseCacheControl.set(RES_CACHE_CONTROL_S_MAXAGE_FIELD,
+                                 ValueCreator.createDecimalValue(BigDecimal.valueOf(sMaxAge)));
         return this;
     }
 
@@ -165,19 +170,24 @@ public class ResponseCacheControlObj {
                     break;
                 case MAX_AGE:
                     try {
-                        responseCacheControl.set(RES_CACHE_CONTROL_MAX_AGE_FIELD, Long.parseLong(value));
+                        responseCacheControl.set(RES_CACHE_CONTROL_MAX_AGE_FIELD,
+                                                 ValueCreator.createDecimalValue(
+                                                         BigDecimal.valueOf(Long.parseLong(value))));
                     } catch (NumberFormatException e) {
                         // Ignore the exception and set 0 as the max-age so that it will be treated as a stale response.
                         // Note that this won't change the value of the actual cache-control header
-                        responseCacheControl.set(RES_CACHE_CONTROL_MAX_AGE_FIELD, 0);
+                        responseCacheControl.set(RES_CACHE_CONTROL_MAX_AGE_FIELD, ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(0)));
                     }
                     break;
                 case S_MAXAGE:
                     try {
-                        responseCacheControl.set(RES_CACHE_CONTROL_S_MAXAGE_FIELD, Long.parseLong(value));
+                        responseCacheControl.set(RES_CACHE_CONTROL_S_MAXAGE_FIELD, ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(Long.parseLong(value))));
                     } catch (NumberFormatException e) {
                         // Ignore the exception and set 0 as the s-maxage.
-                        responseCacheControl.set(RES_CACHE_CONTROL_S_MAXAGE_FIELD, 0);
+                        responseCacheControl.set(RES_CACHE_CONTROL_S_MAXAGE_FIELD, ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(0)));
                     }
                     break;
                 default:
