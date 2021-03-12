@@ -49,6 +49,9 @@ public type OutboundResponseError distinct ListenerError;
 # Represents a generic listener error
 public type GenericListenerError distinct ListenerError;
 
+# Defines the Auth error types that returned from listener
+public type ListenerAuthError distinct ListenerError;
+
 # Defines the client error types that returned while sending outbound request
 public type OutboundRequestError distinct ClientError;
 
@@ -85,15 +88,11 @@ public type MaximumWaitTimeExceededError distinct GenericClientError;
 # Represents a cookie error that occurred when using the cookies
 public type CookieHandlingError distinct GenericClientError;
 
-// DataBinding errors
-# Represents an illegal data-binding  state error
-public type IllegalDataBindingStateError distinct error<Detail>;
-
 # Represents an error, which occurred due to bad syntax or incomplete info in the client request(4xx HTTP response)
-public type ClientRequestError distinct error<Detail>;
+public type ClientRequestError distinct GenericClientError & error<Detail>;
 
 # Represents an error, which occurred due to a failure of the remote server(5xx HTTP response)
-public type RemoteServerError distinct error<Detail>;
+public type RemoteServerError distinct GenericClientError & error<Detail>;
 
 // Resiliency errors
 # Represents a client error that occurred due to all the failover endpoint failure
@@ -118,7 +117,7 @@ public type AllRetryAttemptsFailed distinct ResiliencyError;
 public type IdleTimeoutError distinct ResiliencyError;
 
 # Represents an error occurred in an remote function of the Load Balance connector.
-public type LoadBalanceActionError distinct error<LoadBalanceActionErrorData>;
+public type LoadBalanceActionError distinct ResiliencyError & error<LoadBalanceActionErrorData>;
 
 // Outbound request errors in client
 # Represents a client error that occurred due to outbound request initialization failure
@@ -210,8 +209,8 @@ public type InvalidCookieError distinct OutboundResponseError;
 // # Defines the Auth error types that returned from client
 // public type ClientAuthError distinct ClientError;
 
-# Defines the Auth error types that returned from listener
-public type ListenerAuthError distinct error;
+// # Defines the Auth error types that returned from listener
+// public type ListenerAuthError distinct error;
 
 // # Defines the client error types that returned while sending outbound request
 // public type OutboundRequestError InitializingOutboundRequestError|WritingOutboundRequestHeadersError|
