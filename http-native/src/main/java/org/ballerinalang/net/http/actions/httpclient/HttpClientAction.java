@@ -168,9 +168,9 @@ public class HttpClientAction extends AbstractHTTPAction {
 
             @Override
             public void notifyFailure(BError bError) {
-                BError invocationError = HttpUtil.createHttpError("client method invocation failed: " +
-                                                                          bError.getErrorMessage(),
-                                                                  HttpErrorType.GENERIC_CLIENT_ERROR, bError);
+                BError invocationError =
+                        HttpUtil.createHttpError("client method invocation failed: " + bError.getErrorMessage(),
+                                                 HttpErrorType.CLIENT_ERROR, bError);
                 balFuture.complete(invocationError);
             }
         }, propertyMap, PredefinedTypes.TYPE_NULL, paramFeed);

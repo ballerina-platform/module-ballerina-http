@@ -294,16 +294,6 @@ public client class LoadBalanceClient {
     remote isolated function rejectPromise(PushPromise promise) {}
 }
 
-# Represents the error attributes in addition to the message and the cause of the `LoadBalanceActionError`.
-#
-# + httpActionErr - Array of errors occurred at each endpoint
-public type LoadBalanceActionErrorData record {
-    error?[] httpActionErr = [];
-};
-
-# Represents an error occurred in an remote function of the Load Balance connector.
-public type LoadBalanceActionError distinct error<LoadBalanceActionErrorData>;
-
 // Performs execute action of the Load Balance connector. extract the corresponding http integer value representation
 // of the http verb and invokes the perform action method.
 isolated function performLoadBalanceExecuteAction(LoadBalanceClient lb, string path, Request request,
@@ -366,16 +356,16 @@ isolated function performLoadBalanceAction(LoadBalanceClient lb, string path, Re
 // Populates generic error specific to Load Balance connector by including all the errors returned from endpoints.
 isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorData loadBalanceActionErrorData)
                                                     returns ClientError {
-    int nErrs = loadBalanceActionErrorData.httpActionErr.length();
-    error? lastError = loadBalanceActionErrorData.httpActionErr[nErrs - 1];
-    if (lastError is ()) {
+    error[]? errArray = loadBalanceActionErrorData?.httpActionErr;
+    if (errArray is ()) {
         panic error("Unexpected nil");
+    } else {
+        int nErrs = errArray.length();
+        error actError = errArray[nErrs - 1];
+        string lastErrorMessage = actError.message();
+        string message = "All the load balance endpoints failed. Last error was: " + lastErrorMessage;
+        return error AllLoadBalanceEndpointsFailedError(message, httpActionError = errArray);
     }
-
-    error actError = <error> lastError;
-    string lastErrorMessage = actError.message();
-    string message = "All the load balance endpoints failed. Last error was: " + lastErrorMessage;
-    return error AllLoadBalanceEndpointsFailedError(message, httpActionError = loadBalanceActionErrorData.httpActionErr);
 }
 
 

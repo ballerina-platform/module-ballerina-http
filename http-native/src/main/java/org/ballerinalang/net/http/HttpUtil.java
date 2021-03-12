@@ -558,19 +558,25 @@ public class HttpUtil {
             cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
                                      IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
+        } else if (throwable instanceof NullPointerException) {
+            return createHttpError("Exception occurred: null", HttpErrorType.GENERIC_CLIENT_ERROR,
+                                   createHttpError(throwable.toString()));
         } else {
-            return createHttpError(throwable.getMessage(), HttpErrorType.GENERIC_CLIENT_ERROR);
+            return createHttpError(throwable.getMessage(), HttpErrorType.CLIENT_ERROR);
         }
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType) {
-        return ErrorCreator.createDistinctError(errorType.getErrorName(), getHttpPackage(),
-                                                fromString(message));
+        return createHttpError(errorType, message, null, null);
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType, BError cause) {
-        return ErrorCreator.createDistinctError(errorType.getErrorName(), getHttpPackage(),
-                                                fromString(message), cause);
+        return createHttpError(errorType, message, cause, null);
+    }
+
+    public static BError createHttpError(HttpErrorType errorType, String message, BError cause,
+                                         BMap<BString, Object> detail) {
+        return ErrorCreator.createError(getHttpPackage(), errorType.getErrorName(), fromString(message), cause, detail);
     }
 
     // TODO: Find a better way to get the error type than String matching.

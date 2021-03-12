@@ -185,7 +185,7 @@ function testInvalidStatusLineLength() {
     var response = limitTestClient->get("/responseLimit/statusline", {[X_TEST_TYPE]:[ERROR]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error(\"Response max " +
+        assertTextPayload(response.getTextPayload(), "error ClientError (\"Response max " +
                 "status line length exceeds: An HTTP line is larger than 1024 bytes.\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -211,7 +211,7 @@ function testInvalidHeaderLengthOfResponse() {
     var response = limitTestClient->get("/responseLimit/header", {[X_TEST_TYPE]:[ERROR]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error(\"Response max " +
+        assertTextPayload(response.getTextPayload(), "error ClientError (\"Response max " +
                 "header size exceeds: HTTP header is larger than 1024 bytes.\")");
         var header = response.getHeader(X_HEADER);
         if (header is error) {
@@ -242,8 +242,8 @@ function testInvalidEntityBodyLength() {
     var response = limitTestClient->get("/responseLimit/statusline", {[X_TEST_TYPE]:[ERROR]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error(\"Response max status line length exceeds: An HTTP line " +
-                "is larger than 1024 bytes.\")");
+        assertTextPayload(response.getTextPayload(), "error ClientError (\"Response max " + 
+                "status line length exceeds: An HTTP line is larger than 1024 bytes.\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -268,7 +268,7 @@ function testInvalidHeaderLengthWithHttp2Client() {
     var response = limitTestClient->get("/responseLimit/header", {[X_TEST_TYPE]:[ERROR]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "error(\"Response max " +
+        assertTextPayload(response.getTextPayload(), "error ClientError (\"Response max " +
                 "header size exceeds: HTTP header is larger than 1024 bytes.\")");
         var header = response.getHeader(X_HEADER);
         if (header is error) {
