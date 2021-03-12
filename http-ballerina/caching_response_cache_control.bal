@@ -36,8 +36,8 @@ public class ResponseCacheControl {
     public boolean noTransform = false;
     public boolean isPrivate = false;
     public boolean proxyRevalidate = false;
-    public int maxAge = -1;
-    public int sMaxAge = -1;
+    public decimal maxAge = -1;
+    public decimal sMaxAge = -1;
     public string[] noCacheFields = [];
     public string[] privateFields = [];
 

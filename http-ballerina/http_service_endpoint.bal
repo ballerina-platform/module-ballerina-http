@@ -144,7 +144,7 @@ public type Local record {|
 # + secureSocket - The SSL configurations for the service endpoint. This needs to be configured in order to
 #                  communicate through HTTPS.
 # + httpVersion - Highest HTTP version supported by the endpoint
-# + timeoutInMillis - Period of time in milliseconds that a connection waits for a read/write operation. Use value 0 to
+# + timeout - Period of time in seconds that a connection waits for a read/write operation. Use value 0 to
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
@@ -153,7 +153,7 @@ public type ListenerConfiguration record {|
     ListenerHttp1Settings http1Settings = {};
     ListenerSecureSocket? secureSocket = ();
     string httpVersion = "1.1";
-    int timeoutInMillis = DEFAULT_LISTENER_TIMEOUT;
+    decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
 |};

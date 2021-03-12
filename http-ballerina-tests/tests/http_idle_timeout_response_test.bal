@@ -21,7 +21,7 @@ import ballerina/test;
 import ballerina/http;
 
 
-listener http:Listener idleTimeoutListenerEP = new(idleTimeoutTestPort, { timeoutInMillis: 1000, server: "Mysql" });
+listener http:Listener idleTimeoutListenerEP = new(idleTimeoutTestPort, { timeout: 1, server: "Mysql" });
 http:Client idleTimeoutClient = check new("http://localhost:" + idleTimeoutTestPort.toString());
 
 service /idleTimeout on idleTimeoutListenerEP {

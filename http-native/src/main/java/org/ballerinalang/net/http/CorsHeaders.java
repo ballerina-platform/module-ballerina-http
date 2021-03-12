@@ -18,6 +18,7 @@
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 
@@ -134,7 +135,7 @@ public class CorsHeaders {
         corsHeaders.setAllowOrigins(getAsStringList(corsConfig.getArrayValue(ALLOWS_ORIGINS_FIELD).getStringArray()));
         corsHeaders.setExposeHeaders(getAsStringList(corsConfig.getArrayValue(EXPOSE_HEADERS_FIELD).getStringArray()));
         corsHeaders.setAllowCredentials(corsConfig.getBooleanValue(ALLOW_CREDENTIALS_FIELD) ? 1 : 0);
-        corsHeaders.setMaxAge(corsConfig.getIntValue(MAX_AGE_FIELD));
+        corsHeaders.setMaxAge(((BDecimal) corsConfig.get(MAX_AGE_FIELD)).intValue());
 
         return corsHeaders;
     }

@@ -382,19 +382,19 @@ public function testSendRequestsByClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-6.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             retryConfig: {
-                intervalInMillis: 3000,
+                interval: 3,
                 count: 3,
                 backOffFactor: 2.0,
-                maxWaitIntervalInMillis: 20000
+                maxWaitInterval: 20
             },
             circuitBreaker: {
                 rollingWindow: {
-                    timeWindowInMillis: 10000,
-                    bucketSizeInMillis: 2000,
+                    timeWindow: 10,
+                    bucketSize: 2,
                     requestVolumeThreshold: 0
                 },
                 failureThreshold: 0.2,
-                resetTimeInMillis: 10000,
+                resetTime: 10,
                 statusCodes: [400, 404, 500]
             },
             cookieConfig: {

@@ -19,7 +19,6 @@
 package org.ballerinalang.net.http.clientendpoint;
 
 import io.ballerina.runtime.api.values.BMap;
-import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 
@@ -32,7 +31,7 @@ import static org.ballerinalang.net.http.HttpUtil.populatePoolingConfig;
  * @since 0.995.0
  */
 public class InitGlobalPool {
-    public static void initGlobalPool(BMap<BString, Long> globalPoolConfig) {
+    public static void initGlobalPool(BMap globalPoolConfig) {
         PoolConfiguration globalPool = new PoolConfiguration();
         populatePoolingConfig(globalPoolConfig, globalPool);
         ConnectionManager connectionManager = new ConnectionManager(globalPool);

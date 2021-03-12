@@ -107,8 +107,8 @@ service /passthrough on clientDBProxyListener {
 
     resource function get 'retry(http:Caller caller, http:Request request) {
         http:Client retryClient = checkpanic new("http://localhost:" + clientDatabindingTestPort2.toString(), {
-                retryConfig: { intervalInMillis: 3000, count: 3, backOffFactor: 2.0,
-                maxWaitIntervalInMillis: 20000 },  timeoutInMillis: 2000
+                retryConfig: { interval: 3, count: 3, backOffFactor: 2.0,
+                maxWaitInterval: 2 },  timeout: 2
             }
         );
         string r = checkpanic retryClient->forward("/backend/getRetryResponse", request, targetType = string);
