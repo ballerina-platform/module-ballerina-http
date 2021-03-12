@@ -25,7 +25,7 @@ public type Detail record {
 #
 # + httpActionErr - Array of errors occurred at each endpoint
 public type LoadBalanceActionErrorData record {
-    error?[] httpActionErr = [];
+    error[] httpActionErr?;
 };
 
 // Level 1

@@ -327,16 +327,19 @@ function performLoadBalanceAction(LoadBalanceClient lb, string path, Request req
 // Populates generic error specific to Load Balance connector by including all the errors returned from endpoints.
 isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorData loadBalanceActionErrorData)
                                                     returns ClientError {
-    int nErrs = loadBalanceActionErrorData.httpActionErr.length();
-    error? lastError = loadBalanceActionErrorData.httpActionErr[nErrs - 1];
-    if (lastError is ()) {
+    error[]? errArray = loadBalanceActionErrorData?.httpActionErr;
+    // int? nErrs = loadBalanceActionErrorData?.httpActionErr.length();
+    // int arrLength = errArray is () ? 0 : errArray.length();
+    // error? lastError = loadBalanceActionErrorData.httpActionErr[arrLength];
+    if (errArray is ()) {
         panic error("Unexpected nil");
+    } else {
+        int nErrs = errArray.length();
+        error actError = errArray[nErrs - 1];
+        string lastErrorMessage = actError.message();
+        string message = "All the load balance endpoints failed. Last error was: " + lastErrorMessage;
+        return error AllLoadBalanceEndpointsFailedError(message, httpActionError = errArray);
     }
-
-    error actError = <error> lastError;
-    string lastErrorMessage = actError.message();
-    string message = "All the load balance endpoints failed. Last error was: " + lastErrorMessage;
-    return error AllLoadBalanceEndpointsFailedError(message, httpActionError = loadBalanceActionErrorData.httpActionErr);
 }
 
 

@@ -230,7 +230,7 @@ public class WebSocketUtil {
                 errorCode = WebSocketConstants.ErrorCode.WsProtocolError.errorCode();
             }
         } else if (throwable instanceof SSLException) {
-            cause = createErrorCause(throwable.getMessage(), HttpErrorType.SSL_ERROR.getReason(),
+            cause = createErrorCause(throwable.getMessage(), HttpErrorType.SSL_ERROR.getErrorName(),
                     WebSocketConstants.PROTOCOL_HTTP_PKG_ID);
             message = "SSL/TLS Error";
         } else if (throwable instanceof IllegalStateException) {
