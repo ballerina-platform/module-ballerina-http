@@ -140,9 +140,7 @@ function testContentBaseRouting() {
 //Test Header base routing sample
 @test:Config {}
 function testHeaderBaseRouting() {
-    http:Request req = new;
-    req.setHeader("name", "nyse");
-    var response = httpRoutingClient->get("/headerBasedRouting", req);
+    var response = httpRoutingClient->get("/headerBasedRouting", {"name":"nyse"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
@@ -151,9 +149,7 @@ function testHeaderBaseRouting() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
-    req = new;
-    req.setHeader("name", "nasdaq");
-    response = httpRoutingClient->get("/headerBasedRouting", req);
+    response = httpRoutingClient->get("/headerBasedRouting", {"name":"nasdaq"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);

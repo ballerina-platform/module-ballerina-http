@@ -97,7 +97,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -559,10 +558,11 @@ public class HttpUtil {
             cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
                                      IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
+        } else if (throwable instanceof NullPointerException) {
+            return createHttpError("Exception occurred: null", HttpErrorType.GENERIC_CLIENT_ERROR,
+                                   createHttpError(throwable.toString()));
         } else {
-            String errorMsg = throwable instanceof NullPointerException ? "null" : throwable.getMessage();
-            return createHttpError("Exception occurred: " + errorMsg,
-                                   HttpErrorType.CLIENT_ERROR, createHttpError(throwable.toString()));
+            return createHttpError(throwable.getMessage(), HttpErrorType.CLIENT_ERROR);
         }
     }
 
@@ -572,7 +572,6 @@ public class HttpUtil {
 
     public static BError createHttpError(String message, HttpErrorType errorType, BError cause) {
         return createHttpError(errorType, message, cause, null);
-
     }
 
     public static BError createHttpError(HttpErrorType errorType, String message, BError cause,
@@ -898,9 +897,8 @@ public class HttpUtil {
         for (BString entryKey : entityHeaders.getKeys()) {
             BArray entryValues = (BArray) entityHeaders.get(entryKey);
             if (entryValues.size() > 1) {
-                Iterator<String> valueIterator = Arrays.stream(entryValues.getStringArray()).map(String::valueOf)
-                        .iterator();
-                httpHeaders.add(entryKey.getValue(), valueIterator);
+                Iterable<String> values = Arrays.asList(entryValues.getStringArray());
+                httpHeaders.add(entryKey.getValue(), values);
             } else if (entryValues.size() == 1) {
                 httpHeaders.set(entryKey.getValue(), entryValues.getBString(0).getValue());
             }
@@ -1269,12 +1267,11 @@ public class HttpUtil {
                 senderConfiguration.setProxyServerConfiguration(proxyServerConfiguration);
             }
         }
-        long timeoutMillis = clientEndpointConfig.getIntValue(HttpConstants.CLIENT_EP_ENDPOINT_TIMEOUT);
-        if (timeoutMillis < 0) {
+        double timeout = ((BDecimal) clientEndpointConfig.get(HttpConstants.CLIENT_EP_ENDPOINT_TIMEOUT)).floatValue();
+        if (timeout < 0) {
             senderConfiguration.setSocketIdleTimeout(0);
         } else {
-            senderConfiguration.setSocketIdleTimeout(
-                    validateConfig(timeoutMillis, HttpConstants.CLIENT_EP_ENDPOINT_TIMEOUT.getValue()));
+            senderConfiguration.setSocketIdleTimeout((int) (timeout * 1000));
         }
         if (httpVersion != null) {
             senderConfiguration.setHttpVersion(httpVersion);
@@ -1283,7 +1280,7 @@ public class HttpUtil {
         senderConfiguration.setForwardedExtensionConfig(HttpUtil.getForwardedExtensionConfig(forwardedExtension));
     }
 
-    public static ConnectionManager getConnectionManager(BMap<BString, Long> poolStruct) {
+    public static ConnectionManager getConnectionManager(BMap poolStruct) {
         ConnectionManager poolManager = (ConnectionManager) poolStruct.getNativeData(CONNECTION_MANAGER);
         if (poolManager == null) {
             synchronized (poolStruct) {
@@ -1298,20 +1295,21 @@ public class HttpUtil {
         return poolManager;
     }
 
-    public static void populatePoolingConfig(BMap<BString, Long> poolRecord, PoolConfiguration poolConfiguration) {
-        long maxActiveConnections = poolRecord.get(HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_CONNECTIONS);
+    public static void populatePoolingConfig(BMap poolRecord, PoolConfiguration poolConfiguration) {
+        long maxActiveConnections = poolRecord.getIntValue(HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_CONNECTIONS);
         poolConfiguration.setMaxActivePerPool(
                 validateConfig(maxActiveConnections,
                                HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_CONNECTIONS.getValue()));
 
-        long maxIdleConnections = poolRecord.get(HttpConstants.CONNECTION_POOLING_MAX_IDLE_CONNECTIONS);
+        long maxIdleConnections = poolRecord.getIntValue(HttpConstants.CONNECTION_POOLING_MAX_IDLE_CONNECTIONS);
         poolConfiguration.setMaxIdlePerPool(
                 validateConfig(maxIdleConnections, HttpConstants.CONNECTION_POOLING_MAX_IDLE_CONNECTIONS.getValue()));
 
-        long waitTime = poolRecord.get(HttpConstants.CONNECTION_POOLING_WAIT_TIME);
-        poolConfiguration.setMaxWaitTime(waitTime);
+        double waitTime = ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_WAIT_TIME)).floatValue();
+        poolConfiguration.setMaxWaitTime((long) (waitTime * 1000));
 
-        long maxActiveStreamsPerConnection = poolRecord.get(CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION);
+        long maxActiveStreamsPerConnection =
+                poolRecord.getIntValue(CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION);
         poolConfiguration.setHttp2MaxActiveStreamsPerConnection(
                 maxActiveStreamsPerConnection == -1 ? Integer.MAX_VALUE : validateConfig(
                         maxActiveStreamsPerConnection,
@@ -1454,8 +1452,6 @@ public class HttpUtil {
         String host = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_HOST).getValue();
         BMap<BString, Object> sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_VERSION).getValue();
-        long idleTimeout = endpointConfig.getIntValue(HttpConstants.ENDPOINT_CONFIG_TIMEOUT);
-
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         if (HTTP_1_1_VERSION.equals(httpVersion)) {
             BMap<BString, Object> http1Settings =
@@ -1485,11 +1481,12 @@ public class HttpUtil {
         }
         listenerConfiguration.setPort(Math.toIntExact(port));
 
+        double idleTimeout = ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_TIMEOUT)).floatValue();
         if (idleTimeout < 0) {
             throw new BallerinaConnectorException("Idle timeout cannot be negative. If you want to disable the " +
                     "timeout please use value 0");
         }
-        listenerConfiguration.setSocketIdleTimeout(Math.toIntExact(idleTimeout));
+        listenerConfiguration.setSocketIdleTimeout((int) (idleTimeout * 1000));
 
         // Set HTTP version
         if (httpVersion != null) {

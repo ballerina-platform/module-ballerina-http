@@ -41,7 +41,7 @@ public client class HttpCachingClient {
     # + config - The configurations for the client endpoint associated with the caching client
     # + cacheConfig - The configurations for the HTTP cache to be used with the caching client
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
+    isolated function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
         self.url = url;
         var httpSecureClient = createHttpSecureClient(url, config);
         if (httpSecureClient is HttpClient) {
@@ -58,7 +58,7 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function post(string path, RequestMessage message) returns Response|ClientError {
+    remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -75,7 +75,7 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
         return getCachedResponse(self.cache, self.httpClient, req, HTTP_HEAD, path, self.cacheConfig.isShared, false);
@@ -87,7 +87,7 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -105,7 +105,7 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function execute(string httpMethod, string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function execute(string httpMethod, string path, RequestMessage message) returns @tainted Response|ClientError {
         Request request = <Request>message;
         setRequestCacheControlHeader(request);
 
@@ -127,7 +127,7 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -144,7 +144,7 @@ public client class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -161,7 +161,7 @@ public client class HttpCachingClient {
     # + path - Request path
     # + message - An optinal HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
         return getCachedResponse(self.cache, self.httpClient, req, HTTP_GET, path, self.cacheConfig.isShared, false);
@@ -173,7 +173,7 @@ public client class HttpCachingClient {
     # + path - Request path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -190,7 +190,7 @@ public client class HttpCachingClient {
     # + path - Request path
     # + request - The HTTP request to be forwarded
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function forward(string path, @tainted Request request) returns @tainted Response|ClientError {
+    remote isolated function forward(string path, @tainted Request request) returns @tainted Response|ClientError {
         if (request.method == HTTP_GET || request.method == HTTP_HEAD) {
             return getCachedResponse(self.cache, self.httpClient, request, request.method, path,
                                      self.cacheConfig.isShared, true);
@@ -209,7 +209,7 @@ public client class HttpCachingClient {
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `HttpFuture` that represents an asynchronous service invocation, or an error if the submission fails
-    remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return self.httpClient->submit(httpVerb, path, <Request>message);
     }
 
@@ -217,7 +217,7 @@ public client class HttpCachingClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `http:Response` message, or else an `http:ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         return self.httpClient->getResponse(httpFuture);
     }
 
@@ -225,7 +225,7 @@ public client class HttpCachingClient {
     #
     # + httpFuture - The `http:HttpFuture` relates to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -233,7 +233,7 @@ public client class HttpCachingClient {
     #
     # + httpFuture - The `http:HttpFuture` relates to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -241,7 +241,7 @@ public client class HttpCachingClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised HTTP `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return self.httpClient->getPromisedResponse(promise);
     }
 
@@ -249,7 +249,7 @@ public client class HttpCachingClient {
     # response using the rejected promise.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise) {
+    remote isolated function rejectPromise(PushPromise promise) {
         self.httpClient->rejectPromise(promise);
     }
 }
@@ -261,14 +261,14 @@ public client class HttpCachingClient {
 # + cacheConfig - The configurations for the HTTP cache to be used with the caching client
 # + return - An `http:HttpCachingClient` instance, which wraps the base `http:Client` with a caching layer 
 #            or else an `http:ClientError`
-public function createHttpCachingClient(string url, ClientConfiguration config, CacheConfig cacheConfig)
+public isolated function createHttpCachingClient(string url, ClientConfiguration config, CacheConfig cacheConfig)
                                                                                       returns HttpClient|ClientError {
     HttpCachingClient httpCachingClient = check new(url, config, cacheConfig);
     log:printDebug("Created HTTP caching client");
     return httpCachingClient;
 }
 
-function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Request req, string httpMethod, string path,
+isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Request req, string httpMethod, string path,
                            boolean isShared, boolean forwardRequest) returns @tainted Response|ClientError {
     time:Utc currentT = time:utcNow();
     req.parseCacheControlHeader();
@@ -358,7 +358,7 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
     }
 }
 
-function sendNewRequest(HttpClient httpClient, Request request, string path, string httpMethod, boolean forwardRequest)
+isolated function sendNewRequest(HttpClient httpClient, Request request, string path, string httpMethod, boolean forwardRequest)
                                                                 returns @tainted Response|ClientError {
     if (forwardRequest) {
         return httpClient->forward(path, request);

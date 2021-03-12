@@ -419,7 +419,7 @@ public class Response {
     # + filePath - Path to the file to be set as the payload
     # + contentType - The content type of the specified file. Set this to override the default `content-type`
     #                 header value
-    public function setFileAsPayload(string filePath, string contentType = "application/octet-stream") {
+    public isolated function setFileAsPayload(string filePath, string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setFileAsEntityBody(filePath, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
@@ -473,7 +473,7 @@ public class Response {
     # Adds the cookie to response.
     #
     # + cookie - The cookie, which is added to response
-    public function addCookie(Cookie cookie) {
+    public isolated function addCookie(Cookie cookie) {
         var result = cookie.isValid();
         if (result is boolean) {
             self.addHeader("Set-Cookie", cookie.toStringValue());
@@ -485,7 +485,7 @@ public class Response {
     # Deletes the cookies in the client's cookie store.
     #
     # + cookiesToRemove - Cookies to be deleted
-    public function removeCookiesFromRemoteStore(Cookie...cookiesToRemove) {
+    public isolated function removeCookiesFromRemoteStore(Cookie...cookiesToRemove) {
         foreach var cookie in cookiesToRemove {
             cookie.expires = "1994-03-12 08:12:22";
             cookie.maxAge = 0;
@@ -496,7 +496,7 @@ public class Response {
     # Gets cookies from the response.
     #
     # + return - An array of cookie objects, which are included in the response
-    public function getCookies() returns @tainted Cookie[] {
+    public isolated function getCookies() returns @tainted Cookie[] {
         Cookie[] cookiesInResponse = [];
         string[]|error cookiesStringValues = self.getHeaders("Set-Cookie");
         if (cookiesStringValues is string[]) {

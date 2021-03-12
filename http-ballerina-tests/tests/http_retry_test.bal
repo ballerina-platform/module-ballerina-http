@@ -30,22 +30,22 @@ http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunct
 http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(), {
     // Retry configuration options.
     retryConfig: {
-        intervalInMillis: 3000,
+        interval: 3,
         count: 3,
         backOffFactor: 0.5
     },
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
     retryConfig: {
-        intervalInMillis: 3000,
+        interval: 3,
         count: 3,
         backOffFactor: 2.0,
-        maxWaitIntervalInMillis: 20000,
+        maxWaitInterval: 20,
         statusCodes: [501, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 service /retryDemoService on retryTestserviceEndpoint1 {
@@ -141,7 +141,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
 service /retryStatusService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         if (checkpanic request.getHeader("x-retry") == "recover") {
-            var backendResponse = internalErrorEP->get("/mockStatusCodeService/recover", <@untainted> request);
+            var backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", <@untainted> request);
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
                 if (responseError is error) {
@@ -157,7 +157,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                 }
             }
         } else if (checkpanic request.getHeader("x-retry") == "internalError") {
-            var backendResponse = internalErrorEP->get("/mockStatusCodeService/internalError", <@untainted> request);
+            var backendResponse = internalErrorEP->post("/mockStatusCodeService/internalError", <@untainted> request);
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
                 if (responseError is error) {

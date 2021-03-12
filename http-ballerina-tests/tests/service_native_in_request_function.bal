@@ -271,7 +271,7 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get getJsonPayload(http:Caller caller, http:Request req) {
+    resource function post getJsonPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getJsonPayload();
         if (returnResult is error) {
@@ -283,7 +283,7 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get GetTextPayload(http:Caller caller, http:Request req) {
+    resource function post GetTextPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getTextPayload();
         if (returnResult is error) {
@@ -295,7 +295,7 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get GetXmlPayload(http:Caller caller, http:Request req) {
+    resource function post GetXmlPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getXmlPayload();
         if (returnResult is error) {
@@ -308,7 +308,7 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get GetBinaryPayload(http:Caller caller, http:Request req) {
+    resource function post GetBinaryPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getBinaryPayload();
         if (returnResult is error) {
@@ -327,7 +327,7 @@ service /requesthello on requestListner {
     }
 
     // TODO: Enable after the I/O revamp
-    // resource function get GetByteChannel(http:Caller caller, http:Request req) {
+    // resource function post GetByteChannel(http:Caller caller, http:Request req) {
     //     http:Response res = new;
     //     var returnResult = req.getByteChannel();
     //     if (returnResult is error) {
@@ -339,7 +339,7 @@ service /requesthello on requestListner {
     //     checkpanic caller->respond(res);
     // }
 
-    resource function get GetByteStream(http:Caller caller, http:Request req) {
+    resource function post GetByteStream(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getByteStream();
         if (returnResult is error) {
@@ -510,9 +510,7 @@ function testServiceAddHeader() {
 function testServiceGetHeader() {
     string path = "/requesthello/getHeader";
     string contentType = "application/x-www-form-urlencoded";
-    http:Request req = new;
-    req.setHeader("content-type", contentType);
-    var response = requestClient->get(path, req);
+    var response = requestClient->get(path, {"content-type":contentType});
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { value: contentType});
     } else {
@@ -530,7 +528,7 @@ function testServiceGetJsonPayload() {
     http:Request req = new;
     req.setHeader("content-type", contentType);
     req.setJsonPayload(payload);
-    var response = requestClient->get(path, req);
+    var response = requestClient->post(path, req);
     if (response is http:Response) {
         test:assertEquals(response.getJsonPayload(), value, msg = "Found unexpected output");
     } else {
@@ -547,7 +545,7 @@ function testServiceGetTextPayload() {
     http:Request req = new;
     req.setHeader("content-type", contentType);
     req.setTextPayload(value);
-    var response = requestClient->get(path, req);
+    var response = requestClient->post(path, req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), value);
     } else {
@@ -563,7 +561,7 @@ function testServiceGetXmlPayload() {
     http:Request req = new;
     req.setHeader("content-type", "application/xml");
     req.setXmlPayload(xmlItem);
-    var response = requestClient->get(path, req);
+    var response = requestClient->post(path, req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "ballerina");
     } else {
@@ -605,7 +603,7 @@ function testServiceGetByteChannel() {
     http:Request req = new;
     req.setHeader("content-type", contentType);
     req.setJsonPayload(payload);
-    var response = requestClient->get(path, req);
+    var response = requestClient->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), payload);
     } else {
@@ -624,7 +622,7 @@ function testServiceGetByteStream() {
     http:Request req = new;
     req.setHeader("content-type", contentType);
     req.setJsonPayload(payload);
-    var response = requestClient->get(path, req);
+    var response = requestClient->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), payload);
     } else {
@@ -718,7 +716,7 @@ public function testServiceGetBinaryPayload() {
     string path = "/requesthello/GetBinaryPayload";
     http:Request req = new;
     req.setBinaryPayload(payload);
-    var response = requestClient->get(path, req);
+    var response = requestClient->post(path, req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Ballerina");
     } else {

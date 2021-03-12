@@ -27,7 +27,7 @@ service /headerparamservice on HeaderBindingEP {
         return responseJson;
     }
 
-    resource function get q1/[string go](@http:Header {} string[] foo, @http:Payload {} string a, string b) 
+    resource function post q1/[string go](@http:Header {} string[] foo, @http:Payload {} string a, string b) 
             returns json {
         json responseJson = { xType: foo, path: go, payload:a, page: b};
         return responseJson;
@@ -71,17 +71,14 @@ service /headerparamservice on HeaderBindingEP {
 
 @test:Config {}
 function testHeaderTokenBinding() {
-    http:Request req = new;
-    req.setHeader("foo", "Ballerina");
-    var response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56", req);
+    var response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56", {"foo":"Ballerina"});
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"Ballerina", value2:56});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     
-    req.setHeader("foo", "WSO2");
-    response = headerBindingClient->get("/headerparamservice?foo=bal&bar=12", req);
+    response = headerBindingClient->get("/headerparamservice?foo=bal&bar=12", {"foo":"WSO2"});
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"WSO2", value2:12});
     } else {
@@ -92,9 +89,7 @@ function testHeaderTokenBinding() {
 //Header params are not case sensitive
 @test:Config {}
 function testHeaderBindingCaseInSensitivity() {
-    http:Request req = new;
-    req.setHeader("FOO", "HTtP");
-    var response = headerBindingClient->get("/headerparamservice/?baz=WSO2&bar=56", req);
+    var response = headerBindingClient->get("/headerparamservice/?baz=WSO2&bar=56", {"FOO":"HTtP"});
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"HTtP", value2:56});
     } else {
@@ -104,8 +99,7 @@ function testHeaderBindingCaseInSensitivity() {
 
 @test:Config {}
 function testHeaderUnavailability() {
-    http:Request req = new;
-    var response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56", req);
+    var response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
@@ -118,7 +112,7 @@ function testHeaderUnavailability() {
 function testHeaderArrayUnavailability() {
     http:Request req = new;
     req.setTextPayload("All in one");
-    var response = headerBindingClient->get("/headerparamservice/q1/hello?b=hi", req);
+    var response = headerBindingClient->post("/headerparamservice/q1/hello?b=hi", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
@@ -133,7 +127,7 @@ function testAllParamBinding() {
     req.addHeader("foo", "Hello");
     req.addHeader("Foo", "World");
     req.setTextPayload("All in one");
-    var response = headerBindingClient->get("/headerparamservice/q1/hello?b=hi", req);
+    var response = headerBindingClient->post("/headerparamservice/q1/hello?b=hi", req);
     if (response is http:Response) {
         json expected = {xType:["Hello", "World"], path: "hello", payload: "All in one", page: "hi"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -144,10 +138,7 @@ function testAllParamBinding() {
 
 @test:Config {}
 function testHeaderBindingArrayAndString() {
-    http:Request req = new;
-    req.addHeader("X-Type", "Hello");
-    req.addHeader("X-Type", "World");
-    var response = headerBindingClient->get("/headerparamservice/q2", req);
+    var response = headerBindingClient->get("/headerparamservice/q2", {"X-Type":["Hello", "World"]});
     if (response is http:Response) {
         json expected = {firstValue: "Hello", allValue:["Hello", "World"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -158,15 +149,9 @@ function testHeaderBindingArrayAndString() {
 
 @test:Config {}
 function testNilableHeaderBinding() {
-    http:Request req = new;
-    req.addHeader("X-Type", "Hello");
-    req.addHeader("Foo", "World");
-    req.addHeader("bar", "Write");
-    req.addHeader("baaz", "All");
-    req.addHeader("baz", "Ballerina");
-    req.addHeader("bar", "Language");
-    req.addHeader("X-Type", "Hello");
-    var response = headerBindingClient->get("/headerparamservice/q3", req);
+    var headers1 = {"X-Type":["Hello", "Hello"], "bar":["Write", "Language"], "Foo":"World", "baaz":"All", 
+            "baz":"Ballerina"};
+    var response = headerBindingClient->get("/headerparamservice/q3", headers1);
     if (response is http:Response) {
         json expected = { val1: "World", val2: ["Write", "Language"], val3: "Ballerina"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -174,13 +159,8 @@ function testNilableHeaderBinding() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
-    req = new;
-    req.addHeader("X-Type", "Hello");
-    req.addHeader("bar", "Write");
-    req.addHeader("bar", "All");
-    req.addHeader("baz", "Language");
-    req.addHeader("X-Type", "Hello");
-    response = headerBindingClient->get("/headerparamservice/q3", req);
+    var headers2 = {"X-Type":["Hello", "Hello"], "bar":["Write", "All"], "baz":"Language"};
+    response = headerBindingClient->get("/headerparamservice/q3", headers2);
     if (response is http:Response) {
         json expected = { val1: "foo header not found", val2: ["Write", "All"], val3: "Language"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -188,12 +168,8 @@ function testNilableHeaderBinding() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
-    req = new;
-    req.addHeader("X-Type", "Hello");
-    req.addHeader("foo", "Write");
-    req.addHeader("foo", "All");
-    req.addHeader("baz", "Hello");
-    response = headerBindingClient->get("/headerparamservice/q3", req);
+    var headers3 = {"X-Type":"Hello", "Foo":["Write", "All"], "baz":"Hello"};
+    response = headerBindingClient->get("/headerparamservice/q3", headers3);
     if (response is http:Response) {
         json expected = { val1: "Write", val2: ["bar header not found"], val3: "Hello"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -204,15 +180,9 @@ function testNilableHeaderBinding() {
 
 @test:Config {}
 function testHeaderObjectBinding() {
-    http:Request req = new;
-    req.addHeader("X-Type", "Hello");
-    req.addHeader("Foo", "World");
-    req.addHeader("baz", "Write");
-    req.addHeader("daz", "All");
-    req.addHeader("DAZ", "Ballerina");
-    req.addHeader("bar", "Language");
-    req.addHeader("X-Type", "Hello");
-    var response = headerBindingClient->get("/headerparamservice/q4", req);
+    var headers = {"X-Type":["Hello", "Hello"], "Foo":"World", "baz":"Write", "daz":["All", "Ballerina"],
+        "bar":"Language"};
+    var response = headerBindingClient->get("/headerparamservice/q4", headers);
     if (response is http:Response) {
         json expected = { val1: "World", val2: "Write", val3: true, val4: ["All", "Ballerina"], 
                                 val5: ["bar", "baz", "connection", "daz", "Foo", "host", "X-Type"]};
@@ -221,11 +191,8 @@ function testHeaderObjectBinding() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
-    req = new;
-    req.addHeader("X-Type", "Hello");
-    req.addHeader("bar", "Language");
-    req.addHeader("X-Type", "Hello");
-    response = headerBindingClient->get("/headerparamservice/q4", req);
+    var headers2 = {"X-Type":["Hello", "Hello"], "bar":"Language"};
+    response = headerBindingClient->get("/headerparamservice/q4", headers2);
     if (response is http:Response) {
         json expected = { val1: "foo header not found", val2: "Http header does not exist", val3: false, 
                                 val4: ["Http header does not exist"],  val5: ["bar", "connection", "host", "X-Type"]};

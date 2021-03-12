@@ -24,15 +24,15 @@ listener http:Listener circuitBreakerEP07 = new(9315, { httpVersion: "2.0" });
 http:ClientConfiguration conf07 = {
     circuitBreaker: {
         rollingWindow: {
-            timeWindowInMillis: 60000,
-            bucketSizeInMillis: 20000,
+            timeWindow: 60,
+            bucketSize: 20,
             requestVolumeThreshold: 0
         },
         failureThreshold: 0.3,
-        resetTimeInMillis: 2000,
+        resetTime: 2,
         statusCodes: [500, 501, 502, 503]
     },
-    timeoutInMillis: 2000,
+    timeout: 2,
     httpVersion: "2.0"
 };
 

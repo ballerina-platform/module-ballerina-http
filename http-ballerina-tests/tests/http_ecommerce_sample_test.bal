@@ -45,8 +45,7 @@ service /ecommerceservice on ecommerceListenerEP {
 
     resource function get products/[string prodId](http:Caller caller, http:Request req) {
         string reqPath = "/productsservice/" + <@untainted> prodId;
-        http:Request clientRequest = new;
-        var clientResponse = productsService->get(<@untainted> reqPath, clientRequest);
+        var clientResponse = productsService->get(<@untainted> reqPath);
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -74,8 +73,7 @@ service /ecommerceservice on ecommerceListenerEP {
     }
 
     resource function get orders(http:Caller caller, http:Request req) {
-        http:Request clientRequest = new;
-        var clientResponse = productsService->get("/orderservice/orders", clientRequest);
+        var clientResponse = productsService->get("/orderservice/orders");
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -94,8 +92,7 @@ service /ecommerceservice on ecommerceListenerEP {
     }
 
     resource function get customers(http:Caller caller, http:Request req) {
-        http:Request clientRequest = new;
-        var clientResponse = productsService->get("/customerservice/customers", clientRequest);
+        var clientResponse = productsService->get("/customerservice/customers");
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {

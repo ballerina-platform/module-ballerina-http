@@ -33,7 +33,7 @@ public client class HttpSecureClient {
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    function init(string url, ClientConfiguration config) returns ClientError? {
+    isolated function init(string url, ClientConfiguration config) returns ClientError? {
         self.url = url;
         self.config = config;
         self.clientAuthHandler = initClientAuthHandler(config);
@@ -51,7 +51,7 @@ public client class HttpSecureClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function post(string path, RequestMessage message) returns Response|ClientError {
+    remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->post(path, req);
     }
@@ -62,7 +62,7 @@ public client class HttpSecureClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
+    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted
             Response|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->head(path, message = req);
@@ -74,7 +74,7 @@ public client class HttpSecureClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->put(path, req);
     }
@@ -86,7 +86,7 @@ public client class HttpSecureClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->execute(httpVerb, path, req);
     }
@@ -97,7 +97,7 @@ public client class HttpSecureClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->patch(path, req);
     }
@@ -108,7 +108,7 @@ public client class HttpSecureClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->delete(path, req);
     }
@@ -119,7 +119,7 @@ public client class HttpSecureClient {
     # + path - Request path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->get(path, message = req);
     }
@@ -130,7 +130,7 @@ public client class HttpSecureClient {
     # + path - Request path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->options(path, message = req);
     }
@@ -141,7 +141,7 @@ public client class HttpSecureClient {
     # + path - Request path
     # + request - An HTTP inbound request message
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function forward(string path, Request request) returns @tainted Response|ClientError {
+    remote isolated function forward(string path, Request request) returns @tainted Response|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, request);
         return self.httpClient->forward(path, req);
     }
@@ -153,7 +153,7 @@ public client class HttpSecureClient {
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
-    remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
         return self.httpClient->submit(httpVerb, path, req);
     }
@@ -162,7 +162,7 @@ public client class HttpSecureClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         return self.httpClient->getResponse(httpFuture);
     }
 
@@ -170,7 +170,7 @@ public client class HttpSecureClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -178,7 +178,7 @@ public client class HttpSecureClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -186,14 +186,14 @@ public client class HttpSecureClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return self.httpClient->getPromisedResponse(promise);
     }
 
     # Passes the request to an actual network call.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise) {
+    remote isolated function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
 }
@@ -203,7 +203,7 @@ public client class HttpSecureClient {
 # + url - Base URL
 # + config - Client endpoint configurations
 # + return - Created secure HTTP client
-public function createHttpSecureClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
+public isolated function createHttpSecureClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpSecureClient httpSecureClient;
     if (config.auth is ClientAuthConfig) {
         httpSecureClient = check new(url, config);

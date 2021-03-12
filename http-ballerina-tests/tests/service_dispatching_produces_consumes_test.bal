@@ -104,9 +104,7 @@ function testBogusConsumesAnnotation() {
 //Test Produces annotation with URL. /echo66/test2
 @test:Config {}
 function testProducesAnnotation() {
-    http:Request req = new;
-    req.setHeader(mime:CONTENT_TYPE, "text/xml;q=0.3, multipart/*;Level=1;q=0.7");
-    var response = pcClient->get("/echo66/test2", message = req);
+    var response = pcClient->get("/echo66/test2", {[mime:CONTENT_TYPE]:["text/xml;q=0.3, multipart/*;Level=1;q=0.7"]});
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
@@ -128,10 +126,7 @@ function testProducesAnnotationWithNoHeaders() {
 //Test Produces with wildcard header with URL. /echo66/test2
 @test:Config {}
 function testProducesAnnotationWithWildCard() {
-    http:Request req = new;
-    req.setTextPayload("Test");
-    req.setHeader("Accept", "*/*, text/html;Level=1;q=0.7");
-    var response = pcClient->get("/echo66/test2", req);
+    var response = pcClient->get("/echo66/test2", {"Accept":["*/*, text/html;Level=1;q=0.7"]});
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
@@ -142,9 +137,7 @@ function testProducesAnnotationWithWildCard() {
 //Test Produces with sub type wildcard header with URL. /echo66/test2
 @test:Config {}
 function testProducesAnnotationWithSubTypeWildCard() {
-    http:Request req = new;
-    req.setHeader("Accept", "text/*;q=0.3, text/html;Level=1;q=0.7");
-    var response = pcClient->get("/echo66/test2", req);
+    var response = pcClient->get("/echo66/test2", {"Accept":["text/*;q=0.3, text/html;Level=1;q=0.7"]});
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
@@ -155,9 +148,7 @@ function testProducesAnnotationWithSubTypeWildCard() {
 //Test incorrect Produces annotation with URL. /echo66/test2
 @test:Config {}
 function testIncorrectProducesAnnotation() {
-    http:Request req = new;
-    req.setHeader("Accept", "multipart/*;q=0.3, text/html;Level=1;q=0.7");
-    var response = pcClient->get("/echo66/test2", req);
+    var response = pcClient->get("/echo66/test2", {"Accept":["multipart/*;q=0.3, text/html;Level=1;q=0.7"]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
     } else {
@@ -168,9 +159,7 @@ function testIncorrectProducesAnnotation() {
 //Test bogus Produces annotation with URL. /echo66/test2
 @test:Config {}
 function testBogusProducesAnnotation() {
-    http:Request req = new;
-    req.setHeader("Accept", ":,;,v567br");
-    var response = pcClient->get("/echo66/test2", req);
+    var response = pcClient->get("/echo66/test2", {"Accept":":,;,v567br"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
     } else {
@@ -211,10 +200,9 @@ function testIncorrectProducesConsumeAnnotation() {
 //Test without Pro-Con annotation with URL. /echo67/echo1
 @test:Config {}
 function testWithoutProducesConsumeAnnotation() {
-    http:Request req = new;
-    req.setHeader(mime:CONTENT_TYPE, "text/plain; charset=ISO-8859-4");
-    req.setHeader("Accept", "text/*;q=0.3, text/html;Level=1;q=0.7");
-    var response = pcClient->get("/echo67/echo1", req);
+    map<string> headers = {[mime:CONTENT_TYPE]:"text/plain; charset=ISO-8859-4", 
+        "Accept":"text/*;q=0.3, text/html;Level=1;q=0.7"};
+    var response = pcClient->get("/echo67/echo1", headers);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo33", "echo1");
     } else {

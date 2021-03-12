@@ -57,9 +57,7 @@ service /validation\-req\-be on cachingBackendListener {
 function testCallerRequestHeaderPreservation() {
     string callerReqHeader = "x-caller-req-header";    
 
-    http:Request req = new;
-    req.setHeader(callerReqHeader, "First Request");
-    var response = cachingProxyTestClient->get("/validation-request", req);
+    var response = cachingProxyTestClient->get("/validation-request", {[callerReqHeader]:"First Request"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "First Request");
@@ -72,9 +70,7 @@ function testCallerRequestHeaderPreservation() {
     }
 
 // Since this request gets served straight from the cache, the value of 'x-caller-req-header' doesn't change.
-    req = new;
-    req.setHeader(callerReqHeader, "Second Request");
-    response = cachingProxyTestClient->get("/validation-request", req);
+    response = cachingProxyTestClient->get("/validation-request", {[callerReqHeader]:"Second Request"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "First Request");
@@ -89,9 +85,7 @@ function testCallerRequestHeaderPreservation() {
     // Wait for a while before sending the next request
     runtime:sleep(3);
 
-    req = new;
-    req.setHeader(callerReqHeader, "Third Request");
-    response = cachingProxyTestClient->get("/validation-request", req);
+    response = cachingProxyTestClient->get("/validation-request", {[callerReqHeader]:"Third Request"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "Third Request");
@@ -107,9 +101,7 @@ function testCallerRequestHeaderPreservation() {
 //Test preservation of caller request headers in the validation request
 @test:Config {enable: false}
 function testCallerRequestHeaderPreservation2() {
-    http:Request req = new;
-    req.setHeader(IF_NONE_MATCH, "c854ce2c");
-    var response = cachingProxyTestClient->get("/validation-request", req);
+    var response = cachingProxyTestClient->get("/validation-request", {[IF_NONE_MATCH]:"c854ce2c"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 304, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Hello from POST!Hello from POST!");

@@ -186,7 +186,7 @@ function testStreamResponseSerialize() {
     json jsonString = {[key]:value};
     http:Request req = new;
     req.setJsonPayload(jsonString);
-    json|error response = mimeClient->post(path, req, json);
+    json|error response = mimeClient->post(path, req, targetType = json);
     if (response is json) {
         assertJsonPayload(response, jsonString);
     } else {

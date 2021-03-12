@@ -47,7 +47,7 @@ public client class Client {
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(string url, ClientConfiguration? config = ()) returns ClientError? {
+    public isolated function init(string url, ClientConfiguration? config = ()) returns ClientError? {
         self.config = config ?: {};
         self.url = url;
         var cookieConfigVal = self.config.cookieConfig;
@@ -68,20 +68,24 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
+    remote isolated function post(@untainted string path, RequestMessage message, string? mediaType = (),
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processPost(@untainted string path, RequestMessage message, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
+    private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         // TODO improve signature once issue https://github.com/ballerina-platform/ballerina-spec/issues/386 is resolved
         // Dependently typed function signature support for ballerina function is required.
         Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
@@ -89,64 +93,29 @@ public client class Client {
         return processResponse(response, targetType);
     }
 
-    # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
-    #
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
-    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
-        Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->head(path, message = req);
-        if (observabilityEnabled && response is Response) {
-            addObservabilityInformation(path, HTTP_HEAD, response.statusCode, self.url);
-        }
-        return response;
-    }
-
     # The `Client.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function put(@untainted string path, RequestMessage message, TargetType targetType = Response) 
+    remote isolated function put(@untainted string path, RequestMessage message, string? mediaType = (),
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processPut(@untainted string path, RequestMessage message, TargetType targetType) 
-            returns @tainted Response|PayloadType|ClientError {
+    private isolated function processPut(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
-        }
-        return processResponse(response, targetType);
-    }
-
-    # Invokes an HTTP call with the specified HTTP verb.
-    #
-    # + httpVerb - HTTP verb value
-    # + path - Resource path
-    # + message - An HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType = Response) returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
-    } external;
-
-    private function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType) returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
-        if (observabilityEnabled && response is Response) {
-            addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
         return processResponse(response, targetType);
     }
@@ -155,18 +124,22 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function patch(@untainted string path, RequestMessage message, TargetType targetType = Response) 
+    remote isolated function patch(@untainted string path, RequestMessage message, string? mediaType = (),
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processPatch(@untainted string path, RequestMessage message, TargetType targetType) 
-            returns @tainted Response|PayloadType|ClientError {
+    private isolated function processPatch(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
@@ -178,18 +151,22 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function delete(@untainted string path, RequestMessage message = (), TargetType targetType = Response) 
+    remote isolated function delete(@untainted string path, RequestMessage message = (), string? mediaType = (),
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processDelete(@untainted string path, RequestMessage message, TargetType targetType) 
-            returns @tainted Response|PayloadType|ClientError {
+    private isolated function processDelete(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
@@ -197,23 +174,37 @@ public client class Client {
         return processResponse(response, targetType);
     }
 
+    # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
+    #
+    # + path - Resource path
+    # + headers - The entity headers
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
+            Response|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        Response|ClientError response = self.httpClient->head(path, message = req);
+        if (observabilityEnabled && response is Response) {
+            addObservabilityInformation(path, HTTP_HEAD, response.statusCode, self.url);
+        }
+        return response;
+    }
 
     # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any allowed payload
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function get(@untainted string path, RequestMessage message = (), TargetType targetType = Response) 
+    remote isolated function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processGet(@untainted string path, RequestMessage message, TargetType targetType) 
+    private isolated function processGet(@untainted string path, map<string|string[]>? headers, TargetType targetType) 
             returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
@@ -224,22 +215,51 @@ public client class Client {
     # The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any allowed payload
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function options(@untainted string path, RequestMessage message = (), TargetType targetType = Response) 
+    remote isolated function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processOptions(@untainted string path, RequestMessage message, TargetType targetType) 
+    private isolated function processOptions(@untainted string path, map<string|string[]>? headers, TargetType targetType) 
             returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
+        }
+        return processResponse(response, targetType);
+    }
+
+    # Invokes an HTTP call with the specified HTTP verb.
+    #
+    # + httpVerb - HTTP verb value
+    # + path - Resource path
+    # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+            string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = Response) 
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+    } external;
+
+    private isolated function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+            TargetType targetType, string? mediaType, map<string|string[]>? headers) 
+            returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
+        Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
+        if (observabilityEnabled && response is Response) {
+            addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
         return processResponse(response, targetType);
     }
@@ -252,12 +272,12 @@ public client class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function forward(@untainted string path, Request request, TargetType targetType = Response) 
+    remote isolated function forward(@untainted string path, Request request, TargetType targetType = Response)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processForward(@untainted string path, Request request, TargetType targetType) 
+    private isolated function processForward(@untainted string path, Request request, TargetType targetType) 
             returns @tainted Response|PayloadType|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
@@ -274,7 +294,7 @@ public client class Client {
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
-    remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote isolated function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = buildRequest(message);
         return self.httpClient->submit(httpVerb, path, req);
 
@@ -284,7 +304,7 @@ public client class Client {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http: ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getResponse(httpFuture);
         if (observabilityEnabled && response is Response) {
             string statusCode = response.statusCode.toString();
@@ -298,7 +318,7 @@ public client class Client {
     #
     # + httpFuture - The `http:HttpFuture` relates to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -306,7 +326,7 @@ public client class Client {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -314,7 +334,7 @@ public client class Client {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getPromisedResponse(promise);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(promise.path, promise.method, response.statusCode, self.url);
@@ -325,14 +345,14 @@ public client class Client {
     # This just pass the request to actual network call.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise) {
+    remote isolated function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
 
     # Retrieves the cookie store of the client.
     #
     # + return - The cookie store related to the client
-    public function getCookieStore() returns CookieStore? {
+    public isolated function getCookieStore() returns CookieStore? {
         return self.cookieStore;
     }
 }
@@ -355,7 +375,7 @@ public type TargetService record {|
 # | httpVersion - Copied from CommonClientConfiguration     |
 # | http1Settings - Copied from CommonClientConfiguration   |
 # | http2Settings - Copied from CommonClientConfiguration   |
-# | timeoutInMillis - Copied from CommonClientConfiguration |
+# | timeout - Copied from CommonClientConfiguration         |
 # | forwarded - Copied from CommonClientConfiguration       |
 # | followRedirects - Copied from CommonClientConfiguration |
 # | poolConfig - Copied from CommonClientConfiguration      |
@@ -410,15 +430,15 @@ public type ClientHttp2Settings record {|
 # Provides configurations for controlling the retrying behavior in failure scenarios.
 #
 # + count - Number of retry attempts before giving up
-# + intervalInMillis - Retry interval in milliseconds
+# + interval - Retry interval in seconds
 # + backOffFactor - Multiplier, which increases the retry interval exponentially.
-# + maxWaitIntervalInMillis - Maximum time of the retry interval in milliseconds
+# + maxWaitInterval - Maximum time of the retry interval in seconds
 # + statusCodes - HTTP response status codes which are considered as failures
 public type RetryConfig record {|
     int count = 0;
-    int intervalInMillis = 0;
+    decimal interval = 0;
     float backOffFactor = 0.0;
-    int maxWaitIntervalInMillis = 0;
+    decimal maxWaitInterval = 0;
     int[] statusCodes = [];
 |};
 
@@ -431,7 +451,7 @@ public type RetryConfig record {|
 # + certValidation - Certificate validation against OCSP_CRL, OCSP_STAPLING related options
 # + ciphers - List of ciphers to be used
 #             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-# + verifyHostname - Enable/disable host name verification
+# + verifyHostName - Enable/disable host name verification
 # + shareSession - Enable/disable new SSL session creation
 # + handshakeTimeout - SSL handshake time out
 # + sessionTimeout - SSL session time out
@@ -498,7 +518,7 @@ public type CookieConfig record {|
      PersistentCookieHandler persistentCookieHandler?;
 |};
 
-function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
     boolean httpClientRequired = false;
     string url = serviceUrl;
     if (url.endsWith("/")) {
@@ -526,7 +546,7 @@ function initialize(string serviceUrl, ClientConfiguration config, CookieStore? 
     }
 }
 
-function createRedirectClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function createRedirectClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     var redirectConfig = configuration.followRedirects;
     if (redirectConfig is FollowRedirects) {
         if (redirectConfig.enabled) {
@@ -544,7 +564,7 @@ function createRedirectClient(string url, ClientConfiguration configuration, Coo
     }
 }
 
-function checkForRetry(string url, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function checkForRetry(string url, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
     var retryConfigVal = config.retryConfig;
     if (retryConfigVal is RetryConfig) {
         return createRetryClient(url, config, cookieStore);
@@ -553,7 +573,7 @@ function checkForRetry(string url, ClientConfiguration config, CookieStore? cook
     }
 }
 
-function createCircuitBreakerClient(string uri, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function createCircuitBreakerClient(string uri, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     HttpClient cbHttpClient;
     var cbConfig = configuration.circuitBreaker;
     if (cbConfig is CircuitBreakerConfig) {
@@ -577,7 +597,7 @@ function createCircuitBreakerClient(string uri, ClientConfiguration configuratio
         }
 
         time:Utc circuitStartTime = time:utcNow();
-        int numberOfBuckets = (cbConfig.rollingWindow.timeWindowInMillis / cbConfig.rollingWindow.bucketSizeInMillis);
+        int numberOfBuckets = <int> (cbConfig.rollingWindow.timeWindow / cbConfig.rollingWindow.bucketSize);
         Bucket?[] bucketArray = [];
         int bucketIndex = 0;
         while (bucketIndex < numberOfBuckets) {
@@ -587,7 +607,7 @@ function createCircuitBreakerClient(string uri, ClientConfiguration configuratio
 
         CircuitBreakerInferredConfig circuitBreakerInferredConfig = {
             failureThreshold: cbConfig.failureThreshold,
-            resetTimeInMillis: cbConfig.resetTimeInMillis,
+            resetTime: cbConfig.resetTime,
             statusCodes: statusCodes,
             noOfBuckets: numberOfBuckets,
             rollingWindow: cbConfig.rollingWindow
@@ -605,15 +625,15 @@ function createCircuitBreakerClient(string uri, ClientConfiguration configuratio
     }
 }
 
-function createRetryClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function createRetryClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     var retryConfig = configuration.retryConfig;
     if (retryConfig is RetryConfig) {
         boolean[] statusCodes = populateErrorCodeIndex(retryConfig.statusCodes);
         RetryInferredConfig retryInferredConfig = {
             count: retryConfig.count,
-            intervalInMillis: retryConfig.intervalInMillis,
+            interval: retryConfig.interval,
             backOffFactor: retryConfig.backOffFactor,
-            maxWaitIntervalInMillis: retryConfig.maxWaitIntervalInMillis,
+            maxWaitInterval: retryConfig.maxWaitInterval,
             statusCodes: statusCodes
         };
         var httpCookieClient = createCookieClient(url, configuration, cookieStore);
@@ -625,7 +645,7 @@ function createRetryClient(string url, ClientConfiguration configuration, Cookie
     return createCookieClient(url, configuration, cookieStore);
 }
 
-function createCookieClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
+isolated function createCookieClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     var cookieConfigVal = configuration.cookieConfig;
     if (cookieConfigVal is CookieConfig) {
         if (!cookieConfigVal.enabled) {
@@ -647,14 +667,14 @@ function createCookieClient(string url, ClientConfiguration configuration, Cooki
     return createDefaultClient(url, configuration);
 }
 
-function createDefaultClient(string url, ClientConfiguration configuration) returns HttpClient|ClientError {
+isolated function createDefaultClient(string url, ClientConfiguration configuration) returns HttpClient|ClientError {
     if (configuration.cache.enabled) {
         return createHttpCachingClient(url, configuration, configuration.cache);
     }
     return createHttpSecureClient(url, configuration);
 }
 
-function processResponse(Response|ClientError result, TargetType targetType) returns @tainted
+isolated function processResponse(Response|ClientError result, TargetType targetType) returns @tainted
         Response|PayloadType|ClientError {
     if (targetType is typedesc<Response> || result is ClientError) {
         return result;
@@ -674,7 +694,7 @@ function processResponse(Response|ClientError result, TargetType targetType) ret
     return performDataBinding(response, targetType);
 }
 
-function performDataBinding(Response response, TargetType targetType) returns @tainted PayloadType|ClientError {
+isolated function performDataBinding(Response response, TargetType targetType) returns @tainted PayloadType|ClientError {
     if (targetType is typedesc<string>) {
         return response.getTextPayload();
     } else if (targetType is typedesc<xml>) {

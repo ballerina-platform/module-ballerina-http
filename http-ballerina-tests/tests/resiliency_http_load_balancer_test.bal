@@ -28,7 +28,7 @@ http:LoadBalanceClient lbBackendEP = check new({
         { url: "http://localhost:8093/LBMock2" },
         { url: "http://localhost:8093/LBMock3" }
     ],
-    timeoutInMillis: 5000
+    timeout: 5
 });
 
 http:LoadBalanceClient lbFailoverBackendEP = check new({
@@ -38,7 +38,7 @@ http:LoadBalanceClient lbFailoverBackendEP = check new({
         { url: "http://localhost:8093/LBMock3" }
     ],
     failover: true,
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 http:LoadBalanceClient delayedBackendEP = check new({
@@ -47,7 +47,7 @@ http:LoadBalanceClient delayedBackendEP = check new({
         { url: "http://localhost:8093/LBMock5" }
     ],
     failover: true,
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 CustomLoadBalancerRule customLbRule = new CustomLoadBalancerRule(2);
@@ -59,7 +59,7 @@ http:LoadBalanceClient customLbBackendEP = check new({
         { url: "http://localhost:8093/LBMock3" }
     ],
     lbRule: customLbRule,
-    timeoutInMillis: 5000
+    timeout: 5
 });
 
 service /loadBalancerDemoService on new http:Listener(9313) {

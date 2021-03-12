@@ -25,7 +25,7 @@ service /passthrough on passthroughEP1 {
 
     resource function get .(http:Caller caller, http:Request clientRequest) {
         http:Client nyseEP1 = checkpanic new("http://localhost:9113");
-        var response = nyseEP1->get("/nyseStock/stocks", <@untainted> clientRequest);
+        var response = nyseEP1->post("/nyseStock/stocks", <@untainted> clientRequest);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -70,7 +70,7 @@ service /passthrough on passthroughEP1 {
 
 service /nyseStock on passthroughEP1 {
 
-    resource function get stocks(http:Caller caller, http:Request clientRequest) {
+    resource function post stocks(http:Caller caller, http:Request clientRequest) {
         checkpanic caller->respond({ "exchange": "nyse", "name": "IBM", "value": "127.50" });
     }
 
