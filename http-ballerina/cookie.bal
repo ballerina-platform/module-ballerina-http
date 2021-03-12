@@ -51,7 +51,7 @@ public class Cookie {
     #
     # + name - Name of the `http:Cookie`
     # + value - Value of the `http:Cookie`
-    public function init(string name, string value) {
+    public isolated function init(string name, string value) {
         self.name = name;
         self.value = value;
     }
@@ -59,7 +59,7 @@ public class Cookie {
     # Checks the persistence of the cookie.
     #
     # + return  - `false` if the cookie will be discarded at the end of the "session" or else `true`.
-    public function isPersistent() returns boolean {
+    public isolated function isPersistent() returns boolean {
         if (self.expires is () && self.maxAge == 0) {
             return false;
         }
@@ -69,7 +69,7 @@ public class Cookie {
     # Checks the validity of the attributes of the cookie.
     #
     # + return  - `true` if the attributes of the cookie are in the correct format or else an `http:InvalidCookieError`
-    public function isValid() returns boolean|InvalidCookieError {
+    public isolated function isValid() returns boolean|InvalidCookieError {
         var name = self.name;
         if (name is string) {
             name = name.trim();
@@ -124,7 +124,7 @@ public class Cookie {
     # Gets the Cookie object in its string representation to be used in the ‘Set-Cookie’ header of the response.
     #
     # + return  - The string value of the ‘http:Cookie’
-    public function toStringValue() returns string {
+    public isolated function toStringValue() returns string {
         string setCookieHeaderValue = "";
         var temp1 = self.name;
         var temp2 = self.value;
@@ -158,7 +158,7 @@ public class Cookie {
 }
 
 // Converts the cookie's expiry time into the GMT format.
-function toGmtFormat(Cookie cookie, string expires) returns boolean {
+isolated function toGmtFormat(Cookie cookie, string expires) returns boolean {
     // TODO check this formatter with new time API
     time:Utc|error t1 = utcFromString(expires, "yyyy-MM-dd HH:mm:ss");
     if (t1 is time:Utc) {
@@ -181,20 +181,20 @@ const EQUALS = "=";
 const SPACE = " ";
 const SEMICOLON = ";";
 
-function appendNameValuePair(string setCookieHeaderValue, string name, string value) returns string {
+isolated function appendNameValuePair(string setCookieHeaderValue, string name, string value) returns string {
     return setCookieHeaderValue + name + EQUALS + value + SEMICOLON + SPACE;
 }
 
-function appendOnlyName(string setCookieHeaderValue, string name) returns string {
+isolated function appendOnlyName(string setCookieHeaderValue, string name) returns string {
     return setCookieHeaderValue + name + SEMICOLON + SPACE;
 }
 
-function appendNameIntValuePair(string setCookieHeaderValue, string name, int value) returns string {
+isolated function appendNameIntValuePair(string setCookieHeaderValue, string name, int value) returns string {
     return setCookieHeaderValue + name + EQUALS + value.toString() + SEMICOLON + SPACE;
 }
 
 // Returns the cookie object from the string value of the "Set-Cookie" header.
-function parseSetCookieHeader(string cookieStringValue) returns Cookie {
+isolated function parseSetCookieHeader(string cookieStringValue) returns Cookie {
     string cookieValue = cookieStringValue;
     string[] result = regex:split(cookieValue, SEMICOLON + SPACE);
     string[] nameValuePair = regex:split(result[0], EQUALS);
@@ -229,7 +229,7 @@ function parseSetCookieHeader(string cookieStringValue) returns Cookie {
 }
 
 // Returns an array of cookie objects from the string value of the "Cookie" header.
-function parseCookieHeader(string cookieStringValue) returns Cookie[] {
+isolated function parseCookieHeader(string cookieStringValue) returns Cookie[] {
     Cookie[] cookiesInRequest = [];
     string cookieValue = cookieStringValue;
     string[] nameValuePairs = regex:split(cookieValue, SEMICOLON + SPACE);
@@ -252,7 +252,7 @@ function parseCookieHeader(string cookieStringValue) returns Cookie[] {
 
 // Returns a value to be used for sorting an array of cookies in order to create the "Cookie" header in the request.
 // This value is returned according to the rules in [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.4).
-function comparator(Cookie c1, Cookie c2) returns int {
+isolated function comparator(Cookie c1, Cookie c2) returns int {
     var cookiePath1 = c1.path;
     var cookiePath2 = c2.path;
     int l1 = 0;

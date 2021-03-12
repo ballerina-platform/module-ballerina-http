@@ -55,7 +55,7 @@ public client class FailoverClient {
     #
     # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(FailoverClientConfiguration failoverClientConfig) returns ClientError? {
+    public isolated function init(FailoverClientConfiguration failoverClientConfig) returns ClientError? {
         self.failoverClientConfig = failoverClientConfig;
         self.succeededEndpointIndex = 0;
         var failoverHttpClientArray = createFailoverHttpClientArray(failoverClientConfig);
@@ -83,13 +83,13 @@ public client class FailoverClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, string? mediaType = (), 
+    remote isolated function post(@untainted string path, RequestMessage message, string? mediaType = (),
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
+    private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -111,13 +111,13 @@ public client class FailoverClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function put(@untainted string path, RequestMessage message, string? mediaType = (), 
+    remote isolated function put(@untainted string path, RequestMessage message, string? mediaType = (),
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
     
-    private function processPut(@untainted string path, RequestMessage message, TargetType targetType, 
+    private isolated function processPut(@untainted string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -139,13 +139,13 @@ public client class FailoverClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function patch(@untainted string path, RequestMessage message, string? mediaType = (), 
+    remote isolated function patch(@untainted string path, RequestMessage message, string? mediaType = (),
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
     
-    private function processPatch(@untainted string path, RequestMessage message, TargetType targetType, 
+    private isolated function processPatch(@untainted string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -167,13 +167,13 @@ public client class FailoverClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function delete(@untainted string path, RequestMessage message = (), string? mediaType = (), 
+    remote isolated function delete(@untainted string path, RequestMessage message = (), string? mediaType = (),
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
     
-    private function processDelete(@untainted string path, RequestMessage message, TargetType targetType, 
+    private isolated function processDelete(@untainted string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -190,7 +190,7 @@ public client class FailoverClient {
     # + path - Resource path
     # + headers - The entity headers
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
+    remote isolated function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
             Response|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = performFailoverAction(path, req, HTTP_HEAD, self);
@@ -209,12 +209,12 @@ public client class FailoverClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
+    remote isolated function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
         
-    private function processGet(string path, map<string|string[]>? headers, TargetType targetType)
+    private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = performFailoverAction(path, req, HTTP_GET, self);
@@ -233,12 +233,12 @@ public client class FailoverClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
+    remote isolated function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
     
-    private function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
+    private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = performFailoverAction(path, req, HTTP_OPTIONS, self);
@@ -260,13 +260,13 @@ public client class FailoverClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message, 
+    remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
             string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
     
-    private function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+    private isolated function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers) 
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
@@ -287,12 +287,12 @@ public client class FailoverClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function forward(@untainted string path, Request request, TargetType targetType = Response)
+    remote isolated function forward(@untainted string path, Request request, TargetType targetType = Response)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
     
-    private function processForward(string path, Request request, TargetType targetType)
+    private isolated function processForward(string path, Request request, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
         var result = performFailoverAction(path, request, HTTP_FORWARD, self);
         if (result is HttpFuture) {
@@ -311,7 +311,7 @@ public client class FailoverClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
-    remote function submit(string httpVerb, string path, RequestMessage message) returns @tainted HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns @tainted HttpFuture|ClientError {
         Request req = buildRequest(message);
         var result = performExecuteAction(path, req, "SUBMIT", self, verb = httpVerb);
         if (result is Response) {
@@ -325,7 +325,7 @@ public client class FailoverClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Client foClient = getLastSuceededClientEP(self);
         return foClient->getResponse(httpFuture);
     }
@@ -334,7 +334,7 @@ public client class FailoverClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return false;
     }
 
@@ -342,7 +342,7 @@ public client class FailoverClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return error UnsupportedActionError("Failover client not supported for getNextPromise action");
     }
 
@@ -350,7 +350,7 @@ public client class FailoverClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return error UnsupportedActionError("Failover client not supported for getPromisedResponse action");
     }
 
@@ -358,21 +358,21 @@ public client class FailoverClient {
     # response using the rejected promise.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise) {
+    remote isolated function rejectPromise(PushPromise promise) {
     }
 }
 
 // Performs execute action of the Failover connector. extract the corresponding http integer value representation
 // of the http verb and invokes the perform action method.
 // `verb` is used for HTTP `submit()` method.
-function performExecuteAction (string path, Request request, string httpVerb, @tainted FailoverClient failoverClient,
+isolated function performExecuteAction (string path, Request request, string httpVerb, @tainted FailoverClient failoverClient,
         string verb = "") returns @tainted HttpResponse|ClientError {
     HttpOperation connectorAction = extractHttpOperation(httpVerb);
     return performFailoverAction(path, request, connectorAction, failoverClient, verb = verb);
 }
 
 // Handles all the actions exposed through the Failover connector.
-function performFailoverAction (string path, Request request, HttpOperation requestAction, @tainted FailoverClient
+isolated function performFailoverAction (string path, Request request, HttpOperation requestAction, @tainted FailoverClient
         failoverClient, string verb = "") returns @tainted HttpResponse|ClientError {
 
     Client foClient = getLastSuceededClientEP(failoverClient);
@@ -562,7 +562,7 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
     return clientEPConfig;
 }
 
-function createFailoverHttpClientArray(FailoverClientConfiguration failoverClientConfig)
+isolated function createFailoverHttpClientArray(FailoverClientConfiguration failoverClientConfig)
                                                                             returns Client?[]|ClientError {
 
     Client clientEp;

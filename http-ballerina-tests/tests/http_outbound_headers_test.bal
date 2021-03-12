@@ -23,9 +23,9 @@ http:Client outReqHeadClient = check new("http://localhost:" + outRequestOptions
 
 // Define the failover client 
 http:FailoverClient outRequestFOClient = check new({
-    timeoutInMillis: 5000,
+    timeout: 5,
     failoverCodes: [501, 502, 503],
-    intervalInMillis: 5000,
+    interval: 5,
     targets: [
         { url: "http://localhost:3467/inavalidEP" },
         { url: "http://localhost:" + outRequestOptionsTest.toString() }
@@ -37,7 +37,7 @@ http:LoadBalanceClient outRequestLBClient = check new({
     targets: [
         { url: "http://localhost:" + outRequestOptionsTest.toString() }
     ],
-    timeoutInMillis: 5000
+    timeout: 5
 });
 
 @test:Config {}

@@ -38,7 +38,9 @@ const int CB_CLIENT_FAILURE_CASE_ERROR_INDEX = 5;
 const int CB_CLIENT_FORCE_OPEN_INDEX = 4;
 
 function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
-    actualRequestNumber = 0;
+    lock {
+        actualRequestNumber = 0;
+    }
     MockClient mockClient = checkpanic new("http://localhost:8080");
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
@@ -76,7 +78,9 @@ function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
 }
 
 function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
-    actualRequestNumber = 0;
+    lock {
+        actualRequestNumber = 0;
+    }
     MockClient mockClient = checkpanic new("http://localhost:8080");
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
@@ -115,7 +119,9 @@ function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
 }
 
 function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]] {
-    actualRequestNumber = 0;
+    lock {
+        actualRequestNumber = 0;
+    }
     MockClient mockClient = checkpanic new("http://localhost:8080");
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
@@ -149,7 +155,9 @@ function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]
 }
 
 function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
-    actualRequestNumber = 0;
+    lock {
+        actualRequestNumber = 0;
+    }
     MockClient mockClient = checkpanic new("http://localhost:8080");
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
@@ -186,7 +194,9 @@ function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
 }
 
 function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
-    actualRequestNumber = 0;
+    lock {
+        actualRequestNumber = 0;
+    }
     MockClient mockClient = checkpanic new("http://localhost:8080");
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
@@ -224,7 +234,9 @@ function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
 }
 
 function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [http:Response[], error?[]] {
-    actualRequestNumber = 0;
+    lock {
+        actualRequestNumber = 0;
+    }
     MockClient mockClient = checkpanic new("http://localhost:8080");
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
@@ -260,7 +272,9 @@ function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [h
 }
 
 function testRequestVolumeThresholdFailureResponseScenario() returns @tainted [http:Response[], error?[]] {
-    actualRequestNumber = 0;
+    lock {
+        actualRequestNumber = 0;
+    }
     MockClient mockClient = checkpanic new("http://localhost:8080");
     http:Client backendClientEP = checkpanic new("http://localhost:8080", {
         circuitBreaker: {
@@ -314,7 +328,7 @@ function testInvalidRollingWindowConfiguration() returns error? {
     }
 }
 
-int actualRequestNumber = 0;
+isolated int actualRequestNumber = 0;
 
 public client class MockClient {
     public string url = "";
@@ -328,122 +342,127 @@ public client class MockClient {
         self.httpClient = newClient.httpClient;
     }
 
-    remote function post(@untainted string path, http:RequestMessage message) returns http:Response|http:ClientError {
+    remote isolated function post(@untainted string path, http:RequestMessage message) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function head(string path, http:RequestMessage message = ()) returns http:Response|http:ClientError {
+    remote isolated function head(string path, http:RequestMessage message = ()) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function put(@untainted string path, http:RequestMessage message) returns http:Response|http:ClientError {
+    remote isolated function put(@untainted string path, http:RequestMessage message) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message)
+    remote isolated function execute(@untainted string httpVerb, @untainted string path, http:RequestMessage message)
             returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function patch(@untainted string path, http:RequestMessage message)
+    remote isolated function patch(@untainted string path, http:RequestMessage message)
             returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function delete(@untainted string path, http:RequestMessage message = ())
+    remote isolated function delete(@untainted string path, http:RequestMessage message = ())
             returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function get(@untainted string path, http:RequestMessage message = ())
+    remote isolated function get(@untainted string path, http:RequestMessage message = ())
             returns @tainted http:Response|http:ClientError {
         http:Request req = buildRequest(message);
-        http:Response response = new;
-        actualRequestNumber = actualRequestNumber + 1;
         string scenario = checkpanic req.getHeader(TEST_SCENARIO_HEADER);
-
-        if (scenario == SCENARIO_TYPICAL) {
-            var result = handleBackendFailureScenario(actualRequestNumber);
-            if (result is http:Response) {
-                response = result;
-            } else {
-                string errMessage = result.message();
-                response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-                response.setTextPayload(errMessage);
-            }
-        } else if (scenario == SCENARIO_TRIAL_RUN_FAILURE) {
-            var result = handleTrialRunFailureScenario(actualRequestNumber);
-            if (result is http:Response) {
-                response = result;
-            } else {
-                string errMessage = result.message();
-                response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-                response.setTextPayload(errMessage);
-            }
-        } else if (scenario == SCENARIO_HTTP_SC_FAILURE) {
-            var result = handleHTTPStatusCodeErrorScenario(actualRequestNumber);
-            if (result is http:Response) {
-                response = result;
-            } else {
-                string errMessage = result.message();
-                response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-                response.setTextPayload(errMessage);
-            }
-        } else if (scenario == SCENARIO_CB_FORCE_OPEN) {
-            response = handleCBForceOpenScenario();
-        } else if (scenario == SCENARIO_CB_FORCE_CLOSE) {
-            var result = handleCBForceCloseScenario(actualRequestNumber);
-            if (result is http:Response) {
-                response = result;
-            } else {
-                string errMessage = result.message();
-                response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-                response.setTextPayload(errMessage);
-            }
-        } else if (scenario == SCENARIO_REQUEST_VOLUME_THRESHOLD_SUCCESS) {
-            response = handleRequestVolumeThresholdSuccessResponseScenario();
-        } else if (scenario == SCENARIO_REQUEST_VOLUME_THRESHOLD_FAILURE) {
-            response = handleRequestVolumeThresholdFailureResponseScenario();
+        http:Response response = new;
+        int number = 0;
+        lock {
+            actualRequestNumber += 1;
+            number = actualRequestNumber;
         }
-        return response;
+
+            if (scenario == SCENARIO_TYPICAL) {
+                var result = handleBackendFailureScenario(number);
+                if (result is http:Response) {
+                    response = result;
+                } else {
+                    string errMessage = result.message();
+                    response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+                    response.setTextPayload(errMessage);
+                }
+            } else if (scenario == SCENARIO_TRIAL_RUN_FAILURE) {
+                var result = handleTrialRunFailureScenario(number);
+                if (result is http:Response) {
+                    response = result;
+                } else {
+                    string errMessage = result.message();
+                    response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+                    response.setTextPayload(errMessage);
+                }
+            } else if (scenario == SCENARIO_HTTP_SC_FAILURE) {
+                var result = handleHTTPStatusCodeErrorScenario(number);
+                if (result is http:Response) {
+                    response = result;
+                } else {
+                    string errMessage = result.message();
+                    response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+                    response.setTextPayload(errMessage);
+                }
+            } else if (scenario == SCENARIO_CB_FORCE_OPEN) {
+                response = handleCBForceOpenScenario();
+            } else if (scenario == SCENARIO_CB_FORCE_CLOSE) {
+                var result = handleCBForceCloseScenario(number);
+                if (result is http:Response) {
+                    response = result;
+                } else {
+                    string errMessage = result.message();
+                    response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+                    response.setTextPayload(errMessage);
+                }
+            } else if (scenario == SCENARIO_REQUEST_VOLUME_THRESHOLD_SUCCESS) {
+                response = handleRequestVolumeThresholdSuccessResponseScenario();
+            } else if (scenario == SCENARIO_REQUEST_VOLUME_THRESHOLD_FAILURE) {
+                response = handleRequestVolumeThresholdFailureResponseScenario();
+            }
+            return response;
+        // }
     }
 
-    remote function options(@untainted string path, http:RequestMessage message = ())
+    remote isolated function options(@untainted string path, http:RequestMessage message = ())
             returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function forward(@untainted string path, http:Request request)
+    remote isolated function forward(@untainted string path, http:Request request)
             returns @tainted http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function submit(string httpVerb, string path, http:RequestMessage message)
+    remote isolated function submit(string httpVerb, string path, http:RequestMessage message)
             returns http:HttpFuture|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function getResponse(http:HttpFuture httpFuture)  returns http:Response|http:ClientError {
+    remote isolated function getResponse(http:HttpFuture httpFuture)  returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function hasPromise(http:HttpFuture httpFuture) returns boolean {
+    remote isolated function hasPromise(http:HttpFuture httpFuture) returns boolean {
         return false;
     }
 
-    remote function getNextPromise(http:HttpFuture httpFuture) returns http:PushPromise|http:ClientError {
+    remote isolated function getNextPromise(http:HttpFuture httpFuture) returns http:PushPromise|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function getPromisedResponse(http:PushPromise promise) returns http:Response|http:ClientError {
+    remote isolated function getPromisedResponse(http:PushPromise promise) returns http:Response|http:ClientError {
         return getUnsupportedError();
     }
 
-    remote function rejectPromise(http:PushPromise promise) {
+    remote isolated function rejectPromise(http:PushPromise promise) {
     }
 }
 
-function handleBackendFailureScenario(int requestNo) returns http:Response|http:ClientError {
+isolated function handleBackendFailureScenario(int requestNo) returns http:Response|http:ClientError {
     // Deliberately fail a request
     if (requestNo == 3) {
         return getErrorStruct();
@@ -452,7 +471,7 @@ function handleBackendFailureScenario(int requestNo) returns http:Response|http:
     return response;
 }
 
-function handleTrialRunFailureScenario(int counter) returns http:Response|http:ClientError {
+isolated function handleTrialRunFailureScenario(int counter) returns http:Response|http:ClientError {
     // Fail a request. Then, fail the trial request sent while in the HALF_OPEN state as well.
     if (counter == 2 || counter == 3) {
         return getErrorStruct();
@@ -462,7 +481,7 @@ function handleTrialRunFailureScenario(int counter) returns http:Response|http:C
     return response;
 }
 
-function handleHTTPStatusCodeErrorScenario(int counter) returns http:Response|http:ClientError {
+isolated function handleHTTPStatusCodeErrorScenario(int counter) returns http:Response|http:ClientError {
     // Fail a request. Then, fail the trial request sent while in the HALF_OPEN state as well.
     if (counter == 2 || counter == 3) {
         return getMockErrorStruct();
@@ -472,11 +491,11 @@ function handleHTTPStatusCodeErrorScenario(int counter) returns http:Response|ht
     return response;
 }
 
-function handleCBForceOpenScenario() returns http:Response {
+isolated function handleCBForceOpenScenario() returns http:Response {
     return getResponse();
 }
 
-function handleCBForceCloseScenario(int requestNo) returns http:Response|http:ClientError {
+isolated function handleCBForceCloseScenario(int requestNo) returns http:Response|http:ClientError {
     // DeliberattestCircuitBreakerely fail a request
     if (requestNo == 3) {
         return getErrorStruct();
@@ -485,36 +504,36 @@ function handleCBForceCloseScenario(int requestNo) returns http:Response|http:Cl
     return response;
 }
 
-function handleRequestVolumeThresholdSuccessResponseScenario() returns http:Response {
+isolated function handleRequestVolumeThresholdSuccessResponseScenario() returns http:Response {
     return getResponse();
 }
 
-function handleRequestVolumeThresholdFailureResponseScenario() returns http:Response {
+isolated function handleRequestVolumeThresholdFailureResponseScenario() returns http:Response {
     http:Response response = new;
     response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
     return response;
 }
 
-function getErrorStruct() returns http:ClientError {
+isolated function getErrorStruct() returns http:ClientError {
     return error http:GenericClientError("Connection refused");
 }
 
-function getResponse() returns http:Response {
+isolated function getResponse() returns http:Response {
     // TODO: The way the status code is set may need to be changed once struct fields can be made read-only
     http:Response response = new;
     response.statusCode = http:STATUS_OK;
     return response;
 }
 
-function getMockErrorStruct() returns http:ClientError {
+isolated function getMockErrorStruct() returns http:ClientError {
     return error http:GenericClientError("Internal Server Error");
 }
 
-function getUnsupportedError() returns http:ClientError {
+isolated function getUnsupportedError() returns http:ClientError {
     return error http:GenericClientError("Unsupported function for MockClient");
 }
 
-function buildRequest(http:RequestMessage message) returns http:Request {
+isolated function buildRequest(http:RequestMessage message) returns http:Request {
     http:Request request = new;
     if (message is ()) {
         return request;
