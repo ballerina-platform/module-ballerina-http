@@ -117,9 +117,8 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
             }
         }
 
-        http:Request httpReq = new;
-        //Request as message
-        var response3 = http2Client->get("/backEndService/http2ReplyText", httpReq);
+        //With headers
+        var response3 = http2Client->get("/backEndService/http2ReplyText", {"x-type":"hello"});
         if (response3 is http:Response) {
             var result = response3.getTextPayload();
             if (result is string) {

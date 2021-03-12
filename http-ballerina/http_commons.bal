@@ -97,6 +97,49 @@ isolated function buildResponse(ResponseMessage message) returns Response {
     return response;
 }
 
+isolated function populateOptions(Request request, string? mediaType, map<string|string[]>? headers) {
+    // This method is called after setting the payload. Hence default content type header will be overriden.
+    // Update content-type header according to the priority. (Highest to lowest)
+    // 1. MediaType arg in client method
+    // 2. Headers arg in client method
+    // 3. Default content type related to payload
+    populateHeaders(request, headers);
+    if (mediaType is string) {
+        request.setHeader(CONTENT_TYPE, mediaType);
+    }
+}
+
+isolated function buildRequestWithHeaders(map<string|string[]>? headers) returns Request {
+    Request request = new;
+    request.noEntityBody = true;
+    populateHeaders(request, headers);
+    return request;
+}
+
+isolated function populateHeaders(Request request, map<string|string[]>? headers) {
+    if (headers is map<string[]>) {
+        foreach var [headerKey, headerValues] in headers.entries() {
+            foreach string headerValue in headerValues {
+                request.addHeader(headerKey, headerValue);
+            }
+        }
+    } else if (headers is map<string>) {
+        foreach var [headerKey, headerValue] in headers.entries() {
+            request.setHeader(headerKey, headerValue);
+        }
+    } else if (headers is map<string|string[]>) {
+        foreach var [headerKey, headerValue] in headers.entries() {
+            if (headerValue is string[]) {
+                foreach string value in headerValue {
+                    request.addHeader(headerKey, value);
+                }
+            } else {
+                request.setHeader(headerKey, headerValue);
+            }
+        }
+    }
+}
+
 # The HEAD remote function implementation of the Circuit Breaker. This wraps the `head` function of the underlying
 # HTTP remote function provider.
 

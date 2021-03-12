@@ -53,13 +53,10 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
 
     resource function get initial(http:Caller caller, http:Request request) {
         http:Response|error finalResponse;
-        http:Request req = new;
         if (checkpanic request.getHeader("priorKnowledge") == "true") {
-            req.setHeader("priorKnowledge", "true");
-            finalResponse = priorKnowclientEP2->get("/multiparts/encode", req);
+            finalResponse = priorKnowclientEP2->get("/multiparts/encode", {"priorKnowledge":"true"});
         } else {
-            req.setHeader("priorKnowledge", "false");
-            finalResponse = mimeClientEP2->get("/multiparts/encode", req);
+            finalResponse = mimeClientEP2->get("/multiparts/encode", {"priorKnowledge":"false"});
         }
         if (finalResponse is http:Response) {
             var respBodyParts = finalResponse.getBodyParts();
@@ -191,9 +188,7 @@ function getContDisposition(string partName) returns (mime:ContentDisposition) {
 @test:Config {}
 public function testMultipart() {
     http:Client clientEP = checkpanic new("http://localhost:9100");
-    http:Request req = new;
-    req.setHeader("priorKnowledge", "false");
-    var resp = clientEP->get("/multiparts/initial", req);
+    var resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"false"});
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
     } else {
@@ -204,9 +199,7 @@ public function testMultipart() {
 @test:Config {}
 public function testMultipartsWithPriorKnowledge() {
     http:Client clientEP = checkpanic new("http://localhost:9100");
-    http:Request req = new;
-    req.setHeader("priorKnowledge", "true");
-    var resp = clientEP->get("/multiparts/initial", req);
+    var resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"true"});
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
     } else {

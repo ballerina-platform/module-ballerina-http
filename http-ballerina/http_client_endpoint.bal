@@ -68,20 +68,24 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
+    remote function post(@untainted string path, RequestMessage message, string? mediaType = (), 
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processPost(@untainted string path, RequestMessage message, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
+    private function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         // TODO improve signature once issue https://github.com/ballerina-platform/ballerina-spec/issues/386 is resolved
         // Dependently typed function signature support for ballerina function is required.
         Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
@@ -89,64 +93,29 @@ public client class Client {
         return processResponse(response, targetType);
     }
 
-    # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
-    #
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
-    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
-        Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->head(path, message = req);
-        if (observabilityEnabled && response is Response) {
-            addObservabilityInformation(path, HTTP_HEAD, response.statusCode, self.url);
-        }
-        return response;
-    }
-
     # The `Client.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function put(@untainted string path, RequestMessage message, TargetType targetType = Response) 
+    remote function put(@untainted string path, RequestMessage message, string? mediaType = (), 
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processPut(@untainted string path, RequestMessage message, TargetType targetType) 
-            returns @tainted Response|PayloadType|ClientError {
+    private function processPut(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
-        }
-        return processResponse(response, targetType);
-    }
-
-    # Invokes an HTTP call with the specified HTTP verb.
-    #
-    # + httpVerb - HTTP verb value
-    # + path - Resource path
-    # + message - An HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType = Response) returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
-    } external;
-
-    private function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType) returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
-        if (observabilityEnabled && response is Response) {
-            addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
         return processResponse(response, targetType);
     }
@@ -155,18 +124,22 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function patch(@untainted string path, RequestMessage message, TargetType targetType = Response) 
+    remote function patch(@untainted string path, RequestMessage message, string? mediaType = (), 
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processPatch(@untainted string path, RequestMessage message, TargetType targetType) 
-            returns @tainted Response|PayloadType|ClientError {
+    private function processPatch(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
@@ -178,18 +151,22 @@ public client class Client {
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function delete(@untainted string path, RequestMessage message = (), TargetType targetType = Response) 
+    remote function delete(@untainted string path, RequestMessage message = (), string? mediaType = (), 
+            map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processDelete(@untainted string path, RequestMessage message, TargetType targetType) 
-            returns @tainted Response|PayloadType|ClientError {
+    private function processDelete(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
@@ -197,23 +174,37 @@ public client class Client {
         return processResponse(response, targetType);
     }
 
+    # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
+    #
+    # + path - Resource path
+    # + headers - The entity headers
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
+            Response|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        Response|ClientError response = self.httpClient->head(path, message = req);
+        if (observabilityEnabled && response is Response) {
+            addObservabilityInformation(path, HTTP_HEAD, response.statusCode, self.url);
+        }
+        return response;
+    }
 
     # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any allowed payload
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function get(@untainted string path, RequestMessage message = (), TargetType targetType = Response) 
+    remote function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processGet(@untainted string path, RequestMessage message, TargetType targetType) 
+    private function processGet(@untainted string path, map<string|string[]>? headers, TargetType targetType) 
             returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
@@ -224,22 +215,51 @@ public client class Client {
     # The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any allowed payload
+    # + mediaType - The MIME type header of the request entity
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function options(@untainted string path, RequestMessage message = (), TargetType targetType = Response) 
+    remote function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
     } external;
 
-    private function processOptions(@untainted string path, RequestMessage message, TargetType targetType) 
+    private function processOptions(@untainted string path, map<string|string[]>? headers, TargetType targetType) 
             returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
+        }
+        return processResponse(response, targetType);
+    }
+
+    # Invokes an HTTP call with the specified HTTP verb.
+    #
+    # + httpVerb - HTTP verb value
+    # + path - Resource path
+    # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message, 
+            string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = Response) 
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+    } external;
+
+    private function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+            TargetType targetType, string? mediaType, map<string|string[]>? headers) 
+            returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
+        Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
+        if (observabilityEnabled && response is Response) {
+            addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
         return processResponse(response, targetType);
     }

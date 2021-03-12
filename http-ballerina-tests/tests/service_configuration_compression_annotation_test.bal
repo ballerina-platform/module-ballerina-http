@@ -120,10 +120,7 @@ function testAutoCompress() {
 //The response here means the one that should be sent to transport, not to end user.
 @test:Config {}
 function testAutoCompressWithAcceptEncoding() {
-    http:Request req = new;
-    req.setTextPayload("hello");
-    req.setHeader(ACCEPT_ENCODING, ENCODING_GZIP);
-    var response = compressionClient->get("/autoCompress", req);
+    var response = compressionClient->get("/autoCompress", {[ACCEPT_ENCODING]:[ENCODING_GZIP]});
     if (response is http:Response) {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
