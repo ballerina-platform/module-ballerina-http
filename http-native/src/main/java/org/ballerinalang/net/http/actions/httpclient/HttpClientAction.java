@@ -38,9 +38,14 @@ import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.ballerina.runtime.observability.ObservabilityConstants.KEY_OBSERVER_CONTEXT;
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
 import static org.ballerinalang.net.http.HttpConstants.CURRENT_TRANSACTION_CONTEXT_PROPERTY;
+import static org.ballerinalang.net.http.HttpConstants.ORIGIN_HOST;
+import static org.ballerinalang.net.http.HttpConstants.POOLED_BYTE_BUFFER_FACTORY;
+import static org.ballerinalang.net.http.HttpConstants.REMOTE_ADDRESS;
+import static org.ballerinalang.net.http.HttpConstants.SRC_HANDLER;
 
 /**
  * Utilities related to HTTP client actions.
@@ -159,7 +164,7 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {
         Future balFuture = env.markAsync();
-        Map<String, Object> propertyMap = getPropertiesToPropagate(env, CURRENT_TRANSACTION_CONTEXT_PROPERTY);
+        Map<String, Object> propertyMap = getPropertiesToPropagate(env);
         env.getRuntime().invokeMethodAsync(client, methodName, null, null, new Callback() {
             @Override
             public void notifySuccess(Object result) {
@@ -177,7 +182,9 @@ public class HttpClientAction extends AbstractHTTPAction {
         return null;
     }
 
-    private static Map<String, Object> getPropertiesToPropagate(Environment env, String... keys) {
+    private static Map<String, Object> getPropertiesToPropagate(Environment env) {
+        String[] keys = {CURRENT_TRANSACTION_CONTEXT_PROPERTY, KEY_OBSERVER_CONTEXT, SRC_HANDLER,
+                POOLED_BYTE_BUFFER_FACTORY, REMOTE_ADDRESS, ORIGIN_HOST};
         Map<String, Object> subMap = new HashMap<>();
         for (String key : keys) {
             Object value = env.getStrandLocal(key);
