@@ -527,7 +527,7 @@ isolated function handleOpenCircuit(CircuitHealth circuitHealth, CircuitBreakerI
              returns ClientError {
     time:Utc effectiveErrorTime = getEffectiveErrorTime(circuitHealth);
     time:Seconds timeDif = time:utcDiffSeconds(time:utcNow(), effectiveErrorTime);
-    decimal timeRemaining = (circuitBreakerInferredConfig.resetTime - <decimal> timeDif);
+    int timeRemaining = <int> (circuitBreakerInferredConfig.resetTime - <decimal> timeDif);
     updateRejectedRequestCount(circuitHealth, circuitBreakerInferredConfig);
     string errorMessage = "Upstream service unavailable. Requests to upstream service will be suspended for "
         + timeRemaining.toString() + " seconds.";
