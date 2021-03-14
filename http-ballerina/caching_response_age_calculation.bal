@@ -35,7 +35,7 @@ isolated function calculateCurrentResponseAge(Response cachedResponse) returns @
     time:Seconds correctedInitialAge = apparentAge > correctedAgeValue ? apparentAge : correctedAgeValue;
     time:Seconds residentTime = time:utcDiffSeconds(now, responseTime);
 
-    return <int>((correctedInitialAge + residentTime)*1000);
+    return <int>((correctedInitialAge + residentTime));
 }
 
 isolated function getResponseAge(Response cachedResponse) returns @tainted time:Seconds {
@@ -44,7 +44,7 @@ isolated function getResponseAge(Response cachedResponse) returns @tainted time:
         return 0;
     } else {
         var ageValue = 'decimal:fromString(ageHeaderString);
-        return (ageValue is decimal) ? <time:Seconds> ageValue/1000 : 0;
+        return (ageValue is decimal) ? <time:Seconds> ageValue : 0;
     }
 }
 
