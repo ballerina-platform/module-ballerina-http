@@ -114,7 +114,7 @@ isolated function testClientOAuth2Handler() {
         }
     };
 
-    http:OAuth2DirectTokenConfig config3 = {
+    http:OAuth2RefreshTokenGrantConfig config3 = {
         refreshUrl: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/refresh",
         refreshToken: "XlfBs91yquexJqDaKEMzVg==",
         clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
