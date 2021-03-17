@@ -121,8 +121,9 @@ function testValueWithOptionalParam() {
 function testWithMissingValue() {
     var result = http:parseHeader(";a = 2");
     if (result is error) {
-        test:assertEquals(result.message(), "failed to parse: error(\"invalid header value: ;a = 2\")",
-                msg = "Found unexpected output");
+        test:assertEquals(result.message(),
+            "failed to parse: error InvalidHeaderValueError (\"invalid header value: ;a = 2\")",
+            msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -133,8 +134,9 @@ function testWithMissingValue() {
 function testInvalidParams1() {
     var result = http:parseHeader(TEXT_PLAIN + ";a = ");
     if (result is error) {
-        test:assertEquals(result.message(), "failed to parse: error(\"invalid header parameter: a =\")",
-                msg = "Found unexpected output");
+        test:assertEquals(result.message(),
+            "failed to parse: error InvalidHeaderValueError (\"invalid header parameter: a =\")",
+            msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -145,8 +147,9 @@ function testInvalidParams1() {
 function testInvalidParams2() {
     var result = http:parseHeader(TEXT_PLAIN + "; = ");
     if (result is error) {
-        test:assertEquals(result.message(), "failed to parse: error(\"invalid header parameter: =\")",
-                msg = "Found unexpected output");
+        test:assertEquals(result.message(),
+            "failed to parse: error InvalidHeaderValueError (\"invalid header parameter: =\")",
+            msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -157,8 +160,9 @@ function testInvalidParams2() {
 function testInvalidParams3() {
     var result = http:parseHeader(TEXT_PLAIN + "; = 2");
     if (result is error) {
-        test:assertEquals(result.message(), "failed to parse: error(\"invalid header parameter: = 2\")",
-                msg = "Found unexpected output");
+        test:assertEquals(result.message(),
+            "failed to parse: error InvalidHeaderValueError (\"invalid header parameter: = 2\")",
+            msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
