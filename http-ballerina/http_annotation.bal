@@ -102,7 +102,7 @@ public annotation HttpCallerInfo CallerInfo on parameter;
 #
 # + name - Specifies the name of the required header
 public type HttpHeader record {|
-    string name?;
+    string name;
 |};
 
 # The annotation which is used to define the Header resource signature parameter.

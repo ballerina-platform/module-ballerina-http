@@ -54,7 +54,7 @@ Then a `Service` can be defined and attached to the above `Listener` endpoint as
 service /helloWorld on helloWorldEP {
 
    // All resource functions are invoked with arguments of server connector and request.
-   resource function post [string name](http:Caller caller, http:Request req, @http:Payload {} string message) {
+   resource function post [string name](http:Caller caller, http:Request req, @http:Payload string message) {
        http:Response res = new;
        // A util method that can be used to set string payload.
        res.setPayload("Hello, World! I’m " + <@untainted> name + ". " + <@untainted> message);
