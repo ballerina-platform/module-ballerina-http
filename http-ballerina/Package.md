@@ -25,7 +25,7 @@ The defined `Client` endpoint can be used to call a remote service as follows:
 
 ``` ballerina
 // Send a GET request to the specified endpoint.
-var response = clientEndpoint->get("/get?id=123");
+http:Response|http:ClientError response = clientEndpoint->get("/get?id=123");
 ```
 
 For more information, see the following.
@@ -53,16 +53,9 @@ Then a `Service` can be defined and attached to the above `Listener` endpoint as
 // By default, Ballerina assumes that the service is to be exposed via HTTP/1.1.
 service /helloWorld on helloWorldEP {
 
-   // All resource functions are invoked with arguments of server connector and request.
-   resource function post [string name](http:Caller caller, http:Request req, @http:Payload string message) {
-       http:Response res = new;
-       // A util method that can be used to set string payload.
-       res.setPayload("Hello, World! I’m " + <@untainted> name + ". " + <@untainted> message);
-       // Sends the response back to the client.
-       var result = caller->respond(res);
-       if (result is http:ListenerError) {
-            log:printError("Error sending response", err = result);
-       }
+   resource function post [string name](@http:Payload string message) returns string {
+       // Sends the response back to the client along with a string payload.
+       return "Hello, World! I’m " + name + ". " + message;
    }
 }
 ```
