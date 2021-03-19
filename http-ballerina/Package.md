@@ -78,19 +78,3 @@ See the following.
 For more information, see [Mutual SSL Example](https://ballerina.io/learn/by-example/mutual-ssl.html).
 
 For more information, see [Caching Example](https://ballerina.io/learn/by-example/cache.html), [HTTP Disable Chunking Example](https://ballerina.io/learn/by-example/http-disable-chunking.html).
-
-### Logging
-
-This package supports two types of logs:
-- HTTP access logs: These are standard HTTP access logs that are formatted using the combined log format and logged at the `INFO` level. Logs can be published to the console or a file using the following configurations:
-    - `b7a.http.accesslog.console=true`
-    - `b7a.http.accesslog.path=<path_to_log_file>`
-- HTTP trace logs: These are detailed logs of requests coming to/going out of and responses coming to/going out of service endpoints or a client endpoints. Trace logs can be published to the console, to a file or to a network socket using the following set of configurations:
-    - `b7a.http.tracelog.console=true`
-    - `b7a.http.tracelog.path=<path_to_log_file>`
-    - `b7a.http.tracelog.host=<host_name>`
-    - `b7a.http.tracelog.port=<port>`
-
-To publish logs to a socket, both the host and port configurations must be provided.
-
-See [HTTP Access Logs Example](https://ballerina.io/learn/by-example/http-access-logs.html), [HTTP Trace Logs Example](https://ballerina.io/learn/by-example/http-trace-logs.html)
