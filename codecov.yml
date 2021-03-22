@@ -1,5 +1,0 @@
-fixes:
-  - "ballerina/http/*/::../http-ballerina/"
-
-ignore:
-  - "http-ballerina-tests"
