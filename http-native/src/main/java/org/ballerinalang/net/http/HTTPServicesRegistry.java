@@ -122,8 +122,7 @@ public class HTTPServicesRegistry {
         if (servicesByBasePath.containsKey(basePath)) {
             String errorMessage = hostName.equals(DEFAULT_HOST) ? "'" : "' under host name : '" + hostName + "'";
             throw ErrorCreator.createError(
-                    StringUtils.fromString("Service registration failed: two services " +
-                                                   "have the same basePath : '" + basePath + errorMessage));
+                    StringUtils.fromString("two services have the same basePath : '" + basePath + errorMessage));
         }
         servicesByBasePath.put(basePath, httpService);
         String errLog = String.format("Service deployed : %s with context %s", service.getType().getName(),

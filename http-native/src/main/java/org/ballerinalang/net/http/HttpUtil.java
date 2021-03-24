@@ -483,7 +483,7 @@ public class HttpUtil {
 
     private static String getErrorMessage(BError error) {
         BMap errorDetails = (BMap) error.getDetails();
-        if (errorDetails.get(HTTP_ERROR_MESSAGE) != null) {
+        if (errorDetails != null && errorDetails.get(HTTP_ERROR_MESSAGE) != null) {
             return errorDetails.get(HTTP_ERROR_MESSAGE).toString();
         }
         return error.getErrorMessage().getValue();

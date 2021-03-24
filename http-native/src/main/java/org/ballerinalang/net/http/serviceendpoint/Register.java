@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HTTPServicesRegistry;
 import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
 
 import java.util.Arrays;
@@ -46,7 +47,8 @@ public class Register extends AbstractHttpNativeFunction {
             String basePath = getBasePath(serviceName);
             httpServicesRegistry.registerService(runtime, service, basePath);
         } catch (BError ex) {
-            return ex;
+            return HttpUtil.createHttpError("failed to attach service: " + ex.getMessage(),
+                                            HttpErrorType.LISTENER_STARTUP_FAILURE, ex);
         }
         return null;
     }

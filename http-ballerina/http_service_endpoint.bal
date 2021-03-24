@@ -17,23 +17,21 @@
 import ballerina/crypto;
 import ballerina/jballerina.java;
 
-/////////////////////////////
-/// HTTP Listener Endpoint ///
-/////////////////////////////
-# This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to
-# remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
+# This class is used for creating HTTP listener. An HTTP listener is capable of responding to remote callers. The
+# `Listener` is responsible for initializing the endpoint using the provided configurations.
 public class Listener {
 
     private int port = 0;
     private ListenerConfiguration config = {};
-    private string instanceId;
+    //private string instanceId;
 
     # Gets invoked during module initialization to initialize the listener.
     #
     # + port - Listening port of the HTTP service listener
     # + config - Configurations for the HTTP service listener
+    # + return - A `ListenerError` if an error occurred during the listener initialization
     public isolated function init(int port, ListenerConfiguration? config = ()) returns ListenerError? {
-        self.instanceId = uuid();
+        //self.instanceId = uuid();
         self.config = config ?: {};
         self.port = port;
         return externInitEndpoint(self);
@@ -41,23 +39,23 @@ public class Listener {
 
     # Starts the registered service programmatically.
     #
-    # + return - An `error` if an error occurred during the listener starting process
-    public isolated function 'start() returns error? {
+    # + return - A `ListenerError` if an error occurred during the listener starting process
+    public isolated function 'start() returns ListenerError? {
         return externStart(self);
     }
 
     # Stops the service listener gracefully. Already-accepted requests will be served before connection closure.
     #
-    # + return - An `error` if an error occurred during the listener stopping process
-    public isolated function gracefulStop() returns error? {
+    # + return - A `ListenerError` if an error occurred during the listener stopping process
+    public isolated function gracefulStop() returns ListenerError? {
         return externGracefulStop(self);
     }
 
     # Stops the service listener immediately. It is not implemented yet.
     #
-    # + return - An `error` if an error occurred during the listener stop process
-    public isolated function immediateStop() returns error? {
-        error err = error("not implemented");
+    # + return - A `ListenerError` if an error occurred during the listener stop process
+    public isolated function immediateStop() returns ListenerError? {
+        ListenerError err = error ListenerError("not implemented");
         return err;
     }
 
@@ -65,16 +63,16 @@ public class Listener {
     #
     # + s - The service that needs to be attached
     # + name - Name of the service
-    # + return - An `error` an error occurred during the service attachment process or else nil
-    public isolated function attach(Service s, string[]|string? name = ()) returns error? {
+    # + return - A `ListenerError` an error occurred during the service attachment process or else nil
+    public isolated function attach(Service s, string[]|string? name = ()) returns ListenerError? {
         return externRegister(self, s, name);
     }
 
     # Detaches a Http service from the listener.
     #
     # + s - The service to be detached
-    # + return - An `error` if one occurred during detaching of a service or else `()`
-    public isolated function detach(Service s) returns error? {
+    # + return - A `ListenerError` if one occurred during detaching of a service or else `()`
+    public isolated function detach(Service s) returns ListenerError? {
         return externDetach(self, s);
     }
 
@@ -98,23 +96,23 @@ isolated function externInitEndpoint(Listener listenerObj) returns ListenerError
     name: "initEndpoint"
 } external;
 
-isolated function externRegister(Listener listenerObj, Service s, string[]|string? name) returns error? =
+isolated function externRegister(Listener listenerObj, Service s, string[]|string? name) returns ListenerError? =
 @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Register",
     name: "register"
 } external;
 
-isolated function externStart(Listener listenerObj) returns error? = @java:Method {
+isolated function externStart(Listener listenerObj) returns ListenerError? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Start",
     name: "start"
 } external;
 
-isolated function externGracefulStop(Listener listenerObj) returns error? = @java:Method {
+isolated function externGracefulStop(Listener listenerObj) returns ListenerError? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.GracefulStop",
     name: "gracefulStop"
 } external;
 
-isolated function externDetach(Listener listenerObj, Service s) returns error? = @java:Method {
+isolated function externDetach(Listener listenerObj, Service s) returns ListenerError? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Detach",
     name: "detach"
 } external;
@@ -145,7 +143,7 @@ public type Local record {|
 #                  communicate through HTTPS.
 # + httpVersion - Highest HTTP version supported by the endpoint
 # + timeout - Period of time in seconds that a connection waits for a read/write operation. Use value 0 to
-#                   disable timeout
+#             disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
 public type ListenerConfiguration record {|

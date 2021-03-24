@@ -117,7 +117,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "Service registration failed: two services have the same basePath : '/mock4'");
+            "failed to attach service: two services have the same basePath : '/mock4'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

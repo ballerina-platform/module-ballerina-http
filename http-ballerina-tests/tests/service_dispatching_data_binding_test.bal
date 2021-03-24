@@ -358,7 +358,8 @@ function testDataBindingWithRecordArrayNegative() {
 function testMultipleAnnotsInASingleParam() {
     var response = dataBindingClient->get("/echo/negative1");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), "cannot specify more than one http annotation for parameter 'payload'");
+        assertTextPayload(response.getTextPayload(),
+            "failed to attach service: cannot specify more than one http annotation for parameter 'payload'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -369,7 +370,8 @@ function testMultipleAnnotsInASingleParam() {
 function testMultiplePayloadAnnots() {
     var response = dataBindingClient->get("/echo/negative2");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), "invalid multiple 'http:Payload' annotation usage");
+        assertTextPayload(response.getTextPayload(),
+            "failed to attach service: invalid multiple 'http:Payload' annotation usage");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
