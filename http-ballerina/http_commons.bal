@@ -236,20 +236,18 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
         mime:Entity[] bodyParts = check inRequest.getBodyParts();
         foreach var bodyPart in bodyParts {
             if (isNestedEntity(bodyPart)) {
-                mime:Entity[]|error result = bodyPart.getBodyParts();
+                mime:Entity[]|error childParts = bodyPart.getBodyParts();
 
-                if (result is error) {
-                    return error GenericClientError(result.message(), result);
+                if (childParts is error) {
+                    return error GenericClientError(childParts.message(), childParts);
+                } else {
+                    foreach var childPart in childParts {
+                        // When performing passthrough scenarios, message needs to be built before
+                        // invoking the endpoint to create a message datasource.
+                        var childBlobContent = childPart.getByteArray();
+                    }
+                    bodyPart.setBodyParts(childParts, <@untainted> bodyPart.getContentType());
                 }
-
-                mime:Entity[] childParts = <mime:Entity[]> checkpanic result;
-
-                foreach var childPart in childParts {
-                    // When performing passthrough scenarios, message needs to be built before
-                    // invoking the endpoint to create a message datasource.
-                    var childBlobContent = childPart.getByteArray();
-                }
-                bodyPart.setBodyParts(childParts, <@untainted> bodyPart.getContentType());
             } else {
                 var bodyPartBlobContent = bodyPart.getByteArray();
             }

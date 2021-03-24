@@ -146,3 +146,35 @@ public const TRAILING = "trailing";
 
 # Represents RFC_1123_DATE_TIME formatter
 const string RFC_1123_DATE_TIME = "RFC_1123_DATE_TIME";
+
+# Defines the possible values for the keep-alive configuration in service and client endpoints.
+public type KeepAlive KEEPALIVE_AUTO|KEEPALIVE_ALWAYS|KEEPALIVE_NEVER;
+
+# Decides to keep the connection alive or not based on the `connection` header of the client request
+public const KEEPALIVE_AUTO = "AUTO";
+# Keeps the connection alive irrespective of the `connection` header value
+public const KEEPALIVE_ALWAYS = "ALWAYS";
+# Closes the connection irrespective of the `connection` header value
+public const KEEPALIVE_NEVER = "NEVER";
+
+# Constant for the service name reference.
+public const SERVICE_NAME = "SERVICE_NAME";
+# Constant for the resource name reference.
+public const RESOURCE_NAME = "RESOURCE_NAME";
+# Constant for the request method reference.
+public const REQUEST_METHOD = "REQUEST_METHOD";
+
+# Defines the possible values for the mutual ssl status.
+#
+# `passed`: Mutual SSL handshake is successful.
+# `failed`: Mutual SSL handshake has failed.
+public type MutualSslStatus PASSED|FAILED|();
+
+# Mutual SSL handshake is successful.
+public const PASSED = "passed";
+
+# Mutual SSL handshake has failed.
+public const FAILED = "failed";
+
+# Not a mutual ssl connection.
+public const NONE = ();

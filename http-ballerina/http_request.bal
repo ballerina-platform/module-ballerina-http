@@ -46,6 +46,7 @@ public class Request {
     private boolean dirtyRequest;
     boolean noEntityBody;
 
+    # Gets invoked during the request initialization.
     public isolated function init() {
         self.dirtyRequest = false;
         self.noEntityBody = false;
@@ -214,12 +215,12 @@ public class Request {
     #
     # + return - The `content-type` header value as a string
     public isolated function getContentType() returns @tainted string {
-        string contentTypeHeaderValue = "";
-        var value = self.getHeader(mime:CONTENT_TYPE);
+        string|HeaderNotFoundError value = self.getHeader(mime:CONTENT_TYPE);
         if (value is string) {
-            contentTypeHeaderValue = value;
+            return value;
+        } else {
+            return "";
         }
-        return contentTypeHeaderValue;
     }
 
     # Extracts `json` payload from the request. If the content type is not JSON, an `http:ClientError` is returned.
@@ -393,7 +394,7 @@ public class Request {
                                 parameters[name] = value;
                             }
                         }
-                        entryIndex = entryIndex + 1;
+                        entryIndex += 1;
                     }
                 }
             }
@@ -581,14 +582,15 @@ public class Request {
     # + cookiesToAdd - Represents the cookies to be added
     public isolated function addCookies(Cookie[] cookiesToAdd) {
         string cookieheader = "";
-        Cookie[] sortedCookies = cookiesToAdd.sort(array:ASCENDING, isolated function(Cookie c) returns int {
-            var cookiePath = c.path;
-            int l = 0;
+        Cookie[] sortedCookies = cookiesToAdd.sort(array:ASCENDING, isolated function(Cookie cookie) returns int {
+            var cookiePath = cookie.path;
+            int length = 0;
             if (cookiePath is string) {
-                l = cookiePath.length();
+                length = cookiePath.length();
             }
-            return l;
+            return length;
         });
+
         foreach var cookie in sortedCookies {
             var cookieName = cookie.name;
             var cookieValue = cookie.value;
@@ -597,6 +599,7 @@ public class Request {
             }
             cookie.lastAccessedTime = time:utcNow();
         }
+
         if (cookieheader != "") {
             cookieheader = cookieheader.substring(0, cookieheader.length() - 2);
             if (self.hasHeader("Cookie")) {
@@ -673,30 +676,6 @@ isolated function externCheckReqEntityBodyAvailability(Request request) returns 
     'class: "org.ballerinalang.net.http.nativeimpl.ExternRequest",
     name: "checkEntityBodyAvailability"
 } external;
-
-# A record for providing mutual SSL handshake results.
-#
-# + status - Status of the handshake.
-# + base64EncodedCert - Base64 encoded certificate.
-public type MutualSslHandshake record {|
-    MutualSslStatus status = ();
-    string? base64EncodedCert = ();
-|};
-
-# Defines the possible values for the mutual ssl status.
-#
-# `passed`: Mutual SSL handshake is successful.
-# `failed`: Mutual SSL handshake has failed.
-public type MutualSslStatus PASSED | FAILED | ();
-
-# Mutual SSL handshake is successful.
-public const PASSED = "passed";
-
-# Mutual SSL handshake has failed.
-public const FAILED = "failed";
-
-# Not a mutual ssl connection.
-public const NONE = ();
 
 // HTTP header related external functions
 isolated function externRequestGetHeader(Request request, string headerName, HeaderPosition position = LEADING)

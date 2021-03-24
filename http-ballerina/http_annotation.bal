@@ -14,10 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-///////////////////////////
-/// Service Annotations ///
-///////////////////////////
-
 # Contains the configurations for an HTTP service.
 #
 # + host - Domain name of the service
@@ -56,10 +52,6 @@ public type CorsConfig record {|
 # The annotation which is used to configure an HTTP service.
 public annotation HttpServiceConfig ServiceConfig on service;
 
-////////////////////////////
-/// Resource Annotations ///
-////////////////////////////
-
 # Configuration for an HTTP resource.
 #
 # + consumes - The media types which are accepted by resource
@@ -89,10 +81,8 @@ public type HttpPayload record {|
 public annotation HttpPayload Payload on parameter, return;
 
 # Configures the typing details type of the Caller resource signature parameter.
-#
-# + respondType - Specifies the type of response
 public type HttpCallerInfo record {|
-    string respondType?;
+
 |};
 
 # The annotation which is used to configure the type of the response.

@@ -25,8 +25,6 @@ import ballerina/lang.value as val;
 public client class Caller {
 
     private ListenerConfiguration config = {};
-
-    //TODO:Make these readonly
     public Remote remoteAddress = {};
     public Local localAddress = {};
     public string protocol = "";

@@ -56,12 +56,7 @@ public client class Client {
                 self.cookieStore = new(cookieConfigVal?.persistentCookieHandler);
             }
         }
-        var result = initialize(url, self.config, self.cookieStore);
-        if (result is ClientError) {
-            return result;
-        } else {
-            self.httpClient = result;
-        }
+        self.httpClient = check initialize(url, self.config, self.cookieStore);
     }
 
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
@@ -674,24 +669,30 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError result, TargetType targetType) returns @tainted
+isolated function processResponse(Response|ClientError response, TargetType targetType) returns @tainted
         Response|PayloadType|ClientError {
-    if (targetType is typedesc<Response> || result is ClientError) {
-        return result;
+    if (targetType is typedesc<Response> || response is ClientError) {
+        return response;
+    } else {
+        int statusCode = response.statusCode;
+        if (400 <= statusCode && statusCode <= 499) {
+            string|error errorPayload = response.getTextPayload();
+            if (errorPayload is string) {
+                return error ClientRequestError(errorPayload, statusCode = statusCode);
+            } else {
+                return error ClientRequestError("client request error occurred", statusCode = statusCode);
+            }
+        }
+        if (500 <= statusCode && statusCode <= 599) {
+            string|error errorPayload = response.getTextPayload();
+            if (errorPayload is string) {
+                return error RemoteServerError(errorPayload, statusCode = statusCode);
+            } else {
+                return error RemoteServerError("remote server error occurred", statusCode = statusCode);
+            }
+        }
+        return performDataBinding(response, targetType);
     }
-    Response response = <Response> checkpanic result;
-    int statusCode = response.statusCode;
-    if (400 <= statusCode && statusCode <= 499) {
-        string errorPayload = check response.getTextPayload();
-        ClientRequestError err = error ClientRequestError(errorPayload, statusCode = statusCode);
-        return err;
-    }
-    if (500 <= statusCode && statusCode <= 599) {
-        string errorPayload = check response.getTextPayload();
-        RemoteServerError err = error RemoteServerError(errorPayload, statusCode = statusCode);
-        return err;
-    }
-    return performDataBinding(response, targetType);
 }
 
 isolated function performDataBinding(Response response, TargetType targetType) returns @tainted PayloadType|ClientError {
@@ -706,15 +707,17 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         var result = payload.cloneWithType(targetType);
         if (result is error) {
             return error GenericClientError("payload binding failed: " + result.message(), result);
+        } else {
+            return <record {| anydata...; |}> result;
         }
-        return <record {| anydata...; |}> checkpanic result;
     } else if (targetType is typedesc<record {| anydata...; |}[]>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
             return error GenericClientError("payload binding failed: " + result.message(), result);
+        } else {
+            return <record {| anydata...; |}[]> result;
         }
-        return <record {| anydata...; |}[]> checkpanic result;
     } else if (targetType is typedesc<map<json>>) {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
