@@ -1,0 +1,6 @@
+[plugin]
+id = "http-compiler-plugin"
+class = "io.ballerina.stdlib.http.compiler.HttpCompilerPlugin"
+
+[[dependency]]
+path = "../http-compiler-plugin/build/libs/http-compiler-plugin-1.1.0-alpha5-SNAPSHOT.jar"

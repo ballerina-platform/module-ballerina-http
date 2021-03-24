@@ -14,7 +14,7 @@ plugins {
 
 rootProject.name = 'http'
 include(':build-config:checkstyle')
-include ':http-native', ':http-ballerina', ':http-ballerina-tests'
+include ':http-native', 'http-compiler-plugin', ':http-ballerina', ':http-ballerina-tests'
 
 gradleEnterprise {
     buildScan {
