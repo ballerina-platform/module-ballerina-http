@@ -52,10 +52,11 @@ public client class ClientOAuth2Handler {
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
     remote isolated function enrich(Request req) returns Request|ClientAuthError {
         string|oauth2:Error result = self.provider.generateToken();
-        if (result is oauth2:Error) {
+        if (result is string) {
+            req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + result);
+            return req;
+        } else {
             return prepareClientAuthError("Failed to enrich request with OAuth2 token.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + checkpanic result);
-        return req;
     }
 }
