@@ -19,10 +19,6 @@ import ballerina/jballerina.java;
 import ballerina/observe;
 import ballerina/time;
 
-////////////////////////////////
-///// HTTP Client Endpoint /////
-////////////////////////////////
-
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes functions for the standard HTTP methods, forwarding a received request and sending requests
 # using custom HTTP verbs.
@@ -36,7 +32,7 @@ public client class Client {
     *ClientObject;
 
     public string url;
-    public ClientConfiguration config = {};
+    public ClientConfiguration config;
     public HttpClient httpClient;
     public CookieStore? cookieStore = ();
 
@@ -47,8 +43,8 @@ public client class Client {
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public isolated function init(string url, ClientConfiguration? config = ()) returns ClientError? {
-        self.config = config ?: {};
+    public isolated function init(string url, *ClientConfiguration config) returns ClientError? {
+        self.config = config;
         self.url = url;
         var cookieConfigVal = self.config.cookieConfig;
         if (cookieConfigVal is CookieConfig) {

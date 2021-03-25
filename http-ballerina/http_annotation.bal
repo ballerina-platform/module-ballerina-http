@@ -46,9 +46,6 @@ public type CorsConfig record {|
     decimal maxAge= -1;
 |};
 
-// TODO: Enable this when Ballerina supports service life time
-//public type HttpServiceLifeTime "REQUEST"|"CONNECTION"|"SESSION"|"SINGLETON";
-
 # The annotation which is used to configure an HTTP service.
 public annotation HttpServiceConfig ServiceConfig on service;
 

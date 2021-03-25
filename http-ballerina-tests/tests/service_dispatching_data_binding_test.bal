@@ -35,7 +35,7 @@ type Stock record {|
 
 service /echo on dataBindingEP {
 
-    resource function 'default body1(http:Caller caller, @http:Payload {} string person, http:Request req) {
+    resource function 'default body1(http:Caller caller, @http:Payload string person, http:Request req) {
         json responseJson = { "Person": person };
         checkpanic caller->respond(<@untainted json> responseJson);
     }

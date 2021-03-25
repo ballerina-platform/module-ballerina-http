@@ -37,8 +37,10 @@ import java.util.Map;
 
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
+import static org.ballerinalang.net.http.HttpConstants.CLIENT_EP_HTTP_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.HTTP2_PRIOR_KNOWLEDGE;
 import static org.ballerinalang.net.http.HttpUtil.getConnectionManager;
+import static org.ballerinalang.net.http.HttpUtil.getHttpVersion;
 import static org.ballerinalang.net.http.HttpUtil.populateSenderConfigurations;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0_VERSION;
 
@@ -74,7 +76,7 @@ public class CreateSimpleHttpClient {
         }
         senderConfiguration.setTLSStoreType(HttpConstants.PKCS_STORE_TYPE);
 
-        String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();
+        String httpVersion = getHttpVersion(clientEndpointConfig.getStringValue(CLIENT_EP_HTTP_VERSION).getValue());
         if (HTTP_2_0_VERSION.equals(httpVersion)) {
             BMap<BString, Object> http2Settings = (BMap<BString, Object>) clientEndpointConfig.
                     get(HttpConstants.HTTP2_SETTINGS);

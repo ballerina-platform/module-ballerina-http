@@ -42,7 +42,7 @@ http:ClientConfiguration  entityBodyLimitConfig = {
 };
 
 http:ClientConfiguration http2headerLimitConfig = {
-    httpVersion: "2.0",
+    httpVersion: http:HTTP_2_0,
     responseLimits: {
         maxHeaderSize: 1024
     }

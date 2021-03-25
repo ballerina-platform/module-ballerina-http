@@ -31,16 +31,16 @@ http:Client http_1_1_always = check new("http://localhost:" + keepAliveClientTes
 http:Client http_1_1_never = check new("http://localhost:" + keepAliveClientTestPort.toString(),
                                  { http1Settings : { keepAlive: http:KEEPALIVE_NEVER }});
 
-http:Client http_1_0_default = check new("http://localhost:" + keepAliveClientTestPort.toString(), { httpVersion: "1.0" } );
+http:Client http_1_0_default = check new("http://localhost:" + keepAliveClientTestPort.toString(), { httpVersion: http:HTTP_1_0 } );
 
 http:Client http_1_0_auto = check new("http://localhost:" + keepAliveClientTestPort.toString(),
-                                 { httpVersion: "1.0", http1Settings : { keepAlive: http:KEEPALIVE_AUTO }});
+                                 { httpVersion: http:HTTP_1_0, http1Settings : { keepAlive: http:KEEPALIVE_AUTO }});
 
 http:Client http_1_0_always = check new("http://localhost:" + keepAliveClientTestPort.toString(),
-                                 { httpVersion: "1.0", http1Settings : { keepAlive: http:KEEPALIVE_ALWAYS }});
+                                 { httpVersion: http:HTTP_1_0, http1Settings : { keepAlive: http:KEEPALIVE_ALWAYS }});
 
 http:Client http_1_0_never = check new("http://localhost:" + keepAliveClientTestPort.toString(),
-                                 { httpVersion: "1.0", http1Settings : { keepAlive: http:KEEPALIVE_NEVER }});
+                                 { httpVersion: http:HTTP_1_0, http1Settings : { keepAlive: http:KEEPALIVE_NEVER }});
 
 service /keepAliveTest on keepAliveListenerEP {
 

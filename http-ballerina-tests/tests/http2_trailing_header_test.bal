@@ -17,8 +17,8 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener backendEp = new(9119, {httpVersion: "2.0"});
-http:Client trailerClientEp = check new("http://localhost:9119", { httpVersion: "2.0", http2Settings: {
+listener http:Listener backendEp = new(9119, {httpVersion: http:HTTP_2_0});
+http:Client trailerClientEp = check new("http://localhost:9119", { httpVersion: http:HTTP_2_0, http2Settings: {
     http2PriorKnowledge: true }});
 
 service /trailerInitiator on new http:Listener(9118) {
@@ -28,10 +28,10 @@ service /trailerInitiator on new http:Listener(9118) {
         if (responseFromBackend is http:Response) {
             string trailerHeaderValue = checkpanic responseFromBackend.getHeader("trailer");
             var textPayload = responseFromBackend.getTextPayload();
-            string firstTrailer = checkpanic responseFromBackend.getHeader("foo", position = "trailing");
-            string secondTrailer = checkpanic responseFromBackend.getHeader("baz", position = "trailing");
+            string firstTrailer = checkpanic responseFromBackend.getHeader("foo", position = http:TRAILING);
+            string secondTrailer = checkpanic responseFromBackend.getHeader("baz", position = http:TRAILING);
 
-            int headerCount = responseFromBackend.getHeaderNames(position = "trailing").length();
+            int headerCount = responseFromBackend.getHeaderNames(position = http:TRAILING).length();
 
             http:Response newResponse = new;
             newResponse.setJsonPayload({ foo: <@untainted> firstTrailer, baz: <@untainted> secondTrailer, count:
@@ -50,16 +50,16 @@ service /backend on backendEp {
         var textPayload = request.getTextPayload();
         string inPayload = textPayload is string ? textPayload : "error in accessing payload";
         response.setTextPayload(<@untainted> inPayload);
-        response.setHeader("foo", "Trailer for echo payload", position = "trailing");
-        response.setHeader("baz", "The second trailer", position = "trailing");
+        response.setHeader("foo", "Trailer for echo payload", position = http:TRAILING);
+        response.setHeader("baz", "The second trailer", position = http:TRAILING);
         var result = caller->respond(response);
     }
 
     resource function 'default responseEmptyPayloadWithTrailer(http:Caller caller, http:Request request) {
         http:Response response = new;
         response.setTextPayload("");
-        response.setHeader("foo", "Trailer for empty payload", position = "trailing");
-        response.setHeader("baz", "The second trailer for empty payload", position = "trailing");
+        response.setHeader("foo", "Trailer for empty payload", position = http:TRAILING);
+        response.setHeader("baz", "The second trailer for empty payload", position = http:TRAILING);
         var result = caller->respond(response);
     }
 }
@@ -78,8 +78,8 @@ service /passthroughservice on backendEp {
         var responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
         if (responseFromBackend is http:Response) {
             var textPayload = responseFromBackend.getTextPayload();
-            responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
-            responseFromBackend.setHeader("barr", "this is a new trailer", position = "trailing");
+            responseFromBackend.setHeader("baz", "this trailer will get replaced", position = http:TRAILING);
+            responseFromBackend.setHeader("barr", "this is a new trailer", position = http:TRAILING);
             var resultSentToClient = caller->respond(<@untainted> responseFromBackend);
         } else {
             var resultSentToClient = caller->respond("No response from backend");

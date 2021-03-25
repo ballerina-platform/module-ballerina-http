@@ -83,7 +83,7 @@ public type CompressionConfig record {|
 # + cookieConfig - Configurations associated with cookies
 # + responseLimits - Configurations associated with inbound response size limits
 public type CommonClientConfiguration record {|
-    string httpVersion = HTTP_1_1;
+    HttpVersion httpVersion = HTTP_1_1;
     ClientHttp1Settings http1Settings = {};
     ClientHttp2Settings http2Settings = {};
     decimal timeout = 60;
@@ -132,7 +132,7 @@ public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
     ListenerSecureSocket? secureSocket = ();
-    string httpVersion = "1.1";
+    HttpVersion httpVersion = HTTP_1_1;
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string server?;
     RequestLimitConfigs requestLimits = {};
@@ -217,6 +217,6 @@ public type CertKey record {|
 # + status - Status of the handshake.
 # + base64EncodedCert - Base64 encoded certificate.
 public type MutualSslHandshake record {|
-    MutualSslStatus status = ();
+    MutualSslStatus status = NONE;
     string? base64EncodedCert = ();
 |};

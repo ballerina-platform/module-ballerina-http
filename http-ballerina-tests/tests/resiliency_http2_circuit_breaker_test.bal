@@ -19,7 +19,7 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener circuitBreakerEP07 = new(9315, { httpVersion: "2.0" });
+listener http:Listener circuitBreakerEP07 = new(9315, { httpVersion: http:HTTP_2_0 });
 
 http:ClientConfiguration conf07 = {
     circuitBreaker: {
@@ -33,7 +33,7 @@ http:ClientConfiguration conf07 = {
         statusCodes: [500, 501, 502, 503]
     },
     timeout: 2,
-    httpVersion: "2.0"
+    httpVersion: http:HTTP_2_0
 };
 
 http:Client backendClientEP07 = check new("http://localhost:8095", conf07);

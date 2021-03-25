@@ -28,8 +28,8 @@ public class Listener {
     # + port - Listening port of the HTTP service listener
     # + config - Configurations for the HTTP service listener
     # + return - A `ListenerError` if an error occurred during the listener initialization
-    public isolated function init(int port, ListenerConfiguration? config = ()) returns ListenerError? {
-        self.config = config ?: {};
+    public isolated function init(int port, *ListenerConfiguration config) returns ListenerError? {
+        self.config = config;
         self.port = port;
         return externInitEndpoint(self);
     }

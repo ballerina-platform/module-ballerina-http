@@ -23,15 +23,10 @@ import ballerina/time;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
-//////////////////////////////
-/// Native implementations ///
-//////////////////////////////
-
 # Parses the given header value to extract its value and parameter map.
 #
 # + headerValue - The header value
 # + return - A tuple containing the value and its parameter map or else an `http:ClientError` if the header parsing fails
-//TODO: Make the error nillable
 public isolated function parseHeader(string headerValue) returns [string, map<any>]|ClientError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ParseHeader",
     name: "parseHeader"

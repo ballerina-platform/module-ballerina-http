@@ -20,14 +20,14 @@ import ballerina/io;
 import ballerina/test;
 
 http:Client h2Client = check new("http://localhost:9127", {
-    httpVersion: "2.0",
+    httpVersion: http:HTTP_2_0,
     http2Settings: {
         http2PriorKnowledge: true
     },
     timeout: 300
 });
 
-service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
+service /helloWorld on new http:Listener(9127, {httpVersion: http:HTTP_2_0}) {
 
     resource function post abnormalResource(http:Caller caller, http:Request request) {
         var result = caller->continue();
@@ -48,7 +48,7 @@ service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
     }
 }
 
-service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
+service /continueService on new http:Listener(9128, {httpVersion: http:HTTP_2_0}) {
 
     resource function get initial(http:Caller caller, http:Request req) {
         io:println("test100ContinueResource");

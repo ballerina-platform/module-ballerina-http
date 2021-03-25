@@ -17,10 +17,10 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener serviceEndpointWithoutSSL = new(9101, { httpVersion: "2.0" });
+listener http:Listener serviceEndpointWithoutSSL = new(9101, { httpVersion: http:HTTP_2_0 });
 
 listener http:Listener serviceEndpointWithSSL = new(9105, {
-    httpVersion: "2.0",
+    httpVersion: http:HTTP_2_0,
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",

@@ -36,7 +36,7 @@ http:ListenerConfiguration http2MutualSslServiceConf = {
         },
         ciphers:["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
     },
-    httpVersion: "2.0"
+    httpVersion: http:HTTP_2_0
 };
 
 listener http:Listener http2Listener = new(9204, http2MutualSslServiceConf);
@@ -92,7 +92,7 @@ http:ClientConfiguration http2MutualSslClientConf = {
         },
         ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
     },
-    httpVersion: "2.0",
+    httpVersion: http:HTTP_2_0,
     http2Settings: { http2PriorKnowledge: true }
 };
 
