@@ -48,40 +48,42 @@ public client class ListenerOAuth2Handler {
                                        map<string>? optionalParams = ())
                                        returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
         string|ListenerAuthError credential = extractCredential(data);
-        if (credential is ListenerAuthError) {
+        if (credential is string) {
+            oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(credential, optionalParams);
+            if (details is oauth2:IntrospectionResponse) {
+                if (!details.active) {
+                    Unauthorized unauthorized = {
+                        body: "The provided access-token is not active."
+                    };
+                    return unauthorized;
+                }
+
+                if (expectedScopes is ()) {
+                    return details;
+                }
+
+                string scopeKey = self.scopeKey;
+                var actualScope = details[scopeKey];
+                if (actualScope is string) {
+                    boolean matched = matchScopes(convertToArray(actualScope), <string|string[]>expectedScopes);
+                    if (matched) {
+                        return details;
+                    }
+                }
+                Forbidden forbidden = {};
+                return forbidden;
+            } else {
+                Unauthorized unauthorized = {
+                    body: buildCompleteErrorMessage(details)
+                };
+                return unauthorized;
+            }
+
+        } else {
             Unauthorized unauthorized = {
                 body: credential.message()
             };
             return unauthorized;
         }
-        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(checkpanic credential, optionalParams);
-        if (details is oauth2:Error) {
-            Unauthorized unauthorized = {
-                body: buildCompleteErrorMessage(details)
-            };
-            return unauthorized;
-        }
-        oauth2:IntrospectionResponse introspectionResponse = checkpanic details;
-        if (!introspectionResponse.active) {
-            Unauthorized unauthorized = {
-                body: "The provided access-token is not active."
-            };
-            return unauthorized;
-        }
-
-        if (expectedScopes is ()) {
-            return introspectionResponse;
-        }
-
-        string scopeKey = self.scopeKey;
-        var actualScope = introspectionResponse[scopeKey];
-        if (actualScope is string) {
-            boolean matched = matchScopes(convertToArray(actualScope), <string|string[]>expectedScopes);
-            if (matched) {
-                return introspectionResponse;
-            }
-        }
-        Forbidden forbidden = {};
-        return forbidden;
     }
 }
