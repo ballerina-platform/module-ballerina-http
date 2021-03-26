@@ -84,7 +84,7 @@ public class HttpCache {
         boolean allowedByCacheControl = false;
 
         if (respCC is ResponseCacheControl) {
-            if (respCC.maxAge >= 0 || (self.isShared && (respCC.sMaxAge >= 0)) || !respCC.isPrivate) {
+            if (respCC.maxAge >= 0d || (self.isShared && (respCC.sMaxAge >= 0d)) || !respCC.isPrivate) {
                 allowedByCacheControl = true;
             }
         }

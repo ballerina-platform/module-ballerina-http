@@ -60,7 +60,7 @@ public class RequestCacheControl {
             i = i + 1;
         }
 
-        if (self.maxAge >= 0) {
+        if (self.maxAge >= 0d) {
             directives[i] = MAX_AGE + "=" + self.maxAge.toString();
             i = i + 1;
         }
@@ -68,12 +68,12 @@ public class RequestCacheControl {
         if (self.maxStale == MAX_STALE_ANY_AGE) {
             directives[i] = MAX_STALE;
             i = i + 1;
-        } else if (self.maxStale >= 0) {
+        } else if (self.maxStale >= 0d) {
             directives[i] = MAX_STALE + "=" + self.maxStale.toString();
             i = i + 1;
         }
 
-        if (self.minFresh >= 0) {
+        if (self.minFresh >= 0d) {
             directives[i] = MIN_FRESH + "=" + self.minFresh.toString();
             i = i + 1;
         }
