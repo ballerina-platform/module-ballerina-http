@@ -24,10 +24,10 @@ import ballerina/lang.value as val;
 # + protocol - The protocol associated with the service endpoint
 public client class Caller {
 
+    public Remote & readonly remoteAddress = {};
+    public Local & readonly localAddress = {};
+    public string & readonly protocol = "";
     private ListenerConfiguration config = {};
-    public Remote remoteAddress = {};
-    public Local localAddress = {};
-    public string protocol = "";
 
     # Sends the outbound response to the caller.
     #

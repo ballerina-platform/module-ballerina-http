@@ -411,13 +411,18 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         followRedirects:lbConfig.followRedirects,
         retryConfig:lbConfig.retryConfig,
         poolConfig:lbConfig.poolConfig,
-        secureSocket:target.secureSocket,
         cache:lbConfig.cache,
         compression:lbConfig.compression,
         auth:lbConfig.auth,
         cookieConfig:lbConfig.cookieConfig,
         responseLimits:lbConfig.responseLimits
     };
+
+    // Update optional fields
+    ClientSecureSocket? secureSocket = target?.secureSocket;
+    if (secureSocket is ClientSecureSocket) {
+        clientEPConfig.secureSocket = secureSocket;
+    }
     return clientEPConfig;
 }
 

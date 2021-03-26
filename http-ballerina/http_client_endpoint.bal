@@ -379,7 +379,7 @@ public type TargetService record {|
 # + secureSocket - SSL/TLS related options
 public type ClientConfiguration record {|
     *CommonClientConfiguration;
-    ClientSecureSocket? secureSocket = ();
+    ClientSecureSocket secureSocket?;
 |};
 
 # Provides settings related to HTTP/1.x protocol.
@@ -390,7 +390,7 @@ public type ClientConfiguration record {|
 public type ClientHttp1Settings record {|
     KeepAlive keepAlive = KEEPALIVE_AUTO;
     Chunking chunking = CHUNKING_AUTO;
-    ProxyConfig? proxy = ();
+    ProxyConfig proxy?;
 |};
 
 # Provides inbound response status line, total header and entity body size threshold configurations.
@@ -487,10 +487,10 @@ public type FollowRedirects record {|
 # + userName - Proxy server username
 # + password - proxy server password
 public type ProxyConfig record {|
-    string host = "";
-    int port = 0;
-    string userName = "";
-    string password = "";
+    string host;
+    int port;
+    string userName?;
+    string password?;
 |};
 
 # Client configuration for cookies.

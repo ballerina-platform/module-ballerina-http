@@ -54,8 +54,8 @@ public enum Compression {
 # `LEADING`: Header is placed before the payload of the request/response
 # `TRAILING`: Header is placed after the payload of the request/response
 public enum HeaderPosition {
-   LEADING,
-   TRAILING
+    LEADING,
+    TRAILING
 }
 
 # Defines the possible values for the keep-alive configuration in service and client endpoints.
@@ -68,31 +68,28 @@ public enum KeepAlive {
     KEEPALIVE_NEVER
 }
 
-# Defines the possible values for the mutual ssl status.
-#
-# `passed`: Mutual SSL handshake is successful.
-# `failed`: Mutual SSL handshake has failed.
-public enum MutualSslStatus {
-    PASSED,
-    FAILED,
-    NONE
-}
-
 # Represents client verify options.
 public enum VerifyClient {
-   REQUIRE,
-   OPTIONAL
+    REQUIRE,
+    OPTIONAL
 }
 
 # Represents protocol options.
 public enum Protocol {
-   SSL,
-   TLS,
-   DTLS
+    SSL,
+    TLS,
+    DTLS
 }
 
 # Represents certification validation type options.
 public enum CertValidationType {
-   OCSP_CRL,
-   OCSP_STAPLING
+    OCSP_CRL,
+    OCSP_STAPLING
+}
+
+# Represents Forwarded header update options.
+public enum Forwarded {
+    FORWARDED_ENABLE,
+    FORWARDED_TRANSITION,
+    FORWARDED_DISABLE
 }

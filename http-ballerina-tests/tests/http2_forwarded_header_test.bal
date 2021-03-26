@@ -20,7 +20,7 @@ import ballerina/test;
 service /initiatingService on new http:Listener(9107) {
     resource function get initiatingResource(http:Caller caller, http:Request request) {
         http:Client forwadingClient = checkpanic new("http://localhost:9108",
-                                       {forwarded: "enable", httpVersion: http:HTTP_2_0,
+                                       {forwarded: http:FORWARDED_ENABLE, httpVersion: http:HTTP_2_0,
                                         http2Settings: { http2PriorKnowledge: true }});
         var responseFromForwardBackend = forwadingClient->execute("GET", "/forwardedBackend/forwardedResource", 
                                                             <@untainted> request);

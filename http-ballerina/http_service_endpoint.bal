@@ -52,25 +52,24 @@ public class Listener {
     #
     # + return - A `ListenerError` if an error occurred during the listener stop process
     public isolated function immediateStop() returns ListenerError? {
-        ListenerError err = error ListenerError("not implemented");
-        return err;
+        return error ListenerError("not implemented");
     }
 
     # Attaches a service to the listener.
     #
-    # + s - The service that needs to be attached
+    # + httpService - The service that needs to be attached
     # + name - Name of the service
     # + return - A `ListenerError` an error occurred during the service attachment process or else nil
-    public isolated function attach(Service s, string[]|string? name = ()) returns ListenerError? {
-        return externRegister(self, s, name);
+    public isolated function attach(Service httpService, string[]|string? name = ()) returns ListenerError? {
+        return externRegister(self, httpService, name);
     }
 
     # Detaches a Http service from the listener.
     #
-    # + s - The service to be detached
+    # + httpService - The service to be detached
     # + return - A `ListenerError` if one occurred during detaching of a service or else `()`
-    public isolated function detach(Service s) returns ListenerError? {
-        return externDetach(self, s);
+    public isolated function detach(Service httpService) returns ListenerError? {
+        return externDetach(self, httpService);
     }
 
     # Retrieves the port of the HTTP listener.
@@ -93,8 +92,8 @@ isolated function externInitEndpoint(Listener listenerObj) returns ListenerError
     name: "initEndpoint"
 } external;
 
-isolated function externRegister(Listener listenerObj, Service s, string[]|string? name) returns ListenerError? =
-@java:Method {
+isolated function externRegister(Listener listenerObj, Service httpService, string[]|string? name)
+returns ListenerError? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Register",
     name: "register"
 } external;
@@ -109,7 +108,7 @@ isolated function externGracefulStop(Listener listenerObj) returns ListenerError
     name: "gracefulStop"
 } external;
 
-isolated function externDetach(Listener listenerObj, Service s) returns ListenerError? = @java:Method {
+isolated function externDetach(Listener listenerObj, Service httpService) returns ListenerError? = @java:Method {
     'class: "org.ballerinalang.net.http.serviceendpoint.Detach",
     name: "detach"
 } external;

@@ -552,13 +552,17 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         followRedirects:foConfig.followRedirects,
         retryConfig:foConfig.retryConfig,
         poolConfig:foConfig.poolConfig,
-        secureSocket:target.secureSocket,
         cache:foConfig.cache,
         compression:foConfig.compression,
         auth:foConfig.auth,
         cookieConfig:foConfig.cookieConfig,
         responseLimits:foConfig.responseLimits
     };
+    // Update optional fields
+    ClientSecureSocket? secureSocket = target?.secureSocket;
+    if (secureSocket is ClientSecureSocket) {
+        clientEPConfig.secureSocket = secureSocket;
+    }
     return clientEPConfig;
 }
 

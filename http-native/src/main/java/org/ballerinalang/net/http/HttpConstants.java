@@ -77,9 +77,9 @@ public class HttpConstants {
     public static final String HTTP_1_0 = "HTTP_1_0";
     public static final String HTTP_1_1 = "HTTP_1_1";
     public static final String HTTP_2_0 = "HTTP_2_0";
-    public static final String FORWARDED_ENABLE = "enable";
-    public static final String FORWARDED_TRANSITION = "transition";
-    public static final String FORWARDED_DISABLE = "disable";
+    public static final String FORWARDED_ENABLE = "FORWARDED_ENABLE";
+    public static final String FORWARDED_TRANSITION = "FORWARDED_TRANSITION";
+    public static final String FORWARDED_DISABLE = "FORWARDED_DISABLE";
     public static final String DISABLE = "disable";
     public static final String DEFAULT_HOST = "b7a.default";
 

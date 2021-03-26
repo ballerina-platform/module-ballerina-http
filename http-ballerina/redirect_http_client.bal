@@ -355,11 +355,15 @@ isolated function createNewEndpointConfig(ClientConfiguration config) returns Cl
         followRedirects: config.followRedirects,
         retryConfig: config.retryConfig,
         poolConfig: config.poolConfig,
-        secureSocket: config.secureSocket,
         cache: config.cache,
         compression: config.compression,
         auth: config.auth
     };
+    // Update optional fields
+    ClientSecureSocket? secureSocket = config?.secureSocket;
+    if (secureSocket is ClientSecureSocket) {
+        newEpConfig.secureSocket = secureSocket;
+    }
     return newEpConfig;
 }
 

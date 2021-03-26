@@ -32,7 +32,7 @@ public type Service service object {
 };
 
 # The types of the response payload that are returned by the HTTP `client` after the data binding operation
-public type PayloadType string|xml|json|map<json>|byte[]|record {| anydata...; |}|record {| anydata...; |}[];
+public type PayloadType string|xml|json|byte[]|record {| anydata...; |}|record {| anydata...; |}[];
 
 # The types of data values that are expected by the HTTP `client` to return after the data binding operation
 public type TargetType typedesc<Response|PayloadType>;
@@ -49,12 +49,12 @@ public type TargetType typedesc<Response|PayloadType>;
 # `HEAD`: Identical to `GET` but no resource body should be returned
 # `SUBMIT`: Submits a http request and returns an HttpFuture object
 # `NONE`: No operation should be performed
-public type HttpOperation HTTP_FORWARD|HTTP_GET|HTTP_POST|HTTP_DELETE|HTTP_OPTIONS|HTTP_PUT|HTTP_PATCH|HTTP_HEAD
-                                                                                                |HTTP_SUBMIT|HTTP_NONE;
+public type HttpOperation HTTP_FORWARD|HTTP_GET|HTTP_POST|HTTP_DELETE|HTTP_OPTIONS|HTTP_PUT|HTTP_PATCH|HTTP_HEAD|
+                          HTTP_SUBMIT|HTTP_NONE;
 # Defines the safe HTTP operations which do not modify resource representation.
 type safeHttpOperation HTTP_GET|HTTP_HEAD|HTTP_OPTIONS;
 
-// Common type used for HttpFuture and Response used for resiliency clients.
+# Common type used for HttpFuture and Response used for resiliency clients.
 type HttpResponse Response|HttpFuture;
 
 # A record for providing configurations for content compression.
@@ -87,7 +87,7 @@ public type CommonClientConfiguration record {|
     ClientHttp1Settings http1Settings = {};
     ClientHttp2Settings http2Settings = {};
     decimal timeout = 60;
-    string forwarded = "disable";
+    Forwarded forwarded = FORWARDED_DISABLE;
     FollowRedirects? followRedirects = ();
     PoolConfiguration? poolConfig = ();
     CacheConfig cache = {};
@@ -131,7 +131,7 @@ public type Local record {|
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
-    ListenerSecureSocket? secureSocket = ();
+    ListenerSecureSocket secureSocket?;
     HttpVersion httpVersion = HTTP_1_1;
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string server?;
@@ -218,5 +218,5 @@ public type CertKey record {|
 # + base64EncodedCert - Base64 encoded certificate.
 public type MutualSslHandshake record {|
     MutualSslStatus status = NONE;
-    string? base64EncodedCert = ();
+    string base64EncodedCert?;
 |};

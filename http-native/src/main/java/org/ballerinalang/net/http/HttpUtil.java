@@ -776,6 +776,7 @@ public class HttpUtil {
             long remotePort = inetSocketAddress.getPort();
             remote.put(HttpConstants.REMOTE_HOST_FIELD, remoteHost);
             remote.put(HttpConstants.REMOTE_PORT_FIELD, remotePort);
+            remote.freezeDirect();
         }
         httpCaller.set(HttpConstants.REMOTE_STRUCT_FIELD, remote);
 
@@ -786,6 +787,7 @@ public class HttpUtil {
             long localPort = inetSocketAddress.getPort();
             local.put(HttpConstants.LOCAL_HOST_FIELD, fromString(localHost));
             local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
+            local.freezeDirect();
         }
         httpCaller.set(HttpConstants.LOCAL_STRUCT_INDEX, local);
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD,
@@ -1243,6 +1245,7 @@ public class HttpUtil {
         return responseObj;
     }
 
+    @SuppressWarnings("unchecked")
     public static void populateSenderConfigurations(SenderConfiguration senderConfiguration,
             BMap<BString, Object> clientEndpointConfig, String scheme) {
         ProxyServerConfiguration proxyServerConfiguration;
@@ -1266,8 +1269,10 @@ public class HttpUtil {
             if (proxy != null) {
                 String proxyHost = proxy.getStringValue(HttpConstants.PROXY_HOST).getValue();
                 int proxyPort = proxy.getIntValue(HttpConstants.PROXY_PORT).intValue();
-                String proxyUserName = proxy.getStringValue(HttpConstants.PROXY_USERNAME).getValue();
-                String proxyPassword = proxy.getStringValue(HttpConstants.PROXY_PASSWORD).getValue();
+                String proxyUserName = proxy.containsKey(HttpConstants.PROXY_USERNAME) ?
+                        proxy.getStringValue(HttpConstants.PROXY_USERNAME).getValue() : "";
+                String proxyPassword = proxy.containsKey(HttpConstants.PROXY_PASSWORD) ?
+                        proxy.getStringValue(HttpConstants.PROXY_PASSWORD).getValue() : "";
                 try {
                     proxyServerConfiguration = new ProxyServerConfiguration(proxyHost, proxyPort);
                 } catch (UnknownHostException e) {
@@ -1461,6 +1466,7 @@ public class HttpUtil {
      * @param endpointConfig    listener endpoint configuration.
      * @return                  transport listener configuration instance.
      */
+    @SuppressWarnings("unchecked")
     public static ListenerConfiguration getListenerConfig(long port, BMap endpointConfig) {
         String host = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_HOST).getValue();
         BMap<BString, Object> sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
