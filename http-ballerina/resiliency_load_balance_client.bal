@@ -323,7 +323,7 @@ isolated function performLoadBalanceAction(LoadBalanceClient lb, string path, Re
             // When performing passthrough scenarios using Load Balance connector,
             // message needs to be built before trying out the load balance endpoints to keep the request message
             // to load balance the messages in case of failure.
-            var binaryPayload = loadBalancerInRequest.getBinaryPayload();
+            byte[]|error binaryPayload = loadBalancerInRequest.getBinaryPayload();
             requestEntity = check loadBalancerInRequest.getEntity();
         }
     }

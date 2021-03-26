@@ -345,7 +345,7 @@ public client class CircuitBreakerClient {
             var serviceFuture = self.httpClient->submit(httpVerb, path, <Request>message);
             if (serviceFuture is HttpFuture) {
                 var serviceResponse = self.httpClient->getResponse(serviceFuture);
-                var result = updateCircuitHealthAndRespond(serviceResponse, self.circuitHealth, cbic);
+                Response|ClientError result = updateCircuitHealthAndRespond(serviceResponse, self.circuitHealth, cbic);
             } else {
                 updateCircuitHealthFailure(self.circuitHealth, cbic);
             }
