@@ -345,7 +345,7 @@ public client class CircuitBreakerClient {
             var serviceFuture = self.httpClient->submit(httpVerb, path, <Request>message);
             if (serviceFuture is HttpFuture) {
                 var serviceResponse = self.httpClient->getResponse(serviceFuture);
-                var result = updateCircuitHealthAndRespond(serviceResponse, self.circuitHealth, cbic);
+                Response|ClientError result = updateCircuitHealthAndRespond(serviceResponse, self.circuitHealth, cbic);
             } else {
                 updateCircuitHealthFailure(self.circuitHealth, cbic);
             }
@@ -537,7 +537,7 @@ isolated function handleOpenCircuit(CircuitHealth circuitHealth, CircuitBreakerI
 // Validates the struct configurations passed to create circuit breaker.
 isolated function validateCircuitBreakerConfiguration(CircuitBreakerConfig circuitBreakerConfig) {
     float failureThreshold = circuitBreakerConfig.failureThreshold;
-    if (failureThreshold < 0 || failureThreshold > 1) {
+    if (failureThreshold < 0f || failureThreshold > 1f) {
         string errorMessage = "Invalid failure threshold. Failure threshold value"
             + " should between 0 to 1, found " + failureThreshold.toString();
         panic error CircuitBreakerConfigError(errorMessage);
@@ -618,7 +618,7 @@ isolated function getEffectiveErrorTime(CircuitHealth circuitHealth) returns tim
     time:Utc? lastErrorTime = circuitHealth?.lastErrorTime;
     time:Utc? lastForcedOpenTime = circuitHealth?.lastForcedOpenTime;
     if (lastErrorTime is time:Utc && lastForcedOpenTime is time:Utc) {
-        return (time:utcDiffSeconds(lastErrorTime, lastForcedOpenTime) > 0) ? lastErrorTime : lastForcedOpenTime;
+        return (time:utcDiffSeconds(lastErrorTime, lastForcedOpenTime) > 0d) ? lastErrorTime : lastForcedOpenTime;
     }
     //TODO:What to send?
     return time:utcNow();

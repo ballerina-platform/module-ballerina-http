@@ -51,7 +51,7 @@ isolated function buildRequest(RequestMessage message) returns Request {
         request.setXmlPayload(message);
     } else if (message is byte[]) {
         request.setBinaryPayload(message);
-    } else if (message is stream<byte[], io:Error>) {
+    } else if (message is stream<byte[], io:Error?>) {
         request.setByteStream(message);
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
@@ -80,7 +80,7 @@ isolated function buildResponse(ResponseMessage message) returns Response {
         response.setXmlPayload(message);
     } else if (message is byte[]) {
         response.setBinaryPayload(message);
-    } else if (message is stream<byte[], io:Error>) {
+    } else if (message is stream<byte[], io:Error?>) {
         response.setByteStream(message);
     } else if (message is mime:Entity[]) {
         response.setBodyParts(message);
@@ -247,11 +247,11 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
                 foreach var childPart in childParts {
                     // When performing passthrough scenarios, message needs to be built before
                     // invoking the endpoint to create a message datasource.
-                    var childBlobContent = childPart.getByteArray();
+                    byte[]|error childBlobContent = childPart.getByteArray();
                 }
                 bodyPart.setBodyParts(childParts, <@untainted> bodyPart.getContentType());
             } else {
-                var bodyPartBlobContent = bodyPart.getByteArray();
+                byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
             }
         }
         inRequest.setBodyParts(bodyParts, <@untainted> inRequest.getContentType());

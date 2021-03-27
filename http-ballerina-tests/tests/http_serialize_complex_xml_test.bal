@@ -38,7 +38,7 @@ service /serialize on serializeXmlListener {
         request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
         var returnResponse = xmlClientEP->post("/serialize/decode", request);
         if (returnResponse is http:Response) {
-            var result = caller->respond(<@untainted> returnResponse);
+            error? result = caller->respond(<@untainted> returnResponse);
             if (result is error) {
                 log:printError("Error sending response", 'error = result);
             }
@@ -46,7 +46,7 @@ service /serialize on serializeXmlListener {
             http:Response response = new;
             response.setPayload("Error occurred while sending multipart request!");
             response.statusCode = 500;
-            var result = caller->respond(response);
+            error? result = caller->respond(response);
             if (result is error) {
                 log:printError("Error sending response", 'error = result);
             }
@@ -72,7 +72,7 @@ service /serialize on serializeXmlListener {
             response.setPayload("Error in decoding multiparts!");
             response.statusCode = 500;
         }
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
         if (result is error) {
             log:printError("Error sending response", 'error = result);
         }
