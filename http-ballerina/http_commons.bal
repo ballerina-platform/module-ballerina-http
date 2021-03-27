@@ -51,7 +51,7 @@ isolated function buildRequest(RequestMessage message) returns Request {
         request.setXmlPayload(message);
     } else if (message is byte[]) {
         request.setBinaryPayload(message);
-    } else if (message is stream<byte[], io:Error>) {
+    } else if (message is stream<byte[], io:Error?>) {
         request.setByteStream(message);
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
@@ -80,7 +80,7 @@ isolated function buildResponse(ResponseMessage message) returns Response {
         response.setXmlPayload(message);
     } else if (message is byte[]) {
         response.setBinaryPayload(message);
-    } else if (message is stream<byte[], io:Error>) {
+    } else if (message is stream<byte[], io:Error?>) {
         response.setByteStream(message);
     } else if (message is mime:Entity[]) {
         response.setBodyParts(message);

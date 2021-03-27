@@ -45,7 +45,7 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
 
     resource function post byteStream(http:Caller caller, http:Request req) {
         var byteStream = req.getByteStream();
-        if (byteStream is stream<byte[], io:Error>) {
+        if (byteStream is stream<byte[], io:Error?>) {
             checkpanic caller->respond(<@untainted> byteStream);
         } else {
             checkpanic caller->respond(<@untainted> byteStream.message());
@@ -294,11 +294,11 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     resource function post handleByteStream(http:Caller caller, http:Request req) {
         string value = "";
         var byteStream = req.getByteStream();
-        if (byteStream is stream<byte[], io:Error>) {
+        if (byteStream is stream<byte[], io:Error?>) {
             var res = clientEP2->post("/httpClientActionBE/byteStream", <@untainted> byteStream);
             if (res is http:Response) {
-                stream<byte[], io:Error>|error str = res.getByteStream();
-                if (str is stream<byte[], io:Error>) {
+                stream<byte[], io:Error?>|error str = res.getByteStream();
+                if (str is stream<byte[], io:Error?>) {
                     record {|byte[] value;|}|io:Error? arr1 = str.next();
                     if (arr1 is record {|byte[] value;|}) {
                         value = checkpanic strings:fromBytes(arr1.value);
@@ -320,7 +320,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     resource function post handleByteStreamToText(http:Caller caller, http:Request req) {
         string value = "";
         var byteStream = req.getByteStream();
-        if (byteStream is stream<byte[], io:Error>) {
+        if (byteStream is stream<byte[], io:Error?>) {
             var res = clientEP2->post("/httpClientActionBE/byteStream", <@untainted> byteStream);
             if (res is http:Response) {
                 var result = res.getTextPayload();
@@ -344,8 +344,8 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         if (text is string) {
             var res = clientEP2->post("/httpClientActionBE/_bulk", <@untainted> text);
             if (res is http:Response) {
-                stream<byte[], io:Error>|error str = res.getByteStream();
-                if (str is stream<byte[], io:Error>) {
+                stream<byte[], io:Error?>|error str = res.getByteStream();
+                if (str is stream<byte[], io:Error?>) {
                     record {|byte[] value;|}|io:Error? arr1 = str.next();
                     if (arr1 is record {|byte[] value;|}) {
                         value = checkpanic strings:fromBytes(arr1.value);

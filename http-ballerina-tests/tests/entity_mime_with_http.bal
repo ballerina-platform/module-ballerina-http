@@ -43,7 +43,7 @@ service /test on mimeEP {
         http:Response response = new;
         mime:Entity responseEntity = new;
         var result = request.getByteStream();
-        if (result is stream<byte[], io:Error>) {
+        if (result is stream<byte[], io:Error?>) {
             responseEntity.setByteStream(result);
         } else {
             io:print("Error in getting byte stream");
