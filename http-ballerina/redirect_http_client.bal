@@ -25,11 +25,11 @@ import ballerina/log;
 # + currentRedirectCount - Current redirect count of the HTTP client
 public client class RedirectClient {
 
-    public string url;
-    public ClientConfiguration config;
-    public FollowRedirects redirectConfig;
-    public HttpClient httpClient;
-    public int currentRedirectCount = 0;
+    string url;
+    ClientConfiguration config;
+    FollowRedirects redirectConfig;
+    HttpClient httpClient;
+    int currentRedirectCount = 0;
 
     # Creates a redirect client with the given configurations.
     #
@@ -355,11 +355,15 @@ isolated function createNewEndpointConfig(ClientConfiguration config) returns Cl
         followRedirects: config.followRedirects,
         retryConfig: config.retryConfig,
         poolConfig: config.poolConfig,
-        secureSocket: config.secureSocket,
         cache: config.cache,
         compression: config.compression,
         auth: config.auth
     };
+    // Update optional fields
+    ClientSecureSocket? secureSocket = config?.secureSocket;
+    if (secureSocket is ClientSecureSocket) {
+        newEpConfig.secureSocket = secureSocket;
+    }
     return newEpConfig;
 }
 

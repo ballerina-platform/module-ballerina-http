@@ -23,11 +23,11 @@
 # + cookieStore - Stores the cookies of the client
 public client class CookieClient {
 
-    public string url;
-    public ClientConfiguration config;
-    public CookieConfig cookieConfig;
-    public HttpClient httpClient;
-    public CookieStore? cookieStore = ();
+    string url;
+    ClientConfiguration config;
+    CookieConfig cookieConfig;
+    HttpClient httpClient;
+    CookieStore? cookieStore = ();
 
     # Creates a cookie client with the given configurations.
     #

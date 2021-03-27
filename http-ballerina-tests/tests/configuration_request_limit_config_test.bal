@@ -43,7 +43,7 @@ http:ListenerConfiguration midSizeHeaderConfig = {
 };
 
 http:ListenerConfiguration http2lowHeaderConfig = {
-    httpVersion: "2.0",
+    httpVersion: http:HTTP_2_0,
     requestLimits: {
         maxHeaderSize: 30
     }

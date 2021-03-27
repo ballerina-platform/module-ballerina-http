@@ -65,12 +65,21 @@ public class HttpConstants {
     public static final String HTTP_DEFAULT_HOST = "0.0.0.0";
     public static final String TLS_STORE_TYPE = "tlsStoreType";
     public static final String PKCS_STORE_TYPE = "PKCS12";
-    public static final String AUTO = "AUTO";
-    public static final String ALWAYS = "ALWAYS";
-    public static final String NEVER = "NEVER";
-    public static final String FORWARDED_ENABLE = "enable";
-    public static final String FORWARDED_TRANSITION = "transition";
-    public static final String FORWARDED_DISABLE = "disable";
+    public static final String CHUNKING_AUTO = "CHUNKING_AUTO";
+    public static final String CHUNKING_ALWAYS = "CHUNKING_ALWAYS";
+    public static final String CHUNKING_NEVER = "CHUNKING_NEVER";
+    public static final String KEEPALIVE_AUTO = "KEEPALIVE_AUTO";
+    public static final String KEEPALIVE_ALWAYS = "KEEPALIVE_ALWAYS";
+    public static final String KEEPALIVE_NEVER = "KEEPALIVE_NEVER";
+    public static final String COMPRESSION_AUTO = "COMPRESSION_AUTO";
+    public static final String COMPRESSION_ALWAYS = "COMPRESSION_ALWAYS";
+    public static final String COMPRESSION_NEVER = "COMPRESSION_NEVER";
+    public static final String HTTP_1_0 = "HTTP_1_0";
+    public static final String HTTP_1_1 = "HTTP_1_1";
+    public static final String HTTP_2_0 = "HTTP_2_0";
+    public static final String FORWARDED_ENABLE = "FORWARDED_ENABLE";
+    public static final String FORWARDED_TRANSITION = "FORWARDED_TRANSITION";
+    public static final String FORWARDED_DISABLE = "FORWARDED_DISABLE";
     public static final String DISABLE = "disable";
     public static final String DEFAULT_HOST = "b7a.default";
 
@@ -221,7 +230,7 @@ public class HttpConstants {
     public static final short ONE_BYTE = 1;
     public static final String HTTP_HEADERS = "http_headers";
     public static final String HTTP_TRAILER_HEADERS = "http_trailer_headers";
-    public static final String LEADING_HEADER = "leading";
+    public static final String LEADING_HEADER = "LEADING";
     public static final BString HEADER_REQUEST_FIELD = StringUtils.fromString("request");
 
     public static final String HTTP_TRANSPORT_CONF = "transports.netty.conf";

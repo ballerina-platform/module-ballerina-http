@@ -22,9 +22,9 @@
 # + httpClient - The underlying `HttpActions` instance, which will make the actual network calls
 public client class HttpSecureClient {
 
-    public string url = "";
-    public ClientConfiguration config = {};
-    public HttpClient httpClient;
+    string url;
+    ClientConfiguration config;
+    HttpClient httpClient;
     ClientAuthHandler clientAuthHandler;
 
     # Gets invoked to initialize the secure `client`. Due to the secure client related configurations provided

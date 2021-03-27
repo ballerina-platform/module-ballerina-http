@@ -20,10 +20,10 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
 
-http:Client http2Client = check new("http://localhost:9122", { httpVersion: "2.0",
+http:Client http2Client = check new("http://localhost:9122", { httpVersion: http:HTTP_2_0,
                                 http2Settings: { http2PriorKnowledge: true } });
 
-service /backEndService on new http:Listener(9122, { httpVersion: "2.0" }) {
+service /backEndService on new http:Listener(9122, { httpVersion: http:HTTP_2_0 }) {
 
     resource function get http2ReplyText(http:Caller caller, http:Request req) {
         checkpanic caller->respond("Hello");
@@ -91,7 +91,7 @@ service /backEndService on new http:Listener(9122, { httpVersion: "2.0" }) {
     }
 }
 
-service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
+service /testHttp2Service on new http:Listener(9123, { httpVersion: http:HTTP_2_0 }) {
 
     resource function get clientGet(http:Caller caller, http:Request req) {
         string value = "";

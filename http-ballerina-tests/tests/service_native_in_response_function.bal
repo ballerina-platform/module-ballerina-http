@@ -489,17 +489,17 @@ function testTrailingAddHeader() {
     string headerName = "Max-Forwards";
     string headerValue = "eighty two";
     string retrieval = "max-forwards";
-    res.addHeader(headerName, headerValue, position = "trailing");
-    test:assertEquals(checkpanic res.getHeader(retrieval, position = "trailing"), "eighty two");
+    res.addHeader(headerName, headerValue, position = http:TRAILING);
+    test:assertEquals(checkpanic res.getHeader(retrieval, position = http:TRAILING), "eighty two");
 }
 
 @test:Config {}
 function testAddingMultipleValuesToSameTrailingHeader() {
     http:Response res = new;
-    res.addHeader("heAder1", "value1", position = "trailing");
-    res.addHeader("header1", "value2", position = "trailing");
-    string[] output = checkpanic res.getHeaders("header1", position = "trailing");
-    test:assertEquals(checkpanic res.getHeader("header1", position = "trailing"), "value1");
+    res.addHeader("heAder1", "value1", position = http:TRAILING);
+    res.addHeader("header1", "value2", position = http:TRAILING);
+    string[] output = checkpanic res.getHeaders("header1", position = http:TRAILING);
+    test:assertEquals(checkpanic res.getHeader("header1", position = http:TRAILING), "value1");
     test:assertEquals(output.length(), 2);
     test:assertEquals(output[0], "value1");
     test:assertEquals(output[1], "value2");
@@ -508,11 +508,11 @@ function testAddingMultipleValuesToSameTrailingHeader() {
 @test:Config {}
 function testSetTrailingHeaderAfterAddHeader() {
     http:Response res = new;
-    res.addHeader("heAder1", "value1", position = "trailing");
-    res.addHeader("header1", "value2", position = "trailing");
-    res.addHeader("hEader2", "value3", position = "trailing");
-    string[] output = checkpanic res.getHeaders("header1", position = "trailing");
-    test:assertEquals(checkpanic res.getHeader("header2", position = "trailing"), "value3");
+    res.addHeader("heAder1", "value1", position = http:TRAILING);
+    res.addHeader("header1", "value2", position = http:TRAILING);
+    res.addHeader("hEader2", "value3", position = http:TRAILING);
+    string[] output = checkpanic res.getHeaders("header1", position = http:TRAILING);
+    test:assertEquals(checkpanic res.getHeader("header2", position = http:TRAILING), "value3");
     test:assertEquals(output.length(), 2);
     test:assertEquals(output[0], "value1");
     test:assertEquals(output[1], "value2");
@@ -521,16 +521,16 @@ function testSetTrailingHeaderAfterAddHeader() {
 @test:Config {}
 function testRemoveTrailingHeader() {
     http:Response res = new;
-    res.addHeader("heAder1", "value1", position = "trailing");
-    res.addHeader("header1", "value2", position = "trailing");
-    res.addHeader("header1", "value3", position = "trailing");
-    res.addHeader("hEader2", "value3", position = "trailing");
-    res.addHeader("headeR2", "value4", position = "trailing");
-    res.setHeader("HeADEr2", "totally different value", position = "trailing");
-    res.removeHeader("HEADER1", position = "trailing");
-    res.removeHeader("NONE_EXISTENCE_HEADER", position = "trailing");
-    string[]|error output = res.getHeaders("header1", position = "trailing");
-    test:assertEquals(checkpanic res.getHeader("header2", position = "trailing"), "totally different value");
+    res.addHeader("heAder1", "value1", position = http:TRAILING);
+    res.addHeader("header1", "value2", position = http:TRAILING);
+    res.addHeader("header1", "value3", position = http:TRAILING);
+    res.addHeader("hEader2", "value3", position = http:TRAILING);
+    res.addHeader("headeR2", "value4", position = http:TRAILING);
+    res.setHeader("HeADEr2", "totally different value", position = http:TRAILING);
+    res.removeHeader("HEADER1", position = http:TRAILING);
+    res.removeHeader("NONE_EXISTENCE_HEADER", position = http:TRAILING);
+    string[]|error output = res.getHeaders("header1", position = http:TRAILING);
+    test:assertEquals(checkpanic res.getHeader("header2", position = http:TRAILING), "totally different value");
     if (output is error) {
         test:assertEquals(output.message(), "Http header does not exist", msg = "Outptut mismatched");
     } else {

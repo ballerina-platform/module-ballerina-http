@@ -17,13 +17,13 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener ep = new(9099, { httpVersion: "2.0" });
+listener http:Listener ep = new(9099, { httpVersion: http:HTTP_2_0 });
 
 //Backend pointed by these clients should be down.
-http:Client priorOn = check new("http://localhost:14555", { httpVersion: "2.0", http2Settings: {
+http:Client priorOn = check new("http://localhost:14555", { httpVersion: http:HTTP_2_0, http2Settings: {
                 http2PriorKnowledge: true }, poolConfig: {} });
 
-http:Client priorOff = check new("http://localhost:14555", { httpVersion: "2.0", http2Settings: {
+http:Client priorOff = check new("http://localhost:14555", { httpVersion: http:HTTP_2_0, http2Settings: {
                 http2PriorKnowledge: false }, poolConfig: {} });
 
 service /general on ep {

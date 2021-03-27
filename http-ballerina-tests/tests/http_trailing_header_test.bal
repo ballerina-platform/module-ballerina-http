@@ -35,15 +35,15 @@ service /initiator on trailingHeaderListenerEP1 {
                 trailerHeaderValue = checkpanic responseFromBackend.getHeader("trailer");
             }
             string firstTrailer = "No trailer header foo";
-            if (responseFromBackend.hasHeader("foo", position = "trailing")) {
-                firstTrailer = checkpanic responseFromBackend.getHeader("foo", position = "trailing");
+            if (responseFromBackend.hasHeader("foo", position = http:TRAILING)) {
+                firstTrailer = checkpanic responseFromBackend.getHeader("foo", position = http:TRAILING);
             }
             string secondTrailer = "No trailer header baz";
-            if (responseFromBackend.hasHeader("baz", position = "trailing")) {
-                secondTrailer = checkpanic responseFromBackend.getHeader("baz", position = "trailing");
+            if (responseFromBackend.hasHeader("baz", position = http:TRAILING)) {
+                secondTrailer = checkpanic responseFromBackend.getHeader("baz", position = http:TRAILING);
             }
 
-            int headerCount = responseFromBackend.getHeaderNames(position = "trailing").length();
+            int headerCount = responseFromBackend.getHeaderNames(position = http:TRAILING).length();
 
             http:Response newResponse = new;
             newResponse.setJsonPayload({ foo: <@untainted> firstTrailer, baz: <@untainted> secondTrailer, count:
@@ -65,16 +65,16 @@ service /chunkingBackend on trailingHeaderListenerEP2 {
         var textPayload = request.getTextPayload();
         string inPayload = textPayload is string ? textPayload : "error in accessing payload";
         response.setTextPayload(<@untainted> inPayload);
-        response.setHeader("foo", "Trailer for chunked payload", position = "trailing");
-        response.setHeader("baz", "The second trailer", position = "trailing");
+        response.setHeader("foo", "Trailer for chunked payload", position = http:TRAILING);
+        response.setHeader("baz", "The second trailer", position = http:TRAILING);
         error? result = caller->respond(response);
     }
 
     resource function 'default empty(http:Caller caller, http:Request request) {
         http:Response response = new;
         response.setTextPayload("");
-        response.setHeader("foo", "Trailer for empty payload", position = "trailing");
-        response.setHeader("baz", "The second trailer for empty payload", position = "trailing");
+        response.setHeader("foo", "Trailer for empty payload", position = http:TRAILING);
+        response.setHeader("baz", "The second trailer for empty payload", position = http:TRAILING);
         error? result = caller->respond(response);
     }
 }
@@ -88,8 +88,8 @@ service /nonChunkingBackend on trailingHeaderListenerEP2 {
         var textPayload = request.getTextPayload();
         string inPayload = textPayload is string ? textPayload : "error in accessing payload";
         response.setTextPayload(<@untainted> inPayload);
-        response.setHeader("foo", "Trailer for non chunked payload", position = "trailing");
-        response.setHeader("baz", "The second trailer", position = "trailing");
+        response.setHeader("foo", "Trailer for non chunked payload", position = http:TRAILING);
+        response.setHeader("baz", "The second trailer", position = http:TRAILING);
         error? result = caller->respond(response);
     }
 }
@@ -111,8 +111,8 @@ service /passthroughsvc on trailingHeaderListenerEP2 {
         var responseFromBackend = clientEp->forward("/chunkingBackend/echo", request);
         if (responseFromBackend is http:Response) {
             string|error textPayload = responseFromBackend.getTextPayload();
-            responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
-            responseFromBackend.setHeader("barr", "this is a new trailer", position = "trailing");
+            responseFromBackend.setHeader("baz", "this trailer will get replaced", position = http:TRAILING);
+            responseFromBackend.setHeader("barr", "this is a new trailer", position = http:TRAILING);
             error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
         } else {
             error? resultSentToClient = caller->respond("No response from backend");

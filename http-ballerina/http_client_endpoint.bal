@@ -19,10 +19,6 @@ import ballerina/jballerina.java;
 import ballerina/observe;
 import ballerina/time;
 
-////////////////////////////////
-///// HTTP Client Endpoint /////
-////////////////////////////////
-
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes functions for the standard HTTP methods, forwarding a received request and sending requests
 # using custom HTTP verbs.
@@ -35,10 +31,10 @@ import ballerina/time;
 public client class Client {
     *ClientObject;
 
-    public string url;
-    public ClientConfiguration config = {};
-    public HttpClient httpClient;
-    public CookieStore? cookieStore = ();
+    string url;
+    CookieStore? cookieStore = ();
+    public final ClientConfiguration config;
+    public final HttpClient httpClient;
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -47,8 +43,8 @@ public client class Client {
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public isolated function init(string url, ClientConfiguration? config = ()) returns ClientError? {
-        self.config = config ?: {};
+    public isolated function init(string url, *ClientConfiguration config) returns ClientError? {
+        self.config = config;
         self.url = url;
         var cookieConfigVal = self.config.cookieConfig;
         if (cookieConfigVal is CookieConfig) {
@@ -56,12 +52,7 @@ public client class Client {
                 self.cookieStore = new(cookieConfigVal?.persistentCookieHandler);
             }
         }
-        var result = initialize(url, self.config, self.cookieStore);
-        if (result is ClientError) {
-            return result;
-        } else {
-            self.httpClient = result;
-        }
+        self.httpClient = check initialize(url, self.config, self.cookieStore);
     }
 
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
@@ -363,7 +354,7 @@ public client class Client {
 # + secureSocket - Configurations for secure communication with the remote HTTP endpoint
 public type TargetService record {|
     string url = "";
-    ClientSecureSocket? secureSocket = ();
+    ClientSecureSocket secureSocket?;
 |};
 
 # Provides a set of configurations for controlling the behaviours when communicating with a remote HTTP endpoint.
@@ -388,7 +379,7 @@ public type TargetService record {|
 # + secureSocket - SSL/TLS related options
 public type ClientConfiguration record {|
     *CommonClientConfiguration;
-    ClientSecureSocket? secureSocket = ();
+    ClientSecureSocket secureSocket?;
 |};
 
 # Provides settings related to HTTP/1.x protocol.
@@ -399,7 +390,7 @@ public type ClientConfiguration record {|
 public type ClientHttp1Settings record {|
     KeepAlive keepAlive = KEEPALIVE_AUTO;
     Chunking chunking = CHUNKING_AUTO;
-    ProxyConfig? proxy = ();
+    ProxyConfig proxy?;
 |};
 
 # Provides inbound response status line, total header and entity body size threshold configurations.
@@ -496,10 +487,10 @@ public type FollowRedirects record {|
 # + userName - Proxy server username
 # + password - proxy server password
 public type ProxyConfig record {|
-    string host = "";
-    int port = 0;
-    string userName = "";
-    string password = "";
+    string host;
+    int port;
+    string userName?;
+    string password?;
 |};
 
 # Client configuration for cookies.
@@ -674,24 +665,30 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError result, TargetType targetType) returns @tainted
+isolated function processResponse(Response|ClientError response, TargetType targetType) returns @tainted
         Response|PayloadType|ClientError {
-    if (targetType is typedesc<Response> || result is ClientError) {
-        return result;
+    if (targetType is typedesc<Response> || response is ClientError) {
+        return response;
+    } else {
+        int statusCode = response.statusCode;
+        if (400 <= statusCode && statusCode <= 499) {
+            string|error errorPayload = response.getTextPayload();
+            if (errorPayload is string) {
+                return error ClientRequestError(errorPayload, statusCode = statusCode);
+            } else {
+                return error ClientRequestError("client request error occurred", statusCode = statusCode);
+            }
+        }
+        if (500 <= statusCode && statusCode <= 599) {
+            string|error errorPayload = response.getTextPayload();
+            if (errorPayload is string) {
+                return error RemoteServerError(errorPayload, statusCode = statusCode);
+            } else {
+                return error RemoteServerError("remote server error occurred", statusCode = statusCode);
+            }
+        }
+        return performDataBinding(response, targetType);
     }
-    Response response = <Response> checkpanic result;
-    int statusCode = response.statusCode;
-    if (400 <= statusCode && statusCode <= 499) {
-        string errorPayload = check response.getTextPayload();
-        ClientRequestError err = error ClientRequestError(errorPayload, statusCode = statusCode);
-        return err;
-    }
-    if (500 <= statusCode && statusCode <= 599) {
-        string errorPayload = check response.getTextPayload();
-        RemoteServerError err = error RemoteServerError(errorPayload, statusCode = statusCode);
-        return err;
-    }
-    return performDataBinding(response, targetType);
 }
 
 isolated function performDataBinding(Response response, TargetType targetType) returns @tainted PayloadType|ClientError {
@@ -706,15 +703,17 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         var result = payload.cloneWithType(targetType);
         if (result is error) {
             return error GenericClientError("payload binding failed: " + result.message(), result);
+        } else {
+            return <record {| anydata...; |}> result;
         }
-        return <record {| anydata...; |}> checkpanic result;
     } else if (targetType is typedesc<record {| anydata...; |}[]>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
             return error GenericClientError("payload binding failed: " + result.message(), result);
+        } else {
+            return <record {| anydata...; |}[]> result;
         }
-        return <record {| anydata...; |}[]> checkpanic result;
     } else if (targetType is typedesc<map<json>>) {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;

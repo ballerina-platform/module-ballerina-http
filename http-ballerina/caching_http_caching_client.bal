@@ -27,11 +27,11 @@ import ballerina/time;
 # + cacheConfig - Configurations for the underlying cache storage and for controlling the HTTP caching behaviour
 public client class HttpCachingClient {
 
-    public string url;
-    public ClientConfiguration config = {};
-    public HttpClient httpClient;
-    public HttpCache cache;
-    public CacheConfig cacheConfig = {};
+    string url;
+    ClientConfiguration config = {};
+    HttpClient httpClient;
+    HttpCache cache;
+    CacheConfig cacheConfig = {};
 
     # Takes a service URL, a `ClientEndpointConfig` and a `CacheConfig` and builds an HTTP client capable of
     # caching responses. The `CacheConfig` instance is used for initializing a new HTTP cache for the client and

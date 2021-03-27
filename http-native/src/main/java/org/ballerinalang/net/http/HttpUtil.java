@@ -126,14 +126,14 @@ import static org.ballerinalang.mime.util.MimeConstants.MULTIPART_AS_PRIMARY_TYP
 import static org.ballerinalang.mime.util.MimeConstants.OCTET_STREAM;
 import static org.ballerinalang.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static org.ballerinalang.mime.util.MimeConstants.RESPONSE_ENTITY_FIELD;
-import static org.ballerinalang.net.http.HttpConstants.ALWAYS;
 import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES;
 import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION_ENABLE;
 import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
-import static org.ballerinalang.net.http.HttpConstants.AUTO;
+import static org.ballerinalang.net.http.HttpConstants.CLIENT_EP_HTTP_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_MANAGER;
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION;
 import static org.ballerinalang.net.http.HttpConstants.DOUBLE_SLASH;
+import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_ERROR_MESSAGE;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_ERROR_STATUS_CODE;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_HEADERS;
@@ -141,7 +141,6 @@ import static org.ballerinalang.net.http.HttpConstants.HTTP_TRAILER_HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.LISTENER_CONFIGURATION;
 import static org.ballerinalang.net.http.HttpConstants.MUTUAL_SSL_CERTIFICATE;
 import static org.ballerinalang.net.http.HttpConstants.MUTUAL_SSL_HANDSHAKE_RECORD;
-import static org.ballerinalang.net.http.HttpConstants.NEVER;
 import static org.ballerinalang.net.http.HttpConstants.NO_CONTENT_LENGTH_FOUND;
 import static org.ballerinalang.net.http.HttpConstants.ONE_BYTE;
 import static org.ballerinalang.net.http.HttpConstants.PKCS_STORE_TYPE;
@@ -186,6 +185,7 @@ import static org.ballerinalang.net.http.HttpConstants.TRANSPORT_MESSAGE;
 import static org.ballerinalang.net.http.nativeimpl.ModuleUtils.getHttpPackage;
 import static org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler.sendPipelinedResponse;
 import static org.ballerinalang.net.transport.contract.Constants.ENCODING_GZIP;
+import static org.ballerinalang.net.transport.contract.Constants.HTTP_1_0_VERSION;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_1_1_VERSION;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0_VERSION;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
@@ -483,7 +483,7 @@ public class HttpUtil {
 
     private static String getErrorMessage(BError error) {
         BMap errorDetails = (BMap) error.getDetails();
-        if (errorDetails.get(HTTP_ERROR_MESSAGE) != null) {
+        if (errorDetails != null && errorDetails.get(HTTP_ERROR_MESSAGE) != null) {
             return errorDetails.get(HTTP_ERROR_MESSAGE).toString();
         }
         return error.getErrorMessage().getValue();
@@ -776,6 +776,7 @@ public class HttpUtil {
             long remotePort = inetSocketAddress.getPort();
             remote.put(HttpConstants.REMOTE_HOST_FIELD, remoteHost);
             remote.put(HttpConstants.REMOTE_PORT_FIELD, remotePort);
+            remote.freezeDirect();
         }
         httpCaller.set(HttpConstants.REMOTE_STRUCT_FIELD, remote);
 
@@ -786,6 +787,7 @@ public class HttpUtil {
             long localPort = inetSocketAddress.getPort();
             local.put(HttpConstants.LOCAL_HOST_FIELD, fromString(localHost));
             local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
+            local.freezeDirect();
         }
         httpCaller.set(HttpConstants.LOCAL_STRUCT_INDEX, local);
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD,
@@ -1010,14 +1012,15 @@ public class HttpUtil {
 
     public static CompressionConfigState getCompressionState(String compressionState) {
         switch (compressionState) {
-            case AUTO:
+            case HttpConstants.COMPRESSION_AUTO:
                 return CompressionConfigState.AUTO;
-            case ALWAYS:
+            case HttpConstants.COMPRESSION_ALWAYS:
                 return CompressionConfigState.ALWAYS;
-            case NEVER:
+            case HttpConstants.COMPRESSION_NEVER:
                 return CompressionConfigState.NEVER;
             default:
-                return null;
+                throw new BallerinaConnectorException(
+                        "Invalid configuration found for compression: " + compressionState);
         }
     }
 
@@ -1044,11 +1047,11 @@ public class HttpUtil {
 
     public static ChunkConfig getChunkConfig(String chunkConfig) {
         switch (chunkConfig) {
-            case HttpConstants.AUTO:
+            case HttpConstants.CHUNKING_AUTO:
                 return ChunkConfig.AUTO;
-            case HttpConstants.ALWAYS:
+            case HttpConstants.CHUNKING_ALWAYS:
                 return ChunkConfig.ALWAYS;
-            case NEVER:
+            case HttpConstants.CHUNKING_NEVER:
                 return ChunkConfig.NEVER;
             default:
                 throw new BallerinaConnectorException(
@@ -1056,13 +1059,27 @@ public class HttpUtil {
         }
     }
 
+    public static String getHttpVersion(String httpVersion) {
+        switch (httpVersion) {
+            case HttpConstants.HTTP_1_0:
+                return HTTP_1_0_VERSION;
+            case HttpConstants.HTTP_1_1:
+                return HTTP_1_1_VERSION;
+            case HttpConstants.HTTP_2_0:
+                return HTTP_2_0_VERSION;
+            default:
+                throw new BallerinaConnectorException(
+                        "Invalid configuration found for HTTP version: " + httpVersion);
+        }
+    }
+
     public static KeepAliveConfig getKeepAliveConfig(String keepAliveConfig) {
         switch (keepAliveConfig) {
-            case HttpConstants.AUTO:
+            case HttpConstants.KEEPALIVE_AUTO:
                 return KeepAliveConfig.AUTO;
-            case HttpConstants.ALWAYS:
+            case HttpConstants.KEEPALIVE_ALWAYS:
                 return KeepAliveConfig.ALWAYS;
-            case NEVER:
+            case HttpConstants.KEEPALIVE_NEVER:
                 return KeepAliveConfig.NEVER;
             default:
                 throw new BallerinaConnectorException(
@@ -1228,12 +1245,13 @@ public class HttpUtil {
         return responseObj;
     }
 
+    @SuppressWarnings("unchecked")
     public static void populateSenderConfigurations(SenderConfiguration senderConfiguration,
             BMap<BString, Object> clientEndpointConfig, String scheme) {
         ProxyServerConfiguration proxyServerConfiguration;
         BMap<BString, Object> secureSocket = (BMap<BString, Object>) clientEndpointConfig
                 .getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
-        String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();
+        String httpVersion = getHttpVersion(clientEndpointConfig.getStringValue(CLIENT_EP_HTTP_VERSION).getValue());
         if (secureSocket != null) {
             HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
         } else if (scheme.equals(PROTOCOL_HTTPS)) {
@@ -1251,8 +1269,10 @@ public class HttpUtil {
             if (proxy != null) {
                 String proxyHost = proxy.getStringValue(HttpConstants.PROXY_HOST).getValue();
                 int proxyPort = proxy.getIntValue(HttpConstants.PROXY_PORT).intValue();
-                String proxyUserName = proxy.getStringValue(HttpConstants.PROXY_USERNAME).getValue();
-                String proxyPassword = proxy.getStringValue(HttpConstants.PROXY_PASSWORD).getValue();
+                String proxyUserName = proxy.containsKey(HttpConstants.PROXY_USERNAME) ?
+                        proxy.getStringValue(HttpConstants.PROXY_USERNAME).getValue() : "";
+                String proxyPassword = proxy.containsKey(HttpConstants.PROXY_PASSWORD) ?
+                        proxy.getStringValue(HttpConstants.PROXY_PASSWORD).getValue() : "";
                 try {
                     proxyServerConfiguration = new ProxyServerConfiguration(proxyHost, proxyPort);
                 } catch (UnknownHostException e) {
@@ -1273,9 +1293,7 @@ public class HttpUtil {
         } else {
             senderConfiguration.setSocketIdleTimeout((int) (timeout * 1000));
         }
-        if (httpVersion != null) {
-            senderConfiguration.setHttpVersion(httpVersion);
-        }
+        senderConfiguration.setHttpVersion(httpVersion);
         String forwardedExtension = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_FORWARDED).getValue();
         senderConfiguration.setForwardedExtensionConfig(HttpUtil.getForwardedExtensionConfig(forwardedExtension));
     }
@@ -1448,10 +1466,11 @@ public class HttpUtil {
      * @param endpointConfig    listener endpoint configuration.
      * @return                  transport listener configuration instance.
      */
+    @SuppressWarnings("unchecked")
     public static ListenerConfiguration getListenerConfig(long port, BMap endpointConfig) {
         String host = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_HOST).getValue();
         BMap<BString, Object> sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
-        String httpVersion = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_VERSION).getValue();
+        String httpVersion = getHttpVersion(endpointConfig.getStringValue(ENDPOINT_CONFIG_VERSION).getValue());
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         if (HTTP_1_1_VERSION.equals(httpVersion)) {
             BMap<BString, Object> http1Settings =
@@ -1487,11 +1506,7 @@ public class HttpUtil {
                     "timeout please use value 0");
         }
         listenerConfiguration.setSocketIdleTimeout((int) (idleTimeout * 1000));
-
-        // Set HTTP version
-        if (httpVersion != null) {
-            listenerConfiguration.setVersion(httpVersion);
-        }
+        listenerConfiguration.setVersion(httpVersion);
 
         if (endpointConfig.getType().getName().equalsIgnoreCase(LISTENER_CONFIGURATION)) {
             BString serverName = endpointConfig.getStringValue(SERVER_NAME);

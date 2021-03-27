@@ -14,13 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/io;
-import ballerina/lang.'string as strings;
-import ballerina/mime;
 import ballerina/crypto;
-import ballerina/time;
+import ballerina/io;
 import ballerina/jballerina.java;
 import ballerina/log;
+import ballerina/mime;
+import ballerina/time;
 
 # Represents an HTTP response.
 #
@@ -43,6 +42,7 @@ public class Response {
     time:Utc requestTime = [0, 0.0];
     private mime:Entity? entity = ();
 
+    # Gets invoked during the response initialization.
     public isolated function init() {
         self.entity = self.createNewEntity();
     }
@@ -140,12 +140,6 @@ public class Response {
     #              the entity-body of the `Response` must be accessed initially.
     public isolated function setHeader(string headerName, string headerValue, HeaderPosition position = LEADING) {
         externResponseSetHeader(self, headerName, headerValue, position);
-
-
-        // TODO: see if this can be handled in a better manner
-        if (strings:equalsIgnoreCaseAscii(SERVER, headerName)) {
-            self.server = headerValue;
-        }
     }
 
     # Removes the specified header from the response.
@@ -186,12 +180,12 @@ public class Response {
     #
     # + return - Returns the `content-type` header value as a string
     public isolated function getContentType() returns @tainted string {
-        string contentTypeHeaderValue = "";
-        var value = self.getHeader(mime:CONTENT_TYPE);
+        string|HeaderNotFoundError value = self.getHeader(mime:CONTENT_TYPE);
         if (value is string) {
-            contentTypeHeaderValue = value;
+            return value;
+        } else {
+            return "";
         }
-        return contentTypeHeaderValue;
     }
 
     # Extract `json` payload from the response. If the content type is not JSON, an `http:ClientError` is returned.
@@ -324,8 +318,7 @@ public class Response {
     #            constructing the body parts from the response
     public isolated function getBodyParts() returns mime:Entity[]|ClientError {
         var result = self.getEntity();
-        if (result is ClientError) {
-            // TODO: Confirm whether this is actually a ClientError or not.
+        if (result is error) {
             return result;
         } else {
             var bodyParts = result.getBodyParts();

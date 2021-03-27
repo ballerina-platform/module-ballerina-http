@@ -23,15 +23,10 @@ import ballerina/time;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
-//////////////////////////////
-/// Native implementations ///
-//////////////////////////////
-
 # Parses the given header value to extract its value and parameter map.
 #
 # + headerValue - The header value
 # + return - A tuple containing the value and its parameter map or else an `http:ClientError` if the header parsing fails
-//TODO: Make the error nillable
 public isolated function parseHeader(string headerValue) returns [string, map<any>]|ClientError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ParseHeader",
     name: "parseHeader"
@@ -140,42 +135,25 @@ isolated function populateHeaders(Request request, map<string|string[]>? headers
     }
 }
 
-# The HEAD remote function implementation of the Circuit Breaker. This wraps the `head` function of the underlying
-# HTTP remote function provider.
-
-# + path - Resource path
-# + outRequest - A Request struct
-# + requestAction - `HttpOperation` related to the request
-# + httpClient - HTTP client which uses to call the relevant functions
-# + verb - HTTP verb used for submit method
-# + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-public isolated function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
+isolated function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
         string verb = "") returns @tainted HttpResponse|ClientError {
 
     if (HTTP_GET == requestAction) {
-        var result = httpClient->get(path, message = outRequest);
-        return result;
+        return httpClient->get(path, message = outRequest);
     } else if (HTTP_POST == requestAction) {
-        var result = httpClient->post(path, outRequest);
-        return result;
+        return httpClient->post(path, outRequest);
     } else if (HTTP_OPTIONS == requestAction) {
-        var result = httpClient->options(path, message = outRequest);
-        return result;
+        return httpClient->options(path, message = outRequest);
     } else if (HTTP_PUT == requestAction) {
-        var result = httpClient->put(path, outRequest);
-        return result;
+        return httpClient->put(path, outRequest);
     } else if (HTTP_DELETE == requestAction) {
-        var result = httpClient->delete(path, outRequest);
-        return result;
+        return httpClient->delete(path, outRequest);
     } else if (HTTP_PATCH == requestAction) {
-        var result = httpClient->patch(path, outRequest);
-        return result;
+        return httpClient->patch(path, outRequest);
     } else if (HTTP_FORWARD == requestAction) {
-        var result = httpClient->forward(path, outRequest);
-        return result;
+        return httpClient->forward(path, outRequest);
     } else if (HTTP_HEAD == requestAction) {
-        var result = httpClient->head(path, message = outRequest);
-        return result;
+        return httpClient->head(path, message = outRequest);
     } else if (HTTP_SUBMIT == requestAction) {
         return httpClient->submit(verb, path, outRequest);
     } else {
@@ -236,20 +214,18 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
         mime:Entity[] bodyParts = check inRequest.getBodyParts();
         foreach var bodyPart in bodyParts {
             if (isNestedEntity(bodyPart)) {
-                mime:Entity[]|error result = bodyPart.getBodyParts();
+                mime:Entity[]|error childParts = bodyPart.getBodyParts();
 
-                if (result is error) {
-                    return error GenericClientError(result.message(), result);
+                if (childParts is error) {
+                    return error GenericClientError(childParts.message(), childParts);
+                } else {
+                    foreach var childPart in childParts {
+                        // When performing passthrough scenarios, message needs to be built before
+                        // invoking the endpoint to create a message datasource.
+                        byte[]|error childBlobContent = childPart.getByteArray();
+                    }
+                    bodyPart.setBodyParts(childParts, <@untainted> bodyPart.getContentType());
                 }
-
-                mime:Entity[] childParts = <mime:Entity[]> checkpanic result;
-
-                foreach var childPart in childParts {
-                    // When performing passthrough scenarios, message needs to be built before
-                    // invoking the endpoint to create a message datasource.
-                    byte[]|error childBlobContent = childPart.getByteArray();
-                }
-                bodyPart.setBodyParts(childParts, <@untainted> bodyPart.getContentType());
             } else {
                 byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
             }
@@ -285,8 +261,7 @@ isolated function getInvalidTypeError() returns ClientError {
 }
 
 isolated function createErrorForNoPayload(mime:Error err) returns GenericClientError {
-    string message = "No payload";
-    return error GenericClientError(message, err);
+    return error GenericClientError("No payload", err);
 }
 
 isolated function getStatusCodeRange(string statusCode) returns string {

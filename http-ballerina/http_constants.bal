@@ -14,22 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Represents HTTP/1.0 protocol
-const string HTTP_1_0 = "1.0";
-
-# Represents HTTP/1.1 protocol
-const string HTTP_1_1 = "1.1";
-
-# Represents HTTP/2.0 protocol
-const string HTTP_2_0 = "2.0";
-
-# Defines the supported HTTP protocols.
-#
-# `HTTP_1_0`: HTTP/1.0 protocol
-# `HTTP_1_1`: HTTP/1.1 protocol
-# `HTTP_2_0`: HTTP/2.0 protocol
-public type HttpVersion HTTP_1_0|HTTP_1_1|HTTP_2_0;
-
 # Represents http protocol scheme
 const string HTTP_SCHEME = "http://";
 
@@ -78,42 +62,6 @@ public const HTTP_SUBMIT = "SUBMIT";
 # Constant for the identify not an HTTP Operation
 public const HTTP_NONE = "NONE";
 
-# Defines the possible values for the chunking configuration in HTTP services and clients.
-#
-# `AUTO`: If the payload is less than 8KB, content-length header is set in the outbound request/response,
-#         otherwise chunking header is set in the outbound request/response
-# `ALWAYS`: Always set chunking header in the response
-# `NEVER`: Never set the chunking header even if the payload is larger than 8KB in the outbound request/response
-public type Chunking CHUNKING_AUTO|CHUNKING_ALWAYS|CHUNKING_NEVER;
-
-# If the payload is less than 8KB, content-length header is set in the outbound request/response,
-# otherwise chunking header is set in the outbound request/response.}
-public const CHUNKING_AUTO = "AUTO";
-
-# Always set chunking header in the response.
-public const CHUNKING_ALWAYS = "ALWAYS";
-
-# Never set the chunking header even if the payload is larger than 8KB in the outbound request/response.
-public const CHUNKING_NEVER = "NEVER";
-
-# Options to compress using gzip or deflate.
-#
-# `AUTO`: When service behaves as a HTTP gateway inbound request/response accept-encoding option is set as the
-#         outbound request/response accept-encoding/content-encoding option
-# `ALWAYS`: Always set accept-encoding/content-encoding in outbound request/response
-# `NEVER`: Never set accept-encoding/content-encoding header in outbound request/response
-public type Compression COMPRESSION_AUTO|COMPRESSION_ALWAYS|COMPRESSION_NEVER;
-
-# When service behaves as a HTTP gateway inbound request/response accept-encoding option is set as the
-# outbound request/response accept-encoding/content-encoding option.
-public const COMPRESSION_AUTO = "AUTO";
-
-# Always set accept-encoding/content-encoding in outbound request/response.
-public const COMPRESSION_ALWAYS = "ALWAYS";
-
-# Never set accept-encoding/content-encoding header in outbound request/response.
-public const COMPRESSION_NEVER = "NEVER";
-
 # Constant for telemetry tag http.url
 const HTTP_URL = "http.url";
 
@@ -132,17 +80,27 @@ const HTTP_BASE_URL = "http.base_url";
 # Constant for status code range suffix
 const STATUS_CODE_GROUP_SUFFIX = "xx";
 
-# Defines the position of the headers in the request/response.
-#
-# `LEADING`: Header is placed before the payload of the request/response
-# `TRAILING`: Header is placed after the payload of the request/response
-public type HeaderPosition LEADING|TRAILING;
-
-# Header is placed before the payload of the request/response.
-public const LEADING = "leading";
-
-# Header is placed after the payload of the request/response.
-public const TRAILING = "trailing";
-
 # Represents RFC_1123_DATE_TIME formatter
 const string RFC_1123_DATE_TIME = "RFC_1123_DATE_TIME";
+
+# Constant for the service name reference.
+public const SERVICE_NAME = "SERVICE_NAME";
+# Constant for the resource name reference.
+public const RESOURCE_NAME = "RESOURCE_NAME";
+# Constant for the request method reference.
+public const REQUEST_METHOD = "REQUEST_METHOD";
+
+# Defines the possible values for the mutual ssl status.
+#
+# `passed`: Mutual SSL handshake is successful.
+# `failed`: Mutual SSL handshake has failed.
+public type MutualSslStatus PASSED | FAILED | ();
+
+# Mutual SSL handshake is successful.
+public const PASSED = "passed";
+
+# Mutual SSL handshake has failed.
+public const FAILED = "failed";
+
+# Not a mutual ssl connection.
+public const NONE = ();

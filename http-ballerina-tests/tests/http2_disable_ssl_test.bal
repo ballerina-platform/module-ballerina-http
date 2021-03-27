@@ -25,7 +25,7 @@ http:ListenerConfiguration helloWorldEPConfig = {
             password: "ballerina"
         }
     },
-    httpVersion: "2.0"
+    httpVersion: http:HTTP_2_0
 };
 
 listener http:Listener sslServerEp = new(9114, config = helloWorldEPConfig);
@@ -43,7 +43,7 @@ http:ClientConfiguration sslDisabledConfig = {
     secureSocket: {
         enable: false
     },
-    httpVersion: "2.0"
+    httpVersion: http:HTTP_2_0
 };
 
 @test:Config {}

@@ -28,7 +28,7 @@ http:ListenerConfiguration sslConf = {
             cert: "tests/certsandkeys/public.crt"
         }
     },
-    httpVersion: "2.0"
+    httpVersion: http:HTTP_2_0
 };
 
 listener http:Listener mutualSslistener = new(9110, sslConf);

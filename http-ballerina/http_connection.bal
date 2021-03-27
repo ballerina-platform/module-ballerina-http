@@ -24,12 +24,10 @@ import ballerina/lang.value as val;
 # + protocol - The protocol associated with the service endpoint
 public client class Caller {
 
+    public Remote & readonly remoteAddress = {};
+    public Local & readonly localAddress = {};
+    public string & readonly protocol = "";
     private ListenerConfiguration config = {};
-
-    //TODO:Make these readonly
-    public Remote remoteAddress = {};
-    public Local localAddress = {};
-    public string protocol = "";
 
     # Sends the outbound response to the caller.
     #
@@ -91,12 +89,7 @@ public client class Caller {
         } else if (code == REDIRECT_PERMANENT_REDIRECT_308) {
             response.statusCode = STATUS_PERMANENT_REDIRECT;
         }
-        string locationsStr = "";
-        foreach var location in locations {
-            locationsStr = locationsStr + location + ",";
-        }
-        locationsStr = locationsStr.substring(0, (locationsStr.length()) - 1);
-
+        string locationsStr = string:'join(",", ...locations);
         response.setHeader(LOCATION, locationsStr);
         return self->respond(response);
     }
@@ -211,13 +204,10 @@ isolated function nativeGetRemoteHostName(Caller caller) returns string = @java:
     name: "nativeGetRemoteHostName"
 } external;
 
-
-/////////////////////////////////
-/// Ballerina Implementations ///
-/////////////////////////////////
 # Defines the HTTP redirect codes as a type.
-public type RedirectCode REDIRECT_MULTIPLE_CHOICES_300|REDIRECT_MOVED_PERMANENTLY_301|REDIRECT_FOUND_302|REDIRECT_SEE_OTHER_303|
-REDIRECT_NOT_MODIFIED_304|REDIRECT_USE_PROXY_305|REDIRECT_TEMPORARY_REDIRECT_307|REDIRECT_PERMANENT_REDIRECT_308;
+public type RedirectCode REDIRECT_MULTIPLE_CHOICES_300|REDIRECT_MOVED_PERMANENTLY_301|REDIRECT_FOUND_302|
+                         REDIRECT_SEE_OTHER_303|REDIRECT_NOT_MODIFIED_304|REDIRECT_USE_PROXY_305|
+                         REDIRECT_TEMPORARY_REDIRECT_307|REDIRECT_PERMANENT_REDIRECT_308;
 
 # Represents the HTTP redirect status code `300 - Multiple Choices`.
 public const REDIRECT_MULTIPLE_CHOICES_300 = 300;

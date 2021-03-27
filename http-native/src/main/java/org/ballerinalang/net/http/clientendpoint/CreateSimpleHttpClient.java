@@ -37,8 +37,10 @@ import java.util.Map;
 
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
+import static org.ballerinalang.net.http.HttpConstants.CLIENT_EP_HTTP_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.HTTP2_PRIOR_KNOWLEDGE;
 import static org.ballerinalang.net.http.HttpUtil.getConnectionManager;
+import static org.ballerinalang.net.http.HttpUtil.getHttpVersion;
 import static org.ballerinalang.net.http.HttpUtil.populateSenderConfigurations;
 import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0_VERSION;
 
@@ -53,8 +55,7 @@ public class CreateSimpleHttpClient {
         String urlString = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue().replaceAll(
                 HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
         httpClient.set(CLIENT_ENDPOINT_SERVICE_URI, StringUtils.fromString(urlString));
-        BMap<BString, Object> clientEndpointConfig = (BMap<BString, Object>) httpClient.get(
-                CLIENT_ENDPOINT_CONFIG);
+        BMap<BString, Object> clientEndpointConfig = (BMap<BString, Object>) httpClient.get(CLIENT_ENDPOINT_CONFIG);
         HttpConnectionManager connectionManager = HttpConnectionManager.getInstance();
         String scheme;
         URL url;
@@ -74,7 +75,7 @@ public class CreateSimpleHttpClient {
         }
         senderConfiguration.setTLSStoreType(HttpConstants.PKCS_STORE_TYPE);
 
-        String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();
+        String httpVersion = getHttpVersion(clientEndpointConfig.getStringValue(CLIENT_EP_HTTP_VERSION).getValue());
         if (HTTP_2_0_VERSION.equals(httpVersion)) {
             BMap<BString, Object> http2Settings = (BMap<BString, Object>) clientEndpointConfig.
                     get(HttpConstants.HTTP2_SETTINGS);
@@ -102,8 +103,7 @@ public class CreateSimpleHttpClient {
             throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_CLIENT_ERROR);
         }
         ConnectionManager poolManager;
-        BMap userDefinedPoolConfig = (BMap) clientEndpointConfig.get(
-                HttpConstants.USER_DEFINED_POOL_CONFIG);
+        BMap userDefinedPoolConfig = (BMap) clientEndpointConfig.get(HttpConstants.USER_DEFINED_POOL_CONFIG);
 
         if (userDefinedPoolConfig == null) {
             poolManager = getConnectionManager(globalPoolConfig);

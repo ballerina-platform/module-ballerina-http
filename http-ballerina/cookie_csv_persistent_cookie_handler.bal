@@ -42,8 +42,8 @@ public class CsvPersistentCookieHandler {
     string fileName = "";
     table<myCookie> key(name, domain, path) cookiesTable = table [];
 
-    public isolated function init(string fileName) {
-        self.fileName = checkpanic validateFileExtension(fileName);
+    public isolated function init(string fileName) returns CookieHandlingError? {
+        self.fileName = check validateFileExtension(fileName);
     }
 
     # Adds a persistent cookie to the cookie store.

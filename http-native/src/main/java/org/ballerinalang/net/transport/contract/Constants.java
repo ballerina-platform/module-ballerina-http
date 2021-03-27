@@ -165,6 +165,7 @@ public final class Constants {
     public static final float HTTP_1_0 = 1.0f;
     public static final String HTTP_2_0 = "2.0";
     public static final String HTTP_VERSION_PREFIX = "HTTP/";
+    public static final String HTTP_1_0_VERSION = "1.0";
     public static final String HTTP_1_1_VERSION = "1.1";
     public static final String HTTP_2_0_VERSION = "2.0";
 
