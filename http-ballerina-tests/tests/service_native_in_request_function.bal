@@ -102,7 +102,7 @@ function testSetEntityBody() {
     io:WritableByteChannel writableFileResult = checkpanic io:openWritableFile("test.json");
     io:WritableCharacterChannel destinationChannel = new (writableFileResult, "UTF-8");
     var writeCharResult = checkpanic destinationChannel.write(value, 0);
-    var close = destinationChannel.close();
+    error? close = destinationChannel.close();
     http:Request req = new;
     req.setFileAsPayload(filePath);
     var payload = req.getEntity();

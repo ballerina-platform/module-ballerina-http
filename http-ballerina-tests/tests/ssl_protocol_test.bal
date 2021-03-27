@@ -37,7 +37,7 @@ listener http:Listener sslProtocolListener = new(9249, config = sslProtocolServi
 service /protocol on sslProtocolListener {
     
     resource function get protocolResource(http:Caller caller, http:Request req) {
-        var result = caller->respond("Hello World!");
+        error? result = caller->respond("Hello World!");
         if (result is error) {
            log:printError("Failed to respond", 'error = result);
         }

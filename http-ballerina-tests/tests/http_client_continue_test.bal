@@ -30,7 +30,7 @@ service /'continue on httpClientContinueListenerEP1 {
         if (request.expects100Continue()) {
             string mediaType = checkpanic request.getHeader("Content-Type");
             if (mediaType.toLowerAscii() == "text/plain") {
-                var result = caller->continue();
+                error? result = caller->continue();
                 if (result is error) {
                     log:printError("Error sending response", 'error = result);
                 }
@@ -38,7 +38,7 @@ service /'continue on httpClientContinueListenerEP1 {
                 http:Response res = new;
                 res.statusCode = 417;
                 res.setPayload("Unprocessable Entity");
-                var result = caller->respond(res);
+                error? result = caller->respond(res);
                 if (result is error) {
                     log:printError("Error sending response", 'error = result);
                 }
@@ -50,14 +50,14 @@ service /'continue on httpClientContinueListenerEP1 {
         if (payload is string) {
             res.statusCode = 200;
             res.setPayload("Hello World!\n");
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
             if (result is error) {
                 log:printError("Error sending response", 'error = result);
             }
         } else {
             res.statusCode = 500;
             res.setPayload(<@untainted> payload.message());
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
             if (result is error) {
                 log:printError("Error sending response", 'error = result);
             }

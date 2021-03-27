@@ -52,7 +52,7 @@ service /cb on circuitBreakerEP07 {
         if (backendFuture is http:HttpFuture) {
             var backendRes = backendClientEP07->getResponse(backendFuture);
             if (backendRes is http:Response) {
-                var responseToCaller = caller->respond(backendRes);
+                error? responseToCaller = caller->respond(backendRes);
                 if (responseToCaller is error) {
                     log:printError("Error sending response", 'error = responseToCaller);
                 }
@@ -78,7 +78,7 @@ service /hello07 on new http:Listener(8095) {
         } else {
             res.setPayload("Hello World!!!");
         }
-        var responseToCaller = caller->respond(res);
+        error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
@@ -89,7 +89,7 @@ function sendCBErrorResponse(http:Caller caller, error e) {
     http:Response response = new;
     response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
     response.setPayload(<@untainted> e.message());
-    var responseToCaller = caller->respond(response);
+    error? responseToCaller = caller->respond(response);
     if (responseToCaller is error) {
         log:printError("Error sending response", 'error = responseToCaller);
     }
