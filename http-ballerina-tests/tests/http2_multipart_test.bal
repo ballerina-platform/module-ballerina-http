@@ -45,7 +45,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: http:HTTP_2_0 }) {
             response.setPayload("Error in decoding multiparts!");
             response.statusCode = 500;
         }
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
         if (result is error) {
             log:printError("Error sending response", 'error = result);
         }
@@ -66,7 +66,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: http:HTTP_2_0 }) {
                     finalMessage = finalMessage + handleResponseBodyParts(part);
                 }
             }
-            var result = caller->respond(finalMessage);
+            error? result = caller->respond(finalMessage);
         } else {
             log:printError("Error sending response", 'error = finalResponse);
         }
@@ -92,7 +92,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: http:HTTP_2_0 }) {
             returnResponse = mimeClientEP1->post("/multiparts/decode", request);
         }
         if (returnResponse is http:Response) {
-            var result = caller->respond(<@untainted> returnResponse);
+            error? result = caller->respond(<@untainted> returnResponse);
             if (result is error) {
                 log:printError("Error sending response", 'error = result);
             }
@@ -100,7 +100,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: http:HTTP_2_0 }) {
             http:Response response = new;
             response.setPayload("Error occurred while sending multipart request!");
             response.statusCode = 500;
-            var result = caller->respond(response);
+            error? result = caller->respond(response);
             if (result is error) {
                 log:printError("Error sending response", 'error = result);
             }

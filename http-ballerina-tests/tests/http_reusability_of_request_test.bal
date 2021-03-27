@@ -214,7 +214,7 @@ service /reuseObj on reuseRequestListenerEP {
     resource function post request_with_byteStream(http:Caller caller, http:Request clientRequest) {
         http:Request clientReq = new;
         var byteStream = clientRequest.getByteStream();
-        if (byteStream is stream<byte[], io:Error>) {
+        if (byteStream is stream<byte[], io:Error?>) {
             clientReq.setByteStream(byteStream, "text/plain");
             var firstResponse = clientEP1 -> post("/consumeChannel", clientReq);
             if (firstResponse is http:Response) {

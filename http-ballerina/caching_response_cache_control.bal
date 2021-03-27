@@ -80,12 +80,12 @@ public class ResponseCacheControl {
             i = i + 1;
         }
 
-        if (self.maxAge >= 0) {
+        if (self.maxAge >= 0d) {
             directives[i] = MAX_AGE + "=" + self.maxAge.toString();
             i = i + 1;
         }
 
-        if (self.sMaxAge >= 0) {
+        if (self.sMaxAge >= 0d) {
             directives[i] = S_MAX_AGE + "=" + self.sMaxAge.toString();
             i = i + 1;
         }

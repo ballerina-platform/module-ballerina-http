@@ -39,10 +39,11 @@ public class ClientSelfSignedJwtAuthHandler {
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
     public isolated function enrich(Request req) returns Request|ClientAuthError {
         string|jwt:Error result = self.provider.generateToken();
-        if (result is jwt:Error) {
+        if (result is string) {
+            req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + result);
+            return req;
+        } else {
             return prepareClientAuthError("Failed to enrich request with JWT.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + checkpanic result);
-        return req;
     }
 }

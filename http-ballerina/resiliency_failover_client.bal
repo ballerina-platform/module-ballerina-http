@@ -419,7 +419,7 @@ isolated function performFailoverAction (string path, Request request, HttpOpera
     } else {
         // When performing passthrough scenarios using Failover connector, message needs to be built before trying
         // out the failover endpoints to keep the request message to failover the messages.
-        var binaryPayload = failoverRequest.getBinaryPayload();
+        byte[]|error binaryPayload = failoverRequest.getBinaryPayload();
         requestEntity = check failoverRequest.getEntity();
     }
     while (startIndex != currentIndex) {

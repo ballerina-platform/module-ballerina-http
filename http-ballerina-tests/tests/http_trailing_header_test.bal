@@ -28,7 +28,7 @@ service /initiator on trailingHeaderListenerEP1 {
     resource function 'default [string svc]/[string rsc](http:Caller caller, http:Request request) {
         var responseFromBackend = clientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
         if (responseFromBackend is http:Response) {
-            var textPayload = responseFromBackend.getTextPayload();
+            string|error textPayload = responseFromBackend.getTextPayload();
 
             string trailerHeaderValue = "No trailer header";
             if (responseFromBackend.hasHeader("trailer")) {
@@ -49,9 +49,9 @@ service /initiator on trailingHeaderListenerEP1 {
             newResponse.setJsonPayload({ foo: <@untainted> firstTrailer, baz: <@untainted> secondTrailer, count:
                                         <@untainted> headerCount });
             newResponse.setHeader("response-trailer", trailerHeaderValue);
-            var resultSentToClient = caller->respond(<@untainted> newResponse);
+            error? resultSentToClient = caller->respond(<@untainted> newResponse);
         } else {
-            var resultSentToClient = caller->respond("No response from backend");
+            error? resultSentToClient = caller->respond("No response from backend");
         }
     }
 }
@@ -67,7 +67,7 @@ service /chunkingBackend on trailingHeaderListenerEP2 {
         response.setTextPayload(<@untainted> inPayload);
         response.setHeader("foo", "Trailer for chunked payload", position = http:TRAILING);
         response.setHeader("baz", "The second trailer", position = http:TRAILING);
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default empty(http:Caller caller, http:Request request) {
@@ -75,7 +75,7 @@ service /chunkingBackend on trailingHeaderListenerEP2 {
         response.setTextPayload("");
         response.setHeader("foo", "Trailer for empty payload", position = http:TRAILING);
         response.setHeader("baz", "The second trailer for empty payload", position = http:TRAILING);
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 }
 
@@ -90,7 +90,7 @@ service /nonChunkingBackend on trailingHeaderListenerEP2 {
         response.setTextPayload(<@untainted> inPayload);
         response.setHeader("foo", "Trailer for non chunked payload", position = http:TRAILING);
         response.setHeader("baz", "The second trailer", position = http:TRAILING);
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 }
 
@@ -101,21 +101,21 @@ service /passthroughsvc on trailingHeaderListenerEP2 {
     resource function 'default forward(http:Caller caller, http:Request request) {
         var responseFromBackend = clientEp->forward("/chunkingBackend/echo", request);
         if (responseFromBackend is http:Response) {
-            var resultSentToClient = caller->respond(<@untainted> responseFromBackend);
+            error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
         } else {
-            var resultSentToClient = caller->respond("No response from backend");
+            error? resultSentToClient = caller->respond("No response from backend");
         }
     }
 
     resource function 'default buildPayload(http:Caller caller, http:Request request) {
         var responseFromBackend = clientEp->forward("/chunkingBackend/echo", request);
         if (responseFromBackend is http:Response) {
-            var textPayload = responseFromBackend.getTextPayload();
+            string|error textPayload = responseFromBackend.getTextPayload();
             responseFromBackend.setHeader("baz", "this trailer will get replaced", position = http:TRAILING);
             responseFromBackend.setHeader("barr", "this is a new trailer", position = http:TRAILING);
-            var resultSentToClient = caller->respond(<@untainted> responseFromBackend);
+            error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
         } else {
-            var resultSentToClient = caller->respond("No response from backend");
+            error? resultSentToClient = caller->respond("No response from backend");
         }
     }
 }

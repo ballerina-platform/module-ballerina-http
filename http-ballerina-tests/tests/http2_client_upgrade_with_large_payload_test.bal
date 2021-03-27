@@ -27,7 +27,7 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: http:HTTP_2_
         var jsonPayload = request.getJsonPayload();
         if (jsonPayload is json) {
             response.setPayload(<@untainted> jsonPayload);
-            var result = caller->respond(response);
+            error? result = caller->respond(response);
         } else {
             log:printError("Error getting the json payload");
         }
@@ -140,7 +140,7 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: http:HTTP_2_
         if (finalResponse is error) {
             log:printError("Error sending response", 'error = finalResponse);
         } else {
-            var result = caller->respond(<@untainted> finalResponse);
+            error? result = caller->respond(<@untainted> finalResponse);
         }
     }
 }

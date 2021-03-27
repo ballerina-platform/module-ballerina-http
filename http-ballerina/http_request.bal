@@ -313,7 +313,7 @@ public class Request {
     #
     # + arraySize - A defaultable parameter to state the size of the byte array. Default size is 8KB
     # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
-    public isolated function getByteStream(int arraySize = 8196) returns @tainted stream<byte[], io:Error>|ClientError {
+    public isolated function getByteStream(int arraySize = 8196) returns @tainted stream<byte[], io:Error?>|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -507,7 +507,7 @@ public class Request {
     # + byteStream - Byte stream, which needs to be set to the request
     # + contentType - Content-type to be used with the payload. This is an optional parameter.
     #                 The `application/octet-stream` is the default value
-    public isolated function setByteStream(stream<byte[], io:Error> byteStream, 
+    public isolated function setByteStream(stream<byte[], io:Error?> byteStream,
             string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setByteStream(byteStream, contentType);
@@ -517,9 +517,9 @@ public class Request {
     # Sets the request payload. Note that any string value is set as `text/plain`. To send a JSON-compatible string,
     # set the content-type header to `application/json` or use the `setJsonPayload` method instead.
     #
-    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error>` 
+    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error?>`
     #             or `Entity[]` (i.e., a set of body parts).
-    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error> payload) {
+    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error?> payload) {
         if (payload is string) {
             self.setTextPayload(payload);
         } else if (payload is xml) {
@@ -528,7 +528,7 @@ public class Request {
             self.setBinaryPayload(payload);
         } else if (payload is json) {
             self.setJsonPayload(payload);
-        } else if (payload is stream<byte[], io:Error>) {
+        } else if (payload is stream<byte[], io:Error?>) {
             self.setByteStream(payload);
         } else {
             self.setBodyParts(payload);

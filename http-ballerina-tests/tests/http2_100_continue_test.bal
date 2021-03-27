@@ -30,7 +30,7 @@ http:Client h2Client = check new("http://localhost:9127", {
 service /helloWorld on new http:Listener(9127, {httpVersion: http:HTTP_2_0}) {
 
     resource function post abnormalResource(http:Caller caller, http:Request request) {
-        var result = caller->continue();
+        error? result = caller->continue();
         handleRespError(result);
         http:Response res = new;
         var payload = request.getTextPayload();

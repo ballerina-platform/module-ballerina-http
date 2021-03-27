@@ -451,13 +451,13 @@ isolated function isExpired(Cookie cookie) returns boolean {
     if (cookie.maxAge > 0) {
         time:Utc expTime = time:utcAddSeconds(cookie.createdTime, <time:Seconds> cookie.maxAge);
         time:Utc curTime = time:utcNow();
-        return (time:utcDiffSeconds(expTime, curTime) < 0);
+        return (time:utcDiffSeconds(expTime, curTime) < 0d);
     }
     var expiryTime = cookie.expires;
     if (expiryTime is string) {
         time:Utc|error cookieExpires = utcFromString(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
         time:Utc curTime = time:utcNow();
-        if ((cookieExpires is time:Utc) && (time:utcDiffSeconds(cookieExpires, curTime) < 0)) {
+        if ((cookieExpires is time:Utc) && (time:utcDiffSeconds(cookieExpires, curTime) < 0d)) {
             return true;
         }
         return false;

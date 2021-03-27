@@ -41,7 +41,7 @@ service /backEndService on new http:Listener(9122, { httpVersion: http:HTTP_2_0 
 
     resource function post http2SendByteStream(http:Caller caller, http:Request req) {
         var byteStream = req.getByteStream();
-        if (byteStream is stream<byte[], io:Error>) {
+        if (byteStream is stream<byte[], io:Error?>) {
             checkpanic caller->respond(<@untainted> byteStream);
         } else {
             checkpanic caller->respond(<@untainted> byteStream.message());
@@ -226,8 +226,8 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: http:HTTP_2_
         if (text is string) {
             var res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> text);
             if (res is http:Response) {
-                stream<byte[], io:Error>|http:ClientError str = res.getByteStream();
-                if (str is stream<byte[], io:Error>) {
+                stream<byte[], io:Error?>|http:ClientError str = res.getByteStream();
+                if (str is stream<byte[], io:Error?>) {
                     record {|byte[] value;|}|io:Error? arr1 = str.next();
                     if (arr1 is record {|byte[] value;|}) {
                         value = checkpanic strings:fromBytes(arr1.value);
@@ -248,12 +248,12 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: http:HTTP_2_
 
     resource function post testHttp2PostWithByteStream(http:Caller caller, http:Request req) {
         string value = "";
-        stream<byte[], io:Error>|http:ClientError byteStream = req.getByteStream();
-        if (byteStream is stream<byte[], io:Error>) {
+        stream<byte[], io:Error?>|http:ClientError byteStream = req.getByteStream();
+        if (byteStream is stream<byte[], io:Error?>) {
             var res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> byteStream);
             if (res is http:Response) {
-                stream<byte[], io:Error>|error str = res.getByteStream();
-                if (str is stream<byte[], io:Error>) {
+                stream<byte[], io:Error?>|error str = res.getByteStream();
+                if (str is stream<byte[], io:Error?>) {
                     record {|byte[] value;|}|io:Error? arr1 = str.next();
                     if (arr1 is record {|byte[] value;|}) {
                         value = checkpanic strings:fromBytes(arr1.value);
@@ -274,8 +274,8 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: http:HTTP_2_
 
     resource function post testHttp2PostWithByteStreamToText(http:Caller caller, http:Request req) {
         string value = "";
-        stream<byte[], io:Error>|http:ClientError byteStream = req.getByteStream();
-        if (byteStream is stream<byte[], io:Error>) {
+        stream<byte[], io:Error?>|http:ClientError byteStream = req.getByteStream();
+        if (byteStream is stream<byte[], io:Error?>) {
             var res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> byteStream);
             if (res is http:Response) {
                 var result = res.getTextPayload();

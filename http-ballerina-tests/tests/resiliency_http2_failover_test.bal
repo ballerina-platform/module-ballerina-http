@@ -46,7 +46,7 @@ service /failoverDemoService06 on failoverEP06 {
             var response = foBackendEP06->getResponse(backendRes);
             if (response is http:Response) {
                 string responseMessage = "Failover start index is : " + startIndex;
-                var responseToCaller = caller->respond(<@untainted> responseMessage);
+                error? responseToCaller = caller->respond(<@untainted> responseMessage);
                 handleResponseToCaller(responseToCaller);
             } else {
                 sendErrorResponse(caller, <error>response);
@@ -63,7 +63,7 @@ service /delay on backendEP06 {
     resource function get .(http:Caller caller, http:Request req) {
         // Delay the response for 5000 milliseconds to mimic network level delays.
         runtime:sleep(10);
-        var responseToCaller = caller->respond("Delayed resource is invoked");
+        error? responseToCaller = caller->respond("Delayed resource is invoked");
         if (responseToCaller is error) {
             log:printError("Error sending response from delay service", 'error = responseToCaller);
         }
@@ -77,7 +77,7 @@ service /'error on backendEP06 {
         http:Response response = new;
         response.statusCode = 500;
         response.setPayload("Response from error Service with error status code.");
-        var responseToCaller = caller->respond(response);
+        error? responseToCaller = caller->respond(response);
         if (responseToCaller is error) {
             log:printError("Error sending response from error service", 'error = responseToCaller);
         }
@@ -88,7 +88,7 @@ service /'error on backendEP06 {
 service /mock on backendEP06 {
 
     resource function get .(http:Caller caller, http:Request req) {
-        var responseToCaller = caller->respond("Mock Resource is Invoked.");
+        error? responseToCaller = caller->respond("Mock Resource is Invoked.");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
