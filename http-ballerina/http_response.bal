@@ -318,8 +318,7 @@ public class Response {
     #            constructing the body parts from the response
     public isolated function getBodyParts() returns mime:Entity[]|ClientError {
         var result = self.getEntity();
-        if (result is ClientError) {
-            // TODO: Confirm whether this is actually a ClientError or not.
+        if (result is error) {
             return result;
         } else {
             var bodyParts = result.getBodyParts();

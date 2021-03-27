@@ -23,7 +23,7 @@ import ballerina/lang.runtime as runtime;
 # + backOffFactor - Multiplier of the retry interval to exponentially increase retry interval
 # + maxWaitInterval - Maximum time of the retry interval in seconds
 # + statusCodes - HTTP response status codes which are considered as failures
-public type RetryInferredConfig record {|
+type RetryInferredConfig record {|
     int count = 0;
     decimal interval = 0;
     float backOffFactor = 0.0;
@@ -41,10 +41,10 @@ public type RetryInferredConfig record {|
 #                HTTP service in resilient manner.
 public client class RetryClient {
 
-    public string url;
-    public ClientConfiguration config;
-    public RetryInferredConfig retryInferredConfig;
-    public HttpClient httpClient;
+    string url;
+    ClientConfiguration config;
+    RetryInferredConfig retryInferredConfig;
+    HttpClient httpClient;
 
     # Provides the HTTP remote functions for interacting with an HTTP endpoint. This is created by wrapping the HTTP
     # client to provide retrying over HTTP requests.

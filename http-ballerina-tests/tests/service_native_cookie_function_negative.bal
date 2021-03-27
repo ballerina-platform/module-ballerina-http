@@ -307,7 +307,7 @@ function testRemovePersistentCookieFromCookieStore_1() {
     cookie1.path = "/sample";
     cookie1.domain = "google.com";
     cookie1.expires = "2030-07-15 05:46:22";
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-6.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = checkpanic new(filePath + "client-6.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true,
                                             persistentCookieHandler: myPersistentStore } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -331,7 +331,7 @@ function testRemovePersistentCookieFromCookieStore_1() {
 // Test to remove a specific cookie which is not in the cookie store, when there is no persistent cookie store
 @test:Config {}
 function testRemovePersistentCookieFromCookieStore_2() {
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-7.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = checkpanic new(filePath + "client-7.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true,
                                             persistentCookieHandler: myPersistentStore } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -350,7 +350,7 @@ function testRemovePersistentCookieFromCookieStore_2() {
 // Test to remove all cookies when there is no persistent cookie store
 @test:Config {}
 function testRemoveAllCookiesFromCookieStore() {
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-8.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = checkpanic new(filePath + "client-8.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true,
                                             persistentCookieHandler: myPersistentStore } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();

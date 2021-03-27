@@ -55,8 +55,7 @@ public class CreateSimpleHttpClient {
         String urlString = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue().replaceAll(
                 HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
         httpClient.set(CLIENT_ENDPOINT_SERVICE_URI, StringUtils.fromString(urlString));
-        BMap<BString, Object> clientEndpointConfig = (BMap<BString, Object>) httpClient.get(
-                CLIENT_ENDPOINT_CONFIG);
+        BMap<BString, Object> clientEndpointConfig = (BMap<BString, Object>) httpClient.get(CLIENT_ENDPOINT_CONFIG);
         HttpConnectionManager connectionManager = HttpConnectionManager.getInstance();
         String scheme;
         URL url;
@@ -104,8 +103,7 @@ public class CreateSimpleHttpClient {
             throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_CLIENT_ERROR);
         }
         ConnectionManager poolManager;
-        BMap userDefinedPoolConfig = (BMap) clientEndpointConfig.get(
-                HttpConstants.USER_DEFINED_POOL_CONFIG);
+        BMap userDefinedPoolConfig = (BMap) clientEndpointConfig.get(HttpConstants.USER_DEFINED_POOL_CONFIG);
 
         if (userDefinedPoolConfig == null) {
             poolManager = getConnectionManager(globalPoolConfig);

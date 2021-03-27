@@ -124,12 +124,12 @@ public type CircuitBreakerInferredConfig record {|
 # + currentCircuitState - The current state the circuit is in
 public client class CircuitBreakerClient {
 
-    public string url;
-    public ClientConfiguration config;
-    public CircuitBreakerInferredConfig circuitBreakerInferredConfig;
-    public HttpClient httpClient;
-    public CircuitHealth circuitHealth;
-    public CircuitState currentCircuitState = CB_CLOSED_STATE;
+    string url;
+    ClientConfiguration config;
+    CircuitBreakerInferredConfig circuitBreakerInferredConfig;
+    HttpClient httpClient;
+    CircuitHealth circuitHealth;
+    CircuitState currentCircuitState = CB_CLOSED_STATE;
 
     # A Circuit Breaker implementation which can be used to gracefully handle network failures.
     #

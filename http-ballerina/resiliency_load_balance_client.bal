@@ -17,6 +17,36 @@
 import ballerina/jballerina.java;
 import ballerina/mime;
 
+# The configurations related to the load balance client endpoint. Following fields are inherited from the other
+# configuration records in addition to the load balance client specific configs.
+#
+# |                                                         |
+# |:------------------------------------------------------- |
+# | httpVersion - Copied from CommonClientConfiguration     |
+# | http1Settings - Copied from CommonClientConfiguration   |
+# | http2Settings - Copied from CommonClientConfiguration   |
+# | timeout - Copied from CommonClientConfiguration |
+# | forwarded - Copied from CommonClientConfiguration       |
+# | followRedirects - Copied from CommonClientConfiguration |
+# | poolConfig - Copied from CommonClientConfiguration      |
+# | cache - Copied from CommonClientConfiguration           |
+# | compression - Copied from CommonClientConfiguration     |
+# | auth - Copied from CommonClientConfiguration            |
+# | circuitBreaker - Copied from CommonClientConfiguration  |
+# | retryConfig - Copied from CommonClientConfiguration     |
+# | cookieConfig - Copied from CommonClientConfiguration    |
+# | responseLimits - Copied from CommonClientConfiguration  |
+#
+# + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be distributed
+# + lbRule - LoadBalancing rule
+# + failover - Configuration for load balancer whether to fail over in case of a failure
+public type LoadBalanceClientConfiguration record {|
+    *CommonClientConfiguration;
+    TargetService[] targets;
+    LoadBalancerRule lbRule?;
+    boolean failover = true;
+|};
+
 # LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients.
 #
 # + loadBalanceClientConfig - The configurations for the load balance client endpoint
@@ -26,16 +56,16 @@ import ballerina/mime;
 public client class LoadBalanceClient {
     *ClientObject;
 
-    public LoadBalanceClientConfiguration loadBalanceClientConfig;
-    public Client?[] loadBalanceClientsArray;
-    public LoadBalancerRule lbRule;
-    public boolean failover;
+    LoadBalanceClientConfiguration loadBalanceClientConfig;
+    Client?[] loadBalanceClientsArray;
+    LoadBalancerRule lbRule;
+    boolean failover;
 
     # Load Balancer adds an additional layer to the HTTP client to make network interactions more resilient.
     #
     # + loadBalanceClientConfig - The configurations for the load balance client endpoint
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public isolated function init(LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
+    public isolated function init(*LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
         self.loadBalanceClientConfig = loadBalanceClientConfig;
         self.failover = loadBalanceClientConfig.failover;
         var lbClients = createLoadBalanceHttpClientArray(loadBalanceClientConfig);
@@ -43,7 +73,7 @@ public client class LoadBalanceClient {
             return lbClients;
         } else {
             self.loadBalanceClientsArray = lbClients;
-            var lbRule = loadBalanceClientConfig.lbRule;
+            var lbRule = loadBalanceClientConfig?.lbRule;
             if (lbRule is LoadBalancerRule) {
                 self.lbRule = lbRule;
             } else {
@@ -367,37 +397,6 @@ isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorDa
         return error AllLoadBalanceEndpointsFailedError(message, httpActionError = errArray);
     }
 }
-
-
-# The configurations related to the load balance client endpoint. Following fields are inherited from the other
-# configuration records in addition to the load balance client specific configs.
-#
-# |                                                         |
-# |:------------------------------------------------------- |
-# | httpVersion - Copied from CommonClientConfiguration     |
-# | http1Settings - Copied from CommonClientConfiguration   |
-# | http2Settings - Copied from CommonClientConfiguration   |
-# | timeout - Copied from CommonClientConfiguration |
-# | forwarded - Copied from CommonClientConfiguration       |
-# | followRedirects - Copied from CommonClientConfiguration |
-# | poolConfig - Copied from CommonClientConfiguration      |
-# | cache - Copied from CommonClientConfiguration           |
-# | compression - Copied from CommonClientConfiguration     |
-# | auth - Copied from CommonClientConfiguration            |
-# | circuitBreaker - Copied from CommonClientConfiguration  |
-# | retryConfig - Copied from CommonClientConfiguration     |
-# | cookieConfig - Copied from CommonClientConfiguration    |
-# | responseLimits - Copied from CommonClientConfiguration  |
-#
-# + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be distributed
-# + lbRule - LoadBalancing rule
-# + failover - Configuration for load balancer whether to fail over in case of a failure
-public type LoadBalanceClientConfiguration record {|
-    *CommonClientConfiguration;
-    TargetService[] targets = [];
-    LoadBalancerRule? lbRule = ();
-    boolean failover = true;
-|};
 
 isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientConfiguration lbConfig,
                                                      TargetService target) returns ClientConfiguration {

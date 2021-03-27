@@ -402,7 +402,7 @@ function testRemoveAllCookiesInCookieStore() {
     cookie2.domain = "google.com";
     cookie2.expires = "2030-07-15 05:46:22";
     http:Cookie[] cookies = [];
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-5.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = checkpanic new(filePath + "client-5.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true,
                                             persistentCookieHandler: myPersistentStore } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -430,7 +430,7 @@ function testAddPersistentCookieToCookieStore() {
     cookie1.path = "/sample";
     cookie1.domain = "google.com";
     cookie1.expires = "2030-07-15 05:46:22";
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-1.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = checkpanic new(filePath + "client-1.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true,
                                             persistentCookieHandler: myPersistentStore } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -454,7 +454,7 @@ function testAddPersistentCookieToCookieStore_2() {
     cookie1.path = "/sample";
     cookie1.domain = "google.com";
     cookie1.expires = "0050-07-15 05:46:22";
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-2.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = checkpanic new(filePath + "client-2.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
@@ -477,7 +477,7 @@ function testGetPersistentCookieFromCookieStore() {
     cookie1.path = "/sample";
     cookie1.domain = "google.com";
     cookie1.expires = "2030-07-15 05:46:22";
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-3.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = checkpanic new(filePath + "client-3.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
@@ -500,7 +500,7 @@ function testRemovePersistentCookieFromCookieStore() {
     cookie1.path = "/sample";
     cookie1.domain = "google.com";
     cookie1.expires = "2030-07-15 05:46:22";
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-4.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = checkpanic new(filePath + "client-4.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;

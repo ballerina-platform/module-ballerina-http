@@ -24,8 +24,8 @@ import ballerina/jballerina.java;
 # + config - The configurations associated with the HttpClient
 public client class HttpClient {
 
-    public ClientConfiguration config = {};
-    public string url;
+    ClientConfiguration config = {};
+    string url;
 
     # Gets invoked to initialize the native `client`. During initialization, the configurations are provided through the
     # `config`. The `HttpClient` lies inside every type of client in the chain holding the native client connector.

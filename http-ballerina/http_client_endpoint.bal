@@ -31,10 +31,10 @@ import ballerina/time;
 public client class Client {
     *ClientObject;
 
-    public string url;
-    public ClientConfiguration config;
-    public HttpClient httpClient;
-    public CookieStore? cookieStore = ();
+    string url;
+    CookieStore? cookieStore = ();
+    public final ClientConfiguration config;
+    public final HttpClient httpClient;
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -354,7 +354,7 @@ public client class Client {
 # + secureSocket - Configurations for secure communication with the remote HTTP endpoint
 public type TargetService record {|
     string url = "";
-    ClientSecureSocket? secureSocket = ();
+    ClientSecureSocket secureSocket?;
 |};
 
 # Provides a set of configurations for controlling the behaviours when communicating with a remote HTTP endpoint.

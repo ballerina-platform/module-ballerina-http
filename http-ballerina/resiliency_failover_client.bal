@@ -18,22 +18,43 @@ import ballerina/jballerina.java;
 import ballerina/lang.runtime as runtime;
 import ballerina/mime;
 
-# Provides a set of configurations for controlling the failover behaviour of the endpoint.
+# Provides a set of HTTP related configurations and failover related configurations.
+# Following fields are inherited from the other configuration records in addition to the failover client specific
+# configs.
 #
-# + failoverCodes - Array of HTTP response status codes for which the failover mechanism triggers
+# |                                                         |
+# |:------------------------------------------------------- |
+# | httpVersion - Copied from CommonClientConfiguration     |
+# | http1Settings - Copied from CommonClientConfiguration   |
+# | http2Settings - Copied from CommonClientConfiguration   |
+# | timeout - Copied from CommonClientConfiguration |
+# | forwarded - Copied from CommonClientConfiguration       |
+# | followRedirects - Copied from CommonClientConfiguration |
+# | poolConfig - Copied from CommonClientConfiguration      |
+# | cache - Copied from CommonClientConfiguration           |
+# | compression - Copied from CommonClientConfiguration     |
+# | auth - Copied from CommonClientConfiguration            |
+# | circuitBreaker - Copied from CommonClientConfiguration  |
+# | retryConfig - Copied from CommonClientConfiguration     |
+# | cookieConfig - Copied from CommonClientConfiguration    |
+# | responseLimits - Copied from CommonClientConfiguration  |
+#
+# + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be sent on failover
+# + failoverCodes - Array of HTTP response status codes for which the failover behaviour should be triggered
 # + interval - Failover delay interval in seconds
-public type FailoverConfig record {|
-    int[] failoverCodes = [];
+public type FailoverClientConfiguration record {|
+    *CommonClientConfiguration;
+    TargetService[] targets;
+    int[] failoverCodes = [501, 502, 503, 504];
     decimal interval = 0;
 |};
 
-// TODO: This can be made package private
 # Represents the inferred failover configurations passed into the failover client.
 #
 # + failoverClientsArray - Array of HTTP Clients that needs to be Failover
 # + failoverCodesIndex - An indexed array of HTTP response status codes for which the failover mechanism triggers
 # + failoverInterval - Failover delay interval in seconds
-public type FailoverInferredConfig record {|
+type FailoverInferredConfig record {|
     Client?[] failoverClientsArray = [];
     boolean[] failoverCodesIndex = [];
     decimal failoverInterval = 0;
@@ -47,15 +68,15 @@ public type FailoverInferredConfig record {|
 public client class FailoverClient {
     *ClientObject;
 
-    public FailoverClientConfiguration failoverClientConfig;
-    public FailoverInferredConfig failoverInferredConfig;
-    public int succeededEndpointIndex;
+    FailoverClientConfiguration failoverClientConfig;
+    FailoverInferredConfig failoverInferredConfig;
+    public int & readonly succeededEndpointIndex;
 
     # Failover caller actions which provides failover capabilities to an HTTP client endpoint.
     #
     # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public isolated function init(FailoverClientConfiguration failoverClientConfig) returns ClientError? {
+    public isolated function init(*FailoverClientConfiguration failoverClientConfig) returns ClientError? {
         self.failoverClientConfig = failoverClientConfig;
         self.succeededEndpointIndex = 0;
         var failoverHttpClientArray = createFailoverHttpClientArray(failoverClientConfig);
@@ -508,37 +529,6 @@ isolated function populateErrorsFromLastResponse (Response inResponse, ClientErr
                                 + inResponse.statusCode.toString() + " " + inResponse.reasonPhrase;
     return error FailoverAllEndpointsFailedError(failoverMessage, failoverErrors = failoverActionErr);
 }
-
-# Provides a set of HTTP related configurations and failover related configurations.
-# Following fields are inherited from the other configuration records in addition to the failover client specific
-# configs.
-#
-# |                                                         |
-# |:------------------------------------------------------- |
-# | httpVersion - Copied from CommonClientConfiguration     |
-# | http1Settings - Copied from CommonClientConfiguration   |
-# | http2Settings - Copied from CommonClientConfiguration   |
-# | timeout - Copied from CommonClientConfiguration |
-# | forwarded - Copied from CommonClientConfiguration       |
-# | followRedirects - Copied from CommonClientConfiguration |
-# | poolConfig - Copied from CommonClientConfiguration      |
-# | cache - Copied from CommonClientConfiguration           |
-# | compression - Copied from CommonClientConfiguration     |
-# | auth - Copied from CommonClientConfiguration            |
-# | circuitBreaker - Copied from CommonClientConfiguration  |
-# | retryConfig - Copied from CommonClientConfiguration     |
-# | cookieConfig - Copied from CommonClientConfiguration    |
-# | responseLimits - Copied from CommonClientConfiguration  |
-#
-# + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be sent on failover
-# + failoverCodes - Array of HTTP response status codes for which the failover behaviour should be triggered
-# + interval - Failover delay interval in seconds
-public type FailoverClientConfiguration record {|
-    *CommonClientConfiguration;
-    TargetService[] targets = [];
-    int[] failoverCodes = [501, 502, 503, 504];
-    decimal interval = 0;
-|};
 
 isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfiguration foConfig,
                                                   TargetService target) returns ClientConfiguration {

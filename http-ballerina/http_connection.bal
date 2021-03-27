@@ -89,7 +89,7 @@ public client class Caller {
         } else if (code == REDIRECT_PERMANENT_REDIRECT_308) {
             response.statusCode = STATUS_PERMANENT_REDIRECT;
         }
-        string locationsStr = string:join(",", locations);
+        string locationsStr = string:'join(",", ...locations);
         response.setHeader(LOCATION, locationsStr);
         return self->respond(response);
     }
