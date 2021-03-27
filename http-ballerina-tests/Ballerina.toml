@@ -1,10 +1,10 @@
 [package]
 org = "ballerina"
 name = "http_tests"
-version = "1.1.0-alpha5"
+version = "@toml.version@"
 
 [[platform.java11.dependency]]
-path = "../http-native/build/libs/http-native-1.1.0-alpha5.jar"
+path = "../http-native/build/libs/http-native-@project.version@.jar"
 groupId = "ballerina"
 artifactId = "http"
-version = "1.1.0-alpha5"
+version = "@project.version@"

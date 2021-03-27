@@ -127,7 +127,7 @@ public client class CircuitBreakerClient {
     string url;
     ClientConfiguration config;
     CircuitBreakerInferredConfig circuitBreakerInferredConfig;
-    public final HttpClient httpClient;
+    HttpClient httpClient;
     CircuitHealth circuitHealth;
     CircuitState currentCircuitState = CB_CLOSED_STATE;
 
