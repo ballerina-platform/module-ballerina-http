@@ -135,42 +135,25 @@ isolated function populateHeaders(Request request, map<string|string[]>? headers
     }
 }
 
-# The HEAD remote function implementation of the Circuit Breaker. This wraps the `head` function of the underlying
-# HTTP remote function provider.
-
-# + path - Resource path
-# + outRequest - A Request struct
-# + requestAction - `HttpOperation` related to the request
-# + httpClient - HTTP client which uses to call the relevant functions
-# + verb - HTTP verb used for submit method
-# + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-public isolated function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
+isolated function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
         string verb = "") returns @tainted HttpResponse|ClientError {
 
     if (HTTP_GET == requestAction) {
-        var result = httpClient->get(path, message = outRequest);
-        return result;
+        return httpClient->get(path, message = outRequest);
     } else if (HTTP_POST == requestAction) {
-        var result = httpClient->post(path, outRequest);
-        return result;
+        return httpClient->post(path, outRequest);
     } else if (HTTP_OPTIONS == requestAction) {
-        var result = httpClient->options(path, message = outRequest);
-        return result;
+        return httpClient->options(path, message = outRequest);
     } else if (HTTP_PUT == requestAction) {
-        var result = httpClient->put(path, outRequest);
-        return result;
+        return httpClient->put(path, outRequest);
     } else if (HTTP_DELETE == requestAction) {
-        var result = httpClient->delete(path, outRequest);
-        return result;
+        return httpClient->delete(path, outRequest);
     } else if (HTTP_PATCH == requestAction) {
-        var result = httpClient->patch(path, outRequest);
-        return result;
+        return httpClient->patch(path, outRequest);
     } else if (HTTP_FORWARD == requestAction) {
-        var result = httpClient->forward(path, outRequest);
-        return result;
+        return httpClient->forward(path, outRequest);
     } else if (HTTP_HEAD == requestAction) {
-        var result = httpClient->head(path, message = outRequest);
-        return result;
+        return httpClient->head(path, message = outRequest);
     } else if (HTTP_SUBMIT == requestAction) {
         return httpClient->submit(verb, path, outRequest);
     } else {
@@ -278,8 +261,7 @@ isolated function getInvalidTypeError() returns ClientError {
 }
 
 isolated function createErrorForNoPayload(mime:Error err) returns GenericClientError {
-    string message = "No payload";
-    return error GenericClientError(message, err);
+    return error GenericClientError("No payload", err);
 }
 
 isolated function getStatusCodeRange(string statusCode) returns string {

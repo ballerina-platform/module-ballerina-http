@@ -357,17 +357,18 @@ public class Request {
         } else {
             string message = "Error occurred while retrieving form parameters from the request";
             string|error contentTypeValue = self.getHeader(mime:CONTENT_TYPE);
+            string contentTypeHeaderValue = "";
             if (contentTypeValue is error) {
                 string errMessage = "Content-Type header is not available";
                 mime:HeaderUnavailableError typeError = error mime:HeaderUnavailableError(errMessage);
                 return error GenericClientError(message, typeError);
-            }
-            string contentTypeHeaderValue = "";
-            var mediaType = mime:getMediaType(checkpanic contentTypeValue);
-            if (mediaType is mime:InvalidContentTypeError) {
-                return error GenericClientError(message, mediaType);
             } else {
-                contentTypeHeaderValue = mediaType.primaryType + "/" + mediaType.subType;
+                var mediaType = mime:getMediaType(contentTypeValue);
+                if (mediaType is mime:InvalidContentTypeError) {
+                    return error GenericClientError(message, mediaType);
+                } else {
+                    contentTypeHeaderValue = mediaType.primaryType + "/" + mediaType.subType;
+                }
             }
             if (!(strings:equalsIgnoreCaseAscii(mime:APPLICATION_FORM_URLENCODED, contentTypeHeaderValue))) {
                 string errorMessage = "Invalid content type : expected 'application/x-www-form-urlencoded'";

@@ -49,8 +49,8 @@ public type TargetType typedesc<Response|PayloadType>;
 # `HEAD`: Identical to `GET` but no resource body should be returned
 # `SUBMIT`: Submits a http request and returns an HttpFuture object
 # `NONE`: No operation should be performed
-public type HttpOperation HTTP_FORWARD|HTTP_GET|HTTP_POST|HTTP_DELETE|HTTP_OPTIONS|HTTP_PUT|HTTP_PATCH|HTTP_HEAD|
-                          HTTP_SUBMIT|HTTP_NONE;
+type HttpOperation HTTP_FORWARD|HTTP_GET|HTTP_POST|HTTP_DELETE|HTTP_OPTIONS|HTTP_PUT|HTTP_PATCH|HTTP_HEAD|
+                   HTTP_SUBMIT|HTTP_NONE;
 # Defines the safe HTTP operations which do not modify resource representation.
 type safeHttpOperation HTTP_GET|HTTP_HEAD|HTTP_OPTIONS;
 
