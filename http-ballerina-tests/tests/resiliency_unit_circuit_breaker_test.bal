@@ -545,7 +545,7 @@ isolated function buildRequest(http:RequestMessage message) returns http:Request
         request.setXmlPayload(message);
     } else if (message is byte[]) {
         request.setBinaryPayload(message);
-    } else if (message is stream<byte[], io:Error>) {
+    } else if (message is stream<byte[], io:Error?>) {
         request.setByteStream(message);
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);

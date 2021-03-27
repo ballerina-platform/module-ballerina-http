@@ -42,7 +42,7 @@ service /cb on circuitBreakerEP05 {
     resource function 'default statuscode(http:Caller caller, http:Request request) {
         var backendRes = backendClientEP05->forward("/statuscode", request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -50,7 +50,7 @@ service /cb on circuitBreakerEP05 {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -64,7 +64,7 @@ service /statuscode on new http:Listener(8091) {
         http:Response res = new;
         res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
         res.setPayload("Service unavailable.");
-        var responseToCaller = caller->respond(res);
+        error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }

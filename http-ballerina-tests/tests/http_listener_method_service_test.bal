@@ -33,7 +33,7 @@ service /startService on listenerMethodListener {
         checkpanic listenerMethodbackendEP.attach(listenerMethodMock1, "mock1");
         checkpanic listenerMethodbackendEP.attach(listenerMethodMock2, "mock2");
         checkpanic listenerMethodbackendEP.start();
-        var result = caller->respond("Backend service started!");
+        error? result = caller->respond("Backend service started!");
         if (result is error) {
             log:printError("Error sending response", 'error = result);
         }
@@ -42,7 +42,7 @@ service /startService on listenerMethodListener {
 
 http:Service listenerMethodMock1 = service object {
     resource function get .(http:Caller caller, http:Request req) {
-        var responseToCaller = caller->respond("Mock1 invoked!");
+        error? responseToCaller = caller->respond("Mock1 invoked!");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
@@ -53,7 +53,7 @@ http:Service listenerMethodMock2 = service object {
     resource function get .(http:Caller caller, http:Request req) {
         checkpanic listenerMethodbackendEP.gracefulStop();
         runtime:sleep(2);
-        var responseToCaller = caller->respond("Mock2 invoked!");
+        error? responseToCaller = caller->respond("Mock2 invoked!");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }

@@ -91,7 +91,7 @@ function testMultipartsInOutResponse() {
             } else {
                test:assertFail(msg = errorMessage + textPart.message());
             }
-            stream<byte[], io:Error>|error filePart = bodyParts[3].getByteStream();
+            stream<byte[], io:Error?>|error filePart = bodyParts[3].getByteStream();
             if (filePart is error) {
                test:assertFail(msg = errorMessage + filePart.message());
             }
