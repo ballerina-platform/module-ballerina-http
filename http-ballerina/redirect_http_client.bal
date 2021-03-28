@@ -324,7 +324,7 @@ isolated function redirect(Response response, HttpOperation httpVerb, Request re
 isolated function performRedirection(string location, RedirectClient redirectClient, HttpOperation redirectMethod,
                             Request request, Response response) returns @untainted HttpResponse|ClientError {
     CookieStore? cookieStore = ();
-    var cookieConfigVal = redirectClient.config.cookieConfig;
+    var cookieConfigVal = redirectClient.config?.cookieConfig;
     if (cookieConfigVal is CookieConfig) {
         if (cookieConfigVal.enabled) {
             cookieStore = new(cookieConfigVal?.persistentCookieHandler);
@@ -348,21 +348,36 @@ isolated function createNewEndpointConfig(ClientConfiguration config) returns Cl
     ClientConfiguration newEpConfig = {
         http1Settings: config.http1Settings,
         http2Settings: config.http2Settings,
-        circuitBreaker: config.circuitBreaker,
         timeout: config.timeout,
         httpVersion: config.httpVersion,
         forwarded: config.forwarded,
-        followRedirects: config.followRedirects,
-        retryConfig: config.retryConfig,
-        poolConfig: config.poolConfig,
         cache: config.cache,
-        compression: config.compression,
-        auth: config.auth
+        compression: config.compression
     };
     // Update optional fields
     ClientSecureSocket? secureSocket = config?.secureSocket;
     if (secureSocket is ClientSecureSocket) {
         newEpConfig.secureSocket = secureSocket;
+    }
+    FollowRedirects? followRedirects = config?.followRedirects;
+    if (followRedirects is FollowRedirects) {
+        newEpConfig.followRedirects = followRedirects;
+    }
+    PoolConfiguration? poolConfig = config?.poolConfig;
+    if (poolConfig is PoolConfiguration) {
+        newEpConfig.poolConfig = poolConfig;
+    }
+    ClientAuthConfig? auth = config?.auth;
+    if (auth is ClientAuthConfig) {
+        newEpConfig.auth = auth;
+    }
+    CircuitBreakerConfig? circuitBreaker = config?.circuitBreaker;
+    if (circuitBreaker is CircuitBreakerConfig) {
+        newEpConfig.circuitBreaker = circuitBreaker;
+    }
+    RetryConfig? retryConfig = config?.retryConfig;
+    if (retryConfig is RetryConfig) {
+        newEpConfig.retryConfig = retryConfig;
     }
     return newEpConfig;
 }

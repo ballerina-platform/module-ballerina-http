@@ -46,7 +46,7 @@ public client class Client {
     public isolated function init(string url, *ClientConfiguration config) returns ClientError? {
         self.config = config;
         self.url = url;
-        var cookieConfigVal = self.config.cookieConfig;
+        var cookieConfigVal = self.config?.cookieConfig;
         if (cookieConfigVal is CookieConfig) {
             if (cookieConfigVal.enabled) {
                 self.cookieStore = new(cookieConfigVal?.persistentCookieHandler);
@@ -516,7 +516,7 @@ isolated function initialize(string serviceUrl, ClientConfiguration config, Cook
         int lastIndex = url.length() - 1;
         url = url.substring(0, lastIndex);
     }
-    var cbConfig = config.circuitBreaker;
+    var cbConfig = config?.circuitBreaker;
     if (cbConfig is CircuitBreakerConfig) {
         if (url.endsWith("/")) {
             int lastIndex = url.length() - 1;
@@ -526,7 +526,7 @@ isolated function initialize(string serviceUrl, ClientConfiguration config, Cook
         httpClientRequired = true;
     }
     if (httpClientRequired) {
-        var redirectConfigVal = config.followRedirects;
+        var redirectConfigVal = config?.followRedirects;
         if (redirectConfigVal is FollowRedirects) {
             return createRedirectClient(url, config, cookieStore);
         } else {
@@ -538,7 +538,7 @@ isolated function initialize(string serviceUrl, ClientConfiguration config, Cook
 }
 
 isolated function createRedirectClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
-    var redirectConfig = configuration.followRedirects;
+    var redirectConfig = configuration?.followRedirects;
     if (redirectConfig is FollowRedirects) {
         if (redirectConfig.enabled) {
             var retryClient = createRetryClient(url, configuration, cookieStore);
@@ -556,7 +556,7 @@ isolated function createRedirectClient(string url, ClientConfiguration configura
 }
 
 isolated function checkForRetry(string url, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
-    var retryConfigVal = config.retryConfig;
+    var retryConfigVal = config?.retryConfig;
     if (retryConfigVal is RetryConfig) {
         return createRetryClient(url, config, cookieStore);
     } else {
@@ -566,11 +566,11 @@ isolated function checkForRetry(string url, ClientConfiguration config, CookieSt
 
 isolated function createCircuitBreakerClient(string uri, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     HttpClient cbHttpClient;
-    var cbConfig = configuration.circuitBreaker;
+    var cbConfig = configuration?.circuitBreaker;
     if (cbConfig is CircuitBreakerConfig) {
         validateCircuitBreakerConfiguration(cbConfig);
         boolean[] statusCodes = populateErrorCodeIndex(cbConfig.statusCodes);
-        var redirectConfig = configuration.followRedirects;
+        var redirectConfig = configuration?.followRedirects;
         if (redirectConfig is FollowRedirects) {
             var redirectClient = createRedirectClient(uri, configuration, cookieStore);
             if (redirectClient is HttpClient) {
@@ -617,7 +617,7 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
 }
 
 isolated function createRetryClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
-    var retryConfig = configuration.retryConfig;
+    var retryConfig = configuration?.retryConfig;
     if (retryConfig is RetryConfig) {
         boolean[] statusCodes = populateErrorCodeIndex(retryConfig.statusCodes);
         RetryInferredConfig retryInferredConfig = {
@@ -637,7 +637,7 @@ isolated function createRetryClient(string url, ClientConfiguration configuratio
 }
 
 isolated function createCookieClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
-    var cookieConfigVal = configuration.cookieConfig;
+    var cookieConfigVal = configuration?.cookieConfig;
     if (cookieConfigVal is CookieConfig) {
         if (!cookieConfigVal.enabled) {
             return createDefaultClient(url, configuration);

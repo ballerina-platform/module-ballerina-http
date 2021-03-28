@@ -73,30 +73,30 @@ public type CompressionConfig record {|
 # + http2Settings - Configurations related to HTTP/2 protocol
 # + timeout - The maximum time to wait (in seconds) for a response before closing the connection
 # + forwarded - The choice of setting `forwarded`/`x-forwarded` header
-# + followRedirects - Configurations associated with Redirection
-# + poolConfig - Configurations associated with request pooling
 # + cache - HTTP caching related configurations
 # + compression - Specifies the way of handling compression (`accept-encoding`) header
+# + responseLimits - Configurations associated with inbound response size limits
+# + followRedirects - Configurations associated with Redirection
+# + poolConfig - Configurations associated with request pooling
 # + auth - Configurations related to client authentication
 # + circuitBreaker - Configurations associated with the behaviour of the Circuit Breaker
 # + retryConfig - Configurations associated with retrying
 # + cookieConfig - Configurations associated with cookies
-# + responseLimits - Configurations associated with inbound response size limits
 public type CommonClientConfiguration record {|
     HttpVersion httpVersion = HTTP_1_1;
     ClientHttp1Settings http1Settings = {};
     ClientHttp2Settings http2Settings = {};
     decimal timeout = 60;
     Forwarded forwarded = FORWARDED_DISABLE;
-    FollowRedirects? followRedirects = ();
-    PoolConfiguration? poolConfig = ();
     CacheConfig cache = {};
     Compression compression = COMPRESSION_AUTO;
-    ClientAuthConfig? auth = ();
-    CircuitBreakerConfig? circuitBreaker = ();
-    RetryConfig? retryConfig = ();
-    CookieConfig? cookieConfig = ();
     ResponseLimitConfigs responseLimits = {};
+    FollowRedirects followRedirects?;
+    PoolConfiguration poolConfig?;
+    ClientAuthConfig auth?;
+    CircuitBreakerConfig circuitBreaker?;
+    RetryConfig retryConfig?;
+    CookieConfig cookieConfig?;
 |};
 
 # Presents the remote address.

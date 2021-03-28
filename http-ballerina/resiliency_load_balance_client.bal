@@ -403,17 +403,11 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
     ClientConfiguration clientEPConfig = {
         http1Settings: lbConfig.http1Settings,
         http2Settings: lbConfig.http2Settings,
-        circuitBreaker:lbConfig.circuitBreaker,
         timeout:lbConfig.timeout,
         httpVersion:lbConfig.httpVersion,
         forwarded:lbConfig.forwarded,
-        followRedirects:lbConfig.followRedirects,
-        retryConfig:lbConfig.retryConfig,
-        poolConfig:lbConfig.poolConfig,
         cache:lbConfig.cache,
         compression:lbConfig.compression,
-        auth:lbConfig.auth,
-        cookieConfig:lbConfig.cookieConfig,
         responseLimits:lbConfig.responseLimits
     };
 
@@ -421,6 +415,30 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
     ClientSecureSocket? secureSocket = target?.secureSocket;
     if (secureSocket is ClientSecureSocket) {
         clientEPConfig.secureSocket = secureSocket;
+    }
+    FollowRedirects? followRedirects = lbConfig?.followRedirects;
+    if (followRedirects is FollowRedirects) {
+        clientEPConfig.followRedirects = followRedirects;
+    }
+    PoolConfiguration? poolConfig = lbConfig?.poolConfig;
+    if (poolConfig is PoolConfiguration) {
+        clientEPConfig.poolConfig = poolConfig;
+    }
+    ClientAuthConfig? auth = lbConfig?.auth;
+    if (auth is ClientAuthConfig) {
+        clientEPConfig.auth = auth;
+    }
+    CircuitBreakerConfig? circuitBreaker = lbConfig?.circuitBreaker;
+    if (circuitBreaker is CircuitBreakerConfig) {
+        clientEPConfig.circuitBreaker = circuitBreaker;
+    }
+    RetryConfig? retryConfig = lbConfig?.retryConfig;
+    if (retryConfig is RetryConfig) {
+        clientEPConfig.retryConfig = retryConfig;
+    }
+    CookieConfig? cookieConfig = lbConfig?.cookieConfig;
+    if (cookieConfig is CookieConfig) {
+        clientEPConfig.cookieConfig = cookieConfig;
     }
     return clientEPConfig;
 }

@@ -535,23 +535,41 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
     ClientConfiguration clientEPConfig = {
         http1Settings: foConfig.http1Settings,
         http2Settings: foConfig.http2Settings,
-        circuitBreaker:foConfig.circuitBreaker,
         timeout:foConfig.timeout,
         httpVersion:foConfig.httpVersion,
         forwarded:foConfig.forwarded,
-        followRedirects:foConfig.followRedirects,
-        retryConfig:foConfig.retryConfig,
-        poolConfig:foConfig.poolConfig,
         cache:foConfig.cache,
         compression:foConfig.compression,
-        auth:foConfig.auth,
-        cookieConfig:foConfig.cookieConfig,
         responseLimits:foConfig.responseLimits
     };
     // Update optional fields
     ClientSecureSocket? secureSocket = target?.secureSocket;
     if (secureSocket is ClientSecureSocket) {
         clientEPConfig.secureSocket = secureSocket;
+    }
+    FollowRedirects? followRedirects = foConfig?.followRedirects;
+    if (followRedirects is FollowRedirects) {
+        clientEPConfig.followRedirects = followRedirects;
+    }
+    PoolConfiguration? poolConfig = foConfig?.poolConfig;
+    if (poolConfig is PoolConfiguration) {
+        clientEPConfig.poolConfig = poolConfig;
+    }
+    ClientAuthConfig? auth = foConfig?.auth;
+    if (auth is ClientAuthConfig) {
+        clientEPConfig.auth = auth;
+    }
+    CircuitBreakerConfig? circuitBreaker = foConfig?.circuitBreaker;
+    if (circuitBreaker is CircuitBreakerConfig) {
+        clientEPConfig.circuitBreaker = circuitBreaker;
+    }
+    RetryConfig? retryConfig = foConfig?.retryConfig;
+    if (retryConfig is RetryConfig) {
+        clientEPConfig.retryConfig = retryConfig;
+    }
+    CookieConfig? cookieConfig = foConfig?.cookieConfig;
+    if (cookieConfig is CookieConfig) {
+        clientEPConfig.cookieConfig = cookieConfig;
     }
     return clientEPConfig;
 }

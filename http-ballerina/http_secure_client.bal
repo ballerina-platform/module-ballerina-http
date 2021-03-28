@@ -205,7 +205,8 @@ public client class HttpSecureClient {
 # + return - Created secure HTTP client
 public isolated function createHttpSecureClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpSecureClient httpSecureClient;
-    if (config.auth is ClientAuthConfig) {
+    ClientAuthConfig? auth = config?.auth;
+    if (auth is ClientAuthConfig) {
         httpSecureClient = check new(url, config);
         return httpSecureClient;
     } else {
@@ -230,19 +231,23 @@ isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req
 // Initialize the client auth handler based on the provided configurations
 isolated function initClientAuthHandler(ClientConfiguration config) returns ClientAuthHandler {
     // The existence of auth configuration is already validated.
-    ClientAuthConfig authConfig = <ClientAuthConfig>(config.auth);
-    if (authConfig is CredentialsConfig) {
-        ClientBasicAuthHandler handler = new(authConfig);
-        return handler;
-    } else if (authConfig is BearerTokenConfig) {
-        ClientBearerTokenAuthHandler handler = new(authConfig);
-        return handler;
-    } else if (authConfig is JwtIssuerConfig) {
-        ClientSelfSignedJwtAuthHandler handler = new(authConfig);
-        return handler;
+    ClientAuthConfig? authConfig = config?.auth;
+    if (authConfig is ClientAuthConfig) {
+        if (authConfig is CredentialsConfig) {
+            ClientBasicAuthHandler handler = new(authConfig);
+            return handler;
+        } else if (authConfig is BearerTokenConfig) {
+            ClientBearerTokenAuthHandler handler = new(authConfig);
+            return handler;
+        } else if (authConfig is JwtIssuerConfig) {
+            ClientSelfSignedJwtAuthHandler handler = new(authConfig);
+            return handler;
+        } else {
+            // Here, `authConfig` is `OAuth2GrantConfig`
+            ClientOAuth2Handler handler = new(authConfig);
+            return handler;
+        }
     } else {
-        // Here, `authConfig` is `OAuth2GrantConfig`
-        ClientOAuth2Handler handler = new(authConfig);
-        return handler;
+        panic error ClientError("Illegal state: Auth config cannot be nil");
     }
 }
