@@ -46,4 +46,33 @@ public class ClientSelfSignedJwtAuthHandler {
             return prepareClientAuthError("Failed to enrich request with JWT.", result);
         }
     }
+
+    # Enrich the headers map with the relevant authentication requirements.
+    #
+    # + headers - The headers map
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function enrichHeaders(map<string|string[]> headers) returns map<string|string[]>|ClientAuthError {
+        string|jwt:Error result = self.provider.generateToken();
+        if (result is string) {
+            headers[AUTH_HEADER] = AUTH_SCHEME_BEARER + " " + result;
+            return headers;
+        } else {
+            return prepareClientAuthError("Failed to enrich headers with JWT.", result);
+        }
+    }
+
+    # Returns the headers map with the relevant authentication requirements.
+    #
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function getHeaders() returns map<string|string[]>|ClientAuthError {
+        string|jwt:Error result = self.provider.generateToken();
+        if (result is string) {
+            map<string|string[]> headers = {
+                AUTH_HEADER: AUTH_SCHEME_BEARER + " " + result
+            };
+            return headers;
+        } else {
+            return prepareClientAuthError("Failed to enrich headers with JWT.", result);
+        }
+    }
 }
