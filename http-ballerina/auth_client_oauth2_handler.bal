@@ -77,7 +77,7 @@ public client class ClientOAuth2Handler {
     # Returns the headers map with the relevant authentication requirements.
     #
     # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
-    public isolated function getHeaders() returns map<string|string[]>|ClientAuthError {
+    public isolated function getSecurityHeaders() returns map<string|string[]>|ClientAuthError {
         string|oauth2:Error result = self.provider.generateToken();
         if (result is string) {
             map<string|string[]> headers = {};

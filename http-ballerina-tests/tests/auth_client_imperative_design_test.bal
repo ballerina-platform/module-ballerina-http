@@ -88,12 +88,12 @@ function testImperativeEnrichHeaders() {
 }
 
 @test:Config {}
-function testImperativeGetHeaders() {
+function testImperativeGetSecurityHeaders() {
     http:BearerTokenConfig config = {
         token: JWT1
     };
     http:ClientBearerTokenAuthHandler handler = new(config);
-    map<string|string[]>|http:ClientAuthError result = handler.getHeaders();
+    map<string|string[]>|http:ClientAuthError result = handler.getSecurityHeaders();
     if (result is map<string|string[]>) {
         http:Response|http:ClientError response = imperativeClientEP->get("/imperativeclient/foo", result);
         assertSuccess(response);

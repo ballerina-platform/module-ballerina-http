@@ -44,7 +44,7 @@ isolated function testClientBasicAuthHandler() {
         test:assertFail(msg = "Test Failed! " + result2.message());
     }
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getHeaders();
+    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
     if (result3 is map<string|string[]>) {
         string header = <string>result3.get(http:AUTH_HEADER);
         test:assertEquals(header, "Basic YWRtaW46MTIz");
@@ -77,7 +77,7 @@ isolated function testClientBearerTokenAuthHandler() {
         test:assertFail(msg = "Test Failed! " + result2.message());
     }
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getHeaders();
+    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
     if (result3 is map<string|string[]>) {
         string header = <string>result3.get(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ");
@@ -122,7 +122,7 @@ isolated function testClientSelfSignedJwtAuthHandler() {
         test:assertFail(msg = "Test Failed! " + result2.message());
     }
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getHeaders();
+    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
     if (result3 is map<string|string[]>) {
         string header = <string>result3.get(http:AUTH_HEADER);
         test:assertTrue(header.startsWith("Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"));
@@ -200,7 +200,7 @@ isolated function testClientOAuth2Handler() {
         test:assertFail(msg = "Test Failed! " + result2.message());
     }
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getHeaders();
+    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
     if (result3 is map<string|string[]>) {
         string header = <string>result3.get(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
@@ -226,7 +226,7 @@ isolated function testClientOAuth2Handler() {
         test:assertFail(msg = "Test Failed! " + result2.message());
     }
 
-    result3 = handler.getHeaders();
+    result3 = handler.getSecurityHeaders();
     if (result3 is map<string|string[]>) {
         string header = <string>result3.get(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
@@ -252,7 +252,7 @@ isolated function testClientOAuth2Handler() {
         test:assertFail(msg = "Test Failed! " + result2.message());
     }
 
-    result3 = handler.getHeaders();
+    result3 = handler.getSecurityHeaders();
     if (result3 is map<string|string[]>) {
         string header = <string>result3.get(http:AUTH_HEADER);
         test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
