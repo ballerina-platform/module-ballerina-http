@@ -80,9 +80,8 @@ public client class ClientOAuth2Handler {
     public isolated function getHeaders() returns map<string|string[]>|ClientAuthError {
         string|oauth2:Error result = self.provider.generateToken();
         if (result is string) {
-            map<string|string[]> headers = {
-                AUTH_HEADER: AUTH_SCHEME_BEARER + " " + result
-            };
+            map<string|string[]> headers = {};
+            headers[AUTH_HEADER] = AUTH_SCHEME_BEARER + " " + result;
             return headers;
         } else {
             return prepareClientAuthError("Failed to enrich headers with OAuth2 token.", result);

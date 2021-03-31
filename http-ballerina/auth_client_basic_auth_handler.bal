@@ -67,9 +67,8 @@ public class ClientBasicAuthHandler {
     public isolated function getHeaders() returns map<string|string[]>|ClientAuthError {
         string|auth:Error result = self.provider.generateToken();
         if (result is string) {
-            map<string|string[]> headers = {
-                AUTH_HEADER: AUTH_SCHEME_BASIC + " " + result
-            };
+            map<string|string[]> headers = {};
+            headers[AUTH_HEADER] = AUTH_SCHEME_BASIC + " " + result;
             return headers;
         } else {
             return prepareClientAuthError("Failed to enrich headers with Basic Auth token.", result);

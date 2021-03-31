@@ -55,9 +55,8 @@ public class ClientBearerTokenAuthHandler {
     #
     # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
     public isolated function getHeaders() returns map<string|string[]>|ClientAuthError {
-        map<string|string[]> headers = {
-            AUTH_HEADER: AUTH_SCHEME_BEARER + " " + self.config.token
-        };
+        map<string|string[]> headers = {};
+        headers[AUTH_HEADER] = AUTH_SCHEME_BEARER + " " + self.config.token;
         return headers;
     }
 }
