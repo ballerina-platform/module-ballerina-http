@@ -343,5 +343,8 @@ ballerinaPublish.finalizedBy revertTomlFile
 ballerinaPublish.dependsOn initializeVariables
 ballerinaPublish.dependsOn updateTomlVersions
 ballerinaPublish.dependsOn ":${packageName}-native:build"
+ballerinaPublish.dependsOn ":${packageName}-native:test"
 ballerinaPublish.dependsOn ballerinaBuild
+publish.dependsOn ":${packageName}-ballerina-tests:build"
+publish.dependsOn ":${packageName}-ballerina-tests:test"
 publish.dependsOn ballerinaPublish

@@ -41,4 +41,22 @@ public class ClientBearerTokenAuthHandler {
         req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + self.config.token);
         return req;
     }
+
+    # Enrich the headers map with the relevant authentication requirements.
+    #
+    # + headers - The headers map
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function enrichHeaders(map<string|string[]> headers) returns map<string|string[]>|ClientAuthError {
+        headers[AUTH_HEADER] = AUTH_SCHEME_BEARER + " " + self.config.token;
+        return headers;
+    }
+
+    # Returns the headers map with the relevant authentication requirements.
+    #
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function getSecurityHeaders() returns map<string|string[]>|ClientAuthError {
+        map<string|string[]> headers = {};
+        headers[AUTH_HEADER] = AUTH_SCHEME_BEARER + " " + self.config.token;
+        return headers;
+    }
 }

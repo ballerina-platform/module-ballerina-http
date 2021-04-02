@@ -52,10 +52,39 @@ public client class ClientOAuth2Handler {
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
     remote isolated function enrich(Request req) returns Request|ClientAuthError {
         string|oauth2:Error result = self.provider.generateToken();
-        if (result is oauth2:Error) {
+        if (result is string) {
+            req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + result);
+            return req;
+        } else {
             return prepareClientAuthError("Failed to enrich request with OAuth2 token.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + checkpanic result);
-        return req;
+    }
+
+    # Enrich the headers map with the relevant authentication requirements.
+    #
+    # + headers - The headers map
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function enrichHeaders(map<string|string[]> headers) returns map<string|string[]>|ClientAuthError {
+        string|oauth2:Error result = self.provider.generateToken();
+        if (result is string) {
+            headers[AUTH_HEADER] = AUTH_SCHEME_BEARER + " " + result;
+            return headers;
+        } else {
+            return prepareClientAuthError("Failed to enrich headers with OAuth2 token.", result);
+        }
+    }
+
+    # Returns the headers map with the relevant authentication requirements.
+    #
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function getSecurityHeaders() returns map<string|string[]>|ClientAuthError {
+        string|oauth2:Error result = self.provider.generateToken();
+        if (result is string) {
+            map<string|string[]> headers = {};
+            headers[AUTH_HEADER] = AUTH_SCHEME_BEARER + " " + result;
+            return headers;
+        } else {
+            return prepareClientAuthError("Failed to enrich headers with OAuth2 token.", result);
+        }
     }
 }

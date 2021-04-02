@@ -32,7 +32,7 @@ listener http:Listener sslServerEp = new(9114, config = helloWorldEPConfig);
 
 service /hello on sslServerEp {
     resource function get .(http:Caller caller, http:Request req) {
-        var result = caller->respond("Hello World!");
+        error? result = caller->respond("Hello World!");
         if (result is error) {
             log:printError("Failed to respond", 'error = result);
         }

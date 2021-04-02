@@ -27,11 +27,11 @@ isolated function getFreshnessLifetime(Response cachedResponse, boolean isShared
     // TODO: Ensure that duplicate directives are not counted towards freshness lifetime.
     var responseCacheControl = cachedResponse.cacheControl;
     if (responseCacheControl is ResponseCacheControl) {
-        if (isSharedCache && responseCacheControl.sMaxAge >= 0) {
+        if (isSharedCache && responseCacheControl.sMaxAge >= 0d) {
             return <time:Seconds> responseCacheControl.sMaxAge;
         }
 
-        if (responseCacheControl.maxAge >= 0) {
+        if (responseCacheControl.maxAge >= 0d) {
             return <time:Seconds> responseCacheControl.maxAge;
         }
     }

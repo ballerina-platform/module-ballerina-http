@@ -37,7 +37,7 @@ type PersonTable table<RetEmployee> key(id);
 
 service http:Service /mytest on resourceReturnTestEP {
     resource function get test1(http:Caller caller) {
-        var result = caller->respond("hello");
+        error? result = caller->respond("hello");
         return;
     }
     

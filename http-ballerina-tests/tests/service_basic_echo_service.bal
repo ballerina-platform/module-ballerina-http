@@ -127,10 +127,14 @@ service /hello on serviceTestEP {
     }
 
     resource function 'default testFunctionCall(http:Caller caller, http:Request req) {
-        checkpanic caller->respond(<@untainted> self.nonRemoteFunctionCall());
+        string str;
+        lock {
+            str = <@untainted> self.nonRemoteFunctionCall();
+        }
+        checkpanic caller->respond(str);
     }
 
-    function nonRemoteFunctionCall() returns string {
+    isolated function nonRemoteFunctionCall() returns string {
         return "Non remote function invoked";
     }
 }

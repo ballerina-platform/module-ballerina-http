@@ -55,7 +55,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         var backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
         if (backendResponse is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendResponse);
+            error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -63,7 +63,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendResponse.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -87,7 +87,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             runtime:sleep(5);
             http:Response res = new;
             res.setPayload("Hello World!!!");
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
 
             if (result is error) {
                 log:printError("Error sending response from mock service", 'error = result);
@@ -112,13 +112,13 @@ service /mockHelloService on retryTestserviceEndpoint1 {
                                 foreach var childPart in childParts {
                                     // When performing passthrough scenarios, message needs to be built before
                                     // invoking the endpoint to create a message datasource.
-                                    var childBlobContent = childPart.getByteArray();
+                                    byte[]|error childBlobContent = childPart.getByteArray();
                                 }
                                 io:println(bodyPart.getContentType());
                                 bodyPart.setBodyParts(<@untainted> childParts, <@untainted> bodyPart.getContentType());
                             }
                         } else {
-                            var bodyPartBlobContent = bodyPart.getByteArray();
+                            byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
                         }
                     }
                     response.setBodyParts(<@untainted> bodyParts, <@untainted> req.getContentType());
@@ -130,7 +130,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             } else {
                 response.setPayload("Hello World!!!");
             }
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response from mock service", 'error = responseToCaller);
             }
