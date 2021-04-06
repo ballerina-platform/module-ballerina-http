@@ -44,15 +44,10 @@ public class CompilerPluginTest {
     private static final Path DISTRIBUTION_PATH = Paths.get("build", "target", "ballerina-distribution")
             .toAbsolutePath();
 
-    @Test
-    public void testCompilerPlugin() {
-        Package currentPackage = loadPackage("sample_package_1");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnostics().size(), 1);
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.diagnostics().toArray()[0];
-        Assert.assertEquals(diagnostic.diagnosticInfo().code(), "HTTP_101");
-    }
+    private static final String HTTP_101 = "HTTP_101";
+    private static final String HTTP_102 = "HTTP_102";
+
+    private static final String REMOTE_METHODS_NOT_ALLOWED = "`remote` methods are not allowed in http:Service";
 
     private Package loadPackage(String path) {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve(path);
@@ -63,5 +58,32 @@ public class CompilerPluginTest {
     private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
         Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(DISTRIBUTION_PATH).build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
+    }
+
+    private void assertError(DiagnosticResult diagnosticResult, int index, String message, String code) {
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.diagnostics().toArray()[index];
+        Assert.assertEquals(diagnostic.diagnosticInfo().messageFormat(), message);
+        Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
+    }
+
+    @Test
+    public void testInvalidFunctionTypes() {
+        Package currentPackage = loadPackage("sample_package_1");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.diagnostics().size(), 3);
+        assertError(diagnosticResult, 0, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
+        assertError(diagnosticResult, 1, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
+        assertError(diagnosticResult, 2, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
+    }
+
+    @Test
+    public void testCompilerPlugin() {
+        Package currentPackage = loadPackage("sample_package_2");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.diagnostics().size(), 3);
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.diagnostics().toArray()[0];
+        Assert.assertEquals(diagnostic.diagnosticInfo().code(), "HTTP_101");
     }
 }

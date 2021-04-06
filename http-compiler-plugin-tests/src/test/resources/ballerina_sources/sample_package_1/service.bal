@@ -1,22 +1,33 @@
 import ballerina/http;
 
 service http:Service on new http:Listener(9090) {
-    resource function get greeting() returns string|int {
+
+    string abc = "as";
+
+    resource function get greeting()  {
+    }
+
+    isolated resource function post noGreeting() {
+    }
+
+    private function hello() returns string {
+        return "yo";
+    }
+
+    isolated remote function greeting() returns string {
         return "Hello";
     }
 
-    resource function post noGreeting() returns json {
-        return "world";
+    function hello2() returns string {
+        return "yo";
     }
 
-    function hello() returns string {
-        return "yo";
+    remote function greeting2() returns string|http:Response {
+        return "Hello";
     }
 }
 
 service http:Service on new http:Listener(9091) {
-    resource function get greeting2(http:Caller caller) returns http:Response {
-        http:Response res = new;
-        return res;
+    remote function greeting2(http:Caller caller) {
     }
 }
