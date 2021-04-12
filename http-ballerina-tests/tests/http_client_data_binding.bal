@@ -35,6 +35,7 @@ int clientDBCounter = 0;
 type ByteArray byte[];
 type ClientDBPersonArray ClientDBPerson[];
 type MapOfJson map<json>;
+type XmlType xml;
 
 service /passthrough on clientDBProxyListener {
 
@@ -48,7 +49,7 @@ service /passthrough on clientDBProxyListener {
         json name = check p1.id;
         payload = payload + " | " + name.toJsonString();
 
-        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml", targetType = xml);
+        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml", targetType = XmlType);
         payload = payload + " | " + q.toString();
 
         string r = checkpanic clientDBBackendClient->post("/backend/getString", "want string", targetType = string);
