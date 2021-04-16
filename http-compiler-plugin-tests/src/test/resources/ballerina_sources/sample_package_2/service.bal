@@ -1,22 +1,97 @@
 import ballerina/http;
 
+type Person record {|
+    readonly int id;
+    string name;
+|};
+
+type PersonTable table<Person> key(id);
+
 service http:Service on new http:Listener(9090) {
-    resource function get greeting() returns string|int {
-        return "Hello";
+    resource function get greeting() returns int|error|string {
+        return error http:Error("hello") ;
     }
 
-    resource function post noGreeting() returns json {
-        return "world";
+    resource function get greeting2() returns http:Error {
+        return error http:ListenerError("hello") ;
     }
 
-    function hello() returns string {
-        return "yo";
+    resource function post greeting3() returns () {
+        // Request hangs without a response
+        return;
     }
-}
 
-service http:Service on new http:Listener(9091) {
-    resource function get greeting2(http:Caller caller) returns http:Response {
-        http:Response res = new;
-        return res;
+    resource function get greeting4() returns http:Client { // Compiler error
+        http:Client httpClient = checkpanic new("path");
+        return httpClient;
     }
+
+    resource function get greeting5() returns Person {
+        return {id:123, name: "john"};
+    }
+
+    resource function get greeting6() returns string[] {
+        return ["Abc", "Xyz"];
+    }
+
+    resource function get greeting7() returns int[] {
+        return [15, 34];
+    }
+
+    resource function get greeting8() returns error[] { // Compiler error
+        error e1 = error http:ListenerError("hello1");
+        error e2 = error http:ListenerError("hello2");
+        return [e1, e2];
+    }
+
+    resource function get greeting9() returns byte[] {
+        byte[] binaryValue = "Sample Text".toBytes();
+        return binaryValue;
+    }
+
+    resource function get greeting10() returns map<string> {
+        return {};
+    }
+
+    resource function get greeting11() returns PersonTable {
+        PersonTable tbPerson = table [
+            {id: 1, name: "John"},
+            {id: 2, name: "Bella"}
+        ];
+        return tbPerson;
+    }
+
+    resource function get greeting12() returns table<Person> key(id) {
+        PersonTable tbPerson = table [
+            {id: 1, name: "John"},
+            {id: 2, name: "Bella"}
+        ];
+        return tbPerson;
+    }
+
+    resource function get greeting13() returns map<http:Client> {
+        http:Client httpClient = checkpanic new("path");
+        return {name:httpClient};
+    }
+
+    //resource function get greeting(@http:CallerInfo{responseType:string} http:Caller caller) {
+    //    caller->respond({hello:"uwnvwo"});
+    //    // Annotation value - syntax-tree API - typeSymbol - assignableTo()
+    //    //Function call expression - syntax tree visitor - method symbol(string match) -
+    //}
+//
+//    resource function post noGreeting() returns json {
+//        return "world";
+//    }
+//
+//    function hello() returns string {
+//        return "yo";
+//    }
+//}
+//
+//service http:Service on new http:Listener(9091) {
+//    resource function get greeting2(http:Caller caller) returns http:Response {
+//        http:Response res = new;
+//        return res;
+//    }
 }

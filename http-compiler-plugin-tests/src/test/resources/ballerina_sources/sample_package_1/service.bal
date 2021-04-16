@@ -4,7 +4,7 @@ service http:Service on new http:Listener(9090) {
 
     string abc = "as";
 
-    resource function get greeting()  {
+    resource function get greeting() {
     }
 
     isolated resource function post noGreeting() {
