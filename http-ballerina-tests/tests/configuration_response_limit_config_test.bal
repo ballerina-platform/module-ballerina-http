@@ -78,7 +78,7 @@ service /responseLimit on statusLineEP {
 
         var clientResponse = clientEP->forward("/", <@untainted>req);
         if (clientResponse is http:Response) {
-            var result = caller->respond(<@untainted>clientResponse);
+            error? result = caller->respond(<@untainted>clientResponse);
             if (result is error) {
                 log:printError("Error sending passthru response", 'error = result);
             }
@@ -86,7 +86,7 @@ service /responseLimit on statusLineEP {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted>clientResponse.toString());
-            var result = caller->respond(<@untainted>res);
+            error? result = caller->respond(<@untainted>res);
             if (result is error) {
                 log:printError("Error sending error response", 'error = result);
             }
@@ -160,7 +160,7 @@ function getStringLengthOf(int length) returns string {
 }
 
 function sendResponse(http:Caller caller, http:Response res) {
-    var result = caller->respond(res);
+    error? result = caller->respond(res);
     if (result is error) {
         log:printError("Error sending backend response", 'error = result);
     }

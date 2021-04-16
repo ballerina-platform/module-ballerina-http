@@ -51,7 +51,7 @@ service /cb on circuitBreakerEP06 {
         }
         var backendRes = backendClientEP06->forward("/hello06", request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -59,7 +59,7 @@ service /cb on circuitBreakerEP06 {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -78,7 +78,7 @@ service /hello06 on new http:Listener(8092) {
         } else {
             res.setPayload("Hello World!!!");
         }
-        var responseToCaller = caller->respond(res);
+        error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }

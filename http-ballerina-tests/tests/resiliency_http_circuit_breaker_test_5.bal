@@ -42,7 +42,7 @@ service /cb on circuitBreakerEP04 {
     resource function 'default requestvolume(http:Caller caller, http:Request request) {
         var backendRes = errornousClientEP->forward("/errornous", request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -50,7 +50,7 @@ service /cb on circuitBreakerEP04 {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -64,7 +64,7 @@ service /errornous on new http:Listener(8090) {
         http:Response res = new;
         res.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
         res.setPayload("Internal error occurred while processing the request.");
-        var responseToCaller = caller->respond(res);
+        error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }

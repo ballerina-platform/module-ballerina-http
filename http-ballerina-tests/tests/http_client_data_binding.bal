@@ -35,6 +35,7 @@ int clientDBCounter = 0;
 type ByteArray byte[];
 type ClientDBPersonArray ClientDBPerson[];
 type MapOfJson map<json>;
+type XmlType xml;
 
 service /passthrough on clientDBProxyListener {
 
@@ -48,7 +49,7 @@ service /passthrough on clientDBProxyListener {
         json name = check p1.id;
         payload = payload + " | " + name.toJsonString();
 
-        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml", targetType = xml);
+        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml", targetType = XmlType);
         payload = payload + " | " + q.toString();
 
         string r = checkpanic clientDBBackendClient->post("/backend/getString", "want string", targetType = string);
@@ -67,7 +68,7 @@ service /passthrough on clientDBProxyListener {
         http:Response v = checkpanic clientDBBackendClient->post("/backend/getResponse", "want record[]", targetType = http:Response);
         payload = payload + " | " + checkpanic v.getHeader("x-fact");
 
-        var result = caller->respond(<@untainted>payload);
+        error? result = caller->respond(<@untainted>payload);
     }
 
     resource function get allMethods(http:Caller caller, http:Request request) returns error? {
@@ -95,14 +96,14 @@ service /passthrough on clientDBProxyListener {
         ClientDBPerson[] u = checkpanic clientDBBackendClient->forward("/backend/getRecordArr", request, targetType = ClientDBPersonArray);
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
-        var result = caller->respond(<@untainted>payload);
+        error? result = caller->respond(<@untainted>payload);
     }
 
     resource function get redirect(http:Caller caller, http:Request req) {
         http:Client redirectClient = checkpanic new("http://localhost:" + clientDatabindingTestPort3.toString(),
                                                         {followRedirects: {enabled: true, maxCount: 5}});
         json p = checkpanic redirectClient->post("/redirect1/", "want json", targetType = json);
-        var result = caller->respond(<@untainted>p);
+        error? result = caller->respond(<@untainted>p);
     }
 
     resource function get 'retry(http:Caller caller, http:Request request) {
@@ -112,12 +113,12 @@ service /passthrough on clientDBProxyListener {
             }
         );
         string r = checkpanic retryClient->forward("/backend/getRetryResponse", request, targetType = string);
-        var responseToCaller = caller->respond(<@untainted>r);
+        error? responseToCaller = caller->respond(<@untainted>r);
     }
 
     resource function 'default '500(http:Caller caller, http:Request request) {
         json p = checkpanic clientDBBackendClient->post("/backend/get5XX", "want 500", targetType = json);
-        var responseToCaller = caller->respond(<@untainted>p);
+        error? responseToCaller = caller->respond(<@untainted>p);
     }
 
     resource function 'default '500handle(http:Caller caller, http:Request request) {
@@ -126,16 +127,16 @@ service /passthrough on clientDBProxyListener {
             http:Response resp = new;
             resp.statusCode = res.detail()?.statusCode ?: 500;
             resp.setPayload(<@untainted>res.message());
-            var responseToCaller = caller->respond(<@untainted>resp);
+            error? responseToCaller = caller->respond(<@untainted>resp);
         } else {
             json p = checkpanic res;
-            var responseToCaller = caller->respond(<@untainted>p);
+            error? responseToCaller = caller->respond(<@untainted>p);
         }
     }
 
     resource function 'default '404(http:Caller caller, http:Request request) {
         json p = checkpanic clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500", targetType = json);
-        var responseToCaller = caller->respond(<@untainted>p);
+        error? responseToCaller = caller->respond(<@untainted>p);
     }
 
     resource function  'default '404/[string path](http:Caller caller, http:Request request) {
@@ -144,10 +145,10 @@ service /passthrough on clientDBProxyListener {
             http:Response resp = new;
             resp.statusCode = res.detail()?.statusCode ?: 400;
             resp.setPayload(<@untainted>res.message());
-            var responseToCaller = caller->respond(<@untainted>resp);
+            error? responseToCaller = caller->respond(<@untainted>resp);
         } else {
             json p = checkpanic res;
-            var responseToCaller = caller->respond(<@untainted>p);
+            error? responseToCaller = caller->respond(<@untainted>p);
         }
     }
 }
@@ -156,54 +157,54 @@ service /backend on clientDBBackendListener {
     resource function 'default getJson(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setJsonPayload({id: "chamil", values: {a: 2, b: 45, c: {x: "mnb", y: "uio"}}});
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getXml(http:Caller caller, http:Request req) {
         http:Response response = new;
         xml xmlStr = xml `<name>Ballerina</name>`;
         response.setXmlPayload(xmlStr);
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getString(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setTextPayload("This is my @4491*&&#$^($@");
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getByteArray(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setBinaryPayload("BinaryPayload is textVal".toBytes());
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getRecord(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setJsonPayload({name: "chamil", age: 15});
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getRecordArr(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setJsonPayload([{name: "wso2", age: 12}, {name: "ballerina", age: 3}]);
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function post getResponse(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setJsonPayload({id: "hello"});
         response.setHeader("x-fact", "data-binding");
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getRetryResponse(http:Caller caller, http:Request req) {
         clientDBCounter = clientDBCounter + 1;
         if (clientDBCounter == 1) {
             runtime:sleep(5);
-            var responseToCaller = caller->respond("Not received");
+            error? responseToCaller = caller->respond("Not received");
         } else {
-            var responseToCaller = caller->respond("Hello World!!!");
+            error? responseToCaller = caller->respond("Hello World!!!");
         }
     }
 
@@ -211,14 +212,14 @@ service /backend on clientDBBackendListener {
         http:Response response = new;
         response.statusCode = 501;
         response.setTextPayload("data-binding-failed-with-501");
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function get get4XX(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.statusCode = 400;
         response.setTextPayload("data-binding-failed-due-to-bad-request");
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 }
 
@@ -226,7 +227,7 @@ service /redirect1 on clientDBBackendListener2 {
 
     resource function 'default .(http:Caller caller, http:Request req) {
         http:Response res = new;
-        var result = caller->redirect(res, http:REDIRECT_SEE_OTHER_303,
+        error? result = caller->redirect(res, http:REDIRECT_SEE_OTHER_303,
                         ["http://localhost:" + clientDatabindingTestPort2.toString() + "/backend/getJson"]);
     }
 }

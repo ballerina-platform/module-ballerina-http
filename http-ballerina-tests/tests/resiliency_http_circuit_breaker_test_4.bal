@@ -47,7 +47,7 @@ service /cb on circuitBreakerEP03 {
             if (!(currentState == http:CB_CLOSED_STATE)) {
                 backendRes.setPayload("Circuit Breaker is not in correct state state");
             }
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -55,7 +55,7 @@ service /cb on circuitBreakerEP03 {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
@@ -66,7 +66,7 @@ service /cb on circuitBreakerEP03 {
 service /simple on new http:Listener(8089) {
     
     resource function 'default .(http:Caller caller, http:Request req) {
-        var responseToCaller = caller->respond("Hello World!!!");
+        error? responseToCaller = caller->respond("Hello World!!!");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }

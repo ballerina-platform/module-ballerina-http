@@ -39,20 +39,22 @@ public client class ListenerLdapUserStoreBasicAuthProvider {
     # + return - The `auth:UserDetails` instance or else `Unauthorized` type in case of an error
     remote isolated function authenticate(Request|Headers|string data) returns auth:UserDetails|Unauthorized {
         string|ListenerAuthError credential = extractCredential(data);
-        if (credential is ListenerAuthError) {
+        if (credential is string) {
+            auth:UserDetails|auth:Error details = self.provider.authenticate(credential);
+            if (details is auth:UserDetails) {
+                return details;
+            } else {
+                Unauthorized unauthorized = {
+                    body: buildCompleteErrorMessage(details)
+                };
+                return unauthorized;
+            }
+        } else {
             Unauthorized unauthorized = {
                 body: credential.message()
             };
             return unauthorized;
         }
-        auth:UserDetails|auth:Error details = self.provider.authenticate(checkpanic credential);
-        if (details is auth:Error) {
-            Unauthorized unauthorized = {
-                body: buildCompleteErrorMessage(details)
-            };
-            return unauthorized;
-        }
-        return checkpanic details;
     }
 
     # Authorizes with the relevant authorization requirements.

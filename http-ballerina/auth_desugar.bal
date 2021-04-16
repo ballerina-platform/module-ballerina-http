@@ -39,14 +39,15 @@ public isolated function authenticateResource(Service serviceRef, string methodN
         return;
     }
     string|HeaderNotFoundError header = getAuthorizationHeader();
-    if (header is HeaderNotFoundError) {
+    if (header is string) {
+        Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authConfig, header);
+        if (result is Unauthorized) {
+            sendResponse(create401Response());
+        } else if (result is Forbidden) {
+            sendResponse(create403Response());
+        }
+    } else {
         sendResponse(create401Response());
-    }
-    Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authConfig, checkpanic header);
-    if (result is Unauthorized) {
-        sendResponse(create401Response());
-    } else if (result is Forbidden) {
-        sendResponse(create403Response());
     }
 }
 

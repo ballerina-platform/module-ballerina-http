@@ -49,7 +49,7 @@ isolated function isServingStaleProhibitedInResponseCC(ResponseCacheControl? cac
     ResponseCacheControl resCC = <ResponseCacheControl>cacheControl;
 
     // No need to worry about no-store directive here since we don't cache responses with no-store directives.
-    return resCC.noCache || resCC.mustRevalidate || resCC.proxyRevalidate || (resCC.sMaxAge >= 0);
+    return resCC.noCache || resCC.mustRevalidate || resCC.proxyRevalidate || (resCC.sMaxAge >= 0d);
 }
 
 isolated function isStaleResponseAccepted(RequestCacheControl? requestCacheControl, Response cachedResponse,

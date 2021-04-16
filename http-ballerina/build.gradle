@@ -22,8 +22,7 @@ description = 'Ballerina - HTTP/WS Ballerina Generator'
 def packageName = "http"
 def packageOrg = "ballerina"
 def platform = "java11"
-def snapshotVersion = "-SNAPSHOT"
-def tomlVersion = project.version.replace("${snapshotVersion}", "")
+def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
 def compilerPluginTomlFile = new File("$project.projectDir/CompilerPlugin.toml")
@@ -35,6 +34,20 @@ def originalConfig = ballerinaConfigFile.text
 def originalDependency = ballerinaDependencyFile.text
 def originalCompilerPluginToml = compilerPluginTomlFile.text
 def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
+
+def stripBallerinaExtensionVersion(String extVersion) {
+    if (extVersion.matches(project.ext.timestampedVersionRegex)) {
+        def splitVersion = extVersion.split('-');
+        if (splitVersion.length > 3) {
+            def strippedValues = splitVersion[0..-4]
+            return strippedValues.join('-')
+        } else {
+            return extVersion
+        }
+    } else {
+        return extVersion.replace("${project.ext.snapshotVersion}", "")
+    }
+}
 
 configurations {
     jbalTools
@@ -152,17 +165,17 @@ task copyStdlibs(type: Copy) {
 task updateTomlVersions {
     doLast {
         def stdlibDependentMimeNativeVersion = project.stdlibMimeVersion
-        def stdlibDependentIoVersion = project.stdlibIoVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentLogVersion = project.stdlibLogVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentRegexVersion = project.stdlibRegexVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentMimeVersion = project.stdlibMimeVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentAuthVersion = project.stdlibAuthVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentJwtVersion = project.stdlibJwtVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentOAuth2Version = project.stdlibOAuth2Version.replace("${snapshotVersion}", "")
-        def stdlibDependentCacheVersion = project.stdlibCacheVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentTimeVersion = project.stdlibTimeVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentCryptoVersion = project.stdlibCryptoVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentFileVersion = project.stdlibFileVersion.replace("${snapshotVersion}", "")
+        def stdlibDependentIoVersion = stripBallerinaExtensionVersion(project.stdlibIoVersion)
+        def stdlibDependentLogVersion = stripBallerinaExtensionVersion(project.stdlibLogVersion)
+        def stdlibDependentRegexVersion = stripBallerinaExtensionVersion(project.stdlibRegexVersion)
+        def stdlibDependentMimeVersion = stripBallerinaExtensionVersion(project.stdlibMimeVersion)
+        def stdlibDependentAuthVersion = stripBallerinaExtensionVersion(project.stdlibAuthVersion)
+        def stdlibDependentJwtVersion = stripBallerinaExtensionVersion(project.stdlibJwtVersion)
+        def stdlibDependentOAuth2Version = stripBallerinaExtensionVersion(project.stdlibOAuth2Version)
+        def stdlibDependentCacheVersion = stripBallerinaExtensionVersion(project.stdlibCacheVersion)
+        def stdlibDependentTimeVersion = stripBallerinaExtensionVersion(project.stdlibTimeVersion)
+        def stdlibDependentCryptoVersion = stripBallerinaExtensionVersion(project.stdlibCryptoVersion)
+        def stdlibDependentFileVersion = stripBallerinaExtensionVersion(project.stdlibFileVersion)
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
         def stdlibDependentWso2SnakeYamlVersion = project.wso2SnakeYamlVersion
@@ -327,8 +340,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/ballerina-platform/module-${packageOrg}-${packageName}")
             credentials {
-                username = System.getenv("packageUser")
-                password = System.getenv("packagePAT")
+                username = System.getenv("publishUser")
+                password = System.getenv("publishPAT")
             }
         }
     }
@@ -347,6 +360,9 @@ ballerinaPublish.finalizedBy revertTomlFile
 ballerinaPublish.dependsOn initializeVariables
 ballerinaPublish.dependsOn updateTomlVersions
 ballerinaPublish.dependsOn ":${packageName}-native:build"
+ballerinaPublish.dependsOn ":${packageName}-native:test"
 ballerinaPublish.dependsOn ":${packageName}-compiler-plugin:build"
 ballerinaPublish.dependsOn ballerinaBuild
+publish.dependsOn ":${packageName}-ballerina-tests:build"
+publish.dependsOn ":${packageName}-ballerina-tests:test"
 publish.dependsOn ballerinaPublish

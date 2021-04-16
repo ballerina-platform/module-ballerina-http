@@ -436,7 +436,7 @@ function testXmlBodyPartAsFileUpload() {
 function testBinaryBodyPartAsFileUploadUsingStream() returns @tainted error? {
     io:ReadableByteChannel byteChannel = check io:openReadableFile
                                 ("tests/datafiles/test.tmp");
-    stream<io:Block, io:Error> blockStream = check byteChannel.blockStream(8196);
+    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
     mime:Entity binaryFilePart = new;
     binaryFilePart.setByteStream(blockStream);
     http:Request request = new;
@@ -445,7 +445,7 @@ function testBinaryBodyPartAsFileUploadUsingStream() returns @tainted error? {
     var response = multipartReqClient->post("/test/binarybodypart", request);
     if (response is http:Response) {
         var str = response.getByteStream();
-        if (str is stream<byte[], io:Error>) {
+        if (str is stream<byte[], io:Error?>) {
             record {|byte[] value;|}|io:Error? arr1 = str.next();
             if (arr1 is record {|byte[] value;|}) {
                 string name = checkpanic strings:fromBytes(arr1.value);
@@ -507,7 +507,7 @@ function testMultiplePartsWithMultipleBodyTypesIncludingStreams() returns @taint
 
     io:ReadableByteChannel byteChannel = check io:openReadableFile
                                 ("tests/datafiles/test.tmp");
-    stream<io:Block, io:Error> blockStream = check byteChannel.blockStream(8196);
+    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
     mime:Entity binaryFilePart = new;
     binaryFilePart.setByteStream(blockStream);
 
@@ -570,5 +570,5 @@ function close(io:ReadableByteChannel|io:ReadableCharacterChannel ch) {
     object {
         public function close() returns error?;
     } channelResult = ch;
-    var cr = channelResult.close();
+    error? cr = channelResult.close();
 }
