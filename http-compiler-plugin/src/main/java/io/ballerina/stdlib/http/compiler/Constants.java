@@ -18,30 +18,6 @@
 
 package io.ballerina.stdlib.http.compiler;
 
-import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
-import io.ballerina.compiler.api.symbols.FunctionSymbol;
-import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
-import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
-import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.Token;
-import io.ballerina.projects.plugins.AnalysisTask;
-import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
-import io.ballerina.tools.diagnostics.DiagnosticFactory;
-import io.ballerina.tools.diagnostics.DiagnosticInfo;
-
-import java.util.List;
-import java.util.Optional;
-
-import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
-
 /**
  * Constants related to compiler plugin implementation.
  */
@@ -53,7 +29,15 @@ public class Constants {
     public static final String HTTP_104 = "HTTP_104";
     public static final String HTTP_105 = "HTTP_105";
     public static final String HTTP_106 = "HTTP_106";
+    public static final String HTTP_107 = "HTTP_107";
+    public static final String HTTP_108 = "HTTP_108";
+    public static final String HTTP_109 = "HTTP_109";
+    public static final String HTTP_110 = "HTTP_110";
+    public static final String HTTP_111 = "HTTP_111";
+    public static final String HTTP_112 = "HTTP_112";
+    public static final String HTTP_113 = "HTTP_113";
 
+    public static final String BALLERINA = "ballerina";
     public static final String HTTP = "http";
     public static final String REMOTE_KEYWORD = "remote";
     public static final String RESPONSE_OBJ_NAME = "Response";

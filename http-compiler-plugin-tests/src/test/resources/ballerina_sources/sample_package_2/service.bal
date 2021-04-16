@@ -74,24 +74,7 @@ service http:Service on new http:Listener(9090) {
         return {name:httpClient};
     }
 
-    //resource function get greeting(@http:CallerInfo{responseType:string} http:Caller caller) {
-    //    caller->respond({hello:"uwnvwo"});
-    //    // Annotation value - syntax-tree API - typeSymbol - assignableTo()
-    //    //Function call expression - syntax tree visitor - method symbol(string match) -
-    //}
-//
-//    resource function post noGreeting() returns json {
-//        return "world";
-//    }
-//
-//    function hello() returns string {
-//        return "yo";
-//    }
-//}
-//
-//service http:Service on new http:Listener(9091) {
-//    resource function get greeting2(http:Caller caller) returns http:Response {
-//        http:Response res = new;
-//        return res;
-//    }
+    resource function get greeting14() returns http:Ok {
+        return {};
+    }
 }

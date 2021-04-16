@@ -50,6 +50,13 @@ public class CompilerPluginTest {
     private static final String HTTP_104 = "HTTP_104";
     private static final String HTTP_105 = "HTTP_105";
     private static final String HTTP_106 = "HTTP_106";
+    private static final String HTTP_107 = "HTTP_107";
+    private static final String HTTP_108 = "HTTP_108";
+    private static final String HTTP_109 = "HTTP_109";
+    private static final String HTTP_110 = "HTTP_110";
+    private static final String HTTP_111 = "HTTP_111";
+    private static final String HTTP_112 = "HTTP_112";
+    private static final String HTTP_113 = "HTTP_113";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "`remote` methods are not allowed in http:Service";
 
@@ -76,7 +83,7 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
     }
 
-    //    @Test
+    @Test
     public void testInvalidMethodTypes() {
         Package currentPackage = loadPackage("sample_package_1");
         PackageCompilation compilation = currentPackage.getCompilation();
@@ -87,110 +94,112 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 2, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
     }
 
-    //    @Test
+    @Test
     public void testInValidReturnTypes() {
         Package currentPackage = loadPackage("sample_package_2");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 3);
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.diagnostics().toArray()[0];
-        Assert.assertEquals(diagnostic.diagnosticInfo().code(), "HTTP_102");
+        assertError(diagnosticResult, 0, "invalid resource method return type: expected " +
+                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'http:Client'", HTTP_102);
+        assertError(diagnosticResult, 1, "invalid resource method return type: expected " +
+                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'error[]'", HTTP_102);
+        assertError(diagnosticResult, 2, "invalid resource method return type: expected 'anydata|http:Response" +
+                "|http:StatusCodeRecord|error', but found 'map<http:Client>'", HTTP_102);
     }
 
-    //    @Test
+    @Test
     public void testInValidAnnotations() {
         Package currentPackage = loadPackage("sample_package_3");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 3);
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.diagnostics().toArray()[0];
-        Assert.assertEquals(diagnostic.diagnosticInfo().code(), "HTTP_103");
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 2);
+        assertError(diagnosticResult, 1, "invalid resource method annotation type: expected 'http:ResourceConfig', " +
+                "but found 'test:Config '", HTTP_103);
     }
 
-    //    @Test
+    @Test
     public void testInValidInputPayloadArgs() {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 4);
-        assertError(diagnosticResult, 0,
-                    "invalid multiple resource parameter annotations for 'abc': expected one of the " +
-                            "following types: 'http:Payload|http:CallerInfo|http:Header'", HTTP_104);
-        assertError(diagnosticResult, 1, "invalid payload parameter type: 'json[]'", HTTP_104);
+        assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
+        assertError(diagnosticResult, 1, "invalid payload parameter type: 'json[]'", HTTP_107);
         assertError(diagnosticResult, 2, "invalid annotation type on param 'a': expected one of the following types: " +
-                "'http:Payload|http:CallerInfo|http:Header'", HTTP_104);
+                "'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_104);
         assertError(diagnosticResult, 3,
-                    "invalid resource parameter type: 'table<http_test/sample_4:0.1.0:Person> key(id)'", HTTP_104);
+                    "invalid resource parameter type: 'table<http_test/sample_4:0.1.0:Person> key(id)'", HTTP_106);
     }
 
-    //    @Test
+    @Test
     public void testInValidInputHeaderArgs() {
         Package currentPackage = loadPackage("sample_package_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
         assertError(diagnosticResult, 0, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_104);
-        assertError(diagnosticResult, 1,
-                    "invalid multiple resource parameter annotations for 'abc': expected one of the " +
-                            "following types: 'http:Payload|http:CallerInfo|http:Header'", HTTP_104);
+                    HTTP_109);
+        assertError(diagnosticResult, 1, "invalid multiple resource parameter annotations for 'abc': expected one of " +
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
         assertError(diagnosticResult, 2, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_104);
+                    HTTP_109);
         assertError(diagnosticResult, 3,
                     "invalid union type of header param 'abc': a string or an array of a string can only be union " +
                             "with '()'. Eg: string|() or string[]|()",
-                    HTTP_104);
+                    HTTP_110);
         assertError(diagnosticResult, 4, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_104);
+                    HTTP_109);
         assertError(diagnosticResult, 5,
                     "invalid union type of header param 'abc': a string or an array of a string can only be union " +
                             "with '()'. Eg: string|() or string[]|()",
-                    HTTP_104);
+                    HTTP_110);
     }
 
-    //    @Test
+    @Test
     public void testInValidCallerInfoArgs() {
         Package currentPackage = loadPackage("sample_package_6");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 3);
-        assertError(diagnosticResult, 0, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_104);
+        assertError(diagnosticResult, 0, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_111);
         assertError(diagnosticResult, 1, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload|http:CallerInfo|http:Header'", HTTP_104);
-        assertError(diagnosticResult, 2, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_104);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
+        assertError(diagnosticResult, 2, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_111);
     }
 
-//    @Test
+    @Test
     public void testInValidNonAnnotatedArgs() {
         Package currentPackage = loadPackage("sample_package_7");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 4);
-        assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/http", HTTP_104);
-        assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/mime", HTTP_104);
-        assertTrue(diagnosticResult, 2, "invalid resource parameter type: 'ballerina/mime", HTTP_104);
-        assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'http_test/sample_6", HTTP_104);
+        assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/http", HTTP_106);
+        assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
+        assertTrue(diagnosticResult, 2, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
+        assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'http_test/sample_6", HTTP_106);
     }
 
-//    @Test
+    @Test
     public void testInValidQueryInfoArgs() {
         Package currentPackage = loadPackage("sample_package_8");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
-        assertError(diagnosticResult, 0, "invalid resource parameter type: 'json'", HTTP_104);
-        assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/mime", HTTP_104);
+        assertError(diagnosticResult, 0, "invalid resource parameter type: 'json'", HTTP_106);
+        assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
         assertError(diagnosticResult, 2, "invalid union type of query param 'a': 'string', 'int', 'float', " +
                 "'boolean', 'decimal' type or the array types of them can only be union with '()'. Eg: string? or " +
-                "int[]?", HTTP_104);
+                "int[]?", HTTP_113);
         assertError(diagnosticResult, 3, "invalid union type of query param 'a': 'string', 'int', 'float', " +
                 "'boolean', 'decimal' type or the array types of them can only be union with '()'. Eg: string? or " +
-                "int[]?", HTTP_104);
+                "int[]?", HTTP_113);
         assertError(diagnosticResult, 4, "invalid union type of query param 'a': 'string', 'int', 'float', " +
                 "'boolean', 'decimal' type or the array types of them can only be union with '()'. Eg: string? or " +
-                "int[]?", HTTP_104);
+                "int[]?", HTTP_113);
         assertError(diagnosticResult, 5, "invalid type of query param 'a': expected one of the 'string', " +
-                "'int', 'float', 'boolean', 'decimal' types or the array types of them", HTTP_104);
+                "'int', 'float', 'boolean', 'decimal' types or the array types of them", HTTP_112);
     }
 
     @Test
@@ -198,9 +207,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_9");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 3);
-        assertError(diagnosticResult, 0, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
-        assertError(diagnosticResult, 1, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
-        assertError(diagnosticResult, 2, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
+        assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'ballerina/http", HTTP_106);
     }
 }

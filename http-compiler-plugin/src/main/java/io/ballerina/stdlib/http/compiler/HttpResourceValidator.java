@@ -27,6 +27,7 @@ import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_RETURN_UNION;
+import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
@@ -55,6 +57,15 @@ import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP_102;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP_103;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP_104;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_105;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_106;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_107;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_108;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_109;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_110;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_111;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_112;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_113;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
@@ -62,7 +73,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
 
 /**
- * Validates a Ballerina Http Resource.
+ * Validates a ballerina http resource.
  */
 class HttpResourceValidator {
 
@@ -110,9 +121,7 @@ class HttpResourceValidator {
                             .equals(TypeDescKind.SINGLETON))
                     .collect(Collectors.toList());
             if (annotations.isEmpty()) {
-                // Non annotated args
                 TypeDescKind kind = param.typeDescriptor().typeKind();
-                //TODO validate caller, request, header objects Person records in DB
                 TypeSymbol typeSymbol = param.typeDescriptor();
                 if (kind == TypeDescKind.TYPE_REFERENCE) {
                     TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
@@ -150,7 +159,8 @@ class HttpResourceValidator {
                 } else if (kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
                         kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN) {
                     // Allowed query param types
-                } else if (kind == TypeDescKind.ARRAY) { // Allowed query param array types
+                } else if (kind == TypeDescKind.ARRAY) {
+                    // Allowed query param array types
                     TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
                     TypeDescKind elementKind = arrTypeSymbol.typeKind();
                     if (elementKind == TypeDescKind.STRING || elementKind == TypeDescKind.INT ||
@@ -158,7 +168,8 @@ class HttpResourceValidator {
                             elementKind == TypeDescKind.BOOLEAN) {
                         continue;
                     }
-                } else if (kind == TypeDescKind.UNION) { // Allowed query param union types
+                } else if (kind == TypeDescKind.UNION) {
+                    // Allowed query param union types
                     List<TypeSymbol> symbolList = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
                     int size = symbolList.size();
                     if (size > 2) {
@@ -259,7 +270,7 @@ class HttpResourceValidator {
                         break;
                     }
                     case CALLER_ANNOTATION_TYPE: {
-                        if (annotated) { // multiple annotations
+                        if (annotated) {
                             reportInvalidMultipleAnnotation(ctx, member, paramName);
                             continue;
                         }
@@ -303,7 +314,7 @@ class HttpResourceValidator {
                         break;
                     }
                     case HEADER_ANNOTATION_TYPE: {
-                        if (annotated) { // multiple annotations
+                        if (annotated) {
                             reportInvalidMultipleAnnotation(ctx, member, paramName);
                             continue;
                         }
@@ -379,6 +390,9 @@ class HttpResourceValidator {
     private static void validateReturnType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                            String returnTypeStringValue, TypeDescKind kind,
                                            TypeSymbol returnTypeSymbol) {
+        if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
+            return;
+        }
         if (kind == TypeDescKind.UNION) {
             List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
             for (TypeSymbol typeSymbol : typeSymbols) {
@@ -387,22 +401,15 @@ class HttpResourceValidator {
         } else if (kind == TypeDescKind.ARRAY) {
             TypeDescKind elementKind = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor().typeKind();
             validateArrayElementType(ctx, member, returnTypeStringValue, elementKind, returnTypeSymbol);
-        } else if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
-            return;
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
             TypeDescKind typeDescKind = typeDescriptor.typeKind();
             if (typeDescKind == TypeDescKind.OBJECT) {
-                Optional<String> typeName = typeDescriptor.getName();
-                if (typeName.isEmpty()) {
+                if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
                     reportInvalidReturnType(ctx, member, returnTypeStringValue);
-                } else {
-                    if (!RESPONSE_OBJ_NAME.equals(typeName.get())) {
-                        reportInvalidReturnType(ctx, member, returnTypeStringValue);
-                    }
                 }
-            } else if (typeDescKind == TypeDescKind.RECORD) {
-
+            } else if (typeDescKind != TypeDescKind.RECORD) {
+                reportInvalidReturnType(ctx, member, returnTypeStringValue);
             }
         } else if (kind == TypeDescKind.MAP) {
             Optional<TypeSymbol> typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParameter();
@@ -412,19 +419,15 @@ class HttpResourceValidator {
                 TypeSymbol elementTypeSymbol = typeSymbol.get();
                 TypeDescKind typeDescKind = elementTypeSymbol.typeKind();
                 validateReturnType(ctx, member, returnTypeStringValue, typeDescKind, elementTypeSymbol);
-                //TODO objects cannot be includede
             }
         } else if (kind == TypeDescKind.TABLE) {
-            Optional<TypeSymbol> typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParameter();
-            if (typeSymbol.isEmpty()) {
+            TypeSymbol typeSymbol = ((TableTypeSymbol) returnTypeSymbol).rowTypeParameter();
+            if (typeSymbol == null) {
                 reportInvalidReturnType(ctx, member, returnTypeStringValue);
             } else {
-                TypeSymbol elementTypeSymbol = typeSymbol.get();
-                TypeDescKind typeDescKind = elementTypeSymbol.typeKind();
-                validateReturnType(ctx, member, returnTypeStringValue, typeDescKind, elementTypeSymbol);
+                TypeDescKind typeDescKind = typeSymbol.typeKind();
+                validateReturnType(ctx, member, returnTypeStringValue, typeDescKind, typeSymbol);
             }
-            //TODO objects are not allowed
-
         } else {
             reportInvalidReturnType(ctx, member, returnTypeStringValue);
         }
@@ -436,7 +439,6 @@ class HttpResourceValidator {
         if (isBasicTypeDesc(kind)) {
             return;
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            // Record types & Predefined module types
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
             TypeDescKind typeDescKind = typeDescriptor.typeKind();
             if (typeDescKind == TypeDescKind.OBJECT) {
@@ -444,6 +446,8 @@ class HttpResourceValidator {
             } else if (typeDescKind == TypeDescKind.RECORD || typeDescKind == TypeDescKind.MAP ||
                     typeDescKind == TypeDescKind.TABLE) {
                 return;
+            } else {
+                reportInvalidReturnType(ctx, member, typeStringValue);
             }
         } else {
             reportInvalidReturnType(ctx, member, typeStringValue);
@@ -457,6 +461,21 @@ class HttpResourceValidator {
                 kind == TypeDescKind.BYTE;
     }
 
+    private static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {
+        Optional<ModuleSymbol> module = typeDescriptor.getModule();
+        if (module.isEmpty()) {
+            return false;
+        }
+        if (!BALLERINA.equals(module.get().id().orgName()) || !HTTP.equals(module.get().getName().get())) {
+            return false;
+        }
+        Optional<String> typeName = typeDescriptor.getName();
+        if (typeName.isEmpty()) {
+            return false;
+        }
+        return expectedType.equals(typeName.get());
+    }
+
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                 String returnType) {
         String msg = "invalid resource method return type: expected '" + ALLOWED_RETURN_UNION +
@@ -466,75 +485,74 @@ class HttpResourceValidator {
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                         String annotName) {
-        String msg = "invalid resource method annotation type: expected 'http:" +
-                RESOURCE_CONFIG_ANNOTATION + "', but found '" + annotName + "'";
+        String msg = "invalid resource method annotation type: expected 'http:" + RESOURCE_CONFIG_ANNOTATION + "', " +
+                "but found '" + annotName + "'";
         reportError(ctx, node, msg, HTTP_103);
     }
 
     private static void reportInvalidParameterAnnotation(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                          String paramName) {
-        String msg = "Invalid annotation type on param '" + paramName +
+        String msg = "invalid annotation type on param '" + paramName +
                 "': expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'";
         reportError(ctx, node, msg, HTTP_104);
-
     }
 
     private static void reportInvalidParameter(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                String paramName) {
         String msg = "invalid resource parameter" + (paramName.isEmpty() ? "" : ": '" + paramName + "'");
-        reportError(ctx, node, msg, HTTP_104);
+        reportError(ctx, node, msg, HTTP_105);
     }
 
     private static void reportInvalidParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                    String typeName) {
         String msg = "invalid resource parameter type: '" + typeName + "'";
-        reportError(ctx, node, msg, HTTP_104);
+        reportError(ctx, node, msg, HTTP_106);
     }
 
     private static void reportInvalidPayloadParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                           String typeName) {
-        String msg = "Invalid payload parameter type: '" + typeName + "'";
-        reportError(ctx, node, msg, HTTP_104);
+        String msg = "invalid payload parameter type: '" + typeName + "'";
+        reportError(ctx, node, msg, HTTP_107);
     }
 
     private static void reportInvalidMultipleAnnotation(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                         String paramName) {
         String msg = "invalid multiple resource parameter annotations for '" + paramName +
                 "': expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'";
-        reportError(ctx, node, msg, HTTP_104);
+        reportError(ctx, node, msg, HTTP_108);
     }
 
     private static void reportInvalidHeaderParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                          String paramName) {
         String msg = "invalid type of header param '" + paramName + "': expected 'string' or 'string[]'";
-        reportError(ctx, node, msg, HTTP_104);
+        reportError(ctx, node, msg, HTTP_109);
     }
 
     private static void reportInvalidUnionHeaderType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                      String paramName) {
         String msg = "invalid union type of header param '" + paramName + "': a string or an array of a string can " +
                 "only be union with '()'. Eg: string|() or string[]|()";
-        reportError(ctx, node, msg, HTTP_104);
+        reportError(ctx, node, msg, HTTP_110);
     }
 
     private static void reportInvalidCallerParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                          String paramName) {
         String msg = "invalid type of caller param '" + paramName + "': expected 'http:Caller'";
-        reportError(ctx, node, msg, HTTP_104);
+        reportError(ctx, node, msg, HTTP_111);
     }
 
     private static void reportInvalidQueryParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                         String paramName) {
         String msg = "invalid type of query param '" + paramName + "': expected one of the 'string', 'int', 'float', " +
                 "'boolean', 'decimal' types or the array types of them";
-        reportError(ctx, node, msg, HTTP_104);
+        reportError(ctx, node, msg, HTTP_112);
     }
 
     private static void reportInvalidUnionQueryType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                     String paramName) {
         String msg = "invalid union type of query param '" + paramName + "': 'string', 'int', 'float', 'boolean', " +
                 "'decimal' type or the array types of them can only be union with '()'. Eg: string? or int[]?";
-        reportError(ctx, node, msg, HTTP_104);
+        reportError(ctx, node, msg, HTTP_113);
     }
 
     private static void reportError(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
