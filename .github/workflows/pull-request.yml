@@ -5,6 +5,7 @@ on:
   push:
     branches-ignore:
       - master
+      - "automated/dependency_version_update"
 
 jobs:
   ubuntu-build:

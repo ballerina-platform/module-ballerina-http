@@ -300,7 +300,8 @@ task ballerinaBuild {
 
 task ballerinaPublish {
     doLast {
-        if (project.version.endsWith('-SNAPSHOT')) {
+        if (project.version.endsWith('-SNAPSHOT') ||
+                project.version.matches(project.ext.timestampedVersionRegex)) {
             return
         }
         if (ballerinaCentralAccessToken != null) {
