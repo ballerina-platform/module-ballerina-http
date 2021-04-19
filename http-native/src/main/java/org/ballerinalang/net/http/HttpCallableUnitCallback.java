@@ -21,8 +21,12 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.observability.ObserveUtils;
+import io.ballerina.runtime.observability.ObserverContext;
 import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+
+import static org.ballerinalang.net.http.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 
 /**
  * {@code HttpCallableUnitCallback} is the responsible for acting on notifications received from Ballerina side.
@@ -47,6 +51,11 @@ public class HttpCallableUnitCallback implements Callback {
     public void notifySuccess(Object result) {
         if (result == null) { // handles nil return and end of resource exec
             requestMessage.waitAndReleaseAllEntities();
+            ObserverContext observerContext
+                    = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            if (observerContext != null) {
+                ObserveUtils.stopObservationWithContext(observerContext);
+            }
             return;
         }
         HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
@@ -89,6 +98,10 @@ public class HttpCallableUnitCallback implements Callback {
 
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
+        ObserverContext observerContext = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+        if (observerContext != null) {
+            ObserveUtils.stopObservationWithContext(observerContext);
+        }
         requestMessage.waitAndReleaseAllEntities();
     }
 }
