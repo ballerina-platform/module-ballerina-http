@@ -47,30 +47,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_RETURN_UNION;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_102;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_103;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_104;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_105;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_106;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_107;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_108;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_109;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_110;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_111;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_112;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_113;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
-import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
 
 /**
  * Validates a ballerina http resource.
@@ -109,9 +95,12 @@ class HttpResourceValidator {
         if (resourceMethodSymbolOptional.isEmpty()) {
             return;
         }
-        List<ParameterSymbol> parameters =
-                ((ResourceMethodSymbol) resourceMethodSymbolOptional.get()).typeDescriptor().parameters();
-        for (ParameterSymbol param : parameters) {
+        Optional<List<ParameterSymbol>> parametersOptional =
+                ((ResourceMethodSymbol) resourceMethodSymbolOptional.get()).typeDescriptor().params();
+        if (parametersOptional.isEmpty()) {
+            return;
+        }
+        for (ParameterSymbol param : parametersOptional.get()) {
             String paramType = param.typeDescriptor().signature();
             Optional<String> nameOptional = param.getName();
             String paramName = nameOptional.isEmpty() ? "" : nameOptional.get();
@@ -156,16 +145,13 @@ class HttpResourceValidator {
                         reportInvalidParameterType(ctx, member, paramType);
                     }
 
-                } else if (kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
-                        kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN) {
+                } else if (isAllowedQueryParamType(kind)) {
                     // Allowed query param types
                 } else if (kind == TypeDescKind.ARRAY) {
                     // Allowed query param array types
                     TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
                     TypeDescKind elementKind = arrTypeSymbol.typeKind();
-                    if (elementKind == TypeDescKind.STRING || elementKind == TypeDescKind.INT ||
-                            elementKind == TypeDescKind.FLOAT || elementKind == TypeDescKind.DECIMAL ||
-                            elementKind == TypeDescKind.BOOLEAN) {
+                    if (isAllowedQueryParamType(elementKind)) {
                         continue;
                     }
                 } else if (kind == TypeDescKind.UNION) {
@@ -185,14 +171,14 @@ class HttpResourceValidator {
                         if (elementKind == TypeDescKind.ARRAY) {
                             TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) type).memberTypeDescriptor();
                             TypeDescKind arrElementKind = arrTypeSymbol.typeKind();
-                            if (arrElementKind != TypeDescKind.STRING && arrElementKind != TypeDescKind.INT &&
-                                    arrElementKind != TypeDescKind.FLOAT && arrElementKind != TypeDescKind.DECIMAL &&
-                                    arrElementKind != TypeDescKind.BOOLEAN) {
-                                reportInvalidQueryParameterType(ctx, member, paramName);
+                            if (isAllowedQueryParamType(arrElementKind)) {
+                                continue;
                             }
-                        } else if (elementKind != TypeDescKind.NIL && elementKind != TypeDescKind.STRING &&
-                                elementKind != TypeDescKind.INT && elementKind != TypeDescKind.FLOAT &&
-                                elementKind != TypeDescKind.DECIMAL && elementKind != TypeDescKind.BOOLEAN) {
+                            reportInvalidQueryParameterType(ctx, member, paramName);
+                        } else {
+                            if (elementKind == TypeDescKind.NIL || isAllowedQueryParamType(elementKind)) {
+                                continue;
+                            }
                             reportInvalidQueryParameterType(ctx, member, paramName);
                         }
                     }
@@ -366,6 +352,11 @@ class HttpResourceValidator {
         }
     }
 
+    private static boolean isAllowedQueryParamType(TypeDescKind kind) {
+        return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
+                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN;
+    }
+
     private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
         Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
         if (returnTypeDescriptorNode.isEmpty()) {
@@ -478,87 +469,72 @@ class HttpResourceValidator {
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                 String returnType) {
-        String msg = "invalid resource method return type: expected '" + ALLOWED_RETURN_UNION +
-                "', but found '" + returnType + "'";
-        reportError(ctx, node, msg, HTTP_102);
+        updateDiagnostic(ctx, node, returnType, HttpDiagnosticCodes.HTTP_102);
     }
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                         String annotName) {
-        String msg = "invalid resource method annotation type: expected 'http:" + RESOURCE_CONFIG_ANNOTATION + "', " +
-                "but found '" + annotName + "'";
-        reportError(ctx, node, msg, HTTP_103);
+        updateDiagnostic(ctx, node, annotName, HttpDiagnosticCodes.HTTP_103);
     }
 
     private static void reportInvalidParameterAnnotation(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                          String paramName) {
-        String msg = "invalid annotation type on param '" + paramName +
-                "': expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'";
-        reportError(ctx, node, msg, HTTP_104);
+        updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_104);
     }
 
     private static void reportInvalidParameter(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                String paramName) {
-        String msg = "invalid resource parameter" + (paramName.isEmpty() ? "" : ": '" + paramName + "'");
-        reportError(ctx, node, msg, HTTP_105);
+        updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_105);
     }
 
     private static void reportInvalidParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                    String typeName) {
-        String msg = "invalid resource parameter type: '" + typeName + "'";
-        reportError(ctx, node, msg, HTTP_106);
+        updateDiagnostic(ctx, node, typeName, HttpDiagnosticCodes.HTTP_106);
     }
 
     private static void reportInvalidPayloadParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                           String typeName) {
-        String msg = "invalid payload parameter type: '" + typeName + "'";
-        reportError(ctx, node, msg, HTTP_107);
+        updateDiagnostic(ctx, node, typeName, HttpDiagnosticCodes.HTTP_107);
     }
 
     private static void reportInvalidMultipleAnnotation(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                         String paramName) {
-        String msg = "invalid multiple resource parameter annotations for '" + paramName +
-                "': expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'";
-        reportError(ctx, node, msg, HTTP_108);
+        updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_108);
     }
 
     private static void reportInvalidHeaderParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                          String paramName) {
-        String msg = "invalid type of header param '" + paramName + "': expected 'string' or 'string[]'";
-        reportError(ctx, node, msg, HTTP_109);
+        updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_109);
     }
 
     private static void reportInvalidUnionHeaderType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                      String paramName) {
-        String msg = "invalid union type of header param '" + paramName + "': a string or an array of a string can " +
-                "only be union with '()'. Eg: string|() or string[]|()";
-        reportError(ctx, node, msg, HTTP_110);
+        updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_110);
     }
 
     private static void reportInvalidCallerParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                          String paramName) {
-        String msg = "invalid type of caller param '" + paramName + "': expected 'http:Caller'";
-        reportError(ctx, node, msg, HTTP_111);
+        updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_111);
     }
 
     private static void reportInvalidQueryParameterType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                         String paramName) {
-        String msg = "invalid type of query param '" + paramName + "': expected one of the 'string', 'int', 'float', " +
-                "'boolean', 'decimal' types or the array types of them";
-        reportError(ctx, node, msg, HTTP_112);
+        updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_112);
     }
 
     private static void reportInvalidUnionQueryType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
                                                     String paramName) {
-        String msg = "invalid union type of query param '" + paramName + "': 'string', 'int', 'float', 'boolean', " +
-                "'decimal' type or the array types of them can only be union with '()'. Eg: string? or int[]?";
-        reportError(ctx, node, msg, HTTP_113);
+        updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_113);
     }
 
-    private static void reportError(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,
-                                    String errorMsg, String errorCode) {
-        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(errorCode, errorMsg, ERROR);
-        ctx.reportDiagnostic(
-                DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location(), node.functionName().toString()));
+    private static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node, String returnType,
+                                         HttpDiagnosticCodes httpDiagnosticCodes) {
+        DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, returnType);
+        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
+    }
+
+    private static DiagnosticInfo getDiagnosticInfo(HttpDiagnosticCodes diagnostic, Object... args) {
+        return new DiagnosticInfo(diagnostic.getCode(), String.format(diagnostic.getMessage(), args),
+                                  diagnostic.getSeverity());
     }
 }

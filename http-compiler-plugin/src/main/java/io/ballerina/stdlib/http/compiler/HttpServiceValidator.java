@@ -41,10 +41,8 @@ import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP_101;
 import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_KEYWORD;
-import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_METHODS_NOT_ALLOWED;
-import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_101;
 
 /**
  * Validates a Ballerina Http Service.
@@ -100,7 +98,8 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
     }
 
     private void reportInvalidFunctionType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node) {
-        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_101, REMOTE_METHODS_NOT_ALLOWED, ERROR);
+        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_101.getCode(), HTTP_101.getMessage(),
+                                                           HTTP_101.getSeverity());
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
     }
 }

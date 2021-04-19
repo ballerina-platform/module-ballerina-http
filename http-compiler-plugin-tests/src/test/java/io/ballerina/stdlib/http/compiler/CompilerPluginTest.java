@@ -29,7 +29,6 @@ import io.ballerina.tools.diagnostics.Diagnostic;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -40,7 +39,6 @@ public class CompilerPluginTest {
 
     private static final Path RESOURCE_DIRECTORY = Paths.get("src", "test", "resources", "ballerina_sources")
             .toAbsolutePath();
-    private static final PrintStream OUT = System.out;
     private static final Path DISTRIBUTION_PATH = Paths.get("build", "target", "ballerina-distribution")
             .toAbsolutePath();
 
@@ -58,7 +56,7 @@ public class CompilerPluginTest {
     private static final String HTTP_112 = "HTTP_112";
     private static final String HTTP_113 = "HTTP_113";
 
-    private static final String REMOTE_METHODS_NOT_ALLOWED = "`remote` methods are not allowed in http:Service";
+    private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
     private Package loadPackage(String path) {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve(path);
@@ -89,9 +87,10 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 3);
-        assertError(diagnosticResult, 0, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
-        assertError(diagnosticResult, 1, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
-        assertError(diagnosticResult, 2, REMOTE_METHODS_NOT_ALLOWED, HTTP_101);
+        diagnosticResult.diagnostics().forEach(result -> {
+            Assert.assertEquals(result.diagnosticInfo().messageFormat(), REMOTE_METHODS_NOT_ALLOWED);
+            Assert.assertEquals(result.diagnosticInfo().code(), HTTP_101);
+        });
     }
 
     @Test
