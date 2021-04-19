@@ -208,6 +208,8 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
-        assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'ballerina/http", HTTP_106);
+        diagnosticResult.diagnostics().stream().filter(err -> err.diagnosticInfo().code().contains(HTTP_106)).map(
+                err -> err.diagnosticInfo().messageFormat().contains(
+                        "invalid resource parameter type: 'ballerina/http")).forEach(Assert::assertTrue);
     }
 }
