@@ -156,6 +156,7 @@ def groupParams = ""
 def disableGroups = ""
 def debugParams = ""
 def balJavaDebugParam = ""
+def testParams = ""
 
 task initializeVariables {
     if (project.hasProperty("groups")) {
@@ -177,6 +178,14 @@ task initializeVariables {
             ballerinaTest.enabled = false
         }
     }
+
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":${packageName}-ballerina:test")) {
+            testParams = "${testCoverageParam}"
+        } else {
+            testParams = "--skip-tests"
+        }
+    }
 }
 
 task ballerinaTest {
@@ -196,14 +205,13 @@ task ballerinaTest {
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
-            // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat test " +
-                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
+                commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test " +
+                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
                         "exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal test " +
-                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
+                commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test " +
+                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
             }
         }
     }
