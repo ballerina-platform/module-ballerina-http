@@ -51,10 +51,12 @@ public class HttpCallableUnitCallback implements Callback {
     public void notifySuccess(Object result) {
         if (result == null) { // handles nil return and end of resource exec
             requestMessage.waitAndReleaseAllEntities();
-            ObserverContext observerContext
-                    = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
-            if (observerContext != null) {
-                ObserveUtils.stopObservationWithContext(observerContext);
+            if (ObserveUtils.isObservabilityEnabled()) {
+                ObserverContext observerContext
+                        = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+                if (observerContext != null) {
+                    ObserveUtils.stopObservationWithContext(observerContext);
+                }
             }
             return;
         }
@@ -98,9 +100,11 @@ public class HttpCallableUnitCallback implements Callback {
 
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
-        ObserverContext observerContext = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
-        if (observerContext != null) {
-            ObserveUtils.stopObservationWithContext(observerContext);
+        if (ObserveUtils.isObservabilityEnabled()) {
+            ObserverContext observerContext = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            if (observerContext != null) {
+                ObserveUtils.stopObservationWithContext(observerContext);
+            }
         }
         requestMessage.waitAndReleaseAllEntities();
     }
