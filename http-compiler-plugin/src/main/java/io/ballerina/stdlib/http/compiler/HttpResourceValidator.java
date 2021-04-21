@@ -147,10 +147,8 @@ class HttpResourceValidator {
                             continue;
                         }
                         String typeName = typeNameOptional.get();
-                        if (CALLER_OBJ_NAME.equals(typeName) || REQUEST_OBJ_NAME.equals(typeName) ||
-                                HEADER_OBJ_NAME.equals(typeName)) {
-
-                        } else {
+                        if (!CALLER_OBJ_NAME.equals(typeName) && !REQUEST_OBJ_NAME.equals(typeName) &&
+                                !HEADER_OBJ_NAME.equals(typeName)) {
                             reportInvalidParameterType(ctx, member, paramType);
                         }
                     } else {
@@ -397,7 +395,7 @@ class HttpResourceValidator {
                     TypeSymbol argTypeSymbol = ctx.semanticModel().type(argumentNode.expression()).get();
                     TypeSymbol annotValueSymbol =
                             (TypeSymbol) ctx.semanticModel().symbol(specificFieldNode.valueExpr().get()).get();
-                    if (!annotValueSymbol.assignableTo(argTypeSymbol)) {
+                    if (!argTypeSymbol.assignableTo(annotValueSymbol)) {
                         reportInCompatibleCallerInfoType(ctx, argumentNode, expectedType);
                     }
                 }

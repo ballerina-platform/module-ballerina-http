@@ -88,7 +88,7 @@ service http:Service on new http:Listener(9090) {
     }
 
     resource function get callerInfo17(@http:CallerInfo {respondType: Person}http:Caller abc) returns error? {
-        error? a = abc->respond({school:1.23}); // This getting passed as map
+        error? a = abc->respond({school:1.23}); // This getting passed as map<json> and this is a limitation
     }
 
     resource function get callerInfo18(@http:CallerInfo {respondType: Person}http:Caller abc) returns error? {
