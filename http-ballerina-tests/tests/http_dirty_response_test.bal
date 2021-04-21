@@ -40,7 +40,8 @@ function getSingletonResponse() returns http:Response {
     return res;
 }
 
-@test:Config {}
+// Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/305#issuecomment-824047016
+@test:Config {enable:false}
 function testDirtyResponse() {
     var response = dirtyResponseTestClient->get("/hello");
     if (response is http:Response) {
