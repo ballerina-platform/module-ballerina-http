@@ -475,21 +475,16 @@ class HttpResourceValidator {
     private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                                  String typeStringValue, TypeSymbol memberTypeDescriptor) {
         TypeDescKind kind = memberTypeDescriptor.typeKind();
-        if (isBasicTypeDesc(kind)) {
+        if (isBasicTypeDesc(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
             return;
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
+        }
+        if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
             TypeDescKind typeDescKind = typeDescriptor.typeKind();
-            if (typeDescKind == TypeDescKind.OBJECT) {
-                reportInvalidReturnType(ctx, member, typeStringValue);
-            } else if (typeDescKind == TypeDescKind.RECORD || typeDescKind == TypeDescKind.MAP ||
-                    typeDescKind == TypeDescKind.TABLE) {
-                return;
-            } else {
+            if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
+                    typeDescKind != TypeDescKind.TABLE) {
                 reportInvalidReturnType(ctx, member, typeStringValue);
             }
-        } else if (kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
-            return;
         } else {
             reportInvalidReturnType(ctx, member, typeStringValue);
         }
