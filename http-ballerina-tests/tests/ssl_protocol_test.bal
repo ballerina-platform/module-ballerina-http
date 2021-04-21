@@ -27,7 +27,7 @@ http:ListenerConfiguration sslProtocolServiceConfig = {
          },
          protocol: {
              name: http:TLS,
-             versions: ["TLSv1.1"]
+             versions: ["TLSv1.2"]
          }
     }
 };
@@ -52,7 +52,7 @@ http:ClientConfiguration sslProtocolClientConfig = {
         },
         protocol: {
             name: http:TLS,
-            versions: ["TLSv1.2"]
+            versions: ["TLSv1.3"]
         }
     }
 };
