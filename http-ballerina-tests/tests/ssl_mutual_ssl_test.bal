@@ -32,7 +32,7 @@ http:ListenerConfiguration mutualSslServiceConf = {
         },
         protocol: {
             name: "TLS",
-            versions: ["TLSv1.1"]
+            versions: ["TLSv1.2"]
         },
         ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"],
         handshakeTimeout: 20,
@@ -98,7 +98,7 @@ http:ClientConfiguration mutualSslClientConf = {
         },
         protocol: {
             name: http:SSL,
-            versions: ["TLSv1.1"]
+            versions: ["TLSv1.2"]
         },
         ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"],
         handshakeTimeout: 20,

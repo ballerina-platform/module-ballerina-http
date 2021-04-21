@@ -310,6 +310,7 @@ isolated function uuid() returns string {
 # + path - Resource path
 # + method - http method of the request
 # + statusCode - status code of the response
+# + url - The request URL
 isolated function addObservabilityInformation(string path, string method, int statusCode, string url) {
     string statusCodeConverted = statusCode.toString();
     _ = checkpanic observe:addTagToSpan(HTTP_URL, path);

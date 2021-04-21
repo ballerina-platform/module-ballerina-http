@@ -47,7 +47,9 @@ public enum HttpDiagnosticCodes {
     HTTP_112("HTTP_112", "invalid type of query param '%s': expected one of the 'string', 'int', 'float', " +
             "'boolean', 'decimal' types or the array types of them", ERROR),
     HTTP_113("HTTP_113", "invalid union type of query param '%s': 'string', 'int', 'float', 'boolean', " +
-            "'decimal' type or the array types of them can only be union with '()'. Eg: string? or int[]?", ERROR);
+            "'decimal' type or the array types of them can only be union with '()'. Eg: string? or int[]?", ERROR),
+    HTTP_114("HTTP_114", "incompatible respond method argument type : expected '%s' according " +
+            "to the 'http:CallerInfo' annotation", ERROR);
 
     private final String code;
     private final String message;

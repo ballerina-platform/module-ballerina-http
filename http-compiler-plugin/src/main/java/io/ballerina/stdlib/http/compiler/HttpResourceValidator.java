@@ -34,10 +34,16 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
+import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
@@ -48,8 +54,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
+import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.FIELD_RESPONSE_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
@@ -100,7 +108,9 @@ class HttpResourceValidator {
         if (parametersOptional.isEmpty()) {
             return;
         }
+        int paramIndex = -1;
         for (ParameterSymbol param : parametersOptional.get()) {
+            paramIndex++;
             String paramType = param.typeDescriptor().signature();
             Optional<String> nameOptional = param.getName();
             String paramName = nameOptional.isEmpty() ? "" : nameOptional.get();
@@ -288,7 +298,9 @@ class HttpResourceValidator {
                                     continue;
                                 }
                                 String callerTypeName = typeNameOptional.get();
-                                if (!CALLER_OBJ_NAME.equals(callerTypeName)) {
+                                if (CALLER_OBJ_NAME.equals(callerTypeName)) {
+                                    extractCallerInfoValueAndValidate(ctx, member, paramIndex);
+                                } else {
                                     reportInvalidCallerParameterType(ctx, member, paramName);
                                 }
                             } else {
@@ -352,6 +364,52 @@ class HttpResourceValidator {
         }
     }
 
+    private static void extractCallerInfoValueAndValidate(SyntaxNodeAnalysisContext ctx,
+                                                          FunctionDefinitionNode member, int paramIndex) {
+        ParameterNode parameterNode = member.functionSignature().parameters().get(paramIndex);
+        NodeList<AnnotationNode> annotations = ((RequiredParameterNode) parameterNode).annotations();
+        for (AnnotationNode annotationNode : annotations) {
+            if (!annotationNode.annotReference().toString().contains(CALLER_ANNOTATION_NAME)) {
+                continue;
+            }
+            Optional<MappingConstructorExpressionNode> annotValue = annotationNode.annotValue();
+            if (annotValue.isEmpty()) {
+                continue;
+            }
+            if (annotValue.get().fields().size() == 0) {
+                continue;
+            }
+            SeparatedNodeList fields = annotValue.get().fields();
+            for (Object node : fields) {
+                SpecificFieldNode specificFieldNode = (SpecificFieldNode) node;
+                if (!specificFieldNode.fieldName().toString().equals(FIELD_RESPONSE_TYPE)) {
+                    continue;
+                }
+                String expectedType = specificFieldNode.valueExpr().get().toString();
+                String callerToken = ((RequiredParameterNode) parameterNode).paramName().get().text();
+                List<PositionalArgumentNode> respondParamNodes = getRespondParamNode(ctx, member, callerToken);
+                if (respondParamNodes.isEmpty()) {
+                    continue;
+                }
+                for (PositionalArgumentNode argumentNode : respondParamNodes) {
+                    TypeSymbol argTypeSymbol = ctx.semanticModel().type(argumentNode.expression()).get();
+                    TypeSymbol annotValueSymbol =
+                            (TypeSymbol) ctx.semanticModel().symbol(specificFieldNode.valueExpr().get()).get();
+                    if (!argTypeSymbol.assignableTo(annotValueSymbol)) {
+                        reportInCompatibleCallerInfoType(ctx, argumentNode, expectedType);
+                    }
+                }
+            }
+        }
+    }
+
+    private static List<PositionalArgumentNode> getRespondParamNode(SyntaxNodeAnalysisContext ctx,
+                                                                    FunctionDefinitionNode member, String callerToken) {
+        RespondExpressionVisitor respondNodeVisitor = new RespondExpressionVisitor(ctx, callerToken);
+        member.accept(respondNodeVisitor);
+        return respondNodeVisitor.getRespondStatementNodes();
+    }
+
     private static boolean isAllowedQueryParamType(TypeDescKind kind) {
         return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
                 kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN;
@@ -390,8 +448,8 @@ class HttpResourceValidator {
                 validateReturnType(ctx, member, returnTypeStringValue, typeSymbol.typeKind(), typeSymbol);
             }
         } else if (kind == TypeDescKind.ARRAY) {
-            TypeDescKind elementKind = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor().typeKind();
-            validateArrayElementType(ctx, member, returnTypeStringValue, elementKind, returnTypeSymbol);
+            TypeSymbol memberTypeDescriptor = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor();
+            validateArrayElementType(ctx, member, returnTypeStringValue, memberTypeDescriptor);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
             TypeDescKind typeDescKind = typeDescriptor.typeKind();
@@ -403,14 +461,9 @@ class HttpResourceValidator {
                 reportInvalidReturnType(ctx, member, returnTypeStringValue);
             }
         } else if (kind == TypeDescKind.MAP) {
-            Optional<TypeSymbol> typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParameter();
-            if (typeSymbol.isEmpty()) {
-                reportInvalidReturnType(ctx, member, returnTypeStringValue);
-            } else {
-                TypeSymbol elementTypeSymbol = typeSymbol.get();
-                TypeDescKind typeDescKind = elementTypeSymbol.typeKind();
-                validateReturnType(ctx, member, returnTypeStringValue, typeDescKind, elementTypeSymbol);
-            }
+            TypeSymbol typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParam();
+            TypeDescKind typeDescKind = typeSymbol.typeKind();
+            validateReturnType(ctx, member, returnTypeStringValue, typeDescKind, typeSymbol);
         } else if (kind == TypeDescKind.TABLE) {
             TypeSymbol typeSymbol = ((TableTypeSymbol) returnTypeSymbol).rowTypeParameter();
             if (typeSymbol == null) {
@@ -425,12 +478,12 @@ class HttpResourceValidator {
     }
 
     private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
-                                                 String typeStringValue, TypeDescKind kind,
-                                                 TypeSymbol returnTypeSymbol) {
+                                                 String typeStringValue, TypeSymbol memberTypeDescriptor) {
+        TypeDescKind kind = memberTypeDescriptor.typeKind();
         if (isBasicTypeDesc(kind)) {
             return;
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
             TypeDescKind typeDescKind = typeDescriptor.typeKind();
             if (typeDescKind == TypeDescKind.OBJECT) {
                 reportInvalidReturnType(ctx, member, typeStringValue);
@@ -527,7 +580,12 @@ class HttpResourceValidator {
         updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_113);
     }
 
-    private static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node, String returnType,
+    private static void reportInCompatibleCallerInfoType(SyntaxNodeAnalysisContext ctx, PositionalArgumentNode node,
+                                                         String paramName) {
+        updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_114);
+    }
+
+    private static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Node node, String returnType,
                                          HttpDiagnosticCodes httpDiagnosticCodes) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, returnType);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
