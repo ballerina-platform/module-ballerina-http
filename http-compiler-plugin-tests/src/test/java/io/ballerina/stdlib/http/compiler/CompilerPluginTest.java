@@ -55,6 +55,7 @@ public class CompilerPluginTest {
     private static final String HTTP_111 = "HTTP_111";
     private static final String HTTP_112 = "HTTP_112";
     private static final String HTTP_113 = "HTTP_113";
+    private static final String HTTP_114 = "HTTP_114";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -210,5 +211,53 @@ public class CompilerPluginTest {
         diagnosticResult.diagnostics().stream().filter(err -> err.diagnosticInfo().code().contains(HTTP_106)).map(
                 err -> err.diagnosticInfo().messageFormat().contains(
                         "invalid resource parameter type: 'ballerina/http")).forEach(Assert::assertTrue);
+    }
+
+//    @Test
+    public void testCallerInfoAnnotation() {
+        Package currentPackage = loadPackage("sample_package_10");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
+        assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
+                "'int' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
+                "'decimal' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 2, "incompatible respond method argument type : expected " +
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 3, "incompatible respond method argument type : expected " +
+                "'string' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 4, "incompatible respond method argument type : expected " +
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 5, "incompatible respond method argument type : expected " +
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+    }
+
+    @Test
+    public void testCallerInfoTypes() {
+        Package currentPackage = loadPackage("sample_package_11");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 10);
+        assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
+                "'http:Response' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
+                "'Xml' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 2, "incompatible respond method argument type : expected " +
+                "'json' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 3, "incompatible respond method argument type : expected " +
+                "'ByteArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 4, "incompatible respond method argument type : expected " +
+                "'MapJson' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 5, "incompatible respond method argument type : expected " +
+                "'PersonTable' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 6, "incompatible respond method argument type : expected " +
+                "'MapJsonArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 7, "incompatible respond method argument type : expected " +
+                "'PersonTableArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 8, "incompatible respond method argument type : expected " +
+                "'EntityArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 9, "incompatible respond method argument type : expected " +
+                "'ByteStream' according to the 'http:CallerInfo' annotation", HTTP_114);
     }
 }

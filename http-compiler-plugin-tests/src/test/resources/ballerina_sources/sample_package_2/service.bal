@@ -5,6 +5,11 @@ type Person record {|
     string name;
 |};
 
+type RetPerson record {
+    string name;
+    int age;
+};
+
 type PersonTable table<Person> key(id);
 
 service http:Service on new http:Listener(9090) {
@@ -76,5 +81,67 @@ service http:Service on new http:Listener(9090) {
 
     resource function get greeting14() returns http:Ok {
         return {};
+    }
+
+    resource function get greeting15() returns Person[] {
+        return [{id:123, name: "john"}, {id:124, name: "khan"}];
+    }
+
+    resource function get greeting16() returns @http:Payload {mediaType:["application/json+123"]} json {
+        return {hello: "world"};
+    }
+
+    resource function get greeting17() returns @http:Payload {mediaType:["text/xml", "app/xml"]} xml {
+        return xml `<book>Hello World</book>`;
+    }
+
+    resource function get greeting18() returns http:Response {
+        http:Response resp = new;
+        return resp;
+    }
+
+    resource function get greeting19() returns @http:Payload {mediaType:["text/plain"]} int {
+        return 56;
+    }
+
+    resource function get greeting20() returns float {
+        return 3.2456;
+    }
+
+    resource function get greeting21() returns decimal {
+        return 3.2;
+    }
+
+    resource function get greeting22() returns boolean {
+        return true;
+    }
+
+    resource function get greeting23() returns @http:Payload {mediaType:"application/json"} http:Created|http:Ok {
+        http:Created cre = { body: {hello:"World"}, headers: { xtest: "Elle"}, mediaType:"application/json+id" };
+        return cre;
+    }
+
+    resource function get greeting24() returns record {|*http:Created; RetPerson body;|} {
+        RetPerson person = {age:1, name:"Joe"};
+        return {
+            mediaType: "application/person+json",
+            headers: {
+                "X-Server": "myServer"
+            },
+            body: person
+        };
+    }
+
+    resource function get greeting25() returns PersonTable[] {
+        PersonTable tbPerson = table [
+            {id: 1, name: "John"},
+            {id: 2, name: "Bella"}
+        ];
+        return [tbPerson, tbPerson];
+    }
+
+    resource function get greeting26() returns map<json>[]|string {
+        map<json> jj = {sam: {hello:"world"}, jon: {no:56}};
+        return [jj,jj];
     }
 }
