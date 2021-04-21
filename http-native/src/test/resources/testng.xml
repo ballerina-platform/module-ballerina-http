@@ -106,7 +106,8 @@
             <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMaxConnTestCase" />
             <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolTimeoutProxyTestCase" />
             <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMainTestCase" />
-            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />
+<!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
+<!--            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />-->
 
             <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedEnableTestCase" />
             <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedTransitionTestCase" />
