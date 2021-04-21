@@ -33,5 +33,8 @@ public class Constants {
     public static final String PAYLOAD_ANNOTATION_TYPE = "HttpPayload";
     public static final String CALLER_ANNOTATION_TYPE = "HttpCallerInfo";
     public static final String HEADER_ANNOTATION_TYPE = "HttpHeader";
+    public static final String CALLER_ANNOTATION_NAME = "CallerInfo";
+    public static final String FIELD_RESPONSE_TYPE = "respondType";
+    public static final String RESPOND_METHOD_NAME = "respond";
     public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|error";
 }
