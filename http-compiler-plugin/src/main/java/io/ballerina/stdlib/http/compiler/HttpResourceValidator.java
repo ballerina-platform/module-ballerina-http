@@ -430,22 +430,19 @@ class HttpResourceValidator {
         FunctionTypeSymbol functionTypeSymbol = ((FunctionSymbol) functionSymbol.get()).typeDescriptor();
 
         Optional<TypeSymbol> returnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
-        if (returnTypeSymbol.isPresent()) {
-            TypeSymbol typeSymbol = returnTypeSymbol.get();
-            validateReturnType(ctx, member, returnTypeStringValue, typeSymbol.typeKind(), typeSymbol);
-        }
+        returnTypeSymbol.ifPresent(typeSymbol -> validateReturnType(ctx, member, returnTypeStringValue, typeSymbol));
     }
 
     private static void validateReturnType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
-                                           String returnTypeStringValue, TypeDescKind kind,
-                                           TypeSymbol returnTypeSymbol) {
+                                           String returnTypeStringValue, TypeSymbol returnTypeSymbol) {
+        TypeDescKind kind = returnTypeSymbol.typeKind();
         if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
             return;
         }
         if (kind == TypeDescKind.UNION) {
             List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
             for (TypeSymbol typeSymbol : typeSymbols) {
-                validateReturnType(ctx, member, returnTypeStringValue, typeSymbol.typeKind(), typeSymbol);
+                validateReturnType(ctx, member, returnTypeStringValue, typeSymbol);
             }
         } else if (kind == TypeDescKind.ARRAY) {
             TypeSymbol memberTypeDescriptor = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor();
@@ -462,15 +459,13 @@ class HttpResourceValidator {
             }
         } else if (kind == TypeDescKind.MAP) {
             TypeSymbol typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParam();
-            TypeDescKind typeDescKind = typeSymbol.typeKind();
-            validateReturnType(ctx, member, returnTypeStringValue, typeDescKind, typeSymbol);
+            validateReturnType(ctx, member, returnTypeStringValue, typeSymbol);
         } else if (kind == TypeDescKind.TABLE) {
             TypeSymbol typeSymbol = ((TableTypeSymbol) returnTypeSymbol).rowTypeParameter();
             if (typeSymbol == null) {
                 reportInvalidReturnType(ctx, member, returnTypeStringValue);
             } else {
-                TypeDescKind typeDescKind = typeSymbol.typeKind();
-                validateReturnType(ctx, member, returnTypeStringValue, typeDescKind, typeSymbol);
+                validateReturnType(ctx, member, returnTypeStringValue, typeSymbol);
             }
         } else {
             reportInvalidReturnType(ctx, member, returnTypeStringValue);
@@ -480,17 +475,14 @@ class HttpResourceValidator {
     private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                                  String typeStringValue, TypeSymbol memberTypeDescriptor) {
         TypeDescKind kind = memberTypeDescriptor.typeKind();
-        if (isBasicTypeDesc(kind)) {
+        if (isBasicTypeDesc(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
             return;
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
+        }
+        if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
             TypeDescKind typeDescKind = typeDescriptor.typeKind();
-            if (typeDescKind == TypeDescKind.OBJECT) {
-                reportInvalidReturnType(ctx, member, typeStringValue);
-            } else if (typeDescKind == TypeDescKind.RECORD || typeDescKind == TypeDescKind.MAP ||
-                    typeDescKind == TypeDescKind.TABLE) {
-                return;
-            } else {
+            if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
+                    typeDescKind != TypeDescKind.TABLE) {
                 reportInvalidReturnType(ctx, member, typeStringValue);
             }
         } else {
@@ -501,8 +493,7 @@ class HttpResourceValidator {
     private static boolean isBasicTypeDesc(TypeDescKind kind) {
         return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
                 kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.JSON ||
-                kind == TypeDescKind.XML || kind == TypeDescKind.RECORD || kind == TypeDescKind.TABLE ||
-                kind == TypeDescKind.BYTE;
+                kind == TypeDescKind.XML || kind == TypeDescKind.RECORD || kind == TypeDescKind.BYTE;
     }
 
     private static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {

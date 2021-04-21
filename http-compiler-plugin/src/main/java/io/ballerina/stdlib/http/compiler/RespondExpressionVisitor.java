@@ -37,7 +37,7 @@ public class RespondExpressionVisitor extends NodeVisitor {
     private final String callerToken;
     private List<PositionalArgumentNode> respondStatementNodes = new ArrayList<>();
 
-    public RespondExpressionVisitor(SyntaxNodeAnalysisContext ctx, String callerToken) {
+    RespondExpressionVisitor(SyntaxNodeAnalysisContext ctx, String callerToken) {
         this.ctx = ctx;
         this.callerToken = callerToken;
     }
