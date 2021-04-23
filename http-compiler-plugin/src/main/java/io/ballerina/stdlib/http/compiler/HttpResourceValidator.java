@@ -99,6 +99,9 @@ class HttpResourceValidator {
     }
 
     private static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
+        boolean callerPresent = false;
+        boolean requestPresent = false;
+        boolean headersPresent = false;
         Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
         if (resourceMethodSymbolOptional.isEmpty()) {
             return;
@@ -146,15 +149,26 @@ class HttpResourceValidator {
                             reportInvalidParameterType(ctx, member, paramType);
                             continue;
                         }
-                        String typeName = typeNameOptional.get();
-                        if (!CALLER_OBJ_NAME.equals(typeName) && !REQUEST_OBJ_NAME.equals(typeName) &&
-                                !HEADER_OBJ_NAME.equals(typeName)) {
-                            reportInvalidParameterType(ctx, member, paramType);
+                        switch (typeNameOptional.get()) {
+                            case CALLER_OBJ_NAME:
+                                callerPresent = isObjectPresent(ctx, member, callerPresent, paramName,
+                                                                HttpDiagnosticCodes.HTTP_115);
+                                break;
+                            case REQUEST_OBJ_NAME:
+                                requestPresent = isObjectPresent(ctx, member, requestPresent, paramName,
+                                                                 HttpDiagnosticCodes.HTTP_116);
+                                break;
+                            case HEADER_OBJ_NAME:
+                                headersPresent = isObjectPresent(ctx, member, headersPresent, paramName,
+                                                                 HttpDiagnosticCodes.HTTP_117);
+                                break;
+                            default:
+                                reportInvalidParameterType(ctx, member, paramType);
+                                break;
                         }
                     } else {
                         reportInvalidParameterType(ctx, member, paramType);
                     }
-
                 } else if (isAllowedQueryParamType(kind)) {
                     // Allowed query param types
                 } else if (kind == TypeDescKind.ARRAY) {
@@ -184,13 +198,12 @@ class HttpResourceValidator {
                             if (isAllowedQueryParamType(arrElementKind)) {
                                 continue;
                             }
-                            reportInvalidQueryParameterType(ctx, member, paramName);
                         } else {
                             if (elementKind == TypeDescKind.NIL || isAllowedQueryParamType(elementKind)) {
                                 continue;
                             }
-                            reportInvalidQueryParameterType(ctx, member, paramName);
                         }
+                        reportInvalidQueryParameterType(ctx, member, paramName);
                     }
                 } else {
                     reportInvalidParameterType(ctx, member, paramType);
@@ -299,7 +312,12 @@ class HttpResourceValidator {
                                 }
                                 String callerTypeName = typeNameOptional.get();
                                 if (CALLER_OBJ_NAME.equals(callerTypeName)) {
-                                    extractCallerInfoValueAndValidate(ctx, member, paramIndex);
+                                    if (callerPresent) {
+                                        updateDiagnostic(ctx, member, paramName, HttpDiagnosticCodes.HTTP_115);
+                                    } else {
+                                        callerPresent = true;
+                                        extractCallerInfoValueAndValidate(ctx, member, paramIndex);
+                                    }
                                 } else {
                                     reportInvalidCallerParameterType(ctx, member, paramName);
                                 }
@@ -362,6 +380,14 @@ class HttpResourceValidator {
                 }
             }
         }
+    }
+
+    private static boolean isObjectPresent(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                           boolean objectPresent, String paramName, HttpDiagnosticCodes code) {
+        if (objectPresent) {
+            updateDiagnostic(ctx, member, paramName, code);
+        }
+        return true;
     }
 
     private static void extractCallerInfoValueAndValidate(SyntaxNodeAnalysisContext ctx,
@@ -576,9 +602,9 @@ class HttpResourceValidator {
         updateDiagnostic(ctx, node, paramName, HttpDiagnosticCodes.HTTP_114);
     }
 
-    private static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Node node, String returnType,
+    private static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Node node, String argName,
                                          HttpDiagnosticCodes httpDiagnosticCodes) {
-        DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, returnType);
+        DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
     }
 
