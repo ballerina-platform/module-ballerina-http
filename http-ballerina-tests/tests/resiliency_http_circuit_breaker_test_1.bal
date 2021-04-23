@@ -90,7 +90,6 @@ http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306")
 
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
 @test:Config {
-    enable:false,
     dataProvider:responseDataProvider
 }
 function testTypicalBackendTimeout(DataFeed dataFeed) {
