@@ -314,7 +314,7 @@ function testHTTP2OriginalRequestWithQP() {
     }
 }
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
-@test:Config {enable:false}
+@test:Config {}
 function testHTTP2303Status() {
     var response = http2RedirectClient->get("/testHttp2Redirect/test303");
     if (response is http:Response) {
