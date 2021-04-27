@@ -34,14 +34,14 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
-import org.ballerinalang.net.http.signature.AllHeaderParams;
-import org.ballerinalang.net.http.signature.AllQueryParams;
-import org.ballerinalang.net.http.signature.HeaderParam;
-import org.ballerinalang.net.http.signature.NonRecurringParam;
-import org.ballerinalang.net.http.signature.ParamHandler;
-import org.ballerinalang.net.http.signature.Parameter;
-import org.ballerinalang.net.http.signature.PayloadParam;
-import org.ballerinalang.net.http.signature.QueryParam;
+import org.ballerinalang.net.http.service.signature.AllHeaderParams;
+import org.ballerinalang.net.http.service.signature.AllQueryParams;
+import org.ballerinalang.net.http.service.signature.HeaderParam;
+import org.ballerinalang.net.http.service.signature.NonRecurringParam;
+import org.ballerinalang.net.http.service.signature.ParamHandler;
+import org.ballerinalang.net.http.service.signature.Parameter;
+import org.ballerinalang.net.http.service.signature.PayloadParam;
+import org.ballerinalang.net.http.service.signature.QueryParam;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.URIUtil;
 
@@ -174,7 +174,7 @@ public class HttpDispatcher {
         ParamHandler paramHandler = httpResource.getParamHandler();
         int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
-        int pathParamCount = paramHandler.getPathParamTokens().length;
+        int pathParamCount = paramHandler.getPathParamTokenLength();
         // Path params are located initially in the signature before the other user provided signature params
         if (pathParamCount != 0) {
             // populate path params

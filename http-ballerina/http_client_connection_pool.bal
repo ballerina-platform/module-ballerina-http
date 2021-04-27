@@ -47,7 +47,7 @@ class ConnectionManager {
 
 isolated function externInitGlobalPool(PoolConfiguration poolConfig) =
 @java:Method {
-    'class: "org.ballerinalang.net.http.clientendpoint.InitGlobalPool",
+    'class: "org.ballerinalang.net.http.client.endpoint.InitGlobalPool",
     name: "initGlobalPool"
 } external;
 
