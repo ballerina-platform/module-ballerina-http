@@ -57,9 +57,8 @@ import org.ballerinalang.mime.util.HeaderUtil;
 import org.ballerinalang.mime.util.MimeUtil;
 import org.ballerinalang.mime.util.MultipartDataSource;
 import org.ballerinalang.mime.util.MultipartDecoder;
-import org.ballerinalang.net.http.caching.RequestCacheControlObj;
-import org.ballerinalang.net.http.caching.ResponseCacheControlObj;
-import org.ballerinalang.net.http.websocket.WebSocketConstants;
+import org.ballerinalang.net.http.client.caching.RequestCacheControlObj;
+import org.ballerinalang.net.http.client.caching.ResponseCacheControlObj;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
@@ -1505,11 +1504,6 @@ public class HttpUtil {
         }
 
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
-        Object webSocketCompressionEnabled = endpointConfig.get(WebSocketConstants.COMPRESSION_ENABLED_CONFIG);
-        if (webSocketCompressionEnabled != null) {
-            listenerConfiguration.setWebSocketCompressionEnabled((Boolean) webSocketCompressionEnabled);
-        }
-
         return listenerConfiguration;
     }
 

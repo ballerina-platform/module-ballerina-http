@@ -94,28 +94,28 @@ public class Listener {
 }
 
 isolated function externInitEndpoint(Listener listenerObj) returns ListenerError? = @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.InitEndpoint",
+    'class: "org.ballerinalang.net.http.service.endpoint.InitEndpoint",
     name: "initEndpoint"
 } external;
 
 isolated function externRegister(Listener listenerObj, Service s, string[]|string? name) returns error? =
 @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.Register",
+    'class: "org.ballerinalang.net.http.service.endpoint.Register",
     name: "register"
 } external;
 
 isolated function externStart(Listener listenerObj) returns error? = @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.Start",
+    'class: "org.ballerinalang.net.http.service.endpoint.Start",
     name: "start"
 } external;
 
 isolated function externGracefulStop(Listener listenerObj) returns error? = @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.GracefulStop",
+    'class: "org.ballerinalang.net.http.service.endpoint.GracefulStop",
     name: "gracefulStop"
 } external;
 
 isolated function externDetach(Listener listenerObj, Service s) returns error? = @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.Detach",
+    'class: "org.ballerinalang.net.http.service.endpoint.Detach",
     name: "detach"
 } external;
 

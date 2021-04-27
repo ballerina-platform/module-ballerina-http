@@ -326,7 +326,6 @@ public class HttpConstants {
 
     public static final String HTTP_SERVER_CONNECTOR = "HTTP_SERVER_CONNECTOR";
     public static final String HTTP_SERVICE_REGISTRY = "HTTP_SERVICE_REGISTRY";
-    public static final String WS_SERVICE_REGISTRY = "WS_SERVICE_REGISTRY";
     public static final String CONNECTOR_STARTED = "CONNECTOR_STARTED";
     public static final String ABSOLUTE_RESOURCE_PATH = "ABSOLUTE_RESOURCE_PATH";
 
