@@ -41,5 +41,4 @@ module io.ballerina.stdlib.http {
     exports org.ballerinalang.net.transport.message;
     exports org.ballerinalang.net.uri;
     exports org.ballerinalang.net.uri.parser;
-    exports org.ballerinalang.net.http.websocket.server;
 }
