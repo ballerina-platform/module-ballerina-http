@@ -173,13 +173,6 @@ task initializeVariables {
     }
 
     gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(":${packageName}-ballerina:publish")
-                || graph.hasTask(":${packageName}-ballerina:publishToMavenLocal")) {
-            ballerinaTest.enabled = false
-        }
-    }
-
-    gradle.taskGraph.whenReady { graph ->
         if (graph.hasTask(":${packageName}-ballerina:test")) {
             testParams = "${testCoverageParam}"
         } else {
