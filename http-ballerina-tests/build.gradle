@@ -24,8 +24,7 @@ description = 'Ballerina - HTTP/WS Ballerina Tests'
 
 def packageName = "http"
 def packageOrg = "ballerina"
-def snapshotVersion = "-SNAPSHOT"
-def tomlVersion = project.version.replace("${snapshotVersion}", "")
+def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
 def originalConfig = ballerinaConfigFile.text
@@ -33,6 +32,20 @@ def originalDependency = ballerinaDependencyFile.text
 def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
 def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
 def testCoverageParam = "--code-coverage --includes=org.ballerinalang.net.*:ballerina.*"
+
+def stripBallerinaExtensionVersion(String extVersion) {
+    if (extVersion.matches(project.ext.timestampedVersionRegex)) {
+        def splitVersion = extVersion.split('-');
+        if (splitVersion.length > 3) {
+            def strippedValues = splitVersion[0..-4]
+            return strippedValues.join('-')
+        } else {
+            return extVersion
+        }
+    } else {
+        return extVersion.replace("${project.ext.snapshotVersion}", "")
+    }
+}
 
 configurations {
     jbalTools
@@ -106,14 +119,14 @@ task copyHttpStdlib {
 
 task updateTomlVerions {
     doLast {
-        def stdlibDependentIoVersion = project.stdlibIoVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentLogVersion = project.stdlibLogVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentRegexVersion = project.stdlibRegexVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentMimeVersion = project.stdlibMimeVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentAuthVersion = project.stdlibAuthVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentJwtVersion = project.stdlibJwtVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentOAuth2Version = project.stdlibOAuth2Version.replace("${snapshotVersion}", "")
-        def stdlibDependentFileVersion = project.stdlibFileVersion.replace("${snapshotVersion}", "")
+        def stdlibDependentIoVersion = stripBallerinaExtensionVersion(project.stdlibIoVersion)
+        def stdlibDependentLogVersion = stripBallerinaExtensionVersion(project.stdlibLogVersion)
+        def stdlibDependentRegexVersion = stripBallerinaExtensionVersion(project.stdlibRegexVersion)
+        def stdlibDependentMimeVersion = stripBallerinaExtensionVersion(project.stdlibMimeVersion)
+        def stdlibDependentAuthVersion = stripBallerinaExtensionVersion(project.stdlibAuthVersion)
+        def stdlibDependentJwtVersion = stripBallerinaExtensionVersion(project.stdlibJwtVersion)
+        def stdlibDependentOAuth2Version = stripBallerinaExtensionVersion(project.stdlibOAuth2Version)
+        def stdlibDependentFileVersion = stripBallerinaExtensionVersion(project.stdlibFileVersion)
 
         def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
@@ -143,6 +156,7 @@ def groupParams = ""
 def disableGroups = ""
 def debugParams = ""
 def balJavaDebugParam = ""
+def testParams = ""
 
 task initializeVariables {
     if (project.hasProperty("groups")) {
@@ -159,9 +173,10 @@ task initializeVariables {
     }
 
     gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(":${packageName}-ballerina:publish")
-                || graph.hasTask(":${packageName}-ballerina:publishToMavenLocal")) {
-            ballerinaTest.enabled = false
+        if (graph.hasTask(":${packageName}-ballerina:test")) {
+            testParams = "${testCoverageParam}"
+        } else {
+            testParams = "--skip-tests"
         }
     }
 }
@@ -183,14 +198,13 @@ task ballerinaTest {
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
-            // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat test " +
-                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
+                commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test " +
+                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
                         "exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal test " +
-                        "${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
+                commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test " +
+                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
             }
         }
     }

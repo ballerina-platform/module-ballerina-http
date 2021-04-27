@@ -66,7 +66,7 @@ public client class LoadBalanceClient {
     remote isolated function post(@untainted string path, RequestMessage message, string? mediaType = (),
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
     
     private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
@@ -90,7 +90,7 @@ public client class LoadBalanceClient {
     remote isolated function put(@untainted string path, RequestMessage message, string? mediaType = (),
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
     
     private isolated function processPut(@untainted string path, RequestMessage message, TargetType targetType, 
@@ -114,7 +114,7 @@ public client class LoadBalanceClient {
     remote isolated function patch(@untainted string path, RequestMessage message, string? mediaType = (),
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
     
     private isolated function processPatch(@untainted string path, RequestMessage message, TargetType targetType, 
@@ -138,7 +138,7 @@ public client class LoadBalanceClient {
     remote isolated function delete(@untainted string path, RequestMessage message = (), string? mediaType = (),
             map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
     
     private isolated function processDelete(@untainted string path, RequestMessage message, TargetType targetType, 
@@ -170,7 +170,7 @@ public client class LoadBalanceClient {
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
             returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
     
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
@@ -190,7 +190,7 @@ public client class LoadBalanceClient {
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
             returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
     
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
@@ -214,7 +214,7 @@ public client class LoadBalanceClient {
     remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
             string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = Response) 
             returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
     
     private isolated function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
@@ -236,7 +236,7 @@ public client class LoadBalanceClient {
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function forward(@untainted string path, Request request, TargetType targetType = Response)
             returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction"
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
     private isolated function processForward(string path, Request request, TargetType targetType)

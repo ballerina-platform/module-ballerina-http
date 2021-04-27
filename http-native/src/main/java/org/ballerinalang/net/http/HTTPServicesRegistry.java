@@ -22,12 +22,7 @@ package org.ballerinalang.net.http;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
-import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.api.values.BString;
-import org.ballerinalang.net.http.websocket.WebSocketConstants;
-import org.ballerinalang.net.http.websocket.server.WebSocketServerService;
-import org.ballerinalang.net.http.websocket.server.WebSocketServicesRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,12 +47,7 @@ public class HTTPServicesRegistry {
     protected Map<String, ServicesMapHolder> servicesMapByHost = new ConcurrentHashMap<>();
     protected Map<String, HttpService> servicesByBasePath;
     protected List<String> sortedServiceURIs;
-    private final WebSocketServicesRegistry webSocketServicesRegistry;
     private Runtime runtime;
-
-    public HTTPServicesRegistry(WebSocketServicesRegistry webSocketServicesRegistry) {
-        this.webSocketServicesRegistry = webSocketServicesRegistry;
-    }
 
     /**
      * Get ServiceInfo instance for given interface and base path.
@@ -133,37 +123,6 @@ public class HTTPServicesRegistry {
         //basePath will get cached after registering service
         sortedServiceURIs.add(basePath);
         sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
-        // Register the WebSocket upgrade service in the WebSocket registry
-        //TODO sl remove
-        registerWebSocketUpgradeService(httpService, runtime);
-    }
-
-    private void registerWebSocketUpgradeService(HttpService httpService, Runtime runtime) {
-        httpService.getUpgradeToWebSocketResources().forEach(upgradeToWebSocketResource -> {
-            WebSocketServerService webSocketService = new WebSocketServerService(
-                    sanitizeBasePath(httpService.getBasePath()), upgradeToWebSocketResource,
-                    getUpgradeService(upgradeToWebSocketResource), runtime);
-            webSocketServicesRegistry.registerService(webSocketService);
-        });
-    }
-
-    private BObject getUpgradeService(HttpResource upgradeToWebSocketResource) {
-        BMap<BString, Object> resourceConfigAnnotation =
-                HttpResource.getResourceConfigAnnotation(upgradeToWebSocketResource.getBalResource());
-        BMap<BString, Object> webSocketConfig = (BMap<BString, Object>) resourceConfigAnnotation.getMapValue(
-                HttpConstants.ANN_CONFIG_ATTR_WEBSOCKET_UPGRADE);
-        return (BObject) webSocketConfig.get(WebSocketConstants.WEBSOCKET_UPGRADE_SERVICE_CONFIG);
-    }
-
-    private String sanitizeBasePath(String basePath) {
-        basePath = basePath.trim();
-        if (!basePath.startsWith(HttpConstants.DEFAULT_BASE_PATH)) {
-            basePath = HttpConstants.DEFAULT_BASE_PATH.concat(basePath);
-        }
-        if (basePath.endsWith(HttpConstants.DEFAULT_BASE_PATH) && basePath.length() != 1) {
-            basePath = basePath.substring(0, basePath.length() - 1);
-        }
-        return basePath;
     }
 
     public String findTheMostSpecificBasePath(String requestURIPath, Map<String, HttpService> services,

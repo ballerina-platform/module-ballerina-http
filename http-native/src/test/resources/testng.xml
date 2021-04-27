@@ -54,7 +54,8 @@
             <class name="org.ballerinalang.net.transport.contentaware.RequestResponseTransformTestCase" />
             <class name="org.ballerinalang.net.transport.contentaware.RequestResponseTransformStreamingTestCase" />
 
-            <class name="org.ballerinalang.net.transport.proxyserver.HttpsProxyServerTestCase" />
+<!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
+<!--            <class name="org.ballerinalang.net.transport.proxyserver.HttpsProxyServerTestCase" />-->
             <class name="org.ballerinalang.net.transport.proxyserver.HttpProxyServerTestCase" />
 
             <class name="org.ballerinalang.net.transport.ClientConnectorTimeoutTestCase" />
@@ -105,7 +106,8 @@
             <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMaxConnTestCase" />
             <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolTimeoutProxyTestCase" />
             <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMainTestCase" />
-            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />
+<!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
+<!--            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />-->
 
             <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedEnableTestCase" />
             <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedTransitionTestCase" />

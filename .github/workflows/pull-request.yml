@@ -5,6 +5,7 @@ on:
   push:
     branches-ignore:
       - master
+      - "automated/dependency_version_update"
 
 jobs:
   ubuntu-build:
@@ -43,6 +44,7 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
+          JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
         run: ./gradlew.bat build
 
   ubuntu-build-without-native-tests:

@@ -29,7 +29,7 @@ import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
-import org.ballerinalang.net.http.caching.ResponseCacheControlObj;
+import org.ballerinalang.net.http.client.caching.ResponseCacheControlObj;
 import org.ballerinalang.net.http.nativeimpl.pipelining.PipelinedResponse;
 import org.ballerinalang.net.http.util.CacheUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
