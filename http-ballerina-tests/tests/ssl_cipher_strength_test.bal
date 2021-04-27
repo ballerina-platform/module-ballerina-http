@@ -72,31 +72,37 @@ service /weakService on weakCipher {
 }
 
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
-@test:Config {}
+@test:Config {
+    groups: ["cipherStrengthTest"]
+}
 public function testWithStrongClientWithWeakService() {
-    http:Client clientEP = checkpanic new("https://localhost:9227", {
-        secureSocket: {
-            key: {
-                path: "tests/certsandkeys/ballerinaKeystore.p12",
-                password: "ballerina"
-            },
-            cert: {
-                path: "tests/certsandkeys/ballerinaTruststore.p12",
-                password: "ballerina"
-            },
-            ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
+    foreach int i in 0..<10 {
+        http:Client clientEP = checkpanic new("https://localhost:9227", {
+            secureSocket: {
+                key: {
+                    path: "tests/certsandkeys/ballerinaKeystore.p12",
+                    password: "ballerina"
+                },
+                cert: {
+                    path: "tests/certsandkeys/ballerinaTruststore.p12",
+                    password: "ballerina"
+                },
+                ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
+            }
+        });
+        http:Request req = new;
+        var resp = clientEP->get("/weakService/");
+        if (resp is http:Response) {
+            test:assertFail(msg = "Found unexpected output: Expected an error" );
+        } else {
+            test:assertEquals(resp.message(), "SSL connection failed:Received fatal alert: handshake_failure localhost/127.0.0.1:9227");
         }
-    });
-    http:Request req = new;
-    var resp = clientEP->get("/weakService/");
-    if (resp is http:Response) {
-        test:assertFail(msg = "Found unexpected output: Expected an error" );
-    } else {
-        test:assertEquals(resp.message(), "SSL connection failed:Received fatal alert: handshake_failure localhost/127.0.0.1:9227");
-    }
+ }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["cipherStrengthTest"]
+}
 public function testWithStrongClientWithStrongService() {
     http:Client clientEP = checkpanic new("https://localhost:9226", {
         secureSocket: {

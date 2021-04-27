@@ -23,6 +23,7 @@ import ballerina/http;
 int cbCounter = 1;
 
 listener http:Listener circuitBreakerEP00 = new(9306);
+listener http:Listener circuitBreakerMockListener = new http:Listener(8086);
 
 http:ClientConfiguration conf = {
     circuitBreaker: {
@@ -40,7 +41,7 @@ http:ClientConfiguration conf = {
 
 http:Client backendClientEP00 = check new("http://localhost:8086", conf);
 
-service /cb on circuitBreakerEP00 {
+http:Service cbService = service object {
 
     resource function 'default typical(http:Caller caller, http:Request request) {
         var backendRes = backendClientEP00->forward("/hello/typical", request);
@@ -52,7 +53,7 @@ service /cb on circuitBreakerEP00 {
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                log:printError("[CIRCUITE_BREAKER_SERVICE] [BACKEND_CALL_ERROR] Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -60,16 +61,16 @@ service /cb on circuitBreakerEP00 {
             response.setPayload(<@untainted> backendRes.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                log:printError("[CIRCUITE_BREAKER_SERVICE] [BACKEND_CALL_FAILED] Error sending response", 'error = responseToCaller);
             }
         }
     }
-}
+};
 
 // This sample service is used to mock connection timeouts and service outages.
 // Mock a service outage by stopping/starting this service.
 // This should run separately from the `circuitBreakerDemo` service.
-service /hello on new http:Listener(8086) {
+http:Service mockTimeOutService = service object {
 
     resource function 'default typical(http:Caller caller, http:Request req) {
         if (cbCounter % 5 == 3) {
@@ -80,9 +81,21 @@ service /hello on new http:Listener(8086) {
         }
         error? responseToCaller = caller->respond("Hello World!!!");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            log:printError("[CIRCUIT_BREAKER_MOCK_SERVICE] Error sending response from mock service", 'error = responseToCaller);
         }
     }
+};
+
+@test:BeforeGroups { value:["circuitBreakerTest"] }
+function beforeHttpCircuitBreakerTest() {
+    checkpanic circuitBreakerEP00.attach(cbService, "/cb");
+    checkpanic circuitBreakerMockListener.attach(mockTimeOutService, "/hello");
+}
+
+@test:AfterGroups { value:["circuitBreakerTest"] }
+function afterHttpCircuitBreakerTest() {
+    checkpanic circuitBreakerEP00.detach(cbService);
+    checkpanic circuitBreakerMockListener.detach(mockTimeOutService);
 }
 
 //Test basic circuit breaker functionality
@@ -90,13 +103,14 @@ http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306")
 
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
 @test:Config {
+    groups: ["circuitBreakerTest"],
     dataProvider:responseDataProvider
 }
 function testTypicalBackendTimeout(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testTypicalBackendTimeoutClient, "/cb/typical", dataFeed);
 }
 
-function responseDataProvider() returns DataFeed[][] {
+isolated function responseDataProvider() returns DataFeed[][] {
     return [
         [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
         [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],

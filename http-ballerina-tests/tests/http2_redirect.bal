@@ -42,7 +42,7 @@ http:Client http2RedirectEndPoint3 = check new("http://localhost:" + http2Redire
     followRedirects: { enabled: true }
 });
 
-service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
+http:Service http2RedirectService = service object {
 
     resource function get .(http:Caller caller, http:Request req) {
         var response = http2RedirectEndPoint1->get("/redirect1");
@@ -156,71 +156,85 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
             io:println("Connector error!");
         }
     }
-}
+};
 
-service /redirect1 on http2RedirectServiceEndpoint2 {
+http:Service redirect1 = service object {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    isolated resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, ["http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2"]);
     }
 
-    resource function get round1(http:Caller caller, http:Request req) {
+    isolated resource function get round1(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_PERMANENT_REDIRECT_308, ["/redirect1/round2"]);
     }
 
-    resource function get round2(http:Caller caller, http:Request req) {
+    isolated resource function get round2(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_USE_PROXY_305, ["/redirect1/round3"]);
     }
 
-    resource function get round3(http:Caller caller, http:Request req) {
+    isolated resource function get round3(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_MULTIPLE_CHOICES_300, ["/redirect1/round4"]);
     }
 
-    resource function get round4(http:Caller caller, http:Request req) {
+    isolated resource function get round4(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_MOVED_PERMANENTLY_301, ["/redirect1/round5"]);
     }
 
-    resource function get round5(http:Caller caller, http:Request req) {
+    isolated resource function get round5(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_FOUND_302, ["http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2"]);
     }
 
-    resource function get qpWithRelativePath(http:Caller caller, http:Request req) {
+    isolated resource function get qpWithRelativePath(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307,
                 ["/redirect1/processQP?key=value&lang=ballerina"]);
     }
 
-    resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) {
+    isolated resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307,
                 ["http://localhost:" + http2RedirectTestPort2.toString() + "/redirect1/processQP?key=value&lang=ballerina"]);
     }
 
-    resource function get processQP(http:Caller caller, http:Request req) {
+    isolated resource function get processQP(http:Caller caller, http:Request req) {
         map<string[]> paramsMap = req.getQueryParams();
         string[]? val1 = paramsMap["key"];
         string[]? val2 = paramsMap["lang"];
         string returnVal = (val1 is string[] ? val1[0] : "") + ":" + (val2 is string[] ? val2[0] : "");
         checkpanic caller->respond(<@untainted> returnVal);
     }
-}
+};
 
-service /redirect2 on http2RedirectServiceEndpoint3 {
+http:Service redirect2 = service object {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    isolated resource function get .(http:Caller caller, http:Request req) {
         checkpanic caller->respond("hello world");
     }
 
-    resource function post test303(http:Caller caller, http:Request req) {
+    isolated resource function post test303(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_SEE_OTHER_303, ["/redirect2"]);
     }
+};
+
+@test:BeforeGroups { value:["http2Redirect"] }
+function beforeHttp2RedirectTests() {
+    checkpanic http2RedirectServiceEndpoint1.attach(http2RedirectService, "/testHttp2Redirect");
+    checkpanic http2RedirectServiceEndpoint2.attach(redirect1, "/redirect1");
+    checkpanic http2RedirectServiceEndpoint3.attach(redirect2, "/redirect2");
+}
+
+@test:AfterGroups { value:["http2Redirect"] }
+function afterHttp2RedirectTests() {
+    checkpanic http2RedirectServiceEndpoint1.detach(http2RedirectService);
+    checkpanic http2RedirectServiceEndpoint2.detach(redirect1);
+    checkpanic http2RedirectServiceEndpoint3.detach(redirect2);
 }
 
 //Test http redirection and test whether the resolvedRequestedURI in the response is correct.
@@ -314,14 +328,18 @@ function testHTTP2OriginalRequestWithQP() {
     }
 }
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
-@test:Config {}
+@test:Config {
+    groups: ["http2Redirect"]
+}
 function testHTTP2303Status() {
-    var response = http2RedirectClient->get("/testHttp2Redirect/test303");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    foreach int i in 0..<50 {
+        var response = http2RedirectClient->get("/testHttp2Redirect/test303");
+        if (response is http:Response) {
+            test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+            assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+            assertTextPayload(response.getTextPayload(), "hello world:http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2");
+        } else {
+            test:assertFail(msg = "Found unexpected output type: " + response.message());
+        }
     }
 }

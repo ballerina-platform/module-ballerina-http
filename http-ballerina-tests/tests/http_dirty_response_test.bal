@@ -24,24 +24,36 @@ http:Client dirtyResponseTestClient = check new("http://localhost:" + dirtyRespo
 http:Response dirtyResponse = getSingletonResponse();
 string dirtyErrorLog = "";
 
-service /hello on dirtyResponseListener {
+http:Service httpDirtyReponseService = service object {
 
     resource function 'default .(http:Caller caller, http:Request req) {
         var responseError = caller->respond(dirtyResponse);
         if (responseError is error) {
             dirtyErrorLog = responseError.message();
-            io:println(dirtyErrorLog);
+            io:println("[DirtyResponse] [ServiceMessage]", dirtyErrorLog);
         }
     }
-}
+};
 
-function getSingletonResponse() returns http:Response {
+isolated function getSingletonResponse() returns http:Response {
     http:Response res = new;
     return res;
 }
 
+@test:BeforeGroups { value:["httpDirtyResponse"] }
+function beforeHttpDirtyResponseTests() {
+    checkpanic dirtyResponseListener.attach(httpDirtyReponseService, "/hello");
+}
+
+@test:AfterGroups { value:["httpDirtyResponse"] }
+function afterHttpDirtyResponseTests() {
+    checkpanic dirtyResponseListener.detach(httpDirtyReponseService);
+}
+
 // Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/305#issuecomment-824047016
-@test:Config {}
+@test:Config {
+    groups: ["httpDirtyResponse"]
+}
 function testDirtyResponse() {
     var response = dirtyResponseTestClient->get("/hello");
     if (response is http:Response) {
