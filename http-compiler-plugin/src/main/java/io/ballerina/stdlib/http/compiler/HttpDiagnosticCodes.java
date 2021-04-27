@@ -49,7 +49,10 @@ public enum HttpDiagnosticCodes {
     HTTP_113("HTTP_113", "invalid union type of query param '%s': 'string', 'int', 'float', 'boolean', " +
             "'decimal' type or the array types of them can only be union with '()'. Eg: string? or int[]?", ERROR),
     HTTP_114("HTTP_114", "incompatible respond method argument type : expected '%s' according " +
-            "to the 'http:CallerInfo' annotation", ERROR);
+            "to the 'http:CallerInfo' annotation", ERROR),
+    HTTP_115("HTTP_115", "invalid multiple 'http:Caller' parameter: '%s'", ERROR),
+    HTTP_116("HTTP_116", "invalid multiple 'http:Request' parameter: '%s'", ERROR),
+    HTTP_117("HTTP_117", "invalid multiple 'http:Headers' parameter: '%s'", ERROR);
 
     private final String code;
     private final String message;

@@ -56,6 +56,9 @@ public class CompilerPluginTest {
     private static final String HTTP_112 = "HTTP_112";
     private static final String HTTP_113 = "HTTP_113";
     private static final String HTTP_114 = "HTTP_114";
+    private static final String HTTP_115 = "HTTP_115";
+    private static final String HTTP_116 = "HTTP_116";
+    private static final String HTTP_117 = "HTTP_117";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -213,12 +216,12 @@ public class CompilerPluginTest {
                         "invalid resource parameter type: 'ballerina/http")).forEach(Assert::assertTrue);
     }
 
-//    @Test
+    @Test
     public void testCallerInfoAnnotation() {
         Package currentPackage = loadPackage("sample_package_10");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 7);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
                 "'int' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
@@ -227,9 +230,10 @@ public class CompilerPluginTest {
                 "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 3, "incompatible respond method argument type : expected " +
                 "'string' according to the 'http:CallerInfo' annotation", HTTP_114);
-        assertError(diagnosticResult, 4, "incompatible respond method argument type : expected " +
-                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 4, "invalid multiple 'http:Caller' parameter: 'xyz'", HTTP_115);
         assertError(diagnosticResult, 5, "incompatible respond method argument type : expected " +
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 6, "incompatible respond method argument type : expected " +
                 "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
     }
 
@@ -259,5 +263,19 @@ public class CompilerPluginTest {
                 "'EntityArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 9, "incompatible respond method argument type : expected " +
                 "'ByteStream' according to the 'http:CallerInfo' annotation", HTTP_114);
+    }
+
+    @Test
+    public void testInValidMultipleObjectArgs() {
+        Package currentPackage = loadPackage("sample_package_12");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
+        assertTrue(diagnosticResult, 0, "invalid multiple 'http:Caller' parameter: 'xyz'", HTTP_115);
+        assertTrue(diagnosticResult, 1, "invalid multiple 'http:Headers' parameter: 'noo'", HTTP_117);
+        assertTrue(diagnosticResult, 2, "invalid multiple 'http:Request' parameter: 'aaa'", HTTP_116);
+        assertTrue(diagnosticResult, 3, "invalid multiple 'http:Caller' parameter: 'ccc'", HTTP_115);
+        assertTrue(diagnosticResult, 4, "invalid multiple 'http:Request' parameter: 'fwdw'", HTTP_116);
+        assertTrue(diagnosticResult, 5, "invalid multiple 'http:Headers' parameter: 'ccc'", HTTP_117);
     }
 }
