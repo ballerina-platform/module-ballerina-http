@@ -67,6 +67,26 @@ service /headQuote on httpVerbListenerEP {
            checkpanic caller->respond(errMsg);
         }
     }
+
+    resource function 'default empty(http:Caller caller, http:Request req) {
+        var response = endPoint -> execute("", "/getQuote/stocks", req);
+        if (response is http:Response) {
+            checkpanic caller->respond(<@untainted> response);
+        } else {
+            json errMsg = {"error":"error occurred while invoking the service"};
+            checkpanic caller->respond(errMsg);
+        }
+    }
+
+    resource function 'default emptyErr(http:Caller caller, http:Request req) {
+        http:Request clientRequest = new;
+        var response = endPoint -> execute("", "/getQuote/stocks", clientRequest);
+        if (response is http:Response) {
+            checkpanic caller->respond(<@untainted> response);
+        } else {
+            checkpanic caller->respond(response.message());
+        }
+    }
 }
 
 service /sampleHead on httpVerbListenerEP {
@@ -219,6 +239,32 @@ function testDataBindingWithIncompatiblePayload() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'name:WSO2,team:ballerina'");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test with empty method in execute remote method uses the inbound verb
+@test:Config {}
+function testEmptyVerb() {
+    var response = httpVerbClient->get("/headQuote/empty");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "wso2");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test with empty method and new request to result in error
+@test:Config {}
+function testEmptyVerbError() {
+    var response = httpVerbClient->get("/headQuote/emptyErr");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "client method invocation failed: HTTP Verb cannot be empty");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
