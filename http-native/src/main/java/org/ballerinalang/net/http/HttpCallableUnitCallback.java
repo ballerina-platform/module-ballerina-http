@@ -101,7 +101,8 @@ public class HttpCallableUnitCallback implements Callback {
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
         if (ObserveUtils.isObservabilityEnabled()) {
-            ObserverContext observerContext = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            ObserverContext observerContext
+                    = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
             if (observerContext != null) {
                 ObserveUtils.stopObservationWithContext(observerContext);
             }
