@@ -210,7 +210,9 @@ service /mockStatusCodeService on retryTestserviceEndpoint2 {
 
 
 //Test basic retry functionality
-//@test:Config {}
+@test:Config {
+    groups: ["retryClientTest"]
+}
 function testSimpleRetry() {
     json payload = {Name:"Ballerina"};
     var response = retryFunctionTestClient->post("/retryDemoService", payload);
@@ -224,19 +226,25 @@ function testSimpleRetry() {
 }
 
 //Test retry functionality with multipart requests
-//@test:Config {}
+@test:Config {
+    groups: ["retryClientTest"]
+}
 function testRetryWithMultiPart() {
     test:assertTrue(externTestMultiPart(retryFunctionTestPort1, "retryDemoService"));
 }
 
 //Test retry functionality when request has nested body parts
-//@test:Config {}
+@test:Config {
+    groups: ["retryClientTest"]
+}
 function testRetryWithNestedMultiPart() {
     test:assertTrue(externTestNestedMultiPart(retryFunctionTestPort1, "retryDemoService"));
 }
 
 //Test retry functionality based on HTTP status codes
-//@test:Config {}
+@test:Config {
+    groups: ["retryClientTest"]
+}
 function testRetryBasedOnHttpStatusCodes() {
     http:Request req = new;
     req.setHeader("x-retry", "recover");
@@ -252,7 +260,9 @@ function testRetryBasedOnHttpStatusCodes() {
 }
 
 //Test continuous 502 response code
-//@test:Config {}
+@test:Config {
+    groups: ["retryClientTest"]
+}
 function testRetryBasedOnHttpStatusCodesContinuousFailure() {
     http:Request req = new;
     req.setHeader("x-retry", "internalError");
