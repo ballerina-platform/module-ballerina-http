@@ -38,6 +38,7 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.SERVER_C
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PROTOCOL;
+import static org.ballerinalang.net.http.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 
 /**
  * HTTP connector listener for Ballerina.
@@ -100,6 +101,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = new ObserverContext();
+            observerContext.setManuallyClosed(true);
             observerContext.setObjectName(SERVER_CONNECTOR_HTTP);
             Map<String, String> httpHeaders = new HashMap<>();
             inboundMessage.getHeaders().forEach(entry -> httpHeaders.put(entry.getKey(), entry.getValue()));
@@ -108,6 +110,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             observerContext.addTag(TAG_KEY_PROTOCOL, (String) inboundMessage.getProperty(HttpConstants.PROTOCOL));
             observerContext.addTag(TAG_KEY_HTTP_URL, inboundMessage.getRequestUrl());
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
+            inboundMessage.setProperty(OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
         Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime(),
                                                          httpResource.getReturnMediaType());

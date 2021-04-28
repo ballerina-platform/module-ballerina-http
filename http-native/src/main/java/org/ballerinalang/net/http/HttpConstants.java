@@ -493,6 +493,8 @@ public class HttpConstants {
     public static final Module PROTOCOL_HTTP_PKG_ID =
             new Module(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, HTTP_MODULE_VERSION);
 
+    public static final String OBSERVABILITY_CONTEXT_PROPERTY = "observabilityContext";
+
     private HttpConstants() {
     }
 }
