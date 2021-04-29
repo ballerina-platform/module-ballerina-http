@@ -87,10 +87,29 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             }
         }
     }
+
+    resource function put .(http:Caller caller, http:Request request) {
+        var backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
+        if (backendResponse is http:Response) {
+            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        } else {
+            http:Response response = new;
+            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+            response.setPayload(<@untainted> backendResponse.message());
+            error? responseToCaller = caller->respond(response);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        }
+    }
 }
 
 int retryCount = 0;
-int headRetryCrount = 0;
+int httpHeadRetryCount = 0;
+int httpPutRetryCount = 0;
 
 // This sample service is used to mock connection timeouts and service outages.
 // The service outage is mocked by stopping/starting this service.
@@ -158,15 +177,32 @@ service /mockHelloService on retryTestserviceEndpoint1 {
 
     resource function head .(http:Caller caller, http:Request request) {
         http:Response res = new;
-        headRetryCrount = headRetryCrount + 1;
-        if (headRetryCrount % 4 != 0) {
+        httpHeadRetryCount = httpHeadRetryCount + 1;
+        if (httpHeadRetryCount % 4 != 0) {
             log:printInfo(
                 "Request received from the client to delayed service.");
             // Delay the response by 5000 milliseconds to
             // mimic network level delays.
             runtime:sleep(5);
         }
-        res.setHeader("X-Head-Retry-Count", headRetryCrount.toString());
+        res.setHeader("X-Head-Retry-Count", httpHeadRetryCount.toString());
+        error? responseToCaller = caller->respond(res);
+        if (responseToCaller is error) {
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
+        }
+    }
+
+    resource function put .(http:Caller caller, http:Request request) {
+        http:Response res = new;
+        httpPutRetryCount = httpPutRetryCount + 1;
+        if (httpPutRetryCount % 4 != 0) {
+            log:printInfo(
+                "Request received from the client to delayed service.");
+            // Delay the response by 5000 milliseconds to
+            // mimic network level delays.
+            runtime:sleep(5);
+        }
+        res.setTextPayload("HTTP PUT method invocation is successful");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -269,8 +305,21 @@ function testHeadRequestWithRetries() {
     var response = retryFunctionTestClient->head("/retryDemoService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader("X-Head-Retry-Count"), headRetryCrount.toString());
-        test:assertTrue(true);
+        assertHeaderValue(checkpanic response.getHeader("X-Head-Retry-Count"), httpHeadRetryCount.toString());
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test retry functionality with HEAD request
+@test:Config {
+    groups: ["retryClientTest"]
+}
+function testPutRequestWithRetries() {
+    var response = retryFunctionTestClient->put("/retryDemoService", "This is a simple HTTP PUT request");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "HTTP PUT method invocation is successful");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
