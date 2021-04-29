@@ -27,7 +27,7 @@ listener http:Listener http2RetryTestserviceEndpoint2 = new(http2RetryFunctionTe
 http:Client http2RetryFunctionTestClient = check new("http://localhost:" + http2RetryFunctionTestPort1.toString(), { httpVersion: "2.0" });
 
 // Define the end point to the call the `mockHelloService`.
-http:Client http2RetryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(), {
+http:Client http2RetryBackendClientEP = check new("http://localhost:" + http2RetryTestserviceEndpoint1.toString(), {
     // Retry configuration options.
     retryConfig: {
         interval: 3,
