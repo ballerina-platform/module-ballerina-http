@@ -38,7 +38,7 @@ http:Client http2RetryBackendClientEP = check new("http://localhost:" + retryFun
     httpVersion: "2.0"
 });
 
-http:Client http2InternalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
+http:Client http2InternalErrorEP = check new("http://localhost:" + http2RetryFunctionTestPort2.toString(), {
     retryConfig: {
         interval: 3,
         count: 3,
