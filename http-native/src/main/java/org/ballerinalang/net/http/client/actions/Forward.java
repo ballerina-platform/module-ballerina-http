@@ -68,4 +68,7 @@ public class Forward extends AbstractHTTPAction {
         }
         return outboundRequestMsg;
     }
+
+    private Forward() {
+    }
 }

@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
@@ -56,11 +57,15 @@ public class Execute extends AbstractHTTPAction {
         HttpUtil.enrichOutboundMessage(outboundRequestMsg, requestObj);
         prepareOutboundRequest(serviceUri, path, outboundRequestMsg, isNoEntityBodyRequest(requestObj));
 
-        // If the verb is not specified, use the verb in incoming message
-        if (httpVerb == null || httpVerb.isEmpty()) {
-            httpVerb = outboundRequestMsg.getHttpMethod();
+        String verb = "";
+        if (!httpVerb.isEmpty()) {
+            verb = httpVerb;
+        } else if (outboundRequestMsg.getHttpMethod() != null) {
+            verb = outboundRequestMsg.getHttpMethod();
+        } else {
+            throw HttpUtil.createHttpError("HTTP Verb cannot be empty", HttpErrorType.GENERIC_CLIENT_ERROR);
         }
-        outboundRequestMsg.setHttpMethod(httpVerb.trim().toUpperCase(Locale.getDefault()));
+        outboundRequestMsg.setHttpMethod(verb.trim().toUpperCase(Locale.getDefault()));
         handleAcceptEncodingHeader(outboundRequestMsg, getCompressionConfigFromEndpointConfig(config));
         return outboundRequestMsg;
     }

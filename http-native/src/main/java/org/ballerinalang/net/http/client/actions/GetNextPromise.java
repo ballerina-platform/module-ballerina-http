@@ -65,4 +65,7 @@ public class GetNextPromise extends AbstractHTTPAction {
             dataContext.notifyInboundResponseStatus(pushPromiseObj, null);
         }
     }
+
+    private GetNextPromise() {
+    }
 }
