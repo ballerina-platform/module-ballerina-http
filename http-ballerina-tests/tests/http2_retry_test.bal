@@ -1,4 +1,4 @@
-// Copyright (c) 2018 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -27,7 +27,7 @@ listener http:Listener http2RetryTestserviceEndpoint2 = new(http2RetryFunctionTe
 http:Client http2RetryFunctionTestClient = check new("http://localhost:" + http2RetryFunctionTestPort1.toString(), { httpVersion: "2.0" });
 
 // Define the end point to the call the `mockHelloService`.
-http:Client http2RetryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(), {
+http:Client http2RetryBackendClientEP = check new("http://localhost:" + http2RetryTestserviceEndpoint1.toString(), {
     // Retry configuration options.
     retryConfig: {
         interval: 3,
@@ -38,7 +38,7 @@ http:Client http2RetryBackendClientEP = check new("http://localhost:" + retryFun
     httpVersion: "2.0"
 });
 
-http:Client http2InternalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
+http:Client http2InternalErrorEP = check new("http://localhost:" + http2RetryFunctionTestPort2.toString(), {
     retryConfig: {
         interval: 3,
         count: 3,
