@@ -48,7 +48,6 @@ import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
-import org.ballerinalang.net.http.ValueCreatorUtils;
 import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
@@ -90,10 +89,6 @@ public abstract class AbstractHTTPAction {
 
     protected static HttpCarbonMessage createOutboundRequestMsg(String serviceUri, BMap config, String path,
                                                                 BObject request) {
-        if (request == null) {
-            request = ValueCreatorUtils.createRequestObject();
-        }
-
         HttpCarbonMessage requestMsg = HttpUtil.getCarbonMsg(request, HttpUtil.createHttpCarbonMessage(true));
         HttpUtil.checkEntityAvailability(request);
         HttpUtil.enrichOutboundMessage(requestMsg, request);

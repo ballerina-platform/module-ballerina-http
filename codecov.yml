@@ -3,3 +3,4 @@ fixes:
 
 ignore:
   - "http-ballerina-tests"
+  - "http-compiler-plugin-tests"

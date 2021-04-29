@@ -65,4 +65,7 @@ public class GetResponse extends AbstractHTTPAction {
             dataContext.notifyInboundResponseStatus(null, httpConnectorError);
         }
     }
+
+    private GetResponse() {
+    }
 }

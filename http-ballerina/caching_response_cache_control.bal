@@ -50,22 +50,22 @@ public class ResponseCacheControl {
 
         if (self.mustRevalidate) {
             directives[i] = MUST_REVALIDATE;
-            i = i + 1;
+            i += 1;
         }
 
         if (self.noCache) {
             directives[i] = NO_CACHE + appendFields(self.noCacheFields);
-            i = i + 1;
+            i += 1;
         }
 
         if (self.noStore) {
             directives[i] = NO_STORE;
-            i = i + 1;
+            i += 1;
         }
 
         if (self.noTransform) {
             directives[i] = NO_TRANSFORM;
-            i = i + 1;
+            i += 1;
         }
 
         if (self.isPrivate) {
@@ -73,32 +73,23 @@ public class ResponseCacheControl {
         } else {
             directives[i] = PUBLIC;
         }
-        i = i + 1;
+        i += 1;
 
         if (self.proxyRevalidate) {
             directives[i] = PROXY_REVALIDATE;
-            i = i + 1;
+            i += 1;
         }
 
         if (self.maxAge >= 0d) {
             directives[i] = MAX_AGE + "=" + self.maxAge.toString();
-            i = i + 1;
+            i += 1;
         }
 
         if (self.sMaxAge >= 0d) {
             directives[i] = S_MAX_AGE + "=" + self.sMaxAge.toString();
-            i = i + 1;
+            i += 1;
         }
 
         return buildCommaSeparatedString(directives);
-    }
-}
-
-isolated function setResponseCacheControlHeader(Response response) {
-    var responseCacheControl = response.cacheControl;
-    if (responseCacheControl is ResponseCacheControl) {
-        if (!response.hasHeader(CACHE_CONTROL)) {
-            response.setHeader(CACHE_CONTROL, responseCacheControl.buildCacheControlDirectives());
-        }
     }
 }

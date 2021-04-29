@@ -194,4 +194,7 @@ public class HttpClientAction extends AbstractHTTPAction {
         }
         return subMap;
     }
+
+    private HttpClientAction() {
+    }
 }

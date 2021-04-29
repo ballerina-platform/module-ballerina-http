@@ -1,4 +1,4 @@
-// Copyright (c) 2018 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/jballerina.java;
 import ballerina/lang.runtime as runtime;
 import ballerina/log;
 import ballerina/mime;
@@ -22,22 +21,24 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener retryTestserviceEndpoint1 = new(retryFunctionTestPort1);
-listener http:Listener retryTestserviceEndpoint2 = new(retryFunctionTestPort2);
-http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunctionTestPort1.toString());
+listener http:Listener http2RetryTestserviceEndpoint1 = new(http2RetryFunctionTestPort1, { httpVersion: "2.0" });
+listener http:Listener http2RetryTestserviceEndpoint2 = new(http2RetryFunctionTestPort2, { httpVersion: "2.0" });
+
+http:Client http2RetryFunctionTestClient = check new("http://localhost:" + http2RetryFunctionTestPort1.toString(), { httpVersion: "2.0" });
 
 // Define the end point to the call the `mockHelloService`.
-http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(), {
+http:Client http2RetryBackendClientEP = check new("http://localhost:" + http2RetryFunctionTestPort1.toString(), {
     // Retry configuration options.
     retryConfig: {
         interval: 3,
         count: 3,
         backOffFactor: 0.5
     },
-    timeout: 2
+    timeout: 2,
+    httpVersion: "2.0"
 });
 
-http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
+http:Client http2InternalErrorEP = check new("http://localhost:" + http2RetryFunctionTestPort2.toString(), {
     retryConfig: {
         interval: 3,
         count: 3,
@@ -45,33 +46,16 @@ http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestP
         maxWaitInterval: 20,
         statusCodes: [501, 502, 503]
     },
-    timeout: 2
+    timeout: 2,
+    httpVersion: "2.0"
 });
 
-service /retryDemoService on retryTestserviceEndpoint1 {
+service /retryDemoService on http2RetryTestserviceEndpoint1 {
     // Create a REST resource within the API.
     // Parameters include a reference to the caller endpoint and an object of
     // the request data.
     resource function 'default .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
-        if (backendResponse is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendResponse);
-            if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
-            }
-        } else {
-            http:Response response = new;
-            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendResponse.message());
-            error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
-            }
-        }
-    }
-
-    resource function head .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
+        var backendResponse = http2RetryBackendClientEP->forward("/mockHelloService", request);
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -89,16 +73,15 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 }
 
-int retryCount = 0;
-int headRetryCrount = 0;
+int http2RetryCount = 0;
 
 // This sample service is used to mock connection timeouts and service outages.
 // The service outage is mocked by stopping/starting this service.
 // This should run separately from the `retryDemoService` service.
-service /mockHelloService on retryTestserviceEndpoint1 {
+service /mockHelloService on http2RetryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request req) {
-        retryCount = retryCount + 1;
-        if (retryCount % 4 != 0) {
+        http2RetryCount = http2RetryCount + 1;
+        if (http2RetryCount % 4 != 0) {
             log:printInfo(
                 "Request received from the client to delayed service.");
             // Delay the response by 5000 milliseconds to
@@ -155,26 +138,9 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             }
         }
     }
-
-    resource function head .(http:Caller caller, http:Request request) {
-        http:Response res = new;
-        headRetryCrount = headRetryCrount + 1;
-        if (headRetryCrount % 4 != 0) {
-            log:printInfo(
-                "Request received from the client to delayed service.");
-            // Delay the response by 5000 milliseconds to
-            // mimic network level delays.
-            runtime:sleep(5);
-        }
-        res.setHeader("X-Head-Retry-Count", headRetryCrount.toString());
-        error? responseToCaller = caller->respond(res);
-        if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
-        }
-    }
 }
 
-service /retryStatusService on retryTestserviceEndpoint1 {
+service /retryStatusService on http2RetryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         if (checkpanic request.getHeader("x-retry") == "recover") {
             var backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", <@untainted> request);
@@ -212,12 +178,12 @@ service /retryStatusService on retryTestserviceEndpoint1 {
     }
 }
 
-int retryCounter = 0;
+int http2RetryCounter = 0;
 
-service /mockStatusCodeService on retryTestserviceEndpoint2 {
+service /mockStatusCodeService on http2RetryTestserviceEndpoint2 {
     resource function 'default recover(http:Caller caller, http:Request req) {
-        retryCounter = retryCounter + 1;
-        if (retryCounter % 4 != 0) {
+        http2RetryCounter = http2RetryCounter + 1;
+        if (http2RetryCounter % 4 != 0) {
             http:Response res = new;
             res.statusCode = 502;
             res.setPayload("Gateway Timed out.");
@@ -244,14 +210,13 @@ service /mockStatusCodeService on retryTestserviceEndpoint2 {
     }
 }
 
-
-//Test basic retry functionality
+//Test basic retry functionality with HTTP2
 @test:Config {
-    groups: ["retryClientTest"]
+    groups: ["http2RetryClientTest"]
 }
-function testSimpleRetry() {
+function testHttp2SimpleRetry() {
     json payload = {Name:"Ballerina"};
-    var response = retryFunctionTestClient->post("/retryDemoService", payload);
+    var response = http2RetryFunctionTestClient->post("/retryDemoService", payload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -261,46 +226,15 @@ function testSimpleRetry() {
     }
 }
 
-//Test retry functionality with HEAD request
+//Test retry functionality based on HTTP status codes with HTTP2
 @test:Config {
-    groups: ["retryClientTest"]
+    groups: ["http2RetryClientTest"]
 }
-function testHeadRequestWithRetries() {
-    var response = retryFunctionTestClient->head("/retryDemoService");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader("X-Head-Retry-Count"), headRetryCrount.toString());
-        test:assertTrue(true);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-//Test retry functionality with multipart requests
-@test:Config {
-    groups: ["retryClientTest"]
-}
-function testRetryWithMultiPart() {
-    test:assertTrue(externTestMultiPart(retryFunctionTestPort1, "retryDemoService"));
-}
-
-//Test retry functionality when request has nested body parts
-@test:Config {
-    groups: ["retryClientTest"]
-}
-function testRetryWithNestedMultiPart() {
-    test:assertTrue(externTestNestedMultiPart(retryFunctionTestPort1, "retryDemoService"));
-}
-
-//Test retry functionality based on HTTP status codes
-@test:Config {
-    groups: ["retryClientTest"]
-}
-function testRetryBasedOnHttpStatusCodes() {
+function testHttp2RetryBasedOnHttpStatusCodes() {
     http:Request req = new;
     req.setHeader("x-retry", "recover");
     req.setJsonPayload({Name:"Ballerina"});
-    var response = retryFunctionTestClient->post("/retryStatusService", req);
+    var response = http2RetryFunctionTestClient->post("/retryStatusService", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -310,15 +244,15 @@ function testRetryBasedOnHttpStatusCodes() {
     }
 }
 
-//Test continuous 502 response code
+//Test continuous 502 response code with HTTP2
 @test:Config {
-    groups: ["retryClientTest"]
+    groups: ["http2RetryClientTest"]
 }
-function testRetryBasedOnHttpStatusCodesContinuousFailure() {
+function testHttp2RetryBasedOnHttpStatusCodesContinuousFailure() {
     http:Request req = new;
     req.setHeader("x-retry", "internalError");
     req.setJsonPayload({Name:"Ballerina"});
-    var response = retryFunctionTestClient->post("/retryStatusService", req);
+    var response = http2RetryFunctionTestClient->post("/retryStatusService", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 502, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -327,12 +261,3 @@ function testRetryBasedOnHttpStatusCodesContinuousFailure() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
-
-function externTestMultiPart(int servicePort, string path) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternRetryMultipartTestutil"
-} external;
-
-function externTestNestedMultiPart(int servicePort, string path) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternRetryMultipartTestutil"
-} external;
-
