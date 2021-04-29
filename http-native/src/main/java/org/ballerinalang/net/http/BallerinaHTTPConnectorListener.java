@@ -134,6 +134,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         }
         String txnId = inboundMessage.getHeader(HttpConstants.HEADER_X_XID);
         String registerAtUrl = inboundMessage.getHeader(HttpConstants.HEADER_X_REGISTER_AT_URL);
+        String trxInfo = inboundMessage.getHeader(HttpConstants.HEADER_X_INFO_RECORD);
         //Return 500 if txn context is received when transactionInfectable=false
         if (!isInfectable && txnId != null) {
             log.error("Infection attempt on resource with transactionInfectable=false, txnId:" + txnId);
@@ -143,6 +144,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         if (isTransactionAnnotated && isInfectable && txnId != null && registerAtUrl != null) {
             properties.put(RuntimeConstants.GLOBAL_TRANSACTION_ID, txnId);
             properties.put(RuntimeConstants.TRANSACTION_URL, registerAtUrl);
+            properties.put(RuntimeConstants.TRANSACTION_INFO, trxInfo);
             return properties;
         }
         properties.put(HttpConstants.REMOTE_ADDRESS, inboundMessage.getProperty(HttpConstants.REMOTE_ADDRESS));

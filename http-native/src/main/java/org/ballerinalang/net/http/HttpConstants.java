@@ -322,6 +322,7 @@ public class HttpConstants {
     public static final String HTTP_BAD_REQUEST = "400";
     public static final String HEADER_X_XID = "x-b7a-xid";
     public static final String HEADER_X_REGISTER_AT_URL = "x-b7a-register-at";
+    public static final String HEADER_X_INFO_RECORD = "x-b7a-info-record";
 
 
     public static final String HTTP_SERVER_CONNECTOR = "HTTP_SERVER_CONNECTOR";
