@@ -17,7 +17,6 @@
 */
 package org.ballerinalang.net.http;
 
-import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
