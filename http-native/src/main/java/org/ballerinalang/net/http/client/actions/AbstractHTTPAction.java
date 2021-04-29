@@ -193,18 +193,13 @@ public abstract class AbstractHTTPAction {
     private static String populateTrxInfoJson(BMap<String, Object> infoMap, BArray jsonArray, int i) {
         BMap<BString, Object> subMap = ValueCreator.createMapValue();
         byte[] globalTransactionId = ((BArray)infoMap.get(TransactionConstants.GLOBAL_TRX_ID)).getByteArray();
-        int retryNmbr = 0;
-        if (infoMap.get(TransactionConstants.RETRY_NUMBER) instanceof Long) {
-            retryNmbr = ((Long) infoMap.get(TransactionConstants.RETRY_NUMBER)).intValue();
-        } else {
-            retryNmbr = (int) infoMap.get(TransactionConstants.RETRY_NUMBER);
-        }
-        int startTime = getStartTime(infoMap.get(TransactionConstants.START_TIME));
+        int retryNumber = ((Number) infoMap.get(TransactionConstants.RETRY_NUMBER)).intValue();
+        int startTime = getStartTime((BObject) infoMap.get(TransactionConstants.START_TIME));
         subMap.put(TransactionConstants.GLOBAL_TRX_ID, new String(globalTransactionId));
-        subMap.put(TransactionConstants.RETRY_NUMBER, String.valueOf(retryNmbr));
+        subMap.put(TransactionConstants.RETRY_NUMBER, String.valueOf(retryNumber));
         subMap.put(TransactionConstants.START_TIME, String.valueOf(startTime));
         jsonArray.add(i++, subMap);
-        if (retryNmbr > 0) {
+        if (retryNumber > 0) {
             Object prevInfoRecord = infoMap.get(TransactionConstants.PREVIOUS_ATTEMPT);
             if(prevInfoRecord != null) {
                 populateTrxInfoJson((BMap<String, Object>) prevInfoRecord, jsonArray, i);
@@ -213,7 +208,10 @@ public abstract class AbstractHTTPAction {
         return StringUtils.getJsonString(jsonArray);
     }
 
-    private static int getStartTime(Object timestamp) {
+    private static int getStartTime(BObject timestamp) {
+        if (timestamp != null) {
+            return ((Number) timestamp.getNativeData(TransactionConstants.TIMESTAMP_OBJECT_VALUE_FIELD)).intValue();
+        }
         return 0;
     }
 

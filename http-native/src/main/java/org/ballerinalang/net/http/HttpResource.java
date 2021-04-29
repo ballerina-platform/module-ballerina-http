@@ -72,7 +72,6 @@ public class HttpResource {
     private ParamHandler paramHandler;
     private HttpService parentService;
     private boolean transactionInfectable = true; //default behavior
-    private boolean transactionAnnotated = false;
     private String wildcardToken;
     private int pathParamCount;
     private String returnMediaType;
@@ -86,10 +85,6 @@ public class HttpResource {
             this.populateMethod();
             this.populateReturnMediaType();
         }
-    }
-
-    public boolean isTransactionAnnotated() {
-        return transactionAnnotated;
     }
 
     public String getName() {
@@ -208,7 +203,6 @@ public class HttpResource {
         HttpResource httpResource = new HttpResource(resource, httpService);
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
 
-        setupTransactionAnnotations(resource, httpResource);
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
             httpResource.setConsumes(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(CONSUMES_FIELD).getStringArray()));
@@ -221,12 +215,6 @@ public class HttpResource {
         processResourceCors(httpResource, httpService);
         httpResource.prepareAndValidateSignatureParams();
         return httpResource;
-    }
-
-    private static void setupTransactionAnnotations(MethodType resource, HttpResource httpResource) {
-        if (SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.TRANSACTIONAL)) {
-            httpResource.transactionAnnotated = true;
-        }
     }
 
     /**

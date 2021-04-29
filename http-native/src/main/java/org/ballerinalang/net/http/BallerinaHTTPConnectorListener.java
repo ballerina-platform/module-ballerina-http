@@ -95,8 +95,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     protected void extractPropertiesAndStartResourceExecution(HttpCarbonMessage inboundMessage,
                                                               HttpResource httpResource) {
         boolean isTransactionInfectable = httpResource.isTransactionInfectable();
-        Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable,
-                                                                  httpResource.isTransactionAnnotated());
+        Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable);
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig);
 
         if (ObserveUtils.isObservabilityEnabled()) {
@@ -125,8 +124,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         return inboundMessage.getProperty(HTTP_RESOURCE) != null;
     }
 
-    private Map<String, Object> collectRequestProperties(HttpCarbonMessage inboundMessage, boolean isInfectable,
-                                                         boolean isTransactionAnnotated) {
+    private Map<String, Object> collectRequestProperties(HttpCarbonMessage inboundMessage, boolean isInfectable) {
         Map<String, Object> properties = new HashMap<>();
         if (inboundMessage.getProperty(HttpConstants.SRC_HANDLER) != null) {
             Object srcHandler = inboundMessage.getProperty(HttpConstants.SRC_HANDLER);
@@ -141,7 +139,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             throw new BallerinaConnectorException("Cannot create transaction context: " +
                                                           "resource is not transactionInfectable");
         }
-        if (isTransactionAnnotated && isInfectable && txnId != null && registerAtUrl != null) {
+        if (isInfectable && txnId != null && registerAtUrl != null && trxInfo != null) {
             properties.put(RuntimeConstants.GLOBAL_TRANSACTION_ID, txnId);
             properties.put(RuntimeConstants.TRANSACTION_URL, registerAtUrl);
             properties.put(RuntimeConstants.TRANSACTION_INFO, trxInfo);
