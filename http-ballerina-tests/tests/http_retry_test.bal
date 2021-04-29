@@ -105,12 +105,31 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             }
         }
     }
+
+    resource function options .(http:Caller caller, http:Request request) {
+        var backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
+        if (backendResponse is http:Response) {
+            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        } else {
+            http:Response response = new;
+            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+            response.setPayload(<@untainted> backendResponse.message());
+            error? responseToCaller = caller->respond(response);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        }
+    }
 }
 
 int retryCount = 0;
 int httpHeadRetryCount = 0;
 int httpPutRetryCount = 0;
 int httpDeleteRetryCount = 0;
+int httpOptionsRetryCount = 0;
 
 // This sample service is used to mock connection timeouts and service outages.
 // The service outage is mocked by stopping/starting this service.
@@ -203,6 +222,17 @@ service /mockHelloService on retryTestserviceEndpoint1 {
         waitForRetry(httpDeleteRetryCount);
         http:Response res = new;
         res.setTextPayload("HTTP DELETE method invocation is successful");
+        error? responseToCaller = caller->respond(res);
+        if (responseToCaller is error) {
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
+        }
+    }
+
+    resource function options .(http:Caller caller, http:Request request) {
+        httpOptionsRetryCount = httpOptionsRetryCount + 1;
+        waitForRetry(httpOptionsRetryCount);
+        http:Response res = new;
+        res.setHeader(mime:ALLOW, "OPTIONS, GET, HEAD, POST");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -321,7 +351,7 @@ function testHeadRequestWithRetries() {
     }
 }
 
-//Test retry functionality with HEAD request
+//Test retry functionality with PUT request
 @test:Config {
     groups: ["retryClientTest"]
 }
@@ -344,6 +374,20 @@ function testDeleteRequestWithRetries() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "HTTP DELETE method invocation is successful");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test retry functionality with OPTIONS request
+@test:Config {
+    groups: ["retryClientTest"]
+}
+function testHeadRequestWithRetries() {
+    var response = retryFunctionTestClient->options("/retryDemoService");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(mime:ALLOW), "OPTIONS, GET, HEAD, POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
