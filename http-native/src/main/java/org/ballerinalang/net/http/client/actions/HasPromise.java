@@ -54,4 +54,7 @@ public class HasPromise extends AbstractHTTPAction {
             balFuture.complete(isPromiseAvailable);
         }
     }
+
+    private HasPromise() {
+    }
 }
