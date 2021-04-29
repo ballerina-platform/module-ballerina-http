@@ -112,3 +112,32 @@ function testBasicCachingBehaviour() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
+
+@test:Config {}
+function testResponseCacheControlBuildCacheControlDirectives() {
+    http:ResponseCacheControl resCC = new;
+    resCC.maxAge = 60;
+    resCC.isPrivate = false;
+    resCC.mustRevalidate = true;
+    resCC.noCache = true;
+    resCC.noStore = true;
+    resCC.noTransform = true;
+    resCC.proxyRevalidate = true;
+    resCC.sMaxAge = 60;
+    test:assertEquals(resCC.buildCacheControlDirectives(),
+        "must-revalidate, no-cache, no-store, no-transform, public, proxy-revalidate, max-age=60, s-maxage=60");
+}
+
+@test:Config {}
+function testRequestCacheControlBuildCacheControlDirectives() {
+    http:RequestCacheControl reqCC = new;
+    reqCC.maxAge = 60;
+    reqCC.noCache = true;
+    reqCC.noStore = true;
+    reqCC.noTransform = true;
+    reqCC.onlyIfCached = true;
+    reqCC.maxStale = 120;
+    reqCC.minFresh = 6;
+    test:assertEquals(reqCC.buildCacheControlDirectives(),
+        "no-cache, no-store, no-transform, only-if-cached, max-age=60, max-stale=120, min-fresh=6");
+}
