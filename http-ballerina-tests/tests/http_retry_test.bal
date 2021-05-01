@@ -106,8 +106,44 @@ service /retryDemoService on retryTestserviceEndpoint1 {
         }
     }
 
+    resource function patch .(http:Caller caller, http:Request request) {
+        var backendResponse = retryBackendClientEP->patch("/mockHelloService", request);
+        if (backendResponse is http:Response) {
+            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        } else {
+            http:Response response = new;
+            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+            response.setPayload(<@untainted> backendResponse.message());
+            error? responseToCaller = caller->respond(response);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        }
+    }
+
     resource function options .(http:Caller caller, http:Request request) {
         var backendResponse = retryBackendClientEP->options("/mockHelloService");
+        if (backendResponse is http:Response) {
+            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        } else {
+            http:Response response = new;
+            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+            response.setPayload(<@untainted> backendResponse.message());
+            error? responseToCaller = caller->respond(response);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        }
+    }
+
+    resource function delete .(http:Caller caller, http:Request request) {
+        var backendResponse = retryBackendClientEP->delete("/mockHelloService", request);
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -128,6 +164,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
 int retryCount = 0;
 int httpHeadRetryCount = 0;
 int httpPutRetryCount = 0;
+int httpPatchRetryCount = 0;
 int httpDeleteRetryCount = 0;
 int httpOptionsRetryCount = 0;
 
@@ -211,6 +248,17 @@ service /mockHelloService on retryTestserviceEndpoint1 {
         waitForRetry(httpPutRetryCount);
         http:Response res = new;
         res.setTextPayload("HTTP PUT method invocation is successful");
+        error? responseToCaller = caller->respond(res);
+        if (responseToCaller is error) {
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
+        }
+    }
+
+    resource function patch .(http:Caller caller, http:Request request) {
+        httpPatchRetryCount = httpPatchRetryCount + 1;
+        waitForRetry(httpPatchRetryCount);
+        http:Response res = new;
+        res.setTextPayload("HTTP PATCH method invocation is successful");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -360,6 +408,20 @@ function testPutRequestWithRetries() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "HTTP PUT method invocation is successful");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test retry functionality with PATCH request
+@test:Config {
+    groups: ["retryClientTest"]
+}
+function testPatchRequestWithRetries() {
+    var response = retryFunctionTestClient->patch("/retryDemoService", "This is a simple HTTP PATCH request");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "HTTP PATCH method invocation is successful");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
