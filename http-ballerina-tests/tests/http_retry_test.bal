@@ -71,7 +71,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function get .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->execute("GET", "/mockHelloService", new http:Request());
+        var backendResponse = retryBackendClientEP->execute("GET", "/mockHelloService", request);
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
