@@ -71,7 +71,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function head .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
+        var backendResponse = retryBackendClientEP->head("/mockHelloService");
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -89,7 +89,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function put .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
+        var backendResponse = retryBackendClientEP->put("/mockHelloService", request);
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -107,7 +107,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function options .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
+        var backendResponse = retryBackendClientEP->options("/mockHelloService");
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -232,7 +232,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
         httpOptionsRetryCount = httpOptionsRetryCount + 1;
         waitForRetry(httpOptionsRetryCount);
         http:Response res = new;
-        res.setHeader(mime:ALLOW, "OPTIONS, GET, HEAD, POST");
+        res.setHeader("Allow", "OPTIONS, GET, HEAD, POST");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -383,11 +383,11 @@ function testDeleteRequestWithRetries() {
 @test:Config {
     groups: ["retryClientTest"]
 }
-function testHeadRequestWithRetries() {
+function testOptionsRequestWithRetries() {
     var response = retryFunctionTestClient->options("/retryDemoService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(mime:ALLOW), "OPTIONS, GET, HEAD, POST");
+        assertHeaderValue(checkpanic response.getHeader("Allow"), "OPTIONS, GET, HEAD, POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
