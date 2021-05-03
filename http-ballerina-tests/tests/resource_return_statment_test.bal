@@ -40,11 +40,11 @@ service http:Service /mytest on resourceReturnTestEP {
         error? result = caller->respond("hello");
         return;
     }
-    
+
     resource function get test2() returns string {
         return "world";
-    }    
-    
+    }
+
     resource function get test2a() returns @http:Payload {mediaType:"text/plain+id"} string {
         return "world";
     }
@@ -96,7 +96,7 @@ service http:Service /mytest on resourceReturnTestEP {
 
     resource function get test11() returns error {
         return error http:GenericListenerError("Don't panic. This is to test the error!");
-    } 
+    }
 
     resource function get test12() returns @tainted @http:Payload {mediaType:["application/json+id"]} http:Accepted {
         http:Accepted acc = { body: {hello:"World"}, headers: { xtest: "Elle"} };
@@ -178,7 +178,7 @@ service http:Service /mytest on resourceReturnTestEP {
         return xx;
     }
 
-    resource function get test26/[string ret]() returns 
+    resource function get test26/[string ret]() returns
             @http:Payload {mediaType:"application/custom+json"} http:Gone|http:Response|string {
         if (ret == "gone") {
             http:Gone gone = { body: "hello world", headers: { xtest: ["Go", "Elle"]}, mediaType:"text/plain" };
@@ -190,6 +190,155 @@ service http:Service /mytest on resourceReturnTestEP {
             return resp;
         }
         return "hello";
+    }
+
+    resource function get test27/[string sType]() returns http:Continue|http:SwitchingProtocols|
+            http:NonAuthoritativeInformation|http:ResetContent|http:PartialContent|http:MultipleChoices|
+            http:MovedPermanently|http:Found|http:SeeOther|http:NotModified|http:UseProxy|http:TemporaryRedirect|
+            http:PermanentRedirect|http:PaymentRequired|http:MethodNotAllowed|http:NotAcceptable|
+            http:ProxyAuthenticationRequired|http:RequestTimeout|http:Conflict|http:LengthRequired|
+            http:PreconditionFailed|http:PayloadTooLarge|http:UriTooLong|http:UnsupportedMediaType|
+            http:RangeNotSatisfiable|http:ExpectationFailed|http:UpgradeRequired|http:RequestHeaderFieldsTooLarge|
+            http:NotImplemented|http:BadGateway|http:ServiceUnavailable|http:GatewayTimeout|
+            http:HttpVersionNotSupported|http:Ok {
+        match sType {
+            "Continue" => {
+                http:Continue res = {};
+                return res;
+            }
+            "SwitchingProtocols" => {
+                http:SwitchingProtocols res = {};
+                return res;
+            }
+            "NonAuthoritativeInformation" => {
+                http:NonAuthoritativeInformation res = {};
+                return res;
+            }
+            "ResetContent" => {
+                http:ResetContent res = {};
+                return res;
+            }
+            "PartialContent" => {
+                http:PartialContent res = {};
+                return res;
+            }
+            "MultipleChoices" => {
+                http:MultipleChoices res = {};
+                return res;
+            }
+            "MovedPermanently" => {
+                http:MovedPermanently res = {};
+                return res;
+            }
+            "Found" => {
+                http:Found res = {};
+                return res;
+            }
+            "SeeOther" => {
+                http:SeeOther res = {};
+                return res;
+            }
+            "NotModified" => {
+                http:NotModified res = {};
+                return res;
+            }
+            "UseProxy" => {
+                http:UseProxy res = {};
+                return res;
+            }
+            "TemporaryRedirect" => {
+                http:TemporaryRedirect res = {};
+                return res;
+            }
+            "PermanentRedirect" => {
+                http:PermanentRedirect res = {};
+                return res;
+            }
+            "PaymentRequired" => {
+                http:PaymentRequired res = {};
+                return res;
+            }
+            "MethodNotAllowed" => {
+                http:MethodNotAllowed res = {};
+                return res;
+            }
+            "NotAcceptable" => {
+                http:NotAcceptable res = {};
+                return res;
+            }
+            "ProxyAuthenticationRequired" => {
+                http:ProxyAuthenticationRequired res = {};
+                return res;
+            }
+            "RequestTimeout" => {
+                http:RequestTimeout res = {};
+                return res;
+            }
+            "Conflict" => {
+                http:Conflict res = {};
+                return res;
+            }
+            "LengthRequired" => {
+                http:LengthRequired res = {};
+                return res;
+            }
+            "PreconditionFailed" => {
+                http:PreconditionFailed res = {};
+                return res;
+            }
+            "PayloadTooLarge" => {
+                http:PayloadTooLarge res = {};
+                return res;
+            }
+            "UriTooLong" => {
+                http:UriTooLong res = {};
+                return res;
+            }
+            "UnsupportedMediaType" => {
+                http:UnsupportedMediaType res = {};
+                return res;
+            }
+            "RangeNotSatisfiable" => {
+                http:RangeNotSatisfiable res = {};
+                return res;
+            }
+            "ExpectationFailed" => {
+                http:ExpectationFailed res = {};
+                return res;
+            }
+            "UpgradeRequired" => {
+                http:UpgradeRequired res = {};
+                return res;
+            }
+            "RequestHeaderFieldsTooLarge" => {
+                http:RequestHeaderFieldsTooLarge res = {};
+                return res;
+            }
+            "NotImplemented" => {
+                http:NotImplemented res = {};
+                return res;
+            }
+            "BadGateway" => {
+                http:BadGateway res = {};
+                return res;
+            }
+            "ServiceUnavailable" => {
+                http:ServiceUnavailable res = {};
+                return res;
+            }
+            "GatewayTimeout" => {
+                http:GatewayTimeout res = {};
+                return res;
+            }
+            "HttpVersionNotSupported" => {
+                http:HttpVersionNotSupported res = {};
+                return res;
+            }
+            _ => {
+                http:Ok res = {};
+                return res;
+            }
+        }
     }
 }
 
@@ -485,7 +634,7 @@ public function testReturnTable() {
     if (resp is http:Response) {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
-        assertJsonPayloadtoJsonString(resp.getJsonPayload(), [{"id":1, "name":"John", "salary":300.5}, 
+        assertJsonPayloadtoJsonString(resp.getJsonPayload(), [{"id":1, "name":"John", "salary":300.5},
             {"id":2, "name":"Bella", "salary":500.5}]);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -539,8 +688,8 @@ public function testReturnTableArr() {
     if (resp is http:Response) {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
-        assertJsonPayloadtoJsonString(resp.getJsonPayload(), [[{"id":1, "name":"John", "salary":300.5}, 
-            {"id":2, "name":"Bella", "salary":500.5}], [{"id":1, "name":"John", "salary":300.5}, 
+        assertJsonPayloadtoJsonString(resp.getJsonPayload(), [[{"id":1, "name":"John", "salary":300.5},
+            {"id":2, "name":"Bella", "salary":500.5}], [{"id":1, "name":"John", "salary":300.5},
             {"id":2, "name":"Bella", "salary":500.5}]] );
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -600,6 +749,240 @@ public function testReturnMultipleTypes() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), "application/custom+json");
         assertTextPayload(resp.getTextPayload(), "hello");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testSwitchingProtocolsStatusCodes() {
+    http:Request req = new;
+    var resp = resourceReturnTestClient->get("/mytest/test27/SwitchingProtocols");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 101, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testNonAuthoritativeInformationStatusCodes() {
+    var resp = resourceReturnTestClient->get("/mytest/test27/NonAuthoritativeInformation");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 203, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testAllOtherStatusCodes() {
+    var resp = resourceReturnTestClient->get("/mytest/test27/ResetContent");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 205, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/PartialContent");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 206, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/MultipleChoices");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 300, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/MovedPermanently");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 301, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/Found");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 302, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/SeeOther");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 303, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/NotModified");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 304, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/UseProxy");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 305, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/TemporaryRedirect");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 307, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/PermanentRedirect");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 308, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/PaymentRequired");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 402, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/MethodNotAllowed");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 405, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/NotAcceptable");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 406, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/ProxyAuthenticationRequired");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 407, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/RequestTimeout");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 408, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/Conflict");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 409, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/LengthRequired");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 411, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/PreconditionFailed");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 412, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/PayloadTooLarge");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 413, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/UriTooLong");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 414, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/UnsupportedMediaType");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 415, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/RangeNotSatisfiable");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 416, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/ExpectationFailed");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 417, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/UpgradeRequired");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 426, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/RequestHeaderFieldsTooLarge");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 431, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/NotImplemented");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 501, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/BadGateway");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 502, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/ServiceUnavailable");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 503, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/GatewayTimeout");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 504, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/HttpVersionNotSupported");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 505, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
