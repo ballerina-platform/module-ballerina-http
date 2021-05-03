@@ -40,21 +40,8 @@ http:Client errornousClientEP = check new("http://localhost:8090", conf04);
 service /cb on circuitBreakerEP04 {
 
     resource function 'default requestvolume(http:Caller caller, http:Request request) {
-        var backendRes = errornousClientEP->forward("/errornous", request);
-        if (backendRes is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendRes);
-            if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
-            }
-        } else {
-            http:Response response = new;
-            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendRes.message());
-            error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
-            }
-        }
+        var backendRes = errornousClientEP->post("/errornous", request);
+        handleBackendResponse(caller, backendRes);
     }
 }
 
@@ -74,7 +61,10 @@ service /errornous on new http:Listener(8090) {
 //Test for circuit breaker requestVolumeThreshold functionality
 http:Client testRequestVolumeClient = check new("http://localhost:9310");
 
-@test:Config{ dataProvider:requestVolumeResponseDataProvider }
+@test:Config{ 
+    groups: ["circuitBreakerRequestVolume"],
+    dataProvider:requestVolumeResponseDataProvider 
+}
 function requestVolumeTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed);
 }
