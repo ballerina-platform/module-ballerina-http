@@ -266,6 +266,44 @@ service /testRedirectService on serviceEndpoint3 {
         }
     }
 
+    resource function get doPatch(http:Caller caller, http:Request request) {
+        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:Request req = new;
+        req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
+        req.setTextPayload("Payload redirected");
+        var response = endPoint4->patch("/redirect1/handlePost", req);
+        if (response is http:Response) {
+            var value = response.getTextPayload();
+            if (value is string) {
+                value = value + ":" + response.resolvedRequestedURI;
+                checkpanic caller->respond(<@untainted> value);
+            } else {
+                io:println("Payload error!");
+            }
+        } else {
+            io:println("Connector error!");
+        }
+    }
+
+    resource function get doDelete(http:Caller caller, http:Request request) {
+        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:Request req = new;
+        req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
+        req.setTextPayload("Payload redirected");
+        var response = endPoint4->delete("/redirect1/handlePost", req);
+        if (response is http:Response) {
+            var value = response.getTextPayload();
+            if (value is string) {
+                value = value + ":" + response.resolvedRequestedURI;
+                checkpanic caller->respond(<@untainted> value);
+            } else {
+                io:println("Payload error!");
+            }
+        } else {
+            io:println("Connector error!");
+        }
+    }
+
     resource function get doSecurePut(http:Caller caller, http:Request request) {
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
@@ -604,6 +642,32 @@ public function testRedirectWithHead() {
 public function testRedirectWithExecute() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/doExecute");
+    if (resp is http:Response) {
+        assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {
+    groups: ["httpRedirect"]
+}
+public function testRedirectWithPatch() {
+    http:Client httpClient = checkpanic new("http://localhost:9103");
+    var resp = httpClient->get("/testRedirectService/doPatch");
+    if (resp is http:Response) {
+        assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {
+    groups: ["httpRedirect"]
+}
+public function testRedirectWithDelete() {
+    http:Client httpClient = checkpanic new("http://localhost:9103");
+    var resp = httpClient->get("/testRedirectService/doDelete");
     if (resp is http:Response) {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
     } else {
