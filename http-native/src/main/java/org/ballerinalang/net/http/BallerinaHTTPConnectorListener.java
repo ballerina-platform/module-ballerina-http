@@ -143,7 +143,6 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             properties.put(RuntimeConstants.GLOBAL_TRANSACTION_ID, txnId);
             properties.put(RuntimeConstants.TRANSACTION_URL, registerAtUrl);
             properties.put(RuntimeConstants.TRANSACTION_INFO, trxInfo);
-            return properties;
         }
         properties.put(HttpConstants.REMOTE_ADDRESS, inboundMessage.getProperty(HttpConstants.REMOTE_ADDRESS));
         properties.put(HttpConstants.ORIGIN_HOST, inboundMessage.getHeader(HttpConstants.ORIGIN_HOST));
