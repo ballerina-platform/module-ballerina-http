@@ -65,6 +65,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
 import static io.netty.handler.codec.http.HttpHeaderNames.ACCEPT_ENCODING;
@@ -190,7 +191,7 @@ public abstract class AbstractHTTPAction {
         byte[] globalTransactionId = ((BArray) infoMap.get(TransactionConstants.GLOBAL_TRX_ID)).getByteArray();
         int retryNumber = ((Number) infoMap.get(TransactionConstants.RETRY_NUMBER)).intValue();
         int startTime = getStartTime((BObject) infoMap.get(TransactionConstants.START_TIME));
-        subMap.put(TransactionConstants.GLOBAL_TRX_ID, new String(globalTransactionId));
+        subMap.put(TransactionConstants.GLOBAL_TRX_ID, new String(globalTransactionId, StandardCharsets.UTF_8));
         subMap.put(TransactionConstants.RETRY_NUMBER, String.valueOf(retryNumber));
         subMap.put(TransactionConstants.START_TIME, String.valueOf(startTime));
         jsonArray.add(i++, subMap);
