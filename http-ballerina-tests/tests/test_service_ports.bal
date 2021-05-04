@@ -38,6 +38,8 @@ const int multipartRequestTest = 9018;
 const int responseTest = 9094;
 const int entityTest = 9097;
 const int mimeTest = 9096;
+const int proxyTest1 = 9019;
+const int proxyTest2 = 9020;
 
 // Integration test ports
 // HTTP

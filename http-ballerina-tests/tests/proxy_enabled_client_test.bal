@@ -18,7 +18,7 @@
 // import ballerina/io;
 // import ballerina/test;
 
-// service /proxy on new http:Listener(9218) {
+// service /proxy on new http:Listener(proxyTest1) {
 
 //     resource function post server(http:Caller caller, http:Request req) {
 //         http:Response res = new;
@@ -27,7 +27,7 @@
 //     }
 // }
 
-// service on new http:Listener(9219) {
+// service on new http:Listener(proxyTest2) {
 
 //     resource function 'default .(http:Caller caller, http:Request req) {
 //         string url = <@untainted> req.rawPath;
@@ -50,14 +50,14 @@
 //     http1Settings: {
 //         proxy: {
 //             host:"localhost",
-//             port:9219
+//             port:proxyTest2
 //         }
 //     }
 // };
 
 // @test:Config {}
 // public function testProxyClient() {
-//     http:Client clientEP2 = checkpanic new("http://localhost:9218", clientEPConfig);
+//     http:Client clientEP2 = checkpanic new("http://localhost:" + proxyTest1.toString(), clientEPConfig);
 //     http:Request req = new;
 //     var resp = clientEP2->post("/proxy/server", req);
 //     if (resp is http:Response) {

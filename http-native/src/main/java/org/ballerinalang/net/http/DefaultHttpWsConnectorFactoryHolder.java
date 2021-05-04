@@ -30,4 +30,7 @@ class DefaultHttpWsConnectorFactoryHolder {
     static DefaultHttpWsConnectorFactory getHttpConnectorFactory() {
         return httpConnectorFactory;
     }
+
+    private DefaultHttpWsConnectorFactoryHolder() {
+    }
 }
