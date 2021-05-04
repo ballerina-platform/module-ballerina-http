@@ -92,4 +92,6 @@ public class ExternFormatter {
                                             HttpErrorType.GENERIC_LISTENER_ERROR);
         }
     }
+
+    private ExternFormatter() {}
 }

@@ -76,4 +76,6 @@ public class PushPromisedResponse extends ConnectionAction {
             serializeMsgDataSource(dataContext, outboundMessageSource, entityObj, messageOutputStream);
         }
     }
+
+    private PushPromisedResponse() {}
 }

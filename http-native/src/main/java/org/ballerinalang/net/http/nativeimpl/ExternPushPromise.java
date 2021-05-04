@@ -89,4 +89,6 @@ public class ExternPushPromise {
                 HttpUtil.getPushPromise(pushPromiseObj, HttpUtil.createHttpPushPromise(pushPromiseObj));
         http2PushPromise.setHeader(headerName.getValue(), headerValue.getValue());
     }
+
+    private ExternPushPromise() {}
 }

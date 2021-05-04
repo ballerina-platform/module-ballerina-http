@@ -40,4 +40,6 @@ public class GetRemoteHostName {
         }
         return null;
     }
+
+    private GetRemoteHostName() {}
 }

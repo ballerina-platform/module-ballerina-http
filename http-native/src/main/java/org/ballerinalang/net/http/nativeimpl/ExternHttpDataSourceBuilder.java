@@ -247,4 +247,6 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         TEXT,
         BLOB
     }
+
+    private ExternHttpDataSourceBuilder() {}
 }
