@@ -25,7 +25,14 @@ type DataFeed record {
 
 json requestPayload = {Name:"Ballerina"};
 
+const string CB_HEADER = "X-CB-Request";
+const string ALLOW_HEADER = "Allow";
+
 const string SUCCESS_HELLO_MESSAGE = "Hello World!!!";
+const string CB_SUCCESS_HEADER_VALUE = "Successfull";
+const string CB_FAILURE_HEADER_VALUE = "Unsuccessfull";
+const string CB_SUCCESS_ALLOW_HEADER_VALUE = "OPTIONS, GET, HEAD, POST";
+const string CB_FAILUE_ALLOW_HEADER_VALUE = "NONE";
 const string INTERNAL_ERROR_MESSAGE = "Internal error occurred while processing the request.";
 const string UPSTREAM_UNAVAILABLE_MESSAGE = "Upstream service unavailable.";
 const string SERVICE_UNAVAILABLE_MESSAGE = "Service unavailable.";
@@ -40,6 +47,70 @@ const int SC_SERVICE_UNAVAILABLE = 503;
 
 function invokeApiAndVerifyResponse(http:Client testClient, string path, DataFeed dataFeed) {
     var response = testClient->post(path, requestPayload);
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+function invokeApiAndVerifyResponseWithHttpGet(http:Client testClient, string path, DataFeed dataFeed) {
+    var response = testClient->get(path);
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+function invokeApiAndVerifyResponseWithHttpHead(http:Client testClient, string path, DataFeed dataFeed) {
+    var response = testClient->head(path);
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CB_HEADER), dataFeed.message);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+function invokeApiAndVerifyResponseWithHttpOptions(http:Client testClient, string path, DataFeed dataFeed) {
+    var response = testClient->options(path);
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(ALLOW_HEADER), dataFeed.message);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+function invokeApiAndVerifyResponseWithHttpPut(http:Client testClient, string path, DataFeed dataFeed) {
+    var response = testClient->put(path, requestPayload);
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+function invokeApiAndVerifyResponseWithHttpPatch(http:Client testClient, string path, DataFeed dataFeed) {
+    var response = testClient->patch(path, requestPayload);
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+function invokeApiAndVerifyResponseWithHttpDelete(http:Client testClient, string path, DataFeed dataFeed) {
+    var response = testClient->delete(path, requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

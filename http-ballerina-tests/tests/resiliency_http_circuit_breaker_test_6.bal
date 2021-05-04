@@ -40,7 +40,7 @@ http:Client backendClientEP05 = check new("http://localhost:8091", conf05);
 service /cb on circuitBreakerEP05 {
 
     resource function 'default statuscode(http:Caller caller, http:Request request) {
-        var backendRes = backendClientEP05->forward("/statuscode", request);
+        var backendRes = backendClientEP05->execute("POST", "/statuscode", request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -74,7 +74,10 @@ service /statuscode on new http:Listener(8091) {
 //Test for circuit breaker failure status codes functionality 
 http:Client testCBStatusCodesClient = check new("http://localhost:9311");
 
-@test:Config{ dataProvider:statusCodeResponseDataProvider }
+@test:Config{ 
+    groups: ["circuitBreakerStatusCodeResponse"],
+    dataProvider:statusCodeResponseDataProvider 
+}
 function httpStatusCodesTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testCBStatusCodesClient, "/cb/statuscode", dataFeed);
 }
