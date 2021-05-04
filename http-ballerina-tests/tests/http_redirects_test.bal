@@ -231,6 +231,95 @@ service /testRedirectService on serviceEndpoint3 {
         }
     }
 
+    resource function get doHead(http:Caller caller, http:Request request) {
+        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        var response = endPoint4->head("/redirect1/handleHead", {"X-Redirect-Action": "HTTP_TEMPORARY_REDIRECT"});
+        if (response is http:Response) {
+            var value = response.getHeader("X-Redirect-Details");
+            if (value is string) {
+                value = value + ":" + response.resolvedRequestedURI;
+                checkpanic caller->respond(<@untainted> value);
+            } else {
+                io:println("Payload error!");
+            }
+        } else {
+            io:println("Connector error!");
+        }
+    }
+
+    resource function get doExecute(http:Caller caller, http:Request request) {
+        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:Request req = new;
+        req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
+        req.setTextPayload("Payload redirected");
+        var response = endPoint4->execute("POST", "/redirect1/handlePost", req);
+        if (response is http:Response) {
+            var value = response.getTextPayload();
+            if (value is string) {
+                value = value + ":" + response.resolvedRequestedURI;
+                checkpanic caller->respond(<@untainted> value);
+            } else {
+                io:println("Payload error!");
+            }
+        } else {
+            io:println("Connector error!");
+        }
+    }
+
+    resource function get doPatch(http:Caller caller, http:Request request) {
+        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:Request req = new;
+        req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
+        req.setTextPayload("Payload redirected");
+        var response = endPoint4->patch("/redirect1/handlePost", req);
+        if (response is http:Response) {
+            var value = response.getTextPayload();
+            if (value is string) {
+                value = value + ":" + response.resolvedRequestedURI;
+                checkpanic caller->respond(<@untainted> value);
+            } else {
+                io:println("Payload error!");
+            }
+        } else {
+            io:println("Connector error!");
+        }
+    }
+
+    resource function get doDelete(http:Caller caller, http:Request request) {
+        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:Request req = new;
+        req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
+        req.setTextPayload("Payload redirected");
+        var response = endPoint4->delete("/redirect1/handlePost", req);
+        if (response is http:Response) {
+            var value = response.getTextPayload();
+            if (value is string) {
+                value = value + ":" + response.resolvedRequestedURI;
+                checkpanic caller->respond(<@untainted> value);
+            } else {
+                io:println("Payload error!");
+            }
+        } else {
+            io:println("Connector error!");
+        }
+    }
+
+    resource function get doOptions(http:Caller caller, http:Request request) {
+        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        var response = endPoint4->options("/redirect1/handleOptions");
+        if (response is http:Response) {
+            var value = response.getHeader("Allow");
+            if (value is string) {
+                value = "Received:" + value + ":" + response.resolvedRequestedURI;
+                checkpanic caller->respond(<@untainted> value);
+            } else {
+                io:println("Payload error!");
+            }
+        } else {
+            io:println("Connector error!");
+        }
+    }
+
     resource function get doSecurePut(http:Caller caller, http:Request request) {
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
@@ -325,6 +414,18 @@ service /redirect1 on serviceEndpoint3 {
         checkpanic caller->respond(<@untainted> returnVal);
     }
 
+    resource function head handleHead(http:Caller caller, http:Request req) {
+        http:Response res = new;
+        checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
+                "http://localhost:9102/redirect2/echo"]);
+    }
+
+    resource function options handleOptions(http:Caller caller, http:Request req) {
+        http:Response res = new;
+        checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
+                "http://localhost:9102/redirect2/echo"]);
+    }
+
     resource function 'default handlePost(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
@@ -346,6 +447,12 @@ service /redirect2 on serviceEndpoint2 {
         checkpanic caller->redirect(res, http:REDIRECT_SEE_OTHER_303, ["/redirect2"]);
     }
 
+    resource function options echo(http:Caller caller, http:Request req) {
+        http:Response res = new;
+        res.setHeader("Allow", "OPTIONS, HEAD");
+        checkpanic caller->respond(res);
+    }
+
     resource function 'default echo(http:Caller caller, http:Request req) {
         string hasAuthHeader = "No Proxy";
         if (req.hasHeader("Proxy-Authorization")) {
@@ -353,8 +460,14 @@ service /redirect2 on serviceEndpoint2 {
         }
         var value = req.getTextPayload();
         if (value is string) {
-            value = "Received:" + value + ":" + hasAuthHeader;
+            value = string`Received:${value}:${hasAuthHeader}`;
             checkpanic caller->respond(<@untainted> value);
+        } else if (req.hasHeader("X-Redirect-Action")) {
+            string redirectActionName = checkpanic req.getHeader("X-Redirect-Action");
+            string message = string`Received:${hasAuthHeader}:${redirectActionName}`;
+            http:Response res = new;
+            res.setHeader("X-Redirect-Details", message);
+            checkpanic caller->respond(res);
         } else {
             http:Response res = new;
             var bodyParts = req.getBodyParts();
@@ -395,7 +508,9 @@ service /redirect3 on httpsEP {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testHttpRedirects() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/");
@@ -406,7 +521,9 @@ public function testHttpRedirects() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testMaxRedirect() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/maxRedirect");
@@ -417,7 +534,9 @@ public function testMaxRedirect() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testCrossDomain() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/noRedirect");
@@ -428,7 +547,9 @@ public function testCrossDomain() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testNoRedirect() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/crossDomain");
@@ -439,7 +560,9 @@ public function testNoRedirect() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testRedirectOff() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/redirectOff");
@@ -450,7 +573,9 @@ public function testRedirectOff() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testQPWithRelativePath() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/qpWithRelativePath");
@@ -461,7 +586,9 @@ public function testQPWithRelativePath() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testQPWithAbsolutePath() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/qpWithAbsolutePath");
@@ -472,7 +599,9 @@ public function testQPWithAbsolutePath() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testOriginalRequestWithQP() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/originalRequestWithQP");
@@ -483,7 +612,9 @@ public function testOriginalRequestWithQP() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function test303Status() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/test303");
@@ -494,7 +625,9 @@ public function test303Status() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testRedirectWithHTTPs() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/httpsRedirect");
@@ -505,7 +638,9 @@ public function testRedirectWithHTTPs() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testRedirectWithPOST() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/doPost");
@@ -516,7 +651,74 @@ public function testRedirectWithPOST() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
+public function testRedirectWithHead() {
+    http:Client httpClient = checkpanic new("http://localhost:9103");
+    var resp = httpClient->get("/testRedirectService/doHead");
+    if (resp is http:Response) {
+        assertRedirectResponse(resp, "Received:No Proxy:HTTP_TEMPORARY_REDIRECT:http://localhost:9102/redirect2/echo");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {
+    groups: ["httpRedirect"]
+}
+public function testRedirectWithExecute() {
+    http:Client httpClient = checkpanic new("http://localhost:9103");
+    var resp = httpClient->get("/testRedirectService/doExecute");
+    if (resp is http:Response) {
+        assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {
+    groups: ["httpRedirect"]
+}
+public function testRedirectWithPatch() {
+    http:Client httpClient = checkpanic new("http://localhost:9103");
+    var resp = httpClient->get("/testRedirectService/doPatch");
+    if (resp is http:Response) {
+        assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {
+    groups: ["httpRedirect"]
+}
+public function testRedirectWithDelete() {
+    http:Client httpClient = checkpanic new("http://localhost:9103");
+    var resp = httpClient->get("/testRedirectService/doDelete");
+    if (resp is http:Response) {
+        assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {
+    groups: ["httpRedirect"]
+}
+public function testRedirectWithOptions() {
+    http:Client httpClient = checkpanic new("http://localhost:9103");
+    var resp = httpClient->get("/testRedirectService/doOptions");
+    if (resp is http:Response) {
+        assertRedirectResponse(resp, "Received:OPTIONS, HEAD:http://localhost:9102/redirect2/echo");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testWithHTTPs() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/doSecurePut");
@@ -527,7 +729,9 @@ public function testWithHTTPs() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["httpRedirect"]
+}
 public function testMultipartRedirect() {
     http:Client httpClient = checkpanic new("http://localhost:9103");
     var resp = httpClient->get("/testRedirectService/testMultipart");
