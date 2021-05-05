@@ -179,4 +179,9 @@
             <class name="org.ballerinalang.net.transport.https.ServerCloseConnectionDuringSslTest"/>
         </classes>
     </test>
+    <test name="Ballerina Http native Tests" parallel="false">
+        <classes>
+            <class name="org.ballerinalang.net.http.ExceptionTest"/>
+        </classes>
+    </test>
 </suite>
