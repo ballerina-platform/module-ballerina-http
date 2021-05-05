@@ -51,4 +51,5 @@ public class ExternResource {
         return null;
     }
 
+    private ExternResource() {}
 }

@@ -19,6 +19,11 @@ plugins {
     id 'java'
     id 'checkstyle'
     id 'com.github.spotbugs'
+    id 'jacoco'
+}
+
+jacoco {
+    toolVersion = "0.8.6"
 }
 
 description = 'Ballerina - HTTP/WS Java Utils'
@@ -77,6 +82,14 @@ test {
     testLogging.showStandardStreams = true
     testLogging {
         events "PASSED", "FAILED", "SKIPPED"
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.enabled true
     }
 }
 

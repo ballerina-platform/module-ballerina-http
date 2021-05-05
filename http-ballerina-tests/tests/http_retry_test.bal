@@ -27,15 +27,14 @@ listener http:Listener retryTestserviceEndpoint2 = new(retryFunctionTestPort2);
 http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunctionTestPort1.toString());
 
 // Define the end point to the call the `mockHelloService`.
-http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(), {
-    // Retry configuration options.
-    retryConfig: {
+http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(),
+    retryConfig= {
         interval: 3,
         count: 3,
         backOffFactor: 0.5
     },
-    timeout: 2
-});
+    timeout= 2
+);
 
 http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
     retryConfig: {

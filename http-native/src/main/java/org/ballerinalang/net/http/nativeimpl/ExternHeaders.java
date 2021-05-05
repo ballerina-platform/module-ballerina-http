@@ -169,4 +169,6 @@ public class ExternHeaders {
         }
         return StringUtils.fromString(authorizationHeader);
     }
+
+    private ExternHeaders() {}
 }

@@ -60,7 +60,7 @@ http:ClientConfiguration endPoint5Config = {
     }
 };
 
-http:Client endPoint1 = check new("http://localhost:9103", endPoint1Config );
+http:Client endPoint1 = check new("http://localhost:9103", followRedirects = { enabled: true, maxCount: 3 });
 http:Client endPoint2 = check new("http://localhost:9103", endPoint2Config );
 http:Client endPoint3 = check new("http://localhost:9102", endPoint3Config );
 http:Client endPoint4 = check new("http://localhost:9103");

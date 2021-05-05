@@ -51,13 +51,7 @@ public class HttpCallableUnitCallback implements Callback {
     public void notifySuccess(Object result) {
         if (result == null) { // handles nil return and end of resource exec
             requestMessage.waitAndReleaseAllEntities();
-            if (ObserveUtils.isObservabilityEnabled()) {
-                ObserverContext observerContext
-                        = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
-                if (observerContext != null) {
-                    ObserveUtils.stopObservationWithContext(observerContext);
-                }
-            }
+            stopObservationWithContext();
             return;
         }
         HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
@@ -100,6 +94,11 @@ public class HttpCallableUnitCallback implements Callback {
 
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
+        stopObservationWithContext();
+        requestMessage.waitAndReleaseAllEntities();
+    }
+
+    private void stopObservationWithContext() {
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext
                     = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
@@ -107,6 +106,5 @@ public class HttpCallableUnitCallback implements Callback {
                 ObserveUtils.stopObservationWithContext(observerContext);
             }
         }
-        requestMessage.waitAndReleaseAllEntities();
     }
 }

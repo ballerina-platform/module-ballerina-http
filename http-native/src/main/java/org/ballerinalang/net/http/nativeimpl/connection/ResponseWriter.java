@@ -197,4 +197,6 @@ public class ResponseWriter {
             this.dataContext.notifyOutboundResponseStatus(httpConnectorError);
         }
     }
+
+    private ResponseWriter() {}
 }

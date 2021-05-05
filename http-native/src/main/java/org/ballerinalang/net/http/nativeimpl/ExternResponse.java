@@ -51,4 +51,6 @@ public class ExternResponse {
     public static void setEntityAndUpdateContentTypeHeader(BObject requestObj, BObject entityObj) {
         HttpUtil.setEntity(requestObj, entityObj, false, false);
     }
+
+    private ExternResponse() {}
 }

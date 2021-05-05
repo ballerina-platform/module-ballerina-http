@@ -22,14 +22,14 @@ import ballerina/http;
 
 listener http:Listener LBbackendListener = new(8093);
 
-http:LoadBalanceClient lbBackendEP = check new({
-    targets: [
+http:LoadBalanceClient lbBackendEP = check new(
+    targets = [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
         { url: "http://localhost:8093/LBMock3" }
     ],
-    timeout: 5
-});
+    timeout = 5
+);
 
 http:LoadBalanceClient lbFailoverBackendEP = check new({
     targets: [
