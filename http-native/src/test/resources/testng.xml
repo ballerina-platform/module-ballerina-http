@@ -43,84 +43,84 @@
 <!--            <class name="org.ballerinalang.net.transport.websocket.WebSocketUnitTestCase"/>-->
 <!--        </classes>-->
 <!--    </test>-->
-<!--    <test name="Transport HTTP test" parallel="false">-->
-<!--        <classes>-->
-<!--            <class name="org.ballerinalang.net.transport.passthrough.PassThroughHttpTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.passthrough.PassThroughHttpsTestCase"/>-->
+    <test name="Transport HTTP test" parallel="false">
+        <classes>
+            <class name="org.ballerinalang.net.transport.passthrough.PassThroughHttpTestCase" />
+            <class name="org.ballerinalang.net.transport.passthrough.PassThroughHttpsTestCase"/>
 
-<!--            <class name="org.ballerinalang.net.transport.contentaware.EchoServerConnectorListenerTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.contentaware.RequestResponseCreationTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.contentaware.RequestResponseStreamingTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.contentaware.RequestResponseTransformTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.contentaware.RequestResponseTransformStreamingTestCase" />-->
+            <class name="org.ballerinalang.net.transport.contentaware.EchoServerConnectorListenerTestCase" />
+            <class name="org.ballerinalang.net.transport.contentaware.RequestResponseCreationTestCase" />
+            <class name="org.ballerinalang.net.transport.contentaware.RequestResponseStreamingTestCase" />
+            <class name="org.ballerinalang.net.transport.contentaware.RequestResponseTransformTestCase" />
+            <class name="org.ballerinalang.net.transport.contentaware.RequestResponseTransformStreamingTestCase" />
 
-<!--&lt;!&ndash;Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427&ndash;&gt;-->
-<!--&lt;!&ndash;            <class name="org.ballerinalang.net.transport.proxyserver.HttpsProxyServerTestCase" />&ndash;&gt;-->
-<!--            <class name="org.ballerinalang.net.transport.proxyserver.HttpProxyServerTestCase" />-->
+<!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
+<!--            <class name="org.ballerinalang.net.transport.proxyserver.HttpsProxyServerTestCase" />-->
+            <class name="org.ballerinalang.net.transport.proxyserver.HttpProxyServerTestCase" />
 
-<!--            <class name="org.ballerinalang.net.transport.ClientConnectorTimeoutTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.ClientTimeoutWhileWritingBodyTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.ClientTimeoutWhileReadingBodyTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.ServerCloseWhileReadingBodyTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.ServerCloseWhileWritingBodyTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.ClientConnectorConnectionRefusedTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.ClientConnectorClosureAfterRequestReadTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.ServerConnectorTimeoutTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.ServerConnectorTimeoutWhileReadingBodyTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.ServerConnectorTimeoutWhileSendingBodyTestCase" />-->
+            <class name="org.ballerinalang.net.transport.ClientConnectorTimeoutTestCase" />
+            <class name="org.ballerinalang.net.transport.ClientTimeoutWhileWritingBodyTestCase" />
+            <class name="org.ballerinalang.net.transport.ClientTimeoutWhileReadingBodyTestCase" />
+            <class name="org.ballerinalang.net.transport.ServerCloseWhileReadingBodyTestCase" />
+            <class name="org.ballerinalang.net.transport.ServerCloseWhileWritingBodyTestCase" />
+            <class name="org.ballerinalang.net.transport.ClientConnectorConnectionRefusedTestCase" />
+            <class name="org.ballerinalang.net.transport.ClientConnectorClosureAfterRequestReadTestCase" />
+            <class name="org.ballerinalang.net.transport.ServerConnectorTimeoutTestCase" />
+            <class name="org.ballerinalang.net.transport.ServerConnectorTimeoutWhileReadingBodyTestCase" />
+            <class name="org.ballerinalang.net.transport.ServerConnectorTimeoutWhileSendingBodyTestCase" />
 
-<!--            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkAutoServerTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkEnableServerTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkDisableServerTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkAutoClientTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkEnableClientTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkDisableClientTestCase" />-->
+            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkAutoServerTestCase" />
+            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkEnableServerTestCase" />
+            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkDisableServerTestCase" />
+            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkAutoClientTestCase" />
+            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkEnableClientTestCase" />
+            <class name="org.ballerinalang.net.transport.chunkdisable.ChunkDisableClientTestCase" />
 
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ListenerContinue100TestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ClientAbnormal100ContinueTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100ChunkingTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100ContentLengthTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100ClosureTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100TimeoutTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100ResponseTimeoutTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ListenerContinue100AfterRespReceivedTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ListenerContinue100WhileRespReceivingTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100WhileSendingReqTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100AfterSendingReqTestCase"/>-->
+            <class name="org.ballerinalang.net.transport.expect100continue.ListenerContinue100TestCase" />
+            <class name="org.ballerinalang.net.transport.expect100continue.ClientAbnormal100ContinueTestCase"/>
+            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100ChunkingTestCase"/>
+            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100ContentLengthTestCase"/>
+            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100ClosureTestCase"/>
+            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100TimeoutTestCase"/>
+            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100ResponseTimeoutTestCase"/>
+            <class name="org.ballerinalang.net.transport.expect100continue.ListenerContinue100AfterRespReceivedTestCase"/>
+            <class name="org.ballerinalang.net.transport.expect100continue.ListenerContinue100WhileRespReceivingTestCase"/>
+            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100WhileSendingReqTestCase"/>
+            <class name="org.ballerinalang.net.transport.expect100continue.ClientContinue100AfterSendingReqTestCase"/>
 
-<!--            <class name="org.ballerinalang.net.transport.unitfunction.CommonUtilTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.unitfunction.HttpCarbonMessageTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.unitfunction.ForwardedTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.unitfunction.BlockingEntityCollectorTestCase" />-->
+            <class name="org.ballerinalang.net.transport.unitfunction.CommonUtilTestCase" />
+            <class name="org.ballerinalang.net.transport.unitfunction.HttpCarbonMessageTestCase" />
+            <class name="org.ballerinalang.net.transport.unitfunction.ForwardedTestCase" />
+            <class name="org.ballerinalang.net.transport.unitfunction.BlockingEntityCollectorTestCase" />
 
-<!--            <class name="org.ballerinalang.net.transport.encoding.ContentEncodingTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.lengthvalidation.RequestLengthValidationTest"/>-->
-<!--            <class name="org.ballerinalang.net.transport.lengthvalidation.ResponseLengthValidationTest"/>-->
-<!--            <class name="org.ballerinalang.net.transport.http1point0test.HttpOnePointZeroServerConnectorTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.http1point0test.KeepAliveHttpOnePointZeroClientTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.http1point0test.ChunkAutoHttpOnePointZeroClientTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.http1point0test.ChunkAlwaysHttpOnePointZeroClientTestCase"/>-->
+            <class name="org.ballerinalang.net.transport.encoding.ContentEncodingTestCase"/>
+            <class name="org.ballerinalang.net.transport.lengthvalidation.RequestLengthValidationTest"/>
+            <class name="org.ballerinalang.net.transport.lengthvalidation.ResponseLengthValidationTest"/>
+            <class name="org.ballerinalang.net.transport.http1point0test.HttpOnePointZeroServerConnectorTestCase"/>
+            <class name="org.ballerinalang.net.transport.http1point0test.KeepAliveHttpOnePointZeroClientTestCase"/>
+            <class name="org.ballerinalang.net.transport.http1point0test.ChunkAutoHttpOnePointZeroClientTestCase"/>
+            <class name="org.ballerinalang.net.transport.http1point0test.ChunkAlwaysHttpOnePointZeroClientTestCase"/>
 
-<!--            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolProxyTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolEvictionTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMaxConnTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolTimeoutProxyTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMainTestCase" />-->
-<!--&lt;!&ndash;Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427&ndash;&gt;-->
-<!--&lt;!&ndash;            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />&ndash;&gt;-->
+            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolProxyTestCase" />
+            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolEvictionTestCase" />
+            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMaxConnTestCase" />
+            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolTimeoutProxyTestCase" />
+            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMainTestCase" />
+<!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
+<!--            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />-->
 
-<!--            <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedEnableTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedTransitionTestCase" />-->
-<!--            <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedDefaultTestCase" />-->
+            <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedEnableTestCase" />
+            <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedTransitionTestCase" />
+            <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedDefaultTestCase" />
 
-<!--            <class name="org.ballerinalang.net.transport.method.head.HeadRequestTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.message.GetFullMessageTestCase" />-->
+            <class name="org.ballerinalang.net.transport.method.head.HeadRequestTestCase"/>
+            <class name="org.ballerinalang.net.transport.message.GetFullMessageTestCase" />
 
-<!--            <class name="org.ballerinalang.net.transport.trailer.ListenerResponseTrailerHeaderTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.trailer.NegativeListenerResponseTrailerHeaderTestCase"/>-->
-<!--            <class name="org.ballerinalang.net.transport.trailer.ClientReadTrailerHeaderTestCase"/>-->
-<!--        </classes>-->
-<!--    </test>-->
+            <class name="org.ballerinalang.net.transport.trailer.ListenerResponseTrailerHeaderTestCase"/>
+            <class name="org.ballerinalang.net.transport.trailer.NegativeListenerResponseTrailerHeaderTestCase"/>
+            <class name="org.ballerinalang.net.transport.trailer.ClientReadTrailerHeaderTestCase"/>
+        </classes>
+    </test>
 <!--    <test name="Transport HTTP2 Tests" parallel="false">-->
 <!--        <classes>-->
 <!--            <class name="org.ballerinalang.net.transport.http2.Http2ClientConnectorBasicTestCase"/>-->
