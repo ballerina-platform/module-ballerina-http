@@ -335,7 +335,7 @@ isolated function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryCli
 }
 
 isolated function getWaitTime(float backOffFactor, decimal maxWaitTime, decimal interval) returns decimal {
-    decimal waitTime = <decimal> (interval * backOffFactor);
+    decimal waitTime = interval * <decimal> backOffFactor;
     // waitTime = waitTime > maxWaitTime ? maxWaitTime : waitTime;
     return (waitTime > maxWaitTime) ? maxWaitTime : waitTime;
 }
