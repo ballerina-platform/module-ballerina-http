@@ -35,7 +35,7 @@ public client class LoadBalanceClient {
     #
     # + loadBalanceClientConfig - The configurations for the load balance client endpoint
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public isolated function init(LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
+    public isolated function init(*LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
         self.loadBalanceClientConfig = loadBalanceClientConfig;
         self.failover = loadBalanceClientConfig.failover;
         var lbClients = createLoadBalanceHttpClientArray(loadBalanceClientConfig);

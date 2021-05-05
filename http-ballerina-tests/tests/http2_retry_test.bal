@@ -21,7 +21,7 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener http2RetryTestserviceEndpoint1 = new(http2RetryFunctionTestPort1, { httpVersion: "2.0" });
+listener http:Listener http2RetryTestserviceEndpoint1 = new(http2RetryFunctionTestPort1, httpVersion = "2.0");
 listener http:Listener http2RetryTestserviceEndpoint2 = new(http2RetryFunctionTestPort2, { httpVersion: "2.0" });
 
 http:Client http2RetryFunctionTestClient = check new("http://localhost:" + http2RetryFunctionTestPort1.toString(), { httpVersion: "2.0" });
