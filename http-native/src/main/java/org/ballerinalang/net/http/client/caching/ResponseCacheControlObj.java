@@ -78,60 +78,6 @@ public class ResponseCacheControlObj {
                                  ValueCreator.createDecimalValue(BigDecimal.valueOf(-1)));
     }
 
-    public ResponseCacheControlObj setMustRevalidate(boolean mustRevalidate) {
-        responseCacheControl.set(RES_CACHE_CONTROL_MUST_REVALIDATE_FIELD, mustRevalidate);
-        return this;
-    }
-
-    public ResponseCacheControlObj setNoCache(boolean noCache) {
-        responseCacheControl.set(RES_CACHE_CONTROL_NO_CACHE_FIELD, noCache);
-        return this;
-    }
-
-    public ResponseCacheControlObj setNoCache(boolean noCache, String[] noCacheFields) {
-        responseCacheControl.set(RES_CACHE_CONTROL_NO_CACHE_FIELD, noCache);
-        responseCacheControl.set(RES_CACHE_CONTROL_NO_CACHE_FIELDS_FIELD, noCacheFields);
-        return this;
-    }
-
-    public ResponseCacheControlObj setNoStore(boolean noStore) {
-        responseCacheControl.set(RES_CACHE_CONTROL_NO_STORE_FIELD, noStore);
-        return this;
-    }
-
-    public ResponseCacheControlObj setNoTransform(boolean noTransform) {
-        responseCacheControl.set(RES_CACHE_CONTROL_NO_TRANSFORM_FIELD, noTransform);
-        return this;
-    }
-
-    public ResponseCacheControlObj setPrivate(boolean isPrivate) {
-        responseCacheControl.set(RES_CACHE_CONTROL_IS_PRIVATE_FIELD, isPrivate);
-        return this;
-    }
-
-    public ResponseCacheControlObj setPrivate(boolean isPrivate, String[] privateFields) {
-        responseCacheControl.set(RES_CACHE_CONTROL_IS_PRIVATE_FIELD, isPrivate);
-        responseCacheControl.set(RES_CACHE_CONTROL_PRIVATE_FIELDS_FIELD, privateFields);
-        return this;
-    }
-
-    public ResponseCacheControlObj setProxyRevalidate(boolean proxyRevalidate) {
-        responseCacheControl.set(RES_CACHE_CONTROL_PROXY_REVALIDATE_FIELD, proxyRevalidate);
-        return this;
-    }
-
-    public ResponseCacheControlObj setMaxAge(long maxAge) {
-        responseCacheControl.set(RES_CACHE_CONTROL_MAX_AGE_FIELD,
-                                 ValueCreator.createDecimalValue(BigDecimal.valueOf(maxAge)));
-        return this;
-    }
-
-    public ResponseCacheControlObj setSMaxAge(long sMaxAge) {
-        responseCacheControl.set(RES_CACHE_CONTROL_S_MAXAGE_FIELD,
-                                 ValueCreator.createDecimalValue(BigDecimal.valueOf(sMaxAge)));
-        return this;
-    }
-
     public void populateStruct(String cacheControlHeaderVal) {
         Map<CacheControlDirective, String> controlDirectives = CacheControlParser.parse(cacheControlHeaderVal);
 

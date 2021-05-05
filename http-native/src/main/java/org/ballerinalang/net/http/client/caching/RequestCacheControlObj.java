@@ -60,44 +60,6 @@ public class RequestCacheControlObj {
         return requestCacheControl;
     }
 
-    public RequestCacheControlObj setNoCache(boolean noCache) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_NO_CACHE_FIELD, noCache);
-        return this;
-    }
-
-    public RequestCacheControlObj setNoStore(boolean noStore) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_NO_STORE_FIELD, noStore);
-        return this;
-    }
-
-    public RequestCacheControlObj setNoTransform(boolean noTransform) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_NO_TRANSFORM_FIELD, noTransform);
-        return this;
-    }
-
-    public RequestCacheControlObj setOnlyIfCached(boolean onlyIfCached) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_ONLY_IF_CACHED_FIELD, onlyIfCached);
-        return this;
-    }
-
-    public RequestCacheControlObj setMaxAge(long maxAge) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_AGE_FIELD,
-                                ValueCreator.createDecimalValue(BigDecimal.valueOf(maxAge)));
-        return this;
-    }
-
-    public RequestCacheControlObj setMaxStale(long maxStale) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_MAX_STALE_FIELD,
-                                ValueCreator.createDecimalValue(BigDecimal.valueOf(maxStale)));
-        return this;
-    }
-
-    public RequestCacheControlObj setMinFresh(long minFresh) {
-        requestCacheControl.set(REQ_CACHE_CONTROL_MIN_FRESH_FIELD,
-                                ValueCreator.createDecimalValue(BigDecimal.valueOf(minFresh)));
-        return this;
-    }
-
     public void populateStruct(String cacheControlHeaderVal) {
         Map<CacheControlDirective, String> controlDirectives = CacheControlParser.parse(cacheControlHeaderVal);
 
