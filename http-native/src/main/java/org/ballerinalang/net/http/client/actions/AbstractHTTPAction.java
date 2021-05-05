@@ -19,14 +19,20 @@
 package org.ballerinalang.net.http.client.actions;
 
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
+import io.ballerina.runtime.transactions.TransactionConstants;
 import io.ballerina.runtime.transactions.TransactionLocalContext;
 import io.ballerina.runtime.transactions.TransactionResourceManager;
 import io.netty.handler.codec.EncoderException;
@@ -59,6 +65,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
 import static io.netty.handler.codec.http.HttpHeaderNames.ACCEPT_ENCODING;
@@ -114,6 +121,8 @@ public abstract class AbstractHTTPAction {
             TransactionLocalContext transactionLocalContext = trxResourceManager.getCurrentTransactionContext();
             outboundRequest.setHeader(HttpConstants.HEADER_X_XID, transactionLocalContext.getGlobalTransactionId());
             outboundRequest.setHeader(HttpConstants.HEADER_X_REGISTER_AT_URL, transactionLocalContext.getURL());
+            outboundRequest.setHeader(HttpConstants.HEADER_X_INFO_RECORD,
+                    getTrxInfoRecordJson(transactionLocalContext.getInfoRecord()));
         }
         try {
             String uri = getServiceUri(serviceUri) + path;
@@ -166,6 +175,40 @@ public abstract class AbstractHTTPAction {
 
         outboundRequest.setProperty(HttpConstants.PROTOCOL, url.getProtocol());
         outboundRequest.setProperty(HttpConstants.NO_ENTITY_BODY, nonEntityBodyReq);
+    }
+
+    private static String getTrxInfoRecordJson(Object infoRecord) {
+        if (infoRecord != null) {
+            ArrayType mapArrType = TypeCreator.createArrayType(PredefinedTypes.TYPE_MAP);
+            BArray mapArr = ValueCreator.createArrayValue(mapArrType);
+            return populateTrxInfoJson((BMap<String, Object>) infoRecord, mapArr, 0);
+        }
+        return "";
+    }
+
+    private static String populateTrxInfoJson(BMap<String, Object> infoMap, BArray jsonArray, int i) {
+        BMap<BString, Object> subMap = ValueCreator.createMapValue();
+        byte[] globalTransactionId = ((BArray) infoMap.get(TransactionConstants.GLOBAL_TRX_ID)).getByteArray();
+        int retryNumber = ((Number) infoMap.get(TransactionConstants.RETRY_NUMBER)).intValue();
+        int startTime = getStartTime((BObject) infoMap.get(TransactionConstants.START_TIME));
+        subMap.put(TransactionConstants.GLOBAL_TRX_ID, new String(globalTransactionId, StandardCharsets.UTF_8));
+        subMap.put(TransactionConstants.RETRY_NUMBER, String.valueOf(retryNumber));
+        subMap.put(TransactionConstants.START_TIME, String.valueOf(startTime));
+        jsonArray.add(i++, subMap);
+        if (retryNumber > 0) {
+            Object prevInfoRecord = infoMap.get(TransactionConstants.PREVIOUS_ATTEMPT);
+            if (prevInfoRecord != null) {
+                populateTrxInfoJson((BMap<String, Object>) prevInfoRecord, jsonArray, i);
+            }
+        }
+        return StringUtils.getJsonString(jsonArray);
+    }
+
+    private static int getStartTime(BObject timestamp) {
+        if (timestamp != null) {
+            return ((Number) timestamp.getNativeData(TransactionConstants.TIMESTAMP_OBJECT_VALUE_FIELD)).intValue();
+        }
+        return 0;
     }
 
     private static void setHostHeader(String host, int port, HttpHeaders headers) {
