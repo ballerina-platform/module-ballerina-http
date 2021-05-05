@@ -34,4 +34,6 @@ public class ExternCaller {
         HttpCarbonMessage inboundMessage = (HttpCarbonMessage) env.getStrandLocal(HttpConstants.INBOUND_MESSAGE);
         return (BObject) inboundMessage.getProperty(HttpConstants.CALLER);
     }
+
+    private ExternCaller() {}
 }

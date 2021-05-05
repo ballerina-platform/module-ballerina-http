@@ -137,4 +137,6 @@ public class Respond extends ConnectionAction {
         return outboundResponseObj.get(RESPONSE_CACHE_CONTROL_FIELD) == null && outboundResponseObj.
                 getNativeData(HttpConstants.DIRTY_RESPONSE) != null;
     }
+
+    private Respond() {}
 }
