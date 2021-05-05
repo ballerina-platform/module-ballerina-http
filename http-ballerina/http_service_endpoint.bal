@@ -24,17 +24,16 @@ import ballerina/jballerina.java;
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
 public class Listener {
 
-    private int port = 0;
-    private ListenerConfiguration config = {};
-    private string instanceId;
+    private int port;
+    private ListenerConfiguration config;
 
     # Gets invoked during module initialization to initialize the listener.
     #
     # + port - Listening port of the HTTP service listener
     # + config - Configurations for the HTTP service listener
-    public isolated function init(int port, ListenerConfiguration? config = ()) returns ListenerError? {
-        self.instanceId = uuid();
-        self.config = config ?: {};
+    # + return - A `ListenerError` if an error occurred during the listener initialization
+    public isolated function init(int port, *ListenerConfiguration config) returns ListenerError? {
+        self.config = config;
         self.port = port;
         return externInitEndpoint(self);
     }

@@ -19,14 +19,14 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener authListener = new(securedListenerPort, {
-    secureSocket: {
+listener http:Listener authListener = new(securedListenerPort,
+    secureSocket = {
         key: {
             path: KEYSTORE_PATH,
             password: "ballerina"
         }
     }
-});
+);
 
 // Unsecured service - Unsecured resource with different combination of resource signature parameters
 

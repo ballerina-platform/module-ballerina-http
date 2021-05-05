@@ -192,10 +192,10 @@ service /mockHelloService on http2RetryTestserviceEndpoint1 {
         http:PushPromise promise = new("/resource1", "POST");
         checkpanic caller->promise(promise);
         // Construct requested resource
-        json mainResponseMsg = { 
-            "response": { 
-                "name": "main resource" 
-            } 
+        json mainResponseMsg = {
+            "response": {
+                "name": "main resource"
+            }
         };
         // Send the requested resource
         checkpanic caller->respond(mainResponseMsg);

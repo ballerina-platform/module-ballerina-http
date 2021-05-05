@@ -36,7 +36,7 @@ public client class Client {
     *ClientObject;
 
     public string url;
-    public ClientConfiguration config = {};
+    public ClientConfiguration config;
     public HttpClient httpClient;
     public CookieStore? cookieStore = ();
 
@@ -47,8 +47,8 @@ public client class Client {
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public isolated function init(string url, ClientConfiguration? config = ()) returns ClientError? {
-        self.config = config ?: {};
+    public isolated function init(string url, *ClientConfiguration config) returns ClientError? {
+        self.config = config;
         self.url = url;
         var cookieConfigVal = self.config.cookieConfig;
         if (cookieConfigVal is CookieConfig) {
@@ -56,12 +56,7 @@ public client class Client {
                 self.cookieStore = new(cookieConfigVal?.persistentCookieHandler);
             }
         }
-        var result = initialize(url, self.config, self.cookieStore);
-        if (result is ClientError) {
-            return result;
-        } else {
-            self.httpClient = result;
-        }
+        self.httpClient = check initialize(url, self.config, self.cookieStore);
     }
 
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
