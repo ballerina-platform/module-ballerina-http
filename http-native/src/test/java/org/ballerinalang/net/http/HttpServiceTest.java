@@ -18,19 +18,30 @@
 
 package org.ballerinalang.net.http;
 
+import io.ballerina.runtime.api.values.BObject;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
- * A unit test class for http module BallerinaConnectorException class.
+ * A unit test class for http module HttpService class functions.
  */
-public class ExceptionTest {
-    @Test
-    public void testBallerinaConnectorException() {
-        Throwable throwable = new Throwable("This is a throwable");
-        BallerinaConnectorException exception = new BallerinaConnectorException("error", throwable);
+public class HttpServiceTest {
 
-        Assert.assertEquals(exception.getMessage(), "error");
-        Assert.assertEquals(exception.getCause().getMessage(), "This is a throwable");
+    @Test
+    public void testNullServiceBasePath() {
+        BObject service = TestUtils.getNewServiceObject("hello");
+        HttpService httpService = new HttpService(service);
+        httpService.setBasePath(null);
+
+        Assert.assertEquals(httpService.getBasePath(), "/hello");
+    }
+
+    @Test
+    public void testNotNullServiceBasePath() {
+        BObject service = TestUtils.getNewServiceObject("hello");
+        HttpService httpService = new HttpService(service);
+        httpService.setBasePath("ballerina");
+
+        Assert.assertEquals(httpService.getBasePath(), "/ballerina");
     }
 }

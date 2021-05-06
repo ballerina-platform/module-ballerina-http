@@ -39,4 +39,6 @@ public class GracefulStop extends AbstractHttpNativeFunction {
         }
         return null;
     }
+
+    private GracefulStop() {}
 }

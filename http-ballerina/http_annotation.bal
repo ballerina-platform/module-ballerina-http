@@ -14,10 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-///////////////////////////
-/// Service Annotations ///
-///////////////////////////
-
 # Contains the configurations for an HTTP service.
 #
 # + host - Domain name of the service
@@ -50,15 +46,8 @@ public type CorsConfig record {|
     decimal maxAge= -1;
 |};
 
-// TODO: Enable this when Ballerina supports service life time
-//public type HttpServiceLifeTime "REQUEST"|"CONNECTION"|"SESSION"|"SINGLETON";
-
 # The annotation which is used to configure an HTTP service.
 public annotation HttpServiceConfig ServiceConfig on service;
-
-////////////////////////////
-/// Resource Annotations ///
-////////////////////////////
 
 # Configuration for an HTTP resource.
 #
