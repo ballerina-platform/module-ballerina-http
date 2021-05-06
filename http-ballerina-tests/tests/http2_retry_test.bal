@@ -37,7 +37,7 @@ http:Client http2RetryBackendClientEP = check new("http://localhost:9606", {
     // Retry configuration options.
     retryConfig: {
         interval: 3,
-        count: 3,
+        count: 4,
         backOffFactor: 0.5
     },
     timeout: 2,

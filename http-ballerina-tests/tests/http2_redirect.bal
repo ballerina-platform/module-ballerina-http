@@ -156,28 +156,6 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
             io:println("Connector error!");
         }
     }
-
-    resource function get getHttp2Redirect(http:Caller caller, http:Request req) {
-        var response = http2RedirectEndPoint2->get("/redirect1/handleV2Redirect");
-        // if (backendFuture is http:HttpFuture) {
-        //     io:println("Received HTTP Future");
-        //     var response = http2RedirectEndPoint2->getResponse(backendFuture);
-            if (response is http:Response) {
-                io:println("Received response ", response.statusCode);
-                var value = response.getTextPayload();
-                if (value is string) {
-                    value = value + ":" + response.resolvedRequestedURI;
-                    checkpanic caller->respond(<@untainted> value);
-                } else {
-                    panic <error>value;
-                }
-            } else {
-                panic <error>response;
-            }
-        // } else {
-        //     io:println("Connector error!");
-        // }
-    }
 }
 
 service /redirect1 on http2RedirectServiceEndpoint2 {
@@ -231,12 +209,6 @@ service /redirect1 on http2RedirectServiceEndpoint2 {
         string returnVal = (val1 is string[] ? val1[0] : "") + ":" + (val2 is string[] ? val2[0] : "");
         checkpanic caller->respond(<@untainted> returnVal);
     }
-
-    resource function post handleV2Redirect(http:Caller caller, http:Request req) {
-        io:println("Received redirect request");
-        http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, ["http://localhost:" + http2RedirectTestPort3.toString() + "/redirect2"]);
-    }
 }
 
 service /redirect2 on http2RedirectServiceEndpoint3 {
@@ -248,10 +220,6 @@ service /redirect2 on http2RedirectServiceEndpoint3 {
     resource function post test303(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_SEE_OTHER_303, ["/redirect2"]);
-    }
-
-    resource function post echo(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("Received:REDIRECT,protocol_version:V2");
     }
 }
 
@@ -344,18 +312,6 @@ function testHTTP2QPWithAbsolutePath() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
-
-// @test:Config {
-//     groups: ["http2Redirect"]
-// }
-// public function testHttp2RedirectWithFuture() {
-//     var resp = http2RedirectClient->get("/testHttp2Redirect/getHttp2Redirect");
-//     if (resp is http:Response) {
-//         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
-//     } else {
-//         test:assertFail(msg = "Found unexpected output: " +  resp.message());
-//     }
-// }
 
 //Test original request with query params. NOTE:Query params in the original request should be ignored while resolving redirect url
 @test:Config {
