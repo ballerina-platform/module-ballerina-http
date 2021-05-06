@@ -560,7 +560,7 @@ isolated function getCurrentFailureRatio(CircuitHealth circuitHealth) returns fl
     }
     float ratio = 0.0;
     if (totalCount > 0) {
-        ratio = <float> totalFailures / totalCount;
+        ratio = <float> totalFailures / <float> totalCount;
     }
     return ratio;
 }
@@ -588,8 +588,8 @@ isolated function getCurrentBucketId(CircuitHealth circuitHealth, CircuitBreaker
              returns int {
     decimal elapsedTime = time:utcDiffSeconds(time:utcNow(), circuitHealth.startTime) %
         (circuitBreakerInferredConfig.rollingWindow.timeWindow);
-    int currentBucketId = <int> (((elapsedTime / circuitBreakerInferredConfig.rollingWindow.bucketSize) + 1)
-        % circuitBreakerInferredConfig.noOfBuckets);
+    int currentBucketId = <int> (((elapsedTime / circuitBreakerInferredConfig.rollingWindow.bucketSize) + 1d)
+        % <decimal> circuitBreakerInferredConfig.noOfBuckets);
     return currentBucketId;
 }
 
