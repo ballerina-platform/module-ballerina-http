@@ -23,7 +23,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
- * A unit test class for http module HttpService class functions.
+ * A unit test class for http module {@link HttpService} class functions.
  */
 public class HttpServiceTest {
 
@@ -32,6 +32,15 @@ public class HttpServiceTest {
         BObject service = TestUtils.getNewServiceObject("hello");
         HttpService httpService = new HttpService(service);
         httpService.setBasePath(null);
+
+        Assert.assertEquals(httpService.getBasePath(), "/hello");
+    }
+
+    @Test
+    public void testEmptyNullServiceBasePath() {
+        BObject service = TestUtils.getNewServiceObject("hello");
+        HttpService httpService = new HttpService(service);
+        httpService.setBasePath(" ");
 
         Assert.assertEquals(httpService.getBasePath(), "/hello");
     }

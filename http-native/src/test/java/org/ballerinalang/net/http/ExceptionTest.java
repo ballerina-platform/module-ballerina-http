@@ -18,17 +18,34 @@
 
 package org.ballerinalang.net.http;
 
+import org.ballerinalang.net.uri.URITemplateException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
- * A unit test class for http module BallerinaConnectorException class.
+ * A unit test class for http module Exception class.
  */
 public class ExceptionTest {
     @Test
     public void testBallerinaConnectorException() {
         Throwable throwable = new Throwable("This is a throwable");
         BallerinaConnectorException exception = new BallerinaConnectorException("error", throwable);
+
+        Assert.assertEquals(exception.getMessage(), "error");
+        Assert.assertEquals(exception.getCause().getMessage(), "This is a throwable");
+    }
+
+    @Test
+    public void testURITemplateException() {
+        URITemplateException exception = new URITemplateException("error");
+
+        Assert.assertEquals(exception.getMessage(), "error");
+    }
+
+    @Test
+    public void testURITemplateExceptionWithThrowable() {
+        Throwable throwable = new Throwable("This is a throwable");
+        URITemplateException exception = new URITemplateException("error", throwable);
 
         Assert.assertEquals(exception.getMessage(), "error");
         Assert.assertEquals(exception.getCause().getMessage(), "This is a throwable");
