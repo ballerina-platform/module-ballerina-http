@@ -45,6 +45,7 @@ import static org.ballerinalang.mime.util.EntityBodyHandler.constructStringDataS
 import static org.ballerinalang.mime.util.EntityBodyHandler.constructXmlDataSource;
 import static org.ballerinalang.mime.util.EntityBodyHandler.isStreamingRequired;
 import static org.ballerinalang.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
+import static org.ballerinalang.mime.util.MimeConstants.MESSAGE_DATA_SOURCE;
 import static org.ballerinalang.mime.util.MimeConstants.NO_CONTENT_ERROR;
 import static org.ballerinalang.mime.util.MimeConstants.PARSER_ERROR;
 import static org.ballerinalang.mime.util.MimeConstants.TRANSPORT_MESSAGE;
@@ -146,6 +147,10 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
     }
 
     public static void populateInputStream(BObject entityObj) {
+        Object dataSource = entityObj.getNativeData(MESSAGE_DATA_SOURCE);
+        if (dataSource != null) {
+            return;
+        }
         HttpCarbonMessage httpCarbonMessage = (HttpCarbonMessage) entityObj.getNativeData(TRANSPORT_MESSAGE);
         if (httpCarbonMessage != null) {
             HttpMessageDataStreamer httpMessageDataStreamer = new HttpMessageDataStreamer(httpCarbonMessage);

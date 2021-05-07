@@ -40,6 +40,8 @@ const int entityTest = 9097;
 const int mimeTest = 9096;
 const int proxyTest1 = 9019;
 const int proxyTest2 = 9020;
+const int streamTest1 = 9021;
+const int streamTest2 = 9022;
 
 // Integration test ports
 // HTTP
