@@ -162,7 +162,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
     }
 }
 
-function respondWithError(http:Caller caller, error currentError) {
+isolated function respondWithError(http:Caller caller, error currentError) {
     http:Response response = new;
     response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
     response.setPayload(<@untainted> currentError.message());
@@ -176,7 +176,7 @@ function respondWithError(http:Caller caller, error currentError) {
 // The service outage is mocked by stopping/starting this service.
 // This should run separately from the `retryDemoService` service.
 service /mockHelloService on http2RetryTestserviceEndpoint1 {
-    resource function get .(http:Caller caller, http:Request request) {
+    isolated resource function get .(http:Caller caller, http:Request request) {
         int counter = retrieveAndIncrementHttp2RetryCounter();
         waitForRetry(counter);
         error? responseToCaller = caller->respond("Hello World!!!");
@@ -185,7 +185,7 @@ service /mockHelloService on http2RetryTestserviceEndpoint1 {
         }
     }
 
-    resource function post .(http:Caller caller, http:Request request) {
+    isolated resource function post .(http:Caller caller, http:Request request) {
         int counter = retrieveAndIncrementHttp2RetryCounter();
         waitForRetry(counter);
         // Send a Push Promise
