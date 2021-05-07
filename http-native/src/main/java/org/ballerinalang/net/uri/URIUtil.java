@@ -42,14 +42,6 @@ public class URIUtil {
 
     public static final String URI_PATH_DELIMITER = "/";
     public static final char DOT_SEGMENT = '.';
-    private static final BString[] EMPTY_STRING_ARRAY = new BString[0];
-
-    public static String[] getPathSegments(String path) {
-        if (path.startsWith(URI_PATH_DELIMITER)) {
-            path = path.substring(1);
-        }
-        return path.split(URI_PATH_DELIMITER);
-    }
 
     public static String getSubPath(String path, String basePath) {
         if (path.length() == basePath.length()) {
@@ -138,4 +130,6 @@ public class URIUtil {
         }
         return pathToMatrixParam;
     }
+
+    private URIUtil() {}
 }

@@ -115,4 +115,6 @@ public class CreateSimpleHttpClient {
                 .createHttpClientConnector(properties, senderConfiguration, poolManager);
         httpClient.addNativeData(HttpConstants.CLIENT, httpClientConnector);
     }
+
+    private CreateSimpleHttpClient() {}
 }
