@@ -51,7 +51,7 @@ import static org.ballerinalang.net.http.HttpUtil.checkConfigAnnotationAvailabil
  *
  * @since 0.94
  */
-public class HttpService implements Cloneable {
+public class HttpService {
 
     private static final Logger log = LoggerFactory.getLogger(HttpService.class);
 
@@ -80,10 +80,6 @@ public class HttpService implements Cloneable {
     // Added due to WebSub requirement
     protected HttpService(BObject service) {
         this.balService = service;
-    }
-
-    public java.lang.Object clone() throws CloneNotSupportedException {
-        return super.clone();
     }
 
     public boolean isKeepAlive() {
@@ -153,7 +149,8 @@ public class HttpService implements Cloneable {
     // Added due to WebSub requirement
     public void setBasePath(String basePath) {
         if (basePath == null || basePath.trim().isEmpty()) {
-            this.basePath = DEFAULT_BASE_PATH.concat(this.getName().startsWith(DOLLAR) ? "" : this.getName());
+            String serviceName = this.getName();
+            this.basePath = DEFAULT_BASE_PATH.concat(serviceName.startsWith(DOLLAR) ? "" : serviceName);
         } else {
             this.basePath = HttpUtil.sanitizeBasePath(basePath);
         }

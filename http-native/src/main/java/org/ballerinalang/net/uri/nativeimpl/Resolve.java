@@ -46,4 +46,6 @@ public class Resolve {
             return HttpUtil.createHttpError("error occurred while resolving URI. " + e.getMessage());
         }
     }
+
+    private Resolve() {}
 }
