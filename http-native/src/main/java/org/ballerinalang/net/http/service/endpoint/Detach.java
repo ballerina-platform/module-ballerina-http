@@ -39,4 +39,6 @@ public class Detach extends AbstractHttpNativeFunction {
         }
         return null;
     }
+
+    private Detach() {}
 }

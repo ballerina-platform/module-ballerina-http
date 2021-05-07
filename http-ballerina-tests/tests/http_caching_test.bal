@@ -41,6 +41,24 @@ service /cache on cachingListener1 {
             checkpanic caller->respond(res);
         }
     }
+
+    resource function get checkReqCC(http:Request req) returns json {
+        http:RequestCacheControl? reqCC = req.cacheControl;
+        if (reqCC is http:RequestCacheControl) {
+            json value = { noCache : reqCC.noCache, noStore : reqCC.noStore, noTransform : reqCC.noTransform,
+                onlyIfCached : reqCC.onlyIfCached, maxAge : reqCC.maxAge, maxStale : reqCC.maxStale,
+                minFresh : reqCC.minFresh };
+            return value;
+        } else {
+            return { value : "no reqCC"};
+        }
+    }
+
+    resource function get checkResCC(http:Request req) returns http:Ok {
+        string hValue = "must-revalidate, no-cache, no-store, no-transform, public, proxy-revalidate, " +
+                        "max-age=60, s-maxage=65";
+        return { headers: { "Cache-Control": hValue }};
+    }
 }
 
 json payload = { "message": "Hello, World!" };
@@ -114,6 +132,20 @@ function testBasicCachingBehaviour() {
 }
 
 @test:Config {}
+function testRequestCacheControlBuildCacheControlDirectives() {
+    http:RequestCacheControl reqCC = new;
+    reqCC.maxAge = 60;
+    reqCC.noCache = true;
+    reqCC.noStore = true;
+    reqCC.noTransform = true;
+    reqCC.onlyIfCached = true;
+    reqCC.maxStale = 120;
+    reqCC.minFresh = 6;
+    test:assertEquals(reqCC.buildCacheControlDirectives(),
+        "no-cache, no-store, no-transform, only-if-cached, max-age=60, max-stale=120, min-fresh=6");
+}
+
+@test:Config {}
 function testResponseCacheControlBuildCacheControlDirectives() {
     http:ResponseCacheControl resCC = new;
     resCC.maxAge = 60;
@@ -129,15 +161,36 @@ function testResponseCacheControlBuildCacheControlDirectives() {
 }
 
 @test:Config {}
-function testRequestCacheControlBuildCacheControlDirectives() {
-    http:RequestCacheControl reqCC = new;
-    reqCC.maxAge = 60;
-    reqCC.noCache = true;
-    reqCC.noStore = true;
-    reqCC.noTransform = true;
-    reqCC.onlyIfCached = true;
-    reqCC.maxStale = 120;
-    reqCC.minFresh = 6;
-    test:assertEquals(reqCC.buildCacheControlDirectives(),
-        "no-cache, no-store, no-transform, only-if-cached, max-age=60, max-stale=120, min-fresh=6");
+function testReqCCPopulation() {
+    string hValue = "no-cache, no-store, no-transform, only-if-cached, max-age=60, max-stale=120, min-fresh=6";
+    var response = cachingTestClient->get("/cache/checkReqCC", { "Cache-Control": hValue }, targetType = json);
+    if (response is json) {
+        json expected =
+            {noCache:true,noStore:true,noTransform:true,onlyIfCached:true,maxAge:60,maxStale:120,minFresh:6};
+        test:assertEquals(response, expected);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testResCCPopulation() {
+    var response = cachingTestClient->get("/cache/checkResCC");
+    if (response is http:Response) {
+        http:ResponseCacheControl? resCC = response.cacheControl;
+        if (resCC is http:ResponseCacheControl) {
+            test:assertEquals(resCC.mustRevalidate, true);
+            test:assertEquals(resCC.noCache, true);
+            test:assertEquals(resCC.noStore, true);
+            test:assertEquals(resCC.noTransform, true);
+            test:assertEquals(resCC.isPrivate, false);
+            test:assertEquals(resCC.proxyRevalidate, true);
+            test:assertEquals(resCC.maxAge, 60d);
+            test:assertEquals(resCC.sMaxAge, 65d);
+        } else {
+            test:assertFail(msg = "Found unexpected output type: ()");
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
 }

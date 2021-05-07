@@ -71,4 +71,6 @@ public class Register extends AbstractHttpNativeFunction {
             return HttpConstants.DEFAULT_BASE_PATH;
         }
     }
+
+    private Register() {}
 }

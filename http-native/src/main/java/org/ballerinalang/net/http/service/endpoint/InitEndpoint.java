@@ -57,4 +57,6 @@ public class InitEndpoint extends AbstractHttpNativeFunction {
             return HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
         }
     }
+
+    private InitEndpoint() {}
 }

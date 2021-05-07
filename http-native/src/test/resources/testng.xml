@@ -182,6 +182,7 @@
     <test name="Ballerina Http native Tests" parallel="false">
         <classes>
             <class name="org.ballerinalang.net.http.ExceptionTest"/>
+            <class name="org.ballerinalang.net.http.HttpServiceTest"/>
         </classes>
     </test>
 </suite>
