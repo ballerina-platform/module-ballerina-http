@@ -316,7 +316,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 }
 
-function waitForRetry(int counter) {
+isolated function waitForRetry(int counter) {
     if (counter % 4 != 0) {
         log:printInfo(
             "Request received from the client to delayed service.");

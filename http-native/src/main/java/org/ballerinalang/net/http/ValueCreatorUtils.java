@@ -19,22 +19,18 @@ package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.mime.util.MimeUtil;
 import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 
-import static org.ballerinalang.mime.util.MimeConstants.MEDIA_TYPE;
 import static org.ballerinalang.net.http.HttpConstants.CALLER;
 import static org.ballerinalang.net.http.HttpConstants.ENTITY;
 import static org.ballerinalang.net.http.HttpConstants.HEADERS;
-import static org.ballerinalang.net.http.HttpConstants.PUSH_PROMISE;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_CACHE_CONTROL;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE;
-import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL;
 
 /**
  * Utility functions to create JVM values.
@@ -55,21 +51,8 @@ public class ValueCreatorUtils {
         return createObjectValue(MimeUtil.getMimePackage(), ENTITY);
     }
 
-    public static BObject createMediaTypeObject() {
-        return createObjectValue(MimeUtil.getMimePackage(), MEDIA_TYPE);
-    }
-
-    public static BObject createPushPromiseObject() {
-        return createObjectValue(ModuleUtils.getHttpPackage(), PUSH_PROMISE, StringUtils.fromString("/"),
-                                 StringUtils.fromString("GET"));
-    }
-
     public static BObject createRequestCacheControlObject() {
         return createObjectValue(ModuleUtils.getHttpPackage(), REQUEST_CACHE_CONTROL);
-    }
-
-    public static BObject createResponseCacheControlObject() {
-        return createObjectValue(ModuleUtils.getHttpPackage(), RESPONSE_CACHE_CONTROL);
     }
 
     public static BObject createCallerObject() {
@@ -112,4 +95,6 @@ public class ValueCreatorUtils {
         // passing scheduler, strand and properties as null for the moment, but better to expose them via this method
         return ValueCreator.createObjectValue(module, objectTypeName, null, null, null, fields);
     }
+
+    private ValueCreatorUtils() {}
 }

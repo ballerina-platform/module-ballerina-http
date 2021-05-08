@@ -65,4 +65,6 @@ public class Start extends AbstractHttpNativeFunction {
         serviceEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, true);
         return null;
     }
+
+    private Start() {}
 }

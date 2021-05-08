@@ -399,6 +399,7 @@ copyStdlibs.dependsOn unpackStdLibs
 updateTomlVersions.dependsOn copyStdlibs
 
 ballerinaBuild.dependsOn ":${packageName}-native:build"
+ballerinaBuild.dependsOn ":${packageName}-native:test"
 ballerinaBuild.dependsOn ":${packageName}-compiler-plugin:build"
 ballerinaBuild.dependsOn updateTomlVersions
 ballerinaBuild.dependsOn initializeVariables

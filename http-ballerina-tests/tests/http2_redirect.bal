@@ -224,7 +224,9 @@ service /redirect2 on http2RedirectServiceEndpoint3 {
 }
 
 //Test http redirection and test whether the resolvedRequestedURI in the response is correct.
-@test:Config {}
+@test:Config {
+    groups: ["http2Redirect"]
+}
 function testHTTP2Redirect() {
     var response = http2RedirectClient->get("/testHttp2Redirect/");
     if (response is http:Response) {
@@ -237,7 +239,9 @@ function testHTTP2Redirect() {
 }
 
 //When the maximum redirect count is reached, client should do no more redirects.
-@test:Config {}
+@test:Config {
+    groups: ["http2Redirect"]
+}
 function testHTTP2MaxRedirect() {
     var response = http2RedirectClient->get("/testHttp2Redirect/maxRedirect");
     if (response is http:Response) {
@@ -250,7 +254,9 @@ function testHTTP2MaxRedirect() {
 }
 
 //Original request and the final redirect request goes to two different domains and the max redirect count gets equal to current redirect count
-@test:Config {}
+@test:Config {
+    groups: ["http2Redirect"]
+}
 function testHTTP2CrossDomain() {
     var response = http2RedirectClient->get("/testHttp2Redirect/crossDomain");
     if (response is http:Response) {
@@ -263,7 +269,9 @@ function testHTTP2CrossDomain() {
 }
 
 //Redirect is on, but the first response received is not a redirect
-@test:Config {}
+@test:Config {
+    groups: ["http2Redirect"]
+}
 function testHTTP2NoRedirect() {
     var response = http2RedirectClient->get("/testHttp2Redirect/noRedirect");
     if (response is http:Response) {
@@ -276,7 +284,9 @@ function testHTTP2NoRedirect() {
 }
 
 //Include query params in relative path of a redirect location
-@test:Config {}
+@test:Config {
+    groups: ["http2Redirect"]
+}
 function testHTTP2QPWithRelativePath() {
     var response = http2RedirectClient->get("/testHttp2Redirect/qpWithRelativePath");
     if (response is http:Response) {
@@ -289,7 +299,9 @@ function testHTTP2QPWithRelativePath() {
 }
 
 //Include query params in absolute path of a redirect location
-@test:Config {}
+@test:Config {
+    groups: ["http2Redirect"]
+}
 function testHTTP2QPWithAbsolutePath() {
     var response = http2RedirectClient->get("/testHttp2Redirect/qpWithAbsolutePath");
     if (response is http:Response) {
@@ -302,7 +314,9 @@ function testHTTP2QPWithAbsolutePath() {
 }
 
 //Test original request with query params. NOTE:Query params in the original request should be ignored while resolving redirect url
-@test:Config {}
+@test:Config {
+    groups: ["http2Redirect"]
+}
 function testHTTP2OriginalRequestWithQP() {
     var response = http2RedirectClient->get("/testHttp2Redirect/originalRequestWithQP");
     if (response is http:Response) {
@@ -313,8 +327,12 @@ function testHTTP2OriginalRequestWithQP() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
+
 // Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
-@test:Config {enable:false}
+@test:Config {
+    groups: ["http2Redirect"],
+    enable:false 
+}
 function testHTTP2303Status() {
     var response = http2RedirectClient->get("/testHttp2Redirect/test303");
     if (response is http:Response) {
