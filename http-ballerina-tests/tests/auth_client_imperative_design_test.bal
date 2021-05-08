@@ -21,19 +21,7 @@ import ballerina/jwt;
 import ballerina/test;
 
 service /imperativeclient on authListener {
-    resource function get foo(http:Request req) returns string|http:Unauthorized|http:Forbidden {
-        jwt:Payload|http:Unauthorized authn = handler.authenticate(req);
-        if (authn is http:Unauthorized) {
-            return authn;
-        }
-        http:Forbidden? authz = handler.authorize(<jwt:Payload> authn, ["write", "update"]);
-        if (authz is http:Forbidden) {
-            return authz;
-        }
-        return "Hello World!";
-    }
-
-    resource function post foo(http:Request req) returns string|http:Unauthorized|http:Forbidden {
+    resource function 'default foo(http:Request req) returns string|http:Unauthorized|http:Forbidden {
         jwt:Payload|http:Unauthorized authn = handler.authenticate(req);
         if (authn is http:Unauthorized) {
             return authn;
@@ -80,8 +68,10 @@ function testImperativeEnrichHeaders() {
     map<string|string[]> headers = {};
     map<string|string[]>|http:ClientAuthError result = handler.enrichHeaders(headers);
     if (result is map<string|string[]>) {
-        http:Response|http:ClientError response = imperativeClientEP->get("/imperativeclient/foo", result);
-        assertSuccess(response);
+        http:Response|http:ClientError response1 = imperativeClientEP->get("/imperativeclient/foo", result);
+        assertSuccess(response1);
+        http:Response|http:ClientError response2 = imperativeClientEP->post("/imperativeclient/foo", result);
+        assertUnauthorized(response2);
     } else {
         test:assertFail(msg = "Test Failed! " + result.message());
     }
@@ -95,8 +85,10 @@ function testImperativeGetSecurityHeaders() {
     http:ClientBearerTokenAuthHandler handler = new(config);
     map<string|string[]>|http:ClientAuthError result = handler.getSecurityHeaders();
     if (result is map<string|string[]>) {
-        http:Response|http:ClientError response = imperativeClientEP->get("/imperativeclient/foo", result);
-        assertSuccess(response);
+        http:Response|http:ClientError response1 = imperativeClientEP->get("/imperativeclient/foo", result);
+        assertSuccess(response1);
+        http:Response|http:ClientError response2 = imperativeClientEP->post("/imperativeclient/foo", result);
+        assertUnauthorized(response2);
     } else {
         test:assertFail(msg = "Test Failed! " + result.message());
     }
