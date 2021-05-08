@@ -59,6 +59,7 @@ service /baz on authListener {
 @test:Config {}
 function testNoAuthServiceResourceSuccess() {
     assertSuccess(sendBearerTokenRequest("/baz/foo", JWT1));
+    assertSuccess(sendJwtRequest("/baz/foo"));
 }
 
 @test:Config {}
@@ -100,6 +101,7 @@ function testBasicAuthServiceAuthzFailure() {
 @test:Config {}
 function testBasicAuthServiceAuthnFailure() {
     assertUnauthorized(sendBasicTokenRequest("/basicAuth", "peter", "123"));
+    assertUnauthorized(sendNoTokenRequest("/basicAuth"));
 }
 
 // JWT auth secured service - Unsecured resource
@@ -134,6 +136,7 @@ service /jwtAuth on authListener {
 @test:Config {}
 function testJwtAuthServiceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/jwtAuth", JWT1));
+    assertSuccess(sendJwtRequest("/jwtAuth"));
 }
 
 @test:Config {}
@@ -144,6 +147,7 @@ function testJwtAuthServiceAuthzFailure() {
 @test:Config {}
 function testJwtAuthServiceAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/jwtAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/jwtAuth"));
 }
 
 // OAuth2 auth secured service - Unsecured resource
@@ -152,7 +156,7 @@ function testJwtAuthServiceAuthnFailure() {
     auth: [
         {
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -177,6 +181,7 @@ service /oauth2 on authListener {
 @test:Config {}
 function testOAuth2ServiceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/oauth2", ACCESS_TOKEN_1));
+    assertSuccess(sendOAuth2TokenRequest("/oauth2"));
 }
 
 @test:Config {}
@@ -187,6 +192,7 @@ function testOAuth2ServiceAuthzFailure() {
 @test:Config {}
 function testOAuth2ServiceAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/oauth2", ACCESS_TOKEN_3));
+    assertUnauthorized(sendNoTokenRequest("/oauth2"));
 }
 
 // Unsecured service - Basic auth secured resource, JWT auth secured resource & OAuth2 secured resource
@@ -234,7 +240,7 @@ service /foo on authListener {
         auth: [
             {
                 oauth2IntrospectionConfig: {
-                    url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                    url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
                     tokenTypeHint: "access_token",
                     scopeKey: "scp",
                     clientConfig: {
@@ -268,11 +274,13 @@ function testBasicAuthResourceAuthzFailure() {
 @test:Config {}
 function testBasicAuthResourceAuthnFailure() {
     assertUnauthorized(sendBasicTokenRequest("/foo/basicAuth", "peter", "123"));
+    assertUnauthorized(sendNoTokenRequest("/foo/basicAuth"));
 }
 
 @test:Config {}
 function testJwtAuthResourceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/foo/jwtAuth", JWT1));
+    assertSuccess(sendJwtRequest("/foo/jwtAuth"));
 }
 
 @test:Config {}
@@ -283,11 +291,13 @@ function testJwtAuthResourceAuthzFailure() {
 @test:Config {}
 function testJwtAuthResourceAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/foo/jwtAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/foo/jwtAuth"));
 }
 
 @test:Config {}
 function testOAuth2ResourceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/foo/oauth2", ACCESS_TOKEN_1));
+    assertSuccess(sendOAuth2TokenRequest("/foo/oauth2"));
 }
 
 @test:Config {}
@@ -298,6 +308,7 @@ function testOAuth2ResourceAuthzFailure() {
 @test:Config {}
 function testOAuth2ResourceAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/foo/oauth2", ACCESS_TOKEN_3));
+    assertUnauthorized(sendNoTokenRequest("/foo/oauth2"));
 }
 
 // Testing configurations overwritten support.
@@ -307,7 +318,7 @@ function testOAuth2ResourceAuthnFailure() {
     auth: [
         {
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -354,6 +365,7 @@ service /ignoreOAuth2 on authListener {
 @test:Config {}
 function testServiceResourceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT1));
+    assertSuccess(sendJwtRequest("/ignoreOAuth2/jwtAuth"));
 }
 
 @test:Config {}
@@ -364,6 +376,7 @@ function testServiceResourceAuthzFailure() {
 @test:Config {}
 function testServiceResourceAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/ignoreOAuth2/jwtAuth"));
 }
 
 // Testing multiple auth configurations support.
@@ -373,7 +386,7 @@ function testServiceResourceAuthnFailure() {
     auth: [
         {
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -419,6 +432,7 @@ service /multipleAuth on authListener {
 @test:Config {}
 function testMultipleServiceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/multipleAuth", JWT1));
+    assertSuccess(sendJwtRequest("/multipleAuth"));
 }
 
 @test:Config {}
@@ -429,6 +443,7 @@ function testMultipleServiceAuthzFailure() {
 @test:Config {}
 function testMultipleServiceAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/multipleAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/multipleAuth"));
 }
 
 // Testing multiple auth configurations support.
@@ -440,7 +455,7 @@ service /bar on authListener {
         auth: [
             {
                 oauth2IntrospectionConfig: {
-                    url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                    url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
                     tokenTypeHint: "access_token",
                     scopeKey: "scp",
                     clientConfig: {
@@ -485,6 +500,7 @@ service /bar on authListener {
 @test:Config {}
 function testMultipleResourceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/bar/multipleAuth", JWT1));
+    assertSuccess(sendJwtRequest("/bar/multipleAuth"));
 }
 
 @test:Config {}
@@ -495,6 +511,7 @@ function testMultipleResourceAuthzFailure() {
 @test:Config {}
 function testMultipleResourceAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/bar/multipleAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/bar/multipleAuth"));
 }
 
 // JWT auth secured service (without scopes) - Unsecured resource
@@ -527,6 +544,7 @@ service /noscopes on authListener {
 @test:Config {}
 function testServiceAuthWithoutScopesAuthSuccess1() {
     assertSuccess(sendBearerTokenRequest("/noscopes/auth", JWT1));
+    assertSuccess(sendJwtRequest("/noscopes/auth"));
 }
 
 @test:Config {}
@@ -537,4 +555,5 @@ function testServiceAuthWithoutScopesAuthSuccess2() {
 @test:Config {}
 function testServiceAuthWithoutScopesAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/noscopes/auth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/noscopes/auth"));
 }

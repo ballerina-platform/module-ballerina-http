@@ -119,5 +119,5 @@ const int http2RetryFunctionTestPort1 = 9606;
 const int http2RetryFunctionTestPort2 = 9607;
 
 //Security
-const int oauth2AuthorizationServerPort = 9401;
+const int oauth2StsPort = 9401;
 const int securedListenerPort = 9402;
