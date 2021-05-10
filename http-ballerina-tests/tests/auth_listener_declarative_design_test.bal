@@ -430,18 +430,18 @@ service /multipleAuth on authListener {
 }
 
 @test:Config {}
-function testMultipleServiceAuthSuccess() {
+function testMultipleAuthServiceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/multipleAuth", JWT1));
     assertSuccess(sendJwtRequest("/multipleAuth"));
 }
 
 @test:Config {}
-function testMultipleServiceAuthzFailure() {
+function testMultipleAuthServiceAuthzFailure() {
     assertForbidden(sendBearerTokenRequest("/multipleAuth", JWT2));
 }
 
 @test:Config {}
-function testMultipleServiceAuthnFailure() {
+function testMultipleAuthServiceAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/multipleAuth", JWT3));
     assertUnauthorized(sendNoTokenRequest("/multipleAuth"));
 }
@@ -498,18 +498,18 @@ service /bar on authListener {
 }
 
 @test:Config {}
-function testMultipleResourceAuthSuccess() {
+function testMultipleAuthResourceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/bar/multipleAuth", JWT1));
     assertSuccess(sendJwtRequest("/bar/multipleAuth"));
 }
 
 @test:Config {}
-function testMultipleResourceAuthzFailure() {
+function testMultipleAuthResourceAuthzFailure() {
     assertForbidden(sendBearerTokenRequest("/bar/multipleAuth", JWT2));
 }
 
 @test:Config {}
-function testMultipleResourceAuthnFailure() {
+function testMultipleAuthResourceAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/bar/multipleAuth", JWT3));
     assertUnauthorized(sendNoTokenRequest("/bar/multipleAuth"));
 }
@@ -535,25 +535,21 @@ function testMultipleResourceAuthnFailure() {
         }
     ]
 }
-service /noscopes on authListener {
-    resource function get auth() returns string {
+service /noScopes on authListener {
+    resource function get .() returns string {
         return "Hello World!";
     }
 }
 
 @test:Config {}
-function testServiceAuthWithoutScopesAuthSuccess1() {
-    assertSuccess(sendBearerTokenRequest("/noscopes/auth", JWT1));
-    assertSuccess(sendJwtRequest("/noscopes/auth"));
-}
-
-@test:Config {}
-function testServiceAuthWithoutScopesAuthSuccess2() {
-    assertSuccess(sendBearerTokenRequest("/noscopes/auth", JWT2));
+function testServiceAuthWithoutScopesAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/noScopes", JWT1));
+    assertSuccess(sendBearerTokenRequest("/noScopes", JWT2));
+    assertSuccess(sendJwtRequest("/noScopes"));
 }
 
 @test:Config {}
 function testServiceAuthWithoutScopesAuthnFailure() {
-    assertUnauthorized(sendBearerTokenRequest("/noscopes/auth", JWT3));
-    assertUnauthorized(sendNoTokenRequest("/noscopes/auth"));
+    assertUnauthorized(sendBearerTokenRequest("/noScopes", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/noScopes"));
 }
