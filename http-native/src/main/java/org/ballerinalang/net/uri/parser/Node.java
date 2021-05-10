@@ -127,20 +127,11 @@ public abstract class Node<DataType, InboundMsgType> {
 
     private Node<DataType, InboundMsgType> getMatchingChildNode(Node<DataType, InboundMsgType> prospectiveChild,
             List<Node<DataType, InboundMsgType>> existingChildren) throws URITemplateException {
-        boolean dotSuffixExpression = prospectiveChild instanceof DotSuffixExpression;
         boolean simpleStringExpression = prospectiveChild instanceof SimpleStringExpression;
         String prospectiveChildToken = prospectiveChild.getToken();
 
         for (Node<DataType, InboundMsgType> existingChild : existingChildren) {
-            if (dotSuffixExpression) {
-                if (existingChild instanceof DotSuffixExpression) {
-                    return getExistingChildNode(prospectiveChild, existingChild);
-                } else {
-                    continue;
-                }
-            }
-            if (simpleStringExpression && existingChild instanceof Expression
-                    && !(existingChild instanceof DotSuffixExpression)) {
+            if (simpleStringExpression && existingChild instanceof Expression) {
                 return getExistingChildNode(prospectiveChild, existingChild);
             }
             if (existingChild.getToken().equals(prospectiveChildToken)) {
@@ -166,8 +157,6 @@ public abstract class Node<DataType, InboundMsgType> {
                 return 0;
             }
             return node.getToken().length() + 5;
-        } else if (node instanceof DotSuffixExpression) {
-            return 2;
         } else {
             return 1;
         }

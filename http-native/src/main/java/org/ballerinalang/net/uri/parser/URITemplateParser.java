@@ -19,7 +19,6 @@
 package org.ballerinalang.net.uri.parser;
 
 import org.ballerinalang.net.uri.URITemplateException;
-import org.ballerinalang.net.uri.URIUtil;
 
 import java.io.UnsupportedEncodingException;
 
@@ -128,8 +127,6 @@ public class URITemplateParser<DataType, InboundMgsType> {
         Node<DataType, InboundMgsType> node;
         if (maxIndex == pointerIndex) {
             node = new SimpleStringExpression<>(createElement(), expression);
-        } else if (maxIndex > pointerIndex && segment.charAt(pointerIndex + 1) == URIUtil.DOT_SEGMENT) {
-            node = new DotSuffixExpression<>(createElement(), expression);
         } else {
             throw new URITemplateException("Template expression: " + segment + " is not implemented");
         }

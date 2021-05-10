@@ -125,7 +125,8 @@ service /passthrough on clientDBProxyListener {
         var res = clientDBBackendClient->post("/backend/get5XX", "want 500", targetType = json);
         if res is http:RemoteServerError {
             http:Response resp = new;
-            resp.statusCode = res.detail()?.statusCode ?: 500;
+            http:Detail? details = res.detail();
+            resp.statusCode = details?.statusCode ?: 560;
             resp.setPayload(<@untainted>res.message());
             error? responseToCaller = caller->respond(<@untainted>resp);
         } else {
@@ -143,7 +144,8 @@ service /passthrough on clientDBProxyListener {
         var res = clientDBBackendClient->post("/backend/" + <@untainted>path, "want 500", targetType = json);
         if res is http:ClientRequestError {
             http:Response resp = new;
-            resp.statusCode = res.detail()?.statusCode ?: 400;
+            http:Detail? details = res.detail();
+            resp.statusCode = details?.statusCode ?: 420;
             resp.setPayload(<@untainted>res.message());
             error? responseToCaller = caller->respond(<@untainted>resp);
         } else {
