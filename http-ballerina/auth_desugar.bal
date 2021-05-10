@@ -51,8 +51,8 @@ public isolated function authenticateResource(Service serviceRef, string methodN
     }
 }
 
-isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, string header) returns Unauthorized|Forbidden? {
-    foreach ListenerAuthConfig config in authHandlers {
+isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header) returns Unauthorized|Forbidden? {
+    foreach ListenerAuthConfig config in authConfig {
         if (config is FileUserStoreConfigWithScopes) {
             ListenerFileUserStoreBasicAuthHandler handler = new(config.fileUserStoreConfig);
             auth:UserDetails|Unauthorized authn = handler.authenticate(header);
