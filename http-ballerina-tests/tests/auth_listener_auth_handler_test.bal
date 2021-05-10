@@ -103,6 +103,12 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
     if (authn2 is http:Unauthorized) {
         test:assertEquals(authn2?.body, "Failed to authenticate username 'alice' from file user store.");
     }
+
+    request = createDummyRequest();
+    auth:UserDetails|http:Unauthorized authn3 = handler.authenticate(request);
+    if (authn3 is http:Unauthorized) {
+        test:assertEquals(authn3?.body, "Authorization header not available.");
+    }
 }
 
 @test:Config {}
@@ -260,12 +266,18 @@ isolated function testListenerJwtAuthHandlerAuthnFailure() {
     if (authn2 is http:Unauthorized) {
         test:assertEquals(authn2?.body, "JWT validation failed. JWT contained invalid issuer name 'wso2'");
     }
+
+    request = createDummyRequest();
+    jwt:Payload|http:Unauthorized authn3 = handler.authenticate(request);
+    if (authn3 is http:Unauthorized) {
+        test:assertEquals(authn3?.body, "Authorization header not available.");
+    }
 }
 
 @test:Config {}
 function testListenerOAuth2HandlerAuthSuccess() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+        url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
@@ -281,9 +293,16 @@ function testListenerOAuth2HandlerAuthSuccess() {
     string oauth2Token = "2YotnFZFEjr1zCsicMWpAA";
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
-    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request, ["write", "update"]);
-    if (auth is oauth2:IntrospectionResponse) {
-        test:assertEquals(auth.active, true);
+    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth1 = handler->authorize(request, ["write", "update"]);
+    if (auth1 is oauth2:IntrospectionResponse) {
+        test:assertEquals(auth1.active, true);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth2 = handler->authorize(request);
+    if (auth1 is oauth2:IntrospectionResponse) {
+        test:assertEquals(auth1.active, true);
     } else {
         test:assertFail(msg = "Test Failed!");
     }
@@ -292,7 +311,7 @@ function testListenerOAuth2HandlerAuthSuccess() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthzFailure() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+        url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
@@ -317,7 +336,7 @@ function testListenerOAuth2HandlerAuthzFailure() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthnFailure() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+        url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
@@ -333,8 +352,14 @@ function testListenerOAuth2HandlerAuthnFailure() {
     string oauth2Token = "invalid_token";
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
-    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request);
-    if (auth is http:Unauthorized) {
-        test:assertEquals(auth?.body, "The provided access-token is not active.");
+    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth1 = handler->authorize(request);
+    if (auth1 is http:Unauthorized) {
+        test:assertEquals(auth1?.body, "The provided access-token is not active.");
+    }
+
+    request = createDummyRequest();
+    oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth2 = handler->authorize(request);
+    if (auth2 is http:Unauthorized) {
+        test:assertEquals(auth2?.body, "Authorization header not available.");
     }
 }
