@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
+import java.util.Objects;
 
 import static org.ballerinalang.mime.util.EntityBodyHandler.constructBlobDataSource;
 import static org.ballerinalang.mime.util.EntityBodyHandler.constructJsonDataSource;
@@ -148,11 +149,11 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
 
     public static void populateInputStream(BObject entityObj) {
         Object dataSource = entityObj.getNativeData(MESSAGE_DATA_SOURCE);
-        if (dataSource != null) {
+        if (Objects.nonNull(dataSource)) {
             return;
         }
         HttpCarbonMessage httpCarbonMessage = (HttpCarbonMessage) entityObj.getNativeData(TRANSPORT_MESSAGE);
-        if (httpCarbonMessage != null) {
+        if (Objects.nonNull(httpCarbonMessage)) {
             HttpMessageDataStreamer httpMessageDataStreamer = new HttpMessageDataStreamer(httpCarbonMessage);
 
             long contentLength = HttpUtil.extractContentLength(httpCarbonMessage);
