@@ -14,13 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Represents token for Bearer token authentication.
-#
-# + token - Bearer token for authentication
-public type BearerTokenConfig record {|
-    string token;
-|};
-
 # Defines the Bearer token auth handler for client authentication.
 public class ClientBearerTokenAuthHandler {
 

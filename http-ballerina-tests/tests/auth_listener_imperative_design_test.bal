@@ -74,46 +74,22 @@ service /imperative on authListener {
 }
 
 @test:Config {}
-function testImperativeAuthSuccess1() {
+function testImperativeAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/imperative/foo", JWT1));
-}
-
-@test:Config {}
-function testImperativeAuthzFailure1() {
-    assertForbidden(sendBearerTokenRequest("/imperative/foo", JWT2));
-}
-
-@test:Config {}
-function testImperativeAuthnFailure1() {
-    assertUnauthorized(sendBearerTokenRequest("/imperative/foo", JWT3));
-}
-
-@test:Config {}
-function testImperativeAuthSuccess2() {
     assertSuccess(sendBearerTokenRequest("/imperative/bar", JWT1));
-}
-
-@test:Config {}
-function testImperativeAuthzFailure2() {
-    assertForbidden(sendBearerTokenRequest("/imperative/bar", JWT2));
-}
-
-@test:Config {}
-function testImperativeAuthnFailure2() {
-    assertUnauthorized(sendBearerTokenRequest("/imperative/bar", JWT3));
-}
-
-@test:Config {}
-function testImperativeAuthSuccess3() {
     assertSuccess(sendBearerTokenRequest("/imperative/baz", JWT1));
 }
 
 @test:Config {}
-function testImperativeAuthzFailure3() {
+function testImperativeAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/imperative/foo", JWT2));
+    assertForbidden(sendBearerTokenRequest("/imperative/bar", JWT2));
     assertForbidden(sendBearerTokenRequest("/imperative/baz", JWT2));
 }
 
 @test:Config {}
-function testImperativeAuthnFailure3() {
+function testImperativeAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/imperative/foo", JWT3));
+    assertUnauthorized(sendBearerTokenRequest("/imperative/bar", JWT3));
     assertUnauthorized(sendBearerTokenRequest("/imperative/baz", JWT3));
 }
