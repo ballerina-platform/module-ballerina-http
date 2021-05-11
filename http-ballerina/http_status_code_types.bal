@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// Remove the union once https://github.com/ballerina-platform/ballerina-lang/issues/30490 is fixed
 # Defines the possible Status code response record types.
 public type StatusCodeResponse Continue|SwitchingProtocols|Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|
     ResetContent|PartialContent|MultipleChoices|MovedPermanently|Found|SeeOther|NotModified|UseProxy|TemporaryRedirect|

@@ -19,10 +19,6 @@ import ballerina/jballerina.java;
 import ballerina/observe;
 import ballerina/time;
 
-////////////////////////////////
-///// HTTP Client Endpoint /////
-////////////////////////////////
-
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes functions for the standard HTTP methods, forwarding a received request and sending requests
 # using custom HTTP verbs.
@@ -365,21 +361,6 @@ public type TargetService record {|
 # Following fields are inherited from the other configuration records in addition to the Client specific
 # configs.
 #
-# |                                                         |
-# |:------------------------------------------------------- |
-# | httpVersion - Copied from CommonClientConfiguration     |
-# | http1Settings - Copied from CommonClientConfiguration   |
-# | http2Settings - Copied from CommonClientConfiguration   |
-# | timeout - Copied from CommonClientConfiguration         |
-# | forwarded - Copied from CommonClientConfiguration       |
-# | followRedirects - Copied from CommonClientConfiguration |
-# | poolConfig - Copied from CommonClientConfiguration      |
-# | cache - Copied from CommonClientConfiguration           |
-# | compression - Copied from CommonClientConfiguration     |
-# | auth - Copied from CommonClientConfiguration            |
-# | circuitBreaker - Copied from CommonClientConfiguration  |
-# | retryConfig - Copied from CommonClientConfiguration     |
-# | cookieConfig - Copied from CommonClientConfiguration    |
 # + secureSocket - SSL/TLS related options
 public type ClientConfiguration record {|
     *CommonClientConfiguration;
