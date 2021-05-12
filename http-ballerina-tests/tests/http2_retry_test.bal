@@ -224,6 +224,7 @@ function testHttp2SimpleRetry() {
 
 //Test basic retry functionality with HTTP2 Server Push
 @test:Config {
+    enable: false,
     groups: ["http2RetryClientTest"]
 }
 function testHttp2RetryWithServerPush() {
