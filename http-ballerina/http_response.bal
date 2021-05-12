@@ -184,7 +184,7 @@ public class Response {
 
     # Gets the type of the payload of the response (i.e: the `content-type` header value).
     #
-    # + return - Returns the `content-type` header value as a string
+    # + return - The `content-type` header value as a string
     public isolated function getContentType() returns @tainted string {
         string contentTypeHeaderValue = "";
         var value = self.getHeader(mime:CONTENT_TYPE);

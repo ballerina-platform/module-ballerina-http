@@ -131,7 +131,7 @@ public class Request {
     # Checks whether the requested header key exists in the header map.
     #
     # + headerName - The header name
-    # + return - Returns true if the specified header key exists
+    # + return - True if the specified header key exists
     public isolated function hasHeader(string headerName) returns boolean {
         return externRequestHasHeader(self, headerName);
     }
@@ -193,7 +193,7 @@ public class Request {
 
     # Checks whether the client expects a `100-continue` response.
     #
-    # + return - Returns true if the client expects a `100-continue` response
+    # + return - True if the client expects a `100-continue` response
     public isolated function expects100Continue() returns boolean {
         if (self.hasHeader(EXPECT)) {
             string|error value = self.getHeader(EXPECT);

@@ -46,7 +46,7 @@ public class PushPromise {
     # If there are more than one header value for the specified header name, the first value is returned.
     #
     # + headerName - The header name
-    # + return - The header value, or null if there is no such header
+    # + return - The header value, or nil if there is no such header
     public isolated function getHeader(string headerName) returns string {
         return externPromiseGetHeader(self, headerName);
     }

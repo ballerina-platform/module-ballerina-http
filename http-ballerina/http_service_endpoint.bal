@@ -61,7 +61,7 @@ public class Listener {
     #
     # + httpService - The service that needs to be attached
     # + name - Name of the service
-    # + return - An `error` an error occurred during the service attachment process or else nil
+    # + return - An `error` if an error occurred during the service attachment process or else nil
     public isolated function attach(Service httpService, string[]|string? name = ()) returns error? {
         return externRegister(self, httpService, name);
     }
