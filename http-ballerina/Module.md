@@ -10,6 +10,8 @@ configured to have a maximum number of active connections that can be made with 
 activates connection eviction after a given idle period and also supports follow-redirects so that the users do not 
 have to manually handle 3xx HTTP status codes.
 
+#### Resiliency
+
 The `Client` handles resilience in multiple ways such as load balancing, circuit breaking, endpoint timeouts, and a 
 retry mechanism.
 
@@ -24,20 +26,26 @@ The Ballerina circuit breaker supports tripping on HTTP error status codes and I
 configured based on a sliding window (e.g., 5 failures within 10 seconds). `Client` also supports a retry 
 mechanism that allows a client to resend failed requests periodically for a given number of times.
 
+#### Security
+
 The `Client` supports Server Name Indication (SNI), Certificate Revocation List (CRL), Online Certificate Status 
-Protocol (OCSP), and OCSP Stapling for SSL/TLS connections. They also support HTTP2, keep-alive, chunking, HTTP 
-caching, data compression/decompression, and authentication/authorization.
+Protocol (OCSP), and OCSP Stapling for SSL/TLS connections.
+Also, the `Client` can be configured to send authentication information to the endpoint being invoked. Ballerina has 
+built-in support for Basic authentication, JWT authentication, OAuth2 authentication.
+
+In addition to that, protocol wise it supports both HTTP/1.1 and HTTP2 and feature wise connection keep-alive, content 
+chunking, HTTP caching, data compression/decompression, response payload binding, and authorization can be highlighted.
 
 A `Client` can be defined using the URL of the remote service that the client needs to connect with, as shown below:
 
 ```ballerina
-http:Client|http:ClientError clientEndpoint = new("https://my-simple-backend.com");
+http:Client clientEndpoint = check new("https://my-simple-backend.com");
 ```
 The defined `Client` endpoint can be used to call a remote service as follows:
 
 ```ballerina
 // Send a GET request to the specified endpoint.
-http:Response|http:ClientError response = clientEndpoint->get("/get?id=123");
+http:Response response = check clientEndpoint->get("/get?id=123");
 ```
 The payload can be retrieved as return value from the remote function as follows:
 
@@ -47,6 +55,10 @@ json payload = check clientEndpoint->post("/backend/Json", "foo", targetType = j
 ```
 
 ### Listener
+
+The `Listener` is the underneath server connector that binds the given IP/Port to the network, and it's behaviour can 
+be changed using the `http:ListenerConfiguration`. In HTTP, the `http:Service` typed services can be attached to 
+the `listener`. The service type precisely describes the syntax for both service and resource.
 
 A `Service` represents a collection of network-accessible entry points and can be exposed via a `Listener` endpoint. 
 A resource represents one such entry point and can have its own path, HTTP methods, body format, `consumes` and 
@@ -76,7 +88,13 @@ service /helloWorld on helloWorldEP {
 }
 ```
 
+#### Security
+
 `Listener` endpoints can be exposed via SSL. They support Mutual SSL, Hostname Verification, and Application Layer 
 Protocol Negotiation (ALPN) for HTTP2. `Listener` endpoints also support Certificate Revocation List (CRL), Online 
-Certificate Status Protocol (OCSP), OCSP Stapling, HTTP2, keep-alive, chunking, HTTP caching, 
-data compression/decompression, and authentication/authorization.
+Certificate Status Protocol (OCSP), OCSP Stapling.
+Also, The `listener` can be configured to authenticate and authorize the inbound requests. Ballerina has 
+built-in support for basic authentication, JWT authentication, and OAuth2 authentication.
+
+In addition to that, protocol wise it supports both HTTP/1.1 and HTTP2 and feature wise connection keep-alive, content 
+chunking, HTTP caching, data compression/decompression, payload binding, and authorization can be highlighted.
