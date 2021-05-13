@@ -61,6 +61,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.FIELD_RESPONSE_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.LANG_ANNOTATION_PREFIX;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
@@ -119,8 +120,8 @@ class HttpResourceValidator {
             String paramName = nameOptional.isEmpty() ? "" : nameOptional.get();
 
             List<AnnotationSymbol> annotations = param.annotations().stream()
-                    .filter(annotationSymbol -> !annotationSymbol.typeDescriptor().get().typeKind()
-                            .equals(TypeDescKind.SINGLETON))
+                    .filter(annotationSymbol -> !annotationSymbol.typeDescriptor().get().getName().get()
+                            .contains(LANG_ANNOTATION_PREFIX))
                     .collect(Collectors.toList());
             if (annotations.isEmpty()) {
                 TypeDescKind kind = param.typeDescriptor().typeKind();
