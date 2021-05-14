@@ -28,18 +28,18 @@ listener http:Listener failoverEP00 = new(9300);
 listener http:Listener backendEP00 = new(8080);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP00 = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
+http:FailoverClient foBackendEP00 = check new(
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
     // Define set of HTTP Clients that needs to be Failover.
-    targets: [
+    targets = [
         { url: "http://localhost:3467/inavalidEP" },
         { url: "http://localhost:8080/echo00" },
         { url: "http://localhost:8080/mockResource" },
         { url: "http://localhost:8080/mockResource" }
     ]
-});
+);
 
 http:FailoverClient foBackendFailureEP00 = check new({
     timeout: 5,

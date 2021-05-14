@@ -37,6 +37,10 @@ service /customerservice on ecommerceListenerEP {
         res.setJsonPayload(payload);
         checkpanic caller->respond(res);
     }
+
+    function getCustomers() {
+        //This function is to test the object function holding capability in a http service
+    }
 }
 
 http:Client productsService = check new("http://localhost:" + ecommerceTestPort.toString());

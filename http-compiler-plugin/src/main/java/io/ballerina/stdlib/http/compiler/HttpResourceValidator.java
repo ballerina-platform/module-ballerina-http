@@ -119,8 +119,7 @@ class HttpResourceValidator {
             String paramName = nameOptional.isEmpty() ? "" : nameOptional.get();
 
             List<AnnotationSymbol> annotations = param.annotations().stream()
-                    .filter(annotationSymbol -> !annotationSymbol.typeDescriptor().get().typeKind()
-                            .equals(TypeDescKind.SINGLETON))
+                    .filter(annotationSymbol -> annotationSymbol.typeDescriptor().isPresent())
                     .collect(Collectors.toList());
             if (annotations.isEmpty()) {
                 TypeDescKind kind = param.typeDescriptor().typeKind();

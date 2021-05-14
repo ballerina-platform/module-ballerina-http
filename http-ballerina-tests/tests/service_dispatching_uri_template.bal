@@ -207,7 +207,6 @@ function testValidUrlTemplateDispatching(string path) {
     string xOrderIdHeadeValue = "ORD12345";
     var response = utClient1->get(path, {[xOrderIdHeadeName]:[xOrderIdHeadeValue]});
     if (response is http:Response) {
-        //Expected Json message : {"X-ORDER-ID":"ORD12345","ProductID":"PID123","RegID":"RID123"}
         assertJsonValue(response.getJsonPayload(), xOrderIdHeadeName, xOrderIdHeadeValue);
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID123");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID123");

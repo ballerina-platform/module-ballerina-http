@@ -41,4 +41,6 @@ public class Promise extends ConnectionAction {
         setResponseConnectorListener(dataContext, outboundRespStatusFuture);
         return null;
     }
+
+    private Promise() {}
 }

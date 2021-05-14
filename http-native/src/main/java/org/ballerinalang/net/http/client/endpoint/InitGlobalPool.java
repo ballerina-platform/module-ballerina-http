@@ -37,4 +37,6 @@ public class InitGlobalPool {
         ConnectionManager connectionManager = new ConnectionManager(globalPool);
         globalPoolConfig.addNativeData(CONNECTION_MANAGER, connectionManager);
     }
+
+    private InitGlobalPool() {}
 }

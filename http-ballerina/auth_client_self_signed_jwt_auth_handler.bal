@@ -16,11 +16,6 @@
 
 import ballerina/jwt;
 
-# Represents JWT issuer configurations for JWT authentication.
-public type JwtIssuerConfig record {|
-    *jwt:IssuerConfig;
-|};
-
 # Defines the self signed JWT handler for client authentication.
 public class ClientSelfSignedJwtAuthHandler {
 

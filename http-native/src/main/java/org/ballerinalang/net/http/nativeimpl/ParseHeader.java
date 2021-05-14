@@ -46,10 +46,6 @@ public class ParseHeader {
             Arrays.asList(PredefinedTypes.TYPE_STRING, PredefinedTypes.TYPE_MAP));
 
     public static Object parseHeader(BString headerValue) {
-        if (headerValue == null) {
-            return HttpUtil.createHttpError(FAILED_TO_PARSE + "header value cannot be null",
-                                            GENERIC_CLIENT_ERROR);
-        }
         try {
             if (headerValue.getValue().contains(COMMA)) {
                 headerValue = headerValue.substring(0, headerValue.getValue().indexOf(COMMA));
@@ -68,4 +64,6 @@ public class ParseHeader {
             return HttpUtil.createHttpError(FAILED_TO_PARSE + errMsg, GENERIC_CLIENT_ERROR);
         }
     }
+
+    private ParseHeader() {}
 }

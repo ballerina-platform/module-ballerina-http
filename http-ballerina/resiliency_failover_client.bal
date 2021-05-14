@@ -55,7 +55,7 @@ public client class FailoverClient {
     #
     # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public isolated function init(FailoverClientConfiguration failoverClientConfig) returns ClientError? {
+    public isolated function init(*FailoverClientConfiguration failoverClientConfig) returns ClientError? {
         self.failoverClientConfig = failoverClientConfig;
         self.succeededEndpointIndex = 0;
         var failoverHttpClientArray = createFailoverHttpClientArray(failoverClientConfig);

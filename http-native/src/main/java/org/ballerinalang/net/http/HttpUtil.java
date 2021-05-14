@@ -1586,12 +1586,12 @@ public class HttpUtil {
         if (key.containsKey(SECURESOCKET_CONFIG_KEYSTORE_FILE_PATH)) {
             String keyStoreFile = key.getStringValue(SECURESOCKET_CONFIG_KEYSTORE_FILE_PATH).getValue();
             if (keyStoreFile.isBlank()) {
-                throw createHttpError("KeyStore file location must be provided for secure connection.",
+                throw createHttpError("KeyStore file location must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
             }
             String keyStorePassword = key.getStringValue(SECURESOCKET_CONFIG_KEYSTORE_PASSWORD).getValue();
             if (keyStorePassword.isBlank()) {
-                throw createHttpError("KeyStore password must be provided for secure connection.",
+                throw createHttpError("KeyStore password must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
             }
             sslConfiguration.setKeyStoreFile(keyStoreFile);
@@ -1602,11 +1602,11 @@ public class HttpUtil {
             BString keyPassword = key.containsKey(SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD) ?
                     key.getStringValue(SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD) : null;
              if (certFile.isBlank()) {
-                throw createHttpError("Certificate file location must be provided for secure connection.",
+                throw createHttpError("Certificate file location must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
             }
             if (keyFile.isBlank()) {
-                throw createHttpError("Private key file location must be provided for secure connection.",
+                throw createHttpError("Private key file location must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
             }
             if (sslConfiguration instanceof ListenerConfiguration) {
@@ -1631,11 +1631,11 @@ public class HttpUtil {
             String trustStoreFile = trustStore.getStringValue(SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH).getValue();
             String trustStorePassword = trustStore.getStringValue(SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD).getValue();
             if (trustStoreFile.isBlank()) {
-                throw createHttpError("TrustStore file location must be provided for secure connection.",
+                throw createHttpError("TrustStore file location must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
             }
             if (trustStorePassword.isBlank()) {
-                throw createHttpError("TrustStore password must be provided for secure connection.",
+                throw createHttpError("TrustStore password must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
             }
             sslConfiguration.setTrustStoreFile(trustStoreFile);
@@ -1643,7 +1643,7 @@ public class HttpUtil {
         } else {
             String certFile = ((BString) cert).getValue();
             if (certFile.isBlank()) {
-                throw createHttpError("Certificate file location must be provided for secure connection.",
+                throw createHttpError("Certificate file location must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
             }
             if (sslConfiguration instanceof ListenerConfiguration) {

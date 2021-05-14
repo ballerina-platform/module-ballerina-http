@@ -206,7 +206,7 @@ isolated function nativeRespond(Caller caller, Response response) returns Listen
     name: "nativeRespond"
 } external;
 
-isolated function nativeGetRemoteHostName(Caller caller) returns string = @java:Method {
+isolated function nativeGetRemoteHostName(Caller caller) returns string? = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.connection.GetRemoteHostName",
     name: "nativeGetRemoteHostName"
 } external;

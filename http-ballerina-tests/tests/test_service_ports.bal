@@ -38,6 +38,10 @@ const int multipartRequestTest = 9018;
 const int responseTest = 9094;
 const int entityTest = 9097;
 const int mimeTest = 9096;
+const int proxyTest1 = 9019;
+const int proxyTest2 = 9020;
+const int streamTest1 = 9021;
+const int streamTest2 = 9022;
 
 // Integration test ports
 // HTTP
@@ -117,5 +121,5 @@ const int http2RetryFunctionTestPort1 = 9606;
 const int http2RetryFunctionTestPort2 = 9607;
 
 //Security
-const int oauth2AuthorizationServerPort = 9401;
+const int oauth2StsPort = 9401;
 const int securedListenerPort = 9402;

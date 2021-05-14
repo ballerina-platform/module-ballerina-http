@@ -110,4 +110,6 @@ public class ExternRequest {
         }
         return checkRequestBodySizeHeadersAvailability((HttpCarbonMessage) outboundMsg);
     }
+
+    private ExternRequest() {}
 }

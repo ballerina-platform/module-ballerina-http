@@ -16,11 +16,6 @@
 
 import ballerina/auth;
 
-# Represents LDAP user store configurations for Basic Auth authentication.
-public type LdapUserStoreConfig record {|
-    *auth:LdapUserStoreConfig;
-|};
-
 # Defines the LDAP store Basic Auth handler for listener authentication.
 public client class ListenerLdapUserStoreBasicAuthProvider {
 

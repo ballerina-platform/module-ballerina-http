@@ -395,12 +395,12 @@ service /restParam on utmTestEP {
         checkpanic caller->respond(res);
     }
 
-    // resource function 'default 'decimal/[decimal... aaa](http:Caller caller) {
-    //     http:Response res = new;
-    //     json responseJson = {aaa:aaa};
-    //     res.setJsonPayload(<@untainted json> responseJson);
-    //     checkpanic caller->respond(res);
-    // }
+     resource function 'default 'decimal/[decimal... aaa](http:Caller caller) {
+         http:Response res = new;
+         json responseJson = {aaa:aaa};
+         res.setJsonPayload(<@untainted json> responseJson);
+         checkpanic caller->respond(res);
+     }
 }
 
 //Test dispatching with URL. /hello/world/echo2?regid=abc
@@ -1058,12 +1058,12 @@ function testMultipleBoolRestParams() {
     }
 }
 
-// @test:Config {}
-// function testMultipleDeciRestParams() {
-//     var response = utmClient->get("/restParam/decimal/12.3/4.56");
-//     if (response is http:Response) {
-//         assertJsonValue(response.getJsonPayload(), "aaa", [12.3,4.56]);
-//     } else {
-//         test:assertFail(msg = "Found unexpected output type: " + response.message());
-//     }
-// }
+ @test:Config {}
+ function testMultipleDeciRestParams() {
+     var response = utmClient->get("/restParam/decimal/12.3/4.56");
+     if (response is http:Response) {
+         assertJsonPayloadtoJsonString(response.getJsonPayload(), {"aaa":[12.3, 4.56]});
+     } else {
+         test:assertFail(msg = "Found unexpected output type: " + response.message());
+     }
+ }

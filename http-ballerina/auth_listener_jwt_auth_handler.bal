@@ -16,14 +16,6 @@
 
 import ballerina/jwt;
 
-# Represents JWT validator configurations for JWT authentication.
-#
-# + scopeKey - The key used to fetch the scopes
-public type JwtValidatorConfig record {|
-    *jwt:ValidatorConfig;
-    string scopeKey = "scope";
-|};
-
 # Defines the JWT auth handler for listener authentication.
 public class ListenerJwtAuthHandler {
 
