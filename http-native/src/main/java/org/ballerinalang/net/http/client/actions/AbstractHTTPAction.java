@@ -70,6 +70,7 @@ import java.nio.charset.StandardCharsets;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
 import static io.netty.handler.codec.http.HttpHeaderNames.ACCEPT_ENCODING;
 import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION;
+import static org.ballerinalang.net.http.HttpConstants.SINGLE_SLASH;
 import static org.ballerinalang.net.http.HttpUtil.extractEntity;
 import static org.ballerinalang.net.http.HttpUtil.getCompressionState;
 import static org.ballerinalang.net.transport.contract.Constants.ENCODING_DEFLATE;
@@ -125,7 +126,7 @@ public abstract class AbstractHTTPAction {
                     getTrxInfoRecordJson(transactionLocalContext.getInfoRecord()));
         }
         try {
-            String uri = getServiceUri(serviceUri) + path;
+            String uri = getServiceUri(serviceUri) + sanitizeResourcePath(path);
             URL url = new URL(encodeWhitespacesInUri(uri));
 
             int port = getOutboundReqPort(url);
@@ -312,6 +313,13 @@ public abstract class AbstractHTTPAction {
         } else {
             outboundRequestMsg.addHttpContent(new DefaultLastHttpContent());
         }
+    }
+
+    private static String sanitizeResourcePath(String path) {
+        if (!path.isEmpty() && !path.startsWith(SINGLE_SLASH)) {
+            path = SINGLE_SLASH.concat(path);
+        }
+        return path;
     }
 
     static boolean isNoEntityBodyRequest(BObject request) {
