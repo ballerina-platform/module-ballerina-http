@@ -30,7 +30,6 @@ public class Constants {
     public static final String REQUEST_OBJ_NAME = "Request";
     public static final String HEADER_OBJ_NAME = "Headers";
     public static final String RESOURCE_CONFIG_ANNOTATION = "ResourceConfig";
-    public static final String LANG_ANNOTATION_PREFIX = "$anonType$";
     public static final String PAYLOAD_ANNOTATION_TYPE = "HttpPayload";
     public static final String CALLER_ANNOTATION_TYPE = "HttpCallerInfo";
     public static final String HEADER_ANNOTATION_TYPE = "HttpHeader";
