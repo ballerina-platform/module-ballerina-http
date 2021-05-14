@@ -18,6 +18,8 @@ plugins {
     id 'jacoco'
 }
 
+apply plugin: 'java'
+
 import org.apache.tools.ant.taskdefs.condition.Os
 
 description = 'Ballerina - HTTP/WS Ballerina Tests'
