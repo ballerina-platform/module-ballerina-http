@@ -59,3 +59,29 @@ function testUrlDoubleSlash() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
+
+@test:Config {}
+function testResourcePathWithoutStartingSlash() returns error? {
+    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/");
+    var response = httpUrlClient->get("url");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Hello");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testResourcePathWithEmptyPath() returns error? {
+    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url/");
+    var response = httpUrlClient->get("");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Hello");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
