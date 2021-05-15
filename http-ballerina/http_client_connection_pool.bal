@@ -16,10 +16,10 @@
 
 import ballerina/jballerina.java;
 
-final configurable int maxActiveConnections = -1;
-final configurable int maxIdleConnections = 100;
-final configurable decimal waitTime = 30;
-final configurable int maxActiveStreamsPerConnection = 50;
+configurable int maxActiveConnections = -1;
+configurable int maxIdleConnections = 100;
+configurable decimal waitTime = 30;
+configurable int maxActiveStreamsPerConnection = 50;
 
 # Configurations for managing HTTP client connection pool.
 #
