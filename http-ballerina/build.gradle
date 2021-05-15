@@ -28,7 +28,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.ballerina:plugin-gradle:0.8.1-SNAPSHOT"
+        classpath "io.ballerina:plugin-gradle:${project.pluginVersion}"
     }
 }
 
@@ -64,6 +64,7 @@ apply plugin: 'io.ballerina.plugin'
 ballerina{
     module = packageName
     langVersion = ballerinaLangVersion
+    testCoverageParam = "--code-coverage --jacoco-xml --includes=org.ballerinalang.net.*:ballerina.http.*"
 }
 
 configurations {
@@ -71,8 +72,6 @@ configurations {
 }
 
 dependencies {
-    // compile project(":${packageName}-native")
-    // compile group: 'org.ballerinalang', name: 'toml-parser', version: "${ballerinaTomlParserVersion}"
 
     externalJars (group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}") {
         transitive = false
