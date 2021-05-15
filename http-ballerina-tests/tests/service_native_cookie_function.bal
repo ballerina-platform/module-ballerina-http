@@ -210,23 +210,31 @@ function testAddCookiesConcurrentlyToCookieStore() {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     worker w1 {
-        if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore) {
-            var result = cookieStore.addCookies(cookiesToadd, cookieConfigVal, "http://google.com", "/sample");
+        http:CookieStore? localCookieStore = cookieStore;
+        var localCookieConfig = cookieConfigVal;
+        if (localCookieConfig is http:CookieConfig && localCookieStore is http:CookieStore) {
+            var result = localCookieStore.addCookies(cookiesToadd, localCookieConfig, "http://google.com", "/sample");
         }
     }
     worker w2 {
-        if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore) {
-            var result = cookieStore.addCookies(cookiesToadd, cookieConfigVal, "http://google.com", "/sample");
+        http:CookieStore? localCookieStore = cookieStore;
+        var localCookieConfig = cookieConfigVal;
+        if (localCookieConfig is http:CookieConfig && localCookieStore is http:CookieStore) {
+            var result = localCookieStore.addCookies(cookiesToadd, localCookieConfig, "http://google.com", "/sample");
         }
     }
     worker w3 {
-        if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore) {
-            var result = cookieStore.addCookies(cookiesToadd, cookieConfigVal, "http://google.com", "/sample");
+        http:CookieStore? localCookieStore = cookieStore;
+        var localCookieConfig = cookieConfigVal;
+        if (localCookieConfig is http:CookieConfig && localCookieStore is http:CookieStore) {
+            var result = localCookieStore.addCookies(cookiesToadd, localCookieConfig, "http://google.com", "/sample");
         }
     }
     worker w4 {
-        if (cookieConfigVal is http:CookieConfig && cookieStore is http:CookieStore) {
-            var result = cookieStore.addCookies(cookiesToadd, cookieConfigVal, "http://google.com", "/sample");
+        http:CookieStore? localCookieStore = cookieStore;
+        var localCookieConfig = cookieConfigVal;
+        if (localCookieConfig is http:CookieConfig && localCookieStore is http:CookieStore) {
+            var result = localCookieStore.addCookies(cookiesToadd, localCookieConfig, "http://google.com", "/sample");
         }
     }
     _ = wait {w1, w2, w3, w4};
