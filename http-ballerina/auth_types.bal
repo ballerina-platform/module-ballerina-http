@@ -94,22 +94,22 @@ public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig
 // Defines the client authentication handlers.
 type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
 
-public type FileUserStoreConfigWithScopes record {|
+type FileUserStoreConfigWithScopes record {|
    FileUserStoreConfig fileUserStoreConfig;
    string|string[] scopes?;
 |};
 
-public type LdapUserStoreConfigWithScopes record {|
+type LdapUserStoreConfigWithScopes record {|
    LdapUserStoreConfig ldapUserStoreConfig;
    string|string[] scopes?;
 |};
 
-public type JwtValidatorConfigWithScopes record {|
+type JwtValidatorConfigWithScopes record {|
    JwtValidatorConfig jwtValidatorConfig;
    string|string[] scopes?;
 |};
 
-public type OAuth2IntrospectionConfigWithScopes record {|
+type OAuth2IntrospectionConfigWithScopes record {|
    OAuth2IntrospectionConfig oauth2IntrospectionConfig;
    string|string[] scopes?;
 |};
