@@ -94,21 +94,37 @@ public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig
 // Defines the client authentication handlers.
 type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
 
+# Represents the auth annotation for file user store configurations with scopes.
+#
+# + fileUserStoreConfig - File user store configurations for Basic Auth authentication
+# + scopes - Scopes allowed for authorization
 public type FileUserStoreConfigWithScopes record {|
    FileUserStoreConfig fileUserStoreConfig;
    string|string[] scopes?;
 |};
 
+# Represents the auth annotation for LDAP user store configurations with scopes.
+#
+# + ldapUserStoreConfig - LDAP user store configurations for Basic Auth authentication
+# + scopes - Scopes allowed for authorization
 public type LdapUserStoreConfigWithScopes record {|
    LdapUserStoreConfig ldapUserStoreConfig;
    string|string[] scopes?;
 |};
 
+# Represents the auth annotation for JWT validator configurations with scopes.
+#
+# + jwtValidatorConfig - JWT validator configurations for JWT authentication
+# + scopes - Scopes allowed for authorization
 public type JwtValidatorConfigWithScopes record {|
    JwtValidatorConfig jwtValidatorConfig;
    string|string[] scopes?;
 |};
 
+# Represents the auth annotation for OAuth2 introspection server configurations with scopes.
+#
+# + oauth2IntrospectionConfig - OAuth2 introspection server configurations for OAuth2 authentication
+# + scopes - Scopes allowed for authorization
 public type OAuth2IntrospectionConfigWithScopes record {|
    OAuth2IntrospectionConfig oauth2IntrospectionConfig;
    string|string[] scopes?;
