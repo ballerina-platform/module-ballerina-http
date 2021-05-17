@@ -50,7 +50,7 @@ service /'listener on callerActionListener {
 
 @test:Config {}
 function testNonBlockingRespondAction() {
-    var response = callerActionTestClient->get("/listener/respond");
+    http:Response|error response = callerActionTestClient->get("/listener/respond");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -63,7 +63,7 @@ function testNonBlockingRespondAction() {
 @test:Config {dependsOn:[testNonBlockingRespondAction]}
 function testExecutionAfterRespondAction() {
     test:assertEquals(globalLvlStr, "respond");
-    // var response = callerActionTestClient->get("/listener/getChangedValue");
+    // http:Response|error response = callerActionTestClient->get("/listener/getChangedValue");
     // if (response is http:Response) {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     //     assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -75,7 +75,7 @@ function testExecutionAfterRespondAction() {
 
 @test:Config {dependsOn:[testExecutionAfterRespondAction]}
 function testNonBlockingRedirectAction() {
-    var response = callerActionTestClient->get("/listener/redirect");
+    http:Response|error response = callerActionTestClient->get("/listener/redirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 308, msg = "Found unexpected output");
     } else {
@@ -86,7 +86,7 @@ function testNonBlockingRedirectAction() {
 @test:Config {dependsOn:[testNonBlockingRedirectAction]}
 function testExecutionAfterRedirectAction() {
     test:assertEquals(globalLvlStr, "redirect");
-    // var response = callerActionTestClient->get("/listener/getChangedValue");
+    // http:Response|error response = callerActionTestClient->get("/listener/getChangedValue");
     // if (response is http:Response) {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     //     assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

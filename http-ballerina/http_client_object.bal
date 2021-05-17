@@ -28,7 +28,7 @@ public type ClientObject client object {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function post(@untainted string path, RequestMessage message, string? mediaType = (),
-            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError;
 
     # The `Client.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
@@ -42,7 +42,7 @@ public type ClientObject client object {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function  put(@untainted string path, RequestMessage message, string? mediaType = (), 
-            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError;
 
     # The `Client.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
@@ -56,7 +56,7 @@ public type ClientObject client object {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function  patch(@untainted string path, RequestMessage message, string? mediaType = (), 
-            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError;
 
     # The `Client.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.
@@ -70,7 +70,7 @@ public type ClientObject client object {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function  delete(@untainted string path, RequestMessage message = (), string? mediaType = (), 
-            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError;
 
     # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
@@ -89,7 +89,7 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function  get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
+    remote isolated function  get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError;
 
     # The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
@@ -100,7 +100,7 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function  options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response) 
+    remote isolated function  options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError;
 
     # Invokes an HTTP call with the specified HTTP verb.
@@ -115,7 +115,7 @@ public type ClientObject client object {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function  execute(@untainted string httpVerb, @untainted string path, RequestMessage message, 
-            string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = Response) 
+            string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError;
 
     # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
@@ -126,7 +126,7 @@ public type ClientObject client object {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function  forward(@untainted string path, Request request, TargetType targetType = Response) 
+    remote isolated function  forward(@untainted string path, Request request, TargetType targetType = <>)
             returns @tainted targetType|ClientError;
 
     # Submits an HTTP request to a service with the specified HTTP verb.

@@ -108,7 +108,7 @@ service /requestPayloadLimit on lowPayloadLimitEP {
 @test:Config {}
 function testValidUrlLength() {
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort1.toString());
-    var response = limitClient->get("/requestUriLimit/validUrl");
+    http:Response|error response = limitClient->get("/requestUriLimit/validUrl");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(mime:CONTENT_TYPE), TEXT_PLAIN);
@@ -122,7 +122,7 @@ function testValidUrlLength() {
 @test:Config {}
 function testInvalidUrlLength() {
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort2.toString());
-    var response = limitClient->get("/lowRequestUriLimit/invalidUrl");
+    http:Response|error response = limitClient->get("/lowRequestUriLimit/invalidUrl");
     if (response is http:Response) {
         //414 Request-URI Too Long
         test:assertEquals(response.statusCode, 414, msg = "Found unexpected output");
@@ -135,7 +135,7 @@ function testInvalidUrlLength() {
 @test:Config {}
 function testValidHeaderLength() {
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort4.toString());
-    var response = limitClient->get("/requestHeaderLimit/validHeaderSize");
+    http:Response|error response = limitClient->get("/requestHeaderLimit/validHeaderSize");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(mime:CONTENT_TYPE), TEXT_PLAIN);
@@ -149,7 +149,7 @@ function testValidHeaderLength() {
 @test:Config {}
 function testInvalidHeaderLength() {
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort3.toString());
-    var response = limitClient->get("/lowRequestHeaderLimit/invalidHeaderSize", {"X-Test":getLargeHeader()});
+    http:Response|error response = limitClient->get("/lowRequestHeaderLimit/invalidHeaderSize", {"X-Test":getLargeHeader()});
     if (response is http:Response) {
         //431 Request Header Fields Too Large
         test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
@@ -172,7 +172,7 @@ function getLargeHeader() returns string {
 @test:Config {}
 function testHttp2ServiceInvalidHeaderLength() {
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort5.toString());
-    var response = limitClient->get("/http2service/invalidHeaderSize", {"X-Test":getLargeHeader()});
+    http:Response|error response = limitClient->get("/http2service/invalidHeaderSize", {"X-Test":getLargeHeader()});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
     } else {
@@ -186,7 +186,7 @@ function testInvalidPayloadSize() {
     http:Request req = new;
     req.setTextPayload("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort6.toString());
-    var response = limitClient->post("/requestPayloadLimit/test", req);
+    http:Response|error response = limitClient->post("/requestPayloadLimit/test", req);
     if (response is http:Response) {
         //413 Payload Too Large
         test:assertEquals(response.statusCode, 413, msg = "Found unexpected output");

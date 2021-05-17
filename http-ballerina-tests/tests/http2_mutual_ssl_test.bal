@@ -99,7 +99,7 @@ http:ClientConfiguration http2MutualSslClientConf = {
 @test:Config {}
 public function testHttp2MutualSsl() {
     http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf);
-    var resp = httpClient->get("/http2Service/");
+    http:Response|error resp = httpClient->get("/http2Service/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Passed");
     } else {

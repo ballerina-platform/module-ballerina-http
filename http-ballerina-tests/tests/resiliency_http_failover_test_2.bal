@@ -67,7 +67,7 @@ http:FailoverClient foStatusCodesEP02 = check new({
 
 service /failoverDemoService02 on failoverEP02 {
     resource function 'default invokeAllFailureEndpoint02(http:Caller caller, http:Request request) {
-        var backendRes = foBackendEP02->forward("/", <@untainted> request);
+        http:Response|error backendRes = foBackendEP02->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -85,7 +85,7 @@ service /failoverDemoService02 on failoverEP02 {
     }
 
     resource function 'default invokeAllFailureEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = foBackendFailureEP02->forward("/", <@untainted> request);
+        http:Response|error backendRes = foBackendFailureEP02->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -103,7 +103,7 @@ service /failoverDemoService02 on failoverEP02 {
     }
 
     resource function 'default invokeAllFailureStatusCodesEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = foStatusCodesEP02->forward("/", <@untainted> request);
+        http:Response|error backendRes = foStatusCodesEP02->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -122,7 +122,7 @@ service /failoverDemoService02 on failoverEP02 {
 
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP02.succeededEndpointIndex.toString();
-        var backendRes = foBackendEP02->forward("/", <@untainted> request);
+        http:Response|error backendRes = foBackendEP02->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             string responseMessage = "Failover start index is : " + startIndex;
             error? responseToCaller = caller->respond(<@untainted> responseMessage);

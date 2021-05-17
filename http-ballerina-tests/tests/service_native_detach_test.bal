@@ -77,7 +77,7 @@ http:Service mock5 = service object {
 //Test the detach method with multiple services attachments
 @test:Config {}
 function testServiceDetach() {
-    var response = serviceDetachClient->get("/mock1");
+    http:Response|error response = serviceDetachClient->get("/mock1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock1 invoked. Mock2 attached. Mock3 attached");

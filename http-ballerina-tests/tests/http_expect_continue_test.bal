@@ -100,7 +100,7 @@ service /'continue on expectContinueListenerEP1 {
                 log:printError("Error sending response", 'error = responseError);
             }
         }
-        var res = expectContinueClient->forward("/backend/hello", <@untainted> req);
+        http:Response|error res = expectContinueClient->forward("/backend/hello", <@untainted> req);
         if (res is http:Response) {
             var responseError = caller->respond(<@untainted> res);
             if (responseError is error) {

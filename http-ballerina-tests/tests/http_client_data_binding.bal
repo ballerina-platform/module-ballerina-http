@@ -42,30 +42,30 @@ service /passthrough on clientDBProxyListener {
     resource function get allTypes(http:Caller caller, http:Request request) returns @tainted error? {
         string payload = "";
 
-        json p = checkpanic clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
+        json p = checkpanic clientDBBackendClient->post("/backend/getJson", "want json");
         payload = payload + p.toJsonString();
 
-        map<json> p1 = checkpanic clientDBBackendClient->post("/backend/getJson", "want json", targetType = MapOfJson);
+        map<json> p1 = checkpanic clientDBBackendClient->post("/backend/getJson", "want json");
         json name = check p1.id;
         payload = payload + " | " + name.toJsonString();
 
-        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml", targetType = XmlType);
+        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml");
         payload = payload + " | " + q.toString();
 
-        string r = checkpanic clientDBBackendClient->post("/backend/getString", "want string", targetType = string);
+        string r = checkpanic clientDBBackendClient->post("/backend/getString", "want string");
         payload = payload + " | " + r;
 
-        byte[] val = checkpanic clientDBBackendClient->post("/backend/getByteArray", "want byte[]", targetType = ByteArray);
+        byte[] val = checkpanic clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
-        ClientDBPerson t = checkpanic clientDBBackendClient->post("/backend/getRecord", "want record", targetType = ClientDBPerson);
+        ClientDBPerson t = checkpanic clientDBBackendClient->post("/backend/getRecord", "want record");
         payload = payload + " | " + t.name;
 
-        ClientDBPerson[] u = checkpanic clientDBBackendClient->post("/backend/getRecordArr", "want record[]", targetType = ClientDBPersonArray);
+        ClientDBPerson[] u = checkpanic clientDBBackendClient->post("/backend/getRecordArr", "want record[]");
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
-        http:Response v = checkpanic clientDBBackendClient->post("/backend/getResponse", "want record[]", targetType = http:Response);
+        http:Response v = checkpanic clientDBBackendClient->post("/backend/getResponse", "want record[]");
         payload = payload + " | " + checkpanic v.getHeader("x-fact");
 
         error? result = caller->respond(<@untainted>payload);
@@ -75,25 +75,25 @@ service /passthrough on clientDBProxyListener {
         string payload = "";
 
         // This is to check any compile failures with multiple default-able args
-        json hello = checkpanic clientDBBackendClient->get("/backend/getJson", targetType = json);
+        json hello = checkpanic clientDBBackendClient->get("/backend/getJson");
 
-        json p = checkpanic clientDBBackendClient->get("/backend/getJson", targetType = json);
+        json p = checkpanic clientDBBackendClient->get("/backend/getJson");
         payload = payload + p.toJsonString();
 
         http:Response v = checkpanic clientDBBackendClient->head("/backend/getXml");
         payload = payload + " | " + checkpanic v.getHeader("Content-type");
 
-        string r = checkpanic clientDBBackendClient->delete("/backend/getString", "want string", targetType = string);
+        string r = checkpanic clientDBBackendClient->delete("/backend/getString", "want string");
         payload = payload + " | " + r;
 
-        byte[] val = checkpanic clientDBBackendClient->put("/backend/getByteArray", "want byte[]", targetType = ByteArray);
+        byte[] val = checkpanic clientDBBackendClient->put("/backend/getByteArray", "want byte[]");
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
-        ClientDBPerson t = checkpanic clientDBBackendClient->execute("POST", "/backend/getRecord", "want record", targetType = ClientDBPerson);
+        ClientDBPerson t = checkpanic clientDBBackendClient->execute("POST", "/backend/getRecord", "want record");
         payload = payload + " | " + t.name;
 
-        ClientDBPerson[] u = checkpanic clientDBBackendClient->forward("/backend/getRecordArr", request, targetType = ClientDBPersonArray);
+        ClientDBPerson[] u = checkpanic clientDBBackendClient->forward("/backend/getRecordArr", request);
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
         error? result = caller->respond(<@untainted>payload);
@@ -112,17 +112,17 @@ service /passthrough on clientDBProxyListener {
                 maxWaitInterval: 2 },  timeout: 2
             }
         );
-        string r = checkpanic retryClient->forward("/backend/getRetryResponse", request, targetType = string);
+        string r = checkpanic retryClient->forward("/backend/getRetryResponse", request);
         error? responseToCaller = caller->respond(<@untainted>r);
     }
 
     resource function 'default '500(http:Caller caller, http:Request request) {
-        json p = checkpanic clientDBBackendClient->post("/backend/get5XX", "want 500", targetType = json);
+        json p = checkpanic clientDBBackendClient->post("/backend/get5XX", "want 500");
         error? responseToCaller = caller->respond(<@untainted>p);
     }
 
     resource function 'default '500handle(http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/get5XX", "want 500", targetType = json);
+        json|error res = clientDBBackendClient->post("/backend/get5XX", "want 500");
         if res is http:RemoteServerError {
             http:Response resp = new;
             http:Detail? details = res.detail();
@@ -136,12 +136,12 @@ service /passthrough on clientDBProxyListener {
     }
 
     resource function 'default '404(http:Caller caller, http:Request request) {
-        json p = checkpanic clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500", targetType = json);
+        json p = checkpanic clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500");
         error? responseToCaller = caller->respond(<@untainted>p);
     }
 
     resource function  'default '404/[string path](http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/" + <@untainted>path, "want 500", targetType = json);
+        json|error res = clientDBBackendClient->post("/backend/" + <@untainted>path, "want 500");
         if res is http:ClientRequestError {
             http:Response resp = new;
             http:Detail? details = res.detail();
@@ -237,7 +237,7 @@ service /redirect1 on clientDBBackendListener2 {
 // Test HTTP basic client with all binding data types(targetTypes)
 @test:Config {}
 function testAllBindingDataTypes() {
-    var response = clientDBTestClient->get("/passthrough/allTypes");
+    http:Response|error response = clientDBTestClient->get("/passthrough/allTypes");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -252,7 +252,7 @@ function testAllBindingDataTypes() {
 // Test basic client with all HTTP request methods
 @test:Config {}
 function testDifferentMethods() {
-    var response = clientDBTestClient->get("/passthrough/allMethods");
+    http:Response|error response = clientDBTestClient->get("/passthrough/allMethods");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -267,7 +267,7 @@ function testDifferentMethods() {
 // Test HTTP redirect client data binding
 @test:Config {groups: ["now"]}
 function testRedirectClientDataBinding() {
-    var response = clientDBTestClient->get("/passthrough/redirect");
+    http:Response|error response = clientDBTestClient->get("/passthrough/redirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
@@ -281,7 +281,7 @@ function testRedirectClientDataBinding() {
 // Test HTTP retry client data binding
 @test:Config {}
 function testRetryClientDataBinding() {
-    var response = clientDBTestClient->get("/passthrough/retry");
+    http:Response|error response = clientDBTestClient->get("/passthrough/retry");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -294,7 +294,7 @@ function testRetryClientDataBinding() {
 // Test 500 error panic
 @test:Config {}
 function test5XXErrorPanic() {
-    var response = clientDBTestClient->get("/passthrough/500");
+    http:Response|error response = clientDBTestClient->get("/passthrough/500");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -307,7 +307,7 @@ function test5XXErrorPanic() {
 // Test 500 error handle
 @test:Config {}
 function test5XXHandleError() {
-    var response = clientDBTestClient->get("/passthrough/500handle");
+    http:Response|error response = clientDBTestClient->get("/passthrough/500handle");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -320,7 +320,7 @@ function test5XXHandleError() {
 // Test 404 error panic
 @test:Config {}
 function test4XXErrorPanic() {
-    var response = clientDBTestClient->get("/passthrough/404");
+    http:Response|error response = clientDBTestClient->get("/passthrough/404");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -334,7 +334,7 @@ function test4XXErrorPanic() {
 // Test 404 error handle
 @test:Config {}
 function test4XXHandleError() {
-    var response = clientDBTestClient->get("/passthrough/404/handle");
+    http:Response|error response = clientDBTestClient->get("/passthrough/404/handle");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -347,7 +347,7 @@ function test4XXHandleError() {
 // Test 405 error handle
 @test:Config {}
 function test405HandleError() {
-    var response = clientDBTestClient->get("/passthrough/404/get4XX");
+    http:Response|error response = clientDBTestClient->get("/passthrough/404/get4XX");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

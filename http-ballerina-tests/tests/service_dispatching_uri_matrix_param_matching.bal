@@ -72,7 +72,7 @@ service /hello on matrixEP {
 @test:Config {}
 function testMatrixParamsAndQueryParamsMatching() {
     string path = "/hello/t1/john;age=10;color=white/bar/1991;month=may;day=12/foo;a=5;b=10?x=10&y=5";
-    var response = matrixClient->get(path);
+    http:Response|error response = matrixClient->get(path);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "pathParams", "john, 1991");
         assertJsonValue(response.getJsonPayload(), "personMatrix", "age=10;color=white");
@@ -87,7 +87,7 @@ function testMatrixParamsAndQueryParamsMatching() {
 @test:Config {}
 function testEncodedPathDispatching() {
     string path = "/hello/t2/john;age=2;color=white/foo%3Ba%3D5%3Bb%3D10"; // encoded URI
-    var response = matrixClient->get(path);
+    http:Response|error response = matrixClient->get(path);
     if (response is http:Response) {
         // assertTextPayload(response.getTextPayload(), "fw");
         assertJsonValue(response.getJsonPayload(), "person", "john");
@@ -101,7 +101,7 @@ function testEncodedPathDispatching() {
 @test:Config {}
 function testEncodedPathParamDispatching() {
     string path = "/hello/t2/john%3Bage%3D2%3Bcolor%3Dwhite/foo%3Ba%3D5%3Bb%3D10"; // encoded URI
-    var response = matrixClient->get(path);
+    http:Response|error response = matrixClient->get(path);
     if (response is http:Response) {
         // assertTextPayload(response.getTextPayload(), "fw");
         assertJsonValue(response.getJsonPayload(), "person", "john;age=2;color=white");
@@ -115,7 +115,7 @@ function testEncodedPathParamDispatching() {
 @test:Config {}
 function testNonEncodedUrlDispatching() {
     string path = "/hello/t2/john;age=2;color=white/foo;a=5;b=10"; // encoded URI
-    var response = matrixClient->get(path);
+    http:Response|error response = matrixClient->get(path);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /hello/t2/john/foo , method : GET");
@@ -127,7 +127,7 @@ function testNonEncodedUrlDispatching() {
 @test:Config {}
 function testErrorReportInURI() {
     string path = "/hello/t2/john;age;color=white/foo;a=5;b=10"; // encoded URI
-    var response = matrixClient->get(path);
+    http:Response|error response = matrixClient->get(path);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),

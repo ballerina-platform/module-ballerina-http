@@ -43,7 +43,7 @@ http:Service testingService = service object {
 //Test for configuring a service via config API
 @test:Config {}
 function testConfiguringAService() {
-    var response = scClient->get("/schello/sayHello");
+    http:Response|error response = scClient->get("/schello/sayHello");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Service started!");

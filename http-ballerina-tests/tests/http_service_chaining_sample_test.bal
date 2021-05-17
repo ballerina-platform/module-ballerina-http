@@ -42,7 +42,7 @@ service /ABCBank on serviceChainingListenerEP {
         }
 
         http:Response locatorResponse = new;
-        var locatorRes = branchLocatorService -> post("", backendServiceReq);
+        http:Response|error locatorRes = branchLocatorService -> post("", backendServiceReq);
         if (locatorRes is http:Response) {
             locatorResponse = locatorRes;
         } else {
@@ -62,7 +62,7 @@ service /ABCBank on serviceChainingListenerEP {
         }
 
         http:Response informationResponse = new;
-        var infoRes = bankInfoService -> post("", backendServiceReq);
+        http:Response|error infoRes = bankInfoService -> post("", backendServiceReq);
         if (infoRes is http:Response) {
             informationResponse = infoRes;
         } else {
@@ -124,7 +124,7 @@ json responseMessage = {"ABC Bank":{Address:"111 River Oaks Pkwy, San Jose, CA 9
 //Test service chaining sample
 @test:Config {}
 function testServiceChaining() {
-    var response = serviceChainingClient->post("/ABCBank/locator", requestMessage);
+    http:Response|error response = serviceChainingClient->post("/ABCBank/locator", requestMessage);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);

@@ -136,7 +136,7 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
              }
          };
         req.setPayload(jsonPayload);
-        var finalResponse = eP1->post("/http2EchoService/echoResource", req);
+        http:Response|error finalResponse = eP1->post("/http2EchoService/echoResource", req);
         if (finalResponse is error) {
             log:printError("Error sending response", 'error = finalResponse);
         } else {
@@ -148,7 +148,7 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
 @test:Config {}
 public function testClientUpgradewithLargePayload() {
     http:Client clientEP = checkpanic new("http://localhost:9106");
-    var resp = clientEP->get("/http2EchoService/initial");
+    http:Response|error resp = clientEP->get("/http2EchoService/initial");
     string expectedPayload = "{\"web-app\":{\"servlet\":[{\"servlet-name\":\"cofaxCDS\", \"servlet-class\":"
                         + "\"org.cofax.cds.CDSServlet\", \"init-param\":{\"configGlossary:installationAt\":"
                         + "\"Philadelphia, PA\", \"configGlossary:adminEmail\":\"ksm@pobox.com\", "

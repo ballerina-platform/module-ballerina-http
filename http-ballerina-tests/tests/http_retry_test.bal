@@ -52,7 +52,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     // Parameters include a reference to the caller endpoint and an object of
     // the request data.
     resource function 'default .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
+        http:Response|error backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -70,7 +70,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function get .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->execute("GET", "/mockHelloService", request);
+        http:Response|error backendResponse = retryBackendClientEP->execute("GET", "/mockHelloService", request);
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -88,7 +88,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function head .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->head("/mockHelloService");
+        http:Response|error backendResponse = retryBackendClientEP->head("/mockHelloService");
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -106,7 +106,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function put .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->put("/mockHelloService", request);
+        http:Response|error backendResponse = retryBackendClientEP->put("/mockHelloService", request);
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -124,7 +124,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function patch .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->patch("/mockHelloService", request);
+        http:Response|error backendResponse = retryBackendClientEP->patch("/mockHelloService", request);
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -142,7 +142,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function options .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->options("/mockHelloService");
+        http:Response|error backendResponse = retryBackendClientEP->options("/mockHelloService");
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -160,7 +160,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     }
 
     resource function delete .(http:Caller caller, http:Request request) {
-        var backendResponse = retryBackendClientEP->delete("/mockHelloService", request);
+        http:Response|error backendResponse = retryBackendClientEP->delete("/mockHelloService", request);
         if (backendResponse is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendResponse);
             if (responseToCaller is error) {
@@ -329,7 +329,7 @@ isolated function waitForRetry(int counter) {
 service /retryStatusService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         if (checkpanic request.getHeader("x-retry") == "recover") {
-            var backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", <@untainted> request);
+            http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", <@untainted> request);
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
                 if (responseError is error) {
@@ -345,7 +345,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                 }
             }
         } else if (checkpanic request.getHeader("x-retry") == "internalError") {
-            var backendResponse = internalErrorEP->post("/mockStatusCodeService/internalError", <@untainted> request);
+            http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/internalError", <@untainted> request);
             if (backendResponse is http:Response) {
                 var responseError = caller->respond(<@untainted> backendResponse);
                 if (responseError is error) {
@@ -403,7 +403,7 @@ service /mockStatusCodeService on retryTestserviceEndpoint2 {
 }
 function testSimpleRetry() {
     json payload = {Name:"Ballerina"};
-    var response = retryFunctionTestClient->post("/retryDemoService", payload);
+    http:Response|error response = retryFunctionTestClient->post("/retryDemoService", payload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -418,7 +418,7 @@ function testSimpleRetry() {
     groups: ["retryClientTest"]
 }
 function testHeadRequestWithRetries() {
-    var response = retryFunctionTestClient->head("/retryDemoService");
+    http:Response|error response = retryFunctionTestClient->head("/retryDemoService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("X-Head-Retry-Count"), httpHeadRetryCount.toString());
@@ -432,7 +432,7 @@ function testHeadRequestWithRetries() {
     groups: ["retryClientTest"]
 }
 function testPutRequestWithRetries() {
-    var response = retryFunctionTestClient->put("/retryDemoService", "This is a simple HTTP PUT request");
+    http:Response|error response = retryFunctionTestClient->put("/retryDemoService", "This is a simple HTTP PUT request");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "HTTP PUT method invocation is successful");
@@ -446,7 +446,7 @@ function testPutRequestWithRetries() {
     groups: ["retryClientTest"]
 }
 function testPatchRequestWithRetries() {
-    var response = retryFunctionTestClient->patch("/retryDemoService", "This is a simple HTTP PATCH request");
+    http:Response|error response = retryFunctionTestClient->patch("/retryDemoService", "This is a simple HTTP PATCH request");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "HTTP PATCH method invocation is successful");
@@ -460,7 +460,7 @@ function testPatchRequestWithRetries() {
     groups: ["retryClientTest"]
 }
 function testDeleteRequestWithRetries() {
-    var response = retryFunctionTestClient->delete("/retryDemoService", "This is a simple HTTP DELETE request");
+    http:Response|error response = retryFunctionTestClient->delete("/retryDemoService", "This is a simple HTTP DELETE request");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "HTTP DELETE method invocation is successful");
@@ -474,7 +474,7 @@ function testDeleteRequestWithRetries() {
     groups: ["retryClientTest"]
 }
 function testOptionsRequestWithRetries() {
-    var response = retryFunctionTestClient->options("/retryDemoService");
+    http:Response|error response = retryFunctionTestClient->options("/retryDemoService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("Allow"), "OPTIONS, GET, HEAD, POST");
@@ -488,7 +488,7 @@ function testOptionsRequestWithRetries() {
     groups: ["retryClientTest"]
 }
 function testExecuteWithRetries() {
-    var response = retryFunctionTestClient->execute("GET", "/retryDemoService", new http:Request());
+    http:Response|error response = retryFunctionTestClient->execute("GET", "/retryDemoService", new http:Request());
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -522,7 +522,7 @@ function testRetryBasedOnHttpStatusCodes() {
     http:Request req = new;
     req.setHeader("x-retry", "recover");
     req.setJsonPayload({Name:"Ballerina"});
-    var response = retryFunctionTestClient->post("/retryStatusService", req);
+    http:Response|error response = retryFunctionTestClient->post("/retryStatusService", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -540,7 +540,7 @@ function testRetryBasedOnHttpStatusCodesContinuousFailure() {
     http:Request req = new;
     req.setHeader("x-retry", "internalError");
     req.setJsonPayload({Name:"Ballerina"});
-    var response = retryFunctionTestClient->post("/retryStatusService", req);
+    http:Response|error response = retryFunctionTestClient->post("/retryStatusService", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 502, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

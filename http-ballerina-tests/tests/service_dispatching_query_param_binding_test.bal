@@ -53,7 +53,7 @@ service /queryparamservice on QueryBindingEP {
 
 @test:Config {}
 function testStringQueryBinding() {
-    var response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=56");
+    http:Response|error response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=56");
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"WSO2", value2:56});
     } else {
@@ -71,7 +71,7 @@ function testStringQueryBinding() {
 //Query params are case sensitive, https://tools.ietf.org/html/rfc7230#page-19
 @test:Config {}
 function testNegativeStringQueryBindingCaseSensitivity() {
-    var response = queryBindingClient->get("/queryparamservice/?FOO=WSO2&bar=go");
+    http:Response|error response = queryBindingClient->get("/queryparamservice/?FOO=WSO2&bar=go");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "no query param value found for 'foo'");
@@ -82,7 +82,7 @@ function testNegativeStringQueryBindingCaseSensitivity() {
 
 @test:Config {}
 function testNegativeIntQueryBindingCastingError() {
-    var response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=go");
+    http:Response|error response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=go");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500);
         assertTextPayload(response.getTextPayload(), "Error in casting query param : For input string: \"go\"");
@@ -93,7 +93,7 @@ function testNegativeIntQueryBindingCastingError() {
 
 @test:Config {}
 function testAllTypeQueryBinding() {
-    var response = queryBindingClient->get(
+    http:Response|error response = queryBindingClient->get(
         "/queryparamservice/q1?id=324441&isPresent=true&dc=5.67&PersoN=hello&val=1.11");
     json expected = {iValue:324441, sValue:"hello", fValue: 1.11, bValue: true, dValue: 5.67};
     if (response is http:Response) {
@@ -115,7 +115,7 @@ function testAllTypeQueryBinding() {
 
 @test:Config {}
 function testAllTypeArrQueryBinding() {
-    var response = queryBindingClient->get(
+    http:Response|error response = queryBindingClient->get(
         "/queryparamservice/q2?id=324441,5652&isPresent=true,false&PersoN=hello,gool&val=1.11,53.9&dc=4.78,5.67");
     json expected = {iValue:[324441, 5652], sValue:["hello", "gool"], fValue:[1.11, 53.9], 
             bValue:[true, false], dValue:[4.78, 5.67]};
@@ -128,7 +128,7 @@ function testAllTypeArrQueryBinding() {
 
 @test:Config {}
 function testNilableAllTypeQueryBinding() {
-    var response = queryBindingClient->get("/queryparamservice/q3");
+    http:Response|error response = queryBindingClient->get("/queryparamservice/q3");
     json expected = {iValue: null, sValue: null, fValue: null, bValue: null, dValue: null};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -149,7 +149,7 @@ function testNilableAllTypeQueryBinding() {
 
 @test:Config {}
 function testNilableAllTypeQueryArrBinding() {
-    var response = queryBindingClient->get("/queryparamservice/q4?ID=8?lang=bal");
+    http:Response|error response = queryBindingClient->get("/queryparamservice/q4?ID=8?lang=bal");
     json expected = {iValue: null, sValue: null, fValue: null, bValue: null, dValue: null};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);

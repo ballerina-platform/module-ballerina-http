@@ -52,7 +52,7 @@ service /hello on acceptEncodingListenerEP {
 function testAcceptEncodingEnabled() {
     http:Request req = new;
     req.setTextPayload("accept encoding test");
-    var response = acceptEncodingEnableEP->post("/", req);
+    http:Response|error response = acceptEncodingEnableEP->post("/", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "acceptEncoding", "deflate, gzip");
@@ -67,7 +67,7 @@ function testAcceptEncodingEnabled() {
 function testAcceptEncodingDisabled() {
     http:Request req = new;
     req.setTextPayload("accept encoding test");
-    var response = acceptEncodingDisableEP->post("/", req);
+    http:Response|error response = acceptEncodingDisableEP->post("/", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "acceptEncoding", "Accept-Encoding header not present.");
@@ -81,7 +81,7 @@ function testAcceptEncodingDisabled() {
 function testAcceptEncodingAuto() {
     http:Request req = new;
     req.setTextPayload("accept encoding test");
-    var response = acceptEncodingAutoEP->post("/", req);
+    http:Response|error response = acceptEncodingAutoEP->post("/", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "acceptEncoding", "Accept-Encoding header not present.");

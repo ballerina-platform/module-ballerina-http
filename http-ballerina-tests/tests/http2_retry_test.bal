@@ -51,7 +51,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         var backendFuture = http2RetryBackendClientEP->submit("GET", "/mockHelloService", request);
         if (backendFuture is http:HttpFuture) {
-            var backendResponse = http2RetryBackendClientEP->getResponse(backendFuture);
+            http:Response|error backendResponse = http2RetryBackendClientEP->getResponse(backendFuture);
             if (backendResponse is http:Response) {
                 error? responseToCaller = caller->respond(<@untainted> backendResponse);
                 if (responseToCaller is error) {
@@ -212,7 +212,7 @@ service /mockHelloService on http2RetryTestserviceEndpoint1 {
 }
 function testHttp2SimpleRetry() {
     json payload = {Name:"Ballerina"};
-    var response = http2RetryFunctionTestClient->post("/retryDemoService", payload);
+    http:Response|error response = http2RetryFunctionTestClient->post("/retryDemoService", payload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -229,7 +229,7 @@ function testHttp2SimpleRetry() {
 }
 function testHttp2RetryWithServerPush() {
     string expectedPayload = "{\"main\":{\"response\":{\"name\":\"main resource\"}}, \"promises\":[{\"push\":{\"name\":\"resource3\"}}]}";
-    var response = http2RetryFunctionTestClient->get("/retryDemoService");
+    http:Response|error response = http2RetryFunctionTestClient->get("/retryDemoService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
