@@ -21,7 +21,7 @@ import ballerina/regex;
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
     log:printError(message, 'error = err);
     if (err is error) {
-        return error ClientAuthError(message, err);
+        return error ClientAuthError(message + " " + err.message(), err);
     }
     return error ClientAuthError(message);
 }
