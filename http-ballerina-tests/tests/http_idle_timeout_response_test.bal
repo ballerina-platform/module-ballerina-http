@@ -51,7 +51,7 @@ service /idleTimeout on idleTimeoutListenerEP {
 //Test header server name if 500 response is returned when the server times out. In this case a sleep is introduced in the server.
 @test:Config {}
 function test500Response() {
-    var response = idleTimeoutClient->get("/idleTimeout/timeout500");
+    http:Response|error response = idleTimeoutClient->get("/idleTimeout/timeout500");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 408, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");

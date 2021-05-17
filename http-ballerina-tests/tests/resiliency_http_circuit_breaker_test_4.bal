@@ -41,7 +41,7 @@ service /cb on circuitBreakerEP03 {
 
     resource function 'default getstate(http:Caller caller, http:Request request) {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>simpleClientEP.httpClient;
-        var backendRes = simpleClientEP->forward("/simple", request);
+        http:Response|error backendRes = simpleClientEP->forward("/simple", request);
         http:CircuitState currentState = cbClient.getCurrentState();
         if (backendRes is http:Response) {
             if (!(currentState == http:CB_CLOSED_STATE)) {

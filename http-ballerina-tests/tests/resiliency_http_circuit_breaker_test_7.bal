@@ -49,7 +49,7 @@ service /cb on circuitBreakerEP06 {
         if (requestCount == 3) {
             runtime:sleep(3);
         }
-        var backendRes = backendClientEP06->forward("/hello06", request);
+        http:Response|error backendRes = backendClientEP06->forward("/hello06", request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {

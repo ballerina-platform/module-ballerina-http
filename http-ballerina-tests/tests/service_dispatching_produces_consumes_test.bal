@@ -65,7 +65,7 @@ function testConsumesAnnotation() {
     http:Request req = new;
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, "application/xml; charset=ISO-8859-4");
-    var response = pcClient->post("/echo66/test1", req);
+    http:Response|error response = pcClient->post("/echo66/test1", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso2");
     } else {
@@ -79,7 +79,7 @@ function testIncorrectConsumesAnnotation() {
     http:Request req = new;
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, "compileResult/json");
-    var response = pcClient->post("/echo66/test1", req);
+    http:Response|error response = pcClient->post("/echo66/test1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 415, msg = "Found unexpected output");
     } else {
@@ -93,7 +93,7 @@ function testBogusConsumesAnnotation() {
     http:Request req = new;
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, ",:vhjv");
-    var response = pcClient->post("/echo66/test1", req);
+    http:Response|error response = pcClient->post("/echo66/test1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 415, msg = "Found unexpected output");
     } else {
@@ -104,7 +104,7 @@ function testBogusConsumesAnnotation() {
 //Test Produces annotation with URL. /echo66/test2
 @test:Config {}
 function testProducesAnnotation() {
-    var response = pcClient->get("/echo66/test2", {[mime:CONTENT_TYPE]:["text/xml;q=0.3, multipart/*;Level=1;q=0.7"]});
+    http:Response|error response = pcClient->get("/echo66/test2", {[mime:CONTENT_TYPE]:["text/xml;q=0.3, multipart/*;Level=1;q=0.7"]});
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
@@ -115,7 +115,7 @@ function testProducesAnnotation() {
 //Test Produces with no Accept header with URL. /echo66/test2
 @test:Config {}
 function testProducesAnnotationWithNoHeaders() {
-    var response = pcClient->get("/echo66/test2");
+    http:Response|error response = pcClient->get("/echo66/test2");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
@@ -126,7 +126,7 @@ function testProducesAnnotationWithNoHeaders() {
 //Test Produces with wildcard header with URL. /echo66/test2
 @test:Config {}
 function testProducesAnnotationWithWildCard() {
-    var response = pcClient->get("/echo66/test2", {"Accept":["*/*, text/html;Level=1;q=0.7"]});
+    http:Response|error response = pcClient->get("/echo66/test2", {"Accept":["*/*, text/html;Level=1;q=0.7"]});
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
@@ -137,7 +137,7 @@ function testProducesAnnotationWithWildCard() {
 //Test Produces with sub type wildcard header with URL. /echo66/test2
 @test:Config {}
 function testProducesAnnotationWithSubTypeWildCard() {
-    var response = pcClient->get("/echo66/test2", {"Accept":["text/*;q=0.3, text/html;Level=1;q=0.7"]});
+    http:Response|error response = pcClient->get("/echo66/test2", {"Accept":["text/*;q=0.3, text/html;Level=1;q=0.7"]});
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
@@ -148,7 +148,7 @@ function testProducesAnnotationWithSubTypeWildCard() {
 //Test incorrect Produces annotation with URL. /echo66/test2
 @test:Config {}
 function testIncorrectProducesAnnotation() {
-    var response = pcClient->get("/echo66/test2", {"Accept":["multipart/*;q=0.3, text/html;Level=1;q=0.7"]});
+    http:Response|error response = pcClient->get("/echo66/test2", {"Accept":["multipart/*;q=0.3, text/html;Level=1;q=0.7"]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
     } else {
@@ -159,7 +159,7 @@ function testIncorrectProducesAnnotation() {
 //Test bogus Produces annotation with URL. /echo66/test2
 @test:Config {}
 function testBogusProducesAnnotation() {
-    var response = pcClient->get("/echo66/test2", {"Accept":":,;,v567br"});
+    http:Response|error response = pcClient->get("/echo66/test2", {"Accept":":,;,v567br"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
     } else {
@@ -174,7 +174,7 @@ function testProducesConsumeAnnotation() {
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, "text/plain; charset=ISO-8859-4");
     req.setHeader("Accept", "text/*;q=0.3, text/html;Level=1;q=0.7");
-    var response = pcClient->post("/echo66/test3", req);
+    http:Response|error response = pcClient->post("/echo66/test3", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso222");
     } else {
@@ -189,7 +189,7 @@ function testIncorrectProducesConsumeAnnotation() {
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, "text/plain ; charset=ISO-8859-4");
     req.setHeader("Accept", "compileResult/xml, text/html");
-    var response = pcClient->post("/echo66/test3", req);
+    http:Response|error response = pcClient->post("/echo66/test3", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
     } else {
@@ -202,7 +202,7 @@ function testIncorrectProducesConsumeAnnotation() {
 function testWithoutProducesConsumeAnnotation() {
     map<string> headers = {[mime:CONTENT_TYPE]:"text/plain; charset=ISO-8859-4", 
         "Accept":"text/*;q=0.3, text/html;Level=1;q=0.7"};
-    var response = pcClient->get("/echo67/echo1", headers);
+    http:Response|error response = pcClient->get("/echo67/echo1", headers);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo33", "echo1");
     } else {
@@ -218,7 +218,7 @@ function testCaseInSensitivityOfProduceAndConsume() {
     req.setXmlPayload(content);
     req.setHeader(mime:CONTENT_TYPE, "application/xml; charset=ISO-8859-4");
     req.setHeader("Accept", "application/json");
-    var response = pcClient->post("/echo66/test4", req);
+    http:Response|error response = pcClient->post("/echo66/test4", req);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "msg", "wso222");
     } else {

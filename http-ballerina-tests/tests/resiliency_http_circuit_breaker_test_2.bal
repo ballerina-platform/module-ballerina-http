@@ -58,7 +58,7 @@ service /cb on circuitBreakerEP01 {
             cbClient.forceOpen();
         }
 
-        var backendRes = healthyClientEP->forward("/healthy", request);
+        http:Response|error backendRes = healthyClientEP->forward("/healthy", request);
         handleBackendResponse(caller, backendRes);
     }
 
@@ -71,7 +71,7 @@ service /cb on circuitBreakerEP01 {
             cbClient.forceOpen();
         }
 
-        var backendRes = healthyClientEP->get("/healthy");
+        http:Response|error backendRes = healthyClientEP->get("/healthy");
         handleBackendResponse(caller, backendRes);
     }
 
@@ -83,7 +83,7 @@ service /cb on circuitBreakerEP01 {
         } else if (counter % 3 == 1) {
             cbClient.forceOpen();
         }
-        var backendRes = healthyClientEP->head("/healthy");
+        http:Response|error backendRes = healthyClientEP->head("/healthy");
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -108,7 +108,7 @@ service /cb on circuitBreakerEP01 {
         } else if (counter % 3 == 1) {
             cbClient.forceOpen();
         }
-        var backendRes = healthyClientEP->options("/healthy");
+        http:Response|error backendRes = healthyClientEP->options("/healthy");
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -134,7 +134,7 @@ service /cb on circuitBreakerEP01 {
             cbClient.forceOpen();
         }
 
-        var backendRes = healthyClientEP->put("/healthy", request);
+        http:Response|error backendRes = healthyClientEP->put("/healthy", request);
         handleBackendResponse(caller, backendRes);
     }
 
@@ -147,7 +147,7 @@ service /cb on circuitBreakerEP01 {
             cbClient.forceOpen();
         }
 
-        var backendRes = healthyClientEP->patch("/healthy", request);
+        http:Response|error backendRes = healthyClientEP->patch("/healthy", request);
         handleBackendResponse(caller, backendRes);
     }
 
@@ -160,12 +160,12 @@ service /cb on circuitBreakerEP01 {
             cbClient.forceOpen();
         }
 
-        var backendRes = healthyClientEP->delete("/healthy", request);
+        http:Response|error backendRes = healthyClientEP->delete("/healthy", request);
         handleBackendResponse(caller, backendRes);
     }
 }
 
-function handleBackendResponse(http:Caller caller, http:Response|error backendRes) {
+isolated function handleBackendResponse(http:Caller caller, http:Response|error backendRes) {
     if (backendRes is http:Response) {
         error? responseToCaller = caller->respond(<@untainted> backendRes);
         if (responseToCaller is error) {

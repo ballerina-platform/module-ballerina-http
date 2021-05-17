@@ -76,7 +76,7 @@ service /responseLimit on statusLineEP {
             clientEP = http2headerLimitClient;
         }
 
-        var clientResponse = clientEP->forward("/", <@untainted>req);
+        http:Response|error clientResponse = clientEP->forward("/", <@untainted>req);
         if (clientResponse is http:Response) {
             error? result = caller->respond(<@untainted>clientResponse);
             if (result is error) {
@@ -169,7 +169,7 @@ function sendResponse(http:Caller caller, http:Response res) {
 //Test when status line length is less than the configured maxStatusLineLength threshold
 @test:Config {}
 function testValidStatusLineLength() {
-    var response = limitTestClient->get("/responseLimit/statusline", {[X_TEST_TYPE]:[SUCCESS]});
+    http:Response|error response = limitTestClient->get("/responseLimit/statusline", {[X_TEST_TYPE]:[SUCCESS]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.reasonPhrase, "HELLO", msg = "Found unexpected output");
@@ -182,7 +182,7 @@ function testValidStatusLineLength() {
 //Test when status line length is greater than the configured maxStatusLineLength threshold
 @test:Config {}
 function testInvalidStatusLineLength() {
-    var response = limitTestClient->get("/responseLimit/statusline", {[X_TEST_TYPE]:[ERROR]});
+    http:Response|error response = limitTestClient->get("/responseLimit/statusline", {[X_TEST_TYPE]:[ERROR]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "error ClientError (\"Response max " +
@@ -195,7 +195,7 @@ function testInvalidStatusLineLength() {
 //Test when header size is less than the configured maxHeaderSize threshold
 @test:Config {}
 function testValidHeaderLengthOfResponse() {
-    var response = limitTestClient->get("/responseLimit/header", {[X_TEST_TYPE]:[SUCCESS]});
+    http:Response|error response = limitTestClient->get("/responseLimit/header", {[X_TEST_TYPE]:[SUCCESS]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(X_HEADER), "Validated");
@@ -208,7 +208,7 @@ function testValidHeaderLengthOfResponse() {
 //Test when header size is greater than the configured maxHeaderSize threshold
 @test:Config {}
 function testInvalidHeaderLengthOfResponse() {
-    var response = limitTestClient->get("/responseLimit/header", {[X_TEST_TYPE]:[ERROR]});
+    http:Response|error response = limitTestClient->get("/responseLimit/header", {[X_TEST_TYPE]:[ERROR]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "error ClientError (\"Response max " +
@@ -227,7 +227,7 @@ function testInvalidHeaderLengthOfResponse() {
 //Test when entityBody size is less than the configured maxEntityBodySize threshold
 @test:Config {}
 function testValidEntityBodyLength() {
-    var response = limitTestClient->get("/responseLimit/entitybody", {[X_TEST_TYPE]:[SUCCESS]});
+    http:Response|error response = limitTestClient->get("/responseLimit/entitybody", {[X_TEST_TYPE]:[SUCCESS]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Small payload");
@@ -239,7 +239,7 @@ function testValidEntityBodyLength() {
 //Test when entityBody size is greater than the configured maxEntityBodySize threshold
 @test:Config {}
 function testInvalidEntityBodyLength() {
-    var response = limitTestClient->get("/responseLimit/statusline", {[X_TEST_TYPE]:[ERROR]});
+    http:Response|error response = limitTestClient->get("/responseLimit/statusline", {[X_TEST_TYPE]:[ERROR]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "error ClientError (\"Response max " + 
@@ -252,7 +252,7 @@ function testInvalidEntityBodyLength() {
 //Test when header size is less than the configured maxHeaderSize threshold in http2 client but the backend sends http 1.1 response
 @test:Config {}
 function testValidHeaderLengthWithHttp2Client() {
-    var response = limitTestClient->get("/responseLimit/http2", {[X_TEST_TYPE]:[SUCCESS]});
+    http:Response|error response = limitTestClient->get("/responseLimit/http2", {[X_TEST_TYPE]:[SUCCESS]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(X_HEADER), "Validated");
@@ -265,7 +265,7 @@ function testValidHeaderLengthWithHttp2Client() {
 //Test when header size is greater than the configured maxHeaderSize threshold in http2 client but the backend sends http 1.1 response
 @test:Config {}
 function testInvalidHeaderLengthWithHttp2Client() {
-    var response = limitTestClient->get("/responseLimit/header", {[X_TEST_TYPE]:[ERROR]});
+    http:Response|error response = limitTestClient->get("/responseLimit/header", {[X_TEST_TYPE]:[ERROR]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "error ClientError (\"Response max " +

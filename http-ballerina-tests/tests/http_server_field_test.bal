@@ -45,7 +45,7 @@ service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
 //Test server name in the successful response
 @test:Config {}
 function testHeaderServerFromSuccessResponse() {
-    var response = httpServerFieldClient->post("/httpServerFieldEcho1", "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
+    http:Response|error response = httpServerFieldClient->post("/httpServerFieldEcho1", "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
@@ -60,7 +60,7 @@ function testSetServerHeaderManuallyFromSuccessResponse() {
     http:Request req = new;
     req.setHeader(SERVER, "JMS");
     req.setTextPayload("{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
-    var response = httpServerFieldClient->post("/httpServerFieldEcho1", req);
+    http:Response|error response = httpServerFieldClient->post("/httpServerFieldEcho1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
@@ -72,7 +72,7 @@ function testSetServerHeaderManuallyFromSuccessResponse() {
 //Test header server name in the unsuccessful response
 @test:Config {}
 function testHeaderServerFromUnSuccessResponse() {
-    var response = httpServerFieldClient->get("/httpServerFieldEcho1");
+    http:Response|error response = httpServerFieldClient->get("/httpServerFieldEcho1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
@@ -86,7 +86,7 @@ function testHeaderServerFromUnSuccessResponse() {
 function testHeaderServerFromUnSuccessResponse1() {
     http:Request req = new;
     req.setTextPayload("{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
-    var response = httpServerFieldClient->post("/ec/ho", req);
+    http:Response|error response = httpServerFieldClient->post("/ec/ho", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
@@ -101,7 +101,7 @@ function testDefaultHeaderServerFromSuccessResponse() {
     http:Request req = new;
     string requestMessage = "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}";
     req.setTextPayload(requestMessage);
-    var response = echoServiceClient->post("/echoServiceTest1", req);
+    http:Response|error response = echoServiceClient->post("/echoServiceTest1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
@@ -113,7 +113,7 @@ function testDefaultHeaderServerFromSuccessResponse() {
 //Test header server name in the unsuccessful response calling echoServiceTest1 service in echo-service-sample-test.bal
 @test:Config {}
 function testDefaultHeaderServerFromUnSuccessResponse() {
-    var response = echoServiceClient->get("/echoServiceTest1");
+    http:Response|error response = echoServiceClient->get("/echoServiceTest1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
@@ -128,7 +128,7 @@ function testDefaultHeaderServerFromUnSuccessResponse1() {
     http:Request req = new;
     string requestMessage = "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}";
     req.setTextPayload(requestMessage);
-    var response = echoServiceClient->post("/ec/ho", req);
+    http:Response|error response = echoServiceClient->post("/ec/ho", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");

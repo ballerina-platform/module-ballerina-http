@@ -34,7 +34,7 @@ service "//url" on httpUrlListenerEP1  {
 
     resource function get .(http:Caller caller, http:Request request) {
         string value = "";
-        var response = urlClient->get("//test");
+        http:Response|error response = urlClient->get("//test");
         if (response is http:Response) {
             var result = response.getTextPayload();
             if (result is string) {
@@ -50,7 +50,7 @@ service "//url" on httpUrlListenerEP1  {
 //Test for handling double slashes
 @test:Config {}
 function testUrlDoubleSlash() {
-    var response = httpUrlClient->get("/url");
+    http:Response|error response = httpUrlClient->get("/url");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -63,7 +63,7 @@ function testUrlDoubleSlash() {
 @test:Config {}
 function testResourcePathWithoutStartingSlash() returns error? {
     http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/");
-    var response = httpUrlClient->get("url");
+    http:Response|error response = httpUrlClient->get("url");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -76,7 +76,7 @@ function testResourcePathWithoutStartingSlash() returns error? {
 @test:Config {}
 function testResourcePathWithEmptyPath() returns error? {
     http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url/");
-    var response = httpUrlClient->get("");
+    http:Response|error response = httpUrlClient->get("");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

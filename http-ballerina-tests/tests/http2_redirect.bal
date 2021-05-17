@@ -45,7 +45,7 @@ http:Client http2RedirectEndPoint3 = check new("http://localhost:" + http2Redire
 service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
 
     resource function get .(http:Caller caller, http:Request req) {
-        var response = http2RedirectEndPoint1->get("/redirect1");
+        http:Response|error response = http2RedirectEndPoint1->get("/redirect1");
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response.resolvedRequestedURI);
         } else {
@@ -54,7 +54,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
     }
 
     resource function get maxRedirect(http:Caller caller, http:Request req) {
-        var response = http2RedirectEndPoint1->get("/redirect1/round1");
+        http:Response|error response = http2RedirectEndPoint1->get("/redirect1/round1");
         if (response is http:Response) {
             string value = "";
             if (response.hasHeader(http:LOCATION)) {
@@ -68,7 +68,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
     }
 
     resource function get crossDomain(http:Caller caller, http:Request req) {
-        var response = http2RedirectEndPoint2->get("/redirect1/round1");
+        http:Response|error response = http2RedirectEndPoint2->get("/redirect1/round1");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
@@ -83,7 +83,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
     }
 
     resource function get noRedirect(http:Caller caller, http:Request req) {
-        var response = http2RedirectEndPoint3->get("/redirect2");
+        http:Response|error response = http2RedirectEndPoint3->get("/redirect2");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
@@ -98,7 +98,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
     }
 
     resource function get qpWithRelativePath(http:Caller caller, http:Request req) {
-        var response = http2RedirectEndPoint2->get("/redirect1/qpWithRelativePath");
+        http:Response|error response = http2RedirectEndPoint2->get("/redirect1/qpWithRelativePath");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
@@ -113,7 +113,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
     }
 
     resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) {
-        var response = http2RedirectEndPoint2->get("/redirect1/qpWithAbsolutePath");
+        http:Response|error response = http2RedirectEndPoint2->get("/redirect1/qpWithAbsolutePath");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
@@ -128,7 +128,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
     }
 
     resource function get originalRequestWithQP(http:Caller caller, http:Request req) {
-        var response = http2RedirectEndPoint2->get("/redirect1/round4?key=value&lang=ballerina");
+        http:Response|error response = http2RedirectEndPoint2->get("/redirect1/round4?key=value&lang=ballerina");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
@@ -143,7 +143,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
     }
 
     resource function get test303(http:Caller caller, http:Request req) {
-        var response = http2RedirectEndPoint3->post("/redirect2/test303", "Test value!");
+        http:Response|error response = http2RedirectEndPoint3->post("/redirect2/test303", "Test value!");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
@@ -228,7 +228,7 @@ service /redirect2 on http2RedirectServiceEndpoint3 {
     groups: ["http2Redirect"]
 }
 function testHTTP2Redirect() {
-    var response = http2RedirectClient->get("/testHttp2Redirect/");
+    http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -243,7 +243,7 @@ function testHTTP2Redirect() {
     groups: ["http2Redirect"]
 }
 function testHTTP2MaxRedirect() {
-    var response = http2RedirectClient->get("/testHttp2Redirect/maxRedirect");
+    http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/maxRedirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -258,7 +258,7 @@ function testHTTP2MaxRedirect() {
     groups: ["http2Redirect"]
 }
 function testHTTP2CrossDomain() {
-    var response = http2RedirectClient->get("/testHttp2Redirect/crossDomain");
+    http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/crossDomain");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -273,7 +273,7 @@ function testHTTP2CrossDomain() {
     groups: ["http2Redirect"]
 }
 function testHTTP2NoRedirect() {
-    var response = http2RedirectClient->get("/testHttp2Redirect/noRedirect");
+    http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/noRedirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -288,7 +288,7 @@ function testHTTP2NoRedirect() {
     groups: ["http2Redirect"]
 }
 function testHTTP2QPWithRelativePath() {
-    var response = http2RedirectClient->get("/testHttp2Redirect/qpWithRelativePath");
+    http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/qpWithRelativePath");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -303,7 +303,7 @@ function testHTTP2QPWithRelativePath() {
     groups: ["http2Redirect"]
 }
 function testHTTP2QPWithAbsolutePath() {
-    var response = http2RedirectClient->get("/testHttp2Redirect/qpWithAbsolutePath");
+    http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/qpWithAbsolutePath");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -318,7 +318,7 @@ function testHTTP2QPWithAbsolutePath() {
     groups: ["http2Redirect"]
 }
 function testHTTP2OriginalRequestWithQP() {
-    var response = http2RedirectClient->get("/testHttp2Redirect/originalRequestWithQP");
+    http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/originalRequestWithQP");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -334,7 +334,7 @@ function testHTTP2OriginalRequestWithQP() {
     enable:false 
 }
 function testHTTP2303Status() {
-    var response = http2RedirectClient->get("/testHttp2Redirect/test303");
+    http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/test303");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

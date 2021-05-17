@@ -62,7 +62,7 @@ function testTypicalScenario() returns @tainted [http:Response[], error?[]] {
         while (counter < 8) {
             http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
             tempClient.httpClient = mockClient;
-            var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_TYPICAL]});
+            http:Response|error serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_TYPICAL]});
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
             } else {
@@ -103,7 +103,7 @@ function testTrialRunFailure() returns @tainted [http:Response[], error?[]] {
         while (counter < 8) {
             http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
             tempClient.httpClient = mockClient;
-            var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_TRIAL_RUN_FAILURE]});
+            http:Response|error serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_TRIAL_RUN_FAILURE]});
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
             } else {
@@ -143,7 +143,7 @@ function testHttpStatusCodeFailure() returns @tainted [http:Response[], error?[]
         while (counter < 8) {
             http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
             tempClient.httpClient = mockClient;
-            var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_HTTP_SC_FAILURE]});
+            http:Response|error serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_HTTP_SC_FAILURE]});
             if (serviceResponse is http:Response) {
                 responses[counter] = serviceResponse;
             } else {
@@ -182,7 +182,7 @@ function testForceOpenScenario() returns @tainted [http:Response[], error?[]] {
         }
         http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
         tempClient.httpClient = mockClient;
-        var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_CB_FORCE_OPEN]});
+        http:Response|error serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_CB_FORCE_OPEN]});
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
         } else {
@@ -222,7 +222,7 @@ function testForceCloseScenario() returns @tainted [http:Response[], error?[]] {
         }
         http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
         tempClient.httpClient = mockClient;
-        var serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_CB_FORCE_CLOSE]});
+        http:Response|error serviceResponse = backendClientEP->get("/hello", {[TEST_SCENARIO_HEADER]:[SCENARIO_CB_FORCE_CLOSE]});
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
         } else {
@@ -259,7 +259,7 @@ function testRequestVolumeThresholdSuccessResponseScenario() returns @tainted [h
     while (counter < 6) {
         http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
         tempClient.httpClient = mockClient;
-        var serviceResponse = backendClientEP->get("/hello", 
+        http:Response|error serviceResponse = backendClientEP->get("/hello",
             {[TEST_SCENARIO_HEADER]:[SCENARIO_REQUEST_VOLUME_THRESHOLD_SUCCESS]});
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
@@ -297,7 +297,7 @@ function testRequestVolumeThresholdFailureResponseScenario() returns @tainted [h
     while (counter < 6) {
         http:CircuitBreakerClient tempClient = <http:CircuitBreakerClient>backendClientEP.httpClient;
         tempClient.httpClient = mockClient;
-        var serviceResponse = backendClientEP->get("/hello", 
+        http:Response|error serviceResponse = backendClientEP->get("/hello",
             {[TEST_SCENARIO_HEADER]:[SCENARIO_REQUEST_VOLUME_THRESHOLD_FAILURE]});
         if (serviceResponse is http:Response) {
             responses[counter] = serviceResponse;
@@ -749,7 +749,7 @@ function cBRequestVolumeThresholdFailureResponseScenarioTest() {
 function cBGetCurrentStatausScenarioTest() {
     string expected = "Circuit Breaker is in CLOSED state";
     http:Client reqClient = checkpanic new("http://localhost:9095");
-    var response = reqClient->get("/circuitBreakerService/getState");
+    http:Response|error response = reqClient->get("/circuitBreakerService/getState");
     if (response is http:Response) {
         var body = response.getTextPayload();
         if (body is string) {

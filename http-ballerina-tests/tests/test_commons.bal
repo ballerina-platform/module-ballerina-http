@@ -58,7 +58,7 @@ const string APPLICATION_FORM = "application/x-www-form-urlencoded";
 const string errorMessage = "Found an unexpected output:";
 
 
-function getContentDispositionForFormData(string partName)
+isolated function getContentDispositionForFormData(string partName)
                                     returns (mime:ContentDisposition) {
     mime:ContentDisposition contentDisposition = new;
     contentDisposition.name = partName;
@@ -66,7 +66,7 @@ function getContentDispositionForFormData(string partName)
     return contentDisposition;
 }
 
-function assertJsonValue(json|error payload, string expectKey, json expectValue) {
+isolated function assertJsonValue(json|error payload, string expectKey, json expectValue) {
     if payload is map<json> {
         test:assertEquals(payload[expectKey], expectValue, msg = "Found unexpected output");
     } else if payload is error {
@@ -74,7 +74,7 @@ function assertJsonValue(json|error payload, string expectKey, json expectValue)
     }
 }
 
-function assertJsonPayload(json|error payload, json expectValue) {
+isolated function assertJsonPayload(json|error payload, json expectValue) {
     if payload is json {
         test:assertEquals(payload, expectValue, msg = "Found unexpected output");
     } else {
@@ -82,7 +82,7 @@ function assertJsonPayload(json|error payload, json expectValue) {
     }
 }
 
-function assertJsonPayloadtoJsonString(json|error payload, json expectValue) {
+isolated function assertJsonPayloadtoJsonString(json|error payload, json expectValue) {
     if payload is json {
         test:assertEquals(payload.toJsonString(), expectValue.toJsonString(), msg = "Found unexpected output");
     } else {
@@ -90,7 +90,7 @@ function assertJsonPayloadtoJsonString(json|error payload, json expectValue) {
     }
 }
 
-function assertTextPayload(string|error payload, string expectValue) {
+isolated function assertTextPayload(string|error payload, string expectValue) {
     if payload is string {
         test:assertEquals(payload, expectValue, msg = "Found unexpected output");
     } else {
@@ -98,7 +98,7 @@ function assertTextPayload(string|error payload, string expectValue) {
     }
 }
 
-function assertTrueTextPayload(string|error payload, string expectValue) {
+isolated function assertTrueTextPayload(string|error payload, string expectValue) {
     if payload is string {
         test:assertTrue(strings:includes(payload, expectValue), msg = "Found unexpected output");
     } else {
@@ -106,7 +106,7 @@ function assertTrueTextPayload(string|error payload, string expectValue) {
     }
 }
 
-function assertHeaderValue(string headerKey, string expectValue) {
+isolated function assertHeaderValue(string headerKey, string expectValue) {
     test:assertEquals(headerKey, expectValue, msg = "Found unexpected headerValue");
 }
 

@@ -361,7 +361,7 @@ function testResponseServiceAddHeader() {
     string key = "lang";
     string value = "ballerina";
     string path = "/response/addheader/" + key + "/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {lang:"ballerina"});
     } else {
@@ -374,7 +374,7 @@ function testResponseServiceAddHeader() {
 function testResponseServiceGetHeader() {
     string value = "test-header-value";
     string path = "/response/getHeader/" + "test-header-name" + "/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value: value});
     } else {
@@ -387,7 +387,7 @@ function testResponseServiceGetHeader() {
 function testResponseServiceGetJsonPayload() {
     string value = "ballerina";
     string path = "/response/getJsonPayload/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), value);
     } else {
@@ -400,7 +400,7 @@ function testResponseServiceGetJsonPayload() {
 function testResponseServiceGetTextPayload() {
     string value = "ballerina";
     string path = "/response/GetTextPayload/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), value);
     } else {
@@ -413,7 +413,7 @@ function testResponseServiceGetTextPayload() {
 function testResponseServiceGetXmlPayload() {
     string value = "ballerina";
     string path = "/response/GetXmlPayload";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), value);
     } else {
@@ -424,7 +424,7 @@ function testResponseServiceGetXmlPayload() {
 @test:Config {}
 function testForwardMethod() {
     string path = "/response/eleven";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     test:assertTrue(response is http:Response, msg = "Found unexpected output");
 }
 
@@ -433,7 +433,7 @@ function testForwardMethod() {
 function testResponseServiceRemoveHeader() {
     string value = "x-www-form-urlencoded";
     string path = "/response/RemoveHeader/Content-Type/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
     } else {
@@ -445,7 +445,7 @@ function testResponseServiceRemoveHeader() {
 @test:Config {}
 function testResponseServiceRemoveAllHeaders() {
     string path = "/response/RemoveAllHeaders";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
     } else {
@@ -456,7 +456,7 @@ function testResponseServiceRemoveAllHeaders() {
 @test:Config {}
 function testRespondMethod() {
     string path = "/response/eleven";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     test:assertTrue(response is http:Response, msg = "Found unexpected output");
 }
 
@@ -464,7 +464,7 @@ function testRespondMethod() {
 function testSetReasonPhase() {
     string phase = "ballerina";
     string path = "/response/twelve/" + phase;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         test:assertEquals(response.reasonPhrase, phase);
     } else {
@@ -475,7 +475,7 @@ function testSetReasonPhase() {
 @test:Config {}
 function testSetStatusCode() {
     string path = "/response/thirteen";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 203);
     } else {

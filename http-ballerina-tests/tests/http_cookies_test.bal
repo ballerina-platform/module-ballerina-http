@@ -287,7 +287,7 @@ service /cookie on new http:Listener(9253) {
 
 // Test to send requests by cookie client for first, second and third times
 @test:Config {}
-public function testSendRequestsByCookieClient() {
+public isolated function testSendRequestsByCookieClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-1.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
@@ -308,7 +308,7 @@ public function testSendRequestsByCookieClient() {
 
 // Test to remove a session cookie by client
 @test:Config {}
-public function testRemoveSessionCookieByClient() {
+public isolated function testRemoveSessionCookieByClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-2.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
@@ -336,7 +336,7 @@ public function testRemoveSessionCookieByClient() {
 // Test sending similar session cookies in the response by server,old cookie is replaced by new
 // cookie in the cookie store
 @test:Config {}
-public function testAddSimilarSessionCookies() {
+public isolated function testAddSimilarSessionCookies() {
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true }
         });
@@ -353,7 +353,7 @@ public function testAddSimilarSessionCookies() {
 
 // Test to remove a session cookie by server
 @test:Config {}
-public function testRemoveSessionCookieByServer() {
+public isolated function testRemoveSessionCookieByServer() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookies-test-data/client-4.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
@@ -416,7 +416,7 @@ public function testSendConcurrentRequests() {
 
 // Test to send requests by a client with Circuit Breaker, Retry and Cookie configurations are enabled
 @test:Config {}
-public function testSendRequestsByClient() {
+public isolated function testSendRequestsByClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-6.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             retryConfig: {

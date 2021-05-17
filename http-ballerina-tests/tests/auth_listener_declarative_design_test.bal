@@ -57,18 +57,18 @@ service /baz on authListener {
 }
 
 @test:Config {}
-function testNoAuthServiceResourceSuccess() {
+isolated function testNoAuthServiceResourceSuccess() {
     assertSuccess(sendBearerTokenRequest("/baz/foo", JWT1));
     assertSuccess(sendJwtRequest("/baz/foo"));
 }
 
 @test:Config {}
-function testNoAuthServiceResourceWithRequestSuccess() {
+isolated function testNoAuthServiceResourceWithRequestSuccess() {
     assertSuccess(sendBearerTokenRequest("/baz/bar", JWT2));
 }
 
 @test:Config {}
-function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
+isolated function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
     assertSuccess(sendBearerTokenRequest("/baz/baz", JWT3));
 }
 
@@ -89,17 +89,17 @@ service /basicAuth on authListener {
 }
 
 @test:Config {}
-function testBasicAuthServiceAuthSuccess() {
+isolated function testBasicAuthServiceAuthSuccess() {
     assertSuccess(sendBasicTokenRequest("/basicAuth", "alice", "xxx"));
 }
 
 @test:Config {}
-function testBasicAuthServiceAuthzFailure() {
+isolated function testBasicAuthServiceAuthzFailure() {
     assertForbidden(sendBasicTokenRequest("/basicAuth", "bob", "yyy"));
 }
 
 @test:Config {}
-function testBasicAuthServiceAuthnFailure() {
+isolated function testBasicAuthServiceAuthnFailure() {
     assertUnauthorized(sendBasicTokenRequest("/basicAuth", "peter", "123"));
     assertUnauthorized(sendNoTokenRequest("/basicAuth"));
 }

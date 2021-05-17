@@ -201,7 +201,7 @@ service /backendHttp2Service on serverPushBackendEP {
     groups: ["http2ServerPush"]
 }
 function testPushPromise() {
-    var response = serverPushClient->get("/frontendHttpService");
+    http:Response|error response = serverPushClient->get("/frontendHttpService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);

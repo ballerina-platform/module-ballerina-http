@@ -71,7 +71,7 @@ service /'continue on httpClientContinueListenerEP2  {
         req.addHeader("content-type", "text/plain");
         req.addHeader("Expect", "100-continue");
         req.setPayload("Hi");
-        var response = continueClient->post("/continue", <@untainted> req);
+        http:Response|error response = continueClient->post("/continue", <@untainted> req);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -83,7 +83,7 @@ service /'continue on httpClientContinueListenerEP2  {
         req.addHeader("Expect", "100-continue");
         req.addHeader("content-type", "application/json");
         req.setPayload({ name: "apple", color: "red" });
-        var response = continueClient->post("/continue", <@untainted> req);
+        http:Response|error response = continueClient->post("/continue", <@untainted> req);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -95,7 +95,7 @@ service /'continue on httpClientContinueListenerEP2  {
 //Test 100 continue for http client
 @test:Config {}
 function testContinueAction() {
-    var response = httpClientContinueClient->get("/continue");
+    http:Response|error response = httpClientContinueClient->get("/continue");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -108,7 +108,7 @@ function testContinueAction() {
 //Negative test case for 100 continue of http client
 @test:Config {dependsOn:[testContinueAction]}
 function testNegativeContinueAction() {
-    var response = httpClientContinueClient->get("/continue/failure");
+    http:Response|error response = httpClientContinueClient->get("/continue/failure");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -124,7 +124,7 @@ function testContinueActionWithMain() {
     req.addHeader("content-type", "text/plain");
     req.addHeader("Expect", "100-continue");
     req.setPayload("Hello World!");
-    var response = clientEP->post("/continue", req);
+    http:Response|error response = clientEP->post("/continue", req);
     if (response is http:Response) {
         var payload = response.getTextPayload();
         if (payload is string) {
