@@ -77,7 +77,7 @@ service http:Service on new http:Listener(9090) {
 
     resource function get callerInfo15(@http:CallerInfo {respondType: string} http:Caller abc) returns error? {
        http:Client c = check new("path");
-       var a = c->get("done"); // different remote method call
+       http:Response|error a = c->get("done"); // different remote method call
        if (a is error) {
        }
     }
