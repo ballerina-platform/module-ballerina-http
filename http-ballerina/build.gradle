@@ -14,9 +14,6 @@
  * limitations under the License.
  *
  */
-
-import org.apache.tools.ant.taskdefs.condition.Os
-
 buildscript {
     repositories {
         maven {
@@ -44,8 +41,6 @@ def compilerPluginTomlFile = new File("$project.projectDir/CompilerPlugin.toml")
 def originalConfig = ballerinaConfigFile.text
 def originalDependency = ballerinaDependencyFile.text
 def originalCompilerPluginToml = compilerPluginTomlFile.text
-def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
-def testCoverageParam = "--code-coverage --jacoco-xml --includes=org.ballerinalang.net.*:ballerina.http*"
 
 def stripBallerinaExtensionVersion(String extVersion) {
     if (extVersion.matches(project.ext.timestampedVersionRegex)) {
@@ -63,7 +58,7 @@ def stripBallerinaExtensionVersion(String extVersion) {
 
 apply plugin: 'io.ballerina.plugin'
 
-ballerina{
+ballerina {
     module = packageName
     langVersion = ballerinaLangVersion
     testCoverageParam = "--code-coverage --jacoco-xml --includes=org.ballerinalang.net.*:ballerina.http.*"
@@ -75,59 +70,58 @@ configurations {
 
 dependencies {
 
-    externalJars (group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}") {
+    externalJars(group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-common', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-common', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-buffer', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-buffer', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-transport', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-transport', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-resolver', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-resolver', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-handler', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-handler', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-codec', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-codec', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-codec-http', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-codec-http', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-handler-proxy', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-handler-proxy', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-codec-http2', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-codec-http2', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars (group: 'commons-pool.wso2', name: 'commons-pool', version: "${wso2CommonsPoolVersion}") {
+    externalJars(group: 'commons-pool.wso2', name: 'commons-pool', version: "${wso2CommonsPoolVersion}") {
         transitive = false
     }
-    externalJars (group: 'org.wso2.orbit.org.yaml', name: 'snakeyaml', version: "${wso2SnakeYamlVersion}") {
+    externalJars(group: 'org.wso2.orbit.org.yaml', name: 'snakeyaml', version: "${wso2SnakeYamlVersion}") {
         transitive = false
     }
-    externalJars (group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}") {
+    externalJars(group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}") {
         transitive = false
     }
-    externalJars (group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}") {
+    externalJars(group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}") {
         transitive = false
     }
-    externalJars (group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: "${nettyTcnativeVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: "${nettyTcnativeVersion}") {
         transitive = false
     }
-    externalJars (group: 'org.jvnet.mimepull', name: 'mimepull', version: "${mimepullVersion}") {
+    externalJars(group: 'org.jvnet.mimepull', name: 'mimepull', version: "${mimepullVersion}") {
         transitive = false
     }
-    externalJars (group: 'org.testng', name: 'testng', version: "${testngVersion}") {
+    externalJars(group: 'org.testng', name: 'testng', version: "${testngVersion}") {
         transitive = false
     }
 }
-
 
 task updateTomlVersions {
     doLast {
