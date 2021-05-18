@@ -38,7 +38,7 @@
 
 // function sendRequest(string url, http:Request req, http:Caller caller) {
 //     http:Client clientEP = checkpanic new(url);
-//     var response = clientEP->forward("", req);
+//     http:Response|error response = clientEP->forward("", req);
 //     if (response is http:Response) {
 //         checkpanic caller->respond(<@untainted>response);
 //     } else {
@@ -59,7 +59,7 @@
 // public function testProxyClient() {
 //     http:Client clientEP2 = checkpanic new("http://localhost:" + proxyTest1.toString(), clientEPConfig);
 //     http:Request req = new;
-//     var resp = clientEP2->post("/proxy/server", req);
+//     http:Response|error resp = clientEP2->post("/proxy/server", req);
 //     if (resp is http:Response) {
 //         var payload = resp.getTextPayload();
 //         if (payload is string) {

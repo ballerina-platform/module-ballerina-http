@@ -67,7 +67,7 @@ http:FailoverClient foStatusCodesEP04 = check new({
 
 service /failoverDemoService04 on failoverEP04 {
     resource function 'default invokeAllFailureEndpoint04(http:Caller caller, http:Request request) {
-        var backendRes = foBackendEP04->forward("/", <@untainted> request);
+        http:Response|error backendRes = foBackendEP04->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -85,7 +85,7 @@ service /failoverDemoService04 on failoverEP04 {
     }
 
     resource function 'default invokeAllFailureEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = foBackendFailureEP04->forward("/", <@untainted> request);
+        http:Response|error backendRes = foBackendFailureEP04->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -103,7 +103,7 @@ service /failoverDemoService04 on failoverEP04 {
     }
 
     resource function 'default invokeAllFailureStatusCodesEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = foStatusCodesEP04->forward("/", <@untainted> request);
+        http:Response|error backendRes = foStatusCodesEP04->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
@@ -122,7 +122,7 @@ service /failoverDemoService04 on failoverEP04 {
 
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP04.succeededEndpointIndex.toString();
-        var backendRes = foBackendEP04->forward("/", <@untainted> request);
+        http:Response|error backendRes = foBackendEP04->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             string responseMessage = "Failover start index is : " + startIndex;
             error? responseToCaller = caller->respond(<@untainted> responseMessage);
@@ -224,7 +224,7 @@ function testResponseWithErrorStatusCodes() {
     string expectedMessage = "All the failover endpoints failed. " +
                 "Last endpoint returned response is: 503 Service Unavailable";
     http:Client testClient = checkpanic new("http://localhost:9304");
-    var response = testClient->post("/failoverDemoService04/invokeAllFailureStatusCodesEndpoint", requestPayload);
+    http:Response|error response = testClient->post("/failoverDemoService04/invokeAllFailureStatusCodesEndpoint", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

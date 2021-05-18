@@ -28,7 +28,7 @@ service /'stream on new http:Listener(streamTest1) {
     resource function get fileupload(http:Caller caller) {
         http:Request request = new;
         request.setFileAsPayload("tests/datafiles/BallerinaLang.pdf", contentType = mime:APPLICATION_PDF);
-        var clientResponse = streamBackendClient->post("/streamBack/receiver", request);
+        http:Response|error clientResponse = streamBackendClient->post("/streamBack/receiver", request);
 
         http:Response res = new;
         if (clientResponse is http:Response) {
@@ -89,7 +89,7 @@ function setError(http:Response res, error err) {
 
 @test:Config {}
 function testStreamingLargeFile() {
-    var response = streamTestClient->get("/stream/fileupload");
+    http:Response|error response = streamTestClient->get("/stream/fileupload");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -103,7 +103,7 @@ function testStreamingLargeFile() {
 function testConsumedStream() returns error? {
     string msg = "Error occurred while retrieving the byte stream from the response";
     string cMsg = "Byte stream is not available but payload can be obtain either as xml, json, string or byte[] type";
-    var response = streamTestClient->get("/stream/cacheFileupload");
+    http:Response|error response = streamTestClient->get("/stream/cacheFileupload");
     if (response is http:Response) {
         byte[] bytes = check response.getBinaryPayload();
         stream<byte[], io:Error?>|error streamer = response.getByteStream();

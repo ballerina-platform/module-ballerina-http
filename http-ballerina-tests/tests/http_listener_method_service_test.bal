@@ -62,7 +62,7 @@ http:Service listenerMethodMock2 = service object {
 
 @test:Config {}
 function testServiceAttachAndStart() {
-    var response = listenerMethodTestClient->get("/startService/test");
+    http:Response|error response = listenerMethodTestClient->get("/startService/test");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -74,7 +74,7 @@ function testServiceAttachAndStart() {
 
 @test:Config {dependsOn:[testServiceAttachAndStart]}
 function testAvailabilityOfAttachedService() {
-    var response = backendTestClient->get("/mock1");
+    http:Response|error response = backendTestClient->get("/mock1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -86,7 +86,7 @@ function testAvailabilityOfAttachedService() {
 
 @test:Config {dependsOn:[testAvailabilityOfAttachedService]}
 function testGracefulStopMethod() {
-    var response = backendTestClient->get("/mock2");
+    http:Response|error response = backendTestClient->get("/mock2");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -100,7 +100,7 @@ function testGracefulStopMethod() {
 @test:Config {dependsOn:[testGracefulStopMethod], enable:false}
 function testInvokingStoppedService() {
     runtime:sleep(10);
-    var response = backendTestClient->get("/mock1");
+    http:Response|error response = backendTestClient->get("/mock1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

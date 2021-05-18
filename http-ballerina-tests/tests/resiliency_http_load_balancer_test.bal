@@ -65,7 +65,7 @@ http:LoadBalanceClient customLbBackendEP = check new({
 service /loadBalancerDemoService on new http:Listener(9313) {
     resource function 'default roundRobin(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        var response = lbBackendEP->post("/", requestPayload);
+        http:Response|error response = lbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
@@ -84,7 +84,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
 
     resource function 'default lbFailover(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        var response = lbFailoverBackendEP->post("/", requestPayload);
+        http:Response|error response = lbFailoverBackendEP->post("/", requestPayload);
         if (response is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
@@ -103,7 +103,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
 
     resource function 'default delayResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        var response = delayedBackendEP->post("/", requestPayload);
+        http:Response|error response = delayedBackendEP->post("/", requestPayload);
         if (response is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
@@ -122,7 +122,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
 
     resource function 'default customResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        var response = customLbBackendEP->post("/", requestPayload);
+        http:Response|error response = customLbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
@@ -257,7 +257,7 @@ function roundRobinWithFailoverResponseDataProvider() returns DataFeed[][] {
 function testAllLbEndpointFailure() {
     string expectedMessage = "All the load balance endpoints failed. Last error was: Idle timeout triggered " +
                 "before initiating inbound response";
-    var response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
+    http:Response|error response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

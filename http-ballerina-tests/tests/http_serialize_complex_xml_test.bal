@@ -36,7 +36,7 @@ service /serialize on serializeXmlListener {
         mime:Entity[] bodyParts = [xmlFilePart];
         http:Request request = new;
         request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-        var returnResponse = xmlClientEP->post("/serialize/decode", request);
+        http:Response|error returnResponse = xmlClientEP->post("/serialize/decode", request);
         if (returnResponse is http:Response) {
             error? result = caller->respond(<@untainted> returnResponse);
             if (result is error) {

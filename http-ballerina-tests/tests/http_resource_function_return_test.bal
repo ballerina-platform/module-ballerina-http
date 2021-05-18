@@ -47,7 +47,7 @@ service on resourceFunctionListener {
 
 }
 
-function getError() returns error|int {
+isolated function getError() returns error|int {
     if (1 == 1) {
         error e = error("Simulated error");
         return e;
@@ -58,7 +58,7 @@ function getError() returns error|int {
 //Returning error from a resource function generate 500
 @test:Config {}
 function testErrorTypeReturnedFromAResourceFunction() {
-    var response = resourceFunctionTestClient->get("/manualErrorReturn");
+    http:Response|error response = resourceFunctionTestClient->get("/manualErrorReturn");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -71,7 +71,7 @@ function testErrorTypeReturnedFromAResourceFunction() {
 //Returning error from a resource function due to 'check' generate 500
 @test:Config {}
 function testErrorReturnedFromACheckExprInResourceFunction() {
-    var response = resourceFunctionTestClient->get("/checkErrorReturn");
+    http:Response|error response = resourceFunctionTestClient->get("/checkErrorReturn");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

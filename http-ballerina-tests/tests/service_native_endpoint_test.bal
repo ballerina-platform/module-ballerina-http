@@ -51,7 +51,7 @@ service /serviceEndpointHello on serviceEndpointTestEP {
 //Test the protocol value of ServiceEndpoint struct within a service
 @test:Config {}
 function testGetProtocolConnectionStruct() {
-    var response = serviceEndpointClient->get("/serviceEndpointHello/protocol");
+    http:Response|error response = serviceEndpointClient->get("/serviceEndpointHello/protocol");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "protocol", "http");
@@ -63,7 +63,7 @@ function testGetProtocolConnectionStruct() {
 //Test the local struct values of the ServiceEndpoint struct within a service
 @test:Config {}
 function testLocalStructInConnection() {
-    var response = serviceEndpointClient->get("/serviceEndpointHello/local");
+    http:Response|error response = serviceEndpointClient->get("/serviceEndpointHello/local");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         var payload = response.getJsonPayload();

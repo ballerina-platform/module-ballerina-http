@@ -108,7 +108,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
     }
 }
 
-function handleRespContent(mime:Entity bodyPart) returns @untainted mime:Entity {
+isolated function handleRespContent(mime:Entity bodyPart) returns @untainted mime:Entity {
     mime:Entity jsonPart = new;
     mime:Entity xmlPart = new;
     mime:Entity textPart = new;
@@ -148,7 +148,7 @@ function handleRespContent(mime:Entity bodyPart) returns @untainted mime:Entity 
     return textPart;
 }
 
-function handleResponseBodyParts(mime:Entity bodyPart) returns @untainted string {
+isolated function handleResponseBodyParts(mime:Entity bodyPart) returns @untainted string {
     var mediaType = mime:getMediaType(bodyPart.getContentType());
     if (mediaType is mime:MediaType) {
         string baseType = mediaType.getBaseType();
@@ -178,7 +178,7 @@ function handleResponseBodyParts(mime:Entity bodyPart) returns @untainted string
     return "error";
 }
 
-function getContDisposition(string partName) returns (mime:ContentDisposition) {
+isolated function getContDisposition(string partName) returns (mime:ContentDisposition) {
     mime:ContentDisposition contentDisposition = new;
     contentDisposition.name = partName;
     contentDisposition.disposition = "form-data";
@@ -188,7 +188,7 @@ function getContDisposition(string partName) returns (mime:ContentDisposition) {
 @test:Config {}
 public function testMultipart() {
     http:Client clientEP = checkpanic new("http://localhost:9100");
-    var resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"false"});
+    http:Response|error resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"false"});
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
     } else {
@@ -199,7 +199,7 @@ public function testMultipart() {
 @test:Config {}
 public function testMultipartsWithPriorKnowledge() {
     http:Client clientEP = checkpanic new("http://localhost:9100");
-    var resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"true"});
+    http:Response|error resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"true"});
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
     } else {

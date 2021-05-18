@@ -206,7 +206,7 @@ function testMultiplePartsForMixed() {
     mime:Entity[] bodyParts = [textPart1, textPart2];
     http:Request request = new;
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_MIXED);
-    var response = multipartReqClient->post("/test/multipleparts", request);
+    http:Response|error response = multipartReqClient->post("/test/multipleparts", request);
     if (response is http:Response) {
         assertMultipartResponse(response, " -- Part1 -- Part2");
     } else {
@@ -231,7 +231,7 @@ function testMultiplePartsForFormData() {
     mime:Entity[] bodyParts = [textPart1, textPart2];
     http:Request request = new;
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/multipleparts", request);
+    http:Response|error response = multipartReqClient->post("/test/multipleparts", request);
     if (response is http:Response) {
         assertMultipartResponse(response, " -- Part1 -- Part2");
     } else {
@@ -256,7 +256,7 @@ function testMultiplePartsForNewSubTypes() {
     mime:Entity[] bodyParts = [textPart1, textPart2];
     http:Request request = new;
     request.setBodyParts(bodyParts, contentType = "multipart/new-sub-type");
-    var response = multipartReqClient->post("/test/multipleparts", request);
+    http:Response|error response = multipartReqClient->post("/test/multipleparts", request);
     if (response is http:Response) {
         assertMultipartResponse(response, " -- Part1 -- Part2");
     } else {
@@ -270,7 +270,7 @@ function testMultipartsWithEmptyBody() {
     http:Request request = new;
     mime:Entity[] bodyParts = [textPart2];
     request.setHeader("contentType", mime:MULTIPART_MIXED);
-    var response = multipartReqClient->post("/test/emptyparts", request);
+    http:Response|error response = multipartReqClient->post("/test/emptyparts", request);
     if (response is http:Response) {
         assertMultipartResponse(response, "Error occurred while retrieving body parts from the request");
     } else {
@@ -282,7 +282,7 @@ function testMultipartsWithEmptyBody() {
 function testNestedPartsForOneLevel() {
     http:Request request = new;
     request.setBodyParts(createNestedPartRequest(), contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/nestedparts", request);
+    http:Response|error response = multipartReqClient->post("/test/nestedparts", request);
     if (response is http:Response) {
         assertMultipartResponse(response, "Child Part 1Child Part 2");
     } else {
@@ -297,7 +297,7 @@ function testTextBodyPart() {
     http:Request request = new;
     mime:Entity[] bodyParts = [textPart];
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/textbodypart", request);
+    http:Response|error response = multipartReqClient->post("/test/textbodypart", request);
     if (response is http:Response) {
         assertMultipartResponse(response, "Ballerina text body part");
     } else {
@@ -313,7 +313,7 @@ function testTextBodyPartAsFileUpload() {
     http:Request request = new;
     mime:Entity[] bodyParts = [filePart];
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/textbodypart", request);
+    http:Response|error response = multipartReqClient->post("/test/textbodypart", request);
     if (response is http:Response) {
         assertMultipartResponse(response, "Ballerina text as a file part");
     } else {
@@ -328,7 +328,7 @@ function testJsonBodyPart() {
     http:Request request = new;
     mime:Entity[] bodyParts = [jsonPart];
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/jsonbodypart", request);
+    http:Response|error response = multipartReqClient->post("/test/jsonbodypart", request);
     if (response is http:Response) {
         var body = response.getJsonPayload();
         if (body is json) {
@@ -350,7 +350,7 @@ function testJsonBodyPartAsFileUpload() {
     http:Request request = new;
     mime:Entity[] bodyParts = [jsonFilePart];
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/jsonbodypart", request);
+    http:Response|error response = multipartReqClient->post("/test/jsonbodypart", request);
     if (response is http:Response) {
         var body = response.getJsonPayload();
         if (body is json) {
@@ -371,7 +371,7 @@ function testXmlBodyPart() {
     http:Request request = new;
     mime:Entity[] bodyParts = [xmlPart];
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/xmlbodypart", request);
+    http:Response|error response = multipartReqClient->post("/test/xmlbodypart", request);
     if (response is http:Response) {
         var body = response.getXmlPayload();
         if (body is xml) {
@@ -392,7 +392,7 @@ function testXmlBodyPartAsFileUpload() {
     http:Request request = new;
     mime:Entity[] bodyParts = [xmlFilePart];
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/xmlbodypart", request);
+    http:Response|error response = multipartReqClient->post("/test/xmlbodypart", request);
     if (response is http:Response) {
         var body = response.getXmlPayload();
         if (body is xml) {
@@ -415,7 +415,7 @@ function testXmlBodyPartAsFileUpload() {
 //     http:Request request = new;
 //     mime:Entity[] bodyParts = [binaryFilePart];
 //     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-//     var response = multipartReqClient->post("/test/binarybodypart", request);
+//     http:Response|error response = multipartReqClient->post("/test/binarybodypart", request);
 //     if (response is http:Response) {
 //         var body = response.getByteChannel();
 //         if (body is io:ReadableByteChannel) {
@@ -442,7 +442,7 @@ function testBinaryBodyPartAsFileUploadUsingStream() returns @tainted error? {
     http:Request request = new;
     mime:Entity[] bodyParts = [binaryFilePart];
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/binarybodypart", request);
+    http:Response|error response = multipartReqClient->post("/test/binarybodypart", request);
     if (response is http:Response) {
         var str = response.getByteStream();
         if (str is stream<byte[], io:Error?>) {
@@ -483,7 +483,7 @@ function testBinaryBodyPartAsFileUploadUsingStream() returns @tainted error? {
 //     mime:Entity[] bodyParts = [xmlPart, jsonPart, textPart, binaryFilePart];
 //     http:Request request = new;
 //     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-//     var response = multipartReqClient->post("/test/multipleparts", request);
+//     http:Response|error response = multipartReqClient->post("/test/multipleparts", request);
 
 //     if (response is http:Response) {
 //         assertMultipartResponse(response, " -- Ballerina xml file part -- jsonPart -- Ballerina text body part "
@@ -514,7 +514,7 @@ function testMultiplePartsWithMultipleBodyTypesIncludingStreams() returns @taint
     mime:Entity[] bodyParts = [xmlPart, jsonPart, textPart, binaryFilePart];
     http:Request request = new;
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/multipleparts", request);
+    http:Response|error response = multipartReqClient->post("/test/multipleparts", request);
 
     if (response is http:Response) {
         assertMultipartResponse(response, " -- Ballerina xml file part -- jsonPart -- Ballerina text body part "
@@ -533,7 +533,7 @@ function testTextBodyPartWith7BitEncoding() {
     http:Request request = new;
     mime:Entity[] bodyParts = [textPart];
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/textbodypart", request);
+    http:Response|error response = multipartReqClient->post("/test/textbodypart", request);
     if (response is http:Response) {
         assertMultipartResponse(response, "èiiii");
     } else {
@@ -549,7 +549,7 @@ function testTextBodyPartWith8BitEncoding() {
     http:Request request = new;
     mime:Entity[] bodyParts = [textPart];
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartReqClient->post("/test/textbodypart", request);
+    http:Response|error response = multipartReqClient->post("/test/textbodypart", request);
     if (response is http:Response) {
         assertMultipartResponse(response, "èlllll");
     } else {

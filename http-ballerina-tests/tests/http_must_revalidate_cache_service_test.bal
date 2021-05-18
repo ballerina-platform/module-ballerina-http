@@ -25,7 +25,7 @@ service /mustRevalidate on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) {
         numberOfProxyHits += 1;
-        var response = cachingEP3->forward("/mustRevalidateBE", req);
+        http:Response|error response = cachingEP3->forward("/mustRevalidateBE", req);
         if (response is http:Response) {
             response.setHeader("x-proxy-hit-count", numberOfProxyHits.toString());
             checkpanic caller->respond(<@untainted> response);
@@ -62,7 +62,7 @@ service /mustRevalidateBE on cachingBackendListener {
 //Test must-revalidate cache control
 @test:Config {}
 function testMustRevalidateCacheControl() {
-    var response = cachingProxyTestClient->get("/mustRevalidate");
+    http:Response|error response = cachingProxyTestClient->get("/mustRevalidate");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");

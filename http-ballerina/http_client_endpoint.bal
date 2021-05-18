@@ -70,7 +70,7 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function post(@untainted string path, RequestMessage message, string? mediaType = (),
-            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -99,7 +99,7 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function put(@untainted string path, RequestMessage message, string? mediaType = (),
-            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -126,7 +126,7 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function patch(@untainted string path, RequestMessage message, string? mediaType = (),
-            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -153,7 +153,7 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function delete(@untainted string path, RequestMessage message = (), string? mediaType = (),
-            map<string|string[]>? headers = (), TargetType targetType = Response) 
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -192,7 +192,7 @@ public client class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
+    remote isolated function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -215,7 +215,7 @@ public client class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = Response)
+    remote isolated function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -242,7 +242,7 @@ public client class Client {
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = Response) 
+            string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -267,7 +267,7 @@ public client class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function forward(@untainted string path, Request request, TargetType targetType = Response)
+    remote isolated function forward(@untainted string path, Request request, TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;

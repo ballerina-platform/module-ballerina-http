@@ -40,7 +40,7 @@ http:Client errornousClientEP = check new("http://localhost:8090", conf04);
 service /cb on circuitBreakerEP04 {
 
     resource function 'default requestvolume(http:Caller caller, http:Request request) {
-        var backendRes = errornousClientEP->post("/errornous", request);
+        http:Response|error backendRes = errornousClientEP->post("/errornous", request);
         handleBackendResponse(caller, backendRes);
     }
 }

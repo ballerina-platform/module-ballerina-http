@@ -88,7 +88,7 @@ public function testWithStrongClientWithWeakService() {
         }
     });
     http:Request req = new;
-    var resp = clientEP->get("/weakService/");
+    http:Response|error resp = clientEP->get("/weakService/");
     if (resp is http:Response) {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
     } else {
@@ -112,7 +112,7 @@ public function testWithStrongClientWithStrongService() {
         }
     });
     http:Request req = new;
-    var resp = clientEP->get("/strongService/");
+    http:Response|error resp = clientEP->get("/strongService/");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {

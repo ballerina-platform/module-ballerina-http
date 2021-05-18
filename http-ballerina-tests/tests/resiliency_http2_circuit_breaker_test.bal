@@ -50,7 +50,7 @@ service /cb on circuitBreakerEP07 {
         }
         var backendFuture = backendClientEP07->submit("GET", "/hello07", <@untainted> request);
         if (backendFuture is http:HttpFuture) {
-            var backendRes = backendClientEP07->getResponse(backendFuture);
+            http:Response|error backendRes = backendClientEP07->getResponse(backendFuture);
             if (backendRes is http:Response) {
                 error? responseToCaller = caller->respond(backendRes);
                 if (responseToCaller is error) {

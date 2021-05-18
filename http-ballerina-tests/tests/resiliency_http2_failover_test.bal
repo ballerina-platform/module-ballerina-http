@@ -113,7 +113,7 @@ function sendErrorResponse(http:Caller caller, error e) {
 @test:Config{}
 function testBasicHttp2Failover() {
     http:Client testClient = checkpanic new("http://localhost:9314");
-    var response = testClient->post("/failoverDemoService06/index", requestPayload);
+    http:Response|error response = testClient->post("/failoverDemoService06/index", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

@@ -99,7 +99,7 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
     return request;
 }
 
-function sendNoTokenRequest(string path) returns http:Response|http:ClientError {
+isolated function sendNoTokenRequest(string path) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         secureSocket: {
             cert: {
@@ -111,7 +111,7 @@ function sendNoTokenRequest(string path) returns http:Response|http:ClientError 
     return <@untainted> clientEP->get(path);
 }
 
-function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:ClientError {
+isolated function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             username: username,
@@ -127,7 +127,7 @@ function sendBasicTokenRequest(string path, string username, string password) re
     return <@untainted> clientEP->get(path);
 }
 
-function sendBearerTokenRequest(string path, string token) returns http:Response|http:ClientError {
+isolated function sendBearerTokenRequest(string path, string token) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             token: token
@@ -142,7 +142,7 @@ function sendBearerTokenRequest(string path, string token) returns http:Response
     return <@untainted> clientEP->get(path);
 }
 
-function sendJwtRequest(string path) returns http:Response|http:ClientError {
+isolated function sendJwtRequest(string path) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             username: "admin",
@@ -172,7 +172,7 @@ function sendJwtRequest(string path) returns http:Response|http:ClientError {
     return <@untainted> clientEP->get(path);
 }
 
-function sendOAuth2TokenRequest(string path) returns http:Response|http:ClientError {
+isolated function sendOAuth2TokenRequest(string path) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
             tokenUrl: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/token",

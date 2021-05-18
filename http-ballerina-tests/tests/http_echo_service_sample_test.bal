@@ -88,7 +88,7 @@ function testEchoServiceByBasePath() {
     http:Request req = new;
     string requestMessage = "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}";
     req.setTextPayload(requestMessage);
-    var response = echoServiceClient->post("/echoServiceTest1", req);
+    http:Response|error response = echoServiceClient->post("/echoServiceTest1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -103,7 +103,7 @@ function testEchoServiceByBasePath() {
 function testEchoServiceWithDynamicPortShared() {
     http:Request req = new;
     req.setJsonPayload({key:"value"});
-    var response = echoServiceClient->post("/echoServiceTest1One/abc", req);
+    http:Response|error response = echoServiceClient->post("/echoServiceTest1One/abc", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -118,7 +118,7 @@ function testEchoServiceWithDynamicPortShared() {
 function testEchoServiceWithDynamicPortHttpsByBasePath() {
     http:Request req = new;
     req.setJsonPayload({key:"value"});
-    var response = echoHttpsServiceClient->post("/echoServiceTest1", req);
+    http:Response|error response = echoHttpsServiceClient->post("/echoServiceTest1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -133,7 +133,7 @@ function testEchoServiceWithDynamicPortHttpsByBasePath() {
 function testEchoServiceWithDynamicPortHttpsShared() {
     http:Request req = new;
     req.setJsonPayload({key:"value"});
-    var response = echoHttpsServiceClient->post("/echoServiceTest1One/abc", req);
+    http:Response|error response = echoHttpsServiceClient->post("/echoServiceTest1One/abc", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

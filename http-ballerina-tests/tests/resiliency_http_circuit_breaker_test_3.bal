@@ -50,7 +50,7 @@ service /cb on circuitBreakerEP02 {
             runtime:sleep(5);
             cbClient.forceClose();
         }
-        var backendRes = unhealthyClientEP->forward("/unhealthy", request);
+        http:Response|error backendRes = unhealthyClientEP->forward("/unhealthy", request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {

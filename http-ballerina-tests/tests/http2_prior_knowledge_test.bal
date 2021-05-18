@@ -29,7 +29,7 @@ http:Client h2WithoutPriorKnowledge = check new("http://localhost:9112", { httpV
 service /priorKnowledge on priorEp1 {
 
     resource function get 'on(http:Caller caller, http:Request req) {
-        var response = h2WithPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is enabled");
+        http:Response|error response = h2WithPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is enabled");
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -38,7 +38,7 @@ service /priorKnowledge on priorEp1 {
     }
 
     resource function get off(http:Caller caller, http:Request req) {
-        var response = h2WithoutPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is disabled");
+        http:Response|error response = h2WithoutPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is disabled");
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -68,7 +68,7 @@ service /priorKnowledgeTestBackEnd on priorEp2 {
 public function testPriorKnowledgeOn() {
     http:Client clientEP = checkpanic new("http://localhost:9111");
     http:Request req = new;
-    var resp = clientEP->get("/priorKnowledge/on");
+    http:Response|error resp = clientEP->get("/priorKnowledge/on");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Connection and upgrade headers are not present--Prior knowledge is enabled");
     } else {
@@ -79,7 +79,7 @@ public function testPriorKnowledgeOn() {
 @test:Config {}
 public function testPriorKnowledgeOff() {
     http:Client clientEP = checkpanic new("http://localhost:9111");
-    var resp = clientEP->get("/priorKnowledge/off");
+    http:Response|error resp = clientEP->get("/priorKnowledge/off");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "HTTP2-Settings,upgrade--h2c--Prior knowledge is disabled");
     } else {

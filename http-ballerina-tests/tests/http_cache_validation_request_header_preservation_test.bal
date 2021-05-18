@@ -23,7 +23,7 @@ http:Client cachingEP4 = check new("http://localhost:" + cachingTestPort4.toStri
 service /validation\-request on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) {
-        var response = cachingEP4->forward("/validation-req-be", req);
+        http:Response|error response = cachingEP4->forward("/validation-req-be", req);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -57,7 +57,7 @@ service /validation\-req\-be on cachingBackendListener {
 function testCallerRequestHeaderPreservation() {
     string callerReqHeader = "x-caller-req-header";    
 
-    var response = cachingProxyTestClient->get("/validation-request", {[callerReqHeader]:"First Request"});
+    http:Response|error response = cachingProxyTestClient->get("/validation-request", {[callerReqHeader]:"First Request"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "First Request");
@@ -101,7 +101,7 @@ function testCallerRequestHeaderPreservation() {
 //Test preservation of caller request headers in the validation request
 @test:Config {enable: false}
 function testCallerRequestHeaderPreservation2() {
-    var response = cachingProxyTestClient->get("/validation-request", {[IF_NONE_MATCH]:"c854ce2c"});
+    http:Response|error response = cachingProxyTestClient->get("/validation-request", {[IF_NONE_MATCH]:"c854ce2c"});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 304, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Hello from POST!Hello from POST!");
