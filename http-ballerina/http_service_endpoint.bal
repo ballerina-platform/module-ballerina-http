@@ -17,9 +17,6 @@
 import ballerina/crypto;
 import ballerina/jballerina.java;
 
-/////////////////////////////
-/// HTTP Listener Endpoint ///
-/////////////////////////////
 # This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
 public class Listener {
@@ -62,19 +59,19 @@ public class Listener {
 
     # Attaches a service to the listener.
     #
-    # + s - The service that needs to be attached
+    # + httpService - The service that needs to be attached
     # + name - Name of the service
-    # + return - An `error` an error occurred during the service attachment process or else nil
-    public isolated function attach(Service s, string[]|string? name = ()) returns error? {
-        return externRegister(self, s, name);
+    # + return - An `error` if an error occurred during the service attachment process or else `()`
+    public isolated function attach(Service httpService, string[]|string? name = ()) returns error? {
+        return externRegister(self, httpService, name);
     }
 
-    # Detaches a Http service from the listener.
+    # Detaches an HTTP service from the listener.
     #
-    # + s - The service to be detached
+    # + httpService - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
-    public isolated function detach(Service s) returns error? {
-        return externDetach(self, s);
+    public isolated function detach(Service httpService) returns error? {
+        return externDetach(self, httpService);
     }
 
     # Retrieves the port of the HTTP listener.
@@ -97,7 +94,7 @@ isolated function externInitEndpoint(Listener listenerObj) returns ListenerError
     name: "initEndpoint"
 } external;
 
-isolated function externRegister(Listener listenerObj, Service s, string[]|string? name) returns error? =
+isolated function externRegister(Listener listenerObj, Service httpService, string[]|string? name) returns error? =
 @java:Method {
     'class: "org.ballerinalang.net.http.service.endpoint.Register",
     name: "register"
@@ -113,7 +110,7 @@ isolated function externGracefulStop(Listener listenerObj) returns error? = @jav
     name: "gracefulStop"
 } external;
 
-isolated function externDetach(Listener listenerObj, Service s) returns error? = @java:Method {
+isolated function externDetach(Listener listenerObj, Service httpService) returns error? = @java:Method {
     'class: "org.ballerinalang.net.http.service.endpoint.Detach",
     name: "detach"
 } external;

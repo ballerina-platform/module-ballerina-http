@@ -23,10 +23,6 @@ import ballerina/time;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
-//////////////////////////////
-/// Native implementations ///
-//////////////////////////////
-
 # Parses the given header value to extract its value and parameter map.
 #
 # + headerValue - The header value
