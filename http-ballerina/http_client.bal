@@ -20,13 +20,13 @@ import ballerina/jballerina.java;
 # endpoint types are created by wrapping this generic HTTP actions implementation internally.
 #
 # + url - The URL of the remote HTTP endpoint
-# + config - The configurations associated with the HttpClient
+# + config - The configurations associated with the `HttpClient`
 public client class HttpClient {
 
     public string url;
     public ClientConfiguration config = {};
 
-    # Gets invoked to initialize the native `client`. During initialization, the configurations are provided through the
+    # Gets invoked to initialize the native `client`. During the initialization, the configurations are provided through the
     # `config`. The `HttpClient` lies inside every type of client in the chain holding the native client connector.
     #
     # + url - URL of the target service

@@ -1,18 +1,18 @@
 ## Overview
 
 This module provides an implementation for connecting and interacting with HTTP and HTTP2 endpoints. It
-facilitates two types of network entry points as `Client` and `Listener`.
+facilitates two types of network entry points as the `Client` and `Listener`.
 
 ### Client
 
 The `Client` is used to connect to and interact with HTTP endpoints. They support connection pooling and can be 
 configured to have a maximum number of active connections that can be made with the remote endpoint. The `Client` 
-activates connection eviction after a given idle period and also supports follow-redirects so that the users do not 
+activates connection eviction after a given idle period and also supports follow-redirects so that you do not 
 have to manually handle 3xx HTTP status codes.
 
 #### Resiliency
 
-The `Client` handles resilience in multiple ways such as load balancing, circuit breaking, endpoint timeouts, and a 
+The `Client` handles resilience in multiple ways such as load balancing, circuit breaking, endpoint timeouts, and via a 
 retry mechanism.
 
 Load balancing is used in the round-robin or failover manner.
@@ -23,20 +23,20 @@ requests to the remote service. Once a circuit breaker trips, it does not allow 
 remote service for a period of time.
 
 The Ballerina circuit breaker supports tripping on HTTP error status codes and I/O errors. Failure thresholds can be 
-configured based on a sliding window (e.g., 5 failures within 10 seconds). `Client` also supports a retry 
-mechanism that allows a client to resend failed requests periodically for a given number of times.
+configured based on a sliding window (e.g., 5 failures within 10 seconds). The `Client` also supports a retry 
+mechanism that allows it to resend failed requests periodically for a given number of times.
 
 #### Security
 
 The `Client` supports Server Name Indication (SNI), Certificate Revocation List (CRL), Online Certificate Status 
 Protocol (OCSP), and OCSP Stapling for SSL/TLS connections.
 Also, the `Client` can be configured to send authentication information to the endpoint being invoked. Ballerina has 
-built-in support for Basic authentication, JWT authentication, OAuth2 authentication.
+built-in support for Basic authentication, JWT authentication, and OAuth2 authentication.
 
-In addition to that, protocol wise it supports both HTTP/1.1 and HTTP2 and feature wise connection keep-alive, content 
-chunking, HTTP caching, data compression/decompression, response payload binding, and authorization can be highlighted.
+In addition to that, it supports both HTTP/1.1 and HTTP2 protocols and connection keep-alive, content 
+chunking, HTTP caching, data compression/decompression, response payload binding, and authorization can be highlighted as the features of the `Clients`.
 
-A `Client` can be defined using the URL of the remote service that the client needs to connect with, as shown below:
+A `Client` can be defined using the URL of the remote service that it needs to connect with as shown below:
 
 ```ballerina
 http:Client clientEndpoint = check new("https://my-simple-backend.com");
@@ -47,7 +47,7 @@ The defined `Client` endpoint can be used to call a remote service as follows:
 // Send a GET request to the specified endpoint.
 http:Response response = check clientEndpoint->get("/get?id=123");
 ```
-The payload can be retrieved as return value from the remote function as follows:
+The payload can be retrieved as the return value from the remote function as follows:
 
 ```ballerina
 // Retrieve payload as json.
@@ -56,15 +56,15 @@ json payload = check clientEndpoint->post("/backend/Json", "foo", targetType = j
 
 ### Listener
 
-The `Listener` is the underneath server connector that binds the given IP/Port to the network, and it's behaviour can 
-be changed using the `http:ListenerConfiguration`. In HTTP, the `http:Service` typed services can be attached to 
-the `listener`. The service type precisely describes the syntax for both service and resource.
+The `Listener` is the underneath server connector that binds the given IP/Port to the network and it's behavior can 
+be changed using the `http:ListenerConfiguration`. In HTTP, the `http:Service`-typed services can be attached to 
+the `Listener`. The service type precisely describes the syntax for both the service and resource.
 
 A `Service` represents a collection of network-accessible entry points and can be exposed via a `Listener` endpoint. 
 A resource represents one such entry point and can have its own path, HTTP methods, body format, `consumes` and 
-`produces` content types, CORS headers, etc. In resources, Http method and resource path are mandatory parameters and
-String literal and path parameters can be stated as path. The resource function accepts `http:Caller`, `http:Request`, 
-`http:Headers`, Query parameters, Header parameters, and Payload parameters as arguments, but they are optional.
+`produces` content types, CORS headers, etc. In resources, the HTTP method and resource path are mandatory parameters and
+the String literal and path parameters can be stated as the path. The resource function accepts the `http:Caller`, `http:Request`, 
+`http:Headers`, query parameters, header parameters, and payload parameters as arguments. However, they are optional.
 
 When a `Service` receives a request, it is dispatched to the best-matched resource.
 
@@ -92,9 +92,9 @@ service /helloWorld on helloWorldEP {
 
 `Listener` endpoints can be exposed via SSL. They support Mutual SSL, Hostname Verification, and Application Layer 
 Protocol Negotiation (ALPN) for HTTP2. `Listener` endpoints also support Certificate Revocation List (CRL), Online 
-Certificate Status Protocol (OCSP), OCSP Stapling.
+Certificate Status Protocol (OCSP), and OCSP Stapling.
 Also, The `listener` can be configured to authenticate and authorize the inbound requests. Ballerina has 
 built-in support for basic authentication, JWT authentication, and OAuth2 authentication.
 
-In addition to that, protocol wise it supports both HTTP/1.1 and HTTP2 and feature wise connection keep-alive, content 
-chunking, HTTP caching, data compression/decompression, payload binding, and authorization can be highlighted.
+In addition to that, supports both the HTTP/1.1 and HTTP2 protocols and connection keep-alive, content 
+chunking, HTTP caching, data compression/decompression, payload binding, and authorization can be highlighted as the features of a `Service`.

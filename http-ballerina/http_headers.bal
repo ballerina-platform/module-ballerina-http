@@ -30,7 +30,7 @@ public class Headers {
     # Checks whether the requested header key exists in the header map.
     #
     # + headerName - The header name
-    # + return - True if the specified header key exists
+    # + return - `true` if the specified header key exists
     public isolated function hasHeader(string headerName) returns boolean {
         return self.getRequest().hasHeader(headerName);
     }

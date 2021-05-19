@@ -20,7 +20,7 @@ import ballerina/observe;
 import ballerina/time;
 
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
-# provides includes functions for the standard HTTP methods, forwarding a received request and sending requests
+# provides includes the functions for the standard HTTP methods forwarding a received request and sending requests
 # using custom HTTP verbs.
 
 # + url - Target service url
@@ -358,10 +358,10 @@ public type TargetService record {|
 |};
 
 # Provides a set of configurations for controlling the behaviours when communicating with a remote HTTP endpoint.
-# Following fields are inherited from the other configuration records in addition to the Client specific
+# The following fields are inherited from the other configuration records in addition to the `Client`-specific
 # configs.
 #
-# + secureSocket - SSL/TLS related options
+# + secureSocket - SSL/TLS-related options
 public type ClientConfiguration record {|
     *CommonClientConfiguration;
     ClientSecureSocket? secureSocket = ();

@@ -369,12 +369,12 @@ isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorDa
 }
 
 
-# The configurations related to the load balance client endpoint. Following fields are inherited from the other
-# configuration records in addition to the load balance client specific configs.
+# The configurations related to the load balancing client endpoint. The following fields are inherited from the other
+# configuration records in addition to the load balancing client specific configs.
 #
 # + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be distributed
-# + lbRule - LoadBalancing rule
-# + failover - Configuration for load balancer whether to fail over in case of a failure
+# + lbRule - The `LoadBalancing` rule
+# + failover - Configuration for the load balancer whether to fail over a failure
 public type LoadBalanceClientConfiguration record {|
     *CommonClientConfiguration;
     TargetService[] targets = [];

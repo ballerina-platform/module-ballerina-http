@@ -510,7 +510,7 @@ isolated function populateErrorsFromLastResponse (Response inResponse, ClientErr
 }
 
 # Provides a set of HTTP related configurations and failover related configurations.
-# Following fields are inherited from the other configuration records in addition to the failover client specific
+# The following fields are inherited from the other configuration records in addition to the failover client-specific
 # configs.
 #
 # + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be sent on failover

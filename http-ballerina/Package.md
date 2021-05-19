@@ -1,12 +1,12 @@
 ## Package Overview
 
-The HTTP library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
+The `http` library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
 
 It provides an implementation for connecting and interacting with HTTP, HTTP2, and WebSocket endpoints over the network.
 
 ## Report Issues
 
-To report bugs, request new features, start new discussions, view project boards, etc. please visit Ballerina Standard Library [parent repository](https://github.com/ballerina-platform/ballerina-standard-library).
+To report bugs, request new features, start new discussions, view project boards, etc., go to the [Ballerina Standard Library parent repository](https://github.com/ballerina-platform/ballerina-standard-library).
 
 ## Useful Links
 

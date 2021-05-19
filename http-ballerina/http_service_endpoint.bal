@@ -61,12 +61,12 @@ public class Listener {
     #
     # + httpService - The service that needs to be attached
     # + name - Name of the service
-    # + return - An `error` if an error occurred during the service attachment process or else nil
+    # + return - An `error` if an error occurred during the service attachment process or else `()`
     public isolated function attach(Service httpService, string[]|string? name = ()) returns error? {
         return externRegister(self, httpService, name);
     }
 
-    # Detaches a Http service from the listener.
+    # Detaches an HTTP service from the listener.
     #
     # + httpService - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
