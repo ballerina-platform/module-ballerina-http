@@ -17,9 +17,9 @@
 import ballerina/auth;
 
 # Defines the Basic Auth handler for client authentication.
-public class ClientBasicAuthHandler {
+public isolated class ClientBasicAuthHandler {
 
-    auth:ClientBasicAuthProvider provider;
+    private final auth:ClientBasicAuthProvider provider;
 
     # Initializes the `http:ClientBasicAuthHandler` object.
     #

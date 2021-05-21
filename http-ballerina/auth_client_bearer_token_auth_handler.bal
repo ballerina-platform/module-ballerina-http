@@ -15,15 +15,15 @@
 // under the License.
 
 # Defines the Bearer token auth handler for client authentication.
-public class ClientBearerTokenAuthHandler {
+public isolated class ClientBearerTokenAuthHandler {
 
-    BearerTokenConfig config;
+    private final BearerTokenConfig & readonly config;
 
     # Initializes the `http:ClientBearerTokenAuthHandler` object.
     #
     # + config - The `http:BearerTokenConfig` instance
     public isolated function init(BearerTokenConfig config) {
-        self.config = config;
+        self.config = config.cloneReadOnly();
     }
 
     # Enrich the request with the relevant authentication requirements.

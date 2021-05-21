@@ -17,9 +17,9 @@
 import ballerina/auth;
 
 # Defines the file store Basic Auth handler for listener authentication.
-public class ListenerFileUserStoreBasicAuthHandler {
+public isolated class ListenerFileUserStoreBasicAuthHandler {
 
-    auth:ListenerFileUserStoreBasicAuthProvider provider;
+    private final auth:ListenerFileUserStoreBasicAuthProvider provider;
 
     # Initializes the `http:ListenerFileUserStoreBasicAuthHandler` object.
     #

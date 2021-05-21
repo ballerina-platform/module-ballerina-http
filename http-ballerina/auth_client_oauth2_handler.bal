@@ -17,9 +17,9 @@
 import ballerina/oauth2;
 
 # Defines the OAuth2 handler for client authentication.
-public client class ClientOAuth2Handler {
+public isolated client class ClientOAuth2Handler {
 
-    oauth2:ClientOAuth2Provider provider;
+    private final oauth2:ClientOAuth2Provider provider;
 
     # Initializes the `http:ClientOAuth2Handler` object.
     #
