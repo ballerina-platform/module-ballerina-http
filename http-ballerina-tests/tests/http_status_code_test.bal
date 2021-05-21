@@ -251,7 +251,3 @@ function testInternalServerErrWithoutBody() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
-
-
-
-
