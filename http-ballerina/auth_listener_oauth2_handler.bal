@@ -17,16 +17,16 @@
 import ballerina/oauth2;
 
 # Defines the OAuth2 handler for listener authentication.
-public client class ListenerOAuth2Handler {
+public isolated client class ListenerOAuth2Handler {
 
-    oauth2:ListenerOAuth2Provider provider;
-    string scopeKey;
+    private final oauth2:ListenerOAuth2Provider provider;
+    private final string & readonly scopeKey;
 
     # Initializes the `http:ListenerOAuth2Handler` object.
     #
     # + config - The `http:OAuth2IntrospectionConfig` instance
     public isolated function init(OAuth2IntrospectionConfig config) {
-        self.scopeKey = config.scopeKey;
+        self.scopeKey = config.scopeKey.cloneReadOnly();
         self.provider = new(config);
     }
 
