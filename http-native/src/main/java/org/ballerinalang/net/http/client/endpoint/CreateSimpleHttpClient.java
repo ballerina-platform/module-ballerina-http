@@ -18,7 +18,6 @@
 
 package org.ballerinalang.net.http.client.endpoint;
 
-import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -35,8 +34,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_CONFIG;
-import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
 import static org.ballerinalang.net.http.HttpConstants.HTTP2_PRIOR_KNOWLEDGE;
 import static org.ballerinalang.net.http.HttpUtil.getConnectionManager;
 import static org.ballerinalang.net.http.HttpUtil.populateSenderConfigurations;
@@ -49,14 +46,16 @@ import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0_VERSIO
  */
 public class CreateSimpleHttpClient {
     @SuppressWarnings("unchecked")
-    public static void createSimpleHttpClient(BObject httpClient, BMap globalPoolConfig) {
-        String urlString = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue().replaceAll(
-                HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
-        httpClient.set(CLIENT_ENDPOINT_SERVICE_URI, StringUtils.fromString(urlString));
-        BMap<BString, Object> clientEndpointConfig = (BMap<BString, Object>) httpClient.get(
-                CLIENT_ENDPOINT_CONFIG);
+    public static void createSimpleHttpClient(BObject httpClient, BMap globalPoolConfig, BString clientUrl,
+                                              BMap<BString, Object> clientEndpointConfig) {
+//        String urlString = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue().replaceAll(
+//                HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
+//        httpClient.set(CLIENT_ENDPOINT_SERVICE_URI, StringUtils.fromString(urlString));
+//        BMap<BString, Object> clientEndpointConfig = (BMap<BString, Object>) httpClient.get(
+//                CLIENT_ENDPOINT_CONFIG);
         HttpConnectionManager connectionManager = HttpConnectionManager.getInstance();
         String scheme;
+        String urlString = clientUrl.getValue().replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
         URL url;
         try {
             url = new URL(urlString);
@@ -114,6 +113,8 @@ public class CreateSimpleHttpClient {
         HttpClientConnector httpClientConnector = HttpUtil.createHttpWsConnectionFactory()
                 .createHttpClientConnector(properties, senderConfiguration, poolManager);
         httpClient.addNativeData(HttpConstants.CLIENT, httpClientConnector);
+        httpClient.addNativeData(HttpConstants.CLIENT_ENDPOINT_SERVICE_URI, urlString);
+        httpClient.addNativeData(HttpConstants.CLIENT_ENDPOINT_CONFIG, clientEndpointConfig);
     }
 
     private CreateSimpleHttpClient() {}

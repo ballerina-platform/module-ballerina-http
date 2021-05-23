@@ -121,7 +121,7 @@ service /failoverDemoService04 on failoverEP04 {
     }
 
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
-        string startIndex = foBackendEP04.succeededEndpointIndex.toString();
+        string startIndex = foBackendEP04.getSucceededEndpointIndex().toString();
         http:Response|error backendRes = foBackendEP04->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             string responseMessage = "Failover start index is : " + startIndex;

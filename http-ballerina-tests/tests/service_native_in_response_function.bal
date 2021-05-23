@@ -166,13 +166,8 @@ function testResposeSetXmlPayload() {
 @test:Config {}
 function testResposeAddCookie() {
     http:Response res = new;
-    http:Cookie cookie = new("SID3", "31d4d96e407aad42");
-    cookie.domain = "google.com";
-    cookie.path = "/sample";
-    cookie.maxAge = 3600 ;
-    cookie.expires = "2017-06-26 05:46:22";
-    cookie.httpOnly = true;
-    cookie.secure = true;
+    http:Cookie cookie = new("SID3", "31d4d96e407aad42", path = "/sample", domain = "google.com", maxAge = 3600,
+        expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
     res.addCookie(cookie);
     http:Cookie[] cookiesInRequest = res.getCookies();
     test:assertEquals(cookiesInRequest.length(), 1, msg = "Invalid cookie object");
@@ -182,8 +177,7 @@ function testResposeAddCookie() {
 @test:Config {}
 function testResposeRemoveCookiesFromRemoteStore() {
     http:Response res = new;
-    http:Cookie cookie = new("SID3", "31d4d96e407aad42");
-    cookie.expires = "2017-06-26 05:46:22";
+    http:Cookie cookie = new("SID3", "31d4d96e407aad42", expires = "2017-06-26 05:46:22");
     res.removeCookiesFromRemoteStore(cookie);
     http:Cookie[] cookiesInRequest = res.getCookies();
     test:assertEquals(cookiesInRequest.length(), 1, msg = "Invalid cookie object");
@@ -192,13 +186,8 @@ function testResposeRemoveCookiesFromRemoteStore() {
 @test:Config {}
 function testResposeGetCookies() {
     http:Response res = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = ".GOOGLE.com.";
-    cookie1.maxAge = 3600 ;
-    cookie1.expires = "2017-06-26 05:46:22";
-    cookie1.httpOnly = true;
-    cookie1.secure = true;
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = ".GOOGLE.com.", maxAge = 3600,
+        expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
     res.addCookie(cookie1);
     // Gets the added cookies from response.
     http:Cookie[] cookiesInResponse=res.getCookies();
@@ -312,13 +301,8 @@ service /response on responseEp {
 
     resource function get addCookie (http:Caller caller, http:Request req) {
         http:Response res = new;
-        http:Cookie cookie = new("SID3", "31d4d96e407aad42");
-        cookie.domain = "google.com";
-        cookie.path = "/sample";
-        cookie.maxAge = 3600 ;
-        cookie.expires = "2017-06-26 05:46:22";
-        cookie.httpOnly = true;
-        cookie.secure = true;
+        http:Cookie cookie = new("SID3", "31d4d96e407aad42", path = "/sample", domain = "google.com", maxAge = 3600,
+            expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
         res.addCookie(cookie);
         string result = <@untainted> checkpanic res.getHeader(<@untainted string> "Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
@@ -327,8 +311,7 @@ service /response on responseEp {
 
     resource function get removeCookieByServer (http:Caller caller, http:Request req) {
         http:Response res = new;
-        http:Cookie cookie = new("SID3", "31d4d96e407aad42");
-        cookie.expires="2017-06-26 05:46:22";
+        http:Cookie cookie = new("SID3", "31d4d96e407aad42", expires="2017-06-26 05:46:22");
         res.removeCookiesFromRemoteStore(cookie);
         string result = <@untainted> checkpanic res.getHeader(<@untainted string> "Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
@@ -337,13 +320,8 @@ service /response on responseEp {
 
     resource function get getCookies (http:Caller caller, http:Request req) {
         http:Response res = new;
-        http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-        cookie1.path = "/sample";
-        cookie1.domain = ".GOOGLE.com.";
-        cookie1.maxAge = 3600 ;
-        cookie1.expires = "2017-06-26 05:46:22";
-        cookie1.httpOnly = true;
-        cookie1.secure = true;
+        http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = ".GOOGLE.com.", maxAge = 3600,
+            expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
         res.addCookie(cookie1);
         //Gets the added cookies from response.
         http:Cookie[] cookiesInResponse=res.getCookies();

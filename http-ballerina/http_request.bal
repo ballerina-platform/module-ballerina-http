@@ -590,12 +590,9 @@ public class Request {
             return l;
         });
         foreach var cookie in sortedCookies {
-            var cookieName = cookie.name;
-            var cookieValue = cookie.value;
-            if (cookieName is string && cookieValue is string) {
-                cookieheader = cookieheader + cookieName + EQUALS + cookieValue + SEMICOLON + SPACE;
-            }
-            cookie.lastAccessedTime = time:utcNow();
+            cookieheader = cookieheader + cookie.name + EQUALS + cookie.value + SEMICOLON + SPACE;
+            time:Utc lastAccessedTime = time:utcNow();
+            //cookie.setLastAccessedTime(lastAccessedTime);
         }
         if (cookieheader != "") {
             cookieheader = cookieheader.substring(0, cookieheader.length() - 2);

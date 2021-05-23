@@ -20,29 +20,23 @@ import ballerina/time;
 
 # An HTTP caching client implementation which takes an `HttpActions` instance and wraps it with an HTTP caching layer.
 #
-# + url - The URL of the remote HTTP endpoint
-# + config - The configurations of the client endpoint associated with this `CachingActions` instance
 # + httpClient - The underlying `HttpActions` instance which will be making the actual network calls
 # + cache - The cache storage for the HTTP responses
 # + cacheConfig - Configurations for the underlying cache storage and for controlling the HTTP caching behaviour
-public client class HttpCachingClient {
+public client isolated class HttpCachingClient {
 
-    public string url;
-    public ClientConfiguration config = {};
-    public HttpClient httpClient;
-    public HttpCache cache;
-    public CacheConfig cacheConfig = {};
+    private final HttpClient httpClient;
+    private final HttpCache cache;
+    private final CacheConfig & readonly cacheConfig;
 
     # Takes a service URL, a `ClientEndpointConfig` and a `CacheConfig` and builds an HTTP client capable of
     # caching responses. The `CacheConfig` instance is used for initializing a new HTTP cache for the client and
     # the `ClientConfiguration` is used for creating the underlying HTTP client.
     #
-    # + url - The URL of the HTTP endpoint to connect to
     # + config - The configurations for the client endpoint associated with the caching client
     # + cacheConfig - The configurations for the HTTP cache to be used with the caching client
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
-        self.url = url;
         var httpSecureClient = createHttpSecureClient(url, config);
         if (httpSecureClient is HttpClient) {
             self.httpClient = httpSecureClient;
@@ -50,6 +44,7 @@ public client class HttpCachingClient {
             return httpSecureClient;
         }
         self.cache = new HttpCache(cacheConfig);
+        self.cacheConfig = cacheConfig.cloneReadOnly();
     }
 
     # Responses returned for POST requests are not cacheable. Therefore, the requests are simply directed to the

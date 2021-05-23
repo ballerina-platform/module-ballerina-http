@@ -18,13 +18,7 @@ import ballerina/jballerina.java;
 
 # Lies inside every type of client in the chain holding the native client connector. More complex and specific
 # endpoint types are created by wrapping this generic HTTP actions implementation internally.
-#
-# + url - The URL of the remote HTTP endpoint
-# + config - The configurations associated with the `HttpClient`
-public client class HttpClient {
-
-    public string url;
-    public ClientConfiguration config = {};
+public client isolated class HttpClient {
 
     # Gets invoked to initialize the native `client`. During the initialization, the configurations are provided through the
     # `config`. The `HttpClient` lies inside every type of client in the chain holding the native client connector.
@@ -33,9 +27,8 @@ public client class HttpClient {
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration? config = ()) returns ClientError? {
-        self.config = config ?: {};
-        self.url = url;
-        return createSimpleHttpClient(self, globalHttpClientConnPool);
+        ClientConfiguration options = config ?: {};
+        return createSimpleHttpClient(self, globalHttpClientConnPool, url, options);
     }
 
     # The `HttpClient.post()` function can be used to send HTTP POST requests to HTTP endpoints.

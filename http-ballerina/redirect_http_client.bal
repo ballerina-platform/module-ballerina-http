@@ -23,13 +23,13 @@ import ballerina/log;
 # + redirectConfig - Configurations associated with redirect
 # + httpClient - HTTP client for outbound HTTP requests
 # + currentRedirectCount - Current redirect count of the HTTP client
-public client class RedirectClient {
+public client isolated class RedirectClient {
 
-    public string url;
-    public ClientConfiguration config;
-    public FollowRedirects redirectConfig;
-    public HttpClient httpClient;
-    public int currentRedirectCount = 0;
+    final string url;
+    final ClientConfiguration & readonly config;
+    final FollowRedirects & readonly redirectConfig;
+    final HttpClient httpClient;
+    private int currentRedirectCount = 0;
 
     # Creates a redirect client with the given configurations.
     #
@@ -41,8 +41,8 @@ public client class RedirectClient {
     isolated function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient)
             returns ClientError? {
         self.url = url;
-        self.config = config;
-        self.redirectConfig = redirectConfig;
+        self.config = config.cloneReadOnly();
+        self.redirectConfig = redirectConfig.cloneReadOnly();
         self.httpClient = httpClient;
     }
 
@@ -235,6 +235,18 @@ public client class RedirectClient {
     remote isolated function rejectPromise(PushPromise promise) {
         self.httpClient->rejectPromise(promise);
     }
+
+    isolated function getCurrentRedirectCount() returns int {
+        lock {
+            return self.currentRedirectCount;
+        }
+    }
+
+    isolated function setCurrentRedirectCount(int currentRedirectCount) {
+        lock {
+            self.currentRedirectCount = currentRedirectCount;
+        }
+    }
 }
 
 //Invoke relevant HTTP client action and check the response for redirect eligibility.
@@ -267,7 +279,7 @@ isolated function checkRedirectEligibility(HttpResponse|ClientError response, st
             return response;
         }
     } else {
-        redirectClient.currentRedirectCount = 0;
+        redirectClient.setCurrentRedirectCount(0);
         return response;
     }
 }
@@ -283,7 +295,7 @@ isolated function isRedirectResponse(int statusCode) returns boolean {
 //If max redirect count is not reached, perform redirection.
 isolated function redirect(Response response, HttpOperation httpVerb, Request request,
                   RedirectClient redirectClient, string resolvedRequestedURI) returns @untainted HttpResponse|ClientError {
-    int currentCount = redirectClient.currentRedirectCount;
+    int currentCount = redirectClient.getCurrentRedirectCount();
     int maxCount = redirectClient.redirectConfig.maxCount;
     if (currentCount >= maxCount) {
         log:printDebug("Maximum redirect count reached!");
@@ -292,7 +304,7 @@ isolated function redirect(Response response, HttpOperation httpVerb, Request re
         currentCount += 1;
         final string currentCountValue = currentCount.toString();
         log:printDebug("Redirect count : " + currentCountValue);
-        redirectClient.currentRedirectCount = currentCount;
+        redirectClient.setCurrentRedirectCount(currentCount);
         var redirectMethod = getRedirectMethod(httpVerb, response);
         if (redirectMethod is HttpOperation) {
              var location = response.getHeader(LOCATION);
@@ -304,14 +316,14 @@ isolated function redirect(Response response, HttpOperation httpVerb, Request re
                         return performRedirection(resolvedURI, redirectClient, redirectMethod, request,
                             response);
                     } else {
-                        redirectClient.currentRedirectCount = 0;
+                        redirectClient.setCurrentRedirectCount(0);
                         return resolvedURI;
                     }
                 } else {
                     return performRedirection(location, redirectClient, redirectMethod, request, response);
                 }
             } else {
-                redirectClient.currentRedirectCount = 0;
+                redirectClient.setCurrentRedirectCount(0);
                 return error GenericClientError("Location header not available!");
             }
         } else {
@@ -327,7 +339,7 @@ isolated function performRedirection(string location, RedirectClient redirectCli
     var cookieConfigVal = redirectClient.config.cookieConfig;
     if (cookieConfigVal is CookieConfig) {
         if (cookieConfigVal.enabled) {
-            cookieStore = new(cookieConfigVal?.persistentCookieHandler);
+            //cookieStore = new(cookieConfigVal?.persistentCookieHandler);
         }
     }
     var retryClient = createRetryClient(location, createNewEndpointConfig(redirectClient.config), cookieStore);
@@ -404,6 +416,6 @@ isolated function isAbsolute(string locationUrl) returns boolean {
 isolated function setCountAndResolvedURL(RedirectClient redirectClient, Response response, string resolvedRequestedURI) {
     final string resolvedRequestedURIValue = resolvedRequestedURI;
     log:printDebug("ultimate response coming from the request: " + resolvedRequestedURIValue);
-    redirectClient.currentRedirectCount = 0;
+    redirectClient.setCurrentRedirectCount(0);
     response.resolvedRequestedURI = resolvedRequestedURI;
 }

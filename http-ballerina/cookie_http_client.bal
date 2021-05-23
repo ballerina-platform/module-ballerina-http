@@ -17,34 +17,32 @@
 # Provides the cookie functionality across HTTP client actions.
 #
 # + url - Target service URL
-# + config - HTTP Client Configuration to be used for the HTTP client invocation
 # + cookieConfig - Configurations associated with the cookies
 # + httpClient - HTTP client for outbound HTTP requests
 # + cookieStore - Stores the cookies of the client
-public client class CookieClient {
+public client isolated class CookieClient {
 
-    public string url;
-    public ClientConfiguration config;
-    public CookieConfig cookieConfig;
-    public HttpClient httpClient;
-    public CookieStore? cookieStore = ();
+    private final string url;
+    private final CookieConfig & readonly cookieConfig;
+    private final HttpClient httpClient;
+    private final CookieStore? cookieStore;
 
     # Creates a cookie client with the given configurations.
     #
     # + url - Target service URL
-    # + config - HTTP Client Configuration to be used for the HTTP client invocation
     # + cookieConfig - Configurations associated with the cookies
     # + httpClient - HTTP client for outbound HTTP requests
     # + cookieStore - Stores the cookies of the client
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    isolated function init(string url, ClientConfiguration config, CookieConfig cookieConfig, HttpClient httpClient,
-        CookieStore? cookieStore) returns ClientError? {
+    isolated function init(string url, CookieConfig cookieConfig, HttpClient httpClient,
+            CookieStore? cookieStore) returns ClientError? {
         self.url = url;
-        self.config = config;
-        self.cookieConfig = cookieConfig;
+        self.cookieConfig = cookieConfig.cloneReadOnly();
         self.httpClient = httpClient;
         if (cookieStore is CookieStore) {
             self.cookieStore = cookieStore;
+        } else {
+            self.cookieStore = ();
         }
     }
 
@@ -58,7 +56,7 @@ public client class CookieClient {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse = self.httpClient->get(path, message = request);
-        return addCookiesInResponseToStore(inboundResponse, self.cookieStore, self.cookieConfig, self.url, path);
+        return addCookiesInResponseToStore(inboundResponse, self.cookieStore, self.cookieConfig.clone(), self.url, path);
     }
 
     # The `CookieClient.post()` function wraps the underlying HTTP remote functions in a way to provide

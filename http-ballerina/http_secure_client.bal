@@ -17,27 +17,20 @@
 # Provides secure HTTP remote functions for interacting with HTTP endpoints. This will make use of the authentication
 # schemes configured in the HTTP client endpoint to secure the HTTP requests.
 #
-# + url - The URL of the remote HTTP endpoint
-# + config - The configurations of the client endpoint associated with this `HttpActions` instance
 # + httpClient - The underlying `HttpActions` instance, which will make the actual network calls
-public client class HttpSecureClient {
+public client isolated class HttpSecureClient {
 
-    public string url = "";
-    public ClientConfiguration config = {};
-    public HttpClient httpClient;
-    ClientAuthHandler clientAuthHandler;
+    private final HttpClient httpClient;
+    private final ClientAuthHandler clientAuthHandler;
 
     # Gets invoked to initialize the secure `client`. Due to the secure client related configurations provided
     # through the `config` record, the `HttpSecureClient` is initialized.
     #
-    # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration config) returns ClientError? {
-        self.url = url;
-        self.config = config;
-        self.clientAuthHandler = initClientAuthHandler(config);
-        HttpClient|ClientError simpleClient = createClient(url, self.config);
+        self.clientAuthHandler = initClientAuthHandler(config.cloneReadOnly());
+        HttpClient|ClientError simpleClient = createClient(url, config);
         if (simpleClient is HttpClient) {
             self.httpClient = simpleClient;
         } else {

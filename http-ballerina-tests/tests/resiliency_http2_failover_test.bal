@@ -40,7 +40,7 @@ http:FailoverClient foBackendEP06 = check new({
 service /failoverDemoService06 on failoverEP06 {
 
     resource function post index(http:Caller caller, http:Request request) {
-        string startIndex = foBackendEP06.succeededEndpointIndex.toString();
+        string startIndex = foBackendEP06.getSucceededEndpointIndex().toString();
         var backendRes = foBackendEP06->submit("GET", "/", <@untainted> request);
         if (backendRes is http:HttpFuture) {
             var response = foBackendEP06->getResponse(backendRes);

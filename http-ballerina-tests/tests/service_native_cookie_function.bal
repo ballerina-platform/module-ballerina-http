@@ -25,9 +25,7 @@ string filePath = "tests/resources/";
 @test:Config {}
 function testAddCookieToCookieStore1() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -46,9 +44,7 @@ function testAddCookieToCookieStore1() {
 @test:Config {}
 function testAddCookieToCookieStore2() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://mail.google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -67,8 +63,7 @@ function testAddCookieToCookieStore2() {
 @test:Config {}
 function testAddCookieToCookieStore3() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -87,8 +82,7 @@ function testAddCookieToCookieStore3() {
 @test:Config {}
 function testAddCookieToCookieStore4() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://mail.google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -107,9 +101,7 @@ function testAddCookieToCookieStore4() {
 @test:Config {}
 function testAddCookieToCookieStore5() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.domain = "google.com";
-    cookie1.path = "/mail";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/mail", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://mail.google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -128,9 +120,7 @@ function testAddCookieToCookieStore5() {
 @test:Config {}
 function testAddThirdPartyCookieToCookieStore() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.domain = "ad.doubleclick.net";
-    cookie1.path = "/home";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/home", domain = "ad.doubleclick.net");
     http:Client cookieClientEndpoint = checkpanic new("http://mail.google.com", { cookieConfig: { enabled: true,
                                             blockThirdPartyCookies:false } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
@@ -150,12 +140,8 @@ function testAddThirdPartyCookieToCookieStore() {
 @test:Config {}
 function testAddCookiesToCookieStore() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    http:Cookie cookie2 = new("SID002", "239d4dmnmsddd34");
-    cookie2.path = "/sample";
-    cookie2.domain = "google.com";
+    http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
+    http:Cookie cookie2 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Cookie[] cookiesToadd =[cookie1, cookie2];
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
@@ -173,13 +159,8 @@ function testAddCookiesToCookieStore() {
 @test:Config {}
 function testAddSimilarCookieToCookieStore() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    cookie1.httpOnly = true;
-    http:Cookie cookie2 = new("SID002", "6789mnmsddd34");
-    cookie2.path = "/sample";
-    cookie2.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", httpOnly = true);
+    http:Cookie cookie2 = new("SID002", "6789mnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -202,9 +183,7 @@ function testAddSimilarCookieToCookieStore() {
 // Test to add cookies concurrently into cookie store
 @test:Config {}
 function testAddCookiesConcurrentlyToCookieStore() {
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Cookie[] cookiesToadd = [cookie1];
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -251,9 +230,7 @@ function testAddCookiesConcurrentlyToCookieStore() {
 @test:Config {}
 function testGetCookiesFromCookieStore1() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     // Adds cookie.
@@ -270,9 +247,7 @@ function testGetCookiesFromCookieStore1() {
 @test:Config {}
 function testGetCookiesFromCookieStore2() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -288,8 +263,7 @@ function testGetCookiesFromCookieStore2() {
 @test:Config {}
 function testGetCookiesFromCookieStore3() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -305,9 +279,7 @@ function testGetCookiesFromCookieStore3() {
 @test:Config {}
 function testGetCookiesFromCookieStore4() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/mail";
-    cookie1.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/mail", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -323,8 +295,7 @@ function testGetCookiesFromCookieStore4() {
 @test:Config {}
 function testGetCookiesFromCookieStore5() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -340,13 +311,8 @@ function testGetCookiesFromCookieStore5() {
 @test:Config {}
 function testGetCookiesFromCookieStore6() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID001", "7Av239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    cookie1.secure = true;
-    http:Cookie cookie2 = new("SID002", "239d4dmnmsddd34");
-    cookie2.path = "/sample";
-    cookie2.domain = "google.com";
+    http:Cookie cookie1 = new("SID001", "7Av239d4dmnmsddd34", path = "/sample", domain = "google.com", secure = true);
+    http:Cookie cookie2 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -363,10 +329,7 @@ function testGetCookiesFromCookieStore6() {
 @test:Config {}
 function testGetSecureCookieFromCookieStore() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    cookie1.secure = true;
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", secure = true);
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -382,9 +345,7 @@ function testGetSecureCookieFromCookieStore() {
 @test:Config {}
 function testRemoveCookieFromCookieStore() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -402,17 +363,12 @@ function testRemoveCookieFromCookieStore() {
 // Test to remove all cookies from the cookie store
 @test:Config {}
 function testRemoveAllCookiesInCookieStore() {
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    http:Cookie cookie2 = new("SID003", "239d4dmnmsddd34");
-    cookie2.path = "/sample";
-    cookie2.domain = "google.com";
-    cookie2.expires = "2030-07-15 05:46:22";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
+    http:Cookie cookie2 = new("SID003", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:Cookie[] cookies = [];
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-5.csv");
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true,
-                                            persistentCookieHandler: myPersistentStore } } );
+    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true} } );
+    cookieClientEndpoint.setPersistentCookieHandler(myPersistentStore);
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     boolean|error validCookie1 = cookie1.isValid();
@@ -434,13 +390,10 @@ function testRemoveAllCookiesInCookieStore() {
 // Test to add persistent cookie into cookie store
 @test:Config {}
 function testAddPersistentCookieToCookieStore() {
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    cookie1.expires = "2030-07-15 05:46:22";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-1.csv");
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true,
-                                            persistentCookieHandler: myPersistentStore } } );
+    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true} } );
+    cookieClientEndpoint.setPersistentCookieHandler(myPersistentStore);
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
@@ -458,12 +411,10 @@ function testAddPersistentCookieToCookieStore() {
 // Test to add persistent cookie with a value below 69 for the year in expires attribute
 @test:Config {}
 function testAddPersistentCookieToCookieStore_2() {
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    cookie1.expires = "0050-07-15 05:46:22";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "0050-07-15 05:46:22");
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-2.csv");
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore } } );
+    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
+    cookieClientEndpoint.setPersistentCookieHandler(myPersistentStore);
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
@@ -481,12 +432,10 @@ function testAddPersistentCookieToCookieStore_2() {
 // Test to get the relevant persistent cookie from the cookie store
 @test:Config {}
 function testGetPersistentCookieFromCookieStore() {
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    cookie1.expires = "2030-07-15 05:46:22";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-3.csv");
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore } } );
+    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true} } );
+    cookieClientEndpoint.setPersistentCookieHandler(myPersistentStore);
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
@@ -504,12 +453,10 @@ function testGetPersistentCookieFromCookieStore() {
 // Test to remove a specific persistent cookie from the cookie store
 @test:Config {}
 function testRemovePersistentCookieFromCookieStore() {
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    cookie1.expires = "2030-07-15 05:46:22";
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-4.csv");
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore } } );
+    http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
+    cookieClientEndpoint.setPersistentCookieHandler(myPersistentStore);
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     http:Cookie[] cookies = [];
@@ -531,12 +478,8 @@ function testRemovePersistentCookieFromCookieStore() {
 @test:Config {}
 function testGetCookiesByName() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    http:Cookie cookie2 = new("SID002", "gha74dmnmsddd34");
-    cookie2.path = "/sample";
-    cookie2.domain = "google.com";
+    http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
+    http:Cookie cookie2 = new("SID002", "gha74dmnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -552,12 +495,8 @@ function testGetCookiesByName() {
 @test:Config {}
 function testGetCookiesByDomain() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    http:Cookie cookie2 = new("SID002", "gha74dmnmsddd34");
-    cookie2.path = "/sample";
-    cookie2.domain = "google.com";
+    http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
+    http:Cookie cookie2 = new("SID002", "gha74dmnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {
@@ -574,12 +513,8 @@ function testGetCookiesByDomain() {
 @test:Config {}
 function testRemoveCookiesByDomain() {
     http:CookieStore cookieStore = new;
-    http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = "google.com";
-    http:Cookie cookie2 = new("SID002", "gha74dmnmsddd34");
-    cookie2.path = "/sample";
-    cookie2.domain = "google.com";
+    http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
+    http:Cookie cookie2 = new("SID002", "gha74dmnmsddd34", path = "/sample", domain = "google.com");
     http:Client cookieClientEndpoint = checkpanic new("http://google.com", { cookieConfig: { enabled: true } } );
     var cookieConfigVal = cookieClientEndpoint.config.cookieConfig;
     if (cookieConfigVal is http:CookieConfig) {

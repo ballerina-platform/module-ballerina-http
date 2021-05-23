@@ -487,9 +487,12 @@ public class Response {
     # + cookiesToRemove - Cookies to be deleted
     public isolated function removeCookiesFromRemoteStore(Cookie...cookiesToRemove) {
         foreach var cookie in cookiesToRemove {
-            cookie.expires = "1994-03-12 08:12:22";
-            cookie.maxAge = 0;
-            self.addCookie(cookie);
+            CookieOptions options = {
+                expires:"1994-03-12 08:12:22",
+                maxAge: 0
+            };
+            Cookie newCookie = new Cookie(cookie.name, cookie.value, options);
+            self.addCookie(newCookie);
         }
     }
 
