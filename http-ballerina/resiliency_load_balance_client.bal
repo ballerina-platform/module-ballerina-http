@@ -19,14 +19,12 @@ import ballerina/mime;
 
 # LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients.
 #
-# + loadBalanceClientConfig - The configurations for the load balance client endpoint
 # + loadBalanceClientsArray - Array of HTTP clients for load balancing
 # + lbRule - Load balancing rule
 # + failover - Whether to fail over in case of a failure
 public client isolated class LoadBalanceClient {
     *ClientObject;
 
-    private final LoadBalanceClientConfiguration & readonly loadBalanceClientConfig;
     private final Client?[] loadBalanceClientsArray;
     private LoadBalancerRule lbRule;
     private final boolean failover;
@@ -36,9 +34,7 @@ public client isolated class LoadBalanceClient {
     # + loadBalanceClientConfig - The configurations for the load balance client endpoint
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(*LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
-        self.loadBalanceClientConfig = loadBalanceClientConfig.cloneReadOnly();
         self.failover = loadBalanceClientConfig.failover;
-        //var lbClients = createLoadBalanceHttpClientArray(loadBalanceClientConfig);
         self.loadBalanceClientsArray = [];
         Client clientEp;
         Client?[] lbClients = self.loadBalanceClientsArray;
@@ -49,12 +45,13 @@ public client isolated class LoadBalanceClient {
             lbClients[i] = clientEp;
             i += 1;
         }
-        LoadBalancerRoundRobinRule loadBalancerRoundRobinRule = new;
-        self.lbRule = loadBalancerRoundRobinRule;
-
-        //self.loadBalanceClientsArray = lbClients;
-        //var lbRule = loadBalanceClientConfig.lbRule;
-
+        var lbRule = loadBalanceClientConfig.lbRule;
+        if (lbRule is LoadBalancerRule) {
+            self.lbRule = lbRule;
+        } else {
+            LoadBalancerRoundRobinRule loadBalancerRoundRobinRule = new;
+            self.lbRule = loadBalancerRoundRobinRule;
+        }
     }
 
     # The POST remote function implementation of the LoadBalancer Connector.
@@ -297,15 +294,6 @@ public client isolated class LoadBalanceClient {
     # + promise - The Push Promise to be rejected
     remote isolated function rejectPromise(PushPromise promise) {}
 
-    # Sets the load balacing algorithm to honor during the endpoint selection.
-    #
-    # + lbRule - The `LoadBalancing` rule
-    public isolated function setLoadBalancerRule(LoadBalancerRule lbRule) {
-        lock {
-            self.lbRule = lbRule;
-        }
-    }
-
     // Performs execute action of the Load Balance connector. extract the corresponding http integer value representation
     // of the http verb and invokes the perform action method.
     isolated function performLoadBalanceExecuteAction(string path, Request request,
@@ -393,11 +381,12 @@ isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorDa
 # configuration records in addition to the load balancing client specific configs.
 #
 # + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be distributed
+# + lbRule - The `LoadBalancing` rule
 # + failover - Configuration for the load balancer whether to fail over a failure
 public type LoadBalanceClientConfiguration record {|
     *CommonClientConfiguration;
     TargetService[] targets = [];
-    //LoadBalancerRule? lbRule = ();
+    LoadBalancerRule? lbRule = ();
     boolean failover = true;
 |};
 
@@ -422,17 +411,3 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
     };
     return clientEPConfig;
 }
-
-//isolated function createLoadBalanceHttpClientArray(LoadBalanceClientConfiguration loadBalanceClientConfig)
-//                                                                                    returns Client?[]|ClientError {
-//    Client cl;
-//    Client?[] httpClients = [];
-//    int i = 0;
-//    foreach var target in loadBalanceClientConfig.targets {
-//        ClientConfiguration epConfig = createClientEPConfigFromLoalBalanceEPConfig(loadBalanceClientConfig, target);
-//        cl =  check new(target.url , epConfig);
-//        httpClients[i] = cl;
-//        i += 1;
-//    }
-//    return httpClients;
-//}

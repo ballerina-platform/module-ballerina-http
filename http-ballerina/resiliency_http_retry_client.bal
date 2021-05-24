@@ -23,7 +23,7 @@ import ballerina/lang.runtime as runtime;
 # + backOffFactor - Multiplier of the retry interval to exponentially increase retry interval
 # + maxWaitInterval - Maximum time of the retry interval in seconds
 # + statusCodes - HTTP response status codes which are considered as failures
-public type RetryInferredConfig record {|
+type RetryInferredConfig record {|
     int count = 0;
     decimal interval = 0;
     float backOffFactor = 0.0;
@@ -34,15 +34,11 @@ public type RetryInferredConfig record {|
 # Provides the HTTP remote functions for interacting with an HTTP endpoint. This is created by wrapping the HTTP client
 # to provide retrying over HTTP requests.
 #
-//# + url - Target service url
-//# + config - HTTP ClientConfiguration to be used for HTTP client invocation
 # + retryInferredConfig - Derived set of configurations associated with retry
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner.
 public client isolated class RetryClient {
 
-    //private string url;
-    //private ClientConfiguration config;
     final RetryInferredConfig & readonly retryInferredConfig;
     final HttpClient httpClient;
 
@@ -333,15 +329,6 @@ isolated function performRetryAction(@untainted string path, Request request, Ht
     }
     return httpConnectorErr;
 }
-
-//isolated function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryClient) {
-//    if (retryClient.retryInferredConfig.backOffFactor <= 0.0) {
-//        retryClient.retryInferredConfig.backOffFactor = 1.0;
-//    }
-//    if (retryClient.retryInferredConfig.maxWaitInterval == 0D) {
-//        retryClient.retryInferredConfig.maxWaitInterval = 60;
-//    }
-//}
 
 isolated function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount,
         decimal currentDelay, float backOffFactor, decimal maxWaitInterval) returns [decimal, int] {

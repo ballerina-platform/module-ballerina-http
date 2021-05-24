@@ -29,7 +29,7 @@ public client isolated class HttpSecureClient {
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration config) returns ClientError? {
-        self.clientAuthHandler = initClientAuthHandler(config.cloneReadOnly());
+        self.clientAuthHandler = initClientAuthHandler(config);
         HttpClient|ClientError simpleClient = createClient(url, config);
         if (simpleClient is HttpClient) {
             self.httpClient = simpleClient;

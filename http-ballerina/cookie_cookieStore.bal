@@ -146,15 +146,9 @@ public isolated class CookieStore {
     public isolated function getAllCookies() returns Cookie[] {
         var persistentCookieHandler = self.persistentCookieHandler;
         Cookie[] allCookies = [];
-        Cookie[] temp = [];
-
         lock {
-            temp = self.allSessionCookies.clone();
+            allCookies = self.allSessionCookies.clone();
         }
-            foreach var cookie in temp {
-                allCookies.push(cookie);
-            }
-        //}
         if (persistentCookieHandler is PersistentCookieHandler) {
             var result = persistentCookieHandler.getAllCookies();
             if (result is error) {
@@ -504,17 +498,6 @@ isolated function isExpired(Cookie cookie) returns boolean {
 }
 
 isolated function getClone(Cookie cookie, time:Utc createdTime, time:Utc lastAccessedTime) returns Cookie {
-    //CookieOptions options = {
-    //    domain: cookie.domain,
-    //    path: cookie?.path,
-    //    expires: cookie?.expires,
-    //    maxAge: cookie.maxAge,
-    //    httpOnly: cookie.httpOnly,
-    //    secure: cookie.secure,
-    //    hostOnly: cookie.hostOnly,
-    //    createdTime: createdTime,
-    //    lastAccessedTime: lastAccessedTime
-    //};
     CookieOptions options = {};
     if cookie.domain is string {
         options.domain = <string> cookie.domain;

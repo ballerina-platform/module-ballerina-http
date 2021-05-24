@@ -117,7 +117,6 @@ public type CircuitBreakerInferredConfig record {|
 # A Circuit Breaker implementation which can be used to gracefully handle network failures.
 #
 # + url - The URL of the target service
-//# + config - The configurations of the client endpoint associated with this `CircuitBreaker` instance
 # + circuitBreakerInferredConfig - Configurations derived from `CircuitBreakerConfig`
 # + httpClient - The underlying `HttpActions` instance which will be making the actual network calls
 # + circuitHealth - The circuit health monitor
@@ -125,7 +124,6 @@ public type CircuitBreakerInferredConfig record {|
 public client isolated class CircuitBreakerClient {
 
     private string url;
-    //private ClientConfiguration config;
     private final CircuitBreakerInferredConfig & readonly circuitBreakerInferredConfig;
     private final CircuitHealth circuitHealth;
     private CircuitState currentCircuitState = CB_CLOSED_STATE;
@@ -147,7 +145,6 @@ public client isolated class CircuitBreakerClient {
                 " than the 'bucketSize' value.");
         }
         self.url = url;
-        //self.config = config;
         self.circuitBreakerInferredConfig = circuitBreakerInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
         self.circuitHealth = circuitHealth.clone();

@@ -58,7 +58,7 @@ http:LoadBalanceClient customLbBackendEP = check new({
         { url: "http://localhost:8093/LBMock2" },
         { url: "http://localhost:8093/LBMock3" }
     ],
-    //lbRule: customLbRule,
+    lbRule: customLbRule,
     timeout: 5
 });
 
@@ -122,7 +122,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
 
     resource function 'default customResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        customLbBackendEP.setLoadBalancerRule(customLbRule);
+        //customLbBackendEP.setLoadBalancerRule(customLbRule);
         http:Response|error response = customLbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> response);

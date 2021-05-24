@@ -48,11 +48,6 @@ public class CreateSimpleHttpClient {
     @SuppressWarnings("unchecked")
     public static void createSimpleHttpClient(BObject httpClient, BMap globalPoolConfig, BString clientUrl,
                                               BMap<BString, Object> clientEndpointConfig) {
-//        String urlString = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue().replaceAll(
-//                HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
-//        httpClient.set(CLIENT_ENDPOINT_SERVICE_URI, StringUtils.fromString(urlString));
-//        BMap<BString, Object> clientEndpointConfig = (BMap<BString, Object>) httpClient.get(
-//                CLIENT_ENDPOINT_CONFIG);
         HttpConnectionManager connectionManager = HttpConnectionManager.getInstance();
         String scheme;
         String urlString = clientUrl.getValue().replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);

@@ -24,22 +24,15 @@ import ballerina/time;
 # using custom HTTP verbs.
 
 # + url - Target service url
-# + config - The configurations associated with the client
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner
 # + cookieStore - Stores the cookies of the client
 public client isolated class Client {
     *ClientObject;
 
-    private final string url; // immuatable - final readonly
-    private CookieStore? cookieStore = (); // mutable? private, getter/clone, final depends
+    private final string url;
+    private CookieStore? cookieStore = ();
     public final HttpClient httpClient;
-    public final ClientConfiguration & readonly config;
-
-    // not final -> private
-    // final & !readonly & !isolatedObj -> private
-    // final & readonly -> public/protected
-    // final & isolatedObj -> public/protected
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -49,9 +42,14 @@ public client isolated class Client {
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(string url, *ClientConfiguration config) returns ClientError? {
-        self.config = config.cloneReadOnly();
         self.url = url;
-        self.httpClient = check initialize(url, self.config, self.cookieStore);
+        var cookieConfigVal = config.cookieConfig;
+        if (cookieConfigVal is CookieConfig) {
+            if (cookieConfigVal.enabled) {
+                self.cookieStore = new(cookieConfigVal?.persistentCookieHandler);
+            }
+        }
+        self.httpClient = check initialize(url, config, self.cookieStore);
     }
 
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
@@ -347,22 +345,6 @@ public client isolated class Client {
             return self.cookieStore;
         }
     }
-
-    # Sets the persistent cookie handler specifying a persistent cookie store with their own mechanism which
-    # references the persistent cookie handler or specifying the CSV persistent cookie handler. If not specified any,
-    # only the session cookies are used.
-    #
-    # + persistentCookieHandler - To manage persistent cookies
-    public isolated function setPersistentCookieHandler(PersistentCookieHandler persistentCookieHandler) {
-        lock {
-            var cookieConfigVal = self.config.cookieConfig;
-            if (cookieConfigVal is CookieConfig) {
-                if (cookieConfigVal.enabled) {
-                    self.cookieStore = new(persistentCookieHandler);
-                }
-            }
-        }
-    }
 }
 
 # Represents a single service and its related configurations.
@@ -502,11 +484,14 @@ public type ProxyConfig record {|
 # + maxCookiesPerDomain - Maximum number of cookies per domain, which is 50
 # + maxTotalCookieCount - Maximum number of total cookies allowed to be stored in cookie store, which is 3000
 # + blockThirdPartyCookies - User can block cookies from third party responses and refuse to send cookies for third party requests, if needed
+# + persistentCookieHandler - To manage persistent cookies, users are provided with a mechanism for specifying a persistent cookie store with their own mechanism
+#                             which references the persistent cookie handler or specifying the CSV persistent cookie handler. If not specified any, only the session cookies are used
 public type CookieConfig record {|
      boolean enabled = false;
      int maxCookiesPerDomain = 50;
      int maxTotalCookieCount = 3000;
      boolean blockThirdPartyCookies = true;
+     PersistentCookieHandler persistentCookieHandler?;
 |};
 
 isolated function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {

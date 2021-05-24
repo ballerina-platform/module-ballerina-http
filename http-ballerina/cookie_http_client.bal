@@ -14,6 +14,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+type CookieInferredConfig record {|
+    boolean enabled;
+    int maxCookiesPerDomain;
+    int maxTotalCookieCount;
+    boolean blockThirdPartyCookies;
+|};
+
 # Provides the cookie functionality across HTTP client actions.
 #
 # + url - Target service URL
@@ -23,7 +30,7 @@
 public client isolated class CookieClient {
 
     private final string url;
-    private final CookieConfig & readonly cookieConfig;
+    private final CookieInferredConfig & readonly cookieConfig;
     private final HttpClient httpClient;
     private final CookieStore? cookieStore;
 
@@ -37,7 +44,13 @@ public client isolated class CookieClient {
     isolated function init(string url, CookieConfig cookieConfig, HttpClient httpClient,
             CookieStore? cookieStore) returns ClientError? {
         self.url = url;
-        self.cookieConfig = cookieConfig.cloneReadOnly();
+        CookieInferredConfig cookieInferredConfig = {
+            enabled: cookieConfig.enabled,
+            maxCookiesPerDomain: cookieConfig.maxCookiesPerDomain,
+            maxTotalCookieCount: cookieConfig.maxTotalCookieCount,
+            blockThirdPartyCookies: cookieConfig.blockThirdPartyCookies
+        };
+        self.cookieConfig = cookieInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
         if (cookieStore is CookieStore) {
             self.cookieStore = cookieStore;
@@ -56,7 +69,7 @@ public client isolated class CookieClient {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
         var inboundResponse = self.httpClient->get(path, message = request);
-        return addCookiesInResponseToStore(inboundResponse, self.cookieStore, self.cookieConfig.clone(), self.url, path);
+        return addCookiesInResponseToStore(inboundResponse, self.cookieStore, self.cookieConfig, self.url, path);
     }
 
     # The `CookieClient.post()` function wraps the underlying HTTP remote functions in a way to provide
@@ -231,7 +244,7 @@ isolated function addStoredCookiesToRequest(string url, string path, CookieStore
 
 // Gets the cookies from the inbound response, adds them to the cookies store, and returns the response.
 isolated function addCookiesInResponseToStore(Response|ClientError inboundResponse, @tainted CookieStore?
-        cookieStore, CookieConfig cookieConfig, string url, string path) returns Response|ClientError {
+        cookieStore, CookieInferredConfig cookieConfig, string url, string path) returns Response|ClientError {
     if (cookieStore is CookieStore && inboundResponse is Response) {
         Cookie[] cookiesInResponse = inboundResponse.getCookies();
         cookieStore.addCookies(cookiesInResponse, cookieConfig, url, path );
