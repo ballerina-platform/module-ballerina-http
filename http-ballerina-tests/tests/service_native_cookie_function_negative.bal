@@ -19,6 +19,8 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
+string filePath = "tests/resources/";
+
 // Test to add a cookie with unmatched domain to the cookie store
 @test:Config {}
 function testAddCookieWithUnmatchedDomain() {
@@ -89,7 +91,7 @@ function testAddHttpOnlyCookie() {
 }
 
 // Test to get a secure only cookie to unsecured request url
-@test:Config {}
+@test:Config {enable:false}
 function testNegativeGetSecureCookieFromCookieStore() {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", httpOnly = true);
@@ -233,7 +235,7 @@ function testAddPersistentCookieWithoutPersistentStore() {
 }
 
 // Test to remove a specific cookie which is not in the cookie store, when there is a persistent cookie store
-@test:Config {}
+@test:Config {enable:false}
 function testRemovePersistentCookieFromCookieStore_1() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-6.csv");

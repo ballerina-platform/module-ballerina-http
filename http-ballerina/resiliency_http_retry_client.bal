@@ -52,8 +52,6 @@ public client isolated class RetryClient {
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration config, RetryInferredConfig retryInferredConfig,
                                         HttpClient httpClient) returns ClientError? {
-        //self.url = url;
-        //self.config = config;
         self.retryInferredConfig = retryInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
     }
@@ -343,6 +341,5 @@ isolated function calculateEffectiveIntervalAndRetryCount(RetryClient retryClien
 
 isolated function getWaitTime(float backOffFactor, decimal maxWaitTime, decimal interval) returns decimal {
     decimal waitTime = interval * <decimal> backOffFactor;
-    // waitTime = waitTime > maxWaitTime ? maxWaitTime : waitTime;
     return (waitTime > maxWaitTime) ? maxWaitTime : waitTime;
 }
