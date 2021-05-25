@@ -15,7 +15,7 @@
 // under the License.
 
 # The representation of a persistent cookie handler object type for managing persistent cookies.
-public type PersistentCookieHandler object {
+public type PersistentCookieHandler isolated object {
 
     # Adds a persistent cookie to the cookie store.
     #

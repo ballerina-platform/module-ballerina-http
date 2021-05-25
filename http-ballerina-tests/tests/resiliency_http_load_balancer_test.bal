@@ -122,6 +122,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
 
     resource function 'default customResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
+        //customLbBackendEP.setLoadBalancerRule(customLbRule);
         http:Response|error response = customLbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> response);
@@ -190,9 +191,9 @@ service /LBMock5 on LBbackendListener {
 # Implementation of custom load balancing strategy.
 #
 # + index - Keep tracks the current point of the CallerActions[]
-public class CustomLoadBalancerRule {
+public isolated class CustomLoadBalancerRule {
 
-    public int index;
+    private int index;
 
     public function init(int index) {
         self.index = index;
@@ -204,20 +205,22 @@ public class CustomLoadBalancerRule {
     # + return - Choosen `CallerActions` from the algorithm or an `error` for a failure in
     #            the algorithm implementation
     public isolated function getNextClient(http:Client?[] loadBalanceClientsArray) returns http:Client|http:ClientError {
-        http:Client httpClient = <http:Client>loadBalanceClientsArray[self.index];
-        if (self.index >= loadBalanceClientsArray.length()) {
-            return error http:AllLoadBalanceEndpointsFailedError("Provided index is doesn't match with the targets.");
-        }
         lock {
-            if (self.index == (loadBalanceClientsArray.length() - 1)) {
-                httpClient = <http:Client>loadBalanceClientsArray[self.index];
-                self.index = 0;
-            } else {
-                httpClient = <http:Client>loadBalanceClientsArray[self.index];
-                self.index += 1;
+            http:Client httpClient = <http:Client>loadBalanceClientsArray[self.index];
+            if (self.index >= loadBalanceClientsArray.length()) {
+                return error http:AllLoadBalanceEndpointsFailedError("Provided index is doesn't match with the targets.");
             }
+            lock {
+                if (self.index == (loadBalanceClientsArray.length() - 1)) {
+                    httpClient = <http:Client>loadBalanceClientsArray[self.index];
+                    self.index = 0;
+                } else {
+                    httpClient = <http:Client>loadBalanceClientsArray[self.index];
+                    self.index += 1;
+                }
+            }
+            return httpClient;
         }
-        return httpClient;
     }
 }
 

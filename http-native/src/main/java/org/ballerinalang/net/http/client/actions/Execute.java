@@ -38,8 +38,8 @@ import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_SERVICE_U
 public class Execute extends AbstractHTTPAction {
     @SuppressWarnings("unchecked")
     public static Object execute(Environment env, BObject httpClient, BString verb, BString path, BObject requestObj) {
-        String url = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue();
-        BMap<BString, Object> config = (BMap<BString, Object>) httpClient.get(CLIENT_ENDPOINT_CONFIG);
+        String url = (String) httpClient.getNativeData(CLIENT_ENDPOINT_SERVICE_URI);
+        BMap<BString, Object> config = (BMap<BString, Object>) httpClient.getNativeData(CLIENT_ENDPOINT_CONFIG);
         HttpClientConnector clientConnector = (HttpClientConnector) httpClient.getNativeData(HttpConstants.CLIENT);
         HttpCarbonMessage outboundRequestMsg = createOutboundRequestMsg(config, url, verb.getValue(), path.getValue(),
                                                                         requestObj);

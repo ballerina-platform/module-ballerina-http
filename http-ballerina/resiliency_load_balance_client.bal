@@ -19,37 +19,38 @@ import ballerina/mime;
 
 # LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients.
 #
-# + loadBalanceClientConfig - The configurations for the load balance client endpoint
 # + loadBalanceClientsArray - Array of HTTP clients for load balancing
 # + lbRule - Load balancing rule
 # + failover - Whether to fail over in case of a failure
-public client class LoadBalanceClient {
+public client isolated class LoadBalanceClient {
     *ClientObject;
 
-    public LoadBalanceClientConfiguration loadBalanceClientConfig;
-    public Client?[] loadBalanceClientsArray;
-    public LoadBalancerRule lbRule;
-    public boolean failover;
+    private final Client?[] loadBalanceClientsArray;
+    private LoadBalancerRule lbRule;
+    private final boolean failover;
 
     # Load Balancer adds an additional layer to the HTTP client to make network interactions more resilient.
     #
     # + loadBalanceClientConfig - The configurations for the load balance client endpoint
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(*LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
-        self.loadBalanceClientConfig = loadBalanceClientConfig;
         self.failover = loadBalanceClientConfig.failover;
-        var lbClients = createLoadBalanceHttpClientArray(loadBalanceClientConfig);
-        if (lbClients is ClientError) {
-            return lbClients;
+        self.loadBalanceClientsArray = [];
+        Client clientEp;
+        Client?[] lbClients = self.loadBalanceClientsArray;
+        int i = 0;
+        foreach var target in loadBalanceClientConfig.targets {
+            ClientConfiguration epConfig = createClientEPConfigFromLoalBalanceEPConfig(loadBalanceClientConfig, target);
+            clientEp =  check new(target.url , epConfig);
+            lbClients[i] = clientEp;
+            i += 1;
+        }
+        var lbRule = loadBalanceClientConfig.lbRule;
+        if (lbRule is LoadBalancerRule) {
+            self.lbRule = lbRule;
         } else {
-            self.loadBalanceClientsArray = lbClients;
-            var lbRule = loadBalanceClientConfig.lbRule;
-            if (lbRule is LoadBalancerRule) {
-                self.lbRule = lbRule;
-            } else {
-                LoadBalancerRoundRobinRule loadBalancerRoundRobinRule = new;
-                self.lbRule = loadBalancerRoundRobinRule;
-            }
+            LoadBalancerRoundRobinRule loadBalancerRoundRobinRule = new;
+            self.lbRule = loadBalancerRoundRobinRule;
         }
     }
 
@@ -73,7 +74,7 @@ public client class LoadBalanceClient {
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
-        var result = performLoadBalanceAction(self, path, req, HTTP_POST);
+        var result = self.performLoadBalanceAction(path, req, HTTP_POST);
         return processResponse(result, targetType);
     }
 
@@ -97,7 +98,7 @@ public client class LoadBalanceClient {
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
-        var result = performLoadBalanceAction(self, path, req, HTTP_PUT);
+        var result = self.performLoadBalanceAction(path, req, HTTP_PUT);
         return processResponse(result, targetType);
     }
 
@@ -121,7 +122,7 @@ public client class LoadBalanceClient {
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
-        var result = performLoadBalanceAction(self, path, req, HTTP_PATCH);
+        var result = self.performLoadBalanceAction(path, req, HTTP_PATCH);
         return processResponse(result, targetType);
     }
 
@@ -145,7 +146,7 @@ public client class LoadBalanceClient {
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
-        var result = performLoadBalanceAction(self, path, req, HTTP_DELETE);
+        var result = self.performLoadBalanceAction(path, req, HTTP_DELETE);
         return processResponse(result, targetType);
     }
 
@@ -157,7 +158,7 @@ public client class LoadBalanceClient {
     remote isolated function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
             Response|ClientError {
         Request req = buildRequestWithHeaders(headers);
-        return performLoadBalanceAction(self, path, req, HTTP_HEAD);
+        return self.performLoadBalanceAction(path, req, HTTP_HEAD);
     }
 
     # The GET remote function implementation of the LoadBalancer Connector.
@@ -176,7 +177,7 @@ public client class LoadBalanceClient {
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
-        var result = performLoadBalanceAction(self, path, req, HTTP_GET);
+        var result = self.performLoadBalanceAction(path, req, HTTP_GET);
         return processResponse(result, targetType);
     }
 
@@ -196,7 +197,7 @@ public client class LoadBalanceClient {
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
-        var result = performLoadBalanceAction(self, path, req, HTTP_OPTIONS);
+        var result = self.performLoadBalanceAction(path, req, HTTP_OPTIONS);
         return processResponse(result, targetType);
     }
 
@@ -222,7 +223,7 @@ public client class LoadBalanceClient {
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
-        var result = performLoadBalanceExecuteAction(self, path, req, httpVerb);
+        var result = self.performLoadBalanceExecuteAction(path, req, httpVerb);
         return processResponse(result, targetType);
     }
 
@@ -241,7 +242,7 @@ public client class LoadBalanceClient {
 
     private isolated function processForward(string path, Request request, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
-        var result = performLoadBalanceAction(self, path, request, HTTP_FORWARD);
+        var result = self.performLoadBalanceAction(path, request, HTTP_FORWARD);
         return processResponse(result, targetType);
     }
 
@@ -292,65 +293,72 @@ public client class LoadBalanceClient {
     #
     # + promise - The Push Promise to be rejected
     remote isolated function rejectPromise(PushPromise promise) {}
-}
 
-// Performs execute action of the Load Balance connector. extract the corresponding http integer value representation
-// of the http verb and invokes the perform action method.
-isolated function performLoadBalanceExecuteAction(LoadBalanceClient lb, string path, Request request,
-                                         string httpVerb) returns @tainted Response|ClientError {
-    HttpOperation connectorAction = extractHttpOperation(httpVerb);
-    if (connectorAction != HTTP_NONE) {
-        return performLoadBalanceAction(lb, path, request, connectorAction);
-    } else {
-        return error UnsupportedActionError("Load balancer client not supported for http method: " + httpVerb);
+    // Performs execute action of the Load Balance connector. extract the corresponding http integer value representation
+    // of the http verb and invokes the perform action method.
+    isolated function performLoadBalanceExecuteAction(string path, Request request,
+                                             string httpVerb) returns @tainted Response|ClientError {
+        HttpOperation connectorAction = extractHttpOperation(httpVerb);
+        if (connectorAction != HTTP_NONE) {
+            return self.performLoadBalanceAction(path, request, connectorAction);
+        } else {
+            return error UnsupportedActionError("Load balancer client not supported for http method: " + httpVerb);
+        }
     }
-}
 
-// Handles all the actions exposed through the Load Balance connector.
-isolated function performLoadBalanceAction(LoadBalanceClient lb, string path, Request request, HttpOperation requestAction)
+    // Handles all the actions exposed through the Load Balance connector.
+    isolated function performLoadBalanceAction(string path, Request request, HttpOperation requestAction)
              returns @tainted Response|ClientError {
-    int loadBalanceTermination = 0; // Tracks at which point failover within the load balancing should be terminated.
-    //TODO: workaround to initialize a type inside a function. Change this once fix is available.
-    LoadBalanceActionErrorData loadBalanceActionErrorData = {httpActionErr:[]};
-    int lbErrorIndex = 0;
-    Request loadBalancerInRequest = request;
-    mime:Entity requestEntity = new;
+        int loadBalanceTermination = 0; // Tracks at which point failover within the load balancing should be terminated.
+        //TODO: workaround to initialize a type inside a function. Change this once fix is available.
+        LoadBalanceActionErrorData loadBalanceActionErrorData = {httpActionErr:[]};
+        int lbErrorIndex = 0;
+        Request loadBalancerInRequest = request;
+        mime:Entity requestEntity = new;
 
-    if (lb.failover) {
-        if (isMultipartRequest(loadBalancerInRequest)) {
-            loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest);
-        } else {
-            // When performing passthrough scenarios using Load Balance connector,
-            // message needs to be built before trying out the load balance endpoints to keep the request message
-            // to load balance the messages in case of failure.
-            byte[]|error binaryPayload = loadBalancerInRequest.getBinaryPayload();
-            requestEntity = check loadBalancerInRequest.getEntity();
-        }
-    }
-
-    while (loadBalanceTermination < lb.loadBalanceClientsArray.length()) {
-        var loadBalanceClient = lb.lbRule.getNextClient(lb.loadBalanceClientsArray);
-        if (loadBalanceClient is Client) {
-            var serviceResponse = invokeEndpoint(path, request, requestAction, loadBalanceClient.httpClient);
-            if (serviceResponse is Response) {
-                return serviceResponse;
-            } else if (serviceResponse is HttpFuture) {
-                return getInvalidTypeError();
+        if (self.failover) {
+            if (isMultipartRequest(loadBalancerInRequest)) {
+                loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest);
             } else {
-                if (lb.failover) {
-                    loadBalancerInRequest = check createFailoverRequest(loadBalancerInRequest, requestEntity);
-                    loadBalanceActionErrorData.httpActionErr[lbErrorIndex] = serviceResponse;
-                    lbErrorIndex += 1;
-                    loadBalanceTermination = loadBalanceTermination + 1;
-                } else {
-                    return serviceResponse;
-                }
+                // When performing passthrough scenarios using Load Balance connector,
+                // message needs to be built before trying out the load balance endpoints to keep the request message
+                // to load balance the messages in case of failure.
+                byte[]|error binaryPayload = loadBalancerInRequest.getBinaryPayload();
+                requestEntity = check loadBalancerInRequest.getEntity();
             }
-        } else {
-            return loadBalanceClient;
         }
+
+        int arrLength;
+        lock {
+            arrLength = self.loadBalanceClientsArray.length();
+        }
+        while (loadBalanceTermination < arrLength) {
+            Client|ClientError loadBalanceClient;
+            lock {
+                loadBalanceClient = self.lbRule.getNextClient(self.loadBalanceClientsArray);
+            }
+            if (loadBalanceClient is Client) {
+                var serviceResponse = invokeEndpoint(path, request, requestAction, loadBalanceClient.httpClient);
+                if (serviceResponse is Response) {
+                    return serviceResponse;
+                } else if (serviceResponse is HttpFuture) {
+                    return getInvalidTypeError();
+                } else {
+                    if (self.failover) {
+                        loadBalancerInRequest = check createFailoverRequest(loadBalancerInRequest, requestEntity);
+                        loadBalanceActionErrorData.httpActionErr[lbErrorIndex] = serviceResponse;
+                        lbErrorIndex += 1;
+                        loadBalanceTermination = loadBalanceTermination + 1;
+                    } else {
+                        return serviceResponse;
+                    }
+                }
+            } else {
+                return loadBalanceClient;
+            }
+        }
+        return populateGenericLoadBalanceActionError(loadBalanceActionErrorData);
     }
-    return populateGenericLoadBalanceActionError(loadBalanceActionErrorData);
 }
 
 // Populates generic error specific to Load Balance connector by including all the errors returned from endpoints.
@@ -402,18 +410,4 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         responseLimits:lbConfig.responseLimits
     };
     return clientEPConfig;
-}
-
-isolated function createLoadBalanceHttpClientArray(LoadBalanceClientConfiguration loadBalanceClientConfig)
-                                                                                    returns Client?[]|ClientError {
-    Client cl;
-    Client?[] httpClients = [];
-    int i = 0;
-    foreach var target in loadBalanceClientConfig.targets {
-        ClientConfiguration epConfig = createClientEPConfigFromLoalBalanceEPConfig(loadBalanceClientConfig, target);
-        cl =  check new(target.url , epConfig);
-        httpClients[i] = cl;
-        i += 1;
-    }
-    return httpClients;
 }

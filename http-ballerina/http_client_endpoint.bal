@@ -24,17 +24,15 @@ import ballerina/time;
 # using custom HTTP verbs.
 
 # + url - Target service url
-# + config - The configurations associated with the client
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner
 # + cookieStore - Stores the cookies of the client
-public client class Client {
+public client isolated class Client {
     *ClientObject;
 
-    public string url;
-    public ClientConfiguration config;
-    public HttpClient httpClient;
-    public CookieStore? cookieStore = ();
+    private final string url;
+    private CookieStore? cookieStore = ();
+    public final HttpClient httpClient;
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -44,15 +42,14 @@ public client class Client {
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(string url, *ClientConfiguration config) returns ClientError? {
-        self.config = config;
         self.url = url;
-        var cookieConfigVal = self.config.cookieConfig;
+        var cookieConfigVal = config.cookieConfig;
         if (cookieConfigVal is CookieConfig) {
             if (cookieConfigVal.enabled) {
                 self.cookieStore = new(cookieConfigVal?.persistentCookieHandler);
             }
         }
-        self.httpClient = check initialize(url, self.config, self.cookieStore);
+        self.httpClient = check initialize(url, config, self.cookieStore);
     }
 
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
@@ -344,7 +341,9 @@ public client class Client {
     #
     # + return - The cookie store related to the client
     public isolated function getCookieStore() returns CookieStore? {
-        return self.cookieStore;
+        lock {
+            return self.cookieStore;
+        }
     }
 }
 
@@ -391,7 +390,8 @@ public type ResponseLimitConfigs record {|
     int maxEntityBodySize = -1;
 |};
 
-isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig) = @java:Method {
+isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig, string clientUrl,
+ClientConfiguration clientEndpointConfig) = @java:Method {
    'class: "org.ballerinalang.net.http.client.endpoint.CreateSimpleHttpClient",
    name: "createSimpleHttpClient"
 } external;
@@ -630,13 +630,14 @@ isolated function createCookieClient(string url, ClientConfiguration configurati
         if (configuration.cache.enabled) {
             var httpCachingClient = createHttpCachingClient(url, configuration, configuration.cache);
             if (httpCachingClient is HttpClient) {
-                return new CookieClient(url, configuration, cookieConfigVal, httpCachingClient, cookieStore);
+                return new CookieClient(url, cookieConfigVal, httpCachingClient, cookieStore);
             }
             return httpCachingClient;
         }
-        var httpSecureClient = createHttpSecureClient(url, configuration);
+        //var httpSecureClient = createHttpSecureClient(url, configuration);
+        var httpSecureClient = createClient(url, configuration);
         if (httpSecureClient is HttpClient) {
-            return new CookieClient(url, configuration, cookieConfigVal, httpSecureClient, cookieStore);
+            return new CookieClient(url, cookieConfigVal, httpSecureClient, cookieStore);
         }
         return httpSecureClient;
     }

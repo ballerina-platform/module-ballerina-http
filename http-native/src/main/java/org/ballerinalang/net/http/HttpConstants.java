@@ -385,8 +385,8 @@ public class HttpConstants {
             StringUtils.fromString("OCSP_STAPLING");
 
     //Client Endpoint (CallerActions)
-    public static final BString CLIENT_ENDPOINT_SERVICE_URI = StringUtils.fromString("url");
-    public static final BString CLIENT_ENDPOINT_CONFIG = StringUtils.fromString("config");
+    public static final String CLIENT_ENDPOINT_SERVICE_URI = "url";
+    public static final String CLIENT_ENDPOINT_CONFIG = "config";
     public static final int CLIENT_ENDPOINT_CONFIG_INDEX = 0;
     public static final int CLIENT_ENDPOINT_URL_INDEX = 0;
     public static final int CLIENT_GLOBAL_POOL_INDEX = 1;

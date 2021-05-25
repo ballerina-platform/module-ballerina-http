@@ -35,8 +35,8 @@ public class Submit extends Execute {
     @SuppressWarnings("unchecked")
     public static Object submit(Environment env, BObject httpClient, BString httpVerb, BString path,
                                 BObject requestObj) {
-        String url = httpClient.getStringValue(CLIENT_ENDPOINT_SERVICE_URI).getValue();
-        BMap<BString, Object> config = (BMap<BString, Object>) httpClient.get(CLIENT_ENDPOINT_CONFIG);
+        String url = (String) httpClient.getNativeData(CLIENT_ENDPOINT_SERVICE_URI);
+        BMap<BString, Object> config = (BMap<BString, Object>) httpClient.getNativeData(CLIENT_ENDPOINT_CONFIG);
         HttpClientConnector clientConnector = (HttpClientConnector) httpClient.getNativeData(HttpConstants.CLIENT);
         HttpCarbonMessage outboundRequestMsg = createOutboundRequestMsg(url, config, path.getValue(), requestObj);
         outboundRequestMsg.setHttpMethod(httpVerb.getValue());

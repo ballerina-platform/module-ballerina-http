@@ -40,7 +40,7 @@ http:FailoverClient foBackendEP05 = check new({
 
 service /failoverDemoService05 on failoverEP05 {
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
-        string startIndex = foBackendEP05.succeededEndpointIndex.toString();
+        string startIndex = foBackendEP05.getSucceededEndpointIndex().toString();
         http:Response|error backendRes = foBackendEP05->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             string responseMessage = "Failover start index is : " + startIndex;
