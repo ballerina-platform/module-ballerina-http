@@ -171,3 +171,19 @@ isolated function getCloneWithDomainAndHostOnly(Cookie cookie, string domain, bo
     options.lastAccessedTime = cookie.lastAccessedTime;
     return new Cookie(cookie.name, cookie.value, options);
 }
+
+isolated function updateLastAccessedTime(Cookie[] cookiesToAdd) {
+    Cookie[] tempCookies = [];
+    int endValue = cookiesToAdd.length();
+    foreach var i in 0 ..< endValue {
+        Cookie cookie = cookiesToAdd.pop();
+        time:Utc lastAccessedTime = time:utcNow();
+        tempCookies.push(getClone(cookie, cookie.createdTime, lastAccessedTime));
+    }
+
+    foreach var i in 0 ..< endValue {
+        Cookie cookie = cookiesToAdd.pop();
+        time:Utc lastAccessedTime = time:utcNow();
+        cookiesToAdd.push(tempCookies.pop());
+    }
+}

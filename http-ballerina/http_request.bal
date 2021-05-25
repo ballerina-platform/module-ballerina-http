@@ -20,7 +20,6 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/regex;
 import ballerina/jballerina.java;
-import ballerina/time;
 
 # Represents an HTTP request.
 #
@@ -593,21 +592,8 @@ public class Request {
             cookieheader = cookieheader + cookie.name + EQUALS + cookie.value + SEMICOLON + SPACE;
         }
         lock {
-            Cookie[] tempCookies = [];
-            int endValue = cookiesToAdd.length();
-            foreach var i in 0 ..< endValue {
-                Cookie cookie = cookiesToAdd.pop();
-                time:Utc lastAccessedTime = time:utcNow();
-                tempCookies.push(getClone(cookie, cookie.createdTime, lastAccessedTime));
-            }
-
-            foreach var i in 0 ..< endValue {
-                Cookie cookie = cookiesToAdd.pop();
-                time:Utc lastAccessedTime = time:utcNow();
-                cookiesToAdd.push(tempCookies.pop());
-            }
+            updateLastAccessedTime(cookiesToAdd);
         }
-
         if (cookieheader != "") {
             cookieheader = cookieheader.substring(0, cookieheader.length() - 2);
             if (self.hasHeader("Cookie")) {
