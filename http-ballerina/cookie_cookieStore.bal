@@ -41,45 +41,51 @@ public isolated class CookieStore {
         if (self.getAllCookies().length() == cookieConfig.maxTotalCookieCount) {
             return error CookieHandlingError("Number of total cookies in the cookie store can not exceed the maximum amount");
         }
+
         string domain = getDomain(url);
         if (self.getCookiesByDomain(domain).length() == cookieConfig.maxCookiesPerDomain) {
             return error CookieHandlingError("Number of total cookies for the domain: " + domain + " in the cookie store can not exceed the maximum amount per domain");
         }
+
         string path  = requestPath;
         int? index = requestPath.indexOf("?");
         if (index is int) {
             path = requestPath.substring(0, index);
         }
-        Cookie? identicalCookie = self.getIdenticalCookie(cookie);
-        if (!isDomainMatched(cookie, domain, cookieConfig)) {
-            return;
-        }
-        if (!isPathMatched(cookie, path, cookieConfig)) {
-            return;
-        }
-        if (!isExpiresAttributeValid(cookie)) {
-            return;
-        }
-        if (!((url.startsWith(HTTP) && cookie.httpOnly) || cookie.httpOnly == false)) {
-            return;
-        }
 
-        lock {
-            if (cookie.isPersistent()) {
-                var persistentCookieHandler = self.persistentCookieHandler;
-                if (persistentCookieHandler is PersistentCookieHandler) {
-                    var result = self.addPersistentCookie(identicalCookie, cookie, url, persistentCookieHandler);
-                    if (result is error) {
-                        return error CookieHandlingError("Error in adding persistent cookies", result);
+        Cookie? identicalCookie = self.getIdenticalCookie(cookie);
+        Cookie? domainValidated = matchDomain(cookie, domain, cookieConfig);
+        if (domainValidated is ()) {
+            return;
+        }
+        Cookie? pathValidated = matchPath(<Cookie> domainValidated, path, cookieConfig);
+        if (pathValidated is ()) {
+            return;
+        }
+        Cookie? validated = validateExpiresAttribute(<Cookie> pathValidated);
+        if (validated is ()) {
+            return;
+        } else {
+            if (!((url.startsWith(HTTP) && validated.httpOnly) || validated.httpOnly == false)) {
+                return;
+            }
+            lock {
+                if (validated.isPersistent()) {
+                    var persistentCookieHandler = self.persistentCookieHandler;
+                    if (persistentCookieHandler is PersistentCookieHandler) {
+                        var result = self.addPersistentCookie(identicalCookie, validated, url, persistentCookieHandler);
+                        if (result is error) {
+                            return error CookieHandlingError("Error in adding persistent cookies", result);
+                        }
+                    } else if (isFirstRequest(self.allSessionCookies, domain)) {
+                        log:printError("Client is not configured to use persistent cookies. Hence, persistent cookies from "
+                                            + domain + " will be discarded.");
                     }
-                } else if (isFirstRequest(self.allSessionCookies, domain)) {
-                    log:printError("Client is not configured to use persistent cookies. Hence, persistent cookies from "
-                                        + domain + " will be discarded.");
-                }
-            } else {
-                var result = self.addSessionCookie(identicalCookie, cookie, url);
-                if (result is error) {
-                    return error CookieHandlingError("Error in adding session cookie", result);
+                } else {
+                    var result = self.addSessionCookie(identicalCookie, validated, url);
+                    if (result is error) {
+                        return error CookieHandlingError("Error in adding session cookie", result);
+                    }
                 }
             }
         }
@@ -321,8 +327,6 @@ public isolated class CookieStore {
                 if (removeResult is error) {
                     return removeResult;
                 }
-                //cookie.setCreatedTime(identicalCookie.createdTime);
-                //cookie.setLastAccessedTime(time:utcNow());
                 lock {
                     self.allSessionCookies.push(getClone(cookie, identicalCookie.createdTime, time:utcNow()));
                 }
@@ -330,8 +334,6 @@ public isolated class CookieStore {
         } else {
             // Adds the session cookie.
             lock {
-                //cookie.setCreatedTime(time:utcNow());
-                //cookie.setLastAccessedTime(time:utcNow());
                 self.allSessionCookies.push(getClone(cookie, time:utcNow(), time:utcNow()));
             }
         }
@@ -353,8 +355,6 @@ public isolated class CookieStore {
                     if (removeResult is error) {
                         return removeResult;
                     }
-                    //cookie.setCreatedTime(identicalCookie.createdTime);
-                    //cookie.setLastAccessedTime(time:utcNow());
                     Cookie newCookie = getClone(cookie, identicalCookie.createdTime, time:utcNow());
                     return persistentCookieHandler.storeCookie(newCookie);
                 }
@@ -362,8 +362,6 @@ public isolated class CookieStore {
         } else {
             // If cookie is not expired, adds that cookie.
             if (!isExpired(cookie)) {
-                //cookie.setCreatedTime(time:utcNow());
-                //cookie.setLastAccessedTime(time:utcNow());
                 Cookie newCookie = getClone(cookie, time:utcNow(), time:utcNow());
                 return persistentCookieHandler.storeCookie(newCookie);
             }
@@ -395,36 +393,34 @@ isolated function getDomain(string url) returns string {
 
 
 // Returns true if the cookie domain matches with the request domain according to [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.1.3).
-isolated function isDomainMatched(Cookie cookie, string domain, CookieConfig cookieConfig) returns boolean {
-    if (cookie.domain == ()) {
-        //cookie.domain = domain;
-        //cookie.hostOnly = true;
-        return true;
-    }
-    //cookie.hostOnly = false;
-    if (!cookieConfig.blockThirdPartyCookies) {
-        return true;
-    }
+isolated function matchDomain(Cookie cookie, string domain, CookieConfig cookieConfig) returns Cookie? {
     var cookieDomain = cookie.domain;
-    if (cookieDomain == domain || (cookieDomain is string && domain.endsWith("." + cookieDomain))) {
-        return true;
+    if (cookieDomain == ()) {
+        return getCloneWithDomainAndHostOnly(cookie, domain, true);
+    } else {
+        Cookie updatedCookie = getCloneWithDomainAndHostOnly(cookie, cookieDomain, false);
+        if (!cookieConfig.blockThirdPartyCookies) {
+            return cookie;
+        }
+        if (cookieDomain == domain || domain.endsWith("." + cookieDomain)) {
+            return cookie;
+        }
+        return;
     }
-    return false;
 }
 
 // Returns true if the cookie path matches the request path according to [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.1.4).
-isolated function isPathMatched(Cookie cookie, string path, CookieConfig cookieConfig) returns boolean {
+isolated function matchPath(Cookie cookie, string path, CookieConfig cookieConfig) returns Cookie? {
     if (cookie.path == ()) {
-        //cookie.path = path;
-        return true;
+        return getCloneWithPath(cookie, path);
     }
     if (!cookieConfig.blockThirdPartyCookies) {
-        return true;
+        return cookie;
     }
     if (checkPath(path, cookie)) {
-        return true;
+        return cookie;
     }
-    return false;
+    return;
 }
 
 isolated function checkPath(string path, Cookie cookie) returns boolean {
@@ -442,10 +438,10 @@ isolated function checkPath(string path, Cookie cookie) returns boolean {
 }
 
 // Returns true if the cookie expires attribute value is valid according to [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.1.1).
-isolated function isExpiresAttributeValid(Cookie cookie) returns boolean {
+isolated function validateExpiresAttribute(Cookie cookie) returns Cookie? {
     var expiryTime = cookie.expires;
     if (expiryTime is ()) {
-         return true;
+         return cookie;
     } else {
         time:Utc|error t1 = utcFromString(expiryTime.substring(0, expiryTime.length() - 4), "E, dd MMM yyyy HH:mm:ss");
         if (t1 is time:Utc) {
@@ -456,14 +452,13 @@ isolated function isExpiresAttributeValid(Cookie cookie) returns boolean {
                 time:Utc tmAdd = time:utcAddSeconds(t1, 63072000000);
                 string|error timeString = utcToString(tmAdd, "E, dd MMM yyyy HH:mm:ss");
                 if (timeString is string) {
-                    //cookie.expires = timeString + "GMT";
-                    return true;
+                    return getCloneWithExpiresAndMaxAge(cookie, timeString + "GMT", cookie.maxAge);
                 }
-                return false;
+                return;
             }
-            return true;
+            return cookie;
         }
-        return false;
+        return;
     }
 }
 
@@ -495,24 +490,4 @@ isolated function isExpired(Cookie cookie) returns boolean {
         return false;
     }
     return false;
-}
-
-isolated function getClone(Cookie cookie, time:Utc createdTime, time:Utc lastAccessedTime) returns Cookie {
-    CookieOptions options = {};
-    if cookie.domain is string {
-        options.domain = <string> cookie.domain;
-    }
-    if cookie.path is string {
-        options.path = <string> cookie.path;
-    }
-    if cookie.expires is string {
-        options.expires = <string> cookie.expires;
-    }
-    options.maxAge = cookie.maxAge;
-    options.httpOnly = cookie.httpOnly;
-    options.secure = cookie.secure;
-    options.hostOnly = cookie.hostOnly;
-    options.createdTime = createdTime;
-    options.lastAccessedTime = lastAccessedTime;
-    return new Cookie(cookie.name, cookie.value, options);
 }

@@ -634,8 +634,7 @@ isolated function createCookieClient(string url, ClientConfiguration configurati
             }
             return httpCachingClient;
         }
-        //var httpSecureClient = createHttpSecureClient(url, configuration);
-        var httpSecureClient = createClient(url, configuration);
+        var httpSecureClient = createHttpSecureClient(url, configuration);
         if (httpSecureClient is HttpClient) {
             return new CookieClient(url, cookieConfigVal, httpSecureClient, cookieStore);
         }

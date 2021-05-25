@@ -14,10 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/lang.'int as ints;
 import ballerina/lang.'string as strings;
-import ballerina/log;
-import ballerina/regex;
 import ballerina/time;
 
 # The options to be used when initializing the `http:Cookie`.
@@ -76,11 +73,44 @@ public readonly class Cookie {
     # + value - Value of the `http:Cookie`
     # + config - The options to be used when initializing the `http:Cookie`
     public isolated function init(string name, string value, *CookieOptions options) {
-        self.name = name;
-        self.value = value;
-        self.path = options?.path;
-        self.domain = options?.domain;
-        self.expires = options?.expires;
+        self.name = name.trim();
+        self.value = value.trim();
+        var domain = options?.domain;
+        if (domain is string) {
+            domain = domain.trim().toLowerAscii();
+            if (domain.startsWith(".")) {
+                domain = domain.substring(1, domain.length());
+            }
+            if (domain.endsWith(".")) {
+                domain = domain.substring(0, domain.length() - 1);
+            }
+            self.domain = domain;
+        } else {
+            self.domain = ();
+        }
+        var path = options?.path;
+        if (path is string) {
+            self.path = path.trim();
+        } else {
+            self.path = ();
+        }
+        var expires = options?.expires;
+        if (expires is string) {
+            expires = expires.trim();
+            time:Utc|error t1 = utcFromString(expires, "yyyy-MM-dd HH:mm:ss");
+            if (t1 is time:Utc) {
+                string|error timeString = utcToString(t1, "E, dd MMM yyyy HH:mm:ss");
+                if (timeString is string) {
+                    self.expires = timeString + "GMT";
+                } else {
+                    self.expires = expires;
+                }
+            } else {
+                self.expires = expires;
+            }
+        } else {
+            self.expires = ();
+        }
         self.maxAge = options.maxAge;
         self.httpOnly = options.httpOnly;
         self.secure = options.secure;
@@ -103,46 +133,27 @@ public readonly class Cookie {
     #
     # + return  - `true` if the attributes of the cookie are in the correct format or else an `http:InvalidCookieError`
     public isolated function isValid() returns boolean|InvalidCookieError {
-        var name = self.name;
-        name = name.trim();
-        if (name == "") {
+        if (self.name == "") {
             return error InvalidCookieError("Invalid name: Name cannot be empty");
         }
-        //self.name = name;
-        var value = self.value;
-        value = value.trim();
-        if (value == "") {
+        if (self.value == "") {
             return error InvalidCookieError("Invalid value: Value cannot be empty");
         }
-        //self.value = value;
         var domain = self.domain;
         if (domain is string) {
-            domain = domain.trim().toLowerAscii();
             if (domain == "") {
                 return error InvalidCookieError("Invalid domain: Domain cannot be empty");
             }
-            if (domain.startsWith(".")) {
-                domain = domain.substring(1, domain.length());
-            }
-            if (domain.endsWith(".")) {
-                domain = domain.substring(0, domain.length() - 1);
-            }
-            //self.domain = domain;
         }
         var path = self.path;
         if (path is string) {
-            path = path.trim();
             if (path == "" || !path.startsWith("/") || strings:includes(path, "?")) {
                 return error InvalidCookieError("Invalid path: Path is not in correct format");
             }
-            //self.path = path;
         }
         var expires = self.expires;
-        if (expires is string) {
-            expires = expires.trim();
-            if (!toGmtFormat(self, expires)) {
-                return error InvalidCookieError("Invalid time: Expiry-time is not in yyyy-mm-dd hh:mm:ss format");
-            }
+        if (expires is string && !expires.endsWith("GMT") && !toGmtFormat(expires)) {
+            return error InvalidCookieError("Invalid time: Expiry-time is not in yyyy-mm-dd hh:mm:ss format");
         }
         if (self.maxAge < 0) {
             return error InvalidCookieError("Invalid max-age: Max Age can not be less than zero");
@@ -185,13 +196,12 @@ public readonly class Cookie {
 }
 
 // Converts the cookie's expiry time into the GMT format.
-isolated function toGmtFormat(Cookie cookie, string expires) returns boolean {
+isolated function toGmtFormat(string expires) returns boolean {
     // TODO check this formatter with new time API
     time:Utc|error t1 = utcFromString(expires, "yyyy-MM-dd HH:mm:ss");
     if (t1 is time:Utc) {
         string|error timeString = utcToString(t1, "E, dd MMM yyyy HH:mm:ss");
         if (timeString is string) {
-            //cookie.expires = timeString + "GMT";
             return true;
         }
     }
@@ -218,81 +228,4 @@ isolated function appendOnlyName(string setCookieHeaderValue, string name) retur
 
 isolated function appendNameIntValuePair(string setCookieHeaderValue, string name, int value) returns string {
     return setCookieHeaderValue + name + EQUALS + value.toString() + SEMICOLON + SPACE;
-}
-
-// Returns the cookie object from the string value of the "Set-Cookie" header.
-isolated function parseSetCookieHeader(string cookieStringValue) returns Cookie {
-    string cookieValue = cookieStringValue;
-    string[] result = regex:split(cookieValue, SEMICOLON + SPACE);
-    string[] nameValuePair = regex:split(result[0], EQUALS);
-    CookieOptions options = {};
-    foreach var item in result {
-        nameValuePair = regex:split(item, EQUALS);
-        match nameValuePair[0] {
-            DOMAIN_ATTRIBUTE => {
-                options.domain = nameValuePair[1];
-            }
-            PATH_ATTRIBUTE => {
-                options.path = nameValuePair[1];
-            }
-            MAX_AGE_ATTRIBUTE => {
-                int|error age = ints:fromString(nameValuePair[1]);
-                if (age is int) {
-                    options.maxAge = age;
-                }
-            }
-            EXPIRES_ATTRIBUTE => {
-                options.expires = nameValuePair[1];
-            }
-            SECURE_ATTRIBUTE => {
-                options.secure = true;
-            }
-            HTTP_ONLY_ATTRIBUTE => {
-                options.httpOnly = true;
-            }
-        }
-    }
-    Cookie cookie = new (nameValuePair[0], nameValuePair[1], options);
-    return cookie;
-}
-
-// Returns an array of cookie objects from the string value of the "Cookie" header.
-isolated function parseCookieHeader(string cookieStringValue) returns Cookie[] {
-    Cookie[] cookiesInRequest = [];
-    string cookieValue = cookieStringValue;
-    string[] nameValuePairs = regex:split(cookieValue, SEMICOLON + SPACE);
-    foreach var item in nameValuePairs {
-        if (regex:matches(item, "^([^=]+)=.*$")) {
-            string[] nameValue = regex:split(item, EQUALS);
-            Cookie cookie;
-            if (nameValue.length() > 1) {
-                cookie = new (nameValue[0], nameValue[1]);
-            } else {
-                cookie = new (nameValue[0], "");
-            }
-            cookiesInRequest.push(cookie);
-        } else {
-            log:printError("Invalid cookie: " + item + ", which must be in the format as [{name}=].");
-        }
-    }
-    return cookiesInRequest;
-}
-
-// Returns a value to be used for sorting an array of cookies in order to create the "Cookie" header in the request.
-// This value is returned according to the rules in [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.4).
-isolated function comparator(Cookie c1, Cookie c2) returns int {
-    var cookiePath1 = c1.path;
-    var cookiePath2 = c2.path;
-    int l1 = 0;
-    int l2 = 0;
-    if (cookiePath1 is string) {
-        l1 = cookiePath1.length();
-    }
-    if (cookiePath2 is string) {
-        l2 = cookiePath2.length();
-    }
-    if (l1 != l2) {
-        return l2 - l1;
-    }
-    return <int> time:utcDiffSeconds(c1.createdTime, c2.createdTime);
 }
