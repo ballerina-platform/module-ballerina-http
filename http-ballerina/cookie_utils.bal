@@ -182,8 +182,6 @@ isolated function updateLastAccessedTime(Cookie[] cookiesToAdd) {
     }
 
     foreach var i in 0 ..< endValue {
-        Cookie cookie = cookiesToAdd.pop();
-        time:Utc lastAccessedTime = time:utcNow();
         cookiesToAdd.push(tempCookies.pop());
     }
 }
