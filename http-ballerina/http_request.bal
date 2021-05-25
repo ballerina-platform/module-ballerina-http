@@ -591,10 +591,23 @@ public class Request {
         });
         foreach var cookie in sortedCookies {
             cookieheader = cookieheader + cookie.name + EQUALS + cookie.value + SEMICOLON + SPACE;
-            time:Utc lastAccessedTime = time:utcNow();
-            //TODO:L1
-            //cookie.setLastAccessedTime(lastAccessedTime);
         }
+        lock {
+            Cookie[] tempCookies = [];
+            int endValue = cookiesToAdd.length();
+            foreach var i in 0 ..< endValue {
+                Cookie cookie = cookiesToAdd.pop();
+                time:Utc lastAccessedTime = time:utcNow();
+                tempCookies.push(getClone(cookie, cookie.createdTime, lastAccessedTime));
+            }
+
+            foreach var i in 0 ..< endValue {
+                Cookie cookie = cookiesToAdd.pop();
+                time:Utc lastAccessedTime = time:utcNow();
+                cookiesToAdd.push(tempCookies.pop());
+            }
+        }
+
         if (cookieheader != "") {
             cookieheader = cookieheader.substring(0, cookieheader.length() - 2);
             if (self.hasHeader("Cookie")) {

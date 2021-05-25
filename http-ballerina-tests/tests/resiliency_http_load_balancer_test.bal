@@ -122,7 +122,6 @@ service /loadBalancerDemoService on new http:Listener(9313) {
 
     resource function 'default customResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        //customLbBackendEP.setLoadBalancerRule(customLbRule);
         http:Response|error response = customLbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> response);
