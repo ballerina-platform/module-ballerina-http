@@ -172,6 +172,26 @@ isolated function getCloneWithDomainAndHostOnly(Cookie cookie, string domain, bo
     return new Cookie(cookie.name, cookie.value, options);
 }
 
+isolated function getCloneWithHostOnly(Cookie cookie, boolean hostOnly) returns Cookie {
+    CookieOptions options = {};
+    if cookie.path is string {
+        options.path = <string> cookie.path;
+    }
+    if cookie.domain is string {
+        options.domain = <string> cookie.domain;
+    }
+    if cookie.expires is string {
+        options.expires = <string> cookie.expires;
+    }
+    options.maxAge = cookie.maxAge;
+    options.httpOnly = cookie.httpOnly;
+    options.secure = cookie.secure;
+    options.hostOnly = hostOnly;
+    options.createdTime = cookie.createdTime;
+    options.lastAccessedTime = cookie.lastAccessedTime;
+    return new Cookie(cookie.name, cookie.value, options);
+}
+
 isolated function updateLastAccessedTime(Cookie[] cookiesToAdd) {
     Cookie[] tempCookies = [];
     int endValue = cookiesToAdd.length();
