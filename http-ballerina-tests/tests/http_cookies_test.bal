@@ -19,7 +19,9 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-service /cookie on new http:Listener(9253) {
+listener http:Listener CookieTestserverEP = new (9253);
+
+service /cookie on CookieTestserverEP {
 
     resource function get addPersistentAndSessionCookies(http:Caller caller, http:Request req) {
 
@@ -279,6 +281,46 @@ service /cookie on new http:Listener(9253) {
             string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
             error? result = caller->respond(res);
+        }
+    }
+}
+
+service /cookieDemo on CookieTestserverEP {
+    resource function post login(http:Request req) returns http:Response|http:BadRequest {
+        json|error details = req.getJsonPayload();
+        if (details is json) {
+            json|error name = details.name;
+            json|error password = details.password;
+
+            if (name is json && password is json) {
+                if (password == "p@ssw0rd") {
+                    http:Cookie cookie = new("username", name.toString(), path = "/", hostOnly = false);
+                    http:Response response = new;
+                    response.addCookie(cookie);
+                    response.setTextPayload("Login succeeded");
+                    return response;
+                }
+            }
+        }
+        return {body: "Invalid request payload"};
+    }
+
+    resource function get welcome(http:Request req) returns string {
+        http:Cookie[] cookies = req.getCookies();
+        http:Cookie[] usernameCookie = cookies.filter(function
+                                (http:Cookie cookie) returns boolean {
+            return cookie.name == "username";
+        });
+
+        if (usernameCookie.length() > 0) {
+            string? user = usernameCookie[0].value;
+            if (user is string) {
+                return "Welcome back " + <@untainted> user;
+            } else {
+                return "Please login";
+            }
+        } else {
+            return "Please login";
         }
     }
 }
@@ -729,4 +771,25 @@ public function testExecuteSendPersistentCookiesWithoutPersistentCookieHandler()
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
+}
+
+@test:Config {}
+public function testCaseSensitiveDomain() returns error? {
+    http:Client httpClient = checkpanic new("http://localhost:9253/cookieDemo", {
+          cookieConfig: { enabled: true }
+      });
+    http:Request request = new;
+    json jsonPart = {
+        name: "John",
+        password: "p@ssw0rd"
+    };
+    request.setJsonPayload(jsonPart);
+    http:Response|error loginResp = httpClient->post("/login", request);
+
+    if (loginResp is error) {
+        test:assertFail(msg = "Found unexpected output type: " + loginResp.message());
+    } else {
+        string welcomeResp = check httpClient->get("/welcome");
+        test:assertEquals(welcomeResp, "Welcome back John");
+    }
 }

@@ -388,7 +388,7 @@ isolated function getDomain(string url) returns string {
     } else if (url.startsWith(URL_TYPE_4)) {
         domain = url.substring(URL_TYPE_4.length(), url.length());
     }
-    return domain;
+    return domain.toLowerAscii();
 }
 
 
@@ -398,12 +398,13 @@ isolated function matchDomain(Cookie cookie, string domain, CookieConfig cookieC
     if (cookieDomain == ()) {
         return getCloneWithDomainAndHostOnly(cookie, domain, true);
     } else {
-        Cookie updatedCookie = getCloneWithDomainAndHostOnly(cookie, cookieDomain, false);
+        Cookie newCookie = getCloneWithHostOnly(cookie, false);
         if (!cookieConfig.blockThirdPartyCookies) {
-            return cookie;
+            return newCookie;
         }
+        Cookie updatedCookie = getCloneWithDomainAndHostOnly(newCookie, cookieDomain, false);
         if (cookieDomain == domain || domain.endsWith("." + cookieDomain)) {
-            return cookie;
+            return updatedCookie;
         }
         return;
     }
