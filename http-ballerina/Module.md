@@ -1,6 +1,6 @@
 ## Overview
 
-This module provides an implementation for connecting and interacting with HTTP and HTTP2 endpoints. It
+This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It
 facilitates two types of network entry points as the `Client` and `Listener`.
 
 ### Client
