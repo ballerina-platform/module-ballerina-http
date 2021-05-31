@@ -123,7 +123,7 @@ function testValidUrlLength() {
 function testInvalidUrlLength() {
     http:Client limitClient = checkpanic new("http://localhost:" + requestLimitsTestPort2.toString());
     http:Response|error response = limitClient->get("/lowRequestUriLimit/invalidUrl");
-    if (response is http:Response) {
+    if (response is http:ApplicationResponseError) {
         //414 Request-URI Too Long
         test:assertEquals(response.detail().statusCode, 414, msg = "Found unexpected output");
     } else {

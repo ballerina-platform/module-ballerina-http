@@ -183,11 +183,11 @@ function testNoContentWithoutBody() {
 //Test ballerina noContent() function without entity body
 @test:Config {}
 function testNoContentWithDataBinding() {
-    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/noContentWithoutBody");
+    string|error response = httpStatusCodeClient->get("/differentStatusCodes/noContentWithoutBody");
     if (response is error) {
         test:assertEquals(response.message(), "No payload status code: 204", msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: string");
     }
 }
 

@@ -260,7 +260,7 @@ function testAllLbEndpointFailure() {
     string expectedMessage = "All the load balance endpoints failed. Last error was: Idle timeout triggered " +
                 "before initiating inbound response";
     http:Response|error response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
-    if (response is http:Response) {
+    if (response is http:ApplicationResponseError) {
         test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
         assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
         assertTrueTextPayload(<string> response.detail().body, expectedMessage);

@@ -749,7 +749,7 @@ isolated function getHeaders(Response response) returns map<string[]> {
 
 isolated function createResponseError(int statusCode, string reasonPhrase, map<string[]> headers, anydata body = ())
         returns ClientRequestError|RemoteServerError {
-    if (400 <= statusCode && statusCode <= 499 ) {
+    if (400 <= statusCode && statusCode <= 499) {
         return error ClientRequestError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
     } else {
         return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);

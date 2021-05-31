@@ -105,11 +105,11 @@ function testContinueAction() {
 @test:Config {dependsOn:[testContinueAction]}
 function testNegativeContinueAction() {
     http:Response|error response = httpClientContinueClient->get("/continue/failure");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+    if (response is http:ApplicationResponseError) {
+        test:assertEquals(response.detail().statusCode, 417, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 

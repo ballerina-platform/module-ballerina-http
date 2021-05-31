@@ -258,7 +258,7 @@ public client isolated class LoadBalanceClient {
 
     # The hasPromise implementation of the LoadBalancer Connector.
     #
-    # + httpFuture - The `http:HttpFuture` related to a previous Fasynchronous invocation
+    # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
     remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return false;

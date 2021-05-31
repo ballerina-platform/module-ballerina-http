@@ -299,6 +299,7 @@ function test5XXErrorPanic() {
     if (response is http:RemoteServerError) {
         test:assertEquals(response.detail().statusCode, 501, msg = "Found unexpected output");
         assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        assertErrorHeaderValue(response.detail().headers["X-Type"], "test");
         assertTextPayload(<string> response.detail().body, "data-binding-failed-with-501");
     } else {
         test:assertFail(msg = "Found unexpected output: http:Response");
@@ -312,7 +313,6 @@ function test5XXHandleError() {
     if (response is http:RemoteServerError) {
         test:assertEquals(response.detail().statusCode, 501, msg = "Found unexpected output");
         assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
-        assertErrorHeaderValue(response.detail().headers["X-Type"], "test");
         assertTextPayload(<string> response.detail().body, "data-binding-failed-with-501");
     } else {
         test:assertFail(msg = "Found unexpected output: http:Response");

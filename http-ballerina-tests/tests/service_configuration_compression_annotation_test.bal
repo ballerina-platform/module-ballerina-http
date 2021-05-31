@@ -212,7 +212,7 @@ function testNeverCompressWithAcceptEncoding() {
     http:Request req = new;
     req.setTextPayload("hello");
     req.setHeader(ACCEPT_ENCODING, ENCODING_GZIP);
-    http:Response|error response = compressionClient->get("/userOverridenValue", req);
+    http:Response|error response = compressionClient->get("/userOverridenValue");
     if (response is http:Response) {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE, 
             msg = "The content-encoding header of the response that was sent " +
