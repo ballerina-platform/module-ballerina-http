@@ -225,12 +225,12 @@ function testResponseWithErrorStatusCodes() {
                 "Last endpoint returned response is: 503 Service Unavailable";
     http:Client testClient = checkpanic new("http://localhost:9304");
     http:Response|error response = testClient->post("/failoverDemoService04/invokeAllFailureStatusCodesEndpoint", requestPayload);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), expectedMessage);
+    if (response is http:RemoteServerError) {
+        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        assertTextPayload(<string> response.detail().body, expectedMessage);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 

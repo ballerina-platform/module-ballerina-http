@@ -52,11 +52,11 @@ service /idleTimeout on idleTimeoutListenerEP {
 @test:Config {}
 function test500Response() {
     http:Response|error response = idleTimeoutClient->get("/idleTimeout/timeout500");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 408, msg = "Found unexpected output");
-        test:assertEquals(response.server, "Mysql");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 408, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers["server"],  "Mysql");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 }
 

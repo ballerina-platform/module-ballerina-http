@@ -231,19 +231,10 @@ public client isolated class LoadBalanceClient {
     #
     # + path - Resource path
     # + request - An HTTP request
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote isolated function forward(@untainted string path, Request request, TargetType targetType = <>)
-            returns @tainted targetType|ClientError = @java:Method {
-        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
-    } external;
-
-    private isolated function processForward(string path, Request request, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function forward(@untainted string path, Request request) returns @tainted Response|ClientError {
         var result = self.performLoadBalanceAction(path, request, HTTP_FORWARD);
-        return processResponse(result, targetType);
+        return result;
     }
 
     # The submit implementation of the LoadBalancer Connector.

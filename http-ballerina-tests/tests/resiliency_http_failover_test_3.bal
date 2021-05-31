@@ -226,11 +226,11 @@ function testAllEndpointFailure() {
                 "Idle timeout triggered before initiating inbound response";
     http:Client testClient = checkpanic new("http://localhost:9303");
     http:Response|error response = testClient->post("/failoverDemoService03/invokeAllFailureEndpoint", requestPayload);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), expectedMessage);
+    if (response is http:ApplicationResponseError) {
+        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        assertTextPayload(<string> response.detail().body, expectedMessage);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }

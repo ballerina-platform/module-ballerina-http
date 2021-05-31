@@ -73,11 +73,11 @@ function testSetServerHeaderManuallyFromSuccessResponse() {
 @test:Config {}
 function testHeaderServerFromUnSuccessResponse() {
     http:Response|error response = httpServerFieldClient->get("/httpServerFieldEcho1");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
-        test:assertEquals(response.server, "Mysql");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 405, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers["server"], "Mysql");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -87,11 +87,11 @@ function testHeaderServerFromUnSuccessResponse1() {
     http:Request req = new;
     req.setTextPayload("{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
     http:Response|error response = httpServerFieldClient->post("/ec/ho", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        test:assertEquals(response.server, "Mysql");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers["server"], "Mysql");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -114,11 +114,11 @@ function testDefaultHeaderServerFromSuccessResponse() {
 @test:Config {}
 function testDefaultHeaderServerFromUnSuccessResponse() {
     http:Response|error response = echoServiceClient->get("/echoServiceTest1");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
-        test:assertEquals(response.server, "ballerina");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 405, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers["server"], "ballerina");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -129,10 +129,10 @@ function testDefaultHeaderServerFromUnSuccessResponse1() {
     string requestMessage = "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}";
     req.setTextPayload(requestMessage);
     http:Response|error response = echoServiceClient->post("/ec/ho", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        test:assertEquals(response.server, "ballerina");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers["server"], "ballerina");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }

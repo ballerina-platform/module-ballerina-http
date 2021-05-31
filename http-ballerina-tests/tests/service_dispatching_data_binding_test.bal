@@ -265,11 +265,11 @@ function testDataBindingCompatiblePayload() {
 function testDataBindingWithoutPayload() {
     http:Request req = new;
     http:Response|error response = dataBindingClient->get("/echo/body1");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"String payload is null\")");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(<string> response.detail().body, "data binding failed: error(\"String payload is null\")");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -278,11 +278,12 @@ function testDataBindingIncompatibleXMLPayload() {
     http:Request req = new;
     req.setJsonPayload({name:"WSO2", team:"ballerina"});
     http:Response|error response = dataBindingClient->post("/echo/body4", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"failed to create xml: Unexpected character");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertTrueTextPayload(<string> response.detail().body,
+            "data binding failed: error(\"failed to create xml: Unexpected character");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: ");
     }
 }
 
@@ -291,11 +292,11 @@ function testDataBindingIncompatibleStructPayload() {
     http:Request req = new;
     req.setTextPayload("ballerina");
     http:Response|error response = dataBindingClient->post("/echo/body6", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'ballerina'");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertTrueTextPayload(<string> response.detail().body, "data binding failed: error(\"unrecognized token 'ballerina'");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -303,11 +304,11 @@ function testDataBindingIncompatibleStructPayload() {
 function testDataBindingWithEmptyJsonPayload() {
     http:Request req = new;
     http:Response|error response = dataBindingClient->get("/echo/body3");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"empty JSON document\")");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(<string> response.detail().body, "data binding failed: error(\"empty JSON document\")");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -316,12 +317,12 @@ function testDataBindingStructWithNoMatchingContent() {
     http:Request req = new;
     req.setJsonPayload({name:"WSO2", team:8});
     http:Response|error response = dataBindingClient->post("/echo/body6", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(<string> response.detail().body, "data binding failed: error(\"{ballerina/lang.typedesc}" +
             "ConversionError\",message=\"'map<json>' value cannot be converted to 'http_tests:Person'\")");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -330,12 +331,12 @@ function testDataBindingStructWithInvalidTypes() {
     http:Request req = new;
     req.setJsonPayload({name:"WSO2", team:8});
     http:Response|error response = dataBindingClient->post("/echo/body7", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(<string> response.detail().body, "data binding failed: error(\"{ballerina/lang.typedesc}" +
             "ConversionError\",message=\"'map<json>' value cannot be converted to 'http_tests:Stock'\")");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -344,12 +345,12 @@ function testDataBindingWithRecordArrayNegative() {
     http:Request req = new;
     req.setJsonPayload([{name:"wso2",team:12}, {lang:"ballerina",age:3}]);
     http:Response|error response = dataBindingClient->post("/echo/body8", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(<string> response.detail().body, "data binding failed: error(\"{ballerina/lang.typedesc}" +
             "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]'\")");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 

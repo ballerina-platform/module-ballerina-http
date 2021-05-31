@@ -180,16 +180,27 @@ function testNoContentWithoutBody() {
     }
 }
 
+//Test ballerina noContent() function without entity body
+@test:Config {}
+function testNoContentWithDataBinding() {
+    string|error response = httpStatusCodeClient->get("/differentStatusCodes/noContentWithoutBody");
+    if (response is error) {
+        test:assertEquals(response.message(), "No payload status code: 204", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: string");
+    }
+}
+
 //Test ballerina badRequest() function with entity body
 @test:Config {}
 function testBadRequestWithBody() {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/badRequestWithBody");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
-        test:assertEquals(response.getXmlPayload(), xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], APPLICATION_XML);
+        test:assertEquals(<xml> response.detail().body, xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -197,10 +208,12 @@ function testBadRequestWithBody() {
 @test:Config {}
 function testBadRequestWithoutBody() {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/badRequestWithoutBody");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        test:assertTrue(response.detail().headers[CONTENT_TYPE] is ());
+        test:assertTrue(response.detail().body is (), msg = "Mismatched payload");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -208,12 +221,12 @@ function testBadRequestWithoutBody() {
 @test:Config {}
 function testNotFoundWithBody() {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/notFoundWithBody");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
-        test:assertEquals(response.getXmlPayload(), xml `<test>artifacts not found</test>`, msg = "Mismatched xml payload");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], APPLICATION_XML);
+        test:assertEquals(<xml> response.detail().body, xml `<test>artifacts not found</test>`, msg = "Mismatched xml payload");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -221,10 +234,12 @@ function testNotFoundWithBody() {
 @test:Config {}
 function testNotFoundWithoutBody() {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/notFoundWithoutBody");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
+        test:assertTrue(response.detail().headers[CONTENT_TYPE] is ());
+        test:assertTrue(response.detail().body is (), msg = "Mismatched payload");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -232,12 +247,12 @@ function testNotFoundWithoutBody() {
 @test:Config {}
 function testInternalServerErrWithBody() {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/serverErrWithBody");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
-        test:assertEquals(response.getXmlPayload(), xml `<test>Internal Server Error Occurred</test>`, msg = "Mismatched xml payload");
+    if (response is http:RemoteServerError) {
+        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], APPLICATION_XML);
+        test:assertEquals(<xml> response.detail().body, xml `<test>Internal Server Error Occurred</test>`, msg = "Mismatched xml payload");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -245,9 +260,11 @@ function testInternalServerErrWithBody() {
 @test:Config {}
 function testInternalServerErrWithoutBody() {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/serverErrWithoutBody");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+    if (response is http:RemoteServerError) {
+        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
+        test:assertTrue(response.detail().headers[CONTENT_TYPE] is ());
+        test:assertTrue(response.detail().body is (), msg = "Mismatched payload");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
