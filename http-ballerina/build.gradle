@@ -207,8 +207,10 @@ updateTomlFiles.dependsOn copyStdlibs
 
 build.dependsOn ":${packageName}-native:build"
 build.dependsOn ":${packageName}-compiler-plugin:build"
+build.finalizedBy ":http-ballerina-tests:build"
 test.dependsOn ":${packageName}-native:build"
 test.dependsOn ":${packageName}-compiler-plugin:build"
+test.finalizedBy ":http-ballerina-tests:build"
 
 publishToMavenLocal.dependsOn build
 publish.dependsOn build
