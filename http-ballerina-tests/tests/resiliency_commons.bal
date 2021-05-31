@@ -85,7 +85,7 @@ function invokeApiAndVerifyResponseWithHttpOptions(http:Client testClient, strin
     } else {
         if (response is http:ApplicationResponseError) {
             test:assertEquals(response.detail().statusCode, dataFeed.responseCode, msg = "Found unexpected output");
-            assertTrueTextPayload(<string> response.detail().body, dataFeed.message);
+            test:assertTrue(response.detail().body is (), msg = "Found unexpected output");
         } else {
             test:assertFail(msg = "Found unexpected output type: " + response.message());
         }

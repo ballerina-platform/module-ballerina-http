@@ -75,7 +75,7 @@ function testHeaderServerFromUnSuccessResponse() {
     http:Response|error response = httpServerFieldClient->get("/httpServerFieldEcho1");
     if (response is http:ClientRequestError) {
         test:assertEquals(response.detail().statusCode, 405, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers["Server"], "Mysql");
+        assertErrorHeaderValue(response.detail().headers["server"], "Mysql");
     } else {
         test:assertFail(msg = "Found unexpected output type: http:Response");
     }
@@ -89,7 +89,7 @@ function testHeaderServerFromUnSuccessResponse1() {
     http:Response|error response = httpServerFieldClient->post("/ec/ho", req);
     if (response is http:ClientRequestError) {
         test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers["Server"], "Mysql");
+        assertErrorHeaderValue(response.detail().headers["server"], "Mysql");
     } else {
         test:assertFail(msg = "Found unexpected output type: http:Response");
     }
@@ -116,7 +116,7 @@ function testDefaultHeaderServerFromUnSuccessResponse() {
     http:Response|error response = echoServiceClient->get("/echoServiceTest1");
     if (response is http:ClientRequestError) {
         test:assertEquals(response.detail().statusCode, 405, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers["Server"], "ballerina");
+        assertErrorHeaderValue(response.detail().headers["server"], "ballerina");
     } else {
         test:assertFail(msg = "Found unexpected output type: http:Response");
     }
@@ -131,7 +131,7 @@ function testDefaultHeaderServerFromUnSuccessResponse1() {
     http:Response|error response = echoServiceClient->post("/ec/ho", req);
     if (response is http:ClientRequestError) {
         test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers["Server"], "ballerina");
+        assertErrorHeaderValue(response.detail().headers["server"], "ballerina");
     } else {
         test:assertFail(msg = "Found unexpected output type: http:Response");
     }
