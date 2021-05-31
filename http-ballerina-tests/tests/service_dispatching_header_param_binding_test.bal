@@ -101,10 +101,10 @@ function testHeaderBindingCaseInSensitivity() {
 function testHeaderUnavailability() {
     http:Response|error response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400);
-        assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
+        test:assertEquals(response.detail().statusCode, 400);
+        assertTextPayload(<string> response.detail().body, "no header value found for 'foo'");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -114,10 +114,10 @@ function testHeaderArrayUnavailability() {
     req.setTextPayload("All in one");
     http:Response|error response = headerBindingClient->post("/headerparamservice/q1/hello?b=hi", req);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400);
-        assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
+        test:assertEquals(response.detail().statusCode, 400);
+        assertTextPayload(<string> response.detail().body, "no header value found for 'foo'");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 

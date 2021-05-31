@@ -67,7 +67,7 @@ service /'continue on httpClientContinueListenerEP1 {
 
 service /'continue on httpClientContinueListenerEP2  {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         req.addHeader("content-type", "text/plain");
         req.addHeader("Expect", "100-continue");
         req.setPayload("Hi");
@@ -75,20 +75,16 @@ service /'continue on httpClientContinueListenerEP2  {
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            checkpanic caller->respond("Error: " + <@untainted> response.toString());
+            return response;
         }
     }
 
-    resource function get failure(http:Caller caller, http:Request req) {
+    resource function get failure(http:Caller caller, http:Request req) returns error? {
         req.addHeader("Expect", "100-continue");
         req.addHeader("content-type", "application/json");
         req.setPayload({ name: "apple", color: "red" });
-        http:Response|error response = continueClient->post("/continue", <@untainted> req);
-        if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
-        } else {
-            checkpanic caller->respond("Error: " + <@untainted> response.toString());
-        }
+        http:Response response = check continueClient->post("/continue", <@untainted> req);
+        checkpanic caller->respond(<@untainted> response);
     }
 }
 

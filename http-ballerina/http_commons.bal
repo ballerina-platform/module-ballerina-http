@@ -281,8 +281,7 @@ isolated function getInvalidTypeError() returns ClientError {
 }
 
 isolated function createErrorForNoPayload(mime:Error err) returns GenericClientError {
-    string message = "No payload";
-    return error GenericClientError(message, err);
+    return error NoContentError("No content", err);
 }
 
 isolated function getStatusCodeRange(string statusCode) returns string {

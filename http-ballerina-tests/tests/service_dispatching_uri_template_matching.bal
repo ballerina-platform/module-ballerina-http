@@ -617,21 +617,13 @@ function testAllDefaultValues() {
 @test:Config {}
 function testWrongGETMethod() {
     http:Response|error response = utmClient->get("/hello/so2");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    assertErrorStatusCode(response, 405, "Method Not Allowed");
 }
 
 @test:Config {}
 function testWrongPOSTMethod() {
     http:Response|error response = utmClient->post("/hello/echo2", "hi");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    assertErrorStatusCode(response, 405, "Method Not Allowed");
 }
 
 @test:Config {}
@@ -1030,11 +1022,11 @@ function testMultipleIntTypedRestParams() {
 @test:Config {}
 function testMultipleNegativeRestParams() {
     http:Response|error response = utmClient->get("/restParam/int/12.3/4.56");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "Error in casting path param : For input string: \"12.3\"");
+    if (response is http:RemoteServerError) {
+        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
+        test:assertEquals(<string> response.detail().body, "Error in casting path param : For input string: \"12.3\"");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 

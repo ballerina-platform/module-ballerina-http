@@ -327,38 +327,18 @@ isolated function waitForRetry(int counter) {
 }
 
 service /retryStatusService on retryTestserviceEndpoint1 {
-    resource function 'default .(http:Caller caller, http:Request request) {
+    resource function 'default .(http:Caller caller, http:Request request) returns error? {
         if (checkpanic request.getHeader("x-retry") == "recover") {
-            http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", <@untainted> request);
-            if (backendResponse is http:Response) {
-                var responseError = caller->respond(<@untainted> backendResponse);
-                if (responseError is error) {
-                    log:printError("Error sending response", 'error = responseError);
-                }
-            } else {
-                http:Response errorResponse = new;
-                errorResponse.statusCode = 500;
-                errorResponse.setPayload(<@untainted> backendResponse.message());
-                var responseError = caller->respond(errorResponse);
-                if (responseError is error) {
-                    log:printError("Error sending response", 'error = responseError);
-                }
+            http:Response backendResponse = check internalErrorEP->post("/mockStatusCodeService/recover", request);
+            var responseError = caller->respond(<@untainted> backendResponse);
+            if (responseError is error) {
+                log:printError("Error sending response", 'error = responseError);
             }
         } else if (checkpanic request.getHeader("x-retry") == "internalError") {
-            http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/internalError", <@untainted> request);
-            if (backendResponse is http:Response) {
-                var responseError = caller->respond(<@untainted> backendResponse);
-                if (responseError is error) {
-                    log:printError("Error sending response", 'error = responseError);
-                }
-            } else {
-                http:Response errorResponse = new;
-                errorResponse.statusCode = 500;
-                errorResponse.setPayload(<@untainted> backendResponse.message());
-                var responseError = caller->respond(errorResponse);
-                if (responseError is error) {
-                    log:printError("Error sending response", 'error = responseError);
-                }
+            http:Response backendResponse = check internalErrorEP->post("/mockStatusCodeService/internalError", request);
+            var responseError = caller->respond(<@untainted> backendResponse);
+            if (responseError is error) {
+                log:printError("Error sending response", 'error = responseError);
             }
         }
     }
@@ -541,12 +521,12 @@ function testRetryBasedOnHttpStatusCodesContinuousFailure() {
     req.setHeader("x-retry", "internalError");
     req.setJsonPayload({Name:"Ballerina"});
     http:Response|error response = retryFunctionTestClient->post("/retryStatusService", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 502, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Gateway Timed out.");
+    if (response is http:RemoteServerError) {
+        test:assertEquals(response.detail().statusCode, 502, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        assertTextPayload(<string> response.detail().body, "Gateway Timed out.");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 

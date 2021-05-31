@@ -80,11 +80,7 @@ function testIncorrectConsumesAnnotation() {
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, "compileResult/json");
     http:Response|error response = pcClient->post("/echo66/test1", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 415, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    assertErrorStatusCode(response, 415, "Unsupported Media Type");
 }
 
 //Test bogus Consumes annotation with URL. /echo66/test1
@@ -94,11 +90,7 @@ function testBogusConsumesAnnotation() {
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, ",:vhjv");
     http:Response|error response = pcClient->post("/echo66/test1", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 415, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    assertErrorStatusCode(response, 415, "Unsupported Media Type");
 }
 
 //Test Produces annotation with URL. /echo66/test2
@@ -149,22 +141,14 @@ function testProducesAnnotationWithSubTypeWildCard() {
 @test:Config {}
 function testIncorrectProducesAnnotation() {
     http:Response|error response = pcClient->get("/echo66/test2", {"Accept":["multipart/*;q=0.3, text/html;Level=1;q=0.7"]});
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    assertErrorStatusCode(response, 406, "Not Acceptable");
 }
 
 //Test bogus Produces annotation with URL. /echo66/test2
 @test:Config {}
 function testBogusProducesAnnotation() {
     http:Response|error response = pcClient->get("/echo66/test2", {"Accept":":,;,v567br"});
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    assertErrorStatusCode(response, 406, "Not Acceptable");
 }
 
 //Test Produces and Consumes with URL. /echo66/test3
@@ -190,11 +174,7 @@ function testIncorrectProducesConsumeAnnotation() {
     req.setHeader(mime:CONTENT_TYPE, "text/plain ; charset=ISO-8859-4");
     req.setHeader("Accept", "compileResult/xml, text/html");
     http:Response|error response = pcClient->post("/echo66/test3", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    assertErrorStatusCode(response, 406, "Not Acceptable");
 }
 
 //Test without Pro-Con annotation with URL. /echo67/echo1

@@ -311,7 +311,7 @@ public function testHttp2PostAction() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
     http:Response|error resp = clientEP->get("/testHttp2Service/clientPostWithoutBody");
     if (resp is http:Response) {
-        assertTextPayload(resp.getTextPayload(), "No payload");
+        assertTextPayload(resp.getTextPayload(), "No content");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }

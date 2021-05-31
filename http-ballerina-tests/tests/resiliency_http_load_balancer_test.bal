@@ -261,11 +261,11 @@ function testAllLbEndpointFailure() {
                 "before initiating inbound response";
     http:Response|error response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTrueTextPayload(response.getTextPayload(), expectedMessage);
+        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        assertTrueTextPayload(<string> response.detail().body, expectedMessage);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 

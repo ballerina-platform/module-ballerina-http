@@ -236,11 +236,11 @@ function testDataBindingJsonPayload() {
 function testDataBindingWithIncompatiblePayload() {
     string payload = "name:WSO2,team:ballerina";
     http:Response|error response = httpVerbClient->post("/getQuote/employee", payload);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'name:WSO2,team:ballerina'");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertTrueTextPayload(<string> response.detail().body, "data binding failed: error(\"unrecognized token 'name:WSO2,team:ballerina'");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 

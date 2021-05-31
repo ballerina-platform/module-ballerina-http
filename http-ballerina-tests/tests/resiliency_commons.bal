@@ -17,6 +17,7 @@
 
 import ballerina/test;
 import ballerina/http;
+import ballerina/io;
 
 type DataFeed record {
     int responseCode = 0;
@@ -52,7 +53,14 @@ function invokeApiAndVerifyResponse(http:Client testClient, string path, DataFee
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        assertError(response, dataFeed);
+        //if (response is http:ApplicationResponseError) {
+        //    test:assertEquals(response.detail().statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        //    assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        //    assertTrueTextPayload(<string> response.detail().body, dataFeed.message);
+        //} else {
+        //    test:assertFail(msg = "Found unexpected output type: " + response.message());
+        //}
     }
 }
 
@@ -63,7 +71,14 @@ function invokeApiAndVerifyResponseWithHttpGet(http:Client testClient, string pa
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        assertError(response, dataFeed);
+        //if (response is http:ApplicationResponseError) {
+        //    test:assertEquals(response.detail().statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        //    assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        //    assertTrueTextPayload(<string> response.detail().body, dataFeed.message);
+        //} else {
+        //    test:assertFail(msg = "Found unexpected output type: " + response.message());
+        //}
     }
 }
 
@@ -73,7 +88,14 @@ function invokeApiAndVerifyResponseWithHttpHead(http:Client testClient, string p
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CB_HEADER), dataFeed.message);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        assertError(response, dataFeed);
+        //if (response is http:ApplicationResponseError) {
+        //    test:assertEquals(response.detail().statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        //    assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        //    assertTrueTextPayload(<string> response.detail().body, dataFeed.message);
+        //} else {
+        //    test:assertFail(msg = "Found unexpected output type: " + response.message());
+        //}
     }
 }
 
@@ -83,7 +105,8 @@ function invokeApiAndVerifyResponseWithHttpOptions(http:Client testClient, strin
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(ALLOW_HEADER), dataFeed.message);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        assertError(response, dataFeed);
+        //test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -94,7 +117,8 @@ function invokeApiAndVerifyResponseWithHttpPut(http:Client testClient, string pa
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        assertError(response, dataFeed);
+        //test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -105,7 +129,8 @@ function invokeApiAndVerifyResponseWithHttpPatch(http:Client testClient, string 
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        assertError(response, dataFeed);
+        //test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -116,6 +141,21 @@ function invokeApiAndVerifyResponseWithHttpDelete(http:Client testClient, string
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        assertError(response, dataFeed);
+        //test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+function assertError(error err, DataFeed dataFeed) {
+    if (err is http:ApplicationResponseError) {
+        test:assertEquals(err.detail().statusCode, dataFeed.responseCode, msg = "Found unexpected output");
+        assertErrorHeaderValue(err.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        io:println("dataFeed.message");
+        io:println(dataFeed.message);
+        io:println("body");
+        io:println(<string> err.detail().body);
+        assertTrueTextPayload(<string> err.detail().body, dataFeed.message);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + err.message());
     }
 }

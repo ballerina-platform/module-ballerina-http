@@ -522,12 +522,12 @@ public function testReturnBoolean() {
 public function testReturnError() {
     http:Request req = new;
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test11");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(resp.getTextPayload(), "Don't panic. This is to test the error!");
+    if (resp is http:RemoteServerError) {
+        test:assertEquals(resp.detail().statusCode, 500, msg = "Found unexpected output");
+        assertErrorHeaderValue(resp.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        assertTextPayload(<string> resp.detail().body, "Don't panic. This is to test the error!");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
 
@@ -726,13 +726,13 @@ public function testReturnMapOfXml() {
 public function testReturnMultipleTypes() {
     http:Request req = new;
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test26/gone");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 410, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        test:assertEquals(checkpanic resp.getHeader("xtest"), "Go");
-        assertTextPayload(resp.getTextPayload(), "hello world");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 410, msg = "Found unexpected output");
+        assertErrorHeaderValue(resp.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        assertErrorHeaderValue(resp.detail().headers["xtest"], "Go");
+        assertTextPayload(<string> resp.detail().body, "hello world");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test26/response");
@@ -848,142 +848,142 @@ public function testAllOtherStatusCodes() {
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/PaymentRequired");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 402, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 402, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/MethodNotAllowed");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 405, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 405, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/NotAcceptable");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 406, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 406, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/ProxyAuthenticationRequired");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 407, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 407, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/RequestTimeout");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 408, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 408, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/Conflict");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 409, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 409, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/LengthRequired");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 411, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 411, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/PreconditionFailed");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 412, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 412, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/PayloadTooLarge");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 413, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 413, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/UriTooLong");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 414, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 414, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/UnsupportedMediaType");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 415, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 415, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/RangeNotSatisfiable");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 416, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 416, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/ExpectationFailed");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 417, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 417, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/UpgradeRequired");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 426, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 426, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/RequestHeaderFieldsTooLarge");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 431, msg = "Found unexpected output");
+    if (resp is http:ClientRequestError) {
+        test:assertEquals(resp.detail().statusCode, 431, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/NotImplemented");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 501, msg = "Found unexpected output");
+    if (resp is http:RemoteServerError) {
+        test:assertEquals(resp.detail().statusCode, 501, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/BadGateway");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 502, msg = "Found unexpected output");
+    if (resp is http:RemoteServerError) {
+        test:assertEquals(resp.detail().statusCode, 502, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/ServiceUnavailable");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 503, msg = "Found unexpected output");
+    if (resp is http:RemoteServerError) {
+        test:assertEquals(resp.detail().statusCode, 503, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/GatewayTimeout");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 504, msg = "Found unexpected output");
+    if (resp is http:RemoteServerError) {
+        test:assertEquals(resp.detail().statusCode, 504, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 
     resp = resourceReturnTestClient->get("/mytest/test27/HttpVersionNotSupported");
-    if (resp is http:Response) {
-        test:assertEquals(resp.statusCode, 505, msg = "Found unexpected output");
+    if (resp is http:RemoteServerError) {
+        test:assertEquals(resp.detail().statusCode, 505, msg = "Found unexpected output");
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Found unexpected output: http:Response");
     }
 }
