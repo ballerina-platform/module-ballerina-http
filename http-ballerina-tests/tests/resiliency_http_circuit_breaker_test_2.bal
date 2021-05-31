@@ -172,7 +172,6 @@ isolated function handleBackendResponse(http:Caller caller, http:Response|error 
             log:printError("Error sending response", 'error = responseToCaller);
         }
     } else {
-        //if (backendRes is http:ClientRequestError || backendRes is http:RemoteServerError) {
         if (backendRes is http:ApplicationResponseError) {
              http:Response response = new;
              response.statusCode = backendRes.detail().statusCode;

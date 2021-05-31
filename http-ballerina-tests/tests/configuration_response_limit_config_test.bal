@@ -215,11 +215,6 @@ function testInvalidHeaderLengthOfResponse() {
                 "header size exceeds: HTTP header is larger than 1024 bytes.\")");
         string[]? header = response.detail().headers[X_HEADER];
         test:assertTrue(header is (), msg = "Found unexpected output");
-        //if (header is error) {
-        //    test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected output");
-        //} else {
-        //    test:assertFail(msg = "Found unexpected output type");
-        //}
     } else {
         test:assertFail(msg = "Found unexpected output type: http:Response");
     }
@@ -273,11 +268,6 @@ function testInvalidHeaderLengthWithHttp2Client() {
                 "header size exceeds: HTTP header is larger than 1024 bytes.\")");
         string[]? header = response.detail().headers[X_HEADER];
         test:assertTrue(header is (), msg = "Found unexpected output");
-        //if (header is error) {
-        //    test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected output");
-        //} else {
-        //    test:assertFail(msg = "Found unexpected output type");
-        //}
     } else {
         test:assertFail(msg = "Found unexpected output type: http:Response");
     }
