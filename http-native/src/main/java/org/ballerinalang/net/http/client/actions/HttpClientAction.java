@@ -76,23 +76,23 @@ public class HttpClientAction extends AbstractHTTPAction {
         clientConnector.rejectPushResponse(http2PushPromise);
     }
 
-    public static Object post(Environment env, BObject client, BString path, Object message, Object headers,
-                              Object mediaType, BTypedesc targetType) {
+    public static Object post(Environment env, BObject client, BString path, Object message, Object mediaType,
+                              Object headers, BTypedesc targetType) {
         return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processPost");
     }
 
-    public static Object put(Environment env, BObject client, BString path, Object message, Object headers,
-                             Object mediaType, BTypedesc targetType) {
+    public static Object put(Environment env, BObject client, BString path, Object message, Object mediaType,
+                             Object headers, BTypedesc targetType) {
         return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processPut");
     }
 
-    public static Object patch(Environment env, BObject client, BString path, Object message, Object headers,
-                               Object mediaType, BTypedesc targetType) {
+    public static Object patch(Environment env, BObject client, BString path, Object message, Object mediaType,
+                               Object headers, BTypedesc targetType) {
         return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processPatch");
     }
 
-    public static Object delete(Environment env, BObject client, BString path, Object message, Object headers,
-                                Object mediaType, BTypedesc targetType) {
+    public static Object delete(Environment env, BObject client, BString path, Object message, Object mediaType,
+                                Object headers, BTypedesc targetType) {
         return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processDelete");
     }
 
@@ -105,7 +105,7 @@ public class HttpClientAction extends AbstractHTTPAction {
     }
 
     public static Object execute(Environment env, BObject client, BString httpVerb, BString path, Object message,
-                                 Object headers, Object mediaType, BTypedesc targetType) {
+                                 Object mediaType, Object headers, BTypedesc targetType) {
         Object[] paramFeed = new Object[12];
         paramFeed[0] = httpVerb;
         paramFeed[1] = true;

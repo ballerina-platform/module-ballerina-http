@@ -116,13 +116,18 @@ public client class Caller {
             string? returnMediaType)  returns ListenerError? {
         Response response = new;
         if (message is error) {
-            if (message is ApplicationResponseError) {
+            map<any|error> details = message.detail();
+            // TODO Check if the message is ApplicationResponseError once # is fixed
+            if (details.hasKey("statusCode")) {
+                int statusCode = <int> checkpanic details.get("statusCode");
+                map<string[]> headers = <map<string[]>> checkpanic details.get("headers");
+                anydata body = <anydata> checkpanic details.get("body");
                 InternalServerError err = {
-                    headers: message.detail().headers,
-                    body: message.detail().body
+                    headers: headers,
+                    body: body
                 };
                 response = createStatusCodeResponse(err, returnMediaType);
-                response.statusCode = message.detail().statusCode;
+                response.statusCode = statusCode;
             } else {
                 response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
                 response.setTextPayload(message.message());

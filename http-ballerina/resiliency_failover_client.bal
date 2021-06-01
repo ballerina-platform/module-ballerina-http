@@ -67,14 +67,14 @@ public client isolated class FailoverClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
-    # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function post(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>)
+    remote isolated function post(@untainted string path, RequestMessage message, string? mediaType = (),
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -95,14 +95,14 @@ public client isolated class FailoverClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
-    # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function put(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>)
+    remote isolated function put(@untainted string path, RequestMessage message, string? mediaType = (),
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -123,14 +123,14 @@ public client isolated class FailoverClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
-    # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function patch(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>)
+    remote isolated function patch(@untainted string path, RequestMessage message, string? mediaType = (),
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -151,14 +151,14 @@ public client isolated class FailoverClient {
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any allowed payload
-    # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function delete(@untainted string path, RequestMessage message = (), map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>)
+    remote isolated function delete(@untainted string path, RequestMessage message = (), string? mediaType = (),
+            map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
@@ -244,14 +244,14 @@ public client isolated class FailoverClient {
     # + httpVerb - HTTP verb value
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
-    # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            map<string|string[]>? headers = (), string? mediaType = (), TargetType targetType = <>)
+            string? mediaType = (), map<string|string[]>? headers = (), TargetType targetType = <>)
             returns @tainted targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
