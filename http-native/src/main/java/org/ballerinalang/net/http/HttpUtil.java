@@ -811,6 +811,7 @@ public class HttpUtil {
         if (inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) != null) {
             inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD,
                                 fromString(inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString())));
+            inboundResponseMsg.removeHeader(HttpHeaderNames.SERVER.toString());
         }
 
         if (inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI) != null) {

@@ -165,7 +165,7 @@ function testAlwaysCompressWithAcceptEncoding() {
     http:Request req = new;
     req.setTextPayload("hello");
     req.setHeader(ACCEPT_ENCODING, ENCODING_DEFLATE);
-    http:Response|error response = compressionClient->get("/alwaysCompress");
+    http:Response|error response = compressionClient->post("/alwaysCompress", req);
     if (response is http:Response) {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be set to null and the transport will use the original" +
@@ -212,7 +212,7 @@ function testNeverCompressWithAcceptEncoding() {
     http:Request req = new;
     req.setTextPayload("hello");
     req.setHeader(ACCEPT_ENCODING, ENCODING_GZIP);
-    http:Response|error response = compressionClient->get("/userOverridenValue");
+    http:Response|error response = compressionClient->post("/userOverridenValue", req);
     if (response is http:Response) {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE, 
             msg = "The content-encoding header of the response that was sent " +

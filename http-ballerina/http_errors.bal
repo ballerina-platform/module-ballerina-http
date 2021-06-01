@@ -16,13 +16,9 @@
 
 # Represents the details of an HTTP error.
 # 
-# + statusCode - The inbound error response status code
-# + headers - The inbound error response headers
-# + body - The inbound error response body
+# + statusCode - The status code, if the inbound error response exists
 public type Detail record {
-    int statusCode;
-    map<string[]> headers;
-    anydata body;
+    int statusCode?;
 };
 
 # Represents the details of the `LoadBalanceActionError`.
@@ -78,9 +74,6 @@ public type Http2ClientError distinct ClientError;
 # Represents a client error that occurred due to SSL failure
 public type SslError distinct ClientError;
 
-# Represents a generic client error
-public type ApplicationResponseError distinct (ClientError & error<Detail>);
-
 // Level 4
 # Represents a header not found error when retrieving headers
 public type HeaderNotFoundError distinct GenericListenerError;
@@ -96,16 +89,10 @@ public type MaximumWaitTimeExceededError distinct GenericClientError;
 public type CookieHandlingError distinct GenericClientError;
 
 # Represents an error, which occurred due to bad syntax or incomplete info in the client request(4xx HTTP response)
-public type ClientRequestError distinct (ApplicationResponseError & error<Detail>);
+public type ClientRequestError distinct GenericClientError & error<Detail>;
 
 # Represents an error, which occurred due to a failure of the remote server(5xx HTTP response)
-public type RemoteServerError distinct (ApplicationResponseError & error<Detail>);
-
-# Represents an error, which occurred due to a payload binging
-public type PayloadBindindError distinct GenericClientError;
-
-# Represents an error, which occurred due to the absence of the payload
-public type NoContentError distinct GenericClientError;
+public type RemoteServerError distinct GenericClientError & error<Detail>;
 
 // Resiliency errors
 # Represents a client error that occurred due to all the failover endpoint failure

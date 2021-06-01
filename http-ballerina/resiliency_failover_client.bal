@@ -273,13 +273,22 @@ public client isolated class FailoverClient {
     #
     # + path - Resource path
     # + request - An HTTP request
-    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function forward(@untainted string path, Request request) returns @tainted Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function forward(@untainted string path, Request request, TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processForward(string path, Request request, TargetType targetType)
+            returns @tainted Response|PayloadType|ClientError {
         var result = self.performFailoverAction(path, request, HTTP_FORWARD);
         if (result is HttpFuture) {
             return getInvalidTypeError();
         } else {
-            return result;
+            return processResponse(result, targetType);
         }
     }
 

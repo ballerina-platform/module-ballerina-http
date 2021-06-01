@@ -42,31 +42,31 @@ service /passthrough on clientDBProxyListener {
     resource function get allTypes(http:Caller caller, http:Request request) returns @tainted error? {
         string payload = "";
 
-        json p = check clientDBBackendClient->post("/backend/getJson", "want json");
+        json p = checkpanic clientDBBackendClient->post("/backend/getJson", "want json");
         payload = payload + p.toJsonString();
 
-        map<json> p1 = check clientDBBackendClient->post("/backend/getJson", "want json");
+        map<json> p1 = checkpanic clientDBBackendClient->post("/backend/getJson", "want json");
         json name = check p1.id;
         payload = payload + " | " + name.toJsonString();
 
-        xml q = check clientDBBackendClient->post("/backend/getXml", "want xml");
+        xml q = checkpanic clientDBBackendClient->post("/backend/getXml", "want xml");
         payload = payload + " | " + q.toString();
 
-        string r = check clientDBBackendClient->post("/backend/getString", "want string");
+        string r = checkpanic clientDBBackendClient->post("/backend/getString", "want string");
         payload = payload + " | " + r;
 
-        byte[] val = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
+        byte[] val = checkpanic clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
-        ClientDBPerson t = check clientDBBackendClient->post("/backend/getRecord", "want record");
+        ClientDBPerson t = checkpanic clientDBBackendClient->post("/backend/getRecord", "want record");
         payload = payload + " | " + t.name;
 
-        ClientDBPerson[] u = check clientDBBackendClient->post("/backend/getRecordArr", "want record[]");
+        ClientDBPerson[] u = checkpanic clientDBBackendClient->post("/backend/getRecordArr", "want record[]");
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
-        http:Response v = check clientDBBackendClient->post("/backend/getResponse", "want record[]");
-        payload = payload + " | " + check v.getHeader("x-fact");
+        http:Response v = checkpanic clientDBBackendClient->post("/backend/getResponse", "want record[]");
+        payload = payload + " | " + checkpanic v.getHeader("x-fact");
 
         error? result = caller->respond(<@untainted>payload);
     }
@@ -75,81 +75,81 @@ service /passthrough on clientDBProxyListener {
         string payload = "";
 
         // This is to check any compile failures with multiple default-able args
-        json hello = check clientDBBackendClient->get("/backend/getJson");
+        json hello = checkpanic clientDBBackendClient->get("/backend/getJson");
 
-        json p = check clientDBBackendClient->get("/backend/getJson");
+        json p = checkpanic clientDBBackendClient->get("/backend/getJson");
         payload = payload + p.toJsonString();
 
-        http:Response v = check clientDBBackendClient->head("/backend/getXml");
-        payload = payload + " | " + check v.getHeader("Content-type");
+        http:Response v = checkpanic clientDBBackendClient->head("/backend/getXml");
+        payload = payload + " | " + checkpanic v.getHeader("Content-type");
 
-        string r = check clientDBBackendClient->delete("/backend/getString", "want string");
+        string r = checkpanic clientDBBackendClient->delete("/backend/getString", "want string");
         payload = payload + " | " + r;
 
-        byte[] val = check clientDBBackendClient->put("/backend/getByteArray", "want byte[]");
+        byte[] val = checkpanic clientDBBackendClient->put("/backend/getByteArray", "want byte[]");
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
-        ClientDBPerson t = check clientDBBackendClient->execute("POST", "/backend/getRecord", "want record");
+        ClientDBPerson t = checkpanic clientDBBackendClient->execute("POST", "/backend/getRecord", "want record");
         payload = payload + " | " + t.name;
 
-        ClientDBPerson[] u = check clientDBBackendClient->patch("/backend/getRecordArr", request);
+        ClientDBPerson[] u = checkpanic clientDBBackendClient->forward("/backend/getRecordArr", request);
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
         error? result = caller->respond(<@untainted>payload);
     }
 
-    resource function get redirect(http:Caller caller, http:Request req) returns error? {
-        http:Client redirectClient = check new("http://localhost:" + clientDatabindingTestPort3.toString(),
+    resource function get redirect(http:Caller caller, http:Request req) {
+        http:Client redirectClient = checkpanic new("http://localhost:" + clientDatabindingTestPort3.toString(),
                                                         {followRedirects: {enabled: true, maxCount: 5}});
-        json p = check redirectClient->post("/redirect1/", "want json", targetType = json);
+        json p = checkpanic redirectClient->post("/redirect1/", "want json", targetType = json);
         error? result = caller->respond(<@untainted>p);
     }
 
-    resource function get 'retry(http:Caller caller, http:Request request) returns error? {
-        http:Client retryClient = check new("http://localhost:" + clientDatabindingTestPort2.toString(), {
+    resource function get 'retry(http:Caller caller, http:Request request) {
+        http:Client retryClient = checkpanic new("http://localhost:" + clientDatabindingTestPort2.toString(), {
                 retryConfig: { interval: 3, count: 3, backOffFactor: 2.0,
                 maxWaitInterval: 2 },  timeout: 2
             }
         );
-        string r = check retryClient->post("/backend/getRetryResponse", request);
+        string r = checkpanic retryClient->forward("/backend/getRetryResponse", request);
         error? responseToCaller = caller->respond(<@untainted>r);
     }
 
-    resource function 'default '500(http:Caller caller, http:Request request) returns error? {
-        json p = check clientDBBackendClient->post("/backend/get5XX", "want 500");
+    resource function 'default '500(http:Caller caller, http:Request request) {
+        json p = checkpanic clientDBBackendClient->post("/backend/get5XX", "want 500");
         error? responseToCaller = caller->respond(<@untainted>p);
     }
 
-    resource function 'default '500handle(http:Caller caller, http:Request request) returns error? {
+    resource function 'default '500handle(http:Caller caller, http:Request request) {
         json|error res = clientDBBackendClient->post("/backend/get5XX", "want 500");
         if res is http:RemoteServerError {
             http:Response resp = new;
             http:Detail? details = res.detail();
             resp.statusCode = details?.statusCode ?: 560;
-            resp.setPayload(<string> details?.body);
+            resp.setPayload(<@untainted>res.message());
             error? responseToCaller = caller->respond(<@untainted>resp);
         } else {
-            json p = check res;
+            json p = checkpanic res;
             error? responseToCaller = caller->respond(<@untainted>p);
         }
     }
 
-    resource function 'default '404(http:Caller caller, http:Request request) returns error? {
-        json p = check clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500");
+    resource function 'default '404(http:Caller caller, http:Request request) {
+        json p = checkpanic clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500");
         error? responseToCaller = caller->respond(<@untainted>p);
     }
 
-    resource function  'default '404/[string path](http:Caller caller, http:Request request) returns error? {
+    resource function  'default '404/[string path](http:Caller caller, http:Request request) {
         json|error res = clientDBBackendClient->post("/backend/" + <@untainted>path, "want 500");
         if res is http:ClientRequestError {
             http:Response resp = new;
             http:Detail? details = res.detail();
             resp.statusCode = details?.statusCode ?: 420;
-            resp.setPayload(<string> details?.body);
+            resp.setPayload(<@untainted>res.message());
             error? responseToCaller = caller->respond(<@untainted>resp);
         } else {
-            json p = check res;
+            json p = checkpanic res;
             error? responseToCaller = caller->respond(<@untainted>p);
         }
     }
@@ -214,7 +214,6 @@ service /backend on clientDBBackendListener {
         http:Response response = new;
         response.statusCode = 501;
         response.setTextPayload("data-binding-failed-with-501");
-        response.setHeader("X-Type", "test");
         error? result = caller->respond(response);
     }
 
@@ -296,13 +295,12 @@ function testRetryClientDataBinding() {
 @test:Config {}
 function test5XXErrorPanic() {
     http:Response|error response = clientDBTestClient->get("/passthrough/500");
-    if (response is http:RemoteServerError) {
-        test:assertEquals(response.detail().statusCode, 501, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
-        assertErrorHeaderValue(response.detail().headers["X-Type"], "test");
-        assertTextPayload(<string> response.detail().body, "data-binding-failed-with-501");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
     } else {
-        test:assertFail(msg = "Found unexpected output: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -310,12 +308,12 @@ function test5XXErrorPanic() {
 @test:Config {}
 function test5XXHandleError() {
     http:Response|error response = clientDBTestClient->get("/passthrough/500handle");
-    if (response is http:RemoteServerError) {
-        test:assertEquals(response.detail().statusCode, 501, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
-        assertTextPayload(<string> response.detail().body, "data-binding-failed-with-501");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
     } else {
-        test:assertFail(msg = "Found unexpected output: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -323,13 +321,13 @@ function test5XXHandleError() {
 @test:Config {}
 function test4XXErrorPanic() {
     http:Response|error response = clientDBTestClient->get("/passthrough/404");
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
-        assertTextPayload(<string> response.detail().body,
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), 
             "no matching resource found for path : /backend/getIncorrectPath404 , method : POST");
     } else {
-        test:assertFail(msg = "Found unexpected output: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -337,13 +335,12 @@ function test4XXErrorPanic() {
 @test:Config {}
 function test4XXHandleError() {
     http:Response|error response = clientDBTestClient->get("/passthrough/404/handle");
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
-        assertTextPayload(<string> response.detail().body,
-            "no matching resource found for path : /backend/handle , method : POST");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "no matching resource found for path : /backend/handle , method : POST");
     } else {
-        test:assertFail(msg = "Found unexpected output: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -351,11 +348,11 @@ function test4XXHandleError() {
 @test:Config {}
 function test405HandleError() {
     http:Response|error response = clientDBTestClient->get("/passthrough/404/get4XX");
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 405, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
-        assertTextPayload(<string> response.detail().body, "Method not allowed");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Method not allowed");
     } else {
-        test:assertFail(msg = "Found unexpected output: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

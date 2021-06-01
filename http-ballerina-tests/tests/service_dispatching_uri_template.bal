@@ -228,11 +228,11 @@ function testInValidUrlTemplateDispatching(string path) {
     string xOrderIdHeadeName = "X-ORDER-ID";
     string xOrderIdHeadeValue = "ORD12345";
     http:Response|error response = utClient1->get(path, {[xOrderIdHeadeName]:[xOrderIdHeadeValue]});
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        assertTrueTextPayload(<string> response.detail().body, "no matching resource found for path");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertTrueTextPayload(response.getTextPayload(), "no matching resource found for path");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type" + response.message());
     }
 }
 
@@ -427,11 +427,11 @@ function testOPTIONSAtRootPath() {
 @test:Config{}
 function testOPTIONSAtWrongRootPath() {
     http:Response|error response = utClient1->options("/optionss");
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        test:assertEquals(<string> response.detail().body, "no matching service found for path : /optionss");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "no matching service found for path : /optionss");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -439,11 +439,11 @@ function testOPTIONSAtWrongRootPath() {
 @test:Config{}
 function testOPTIONSWhenNoResourcesAvailable() {
     http:Response|error response = utClient1->options("/noResource");
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        test:assertEquals(<string> response.detail().body, "no matching resource found for path : /noResource , method : OPTIONS");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "no matching resource found for path : /noResource , method : OPTIONS");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -451,11 +451,11 @@ function testOPTIONSWhenNoResourcesAvailable() {
 @test:Config{}
 function testOPTIONSWithWildCards() {
     http:Response|error response = utClient1->options("/options/un");
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        test:assertEquals(<string> response.detail().body, "no matching resource found for path : /options/un , method : OPTIONS");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "no matching resource found for path : /options/un , method : OPTIONS");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -494,11 +494,11 @@ function testSpecialCharacterEscapedURI() {
 @test:Config{ dataProvider:SomeUrlsWithCorrectHost }
 function testListenerWithNoServiceRegistered(string path) {
     http:Response|error response = utClient2->get(path);
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        assertTrueTextPayload(<string> response.detail().body, "no service has registered for listener :");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertTrueTextPayload(response.getTextPayload(), "no service has registered for listener :");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type" + response.message());
     }
 }
 

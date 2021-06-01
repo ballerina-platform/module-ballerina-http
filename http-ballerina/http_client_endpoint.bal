@@ -17,7 +17,6 @@
 import ballerina/crypto;
 import ballerina/jballerina.java;
 import ballerina/observe;
-import ballerina/mime;
 import ballerina/time;
 
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
@@ -71,6 +70,8 @@ public client isolated class Client {
 
     private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+        // TODO improve signature once issue https://github.com/ballerina-platform/ballerina-spec/issues/386 is resolved
+        // Dependently typed function signature support for ballerina function is required.
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
@@ -255,13 +256,22 @@ public client isolated class Client {
     #
     # + path - Request path
     # + request - An HTTP inbound request message
-    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function forward(@untainted string path, Request request) returns @tainted Response|ClientError {
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function forward(@untainted string path, Request request, TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+
+    private isolated function processForward(@untainted string path, Request request, TargetType targetType) 
+            returns @tainted Response|PayloadType|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
-        return response;
+        return processResponse(response, targetType);
     }
 
     # Submits an HTTP request to a service with the specified HTTP verb.
@@ -642,30 +652,20 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
 
 isolated function processResponse(Response|ClientError result, TargetType targetType) returns @tainted
         Response|PayloadType|ClientError {
-    if (result is ClientError) {
+    if (targetType is typedesc<Response> || result is ClientError) {
         return result;
     }
     Response response = <Response> checkpanic result;
     int statusCode = response.statusCode;
-    if (400 <= statusCode && statusCode <= 599) {
-        string reasonPhrase = response.reasonPhrase;
-        map<string[]> headers = getHeaders(response);
-        anydata|error payload = getPayload(response);
-        if (payload is error) {
-            if (payload is NoContentError) {
-                return createResponseError(statusCode, reasonPhrase, headers);
-            }
-            return error PayloadBindindError("Response payload retrieval failed: " + payload.message(), payload);
-        } else {
-            return createResponseError(statusCode, reasonPhrase, headers, payload);
-        }
+    if (400 <= statusCode && statusCode <= 499) {
+        string errorPayload = check response.getTextPayload();
+        ClientRequestError err = error ClientRequestError(errorPayload, statusCode = statusCode);
+        return err;
     }
-    if (targetType is typedesc<Response>) {
-        return response;
-    }
-    if ((100 <= statusCode && statusCode <= 199) || statusCode == 204 || statusCode == 304) {
-        // TODO: improve this to do binding when the payload is available
-        return error PayloadBindindError("No payload status code: " + statusCode.toString());
+    if (500 <= statusCode && statusCode <= 599) {
+        string errorPayload = check response.getTextPayload();
+        RemoteServerError err = error RemoteServerError(errorPayload, statusCode = statusCode);
+        return err;
     }
     return performDataBinding(response, targetType);
 }
@@ -681,14 +681,14 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
-            return error PayloadBindindError("payload binding failed: " + result.message(), result);
+            return error GenericClientError("payload binding failed: " + result.message(), result);
         }
         return <record {| anydata...; |}> checkpanic result;
     } else if (targetType is typedesc<record {| anydata...; |}[]>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
-            return error PayloadBindindError("payload binding failed: " + result.message(), result);
+            return error GenericClientError("payload binding failed: " + result.message(), result);
         }
         return <record {| anydata...; |}[]> checkpanic result;
     } else if (targetType is typedesc<map<json>>) {
@@ -696,62 +696,5 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         return <map<json>> payload;
     } else if (targetType is typedesc<json>) {
         return response.getJsonPayload();
-    }
-}
-
-isolated function getPayload(Response response) returns anydata|error {
-    string|error contentTypeValue = response.getHeader(CONTENT_TYPE);
-    string value = "";
-    if (contentTypeValue is error) {
-        return response.getTextPayload();
-    } else {
-        value = contentTypeValue;
-    }
-    var mediaType = mime:getMediaType(value.toLowerAscii());
-    if (mediaType is mime:InvalidContentTypeError) {
-        return response.getTextPayload();
-    } else {
-        match (mediaType.primaryType) {
-            "application" => {
-                match (mediaType.subType) {
-                    "json" => {
-                        return response.getJsonPayload();
-                    }
-                    "xml" => {
-                        return response.getXmlPayload();
-                    }
-                    "octet-stream" => {
-                        return response.getBinaryPayload();
-                    }
-                    _ => {
-                        return response.getTextPayload();
-                    }
-                }
-            }
-            _ => {
-                return response.getTextPayload();
-            }
-        }
-    }
-}
-
-isolated function getHeaders(Response response) returns map<string[]> {
-    map<string[]> headers = {};
-    string[] headerKeys = response.getHeaderNames();
-    foreach string key in headerKeys {
-        string[]|HeaderNotFoundError values = response.getHeaders(key);
-        if (values is string[]) {
-            headers[key] = values;
-        }
-    }
-    return headers;
-}
-
-isolated function createResponseError(int statusCode, string reasonPhrase, map<string[]> headers, anydata body = ())
-        returns ClientRequestError|RemoteServerError {
-    if (400 <= statusCode && statusCode <= 499) {
-        return error ClientRequestError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
-    } else {
-        return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
     }
 }

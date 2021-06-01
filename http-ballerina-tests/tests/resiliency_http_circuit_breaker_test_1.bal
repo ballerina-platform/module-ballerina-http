@@ -55,22 +55,12 @@ service /cb on circuitBreakerEP00 {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
-            if (backendRes is http:ApplicationResponseError) {
-                 http:Response response = new;
-                 response.statusCode = backendRes.detail().statusCode;
-                 response.setPayload(<string> backendRes.detail().body);
-                 error? responseToCaller = caller->respond(response);
-                 if (responseToCaller is error) {
-                     log:printError("Error sending response", 'error = responseToCaller);
-                 }
-            } else {
-                http:Response response = new;
-                response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-                response.setPayload(<@untainted> backendRes.message());
-                error? responseToCaller = caller->respond(response);
-                if (responseToCaller is error) {
-                    log:printError("Error sending response", 'error = responseToCaller);
-                }
+            http:Response response = new;
+            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+            response.setPayload(<@untainted> backendRes.message());
+            error? responseToCaller = caller->respond(response);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }

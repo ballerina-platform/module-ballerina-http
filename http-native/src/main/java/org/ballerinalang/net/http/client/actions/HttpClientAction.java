@@ -122,6 +122,17 @@ public class HttpClientAction extends AbstractHTTPAction {
         return invokeClientMethod(env, client, "processExecute", paramFeed);
     }
 
+    public static Object forward(Environment env, BObject client, BString path, BObject message, BTypedesc targetType) {
+        Object[] paramFeed = new Object[6];
+        paramFeed[0] = path;
+        paramFeed[1] = true;
+        paramFeed[2] = message;
+        paramFeed[3] = true;
+        paramFeed[4] = targetType;
+        paramFeed[5] = true;
+        return invokeClientMethod(env, client, "processForward", paramFeed);
+    }
+
     private static Object invokeClientMethod(Environment env, BObject client, BString path, Object message,
                                              BTypedesc targetType, String methodName) {
         Object[] paramFeed = new Object[6];

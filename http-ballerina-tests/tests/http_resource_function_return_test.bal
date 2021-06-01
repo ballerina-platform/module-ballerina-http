@@ -59,12 +59,12 @@ isolated function getError() returns error|int {
 @test:Config {}
 function testErrorTypeReturnedFromAResourceFunction() {
     http:Response|error response = resourceFunctionTestClient->get("/manualErrorReturn");
-    if (response is http:RemoteServerError) {
-        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
-        assertTextPayload(<string> response.detail().body, "Some random error");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Some random error");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
@@ -72,12 +72,12 @@ function testErrorTypeReturnedFromAResourceFunction() {
 @test:Config {}
 function testErrorReturnedFromACheckExprInResourceFunction() {
     http:Response|error response = resourceFunctionTestClient->get("/checkErrorReturn");
-    if (response is http:RemoteServerError) {
-        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
-        assertTextPayload(<string> response.detail().body, "Simulated error");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Simulated error");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 

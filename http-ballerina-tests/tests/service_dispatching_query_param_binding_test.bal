@@ -72,22 +72,22 @@ function testStringQueryBinding() {
 @test:Config {}
 function testNegativeStringQueryBindingCaseSensitivity() {
     http:Response|error response = queryBindingClient->get("/queryparamservice/?FOO=WSO2&bar=go");
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 400);
-        assertTextPayload(<string> response.detail().body, "no query param value found for 'foo'");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 400);
+        assertTextPayload(response.getTextPayload(), "no query param value found for 'foo'");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
 function testNegativeIntQueryBindingCastingError() {
     http:Response|error response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=go");
-    if (response is http:RemoteServerError) {
-        test:assertEquals(response.detail().statusCode, 500);
-        assertTextPayload(<string> response.detail().body, "Error in casting query param : For input string: \"go\"");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500);
+        assertTextPayload(response.getTextPayload(), "Error in casting query param : For input string: \"go\"");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 

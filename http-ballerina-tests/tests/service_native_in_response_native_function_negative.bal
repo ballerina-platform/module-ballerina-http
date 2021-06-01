@@ -44,7 +44,7 @@ function negativeTestResponseGetJsonPayload() {
     http:Response res = new;
     json|error jsonPayload = res.getJsonPayload();
     if (jsonPayload is error) {
-        test:assertEquals(jsonPayload.message(), "No content");
+        test:assertEquals(jsonPayload.message(), "No payload");
     } else {
         test:assertFail("Test failed");
     }
@@ -55,7 +55,7 @@ function negativeTestResponseGetTextPayload() {
     http:Response res = new;
     string|error textPayload = res.getTextPayload();
     if (textPayload is error) {
-        test:assertEquals(textPayload.message(), "No content");
+        test:assertEquals(textPayload.message(), "No payload");
     } else {
         test:assertFail("Test failed");
     }
@@ -77,7 +77,7 @@ function negativeTestResponseGetXmlPayload() {
     http:Response res = new;
     xml|error xmlPayload = res.getXmlPayload();
     if (xmlPayload is error) {
-        test:assertEquals(xmlPayload.message(), "No content");
+        test:assertEquals(xmlPayload.message(), "No payload");
     } else {
         test:assertFail("Payload mismatched");
     }

@@ -67,7 +67,7 @@ service /'continue on httpClientContinueListenerEP1 {
 
 service /'continue on httpClientContinueListenerEP2  {
 
-    resource function get .(http:Caller caller, http:Request req) returns error? {
+    resource function get .(http:Caller caller, http:Request req) {
         req.addHeader("content-type", "text/plain");
         req.addHeader("Expect", "100-continue");
         req.setPayload("Hi");
@@ -75,16 +75,20 @@ service /'continue on httpClientContinueListenerEP2  {
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            return response;
+            checkpanic caller->respond("Error: " + <@untainted> response.toString());
         }
     }
 
-    resource function get failure(http:Caller caller, http:Request req) returns error? {
+    resource function get failure(http:Caller caller, http:Request req) {
         req.addHeader("Expect", "100-continue");
         req.addHeader("content-type", "application/json");
         req.setPayload({ name: "apple", color: "red" });
-        http:Response response = check continueClient->post("/continue", <@untainted> req);
-        checkpanic caller->respond(<@untainted> response);
+        http:Response|error response = continueClient->post("/continue", <@untainted> req);
+        if (response is http:Response) {
+            checkpanic caller->respond(<@untainted> response);
+        } else {
+            checkpanic caller->respond("Error: " + <@untainted> response.toString());
+        }
     }
 }
 
@@ -105,11 +109,11 @@ function testContinueAction() {
 @test:Config {dependsOn:[testContinueAction]}
 function testNegativeContinueAction() {
     http:Response|error response = httpClientContinueClient->get("/continue/failure");
-    if (response is http:ApplicationResponseError) {
-        test:assertEquals(response.detail().statusCode, 417, msg = "Found unexpected output");
-        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
