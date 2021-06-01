@@ -115,7 +115,19 @@ public client class Caller {
     private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType) 
             returns ListenerError? {
         Response response = new;
-        if (message is StatusCodeResponse) {
+        if (message is error) {
+            if (message is ApplicationResponseError) {
+                InternalServerError err = {
+                    headers: message.detail().headers,
+                    body: message.detail().body
+                };
+                response = createStatusCodeResponse(err, returnMediaType);
+                response.statusCode = message.detail().statusCode;
+            } else {
+                response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
+                response.setTextPayload(message.message());
+            }
+        } else if (message is StatusCodeResponse) {
             response = createStatusCodeResponse(message, returnMediaType);
         } else if (message is Response) {
             response = message;
