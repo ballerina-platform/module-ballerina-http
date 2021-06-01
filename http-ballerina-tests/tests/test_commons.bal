@@ -110,6 +110,14 @@ isolated function assertHeaderValue(string headerKey, string expectValue) {
     test:assertEquals(headerKey, expectValue, msg = "Found unexpected headerValue");
 }
 
+isolated function assertErrorHeaderValue(string[]? headerKey, string expectValue) {
+    if (headerKey is string[]) {
+        test:assertEquals(headerKey[0], expectValue, msg = "Found unexpected headerValue");
+    } else {
+        test:assertFail(msg = "Header not found");
+    }
+}
+
 const string LARGE_ENTITY = "Lorem ipsum dolor sit amet, libris quaerendum sea ei, in nec fugit " +
             "prodesset. Pro te quas mundi, mel viderer inimicus urbanitas an. No dolor essent timeam mei, exerci " +
             "virtute nostrum pri ad. Graeco doctus ea eam.\n" +

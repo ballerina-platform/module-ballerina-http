@@ -180,6 +180,17 @@ function testNoContentWithoutBody() {
     }
 }
 
+//Test ballerina noContent() function without entity body
+@test:Config {}
+function testNoContentWithDataBinding() {
+    string|error response = httpStatusCodeClient->get("/differentStatusCodes/noContentWithoutBody");
+    if (response is error) {
+        test:assertEquals(response.message(), "No payload status code: 204", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: string");
+    }
+}
+
 //Test ballerina badRequest() function with entity body
 @test:Config {}
 function testBadRequestWithBody() {
@@ -193,6 +204,19 @@ function testBadRequestWithBody() {
     }
 }
 
+//Test ballerina badRequest() function with entity body
+@test:Config {}
+function testDataBindingBadRequestWithBody() {
+    json|error response = httpStatusCodeClient->get("/differentStatusCodes/badRequestWithBody");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], APPLICATION_XML);
+        test:assertEquals(<xml> response.detail().body, xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: json");
+    }
+}
+
 //Test ballerina badRequest() function without entity body
 @test:Config {}
 function testBadRequestWithoutBody() {
@@ -201,6 +225,19 @@ function testBadRequestWithoutBody() {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test ballerina badRequest() function without entity body
+@test:Config {}
+function testDataBindingBadRequestWithoutBody() {
+    string|error response = httpStatusCodeClient->get("/differentStatusCodes/badRequestWithoutBody");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        test:assertTrue(response.detail().headers[CONTENT_TYPE] is ());
+        test:assertTrue(response.detail().body is (), msg = "Mismatched payload");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: string");
     }
 }
 
@@ -241,6 +278,19 @@ function testInternalServerErrWithBody() {
     }
 }
 
+//Test ballerina internalServerError() function with entity body
+@test:Config {}
+function testDataBindingInternalServerErrWithBody() {
+    xml|error response = httpStatusCodeClient->get("/differentStatusCodes/serverErrWithBody");
+    if (response is http:RemoteServerError) {
+        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], APPLICATION_XML);
+        test:assertEquals(<xml> response.detail().body, xml `<test>Internal Server Error Occurred</test>`, msg = "Mismatched xml payload");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: xml");
+    }
+}
+
 //Test ballerina internalServerError() function without entity body
 @test:Config {}
 function testInternalServerErrWithoutBody() {
@@ -249,5 +299,18 @@ function testInternalServerErrWithoutBody() {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test ballerina internalServerError() function without entity body
+@test:Config {}
+function testDataBindingInternalServerErrWithoutBody() {
+    json|error response = httpStatusCodeClient->get("/differentStatusCodes/serverErrWithoutBody");
+    if (response is http:RemoteServerError) {
+        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
+        test:assertTrue(response.detail().headers[CONTENT_TYPE] is ());
+        test:assertTrue(response.detail().body is (), msg = "Mismatched payload");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: json");
     }
 }

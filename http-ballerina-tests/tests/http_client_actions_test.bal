@@ -438,7 +438,7 @@ function testPostAction() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "No payload");
+        assertTextPayload(response.getTextPayload(), "No content");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

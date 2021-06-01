@@ -55,10 +55,6 @@ public class HttpCallableUnitCallback implements Callback {
             return;
         }
         HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
-        if (result instanceof BError) { // handles error check and return
-            sendFailureResponse((BError) result);
-            return;
-        }
 
         Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
