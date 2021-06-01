@@ -332,7 +332,7 @@ function sameRequestWithByteChannel() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Hello from POST!No payload");
+        assertTextPayload(response.getTextPayload(), "Hello from POST!No content");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -344,7 +344,7 @@ function sameRequestWithByteStream() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Hello from POST!No payload");
+        assertTextPayload(response.getTextPayload(), "Hello from POST!No content");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
