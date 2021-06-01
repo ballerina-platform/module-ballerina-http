@@ -105,21 +105,21 @@ function testServiceDetach() {
 
     //Invoke detached mock2 services expecting a 404
     response = serviceDetachClient->get("/mock2/mock2Resource");
-    if (response is http:ClientRequestError) {
-        test:assertEquals(response.detail().statusCode, 404, msg = "Found unexpected output");
-        assertTextPayload(<string> response.detail().body, "no matching service found for path : /mock2/mock2Resource");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "no matching service found for path : /mock2/mock2Resource");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     //Invoke mock3 services again expecting a error for re-attaching already available service
     response = serviceDetachClient->get("/mock3/mock3Resource");
-    if (response is http:RemoteServerError) {
-        test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(<string> response.detail().body,
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(),
             "Service registration failed: two services have the same basePath : '/mock4'");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     //Invoke mock4 service. mock2 service is re attached

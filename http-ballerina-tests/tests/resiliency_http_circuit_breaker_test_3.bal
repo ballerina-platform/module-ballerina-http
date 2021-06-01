@@ -42,7 +42,7 @@ http:Client unhealthyClientEP = check new("http://localhost:8088", conf02);
 
 service /cb on circuitBreakerEP02 {
 
-    resource function 'default forceclose(http:Caller caller, http:Request request) returns error? {
+    resource function 'default forceclose(http:Caller caller, http:Request request) {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>unhealthyClientEP.httpClient;
         forceCloseStateCount += 1;
         runtime:sleep(1);
@@ -50,10 +50,20 @@ service /cb on circuitBreakerEP02 {
             runtime:sleep(5);
             cbClient.forceClose();
         }
-        http:Response backendRes = check unhealthyClientEP->forward("/unhealthy", request);
-        error? responseToCaller = caller->respond(<@untainted> backendRes);
-        if (responseToCaller is error) {
-            log:printError("Error sending response", 'error = responseToCaller);
+        http:Response|error backendRes = unhealthyClientEP->forward("/unhealthy", request);
+        if (backendRes is http:Response) {
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        } else {
+            http:Response response = new;
+            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+            response.setPayload(<@untainted> backendRes.message());
+            error? responseToCaller = caller->respond(response);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
         }
     }
 }

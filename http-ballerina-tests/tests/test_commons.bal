@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
@@ -109,23 +108,6 @@ isolated function assertTrueTextPayload(string|error payload, string expectValue
 
 isolated function assertHeaderValue(string headerKey, string expectValue) {
     test:assertEquals(headerKey, expectValue, msg = "Found unexpected headerValue");
-}
-
-isolated function assertErrorStatusCode(http:Response|error err, int code, string message) {
-    if (err is http:ApplicationResponseError) {
-        test:assertEquals(err.detail().statusCode, code, msg = "Found unexpected output");
-        test:assertEquals(err.message(), message, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
-    }
-}
-
-isolated function assertErrorHeaderValue(string[]? headerKey, string expectValue) {
-    if (headerKey is string[]) {
-        test:assertEquals(headerKey[0], expectValue, msg = "Found unexpected headerValue");
-    } else {
-        test:assertFail(msg = "Header not found");
-    }
 }
 
 const string LARGE_ENTITY = "Lorem ipsum dolor sit amet, libris quaerendum sea ei, in nec fugit " +

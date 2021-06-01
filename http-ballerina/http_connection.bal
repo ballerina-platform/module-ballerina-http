@@ -112,27 +112,10 @@ public client class Caller {
         return nativeGetRemoteHostName(self);
     }
 
-    private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message,
-            string? returnMediaType)  returns ListenerError? {
+    private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType) 
+            returns ListenerError? {
         Response response = new;
-        if (message is error) {
-            map<any|error> details = message.detail();
-            // TODO Check if the message is ApplicationResponseError once # is fixed
-            if (details.hasKey("statusCode")) {
-                int statusCode = <int> checkpanic details.get("statusCode");
-                map<string[]> headers = <map<string[]>> checkpanic details.get("headers");
-                anydata body = <anydata> checkpanic details.get("body");
-                InternalServerError err = {
-                    headers: headers,
-                    body: body
-                };
-                response = createStatusCodeResponse(err, returnMediaType);
-                response.statusCode = statusCode;
-            } else {
-                response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
-                response.setTextPayload(message.message());
-            }
-        } else if (message is StatusCodeResponse) {
+        if (message is StatusCodeResponse) {
             response = createStatusCodeResponse(message, returnMediaType);
         } else if (message is Response) {
             response = message;

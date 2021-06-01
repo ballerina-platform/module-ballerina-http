@@ -122,8 +122,12 @@ public type ClientObject client object {
     #
     # + path - Request path
     # + request - An HTTP inbound request message
-    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function forward(@untainted string path, Request request) returns @tainted Response|ClientError;
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function  forward(@untainted string path, Request request, TargetType targetType = <>)
+            returns @tainted targetType|ClientError;
 
     # Submits an HTTP request to a service with the specified HTTP verb.
     # The `Client->submit()` function does not give out a `http:Response` as the result.
