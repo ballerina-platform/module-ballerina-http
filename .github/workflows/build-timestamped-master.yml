@@ -33,7 +33,7 @@ jobs:
           publishUser: ${{ secrets.BALLERINA_BOT_USERNAME }}
           publishPAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
-          ./gradlew publish -PpublishToCentral=true --scan --no-daemon
+          ./gradlew publish --scan --no-daemon
       - name: Archive Module Compilation Error Log
         uses: actions/upload-artifact@v2
         if: failure()
