@@ -33,7 +33,6 @@ import org.ballerinalang.net.transport.contract.HttpResponseFuture;
 import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
 import org.ballerinalang.net.transport.contract.ServerConnector;
 import org.ballerinalang.net.transport.contract.config.ServerBootstrapConfiguration;
-import org.ballerinalang.net.transport.contract.config.TransportsConfiguration;
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
@@ -42,19 +41,13 @@ import org.ballerinalang.net.transport.util.server.HttpsServer;
 import org.ballerinalang.net.transport.util.server.ServerThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
-import org.yaml.snakeyaml.introspector.BeanAccess;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -210,30 +203,6 @@ public class TestUtil {
     public static void handleException(String msg, Exception ex) {
         LOG.error(msg, ex);
         fail(msg);
-    }
-
-    public static TransportsConfiguration getConfiguration(String configFileLocation) {
-        TransportsConfiguration transportsConfiguration;
-
-        File file = new File(TestUtil.class.getResource(configFileLocation).getFile());
-        if (file.exists()) {
-            try (Reader in = new InputStreamReader(new FileInputStream(file), StandardCharsets.ISO_8859_1)) {
-                Yaml yaml = new Yaml(new CustomClassLoaderConstructor
-                                             (TransportsConfiguration.class,
-                                              TransportsConfiguration.class.getClassLoader()));
-                yaml.setBeanAccess(BeanAccess.FIELD);
-                transportsConfiguration = yaml.loadAs(in, TransportsConfiguration.class);
-            } catch (IOException e) {
-                throw new RuntimeException(
-                        "Error while loading " + configFileLocation + " configuration file", e);
-            }
-        } else { // return a default config
-            LOG.warn("Netty transport configuration file not found in: " + configFileLocation +
-                             " ,hence using default configuration");
-            transportsConfiguration = TransportsConfiguration.getDefault();
-        }
-
-        return transportsConfiguration;
     }
 
     public static String getAbsolutePath(String relativePath) {
