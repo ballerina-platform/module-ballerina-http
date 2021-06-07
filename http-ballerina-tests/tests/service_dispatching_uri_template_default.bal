@@ -84,6 +84,21 @@ service on utdmockEP2 {
     }
 }
 
+service /call on utdtestEP {
+
+    resource function get abc() returns string {
+        return "abc";
+    }
+
+    resource function get abc/[string bc]() returns string {
+        return "abc/path";
+    }
+
+    resource function get abcd() returns string {
+        return "abcd";
+    }
+}
+
 //Test dispatching with Service name when basePath is not defined and resource path empty
 @test:Config {}
 function testServiceNameDispatchingWhenBasePathUndefined() {
@@ -159,5 +174,29 @@ function testServiceWithNoName() {
                     "dispatched to the service that doesn't have a name but has a config without a basepath");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testUnmatchedURIPathGettingMatchedToPathParam() {
+    string|error response = utdClient1->get("/call/abcde");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.message(), "Not Found", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected type");
+    }
+
+    response = utdClient1->get("/call/abcd");
+    if (response is string) {
+        test:assertEquals(response, "abcd", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found error: " + response.message());
+    }
+
+    response = utdClient1->get("/call/abc/d");
+    if (response is string) {
+        test:assertEquals(response, "abc/path", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found error: " + response.message());
     }
 }
