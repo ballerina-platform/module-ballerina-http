@@ -97,6 +97,10 @@ service /call on utdtestEP {
     resource function get abcd() returns string {
         return "abcd";
     }
+
+    resource function get bar/[string... a]() returns string {
+        return "First response!";
+    }
 }
 
 //Test dispatching with Service name when basePath is not defined and resource path empty
@@ -198,5 +202,15 @@ function testUnmatchedURIPathGettingMatchedToPathParam() {
         test:assertEquals(response, "abc/path", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found error: " + response.message());
+    }
+}
+
+@test:Config {}
+function testUnmatchedURIPathGettingMatchedToRestParam() {
+    string|error response = utdClient1->get("/call/barrr/baz");
+    if (response is http:ClientRequestError) {
+        test:assertEquals(response.message(), "Not Found", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected type");
     }
 }
