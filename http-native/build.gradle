@@ -39,7 +39,6 @@ dependencies {
     compile group: 'org.ballerinalang', name: 'ballerina-core', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'ballerina-runtime', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'ballerina-config', version: "${ballerinaLangVersion}"
-    compile group: 'org.ballerinalang', name: 'ballerina-logging', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'value', version: "${ballerinaLangVersion}"
 
     compile group: 'org.ballerinalang', name: 'io-native', version: "${stdlibIoVersion}"

@@ -31,8 +31,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.ballerinalang.logging.util.Constants.HTTP_ACCESS_LOG_ENABLED;
-import static org.ballerinalang.logging.util.Constants.HTTP_TRACE_LOG_ENABLED;
+import static org.ballerinalang.net.http.HttpConstants.HTTP_ACCESS_LOG_ENABLED;
+import static org.ballerinalang.net.http.HttpConstants.HTTP_TRACE_LOG_ENABLED;
 
 /**
  * {@code HttpConnectionManager} is responsible for managing all the server connectors with ballerina runtime.

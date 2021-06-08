@@ -21,7 +21,6 @@ module io.ballerina.stdlib.http {
     requires io.ballerina.tools.api;
     requires io.ballerina.lang;
     requires io.ballerina.lang.value;
-    requires io.ballerina.logging;
     requires io.ballerina.config;
     requires io.ballerina.stdlib.mime;
     requires io.ballerina.stdlib.io;

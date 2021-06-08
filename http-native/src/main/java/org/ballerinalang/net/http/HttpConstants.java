@@ -290,6 +290,10 @@ public class HttpConstants {
     public static final String RETRY_COUNT_FIELD = "count";
     public static final String RETRY_INTERVAL_FIELD = "intervalInMillis";
 
+    //Logging related runtime parameter names
+    public static final String HTTP_ACCESS_LOG_ENABLED = "http.accesslog.enabled";
+    public static final String HTTP_TRACE_LOG_ENABLED = "http.tracelog.enabled";
+
     // ResponseCacheControl struct field names
     public static final BString RES_CACHE_CONTROL_MUST_REVALIDATE_FIELD = StringUtils.fromString("mustRevalidate");
     public static final BString RES_CACHE_CONTROL_NO_CACHE_FIELD = StringUtils.fromString("noCache");
