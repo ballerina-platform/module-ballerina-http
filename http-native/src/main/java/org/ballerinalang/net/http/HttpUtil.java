@@ -134,7 +134,6 @@ import static org.ballerinalang.net.http.HttpConstants.CONNECTION_MANAGER;
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION;
 import static org.ballerinalang.net.http.HttpConstants.DOUBLE_SLASH;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_ERROR_MESSAGE;
-import static org.ballerinalang.net.http.HttpConstants.HTTP_ERROR_STATUS_CODE;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_TRAILER_HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.LISTENER_CONFIGURATION;
@@ -466,14 +465,6 @@ public class HttpUtil {
     }
 
     static void handleFailure(HttpCarbonMessage requestMessage, BError error) {
-        String typeName = error.getType().getName();
-        if (HttpConstants.HTTP_CLIENT_REQUEST_ERROR.equals(typeName) ||
-                HttpConstants.HTTP_REMOTE_SERVER_ERROR.equals(typeName)) {
-            Object statusCode = ((BMap) error.getDetails()).get(HTTP_ERROR_STATUS_CODE);
-            if (statusCode != null) {
-                requestMessage.setHttpStatusCode(((Long) statusCode).intValue());
-            }
-        }
         String errorMsg = getErrorMessage(error);
         int statusCode = getStatusCode(requestMessage, errorMsg);
         error.printStackTrace();
@@ -482,7 +473,7 @@ public class HttpUtil {
 
     private static String getErrorMessage(BError error) {
         BMap errorDetails = (BMap) error.getDetails();
-        if (errorDetails.get(HTTP_ERROR_MESSAGE) != null) {
+        if (errorDetails != null && errorDetails.get(HTTP_ERROR_MESSAGE) != null) {
             return errorDetails.get(HTTP_ERROR_MESSAGE).toString();
         }
         return error.getErrorMessage().getValue();
