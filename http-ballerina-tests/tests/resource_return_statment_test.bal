@@ -340,6 +340,11 @@ service http:Service /mytest on resourceReturnTestEP {
             }
         }
     }
+
+    resource function get test28(http:Request req) returns string {
+        string header = checkpanic req.getHeader("filePath");
+        return "done";
+    }
 }
 
 @test:Config {}
@@ -985,5 +990,15 @@ public function testAllOtherStatusCodes() {
         test:assertEquals(resp.statusCode, 505, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testCheckPanic() {
+    string|error resp = resourceReturnTestClient->get("/mytest/test28");
+    if (resp is error) {
+        test:assertEquals(resp.message(), "Internal Server Error", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: string");
     }
 }
