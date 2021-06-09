@@ -54,6 +54,40 @@ isolated function testClientBasicAuthHandler() {
 }
 
 @test:Config {}
+isolated function testClientBasicAuthHandlerWithEmptyCredentials() {
+    http:CredentialsConfig config = {
+        username: "admin",
+        password: ""
+    };
+    http:ClientBasicAuthHandler handler = new(config);
+    http:Request request = createDummyRequest();
+    http:Request|http:ClientAuthError result1 = handler.enrich(request);
+    if (result1 is http:ClientAuthError) {
+        test:assertEquals(result1.message(), "Failed to enrich request with Basic Auth token. Username or password " +
+            "cannot be empty.", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output");
+    }
+
+    map<string|string[]> headers = {};
+    map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
+    if (result2 is http:ClientAuthError) {
+        test:assertEquals(result2.message(), "Failed to enrich headers with Basic Auth token. Username or password " +
+            "cannot be empty.", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output");
+    }
+
+    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
+    if (result3 is http:ClientAuthError) {
+        test:assertEquals(result3.message(), "Failed to enrich headers with Basic Auth token. Username or password " +
+            "cannot be empty.", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output");
+    }
+}
+
+@test:Config {}
 isolated function testClientBearerTokenAuthHandler() {
     http:BearerTokenConfig config = {
         token: "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"
