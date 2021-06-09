@@ -20,6 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/regex;
 import ballerina/jballerina.java;
+import ballerina/url;
 
 # Represents an HTTP request.
 #
@@ -389,9 +390,7 @@ public class Request {
                             string value = entries[entryIndex].substring(index + 1, size);
                             value = value.trim();
                             if (value != "") {
-                                name = check decode(name, CHARSET_UTF_8);
-                                value = check decode(value, CHARSET_UTF_8);
-                                parameters[name] = value;
+                                parameters[check decode(name)] = check decode(value);
                             }
                         }
                         entryIndex = entryIndex + 1;
@@ -619,6 +618,15 @@ public class Request {
     }
 }
 
+isolated function decode(string value) returns string|GenericClientError {
+    string|error result = url:decode(value, CHARSET_UTF_8);
+    if (result is error) {
+        return error GenericClientError("form param decoding failure: " + value, result);
+    } else {
+        return result;
+    }
+}
+
 isolated function externCreateNewReqEntity(Request request) returns mime:Entity =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternRequest",
@@ -742,8 +750,4 @@ isolated function externRequestHasHeader(Request request, string headerName, Hea
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "hasHeader"
-} external;
-
-isolated function decode(string str, string charset) returns string|GenericClientError = @java:Method {
-    'class: "org.ballerinalang.net.uri.nativeimpl.Decode"
 } external;

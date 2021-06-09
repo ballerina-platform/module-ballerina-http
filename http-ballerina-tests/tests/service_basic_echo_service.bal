@@ -166,7 +166,7 @@ function testServiceDispatching() {
 function testMostSpecificBasePathIdentificationWithDuplicatedPath() {
     http:Response|error response = stClient->get("/echo/message/echo/message");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), 
+        assertTextPayload(response.getTextPayload(),
                 "no matching resource found for path : /echo/message/echo/message , method : GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -177,7 +177,7 @@ function testMostSpecificBasePathIdentificationWithDuplicatedPath() {
 function testMostSpecificBasePathIdentificationWithUnmatchedBasePath() {
     http:Response|error response = stClient->get("/abcd/message/echo/message");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), 
+        assertTextPayload(response.getTextPayload(),
                 "no matching service found for path : /abcd/message/echo/message");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -198,7 +198,7 @@ function testServiceDispatchingWithWorker() {
 function testServiceAvailabilityCheck() {
     http:Response|error response = stClient->get("/foo/message");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), 
+        assertTextPayload(response.getTextPayload(),
                 "no matching service found for path : /foo/message");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -209,7 +209,7 @@ function testServiceAvailabilityCheck() {
 function testResourceAvailabilityCheck() {
     http:Response|error response = stClient->get("/echo/bar");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), 
+        assertTextPayload(response.getTextPayload(),
                 "no matching resource found for path : /echo/bar , method : GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -387,6 +387,14 @@ function testErrorReturn() {
 function testEncodedFormParam() returns error? {
     http:Request req = new;
     req.setTextPayload("first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", contentType = mime:APPLICATION_FORM_URLENCODED);
+    string response = check stClient->post("/echo/formData", req);
+    test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testPlusEncodedFormParam() returns error? {
+    http:Request req = new;
+    req.setTextPayload("first+Name=WS+O2&tea%24%2Am=Bal%40Dance", contentType = mime:APPLICATION_FORM_URLENCODED);
     string response = check stClient->post("/echo/formData", req);
     test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
 }
