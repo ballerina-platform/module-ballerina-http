@@ -28,12 +28,28 @@ import org.testng.annotations.Test;
 public class HttpServiceTest {
 
     @Test
+    public void testKeepAlive() {
+        BObject service = TestUtils.getNewServiceObject("hello");
+        HttpService httpService = new HttpService(service);
+        Assert.assertTrue(httpService.isKeepAlive());
+
+        httpService.setKeepAlive(false);
+        Assert.assertFalse(httpService.isKeepAlive());
+    }
+
+    @Test
     public void testNullServiceBasePath() {
         BObject service = TestUtils.getNewServiceObject("hello");
         HttpService httpService = new HttpService(service);
         httpService.setBasePath(null);
 
         Assert.assertEquals(httpService.getBasePath(), "/hello");
+
+        service = TestUtils.getNewServiceObject("$hello");
+        httpService = new HttpService(service);
+        httpService.setBasePath(null);
+
+        Assert.assertEquals(httpService.getBasePath(), "/");
     }
 
     @Test
