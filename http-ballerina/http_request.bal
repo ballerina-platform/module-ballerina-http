@@ -379,6 +379,7 @@ public class Request {
                 return error GenericClientError(message, formData);
             } else {
                 if (formData != "") {
+                    formData = check decode(formData);
                     string[] entries = regex:split(formData, "&");
                     int entryIndex = 0;
                     while (entryIndex < entries.length()) {
@@ -390,7 +391,7 @@ public class Request {
                             string value = entries[entryIndex].substring(index + 1, size);
                             value = value.trim();
                             if (value != "") {
-                                parameters[check decode(name)] = check decode(value);
+                                parameters[name] = value;
                             }
                         }
                         entryIndex = entryIndex + 1;
