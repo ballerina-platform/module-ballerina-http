@@ -389,6 +389,8 @@ public class Request {
                             string value = entries[entryIndex].substring(index + 1, size);
                             value = value.trim();
                             if (value != "") {
+                                name = check decode(name, CHARSET_UTF_8);
+                                value = check decode(value, CHARSET_UTF_8);
                                 parameters[name] = value;
                             }
                         }
@@ -740,4 +742,8 @@ isolated function externRequestHasHeader(Request request, string headerName, Hea
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "hasHeader"
+} external;
+
+isolated function decode(string str, string charset) returns string|GenericClientError = @java:Method {
+    'class: "org.ballerinalang.net.uri.nativeimpl.Decode"
 } external;
