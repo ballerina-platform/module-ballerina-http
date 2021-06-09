@@ -19,7 +19,6 @@
 package org.ballerinalang.net.http;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
-import org.ballerinalang.logging.BLogManager;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
@@ -43,7 +42,7 @@ import java.util.stream.Collectors;
 public class CorsHeaderGenerator {
     private static final Pattern spacePattern = Pattern.compile(" ");
     private static final Pattern fieldCommaPattern = Pattern.compile(",");
-    private static final Logger bLog = LoggerFactory.getLogger(BLogManager.BALLERINA_ROOT_LOGGER_NAME);
+    private static final Logger log = LoggerFactory.getLogger(CorsHeaderGenerator.class);
     private static final String ACTION = "Failed to process CORS :";
 
     public static void process(HttpCarbonMessage requestMsg, HttpCarbonMessage responseMsg, boolean isSimpleRequest) {
@@ -81,12 +80,12 @@ public class CorsHeaderGenerator {
         //6.1.1 - There should be an origin
         List<String> requestOrigins = getOriginValues(origin);
         if (requestOrigins == null || requestOrigins.isEmpty()) {
-            bLog.info("{} origin header field parsing failed", ACTION);
+            log.warn("{} origin header field parsing failed", ACTION);
             return null;
         }
         //6.1.2 - check all the origins
         if (!isEffectiveOrigin(requestOrigins, resourceCors.getAllowOrigins())) {
-            bLog.info("{} not allowed origin", ACTION);
+            log.warn("{} not allowed origin", ACTION);
             return null;
         }
         //6.1.3 - set origin and credentials
@@ -101,7 +100,7 @@ public class CorsHeaderGenerator {
         //6.2.1 - request must have origin, must have one origin.
         List<String> requestOrigins = getOriginValues(originValue);
         if (requestOrigins == null || requestOrigins.size() != 1) {
-            bLog.info("{} origin header field parsing failed", ACTION);
+            log.warn("{} origin header field parsing failed", ACTION);
             return null;
         }
         String origin = requestOrigins.get(0);
@@ -110,7 +109,7 @@ public class CorsHeaderGenerator {
         if (requestMethods == null || requestMethods.size() != 1) {
             String error = requestMethods == null ? "Access-Control-Request-Method header is unavailable" :
                     "Access-Control-Request-Method header value must be single-valued";
-            bLog.info("{} {}", ACTION, error);
+            log.warn("{} {}", ACTION, error);
             return null;
         }
         String requestMethod = requestMethods.get(0);
@@ -118,22 +117,22 @@ public class CorsHeaderGenerator {
         if (resourceCors == null || !resourceCors.isAvailable()) {
             String error = resourceCors == null ? "access control request method not allowed" :
                     "CORS headers not declared properly";
-            bLog.info("{} {}", ACTION, error);
+            log.warn("{} {}", ACTION, error);
             return null;
         }
         if (!isEffectiveMethod(requestMethod, resourceCors.getAllowMethods())) {
-            bLog.info("{} access control request method not allowed", ACTION);
+            log.warn("{} access control request method not allowed", ACTION);
             return null;
         }
         //6.2.2 - request origin must be on the list or match with *.
         if (!isEffectiveOrigin(Collections.singletonList(origin), resourceCors.getAllowOrigins())) {
-            bLog.info("{} origin not allowed", ACTION);
+            log.warn("{} origin not allowed", ACTION);
             return null;
         }
         //6.2.4 - get list of request headers.
         List<String> requestHeaders = getHeaderValues(HttpHeaderNames.ACCESS_CONTROL_REQUEST_HEADERS.toString(), cMsg);
         if (!isEffectiveHeader(requestHeaders, resourceCors.getAllowHeaders())) {
-            bLog.info("{} header field parsing failed", ACTION);
+            log.warn("{} header field parsing failed", ACTION);
             return null;
         }
         //6.2.7 - set origin and credentials
