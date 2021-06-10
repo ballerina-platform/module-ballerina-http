@@ -133,6 +133,7 @@ task updateTomlFiles {
         def stdlibDependentOAuth2Version = stripBallerinaExtensionVersion(project.stdlibOAuth2Version)
         def stdlibDependentCacheVersion = stripBallerinaExtensionVersion(project.stdlibCacheVersion)
         def stdlibDependentTimeVersion = stripBallerinaExtensionVersion(project.stdlibTimeVersion)
+        def stdlibDependentUrlVersion = stripBallerinaExtensionVersion(project.stdlibUrlVersion)
         def stdlibDependentCryptoVersion = stripBallerinaExtensionVersion(project.stdlibCryptoVersion)
         def stdlibDependentFileVersion = stripBallerinaExtensionVersion(project.stdlibFileVersion)
         def stdlibDependentNettyVersion = project.nettyVersion
@@ -162,6 +163,7 @@ task updateTomlFiles {
         newDependencyConfig = newDependencyConfig.replace("@stdlib.oauth2.version@", stdlibDependentOAuth2Version)
         newDependencyConfig = newDependencyConfig.replace("@stdlib.cache.version@", stdlibDependentCacheVersion)
         newDependencyConfig = newDependencyConfig.replace("@stdlib.time.version@", stdlibDependentTimeVersion)
+        newDependencyConfig = newDependencyConfig.replace("@stdlib.url.version@", stdlibDependentUrlVersion)
         newDependencyConfig = newDependencyConfig.replace("@stdlib.crypto.version@", stdlibDependentCryptoVersion)
         newDependencyConfig = newDependencyConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
         ballerinaDependencyFile.text = newDependencyConfig

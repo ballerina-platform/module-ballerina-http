@@ -20,6 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/regex;
 import ballerina/jballerina.java;
+import ballerina/url;
 
 # Represents an HTTP request.
 #
@@ -378,6 +379,7 @@ public class Request {
                 return error GenericClientError(message, formData);
             } else {
                 if (formData != "") {
+                    formData = check decode(formData);
                     string[] entries = regex:split(formData, "&");
                     int entryIndex = 0;
                     while (entryIndex < entries.length()) {
@@ -614,6 +616,15 @@ public class Request {
             cookiesInRequest = parseCookieHeader(cookieValue);
         }
         return cookiesInRequest;
+    }
+}
+
+isolated function decode(string value) returns string|GenericClientError {
+    string|error result = url:decode(value, CHARSET_UTF_8);
+    if (result is error) {
+        return error GenericClientError("form param decoding failure: " + value, result);
+    } else {
+        return result;
     }
 }
 
