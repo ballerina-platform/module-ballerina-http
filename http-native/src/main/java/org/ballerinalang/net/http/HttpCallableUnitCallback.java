@@ -64,6 +64,9 @@ public class HttpCallableUnitCallback implements Callback {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
+                if (result instanceof BError) {
+                    ((BError) result).printStackTrace();
+                }
                 requestMessage.waitAndReleaseAllEntities();
             }
 
