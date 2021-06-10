@@ -68,7 +68,7 @@ service /mutualSslService on mutualSslistener {
 }
 
 http:ClientConfiguration certsClientConf = {
-    secureSocket:{
+    secureSocket: {
         cert: "tests/certsandkeys/public.crt",
         key: {
             keyFile: "tests/certsandkeys/private.key",
