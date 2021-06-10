@@ -479,7 +479,7 @@ class HttpResourceValidator {
                 if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
                     reportInvalidReturnType(ctx, member, returnTypeStringValue);
                 }
-            } else if (typeDescKind != TypeDescKind.RECORD) {
+            } else if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.ERROR) {
                 reportInvalidReturnType(ctx, member, returnTypeStringValue);
             }
         } else if (kind == TypeDescKind.MAP) {
