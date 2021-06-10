@@ -77,7 +77,7 @@ service /http2Service on http2Listener {
 }
 
 http:ClientConfiguration http2MutualSslClientConf = {
-    secureSocket:{
+    secureSocket: {
         key:{
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"

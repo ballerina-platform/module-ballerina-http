@@ -88,17 +88,17 @@ public function testEmptyKeyFile() {
 @test:Config {}
 public function testEmptyTrusStoreFile() {
     http:Listener|http:Error testListener = new(9249, {
-                           secureSocket: {
-                               key: {
-                                   certFile: "tests/certsandkeys/public.crt",
-                                   keyFile: "tests/certsandkeys/private.key"
-                                },
-                                mutualSsl: {
-                                    verifyClient: http:REQUIRE,
-                                    cert: ""
-                                }
-                           }
-                       });
+        secureSocket: {
+            key: {
+                certFile: "tests/certsandkeys/public.crt",
+                keyFile: "tests/certsandkeys/private.key"
+            },
+            mutualSsl: {
+                verifyClient: http:REQUIRE,
+                cert: ""
+            }
+        }
+    });
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected an empty cert file error" );
     } else {
@@ -109,20 +109,20 @@ public function testEmptyTrusStoreFile() {
 @test:Config {}
 public function testEmptyTrusStorePassword() {
     http:Listener|http:Error testListener = new(9249, {
-                           secureSocket: {
-                               key: {
-                                   certFile: "tests/certsandkeys/public.crt",
-                                   keyFile: "tests/certsandkeys/private.key"
-                                },
-                                mutualSsl: {
-                                    verifyClient: http:REQUIRE,
-                                    cert: {
-                                        path: "tests/certsandkeys/ballerinaTruststore.p12",
-                                        password: ""
-                                    }
-                                }
-                           }
-                       });
+        secureSocket: {
+            key: {
+                certFile: "tests/certsandkeys/public.crt",
+                keyFile: "tests/certsandkeys/private.key"
+            },
+            mutualSsl: {
+                verifyClient: http:REQUIRE,
+                cert: {
+                    path: "tests/certsandkeys/ballerinaTruststore.p12",
+                    password: ""
+                }
+            }
+        }
+    });
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected an empty password error" );
     } else {
@@ -133,21 +133,21 @@ public function testEmptyTrusStorePassword() {
 @test:Config {}
 public function testEmptyTrustStore() {
     http:Listener|http:Error testListener = new(9249, {
-                           host: "",
-                           secureSocket: {
-                               key: {
-                                   certFile: "tests/certsandkeys/public.crt",
-                                   keyFile: "tests/certsandkeys/private.key"
-                                },
-                                mutualSsl: {
-                                    verifyClient: http:REQUIRE,
-                                    cert: {
-                                        path: "",
-                                        password: "ballerina"
-                                    }
-                                }
-                           }
-                       });
+        host: "",
+        secureSocket: {
+            key: {
+                certFile: "tests/certsandkeys/public.crt",
+                keyFile: "tests/certsandkeys/private.key"
+            },
+            mutualSsl: {
+                verifyClient: http:REQUIRE,
+                cert: {
+                    path: "",
+                    password: "ballerina"
+                }
+            }
+        }
+    });
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected an empty truststore error" );
     } else {
