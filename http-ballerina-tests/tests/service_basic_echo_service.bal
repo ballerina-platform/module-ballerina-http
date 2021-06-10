@@ -398,3 +398,11 @@ function testPlusEncodedFormParam() returns error? {
     string response = check stClient->post("/echo/formData", req);
     test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
 }
+
+@test:Config {}
+function testEncodedFormData() returns error? {
+    http:Request req = new;
+    req.setTextPayload("first%20Name%3DWS%20O2%26tea%24%2Am%3DBal%40Dance", contentType = mime:APPLICATION_FORM_URLENCODED);
+    string response = check stClient->post("/echo/formData", req);
+    test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
+}

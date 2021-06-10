@@ -19,14 +19,14 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener authListener = new(securedListenerPort,
-    secureSocket = {
+listener http:Listener authListener = new(securedListenerPort, {
+    secureSocket: {
         key: {
             path: KEYSTORE_PATH,
             password: "ballerina"
         }
     }
-);
+});
 
 // Unsecured service - Unsecured resource with different combination of resource signature parameters
 
@@ -156,7 +156,7 @@ function testJwtAuthServiceAuthnFailure() {
     auth: [
         {
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
+                url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -240,7 +240,7 @@ service /foo on authListener {
         auth: [
             {
                 oauth2IntrospectionConfig: {
-                    url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
+                    url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
                     tokenTypeHint: "access_token",
                     scopeKey: "scp",
                     clientConfig: {
@@ -318,7 +318,7 @@ function testOAuth2ResourceAuthnFailure() {
     auth: [
         {
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
+                url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -386,7 +386,7 @@ function testServiceResourceAuthnFailure() {
     auth: [
         {
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
+                url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
@@ -455,7 +455,7 @@ service /bar on authListener {
         auth: [
             {
                 oauth2IntrospectionConfig: {
-                    url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
+                    url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
                     tokenTypeHint: "access_token",
                     scopeKey: "scp",
                     clientConfig: {

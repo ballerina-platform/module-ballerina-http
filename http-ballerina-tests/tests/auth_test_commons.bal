@@ -175,7 +175,7 @@ isolated function sendJwtRequest(string path) returns http:Response|http:ClientE
 isolated function sendOAuth2TokenRequest(string path) returns http:Response|http:ClientError {
     http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
         auth: {
-            tokenUrl: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/token",
+            tokenUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
             clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
             clientSecret: "9205371918321623741",
             clientConfig: {
@@ -222,7 +222,7 @@ isolated function assertUnauthorized(http:Response|http:ClientError response) {
 }
 
 // The mock authorization server, based with https://hub.docker.com/repository/docker/ldclakmal/ballerina-sts
-listener http:Listener sts = new(oauth2StsPort, {
+listener http:Listener sts = new(stsPort, {
     secureSocket: {
         key: {
             path: KEYSTORE_PATH,
