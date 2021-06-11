@@ -111,7 +111,9 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["ldap"]
+}
 isolated function testListenerLdapUserStoreBasicAuthHandlerAuthSuccess() {
     http:LdapUserStoreConfig config = {
         domainName: "avix.lk",
@@ -165,7 +167,9 @@ isolated function testListenerLdapUserStoreBasicAuthHandlerAuthSuccess() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["ldap"]
+}
 isolated function testListenerLdapUserStoreBasicAuthHandlerAuthzFailure() {
     http:LdapUserStoreConfig config = {
         domainName: "avix.lk",
@@ -219,7 +223,9 @@ isolated function testListenerLdapUserStoreBasicAuthHandlerAuthzFailure() {
     }
 }
 
-@test:Config {}
+@test:Config {
+    groups: ["ldap"]
+}
 isolated function testListenerLdapUserStoreBasicAuthHandlerAuthnFailure() {
     http:LdapUserStoreConfig config = {
         domainName: "avix.lk",
