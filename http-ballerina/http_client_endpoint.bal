@@ -664,14 +664,15 @@ isolated function processResponse(Response|ClientError result, TargetType target
             if (payload is NoContentError) {
                 return createResponseError(statusCode, reasonPhrase, headers);
             }
-            return error PayloadBindindError("Response payload retrieval failed: " + payload.message(), payload);
+            return error PayloadBindingError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
+                " response payload extraction failed", payload);
         } else {
             return createResponseError(statusCode, reasonPhrase, headers, payload);
         }
     }
     if ((100 <= statusCode && statusCode <= 199) || statusCode == 204 || statusCode == 304) {
         // TODO: improve this to do binding when the payload is available
-        return error PayloadBindindError("No payload status code: " + statusCode.toString());
+        return error PayloadBindingError("No payload status code: " + statusCode.toString());
     }
     return performDataBinding(response, targetType);
 }
@@ -687,14 +688,14 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
-            return error PayloadBindindError("payload binding failed: " + result.message(), result);
+            return createPayloadBindingError(result);
         }
         return <record {| anydata...; |}> checkpanic result;
     } else if (targetType is typedesc<record {| anydata...; |}[]>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
         if (result is error) {
-            return error PayloadBindindError("payload binding failed: " + result.message(), result);
+            return createPayloadBindingError(result);
         }
         return <record {| anydata...; |}[]> checkpanic result;
     } else if (targetType is typedesc<map<json>>) {
@@ -760,4 +761,13 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
     } else {
         return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
     }
+}
+
+isolated function createPayloadBindingError(error result) returns PayloadBindingError {
+    string errPrefix = "Payload binding failed: ";
+    var errMsg = result.detail()["message"];
+    if errMsg is string {
+        return error PayloadBindingError(errPrefix + errMsg, result);
+    }
+    return error PayloadBindingError(errPrefix + result.message(), result);
 }
