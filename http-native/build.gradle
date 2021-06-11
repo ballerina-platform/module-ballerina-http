@@ -61,6 +61,9 @@ dependencies {
 
     testCompile group: 'org.mock-server', name: 'mockserver-netty', version:"${mockserverNettyVersion}"
     testCompile group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
+
+    testImplementation group: 'org.mockito', name:'mockito-inline', version: "${mockitoVersion}"
+    testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: "${mockitoVersion}"
 }
 
 test {
