@@ -108,6 +108,16 @@ public class HandlerExecutorTest {
     }
 
     @Test
+    public void testExecuteAtTargetResponseSending() {
+        HandlerExecutor handlerExecutor = new HandlerExecutor();
+        MessagingHandler messagingHandler = mock(MessagingHandler.class);
+        when(messagingHandler.handlerName()).thenReturn("newHandler");
+        handlerExecutor.addHandler(messagingHandler);
+        HttpCarbonMessage carbonMessage = mock(HttpCarbonMessage.class);
+        handlerExecutor.executeAtTargetResponseSending(carbonMessage);
+    }
+
+    @Test
     public void testExecuteAtTargetResponseSendingWithRuntimeException() {
         HandlerExecutor handlerExecutor = new HandlerExecutor();
         MessagingHandler messagingHandler = mock(MessagingHandler.class);
