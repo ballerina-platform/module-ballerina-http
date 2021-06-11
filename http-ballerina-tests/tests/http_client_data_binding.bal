@@ -239,6 +239,10 @@ service /backend on clientDBBackendListener {
         byte[] b = "ballerina".toBytes();
         return {body: b};
     }
+
+    resource function 'default getErrorResponseWithErrorContentType() returns http:BadRequest {
+        return { body : {name: "hello", age: 15}, mediaType : "application/xml"};
+    }
 }
 
 service /redirect1 on clientDBBackendListener2 {
@@ -425,5 +429,44 @@ function testBinaryErrorSerialize() {
         }
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+type ClientDBErrorPerson record {|
+    string name;
+    int age;
+    float weight;
+|};
+
+@test:Config {}
+function testDetailBodyCreationFailure() {
+    string|error response = clientDBBackendClient->get("/backend/getErrorResponseWithErrorContentType");
+    if (response is error) {
+        test:assertEquals(response.message(),
+            "http:ApplicationResponseError creation failed: 400 response payload extraction failed");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: string");
+    }
+}
+
+@test:Config {}
+function testDBRecordErrorNegative() {
+    ClientDBErrorPerson|error response =  clientDBBackendClient->post("/backend/getRecord", "want record");
+    if (response is error) {
+        test:assertEquals(response.message(),
+            "Payload binding failed: 'map<json>' value cannot be converted to 'http_tests:ClientDBErrorPerson'");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson");
+    }
+}
+
+@test:Config {}
+function testDBRecordArrayNegative() {
+    ClientDBErrorPerson[]|error response =  clientDBBackendClient->post("/backend/getRecordArr", "want record arr");
+    if (response is error) {
+        test:assertEquals(response.message(),
+            "Payload binding failed: 'json[]' value cannot be converted to 'http_tests:ClientDBErrorPerson[]'");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson[]");
     }
 }
