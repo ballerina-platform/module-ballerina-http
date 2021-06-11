@@ -72,7 +72,7 @@ isolated function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
     assertSuccess(sendBearerTokenRequest("/baz/baz", JWT3));
 }
 
-// Basic auth secured service - Unsecured resource
+// Basic auth (file user store) secured service - Unsecured resource
 
 @http:ServiceConfig {
     auth: [
@@ -82,26 +82,84 @@ isolated function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
         }
     ]
 }
-service /basicAuth on authListener {
+service /basicAuthFile on authListener {
     resource function get .() returns string {
         return "Hello World!";
     }
 }
 
 @test:Config {}
-isolated function testBasicAuthServiceAuthSuccess() {
-    assertSuccess(sendBasicTokenRequest("/basicAuth", "alice", "xxx"));
+isolated function testBasicAuthFileUserStoreServiceAuthSuccess() {
+    assertSuccess(sendBasicTokenRequest("/basicAuthFile", "alice", "xxx"));
 }
 
 @test:Config {}
-isolated function testBasicAuthServiceAuthzFailure() {
-    assertForbidden(sendBasicTokenRequest("/basicAuth", "bob", "yyy"));
+isolated function testBasicAuthFileUserStoreServiceAuthzFailure() {
+    assertForbidden(sendBasicTokenRequest("/basicAuthFile", "bob", "yyy"));
 }
 
 @test:Config {}
-isolated function testBasicAuthServiceAuthnFailure() {
-    assertUnauthorized(sendBasicTokenRequest("/basicAuth", "peter", "123"));
-    assertUnauthorized(sendNoTokenRequest("/basicAuth"));
+isolated function testBasicAuthFileUserStoreServiceAuthnFailure() {
+    assertUnauthorized(sendBasicTokenRequest("/basicAuthFile", "peter", "123"));
+    assertUnauthorized(sendNoTokenRequest("/basicAuthFile"));
+}
+
+// Basic auth (LDAP user store) secured service - Unsecured resource
+
+@http:ServiceConfig {
+    auth: [
+        {
+            ldapUserStoreConfig: {
+                domainName: "avix.lk",
+                connectionUrl: "ldap://localhost:389",
+                connectionName: "cn=admin,dc=avix,dc=lk",
+                connectionPassword: "avix123",
+                userSearchBase: "ou=Users,dc=avix,dc=lk",
+                userEntryObjectClass: "inetOrgPerson",
+                userNameAttribute: "uid",
+                userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
+                userNameListFilter: "(objectClass=inetOrgPerson)",
+                groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
+                groupEntryObjectClass: "groupOfNames",
+                groupNameAttribute: "cn",
+                groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
+                groupNameListFilter: "(objectClass=groupOfNames)",
+                membershipAttribute: "member",
+                userRolesCacheEnabled: true,
+                connectionPoolingEnabled: false,
+                connectionTimeout: 5,
+                readTimeout: 60
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /basicAuthLdap on authListener {
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {
+    groups: ["ldap"]
+}
+isolated function testBasicAuthLdapUserStoreServiceAuthSuccess() {
+    assertSuccess(sendBasicTokenRequest("/basicAuthLdap", "ldclakmal", "ldclakmal@123"));
+}
+
+@test:Config {
+    groups: ["ldap"]
+}
+isolated function testBasicAuthLdapUserStoreServiceAuthzFailure() {
+    assertForbidden(sendBasicTokenRequest("/basicAuthLdap", "alice", "alice@123"));
+}
+
+@test:Config {
+    groups: ["ldap"]
+}
+isolated function testBasicAuthLdapUserStoreServiceAuthnFailure() {
+    assertUnauthorized(sendBasicTokenRequest("/basicAuthLdap", "eve", "eve@123"));
+    assertUnauthorized(sendNoTokenRequest("/basicAuthLdap"));
 }
 
 // JWT auth secured service - Unsecured resource

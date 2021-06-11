@@ -17,7 +17,7 @@
 import ballerina/auth;
 
 # Defines the LDAP store Basic Auth handler for listener authentication.
-public isolated client class ListenerLdapUserStoreBasicAuthProvider {
+public isolated client class ListenerLdapUserStoreBasicAuthHandler {
 
     private final auth:ListenerLdapUserStoreBasicAuthProvider provider;
 
