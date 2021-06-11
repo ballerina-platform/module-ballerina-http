@@ -182,6 +182,7 @@
     <test name="Transport Unit Tests" parallel="false">
         <classes>
             <class name="org.ballerinalang.net.transport.internal.HandlerExecutorTest"/>
+            <class name="org.ballerinalang.net.transport.internal.HttpTransportContextHolderTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
