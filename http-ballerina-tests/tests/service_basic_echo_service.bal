@@ -103,6 +103,19 @@ service /echo on serviceTestEP {
         checkpanic caller->respond(res);
     }
 
+    resource function post formData(http:Request request) returns string|error {
+        string payload = "";
+        map<string> requestBody = check request.getFormParams();
+        if (requestBody.length() < 1) {
+            payload = "Received request body is empty";
+        } else {
+            foreach var ['key, value] in requestBody.entries() {
+                payload += string`[${'key}] -> [${value}]`;
+            }
+        }
+        return payload;
+    }
+
     resource function patch modify(http:Caller caller, http:Request req) {
         http:Response res = new;
         res.statusCode = 204;
@@ -153,7 +166,7 @@ function testServiceDispatching() {
 function testMostSpecificBasePathIdentificationWithDuplicatedPath() {
     http:Response|error response = stClient->get("/echo/message/echo/message");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), 
+        assertTextPayload(response.getTextPayload(),
                 "no matching resource found for path : /echo/message/echo/message , method : GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -164,7 +177,7 @@ function testMostSpecificBasePathIdentificationWithDuplicatedPath() {
 function testMostSpecificBasePathIdentificationWithUnmatchedBasePath() {
     http:Response|error response = stClient->get("/abcd/message/echo/message");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), 
+        assertTextPayload(response.getTextPayload(),
                 "no matching service found for path : /abcd/message/echo/message");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -185,7 +198,7 @@ function testServiceDispatchingWithWorker() {
 function testServiceAvailabilityCheck() {
     http:Response|error response = stClient->get("/foo/message");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), 
+        assertTextPayload(response.getTextPayload(),
                 "no matching service found for path : /foo/message");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -196,7 +209,7 @@ function testServiceAvailabilityCheck() {
 function testResourceAvailabilityCheck() {
     http:Response|error response = stClient->get("/echo/bar");
     if (response is http:Response) {
-        assertTextPayload(response.getTextPayload(), 
+        assertTextPayload(response.getTextPayload(),
                 "no matching resource found for path : /echo/bar , method : GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -368,4 +381,28 @@ function testErrorReturn() {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+}
+
+@test:Config {}
+function testEncodedFormParam() returns error? {
+    http:Request req = new;
+    req.setTextPayload("first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", contentType = mime:APPLICATION_FORM_URLENCODED);
+    string response = check stClient->post("/echo/formData", req);
+    test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testPlusEncodedFormParam() returns error? {
+    http:Request req = new;
+    req.setTextPayload("first+Name=WS+O2&tea%24%2Am=Bal%40Dance", contentType = mime:APPLICATION_FORM_URLENCODED);
+    string response = check stClient->post("/echo/formData", req);
+    test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testEncodedFormData() returns error? {
+    http:Request req = new;
+    req.setTextPayload("first%20Name%3DWS%20O2%26tea%24%2Am%3DBal%40Dance", contentType = mime:APPLICATION_FORM_URLENCODED);
+    string response = check stClient->post("/echo/formData", req);
+    test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
 }
