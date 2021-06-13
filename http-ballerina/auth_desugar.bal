@@ -65,7 +65,7 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
                 return;
             }
         } else if (config is LdapUserStoreConfigWithScopes) {
-            ListenerLdapUserStoreBasicAuthProvider handler = new(config.ldapUserStoreConfig);
+            ListenerLdapUserStoreBasicAuthHandler handler = new(config.ldapUserStoreConfig);
             auth:UserDetails|Unauthorized authn = handler->authenticate(header);
             string|string[]? scopes = config?.scopes;
             if (authn is auth:UserDetails) {

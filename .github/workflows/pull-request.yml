@@ -46,7 +46,7 @@ jobs:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-        run: ./gradlew.bat build
+        run: ./gradlew.bat test -Pdisable=ldap
 
   ubuntu-build-without-native-tests:
       runs-on: ubuntu-latest

@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/file;
-import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
@@ -358,10 +357,8 @@ public isolated function testRemoveSessionCookieByClient() {
     // Removes a session cookie.
     http:CookieStore? myCookieStore = cookieClientEndpoint.getCookieStore();
     if (myCookieStore is http:CookieStore) {
-        var removeResult = myCookieStore.removeCookie("SID003", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
-        if (removeResult is error) {
-            io:println(removeResult);
-        }
+        http:CookieHandlingError? removeResult =
+                myCookieStore.removeCookie("SID003", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
     }
     // Sends a request again after one session cookie is removed.
     response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
@@ -437,17 +434,17 @@ public function testSendConcurrentRequests() {
     string[] names =[];
     if (myCookieStore is http:CookieStore) {
         http:Cookie[] cookies = myCookieStore.getAllCookies();
-        io:println(cookies.length());
         int i = 0;
-        test:assertEquals(cookies.length(), 3, msg = "Found unexpected output");
+        test:assertEquals(cookies.length(), 2, msg = "Found unexpected output");
         foreach var item in cookies {
             string? name = item.name;
             if (name is string) {
                 names[i] = name;
             }
-            i = i + 1;
+            i += 1;
         }
-        test:assertEquals(names, ["SID003", "SID001", "SID002"], msg = "Found unexpected output");
+        //Since same two cookies are sent for all concurrent requests, only two cookies are stored in the cookie store.
+        test:assertEquals(names, ["SID003", "SID001"], msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output");
     }
@@ -503,10 +500,8 @@ public function testRemovePersistentCookieByClient() {
     // Removes a persistent cookie.
     http:CookieStore? myCookieStore = cookieClientEndpoint.getCookieStore();
     if (myCookieStore is http:CookieStore) {
-        var removeResult = myCookieStore.removeCookie("SID001", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
-        if (removeResult is error) {
-            io:println(removeResult);
-        }
+        http:CookieHandlingError? removeResult =
+            myCookieStore.removeCookie("SID001", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
     }
     // Sends a request again after one persistent cookie is removed.
     response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
