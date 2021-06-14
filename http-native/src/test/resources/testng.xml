@@ -186,6 +186,7 @@
             <class name="org.ballerinalang.net.transport.internal.HttpTransportActivatorTest"/>
             <class name="org.ballerinalang.net.transport.message.BlockingEntityCollectorTest"/>
             <class name="org.ballerinalang.net.transport.message.HttpCarbonMessageTest"/>
+            <class name="org.ballerinalang.net.transport.message.HttpCarbonRequestTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
