@@ -37,6 +37,12 @@ public class SslConfigurationTest {
     }
 
     @Test
+    public void testSetVerifyClientWithEmptyString() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setVerifyClient("");
+    }
+
+    @Test
     public void testGetParameters() {
         SslConfiguration sslConfiguration = new SslConfiguration();
         Assert.assertNotNull(sslConfiguration.getParameters());
