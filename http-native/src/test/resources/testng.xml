@@ -189,6 +189,7 @@
             <class name="org.ballerinalang.net.transport.message.HttpCarbonRequestTest"/>
             <class name="org.ballerinalang.net.transport.message.HttpCarbonResponseTest"/>
             <class name="org.ballerinalang.net.transport.message.DefaultFullHttpMessageFutureTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.ListenerConfigurationTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
