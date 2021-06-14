@@ -19,12 +19,14 @@
 package org.ballerinalang.net.transport.message;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.nio.ByteBuffer;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * A unit test class for Transport module BlockingEntityCollector class functions.
@@ -68,7 +70,19 @@ public class BlockingEntityCollectorTest {
     }
 
     @Test
-    public void testGetFullMessage() {
+    public void testGetFullMessageLengthWithLastHttpContent() {
+        BlockingEntityCollector blockingEntityCollector = new BlockingEntityCollector(5);
+        LastHttpContent httpContent = mock(LastHttpContent.class);
+        ByteBuf value = mock(ByteBuf.class);
+        when(value.readableBytes()).thenReturn(5);
+        when(httpContent.content()).thenReturn(value);
+        blockingEntityCollector.addHttpContent(httpContent);
+        long returnVal = blockingEntityCollector.getFullMessageLength();
+        Assert.assertEquals(returnVal, 5);
+    }
+
+    @Test
+    public void testGetFullMessageLength() {
         BlockingEntityCollector blockingEntityCollector = new BlockingEntityCollector(5);
         ByteBuffer msgBody = mock(ByteBuffer.class);
         blockingEntityCollector.addMessageBody(msgBody);
