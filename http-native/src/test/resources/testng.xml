@@ -196,6 +196,7 @@
             <class name="org.ballerinalang.net.transport.contract.config.ProxyServerConfigurationTest"/>
             <class name="org.ballerinalang.net.transport.contract.config.ServerBootstrapConfigurationTest"/>
             <class name="org.ballerinalang.net.transport.contract.config.TransportPropertyTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.TransportsConfigurationTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
