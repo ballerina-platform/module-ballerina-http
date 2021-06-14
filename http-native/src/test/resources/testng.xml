@@ -198,6 +198,7 @@
             <class name="org.ballerinalang.net.transport.contract.config.TransportPropertyTest"/>
             <class name="org.ballerinalang.net.transport.contract.config.TransportsConfigurationTest"/>
             <class name="org.ballerinalang.net.transport.contract.config.SslConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnectorConfigTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
