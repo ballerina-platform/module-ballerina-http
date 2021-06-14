@@ -38,4 +38,18 @@ public class WebSocketClientConnectorConfigTest {
 
     }
 
+    @Test
+    public void testSetSubProtocols() {
+        WebSocketClientConnectorConfig webSocketClientConnectorConfig =
+                new WebSocketClientConnectorConfig(WEBSOCKET_REMOTE_SERVER_URL);
+        Assert.assertNull(webSocketClientConnectorConfig.getSubProtocolsStr());
+        webSocketClientConnectorConfig.setSubProtocols(new String[]{"testSub1", "testSub2"});
+        Assert.assertEquals(webSocketClientConnectorConfig.getSubProtocolsStr(), "testSub1,testSub2");
+        webSocketClientConnectorConfig.setSubProtocols(new String[]{});
+        Assert.assertNull(webSocketClientConnectorConfig.getSubProtocolsStr());
+        webSocketClientConnectorConfig.setSubProtocols(new String[]{"testSub1", "testSub2"});
+        webSocketClientConnectorConfig.setSubProtocols(null);
+        Assert.assertNull(webSocketClientConnectorConfig.getSubProtocolsStr());
+    }
+
 }
