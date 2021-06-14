@@ -22,4 +22,4 @@ jobs:
                     packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
                     GITHUB_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
                 run: |
-                    ./gradlew clean build -PpublishToCentral=false
+                    ./gradlew clean build -PpublishToCentral=true
