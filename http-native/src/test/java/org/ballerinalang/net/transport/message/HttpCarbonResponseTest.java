@@ -34,11 +34,11 @@ public class HttpCarbonResponseTest {
     @Test
     public void testSetStatus() {
         HttpResponse httpResponse = mock(HttpResponse.class);
-        HttpCarbonResponse httpCarbonRequest = new HttpCarbonResponse(httpResponse);
+        HttpCarbonResponse httpCarbonResponse = new HttpCarbonResponse(httpResponse);
         HttpResponseStatus status = new HttpResponseStatus(HttpResponseStatus.OK.code(),
                 HttpResponseStatus.OK.reasonPhrase());
-        httpCarbonRequest.setStatus(status);
-        verify(httpCarbonRequest, times(1)).setStatus(status);
+        httpCarbonResponse.setStatus(status);
+        verify(httpResponse, times(1)).setStatus(status);
     }
 
 }
