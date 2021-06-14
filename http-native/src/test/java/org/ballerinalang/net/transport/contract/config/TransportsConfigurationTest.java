@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 public class TransportsConfigurationTest {
 
     @Test
-    public void testGetDefault(){
+    public void testGetDefault() {
         TransportsConfiguration transportsConfiguration = TransportsConfiguration.getDefault();
         Assert.assertNotNull(transportsConfiguration);
     }
