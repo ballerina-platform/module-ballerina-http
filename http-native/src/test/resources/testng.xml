@@ -191,6 +191,7 @@
             <class name="org.ballerinalang.net.transport.message.DefaultFullHttpMessageFutureTest"/>
             <class name="org.ballerinalang.net.transport.contract.config.ListenerConfigurationTest"/>
             <class name="org.ballerinalang.net.transport.contract.config.SenderConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.InboundMsgSizeValidationConfigTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
