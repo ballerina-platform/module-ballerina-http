@@ -33,6 +33,8 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.Attribute;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
+import org.ballerinalang.net.transport.contract.exceptions.ConfigurationException;
 import org.ballerinalang.net.transport.contractimpl.common.Util;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.testng.Assert;
@@ -229,6 +231,12 @@ public class CommonUtilTestCase {
         verify(attr4, times(1)).set(null);
         verify(attr5, times(1)).set(null);
         verify(attr6, times(1)).set(null);
+    }
+
+    @Test
+    public void testIsKeepAlive() throws ConfigurationException {
+        HttpCarbonMessage outboundRequestMsg = mock(HttpCarbonMessage.class);
+        Assert.assertFalse(Util.isKeepAlive(KeepAliveConfig.NEVER, outboundRequestMsg));
     }
 
 }
