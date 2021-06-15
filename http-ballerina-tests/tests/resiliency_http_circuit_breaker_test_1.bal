@@ -43,7 +43,7 @@ http:Client backendClientEP00 = check new("http://localhost:8086", conf);
 service /cb on circuitBreakerEP00 {
 
     resource function 'default typical(http:Caller caller, http:Request request) {
-        var backendRes = backendClientEP00->forward("/hello/typical", request);
+        http:Response|error backendRes = backendClientEP00->forward("/hello/typical", request);
         if (cbCounter % 5 == 0) {
             runtime:sleep(3);
         } else {

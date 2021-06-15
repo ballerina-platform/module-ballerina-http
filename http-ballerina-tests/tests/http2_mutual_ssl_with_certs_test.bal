@@ -68,7 +68,7 @@ service /mutualSslService on mutualSslistener {
 }
 
 http:ClientConfiguration certsClientConf = {
-    secureSocket:{
+    secureSocket: {
         cert: "tests/certsandkeys/public.crt",
         key: {
             keyFile: "tests/certsandkeys/private.key",
@@ -80,7 +80,7 @@ http:ClientConfiguration certsClientConf = {
 @test:Config {}
 public function mutualSslWithCerts() {
     http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf);
-    var resp = clientEP->get("/mutualSslService/");
+    http:Response|error resp = clientEP->get("/mutualSslService/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Response received");
     } else {

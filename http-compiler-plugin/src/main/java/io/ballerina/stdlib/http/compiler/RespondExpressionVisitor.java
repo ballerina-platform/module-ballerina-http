@@ -44,6 +44,10 @@ public class RespondExpressionVisitor extends NodeVisitor {
 
     @Override
     public void visit(RemoteMethodCallActionNode node) {
+        SimpleNameReferenceNode simpleNameReferenceNode = node.methodName();
+        if (!simpleNameReferenceNode.name().text().equals(Constants.RESPOND_METHOD_NAME)) {
+            return;
+        }
         TypeSymbol typeSymbol = ctx.semanticModel().type(node.expression()).get();
         ModuleID moduleID = typeSymbol.getModule().get().id();
         if (!Constants.BALLERINA.equals(moduleID.orgName())) {
@@ -58,11 +62,8 @@ public class RespondExpressionVisitor extends NodeVisitor {
         if (!callerToken.equals(node.expression().toString())) {
             return;
         }
-        SimpleNameReferenceNode simpleNameReferenceNode = node.methodName();
-        if (simpleNameReferenceNode.name().text().equals(Constants.RESPOND_METHOD_NAME)) {
-            if (node.arguments().size() > 0) {
-                respondStatementNodes.add((PositionalArgumentNode) node.arguments().get(0));
-            }
+        if (node.arguments().size() > 0) {
+            respondStatementNodes.add((PositionalArgumentNode) node.arguments().get(0));
         }
     }
 

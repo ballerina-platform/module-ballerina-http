@@ -22,7 +22,7 @@ service /initiatingService on new http:Listener(9107) {
         http:Client forwadingClient = checkpanic new("http://localhost:9108",
                                        {forwarded: "enable", httpVersion: "2.0",
                                         http2Settings: { http2PriorKnowledge: true }});
-        var responseFromForwardBackend = forwadingClient->execute("GET", "/forwardedBackend/forwardedResource", 
+        http:Response|error responseFromForwardBackend = forwadingClient->execute("GET", "/forwardedBackend/forwardedResource",
                                                             <@untainted> request);
         if (responseFromForwardBackend is http:Response) {
             error? resultSentToClient = caller->respond(<@untainted> responseFromForwardBackend);
@@ -43,7 +43,7 @@ service /forwardedBackend on new http:Listener(9108, {httpVersion: "2.0"}) {
 @test:Config {}
 public function testForwardHeader() {
     http:Client clientEP = checkpanic new("http://localhost:9107");
-    var resp = clientEP->get("/initiatingService/initiatingResource");
+    http:Response|error resp = clientEP->get("/initiatingService/initiatingResource");
     if (resp is http:Response) {
         assertHeaderValue(checkpanic resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");
     } else {

@@ -16,15 +16,10 @@
 
 import ballerina/auth;
 
-# Represents credentials for Basic Auth authentication.
-public type CredentialsConfig record {|
-    *auth:CredentialsConfig;
-|};
-
 # Defines the Basic Auth handler for client authentication.
-public class ClientBasicAuthHandler {
+public isolated class ClientBasicAuthHandler {
 
-    auth:ClientBasicAuthProvider provider;
+    private final auth:ClientBasicAuthProvider provider;
 
     # Initializes the `http:ClientBasicAuthHandler` object.
     #

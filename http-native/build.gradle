@@ -39,7 +39,6 @@ dependencies {
     compile group: 'org.ballerinalang', name: 'ballerina-core', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'ballerina-runtime', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'ballerina-config', version: "${ballerinaLangVersion}"
-    compile group: 'org.ballerinalang', name: 'ballerina-logging', version: "${ballerinaLangVersion}"
     compile group: 'org.ballerinalang', name: 'value', version: "${ballerinaLangVersion}"
 
     compile group: 'org.ballerinalang', name: 'io-native', version: "${stdlibIoVersion}"
@@ -55,7 +54,6 @@ dependencies {
     compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:"${nettyTcnativeVersion}"
 
     compile group: 'org.wso2.eclipse.osgi', name: 'org.eclipse.osgi', version:"${wso2EclipseOsgiVersion}"
-    compile group: 'org.wso2.orbit.org.yaml', name: 'snakeyaml', version:"${wso2SnakeYamlVersion}"
     compile group: 'commons-pool.wso2', name: 'commons-pool', version:"${wso2CommonsPoolVersion}"
     compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}"
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}"

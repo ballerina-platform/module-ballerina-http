@@ -40,8 +40,8 @@ http:FailoverClient foBackendEP05 = check new({
 
 service /failoverDemoService05 on failoverEP05 {
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
-        string startIndex = foBackendEP05.succeededEndpointIndex.toString();
-        var backendRes = foBackendEP05->forward("/", <@untainted> request);
+        string startIndex = foBackendEP05.getSucceededEndpointIndex().toString();
+        http:Response|error backendRes = foBackendEP05->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             string responseMessage = "Failover start index is : " + startIndex;
             error? responseToCaller = caller->respond(<@untainted> responseMessage);
@@ -86,7 +86,7 @@ service /mock05 on backendEP05 {
 @test:Config {}
 function testFailoverStartingPosition() {
     http:Client testClient = checkpanic new("http://localhost:9305");
-    var response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
+    http:Response|error response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

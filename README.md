@@ -9,7 +9,7 @@ Ballerina HTTP Library
 
 The HTTP library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
 
-It provides an implementation for connecting and interacting with HTTP, HTTP2, and WebSocket endpoints over the network.
+It provides APIs for connecting and interacting with HTTP, HTTP2, and WebSocket endpoints over the network.
 
 For more information go to [The HTTP Package](https://ballerina.io/learn/api-docs/ballerina/http/index.html).
 
@@ -94,7 +94,7 @@ All contributors are encouraged to read the [Ballerina Code of Conduct](https://
 
 ## Useful Links
 
-* Discuss about code changes of the Ballerina project in [ballerina-dev@googlegroups.com](mailto:ballerina-dev@googlegroups.com).
+* Discuss code changes of the Ballerina project in [ballerina-dev@googlegroups.com](mailto:ballerina-dev@googlegroups.com).
 * Chat live with us via our [Slack channel](https://ballerina.io/community/slack/).
 * Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
 * View the [Ballerina performance test results](performance/benchmarks/summary.md).

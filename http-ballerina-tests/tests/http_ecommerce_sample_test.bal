@@ -49,7 +49,7 @@ service /ecommerceservice on ecommerceListenerEP {
 
     resource function get products/[string prodId](http:Caller caller, http:Request req) {
         string reqPath = "/productsservice/" + <@untainted> prodId;
-        var clientResponse = productsService->get(<@untainted> reqPath);
+        http:Response|error clientResponse = productsService->get(<@untainted> reqPath);
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -67,7 +67,7 @@ service /ecommerceservice on ecommerceListenerEP {
         }
 
         http:Response clientResponse = new;
-        var clientRes = productsService->post("/productsservice", clientRequest);
+        http:Response|error clientRes = productsService->post("/productsservice", clientRequest);
         if (clientRes is http:Response) {
             clientResponse = clientRes;
         } else {
@@ -77,7 +77,7 @@ service /ecommerceservice on ecommerceListenerEP {
     }
 
     resource function get orders(http:Caller caller, http:Request req) {
-        var clientResponse = productsService->get("/orderservice/orders");
+        http:Response|error clientResponse = productsService->get("/orderservice/orders");
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -87,7 +87,7 @@ service /ecommerceservice on ecommerceListenerEP {
 
     resource function post orders(http:Caller caller, http:Request req) {
         http:Request clientRequest = new;
-        var clientResponse = productsService->post("/orderservice/orders", clientRequest);
+        http:Response|error clientResponse = productsService->post("/orderservice/orders", clientRequest);
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -96,7 +96,7 @@ service /ecommerceservice on ecommerceListenerEP {
     }
 
     resource function get customers(http:Caller caller, http:Request req) {
-        var clientResponse = productsService->get("/customerservice/customers");
+        http:Response|error clientResponse = productsService->get("/customerservice/customers");
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -106,7 +106,7 @@ service /ecommerceservice on ecommerceListenerEP {
 
     resource function post customers(http:Caller caller, http:Request req) {
         http:Request clientRequest = new;
-        var clientResponse = productsService->post("/customerservice/customers", clientRequest);
+        http:Response|error clientResponse = productsService->post("/customerservice/customers", clientRequest);
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -179,7 +179,7 @@ function populateSampleProducts() returns (map<anydata>) {
 //Test resource GET products in E-Commerce sample
 @test:Config {}
 function testGetProducts() {
-    var response = ecommerceClient->get("/ecommerceservice/products/123001");
+    http:Response|error response = ecommerceClient->get("/ecommerceservice/products/123001");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
@@ -192,7 +192,7 @@ function testGetProducts() {
 //Test resource GET orders in E-Commerce sample
 @test:Config {}
 function testGetOrders() {
-    var response = ecommerceClient->get("/ecommerceservice/orders");
+    http:Response|error response = ecommerceClient->get("/ecommerceservice/orders");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
@@ -205,7 +205,7 @@ function testGetOrders() {
 //Test resource GET customers in E-Commerce sample
 @test:Config {}
 function testGetCustomers() {
-    var response = ecommerceClient->get("/ecommerceservice/customers");
+    http:Response|error response = ecommerceClient->get("/ecommerceservice/customers");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
@@ -220,7 +220,7 @@ function testGetCustomers() {
 function testPostOrder() {
     http:Request req = new;
     req.setJsonPayload({Order:{ID:"111222",Name:"XYZ123"}});
-    var response = ecommerceClient->post("/ecommerceservice/orders", req);
+    http:Response|error response = ecommerceClient->post("/ecommerceservice/orders", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
@@ -235,7 +235,7 @@ function testPostOrder() {
 function testPostProduct() {
     http:Request req = new;
     req.setJsonPayload({Product:{ID:"123345",Name:"PQR"}});
-    var response = ecommerceClient->post("/ecommerceservice/products", req);
+    http:Response|error response = ecommerceClient->post("/ecommerceservice/products", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
@@ -250,7 +250,7 @@ function testPostProduct() {
 function testPostCustomers() {
     http:Request req = new;
     req.setJsonPayload({Customer:{ID:"97453",Name:"ABC XYZ"}});
-    var response = ecommerceClient->post("/ecommerceservice/customers", req);
+    http:Response|error response = ecommerceClient->post("/ecommerceservice/customers", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);

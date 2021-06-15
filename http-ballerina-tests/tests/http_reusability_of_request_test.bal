@@ -31,7 +31,7 @@ service /reuseObj on reuseRequestListenerEP {
         string firstVal = "";
         string secondVal = "";
 
-        var firstResponse = clientEP1 -> get("");
+        http:Response|error firstResponse = clientEP1 -> get("");
         if (firstResponse is http:Response) {
             var result = <@untainted> firstResponse.getTextPayload();
             if (result is string) {
@@ -43,7 +43,7 @@ service /reuseObj on reuseRequestListenerEP {
             firstVal = firstResponse.message();
         }
 
-        var secondResponse = clientEP1 -> get("");
+        http:Response|error secondResponse = clientEP1 -> get("");
         if (secondResponse is http:Response) {
             var result = <@untainted> secondResponse.getTextPayload();
             if (result is string) {
@@ -67,7 +67,7 @@ service /reuseObj on reuseRequestListenerEP {
         string firstVal = "";
         string secondVal = "";
 
-        var firstResponse = clientEP1 -> execute("GET", "", clientReq);
+        http:Response|error firstResponse = clientEP1 -> execute("GET", "", clientReq);
         if (firstResponse is http:Response) {
             var result = <@untainted> firstResponse.getTextPayload();
             if (result is string) {
@@ -79,7 +79,7 @@ service /reuseObj on reuseRequestListenerEP {
             firstVal = firstResponse.message();
         }
 
-        var secondResponse = clientEP1 -> execute("GET", "", clientReq);
+        http:Response|error secondResponse = clientEP1 -> execute("GET", "", clientReq);
         if (secondResponse is http:Response) {
             var result = <@untainted> secondResponse.getTextPayload();
             if (result is string) {
@@ -106,10 +106,10 @@ service /reuseObj on reuseRequestListenerEP {
         var entity = clientReq.getEntity();
         if (entity is mime:Entity) {
             newRequest.setEntity(entity);
-            var firstResponse = clientEP1 -> execute("GET", "", clientReq);
+            http:Response|error firstResponse = clientEP1 -> execute("GET", "", clientReq);
             if (firstResponse is http:Response) {
                 newRequest.setHeader("test2", "value2");
-                var secondResponse = clientEP1 -> execute("GET", "", newRequest);
+                http:Response|error secondResponse = clientEP1 -> execute("GET", "", newRequest);
                 if (secondResponse is http:Response) {
                     var result1 = <@untainted> firstResponse.getTextPayload();
                     if (result1 is string) {
@@ -143,7 +143,7 @@ service /reuseObj on reuseRequestListenerEP {
 
         string firstVal = "";
         string secondVal = "";
-        var firstResponse = clientEP1 -> post("/datasource", clientReq);
+        http:Response|error firstResponse = clientEP1 -> post("/datasource", clientReq);
         if (firstResponse is http:Response) {
             var result = <@untainted> firstResponse.getTextPayload();
             if (result is string) {
@@ -155,7 +155,7 @@ service /reuseObj on reuseRequestListenerEP {
             firstVal = firstResponse.message();
         }
 
-        var secondResponse = clientEP1 -> post("/datasource", clientReq);
+        http:Response|error secondResponse = clientEP1 -> post("/datasource", clientReq);
         if (secondResponse is http:Response) {
             var result = <@untainted> secondResponse.getTextPayload();
             if (result is string) {
@@ -177,9 +177,9 @@ service /reuseObj on reuseRequestListenerEP {
     //     var byteChannel = clientRequest.getByteChannel();
     //     if (byteChannel is io:ReadableByteChannel) {
     //         clientReq.setByteChannel(byteChannel, "text/plain");
-    //         var firstResponse = clientEP1 -> post("/consumeChannel", clientReq);
+    //         http:Response|error firstResponse = clientEP1 -> post("/consumeChannel", clientReq);
     //         if (firstResponse is http:Response) {
-    //             var secondResponse = clientEP1 -> post("/consumeChannel", clientReq);
+    //             http:Response|error secondResponse = clientEP1 -> post("/consumeChannel", clientReq);
     //             http:Response testResponse = new;
     //             string firstVal = "";
     //             string secondVal = "";
@@ -216,9 +216,9 @@ service /reuseObj on reuseRequestListenerEP {
         var byteStream = clientRequest.getByteStream();
         if (byteStream is stream<byte[], io:Error?>) {
             clientReq.setByteStream(byteStream, "text/plain");
-            var firstResponse = clientEP1 -> post("/consumeChannel", clientReq);
+            http:Response|error firstResponse = clientEP1 -> post("/consumeChannel", clientReq);
             if (firstResponse is http:Response) {
-                var secondResponse = clientEP1 -> post("/consumeChannel", clientReq);
+                http:Response|error secondResponse = clientEP1 -> post("/consumeChannel", clientReq);
                 http:Response testResponse = new;
                 string firstVal = "";
                 string secondVal = "";
@@ -279,7 +279,7 @@ service /testService_2 on reuseRequestListenerEP {
 
 @test:Config {}
 function reuseRequestWithoutEntity() {
-    var response = reuseRequestClient->get("/reuseObj/request_without_entity");
+    http:Response|error response = reuseRequestClient->get("/reuseObj/request_without_entity");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -291,7 +291,7 @@ function reuseRequestWithoutEntity() {
 
 @test:Config {}
 function reuseRequestWithEmptyEntity() {
-    var response = reuseRequestClient->get("/reuseObj/request_with_empty_entity");
+    http:Response|error response = reuseRequestClient->get("/reuseObj/request_with_empty_entity");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -303,7 +303,7 @@ function reuseRequestWithEmptyEntity() {
 
 @test:Config {}
 function twoRequestsSameEntity() {
-    var response = reuseRequestClient->get("/reuseObj/two_request_same_entity");
+    http:Response|error response = reuseRequestClient->get("/reuseObj/two_request_same_entity");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -315,7 +315,7 @@ function twoRequestsSameEntity() {
 
 @test:Config {}
 function sameRequestWithADatasource() {
-    var response = reuseRequestClient->get("/reuseObj/request_with_datasource");
+    http:Response|error response = reuseRequestClient->get("/reuseObj/request_with_datasource");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -328,11 +328,11 @@ function sameRequestWithADatasource() {
 // TODO: Enable after the I/O revamp
 @test:Config {enable:false}
 function sameRequestWithByteChannel() {
-    var response = reuseRequestClient->post("/reuseObj/request_with_bytechannel", "Hello from POST!");
+    http:Response|error response = reuseRequestClient->post("/reuseObj/request_with_bytechannel", "Hello from POST!");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Hello from POST!No payload");
+        assertTextPayload(response.getTextPayload(), "Hello from POST!No content");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -340,11 +340,11 @@ function sameRequestWithByteChannel() {
 
 @test:Config {}
 function sameRequestWithByteStream() {
-    var response = reuseRequestClient->post("/reuseObj/request_with_byteStream", "Hello from POST!");
+    http:Response|error response = reuseRequestClient->post("/reuseObj/request_with_byteStream", "Hello from POST!");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Hello from POST!No payload");
+        assertTextPayload(response.getTextPayload(), "Hello from POST!No content");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

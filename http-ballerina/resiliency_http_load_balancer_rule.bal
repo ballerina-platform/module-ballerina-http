@@ -14,10 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#
 # LoadBalancerRule object type provides a required abstraction to implement different algorithms.
-#
-public type LoadBalancerRule object {
+public type LoadBalancerRule isolated object {
 
     # Provides an HTTP client which is chosen according to the algorithm.
     #

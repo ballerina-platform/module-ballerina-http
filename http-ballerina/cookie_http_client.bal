@@ -14,37 +14,48 @@
 // specific language governing permissions and limitations
 // under the License.
 
+type CookieInferredConfig record {|
+    boolean enabled;
+    int maxCookiesPerDomain;
+    int maxTotalCookieCount;
+    boolean blockThirdPartyCookies;
+|};
+
 # Provides the cookie functionality across HTTP client actions.
 #
 # + url - Target service URL
-# + config - HTTP Client Configuration to be used for the HTTP client invocation
 # + cookieConfig - Configurations associated with the cookies
 # + httpClient - HTTP client for outbound HTTP requests
 # + cookieStore - Stores the cookies of the client
-public client class CookieClient {
+public client isolated class CookieClient {
 
-    public string url;
-    public ClientConfiguration config;
-    public CookieConfig cookieConfig;
-    public HttpClient httpClient;
-    public CookieStore? cookieStore = ();
+    private final string url;
+    private final CookieInferredConfig & readonly cookieConfig;
+    private final HttpClient httpClient;
+    private final CookieStore? cookieStore;
 
     # Creates a cookie client with the given configurations.
     #
     # + url - Target service URL
-    # + config - HTTP Client Configuration to be used for the HTTP client invocation
     # + cookieConfig - Configurations associated with the cookies
     # + httpClient - HTTP client for outbound HTTP requests
     # + cookieStore - Stores the cookies of the client
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    isolated function init(string url, ClientConfiguration config, CookieConfig cookieConfig, HttpClient httpClient,
-        CookieStore? cookieStore) returns ClientError? {
+    isolated function init(string url, CookieConfig cookieConfig, HttpClient httpClient,
+            CookieStore? cookieStore) returns ClientError? {
         self.url = url;
-        self.config = config;
-        self.cookieConfig = cookieConfig;
+        CookieInferredConfig cookieInferredConfig = {
+            enabled: cookieConfig.enabled,
+            maxCookiesPerDomain: cookieConfig.maxCookiesPerDomain,
+            maxTotalCookieCount: cookieConfig.maxTotalCookieCount,
+            blockThirdPartyCookies: cookieConfig.blockThirdPartyCookies
+        };
+        self.cookieConfig = cookieInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
         if (cookieStore is CookieStore) {
             self.cookieStore = cookieStore;
+        } else {
+            self.cookieStore = ();
         }
     }
 
@@ -233,7 +244,7 @@ isolated function addStoredCookiesToRequest(string url, string path, CookieStore
 
 // Gets the cookies from the inbound response, adds them to the cookies store, and returns the response.
 isolated function addCookiesInResponseToStore(Response|ClientError inboundResponse, @tainted CookieStore?
-        cookieStore, CookieConfig cookieConfig, string url, string path) returns Response|ClientError {
+        cookieStore, CookieInferredConfig cookieConfig, string url, string path) returns Response|ClientError {
     if (cookieStore is CookieStore && inboundResponse is Response) {
         Cookie[] cookiesInResponse = inboundResponse.getCookies();
         cookieStore.addCookies(cookiesInResponse, cookieConfig, url, path );

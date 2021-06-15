@@ -23,7 +23,7 @@ import ballerina/lang.runtime as runtime;
 # + backOffFactor - Multiplier of the retry interval to exponentially increase retry interval
 # + maxWaitInterval - Maximum time of the retry interval in seconds
 # + statusCodes - HTTP response status codes which are considered as failures
-public type RetryInferredConfig record {|
+type RetryInferredConfig record {|
     int count = 0;
     decimal interval = 0;
     float backOffFactor = 0.0;
@@ -34,17 +34,13 @@ public type RetryInferredConfig record {|
 # Provides the HTTP remote functions for interacting with an HTTP endpoint. This is created by wrapping the HTTP client
 # to provide retrying over HTTP requests.
 #
-# + url - Target service url
-# + config - HTTP ClientConfiguration to be used for HTTP client invocation
 # + retryInferredConfig - Derived set of configurations associated with retry
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner.
-public client class RetryClient {
+public client isolated class RetryClient {
 
-    public string url;
-    public ClientConfiguration config;
-    public RetryInferredConfig retryInferredConfig;
-    public HttpClient httpClient;
+    final RetryInferredConfig & readonly retryInferredConfig;
+    final HttpClient httpClient;
 
     # Provides the HTTP remote functions for interacting with an HTTP endpoint. This is created by wrapping the HTTP
     # client to provide retrying over HTTP requests.
@@ -56,9 +52,7 @@ public client class RetryClient {
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration config, RetryInferredConfig retryInferredConfig,
                                         HttpClient httpClient) returns ClientError? {
-        self.url = url;
-        self.config = config;
-        self.retryInferredConfig = retryInferredConfig;
+        self.retryInferredConfig = retryInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
     }
 
@@ -277,8 +271,13 @@ isolated function performRetryAction(@untainted string path, Request request, Ht
     int retryCount = retryClient.retryInferredConfig.count;
     decimal interval = retryClient.retryInferredConfig.interval;
     boolean[] statusCodeIndex = retryClient.retryInferredConfig.statusCodes;
-    initializeBackOffFactorAndMaxWaitInterval(retryClient);
-    
+    //initializeBackOffFactorAndMaxWaitInterval(retryClient);
+    float inputBackOffFactor = retryClient.retryInferredConfig.backOffFactor;
+    float backOffFactor = inputBackOffFactor <= 0.0 ? 1.0 : inputBackOffFactor;
+
+    decimal inputMaxWaitInterval = retryClient.retryInferredConfig.maxWaitInterval;
+    decimal maxWaitInterval = inputMaxWaitInterval == 0D ? 60 : inputMaxWaitInterval;
+
     AllRetryAttemptsFailed retryFailedError = error AllRetryAttemptsFailed("All the retry attempts failed.");
     ClientError httpConnectorErr = retryFailedError;
     Request inRequest = request;
@@ -294,7 +293,8 @@ isolated function performRetryAction(@untainted string path, Request request, Ht
             if (statusCodeIndex.length() > responseStatusCode && (statusCodeIndex[responseStatusCode])
                                                               && currentRetryCount < (retryCount)) {
                 [interval, currentRetryCount] =
-                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval);
+                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                                backOffFactor, maxWaitInterval);
             } else {
                 return backendResponse;
             }
@@ -305,19 +305,22 @@ isolated function performRetryAction(@untainted string path, Request request, Ht
                 if (statusCodeIndex.length() > responseStatusCode && (statusCodeIndex[responseStatusCode])
                                                                   && currentRetryCount < (retryCount)) {
                     [interval, currentRetryCount] =
-                                    calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval);
+                                    calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                                    backOffFactor, maxWaitInterval);
                 } else {
                     // We return the HttpFuture object as this is called by submit method.
                     return backendResponse;
                 }
             } else {
                 [interval, currentRetryCount] =
-                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval);
+                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                                backOffFactor, maxWaitInterval);
                 httpConnectorErr = response;
             }
         } else {
             [interval, currentRetryCount] =
-                            calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval);
+                            calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                            backOffFactor, maxWaitInterval);
             httpConnectorErr = backendResponse;
         }
         runtime:sleep(interval);
@@ -325,28 +328,18 @@ isolated function performRetryAction(@untainted string path, Request request, Ht
     return httpConnectorErr;
 }
 
-isolated function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryClient) {
-    if (retryClient.retryInferredConfig.backOffFactor <= 0.0) {
-        retryClient.retryInferredConfig.backOffFactor = 1.0;
-    }
-    if (retryClient.retryInferredConfig.maxWaitInterval == 0D) {
-        retryClient.retryInferredConfig.maxWaitInterval = 60;
-    }
-}
-
-isolated function getWaitTime(float backOffFactor, decimal maxWaitTime, decimal interval) returns decimal {
-    decimal waitTime = interval * <decimal> backOffFactor;
-    // waitTime = waitTime > maxWaitTime ? maxWaitTime : waitTime;
-    return (waitTime > maxWaitTime) ? maxWaitTime : waitTime;
-}
-
 isolated function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount,
-        decimal currentDelay) returns [decimal, int] {
+        decimal currentDelay, float backOffFactor, decimal maxWaitInterval) returns [decimal, int] {
     decimal interval = currentDelay;
     if (currentRetryCount != 0) {
-        interval = getWaitTime(retryClient.retryInferredConfig.backOffFactor,
-                    retryClient.retryInferredConfig.maxWaitInterval, interval);
+        interval = getWaitTime(backOffFactor, maxWaitInterval, interval);
     }
     int retryCount = currentRetryCount + 1;
     return [interval, retryCount];
+}
+
+
+isolated function getWaitTime(float backOffFactor, decimal maxWaitTime, decimal interval) returns decimal {
+    decimal waitTime = interval * <decimal> backOffFactor;
+    return (waitTime > maxWaitTime) ? maxWaitTime : waitTime;
 }

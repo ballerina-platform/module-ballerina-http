@@ -54,11 +54,8 @@ public class HttpCallableUnitCallback implements Callback {
             stopObservationWithContext();
             return;
         }
+        printStacktrace(result);
         HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
-        if (result instanceof BError) { // handles error check and return
-            sendFailureResponse((BError) result);
-            return;
-        }
 
         Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
@@ -69,6 +66,7 @@ public class HttpCallableUnitCallback implements Callback {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
+                printStacktrace(result);
                 requestMessage.waitAndReleaseAllEntities();
             }
 
@@ -105,6 +103,12 @@ public class HttpCallableUnitCallback implements Callback {
             if (observerContext != null) {
                 ObserveUtils.stopObservationWithContext(observerContext);
             }
+        }
+    }
+
+    private void printStacktrace(Object result) {
+        if (result instanceof BError) {
+            ((BError) result).printStackTrace();
         }
     }
 }

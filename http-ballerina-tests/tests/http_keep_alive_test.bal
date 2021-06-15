@@ -44,22 +44,22 @@ http:Client http_1_0_never = check new("http://localhost:" + keepAliveClientTest
 
 service /keepAliveTest on keepAliveListenerEP {
 
-    resource function 'default h1_1(http:Caller caller, http:Request req) {
-        var res1 = <http:Response> checkpanic http_1_1_default->post("/keepAliveTest2", { "name": "Ballerina" });
-        var res2 = <http:Response> checkpanic http_1_1_auto->post("/keepAliveTest2", { "name": "Ballerina" });
-        var res3 = <http:Response> checkpanic http_1_1_always->post("/keepAliveTest2", { "name": "Ballerina" });
-        var res4 = <http:Response> checkpanic http_1_1_never->post("/keepAliveTest2", { "name": "Ballerina" });
+    resource function 'default h1_1(http:Caller caller, http:Request req) returns error? {
+        http:Response res1 = check http_1_1_default->post("/keepAliveTest2", { "name": "Ballerina" });
+        http:Response res2 = check http_1_1_auto->post("/keepAliveTest2", { "name": "Ballerina" });
+        http:Response res3 = check http_1_1_always->post("/keepAliveTest2", { "name": "Ballerina" });
+        http:Response res4 = check http_1_1_never->post("/keepAliveTest2", { "name": "Ballerina" });
 
         http:Response[] resArr = [res1, res2, res3, res4];
         string result = processResponse("http_1_1", resArr);
         checkpanic caller->respond(<@untainted> result);
     }
 
-    resource function 'default h1_0(http:Caller caller, http:Request req) {
-        var res1 = <http:Response> checkpanic http_1_0_default->post("/keepAliveTest2", { "name": "Ballerina" });
-        var res2 = <http:Response> checkpanic http_1_0_auto->post("/keepAliveTest2", { "name": "Ballerina" });
-        var res3 = <http:Response> checkpanic http_1_0_always->post("/keepAliveTest2", { "name": "Ballerina" });
-        var res4 = <http:Response> checkpanic http_1_0_never->post("/keepAliveTest2", { "name": "Ballerina" });
+    resource function 'default h1_0(http:Caller caller, http:Request req) returns error? {
+        http:Response res1 = check http_1_0_default->post("/keepAliveTest2", { "name": "Ballerina" });
+        http:Response res2 = check http_1_0_auto->post("/keepAliveTest2", { "name": "Ballerina" });
+        http:Response res3 = check http_1_0_always->post("/keepAliveTest2", { "name": "Ballerina" });
+        http:Response res4 = check http_1_0_never->post("/keepAliveTest2", { "name": "Ballerina" });
 
         http:Response[] resArr = [res1, res2, res3, res4];
         string result = processResponse("http_1_0", resArr);
@@ -95,7 +95,7 @@ function processResponse(string protocol, http:Response[] responseArr) returns @
 //Test keep-alive with HTTP clients.
 @test:Config {}
 function testWithHttp_1_1() {
-    var response = keepAliveClient->get("/keepAliveTest/h1_1");
+    http:Response|error response = keepAliveClient->get("/keepAliveTest/h1_1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -107,7 +107,7 @@ function testWithHttp_1_1() {
 
 @test:Config {}
 function testWithHttp_1_0() {
-    var response = keepAliveClient->get("/keepAliveTest/h1_0");
+    http:Response|error response = keepAliveClient->get("/keepAliveTest/h1_0");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

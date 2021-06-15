@@ -16,27 +16,19 @@
 
 import ballerina/jballerina.java;
 
-# Provides the HTTP actions for interacting with an HTTP server. Apart from the standard HTTP methods,
-# `HttpClient.forward()` and `HttpClient.execute()` functions are provided. More complex and specific endpoint types
-# can be created by wrapping this generic HTTP actions implementation.
-#
-# + url - The URL of the remote HTTP endpoint
-# + config - The configurations associated with the HttpClient
-public client class HttpClient {
+# Lies inside every type of client in the chain holding the native client connector. More complex and specific
+# endpoint types are created by wrapping this generic HTTP actions implementation internally.
+public client isolated class HttpClient {
 
-    public ClientConfiguration config = {};
-    public string url;
-
-    # Gets invoked to initialize the native `client`. During initialization, the configurations are provided through the
+    # Gets invoked to initialize the native `client`. During the initialization, the configurations are provided through the
     # `config`. The `HttpClient` lies inside every type of client in the chain holding the native client connector.
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration? config = ()) returns ClientError? {
-        self.config = config ?: {};
-        self.url = url;
-        return createSimpleHttpClient(self, globalHttpClientConnPool);
+        ClientConfiguration options = config ?: {};
+        return createSimpleHttpClient(self, globalHttpClientConnPool, url, options);
     }
 
     # The `HttpClient.post()` function can be used to send HTTP POST requests to HTTP endpoints.
@@ -229,17 +221,6 @@ isolated function externExecuteClientAction(HttpClient caller, string path, Requ
     'class: "org.ballerinalang.net.http.client.actions.HttpClientAction",
     name: "executeClientAction"
 } external;
-
-# Defines a timeout error occurred during service invocation.
-#
-# + message - An explanation on what went wrong
-# + cause - The error which caused the `HttpTimeoutError`
-# + statusCode - HTTP status code
-public type HttpTimeoutError record {|
-    string message = "";
-    error? cause = ();
-    int statusCode = 0;
-|};
 
 isolated function createClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpClient simpleClient = check new(url, config);

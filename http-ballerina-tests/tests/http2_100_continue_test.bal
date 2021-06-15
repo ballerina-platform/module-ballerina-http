@@ -52,7 +52,7 @@ service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
 
     resource function get initial(http:Caller caller, http:Request req) {
         io:println("test100ContinueResource");
-        var response = h2Client->post("/helloWorld/abnormalResource", "100 continue response should be ignored by this client");
+        http:Response|error response = h2Client->post("/helloWorld/abnormalResource", "100 continue response should be ignored by this client");
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted>response);
         } else {
@@ -70,7 +70,7 @@ function handleRespError(error? result) {
 @test:Config {}
 public function testUnexpected100ContinueResponse() {
     http:Client clientEP = checkpanic new("http://localhost:9128");
-    var resp = clientEP->get("/continueService/initial");
+    http:Response|error resp = clientEP->get("/continueService/initial");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {

@@ -23,10 +23,6 @@ import ballerina/time;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
-//////////////////////////////
-/// Native implementations ///
-//////////////////////////////
-
 # Parses the given header value to extract its value and parameter map.
 #
 # + headerValue - The header value
@@ -285,8 +281,7 @@ isolated function getInvalidTypeError() returns ClientError {
 }
 
 isolated function createErrorForNoPayload(mime:Error err) returns GenericClientError {
-    string message = "No payload";
-    return error GenericClientError(message, err);
+    return error NoContentError("No content", err);
 }
 
 isolated function getStatusCodeRange(string statusCode) returns string {

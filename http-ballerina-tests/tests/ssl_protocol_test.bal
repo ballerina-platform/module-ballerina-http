@@ -61,7 +61,7 @@ http:ClientConfiguration sslProtocolClientConfig = {
 public function testSslProtocol() {
     http:Client clientEP = checkpanic new("https://localhost:9249", sslProtocolClientConfig);
     http:Request req = new;
-    var resp = clientEP->get("/protocol/protocolResource");
+    http:Response|error resp = clientEP->get("/protocol/protocolResource");
     if (resp is http:Response) {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
     } else {

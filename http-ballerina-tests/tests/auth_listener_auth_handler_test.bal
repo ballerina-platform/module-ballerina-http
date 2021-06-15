@@ -111,9 +111,162 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
     }
 }
 
-@test:Config {}
-isolated function testListenerLdapUserStoreBasicAuthHandler() {
-    // TODO: add authenticate/authorize sample
+@test:Config {
+    groups: ["ldap"]
+}
+isolated function testListenerLdapUserStoreBasicAuthHandlerAuthSuccess() {
+    http:LdapUserStoreConfig config = {
+        domainName: "avix.lk",
+        connectionUrl: "ldap://localhost:389",
+        connectionName: "cn=admin,dc=avix,dc=lk",
+        connectionPassword: "avix123",
+        userSearchBase: "ou=Users,dc=avix,dc=lk",
+        userEntryObjectClass: "inetOrgPerson",
+        userNameAttribute: "uid",
+        userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
+        userNameListFilter: "(objectClass=inetOrgPerson)",
+        groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
+        groupEntryObjectClass: "groupOfNames",
+        groupNameAttribute: "cn",
+        groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
+        groupNameListFilter: "(objectClass=groupOfNames)",
+        membershipAttribute: "member",
+        userRolesCacheEnabled: true,
+        connectionPoolingEnabled: false,
+        connectionTimeout: 5,
+        readTimeout: 60
+    };
+    http:ListenerLdapUserStoreBasicAuthHandler handler = new(config);
+    string basicAuthToken = "bGRjbGFrbWFsOmxkY2xha21hbEAxMjM=";
+    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
+    http:Request request = createSecureRequest(headerValue);
+    auth:UserDetails|http:Unauthorized authn1 = handler->authenticate(request);
+    if (authn1 is auth:UserDetails) {
+        test:assertEquals(authn1.username, "ldclakmal");
+        test:assertEquals(authn1?.scopes, ["admin", "developer"]);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    auth:UserDetails|http:Unauthorized authn2 = handler->authenticate(headerValue);
+    if (authn2 is auth:UserDetails) {
+        test:assertEquals(authn2.username, "ldclakmal");
+        test:assertEquals(authn2?.scopes, ["admin", "developer"]);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    http:Forbidden? authz1 = handler->authorize(<auth:UserDetails>authn1, "admin");
+    if (authz1 is http:Forbidden) {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    http:Forbidden? authz2 = handler->authorize(<auth:UserDetails>authn2, "developer");
+    if (authz2 is http:Forbidden) {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+@test:Config {
+    groups: ["ldap"]
+}
+isolated function testListenerLdapUserStoreBasicAuthHandlerAuthzFailure() {
+    http:LdapUserStoreConfig config = {
+        domainName: "avix.lk",
+        connectionUrl: "ldap://localhost:389",
+        connectionName: "cn=admin,dc=avix,dc=lk",
+        connectionPassword: "avix123",
+        userSearchBase: "ou=Users,dc=avix,dc=lk",
+        userEntryObjectClass: "inetOrgPerson",
+        userNameAttribute: "uid",
+        userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
+        userNameListFilter: "(objectClass=inetOrgPerson)",
+        groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
+        groupEntryObjectClass: "groupOfNames",
+        groupNameAttribute: "cn",
+        groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
+        groupNameListFilter: "(objectClass=groupOfNames)",
+        membershipAttribute: "member",
+        userRolesCacheEnabled: true,
+        connectionPoolingEnabled: false,
+        connectionTimeout: 5,
+        readTimeout: 60
+    };
+    http:ListenerLdapUserStoreBasicAuthHandler handler = new(config);
+    string basicAuthToken = "YWxpY2U6YWxpY2VAMTIz";
+    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
+    http:Request request = createSecureRequest(headerValue);
+    auth:UserDetails|http:Unauthorized authn1 = handler->authenticate(request);
+    if (authn1 is auth:UserDetails) {
+        test:assertEquals(authn1.username, "alice");
+        test:assertEquals(authn1?.scopes, ["developer"]);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    auth:UserDetails|http:Unauthorized authn2 = handler->authenticate(headerValue);
+    if (authn2 is auth:UserDetails) {
+        test:assertEquals(authn2.username, "alice");
+        test:assertEquals(authn2?.scopes, ["developer"]);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    http:Forbidden? authz1 = handler->authorize(<auth:UserDetails>authn1, "admin");
+    if (authz1 is ()) {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    http:Forbidden? authz2 = handler->authorize(<auth:UserDetails>authn2, "admin");
+    if (authz2 is ()) {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+@test:Config {
+    groups: ["ldap"]
+}
+isolated function testListenerLdapUserStoreBasicAuthHandlerAuthnFailure() {
+    http:LdapUserStoreConfig config = {
+        domainName: "avix.lk",
+        connectionUrl: "ldap://localhost:389",
+        connectionName: "cn=admin,dc=avix,dc=lk",
+        connectionPassword: "avix123",
+        userSearchBase: "ou=Users,dc=avix,dc=lk",
+        userEntryObjectClass: "inetOrgPerson",
+        userNameAttribute: "uid",
+        userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
+        userNameListFilter: "(objectClass=inetOrgPerson)",
+        groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
+        groupEntryObjectClass: "groupOfNames",
+        groupNameAttribute: "cn",
+        groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
+        groupNameListFilter: "(objectClass=groupOfNames)",
+        membershipAttribute: "member",
+        userRolesCacheEnabled: true,
+        connectionPoolingEnabled: false,
+        connectionTimeout: 5,
+        readTimeout: 60
+    };
+    http:ListenerLdapUserStoreBasicAuthHandler handler = new(config);
+    string basicAuthToken = "ZXZlOmV2ZUAxMjM=";
+    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
+    http:Request request = createSecureRequest(headerValue);
+    auth:UserDetails|http:Unauthorized authn1 = handler->authenticate(request);
+    if (authn1 is http:Unauthorized) {
+        test:assertEquals(authn1?.body, "Failed to authenticate username 'eve' with LDAP user store. Username cannot be found in the directory.");
+    }
+
+    auth:UserDetails|http:Unauthorized authn2 = handler->authenticate(headerValue);
+    if (authn2 is http:Unauthorized) {
+        test:assertEquals(authn2?.body, "Failed to authenticate username 'eve' with LDAP user store. Username cannot be found in the directory.");
+    }
+
+    request = createDummyRequest();
+    auth:UserDetails|http:Unauthorized authn3 = handler->authenticate(request);
+    if (authn3 is http:Unauthorized) {
+        test:assertEquals(authn3?.body, "Authorization header not available.");
+    }
 }
 
 @test:Config {}
@@ -277,7 +430,7 @@ isolated function testListenerJwtAuthHandlerAuthnFailure() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthSuccess() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
+        url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
@@ -311,7 +464,7 @@ function testListenerOAuth2HandlerAuthSuccess() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthzFailure() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
+        url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {
@@ -336,7 +489,7 @@ function testListenerOAuth2HandlerAuthzFailure() {
 @test:Config {}
 function testListenerOAuth2HandlerAuthnFailure() {
     http:OAuth2IntrospectionConfig config = {
-        url: "https://localhost:" + oauth2StsPort.toString() + "/oauth2/introspect",
+        url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
         tokenTypeHint: "access_token",
         scopeKey: "scp",
         clientConfig: {

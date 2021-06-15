@@ -52,3 +52,8 @@ version = "@stdlib.log.version@"
 org = "ballerina"
 name = "regex"
 version = "@stdlib.regex.version@"
+
+[[dependency]]
+org = "ballerina"
+name = "url"
+version = "@stdlib.url.version@"

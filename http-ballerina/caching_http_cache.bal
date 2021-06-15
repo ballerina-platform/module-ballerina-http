@@ -25,11 +25,11 @@ import ballerina/log;
 #            `CACHE_CONTROL_AND_VALIDATORS`. The default behaviour is to allow caching only when the `cache-control`
 #            header and either the `etag` or `last-modified` header are present.
 # + isShared - Specifies whether the HTTP caching layer should behave as a public cache or a private cache
-public class HttpCache {
+public isolated class HttpCache {
 
-    public cache:Cache cache;
-    public CachingPolicy policy = CACHE_CONTROL_AND_VALIDATORS;
-    public boolean isShared = false;
+    final cache:Cache cache;
+    private final CachingPolicy policy;
+    private final boolean isShared;
 
     # Creates the HTTP cache.
     #

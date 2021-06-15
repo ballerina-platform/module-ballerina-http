@@ -17,52 +17,11 @@
 import ballerina/log;
 import ballerina/regex;
 
-# Represents the Authorization header name.
-public const string AUTH_HEADER = "Authorization";
-
-# The prefix used to denote the Basic authentication scheme.
-public const string AUTH_SCHEME_BASIC = "Basic";
-
-# The prefix used to denote the Bearer authentication scheme.
-public const string AUTH_SCHEME_BEARER = "Bearer";
-
-# Defines the authentication configurations for the HTTP client.
-public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig|OAuth2GrantConfig;
-
-// Defines the client authentication handlers.
-type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
-
-# Defines the authentication configurations for the HTTP listener.
-public type ListenerAuthConfig FileUserStoreConfigWithScopes|
-                               LdapUserStoreConfigWithScopes|
-                               JwtValidatorConfigWithScopes|
-                               OAuth2IntrospectionConfigWithScopes;
-
-public type FileUserStoreConfigWithScopes record {|
-   FileUserStoreConfig fileUserStoreConfig;
-   string|string[] scopes?;
-|};
-
-public type LdapUserStoreConfigWithScopes record {|
-   LdapUserStoreConfig ldapUserStoreConfig;
-   string|string[] scopes?;
-|};
-
-public type JwtValidatorConfigWithScopes record {|
-   JwtValidatorConfig jwtValidatorConfig;
-   string|string[] scopes?;
-|};
-
-public type OAuth2IntrospectionConfigWithScopes record {|
-   OAuth2IntrospectionConfig oauth2IntrospectionConfig;
-   string|string[] scopes?;
-|};
-
 // Logs and prepares the `error` as an `http:ClientAuthError`.
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
     log:printError(message, 'error = err);
     if (err is error) {
-        return error ClientAuthError(message, err);
+        return error ClientAuthError(message + " " + err.message(), err);
     }
     return error ClientAuthError(message);
 }

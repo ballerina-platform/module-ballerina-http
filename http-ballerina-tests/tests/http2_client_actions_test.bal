@@ -96,7 +96,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
     resource function get clientGet(http:Caller caller, http:Request req) {
         string value = "";
         //No Payload
-        var response1 = http2Client->get("/backEndService/http2ReplyText");
+        http:Response|error response1 = http2Client->get("/backEndService/http2ReplyText");
         if (response1 is http:Response) {
             var result = response1.getTextPayload();
             if (result is string) {
@@ -107,7 +107,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         }
 
         //No Payload
-        var response2 = http2Client->get("/backEndService/http2ReplyText", ());
+        http:Response|error response2 = http2Client->get("/backEndService/http2ReplyText", ());
         if (response2 is http:Response) {
             var result = response2.getTextPayload();
             if (result is string) {
@@ -118,7 +118,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         }
 
         //With headers
-        var response3 = http2Client->get("/backEndService/http2ReplyText", {"x-type":"hello"});
+        http:Response|error response3 = http2Client->get("/backEndService/http2ReplyText", {"x-type":"hello"});
         if (response3 is http:Response) {
             var result = response3.getTextPayload();
             if (result is string) {
@@ -133,7 +133,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
     resource function get clientPostWithoutBody(http:Caller caller, http:Request req) {
         string value = "";
         //No Payload
-        var clientResponse = http2Client->post("/backEndService/http2PostReply", ());
+        http:Response|error clientResponse = http2Client->post("/backEndService/http2PostReply", ());
         if (clientResponse is http:Response) {
             var returnValue = clientResponse.getTextPayload();
             if (returnValue is string) {
@@ -150,7 +150,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
 
     resource function get clientPostWithBody(http:Caller caller, http:Request req) {
         string value = "";
-        var textResponse = http2Client->post("/backEndService/http2PostReply", "Sample Text");
+        http:Response|error textResponse = http2Client->post("/backEndService/http2PostReply", "Sample Text");
         if (textResponse is http:Response) {
             var result = textResponse.getTextPayload();
             if (result is string) {
@@ -160,7 +160,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
             }
         }
 
-        var xmlResponse = http2Client->post("/backEndService/http2PostReply", xml `<yy>Sample Xml</yy>`);
+        http:Response|error xmlResponse = http2Client->post("/backEndService/http2PostReply", xml `<yy>Sample Xml</yy>`);
         if (xmlResponse is http:Response) {
             var result = xmlResponse.getXmlPayload();
             if (result is xml) {
@@ -170,7 +170,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
             }
         }
 
-        var jsonResponse = http2Client->post("/backEndService/http2PostReply", { name: "apple", color: "red" });
+        http:Response|error jsonResponse = http2Client->post("/backEndService/http2PostReply", { name: "apple", color: "red" });
         if (jsonResponse is http:Response) {
             var result = jsonResponse.getJsonPayload();
             if (result is json) {
@@ -186,7 +186,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         string value = "";
         string textVal = "Sample Text";
         byte[] binaryValue = textVal.toBytes();
-        var textResponse = http2Client->post("/backEndService/http2PostReply", binaryValue);
+        http:Response|error textResponse = http2Client->post("/backEndService/http2PostReply", binaryValue);
         if (textResponse is http:Response) {
             var result = textResponse.getTextPayload();
             if (result is string) {
@@ -203,7 +203,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
     //     string value = "";
     //     var byteChannel = req.getByteChannel();
     //     if (byteChannel is io:ReadableByteChannel) {
-    //         var res = http2Client->post("/backEndService/http2SendByteChannel", <@untainted> byteChannel);
+    //         http:Response|error res = http2Client->post("/backEndService/http2SendByteChannel", <@untainted> byteChannel);
     //         if (res is http:Response) {
     //             var result = res.getTextPayload();
     //             if (result is string) {
@@ -224,7 +224,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         string value = "";
         var text = req.getTextPayload();
         if (text is string) {
-            var res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> text);
+            http:Response|error res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> text);
             if (res is http:Response) {
                 stream<byte[], io:Error?>|http:ClientError str = res.getByteStream();
                 if (str is stream<byte[], io:Error?>) {
@@ -250,7 +250,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         string value = "";
         stream<byte[], io:Error?>|http:ClientError byteStream = req.getByteStream();
         if (byteStream is stream<byte[], io:Error?>) {
-            var res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> byteStream);
+            http:Response|error res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> byteStream);
             if (res is http:Response) {
                 stream<byte[], io:Error?>|error str = res.getByteStream();
                 if (str is stream<byte[], io:Error?>) {
@@ -276,7 +276,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         string value = "";
         stream<byte[], io:Error?>|http:ClientError byteStream = req.getByteStream();
         if (byteStream is stream<byte[], io:Error?>) {
-            var res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> byteStream);
+            http:Response|error res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> byteStream);
             if (res is http:Response) {
                 var result = res.getTextPayload();
                 if (result is string) {
@@ -297,7 +297,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
 @test:Config {}
 public function testHttp2GetAction() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
-    var resp = clientEP->get("/testHttp2Service/clientGet");
+    http:Response|error resp = clientEP->get("/testHttp2Service/clientGet");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "HelloHelloHello");
         assertHeaderValue(checkpanic resp.getHeader("content-type"), "text/plain");
@@ -309,9 +309,9 @@ public function testHttp2GetAction() {
 @test:Config {}
 public function testHttp2PostAction() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
-    var resp = clientEP->get("/testHttp2Service/clientPostWithoutBody");
+    http:Response|error resp = clientEP->get("/testHttp2Service/clientPostWithoutBody");
     if (resp is http:Response) {
-        assertTextPayload(resp.getTextPayload(), "No payload");
+        assertTextPayload(resp.getTextPayload(), "No content");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
@@ -320,7 +320,7 @@ public function testHttp2PostAction() {
 @test:Config {}
 public function testHttp2PostActionWithBody() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
-    var resp = clientEP->get("/testHttp2Service/clientPostWithBody");
+    http:Response|error resp = clientEP->get("/testHttp2Service/clientPostWithBody");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample TextSample Xml{\"name\":\"apple\", \"color\":\"red\"}");
     } else {
@@ -331,7 +331,7 @@ public function testHttp2PostActionWithBody() {
 @test:Config {}
 public function testHttp2PostWithBlob() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
-    var resp = clientEP->get("/testHttp2Service/testHttp2PostWithBinaryData");
+    http:Response|error resp = clientEP->get("/testHttp2Service/testHttp2PostWithBinaryData");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
     } else {
@@ -343,7 +343,7 @@ public function testHttp2PostWithBlob() {
 @test:Config {enable:false}
 public function testHttp2PostWithByteChannel() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
-    var resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteChannel", "Sample Text");
+    http:Response|error resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteChannel", "Sample Text");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
     } else {
@@ -354,7 +354,7 @@ public function testHttp2PostWithByteChannel() {
 @test:Config {}
 public function testHttp2PostWithTextToStream() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
-    var resp = clientEP->post("/testHttp2Service/testHttp2PostWithTextToStream", "Sample Text");
+    http:Response|error resp = clientEP->post("/testHttp2Service/testHttp2PostWithTextToStream", "Sample Text");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
     } else {
@@ -365,7 +365,7 @@ public function testHttp2PostWithTextToStream() {
 @test:Config {}
 public function testHttp2PostWithByteStream() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
-    var resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteStream", "Sample Text");
+    http:Response|error resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteStream", "Sample Text");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
     } else {
@@ -376,7 +376,7 @@ public function testHttp2PostWithByteStream() {
 @test:Config {}
 public function testHttp2PostWithByteStreamToTextPayloadOfClient() {
     http:Client clientEP = checkpanic new("http://localhost:9123");
-    var resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteStreamToText", "Sample Text");
+    http:Response|error resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteStreamToText", "Sample Text");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Sample Text");
     } else {

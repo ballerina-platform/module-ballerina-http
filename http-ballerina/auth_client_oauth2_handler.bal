@@ -16,28 +16,10 @@
 
 import ballerina/oauth2;
 
-# Represents OAuth2 client credentials grant configurations for OAuth2 authentication.
-public type OAuth2ClientCredentialsGrantConfig record {|
-    *oauth2:ClientCredentialsGrantConfig;
-|};
-
-# Represents OAuth2 password grant configurations for OAuth2 authentication.
-public type OAuth2PasswordGrantConfig record {|
-    *oauth2:PasswordGrantConfig;
-|};
-
-# Represents OAuth2 refresh token grant configurations for OAuth2 authentication.
-public type OAuth2RefreshTokenGrantConfig record {|
-    *oauth2:RefreshTokenGrantConfig;
-|};
-
-# Represents OAuth2 grant configurations for OAuth2 authentication.
-public type OAuth2GrantConfig OAuth2ClientCredentialsGrantConfig|OAuth2PasswordGrantConfig|OAuth2RefreshTokenGrantConfig;
-
 # Defines the OAuth2 handler for client authentication.
-public client class ClientOAuth2Handler {
+public isolated client class ClientOAuth2Handler {
 
-    oauth2:ClientOAuth2Provider provider;
+    private final oauth2:ClientOAuth2Provider provider;
 
     # Initializes the `http:ClientOAuth2Handler` object.
     #

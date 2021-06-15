@@ -170,7 +170,7 @@ function testAccessingPayloadFromEntity() {
     string jsonString = "{\"" + key + "\":\"" + value + "\"}";
     http:Request req = new;
     req.setTextPayload(jsonString);
-    var response = mimeClient->post(path, req);
+    http:Response|error response = mimeClient->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {"payload":{"lang":"ballerina"}, "header":"text/plain"});
     } else {

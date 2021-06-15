@@ -46,7 +46,7 @@ service /helloWorldWithSSL on serviceEndpointWithSSL {
 @test:Config {}
 public function testFallback() {
     http:Client clientEP = checkpanic new("http://localhost:9101");
-    var resp = clientEP->get("/helloWorldWithoutSSL");
+    http:Response|error resp = clientEP->get("/helloWorldWithoutSSL");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
     } else {
@@ -64,7 +64,7 @@ public function testFallbackWithSSL() {
             }
         }
     });
-    var resp = clientEP->get("/helloWorldWithSSL");
+    http:Response|error resp = clientEP->get("/helloWorldWithSSL");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
     } else {

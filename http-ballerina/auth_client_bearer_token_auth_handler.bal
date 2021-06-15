@@ -14,23 +14,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Represents token for Bearer token authentication.
-#
-# + token - Bearer token for authentication
-public type BearerTokenConfig record {|
-    string token;
-|};
-
 # Defines the Bearer token auth handler for client authentication.
-public class ClientBearerTokenAuthHandler {
+public isolated class ClientBearerTokenAuthHandler {
 
-    BearerTokenConfig config;
+    private final BearerTokenConfig & readonly config;
 
     # Initializes the `http:ClientBearerTokenAuthHandler` object.
     #
     # + config - The `http:BearerTokenConfig` instance
     public isolated function init(BearerTokenConfig config) {
-        self.config = config;
+        self.config = config.cloneReadOnly();
     }
 
     # Enrich the request with the relevant authentication requirements.

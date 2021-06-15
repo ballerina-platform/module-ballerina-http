@@ -40,7 +40,7 @@ http:FailoverClient foBackendEP06 = check new({
 service /failoverDemoService06 on failoverEP06 {
 
     resource function post index(http:Caller caller, http:Request request) {
-        string startIndex = foBackendEP06.succeededEndpointIndex.toString();
+        string startIndex = foBackendEP06.getSucceededEndpointIndex().toString();
         var backendRes = foBackendEP06->submit("GET", "/", <@untainted> request);
         if (backendRes is http:HttpFuture) {
             var response = foBackendEP06->getResponse(backendRes);
@@ -113,7 +113,7 @@ function sendErrorResponse(http:Caller caller, error e) {
 @test:Config{}
 function testBasicHttp2Failover() {
     http:Client testClient = checkpanic new("http://localhost:9314");
-    var response = testClient->post("/failoverDemoService06/index", requestPayload);
+    http:Response|error response = testClient->post("/failoverDemoService06/index", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

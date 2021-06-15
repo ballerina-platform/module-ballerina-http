@@ -119,8 +119,7 @@ class HttpResourceValidator {
             String paramName = nameOptional.isEmpty() ? "" : nameOptional.get();
 
             List<AnnotationSymbol> annotations = param.annotations().stream()
-                    .filter(annotationSymbol -> !annotationSymbol.typeDescriptor().get().typeKind()
-                            .equals(TypeDescKind.SINGLETON))
+                    .filter(annotationSymbol -> annotationSymbol.typeDescriptor().isPresent())
                     .collect(Collectors.toList());
             if (annotations.isEmpty()) {
                 TypeDescKind kind = param.typeDescriptor().typeKind();
@@ -480,7 +479,7 @@ class HttpResourceValidator {
                 if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
                     reportInvalidReturnType(ctx, member, returnTypeStringValue);
                 }
-            } else if (typeDescKind != TypeDescKind.RECORD) {
+            } else if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.ERROR) {
                 reportInvalidReturnType(ctx, member, returnTypeStringValue);
             }
         } else if (kind == TypeDescKind.MAP) {

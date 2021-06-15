@@ -26,6 +26,7 @@ import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.tools.diagnostics.Diagnostic;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -90,10 +91,14 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_1");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 3);
+        long availableErrors = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
+        Assert.assertEquals(availableErrors, 3);
         diagnosticResult.diagnostics().forEach(result -> {
-            Assert.assertEquals(result.diagnosticInfo().messageFormat(), REMOTE_METHODS_NOT_ALLOWED);
-            Assert.assertEquals(result.diagnosticInfo().code(), HTTP_101);
+            if (result.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)) {
+                Assert.assertEquals(result.diagnosticInfo().messageFormat(), REMOTE_METHODS_NOT_ALLOWED);
+                Assert.assertEquals(result.diagnosticInfo().code(), HTTP_101);
+            }
         });
     }
 

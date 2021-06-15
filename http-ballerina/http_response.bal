@@ -182,9 +182,9 @@ public class Response {
         return trap self.setHeader(mime:CONTENT_TYPE, contentType);
     }
 
-    # Gets the type of the payload of the response (i.e: the `content-type` header value).
+    # Gets the type of the payload of the response (i.e., the `content-type` header value).
     #
-    # + return - Returns the `content-type` header value as a string
+    # + return - The `content-type` header value as a string
     public isolated function getContentType() returns @tainted string {
         string contentTypeHeaderValue = "";
         var value = self.getHeader(mime:CONTENT_TYPE);
@@ -487,9 +487,10 @@ public class Response {
     # + cookiesToRemove - Cookies to be deleted
     public isolated function removeCookiesFromRemoteStore(Cookie...cookiesToRemove) {
         foreach var cookie in cookiesToRemove {
-            cookie.expires = "1994-03-12 08:12:22";
-            cookie.maxAge = 0;
-            self.addCookie(cookie);
+            string expires = "1994-03-12 08:12:22";
+            int maxAge = 0;
+            Cookie newCookie = getCloneWithExpiresAndMaxAge(cookie, expires, maxAge);
+            self.addCookie(newCookie);
         }
     }
 

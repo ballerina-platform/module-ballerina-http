@@ -26,7 +26,7 @@ http:Client clientEp = check new("http://localhost:" + trailingHeaderTestPort2.t
 service /initiator on trailingHeaderListenerEP1 {
 
     resource function 'default [string svc]/[string rsc](http:Caller caller, http:Request request) {
-        var responseFromBackend = clientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
+        http:Response|error responseFromBackend = clientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
         if (responseFromBackend is http:Response) {
             string|error textPayload = responseFromBackend.getTextPayload();
 
@@ -99,7 +99,7 @@ service /nonChunkingBackend on trailingHeaderListenerEP2 {
 }
 service /passthroughsvc on trailingHeaderListenerEP2 {
     resource function 'default forward(http:Caller caller, http:Request request) {
-        var responseFromBackend = clientEp->forward("/chunkingBackend/echo", request);
+        http:Response|error responseFromBackend = clientEp->forward("/chunkingBackend/echo", request);
         if (responseFromBackend is http:Response) {
             error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
         } else {
@@ -108,7 +108,7 @@ service /passthroughsvc on trailingHeaderListenerEP2 {
     }
 
     resource function 'default buildPayload(http:Caller caller, http:Request request) {
-        var responseFromBackend = clientEp->forward("/chunkingBackend/echo", request);
+        http:Response|error responseFromBackend = clientEp->forward("/chunkingBackend/echo", request);
         if (responseFromBackend is http:Response) {
             string|error textPayload = responseFromBackend.getTextPayload();
             responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
@@ -123,7 +123,7 @@ service /passthroughsvc on trailingHeaderListenerEP2 {
 //Test inbound chunked response trailers with a payload lesser than 8K
 @test:Config {}
 function testSmallPayloadResponseTrailers() {
-    var response = trailingHeaderClient->post("/initiator/chunkingBackend/echo", "Small payload");
+    http:Response|error response = trailingHeaderClient->post("/initiator/chunkingBackend/echo", "Small payload");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz");
@@ -137,7 +137,7 @@ function testSmallPayloadResponseTrailers() {
 //Test inbound chunked response trailers with a payload greater than 8K
 @test:Config {}
 function testLargePayloadResponseTrailers() {
-    var response = trailingHeaderClient->post("/initiator/chunkingBackend/echo", LARGE_ENTITY);
+    http:Response|error response = trailingHeaderClient->post("/initiator/chunkingBackend/echo", LARGE_ENTITY);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz");
@@ -151,7 +151,7 @@ function testLargePayloadResponseTrailers() {
 //Test inbound chunked response trailers with an empty payload
 @test:Config {}
 function testEmptyPayloadResponseTrailers() {
-    var response = trailingHeaderClient->get("/initiator/chunkingBackend/empty");
+    http:Response|error response = trailingHeaderClient->get("/initiator/chunkingBackend/empty");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz");
@@ -165,7 +165,7 @@ function testEmptyPayloadResponseTrailers() {
 //Negative test for inbound response trailers with <8K payload
 @test:Config {}
 function testSmallPayloadForNonChunkedResponse() {
-    var response = trailingHeaderClient->post("/initiator/nonChunkingBackend/echo", "Small payload");
+    http:Response|error response = trailingHeaderClient->post("/initiator/nonChunkingBackend/echo", "Small payload");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("response-trailer"), "No trailer header");
@@ -178,7 +178,7 @@ function testSmallPayloadForNonChunkedResponse() {
 //Negative test for inbound response trailers with a payload greater than 8K
 @test:Config {}
 function testLargePayloadForNonChunkedResponse() {
-    var response = trailingHeaderClient->post("/initiator/nonChunkingBackend/echo", LARGE_ENTITY);
+    http:Response|error response = trailingHeaderClient->post("/initiator/nonChunkingBackend/echo", LARGE_ENTITY);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("response-trailer"), "No trailer header");
@@ -191,7 +191,7 @@ function testLargePayloadForNonChunkedResponse() {
 //Test proxy behaviour with trailers and trailer count
 @test:Config {}
 function testProxiedTrailers() {
-    var response = trailingHeaderClient->post("/initiator/passthroughsvc/forward", "Small payload");
+    http:Response|error response = trailingHeaderClient->post("/initiator/passthroughsvc/forward", "Small payload");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz");
@@ -205,7 +205,7 @@ function testProxiedTrailers() {
 //Test pass-through setting trailers after building payload. Behavior is correct as user has built the datasource
 @test:Config {}
 function testPassThroughButBuildPayload() {
-    var response = trailingHeaderClient->post("/initiator/passthroughsvc/buildPayload", "Small payload");
+    http:Response|error response = trailingHeaderClient->post("/initiator/passthroughsvc/buildPayload", "Small payload");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("response-trailer"), "foo, baz, barr");

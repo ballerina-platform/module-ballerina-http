@@ -16,25 +16,17 @@
 
 import ballerina/oauth2;
 
-# Represents OAuth2 introspection server configurations for OAuth2 authentication.
-#
-# + scopeKey - The key used to fetch the scopes
-public type OAuth2IntrospectionConfig record {|
-    *oauth2:IntrospectionConfig;
-    string scopeKey = "scope";
-|};
-
 # Defines the OAuth2 handler for listener authentication.
-public client class ListenerOAuth2Handler {
+public isolated client class ListenerOAuth2Handler {
 
-    oauth2:ListenerOAuth2Provider provider;
-    string scopeKey;
+    private final oauth2:ListenerOAuth2Provider provider;
+    private final string & readonly scopeKey;
 
     # Initializes the `http:ListenerOAuth2Handler` object.
     #
     # + config - The `http:OAuth2IntrospectionConfig` instance
     public isolated function init(OAuth2IntrospectionConfig config) {
-        self.scopeKey = config.scopeKey;
+        self.scopeKey = config.scopeKey.cloneReadOnly();
         self.provider = new(config);
     }
 

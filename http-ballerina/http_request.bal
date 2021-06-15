@@ -20,7 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/regex;
 import ballerina/jballerina.java;
-import ballerina/time;
+import ballerina/url;
 
 # Represents an HTTP request.
 #
@@ -131,7 +131,7 @@ public class Request {
     # Checks whether the requested header key exists in the header map.
     #
     # + headerName - The header name
-    # + return - Returns true if the specified header key exists
+    # + return - `true` if the specified header key exists
     public isolated function hasHeader(string headerName) returns boolean {
         return externRequestHasHeader(self, headerName);
     }
@@ -193,7 +193,7 @@ public class Request {
 
     # Checks whether the client expects a `100-continue` response.
     #
-    # + return - Returns true if the client expects a `100-continue` response
+    # + return - `true` if the client expects a `100-continue` response
     public isolated function expects100Continue() returns boolean {
         if (self.hasHeader(EXPECT)) {
             string|error value = self.getHeader(EXPECT);
@@ -379,6 +379,7 @@ public class Request {
                 return error GenericClientError(message, formData);
             } else {
                 if (formData != "") {
+                    formData = check decode(formData);
                     string[] entries = regex:split(formData, "&");
                     int entryIndex = 0;
                     while (entryIndex < entries.length()) {
@@ -590,12 +591,10 @@ public class Request {
             return l;
         });
         foreach var cookie in sortedCookies {
-            var cookieName = cookie.name;
-            var cookieValue = cookie.value;
-            if (cookieName is string && cookieValue is string) {
-                cookieheader = cookieheader + cookieName + EQUALS + cookieValue + SEMICOLON + SPACE;
-            }
-            cookie.lastAccessedTime = time:utcNow();
+            cookieheader = cookieheader + cookie.name + EQUALS + cookie.value + SEMICOLON + SPACE;
+        }
+        lock {
+            updateLastAccessedTime(cookiesToAdd);
         }
         if (cookieheader != "") {
             cookieheader = cookieheader.substring(0, cookieheader.length() - 2);
@@ -617,6 +616,15 @@ public class Request {
             cookiesInRequest = parseCookieHeader(cookieValue);
         }
         return cookiesInRequest;
+    }
+}
+
+isolated function decode(string value) returns string|GenericClientError {
+    string|error result = url:decode(value, CHARSET_UTF_8);
+    if (result is error) {
+        return error GenericClientError("form param decoding failure: " + value, result);
+    } else {
+        return result;
     }
 }
 

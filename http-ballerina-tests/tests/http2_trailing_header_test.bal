@@ -24,7 +24,7 @@ http:Client trailerClientEp = check new("http://localhost:9119", { httpVersion: 
 service /trailerInitiator on new http:Listener(9118) {
 
     resource function 'default [string svc]/[string rsc](http:Caller caller, http:Request request) {
-        var responseFromBackend = trailerClientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
+        http:Response|error responseFromBackend = trailerClientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
         if (responseFromBackend is http:Response) {
             string trailerHeaderValue = checkpanic responseFromBackend.getHeader("trailer");
             string|error textPayload = responseFromBackend.getTextPayload();
@@ -66,7 +66,7 @@ service /backend on backendEp {
 
 service /passthroughservice on backendEp {
     resource function 'default forward(http:Caller caller, http:Request request) {
-        var responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
+        http:Response|error responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
         if (responseFromBackend is http:Response) {
             error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
         } else {
@@ -75,7 +75,7 @@ service /passthroughservice on backendEp {
     }
 
     resource function 'default buildPayload(http:Caller caller, http:Request request) {
-        var responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
+        http:Response|error responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
         if (responseFromBackend is http:Response) {
             string|error textPayload = responseFromBackend.getTextPayload();
             responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
@@ -90,7 +90,7 @@ service /passthroughservice on backendEp {
 @test:Config {}
 public function testHttp2SmallPayloadResponseTrailers() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", "Small payload");
+    http:Response|error resp = clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", "Small payload");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -106,7 +106,7 @@ public function testHttp2SmallPayloadResponseTrailers() {
 @test:Config {}
 public function testHttp2LargePayloadResponseTrailers() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", LARGE_ENTITY);
+    http:Response|error resp = clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", LARGE_ENTITY);
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -122,7 +122,7 @@ public function testHttp2LargePayloadResponseTrailers() {
 @test:Config {}
 public function testHttp2EmptyPayloadResponseTrailers() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->get("/trailerInitiator/backend/responseEmptyPayloadWithTrailer");
+    http:Response|error resp = clientEP->get("/trailerInitiator/backend/responseEmptyPayloadWithTrailer");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -138,7 +138,7 @@ public function testHttp2EmptyPayloadResponseTrailers() {
 @test:Config {}
 public function testHttp2ProxiedTrailers() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->post("/trailerInitiator/passthroughservice/forward", "Small payload");
+    http:Response|error resp = clientEP->post("/trailerInitiator/passthroughservice/forward", "Small payload");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -154,7 +154,7 @@ public function testHttp2ProxiedTrailers() {
 @test:Config {}
 public function testHttp2PassThroughButBuildPayload() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->post("/trailerInitiator/passthroughservice/buildPayload", "Small payload");
+    http:Response|error resp = clientEP->post("/trailerInitiator/passthroughservice/buildPayload", "Small payload");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {

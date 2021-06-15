@@ -71,7 +71,7 @@ service /headerparamservice on HeaderBindingEP {
 
 @test:Config {}
 function testHeaderTokenBinding() {
-    var response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56", {"foo":"Ballerina"});
+    http:Response|error response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56", {"foo":"Ballerina"});
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"Ballerina", value2:56});
     } else {
@@ -89,7 +89,7 @@ function testHeaderTokenBinding() {
 //Header params are not case sensitive
 @test:Config {}
 function testHeaderBindingCaseInSensitivity() {
-    var response = headerBindingClient->get("/headerparamservice/?baz=WSO2&bar=56", {"FOO":"HTtP"});
+    http:Response|error response = headerBindingClient->get("/headerparamservice/?baz=WSO2&bar=56", {"FOO":"HTtP"});
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value1:"HTtP", value2:56});
     } else {
@@ -99,7 +99,7 @@ function testHeaderBindingCaseInSensitivity() {
 
 @test:Config {}
 function testHeaderUnavailability() {
-    var response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56");
+    http:Response|error response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
@@ -112,7 +112,7 @@ function testHeaderUnavailability() {
 function testHeaderArrayUnavailability() {
     http:Request req = new;
     req.setTextPayload("All in one");
-    var response = headerBindingClient->post("/headerparamservice/q1/hello?b=hi", req);
+    http:Response|error response = headerBindingClient->post("/headerparamservice/q1/hello?b=hi", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
@@ -127,7 +127,7 @@ function testAllParamBinding() {
     req.addHeader("foo", "Hello");
     req.addHeader("Foo", "World");
     req.setTextPayload("All in one");
-    var response = headerBindingClient->post("/headerparamservice/q1/hello?b=hi", req);
+    http:Response|error response = headerBindingClient->post("/headerparamservice/q1/hello?b=hi", req);
     if (response is http:Response) {
         json expected = {xType:["Hello", "World"], path: "hello", payload: "All in one", page: "hi"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -138,7 +138,7 @@ function testAllParamBinding() {
 
 @test:Config {}
 function testHeaderBindingArrayAndString() {
-    var response = headerBindingClient->get("/headerparamservice/q2", {"X-Type":["Hello", "World"]});
+    http:Response|error response = headerBindingClient->get("/headerparamservice/q2", {"X-Type":["Hello", "World"]});
     if (response is http:Response) {
         json expected = {firstValue: "Hello", allValue:["Hello", "World"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -151,7 +151,7 @@ function testHeaderBindingArrayAndString() {
 function testNilableHeaderBinding() {
     var headers1 = {"X-Type":["Hello", "Hello"], "bar":["Write", "Language"], "Foo":"World", "baaz":"All", 
             "baz":"Ballerina"};
-    var response = headerBindingClient->get("/headerparamservice/q3", headers1);
+    http:Response|error response = headerBindingClient->get("/headerparamservice/q3", headers1);
     if (response is http:Response) {
         json expected = { val1: "World", val2: ["Write", "Language"], val3: "Ballerina"};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -182,7 +182,7 @@ function testNilableHeaderBinding() {
 function testHeaderObjectBinding() {
     var headers = {"X-Type":["Hello", "Hello"], "Foo":"World", "baz":"Write", "daz":["All", "Ballerina"],
         "bar":"Language"};
-    var response = headerBindingClient->get("/headerparamservice/q4", headers);
+    http:Response|error response = headerBindingClient->get("/headerparamservice/q4", headers);
     if (response is http:Response) {
         json expected = { val1: "World", val2: "Write", val3: true, val4: ["All", "Ballerina"], 
                                 val5: ["bar", "baz", "connection", "daz", "Foo", "host", "X-Type"]};

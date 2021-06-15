@@ -40,7 +40,7 @@ http:Client backendClientEP05 = check new("http://localhost:8091", conf05);
 service /cb on circuitBreakerEP05 {
 
     resource function 'default statuscode(http:Caller caller, http:Request request) {
-        var backendRes = backendClientEP05->execute("POST", "/statuscode", request);
+        http:Response|error backendRes = backendClientEP05->execute("POST", "/statuscode", request);
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {

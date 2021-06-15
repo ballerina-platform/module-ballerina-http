@@ -68,7 +68,7 @@ service /multipart on mockEP2 {
 
 @test:Config {}
 function testMultipartsInOutResponse() {
-    var response = multipartRespClient->get("/multipart/encode_out_response");
+    http:Response|error response = multipartRespClient->get("/multipart/encode_out_response");
     if (response is http:Response) {
         mime:Entity[]|error bodyParts = response.getBodyParts();
         if (bodyParts is mime:Entity[]) {
@@ -107,7 +107,7 @@ function testMultipartsInOutResponse() {
 function testNestedPartsInOutResponse() {
     http:Request request = new;
     request.setBodyParts(createNestedPartRequest(), contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartRespClient->post("/multipart/nested_parts_in_outresponse", request);
+    http:Response|error response = multipartRespClient->post("/multipart/nested_parts_in_outresponse", request);
     if (response is http:Response) {
         mime:Entity[]|error bodyParts = response.getBodyParts();
         if (bodyParts is mime:Entity[]) {

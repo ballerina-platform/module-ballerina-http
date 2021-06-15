@@ -207,7 +207,6 @@ public class HttpConstants {
     public static final String RESPONSE_CACHE_CONTROL = "ResponseCacheControl";
     public static final String REQUEST_CACHE_CONTROL = "RequestCacheControl";
     public static final String STRUCT_GENERIC_ERROR = "error";
-    public static final String HTTP_TIMEOUT_ERROR = "HttpTimeoutError";
     public static final String TYPE_STRING = "string";
     public static final String TRANSPORT_MESSAGE = "transport_message";
     public static final String QUERY_PARAM_MAP = "queryParamMap";
@@ -290,6 +289,10 @@ public class HttpConstants {
     public static final int RETRY_STRUCT_FIELD = 4;
     public static final String RETRY_COUNT_FIELD = "count";
     public static final String RETRY_INTERVAL_FIELD = "intervalInMillis";
+
+    //Logging related runtime parameter names
+    public static final String HTTP_ACCESS_LOG_ENABLED = "http.accesslog.enabled";
+    public static final String HTTP_TRACE_LOG_ENABLED = "http.tracelog.enabled";
 
     // ResponseCacheControl struct field names
     public static final BString RES_CACHE_CONTROL_MUST_REVALIDATE_FIELD = StringUtils.fromString("mustRevalidate");
@@ -386,8 +389,8 @@ public class HttpConstants {
             StringUtils.fromString("OCSP_STAPLING");
 
     //Client Endpoint (CallerActions)
-    public static final BString CLIENT_ENDPOINT_SERVICE_URI = StringUtils.fromString("url");
-    public static final BString CLIENT_ENDPOINT_CONFIG = StringUtils.fromString("config");
+    public static final String CLIENT_ENDPOINT_SERVICE_URI = "url";
+    public static final String CLIENT_ENDPOINT_CONFIG = "config";
     public static final int CLIENT_ENDPOINT_CONFIG_INDEX = 0;
     public static final int CLIENT_ENDPOINT_URL_INDEX = 0;
     public static final int CLIENT_GLOBAL_POOL_INDEX = 1;

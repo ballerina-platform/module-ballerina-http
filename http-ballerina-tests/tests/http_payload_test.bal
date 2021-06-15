@@ -27,7 +27,7 @@ http:Client clientEP19 = check new("http://localhost:" + httpPayloadTestPort2.to
 service /testService16 on httpPayloadListenerEP1 {
 
     resource function get .(http:Caller caller, http:Request request) {
-        var res = clientEP19->get("/payloadTest");
+        http:Response|error res = clientEP19->get("/payloadTest");
         if (res is http:Response) {
             //First get the payload as a byte array, then take it as an xml
             var binaryPayload = res.getBinaryPayload();
@@ -48,7 +48,7 @@ service /testService16 on httpPayloadListenerEP1 {
     }
 
     resource function 'default getPayloadForParseError(http:Caller caller, http:Request request) {
-        var res = clientEP19->get("/payloadTest/getString");
+        http:Response|error res = clientEP19->get("/payloadTest/getString");
         if (res is http:Response) {
             var payload = res.getXmlPayload();
             if (payload is xml) {
@@ -98,7 +98,7 @@ service /payloadTest on httpPayloadListenerEP2 {
 //Test whether the xml payload gets parsed properly, after the said payload has been retrieved as a byte array.
 @test:Config {}
 function testXmlPayload() {
-    var response = httpPayloadClient->get("/testService16/");
+    http:Response|error response = httpPayloadClient->get("/testService16/");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
@@ -112,7 +112,7 @@ function testXmlPayload() {
 //FullMessageListener is notified via transport thread and thrown exception should be caught at ballerina space
 @test:Config {}
 function testGetXmlPayloadReturnParserError() {
-    var response = httpPayloadClient->get("/testService16/getPayloadForParseError");
+    http:Response|error response = httpPayloadClient->get("/testService16/getPayloadForParseError");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
