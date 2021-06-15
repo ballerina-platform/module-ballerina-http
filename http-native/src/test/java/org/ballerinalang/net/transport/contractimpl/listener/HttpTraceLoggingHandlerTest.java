@@ -23,6 +23,7 @@ import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.logging.LogLevel;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -62,6 +63,29 @@ public class HttpTraceLoggingHandlerTest {
     public void testSetCorrelatedSourceId() {
         HttpTraceLoggingHandler httpTraceLoggingHandler = new HttpTraceLoggingHandler(LogLevel.INFO);
         httpTraceLoggingHandler.setCorrelatedSourceId("testId");
+    }
+
+    @Test
+    public void testWrite() {
+        HttpTraceLoggingHandler httpTraceLoggingHandler = new HttpTraceLoggingHandler(LogLevel.INFO);
+        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
+        Channel channel = mock(Channel.class);
+        ChannelPromise promise = mock(ChannelPromise.class);
+        SocketAddress localAddress = mock(SocketAddress.class);
+        SocketAddress remoteAddress = mock(SocketAddress.class);
+        ChannelId channelId = mock(ChannelId.class);
+        Object msg = new Object();
+        when(ctx.channel()).thenReturn(channel);
+        when(channel.id()).thenReturn(channelId);
+        when(channelId.asShortText()).thenReturn("channelId");
+        httpTraceLoggingHandler.write(ctx, msg, promise);
+
+        when(channel.localAddress()).thenReturn(localAddress);
+        when(localAddress.toString()).thenReturn("localAddress");
+        when(channel.remoteAddress()).thenReturn(remoteAddress);
+        when(remoteAddress.toString()).thenReturn("remoteAddress");
+        httpTraceLoggingHandler.write(ctx, msg, promise);
+        verify(ctx, times(2)).write(msg, promise);
     }
 
     @Test
