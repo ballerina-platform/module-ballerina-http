@@ -70,6 +70,17 @@ public class HttpAccessLoggingHandlerTest {
 
     @Test
     public void testChannelActive() throws Exception {
+        SocketAddress socketAddress = mock(SocketAddress.class);
+        Channel channel = mock(Channel.class);
+        when(ctx.channel()).thenReturn(channel);
+        when(channel.remoteAddress()).thenReturn(socketAddress);
+        httpAccessLoggingHandler.channelInactive(ctx);
+        httpAccessLoggingHandler.channelActive(ctx);
+        verify(ctx).fireChannelActive();
+    }
+
+    @Test
+    public void testChannelActiveWithInetSocketAddress() throws Exception {
         InetSocketAddress socketAddress = mock(InetSocketAddress.class);
         InetAddress address = mock(InetAddress.class);
         Channel channel = mock(Channel.class);
