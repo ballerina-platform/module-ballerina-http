@@ -18,17 +18,31 @@
 
 package org.ballerinalang.net.transport.contractimpl.listener;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
+import org.ballerinalang.net.transport.contract.Constants;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * A unit test class for Transport module HttpAccessLoggingHandler class functions.
@@ -54,75 +68,138 @@ public class HttpAccessLoggingHandlerTest {
     }
 
     @Test
+    public void testChannelActive() throws Exception {
+        InetSocketAddress socketAddress = mock(InetSocketAddress.class);
+        InetAddress address = mock(InetAddress.class);
+        Channel channel = mock(Channel.class);
+        when(ctx.channel()).thenReturn(channel);
+        when(channel.remoteAddress()).thenReturn(socketAddress);
+        when(socketAddress.getAddress()).thenReturn(address);
+        when(address.toString()).thenReturn("/test");
+        httpAccessLoggingHandler.channelActive(ctx);
+        verify(ctx).fireChannelActive();
+    }
+
+    @Test
+    public void testChannelInactive() throws Exception {
+        httpAccessLoggingHandler.channelInactive(ctx);
+        verify(ctx).fireChannelInactive();
+    }
+
+    @Test
+    public void testChannelRead() throws Exception {
+        HttpRequest httpRequest = mock(HttpRequest.class);
+        HttpHeaders httpHeaders = mock(HttpHeaders.class);
+        when(httpRequest.headers()).thenReturn(httpHeaders);
+        when(httpRequest.method()).thenReturn(new HttpMethod("name"));
+        when(httpRequest.protocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
+        when(httpRequest.uri()).thenReturn("testUri");
+        when(httpHeaders.contains(Constants.HTTP_X_FORWARDED_FOR)).thenReturn(true);
+        when(httpHeaders.get(Constants.HTTP_X_FORWARDED_FOR)).thenReturn("test");
+        when(httpHeaders.contains(HttpHeaderNames.USER_AGENT)).thenReturn(true);
+        when(httpHeaders.get(HttpHeaderNames.USER_AGENT)).thenReturn("testUserAgent");
+        when(httpHeaders.contains(HttpHeaderNames.REFERER)).thenReturn(true);
+        when(httpHeaders.get(HttpHeaderNames.REFERER)).thenReturn("testReferer");
+        httpAccessLoggingHandler.channelRead(ctx, httpRequest);
+
+        when(httpHeaders.get(Constants.HTTP_X_FORWARDED_FOR)).thenReturn("test,test1");
+        httpAccessLoggingHandler.channelRead(ctx, httpRequest);
+
+        verify(ctx, times(2)).fireChannelRead(httpRequest);
+    }
+
+    @Test
+    public void testWriteWithHttpResponse() throws Exception {
+        HttpResponse httpResponse = mock(HttpResponse.class);
+        HttpHeaders httpHeaders = mock(HttpHeaders.class);
+        when(httpResponse.headers()).thenReturn(httpHeaders);
+        when(httpResponse.status()).thenReturn(HttpResponseStatus.OK);
+        when(httpHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).thenReturn(true);
+        when(httpHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).thenReturn("100");
+        httpAccessLoggingHandler.write(ctx, httpResponse, promise);
+        verify(ctx).write(httpResponse, promise);
+    }
+
+    @Test
+    public void testWriteWithHttpContent() throws Exception {
+        LastHttpContent httpContent = mock(LastHttpContent.class);
+        ByteBuf content = mock(ByteBuf.class);
+        when(content.readableBytes()).thenReturn(10);
+        when(httpContent.content()).thenReturn(content);
+        httpAccessLoggingHandler.write(ctx, httpContent, promise);
+        verify(ctx).write(httpContent, promise);
+    }
+
+    @Test
     public void testChannelRegistered() throws Exception {
         httpAccessLoggingHandler.channelRegistered(ctx);
-        verify(ctx, times(1)).fireChannelRegistered();
+        verify(ctx).fireChannelRegistered();
     }
 
     @Test
     public void testChannelUnregistered() throws Exception {
         httpAccessLoggingHandler.channelUnregistered(ctx);
-        verify(ctx, times(1)).fireChannelUnregistered();
+        verify(ctx).fireChannelUnregistered();
     }
 
     @Test
     public void testExceptionCaught() throws Exception {
         httpAccessLoggingHandler.exceptionCaught(ctx, cause);
-        verify(ctx, times(1)).fireExceptionCaught(cause);
+        verify(ctx).fireExceptionCaught(cause);
     }
 
     @Test
     public void testUserEventTriggered() throws Exception {
         httpAccessLoggingHandler.userEventTriggered(ctx, evt);
-        verify(ctx, times(1)).fireUserEventTriggered(evt);
+        verify(ctx).fireUserEventTriggered(evt);
     }
 
     @Test
     public void testBind() throws Exception {
         httpAccessLoggingHandler.bind(ctx, localAddress, promise);
-        verify(ctx, times(1)).bind(localAddress, promise);
+        verify(ctx).bind(localAddress, promise);
     }
 
     @Test
     public void testConnect() throws Exception {
         httpAccessLoggingHandler.connect(ctx, remoteAddress, localAddress, promise);
-        verify(ctx, times(1)).connect(remoteAddress, localAddress, promise);
+        verify(ctx).connect(remoteAddress, localAddress, promise);
     }
 
     @Test
     public void testDisconnect() throws Exception {
         httpAccessLoggingHandler.disconnect(ctx, promise);
-        verify(ctx, times(1)).disconnect(promise);
+        verify(ctx).disconnect(promise);
     }
 
     @Test
     public void testClose() throws Exception {
         httpAccessLoggingHandler.close(ctx, promise);
-        verify(ctx, times(1)).close(promise);
+        verify(ctx).close(promise);
     }
 
     @Test
     public void testDeregister() throws Exception {
         httpAccessLoggingHandler.deregister(ctx, promise);
-        verify(ctx, times(1)).deregister(promise);
+        verify(ctx).deregister(promise);
     }
 
     @Test
     public void testChannelReadComplete() throws Exception {
         httpAccessLoggingHandler.channelReadComplete(ctx);
-        verify(ctx, times(1)).fireChannelReadComplete();
+        verify(ctx).fireChannelReadComplete();
     }
 
     @Test
     public void testChannelWritabilityChanged() throws Exception {
         httpAccessLoggingHandler.channelWritabilityChanged(ctx);
-        verify(ctx, times(1)).fireChannelWritabilityChanged();
+        verify(ctx).fireChannelWritabilityChanged();
     }
 
     @Test
     public void testFlush() throws Exception {
         httpAccessLoggingHandler.flush(ctx);
-        verify(ctx, times(1)).flush();
+        verify(ctx).flush();
     }
 
 }
