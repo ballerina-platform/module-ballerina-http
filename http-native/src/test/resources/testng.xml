@@ -200,6 +200,7 @@
             <class name="org.ballerinalang.net.transport.contract.config.SslConfigurationTest"/>
             <class name="org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnectorConfigTest"/>
             <class name="org.ballerinalang.net.transport.contract.exceptions.ExceptionTest"/>
+            <class name="org.ballerinalang.net.transport.contractimpl.listener.HttpAccessLoggingHandlerTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
