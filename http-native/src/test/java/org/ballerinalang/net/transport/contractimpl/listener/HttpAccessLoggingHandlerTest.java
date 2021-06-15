@@ -81,6 +81,7 @@ public class HttpAccessLoggingHandlerTest {
 
     @Test
     public void testChannelActiveWithInetSocketAddress() throws Exception {
+        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
         InetSocketAddress socketAddress = mock(InetSocketAddress.class);
         InetAddress address = mock(InetAddress.class);
         Channel channel = mock(Channel.class);
@@ -94,6 +95,7 @@ public class HttpAccessLoggingHandlerTest {
 
     @Test
     public void testChannelInactive() throws Exception {
+        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
         httpAccessLoggingHandler.channelInactive(ctx);
         verify(ctx).fireChannelInactive();
     }
