@@ -18,6 +18,8 @@
 
 package org.ballerinalang.net.transport.contractimpl.listener;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
@@ -26,6 +28,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -74,12 +77,64 @@ public class HttpTraceLoggingHandlerTest {
         when(channel.id()).thenReturn(channelId);
         when(channelId.asShortText()).thenReturn("channelId");
         httpTraceLoggingHandler.channelRead(ctx, msg);
+
         when(channel.localAddress()).thenReturn(localAddress);
         when(localAddress.toString()).thenReturn("localAddress");
         when(channel.remoteAddress()).thenReturn(remoteAddress);
         when(remoteAddress.toString()).thenReturn("remoteAddress");
         httpTraceLoggingHandler.channelRead(ctx, msg);
         verify(ctx, times(2)).fireChannelRead(msg);
+    }
+
+    @Test
+    public void testChannelReadWithByteBuf() {
+        HttpTraceLoggingHandler httpTraceLoggingHandler = new HttpTraceLoggingHandler(LogLevel.INFO);
+        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
+        Channel channel = mock(Channel.class);
+        ChannelId channelId = mock(ChannelId.class);
+        ByteBuf msg = mock(ByteBuf.class);
+        when(ctx.channel()).thenReturn(channel);
+        when(channel.id()).thenReturn(channelId);
+        when(channelId.asShortText()).thenReturn("channelId");
+        httpTraceLoggingHandler.channelRead(ctx, msg);
+
+        ByteBuffer byteBuffer = mock(ByteBuffer.class);
+        when(byteBuffer.remaining()).thenReturn(0);
+        when(msg.nioBuffer()).thenReturn(byteBuffer);
+        when(msg.readableBytes()).thenReturn(16);
+        httpTraceLoggingHandler.channelRead(ctx, msg);
+
+        when(msg.readableBytes()).thenReturn(10);
+        httpTraceLoggingHandler.channelRead(ctx, msg);
+
+        verify(ctx, times(3)).fireChannelRead(msg);
+    }
+
+    @Test
+    public void testChannelReadWithByteBufHolder() {
+        HttpTraceLoggingHandler httpTraceLoggingHandler = new HttpTraceLoggingHandler(LogLevel.INFO);
+        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
+        Channel channel = mock(Channel.class);
+        ChannelId channelId = mock(ChannelId.class);
+        ByteBufHolder msg = mock(ByteBufHolder.class);
+        ByteBuf content = mock(ByteBuf.class);
+        when(msg.toString()).thenReturn("test");
+        when(msg.content()).thenReturn(content);
+        when(ctx.channel()).thenReturn(channel);
+        when(channel.id()).thenReturn(channelId);
+        when(channelId.asShortText()).thenReturn("channelId");
+        httpTraceLoggingHandler.channelRead(ctx, msg);
+
+        ByteBuffer byteBuffer = mock(ByteBuffer.class);
+        when(byteBuffer.remaining()).thenReturn(0);
+        when(content.nioBuffer()).thenReturn(byteBuffer);
+        when(content.readableBytes()).thenReturn(16);
+        httpTraceLoggingHandler.channelRead(ctx, msg);
+
+        when(content.readableBytes()).thenReturn(10);
+        httpTraceLoggingHandler.channelRead(ctx, msg);
+
+        verify(ctx, times(3)).fireChannelRead(msg);
     }
 
 }
