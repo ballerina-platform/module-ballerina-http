@@ -22,6 +22,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -94,6 +95,8 @@ public class HttpAccessLoggingHandlerTest {
         when(httpRequest.method()).thenReturn(new HttpMethod("name"));
         when(httpRequest.protocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
         when(httpRequest.uri()).thenReturn("testUri");
+        httpAccessLoggingHandler.channelRead(ctx, httpRequest);
+
         when(httpHeaders.contains(Constants.HTTP_X_FORWARDED_FOR)).thenReturn(true);
         when(httpHeaders.get(Constants.HTTP_X_FORWARDED_FOR)).thenReturn("test");
         when(httpHeaders.contains(HttpHeaderNames.USER_AGENT)).thenReturn(true);
@@ -105,7 +108,11 @@ public class HttpAccessLoggingHandlerTest {
         when(httpHeaders.get(Constants.HTTP_X_FORWARDED_FOR)).thenReturn("test,test1");
         httpAccessLoggingHandler.channelRead(ctx, httpRequest);
 
-        verify(ctx, times(2)).fireChannelRead(httpRequest);
+        Object msg = new Object();
+        httpAccessLoggingHandler.channelRead(ctx, msg);
+
+        verify(ctx, times(3)).fireChannelRead(httpRequest);
+        verify(ctx).fireChannelRead(msg);
     }
 
     @Test
@@ -114,10 +121,17 @@ public class HttpAccessLoggingHandlerTest {
         HttpHeaders httpHeaders = mock(HttpHeaders.class);
         when(httpResponse.headers()).thenReturn(httpHeaders);
         when(httpResponse.status()).thenReturn(HttpResponseStatus.OK);
+        httpAccessLoggingHandler.write(ctx, httpResponse, promise);
+
         when(httpHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).thenReturn(true);
         when(httpHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).thenReturn("100");
         httpAccessLoggingHandler.write(ctx, httpResponse, promise);
-        verify(ctx).write(httpResponse, promise);
+
+        Object msg = new Object();
+        httpAccessLoggingHandler.write(ctx, msg, promise);
+
+        verify(ctx, times(2)).write(httpResponse, promise);
+        verify(ctx, times(1)).write(msg, promise);
     }
 
     @Test
@@ -127,7 +141,20 @@ public class HttpAccessLoggingHandlerTest {
         when(content.readableBytes()).thenReturn(10);
         when(httpContent.content()).thenReturn(content);
         httpAccessLoggingHandler.write(ctx, httpContent, promise);
+
+        HttpContent msg = mock(HttpContent.class);
+        when(msg.content()).thenReturn(content);
+        httpAccessLoggingHandler.write(ctx, msg, promise);
+
         verify(ctx).write(httpContent, promise);
+        verify(ctx).write(msg, promise);
+    }
+
+    @Test
+    public void testWrite() throws Exception {
+        Object msg = new Object();
+        httpAccessLoggingHandler.write(ctx, msg, promise);
+        verify(ctx).write(msg, promise);
     }
 
     @Test
