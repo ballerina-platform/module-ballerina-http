@@ -19,6 +19,7 @@
 package org.ballerinalang.net.transport.contract.config;
 
 import org.ballerinalang.net.transport.contractimpl.common.ssl.SSLConfig;
+import org.ballerinalang.net.transport.util.TestUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -113,6 +114,110 @@ public class SslConfigurationTest {
         sslConfiguration.disableSsl();
         SSLConfig sslConfig = sslConfiguration.getClientSSLConfig();
         Assert.assertTrue(sslConfig.useJavaDefaults());
+    }
+
+    @Test
+    public void testGetClientSSLConfigInvalidScheme() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        Assert.assertNull(sslConfiguration.getClientSSLConfig());
+        sslConfiguration.setScheme(null);
+        Assert.assertNull(sslConfiguration.getClientSSLConfig());
+    }
+
+    @Test
+    public void testGetClientSSLConfigWithDisableSslAndDefault() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.disableSsl();
+        Assert.assertNotNull(sslConfiguration.getClientSSLConfig());
+        sslConfiguration.useJavaDefaults();
+        Assert.assertNotNull(sslConfiguration.getClientSSLConfig());
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "TrustStore File testTrustStoreFile not found")
+    public void testGetClientSSLConfigWithInvalidTrustStore() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.setTrustStoreFile("testTrustStoreFile");
+        sslConfiguration.setTrustStorePass("testTrustStorePass");
+        sslConfiguration.getClientSSLConfig();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Key file or server certificates file not found")
+    public void testGetClientSSLConfigWithInvalidTrustCertificate() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.setClientTrustCertificates("testClientTrustCertificate");
+        sslConfiguration.getClientSSLConfig();
+    }
+
+    @Test
+    public void testGetClientSSLConfigWithNullParameters() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.setParameters(null);
+        sslConfiguration.setClientTrustCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
+        Assert.assertNotNull(sslConfiguration.getClientSSLConfig());
+    }
+
+    @Test
+    public void testGetListenerSSLConfigInvalidScheme() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        Assert.assertNull(sslConfiguration.getListenerSSLConfig());
+        sslConfiguration.setScheme(null);
+        Assert.assertNull(sslConfiguration.getListenerSSLConfig());
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "keyStoreFile or keyStorePassword not defined for HTTPS scheme")
+    public void testGetListenerSSLConfigurationWithoutKeyStore() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.getListenerSSLConfig();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "KeyStore File testKeyStoreFile not found")
+    public void testGetListenerSSLConfigurationWithInvalidKeyStoreFile() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.setKeyStoreFile("testKeyStoreFile");
+        sslConfiguration.setKeyStorePass("testKeyStorePass");
+        sslConfiguration.getListenerSSLConfig();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Key file or server certificates file not found")
+    public void testGetListenerSSLConfigurationWithInvalidKeyFile() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.setServerKeyFile("testKeyFile");
+        sslConfiguration.setServerCertificates("testCertificate");
+        sslConfiguration.getListenerSSLConfig();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "TrustStore file testTrustStore not found")
+    public void testGetListenerSSLConfigurationWithInvalidTrustStore() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.setServerKeyFile(TestUtil.getAbsolutePath(TestUtil.KEY_FILE));
+        sslConfiguration.setServerCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
+        sslConfiguration.setTrustStoreFile("testTrustStore");
+        sslConfiguration.getListenerSSLConfig();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Truststore password is not defined for HTTPS scheme")
+    public void testGetListenerSSLConfigurationWithoutTrustStorePass() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.setServerKeyFile(TestUtil.getAbsolutePath(TestUtil.KEY_FILE));
+        sslConfiguration.setServerCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
+        sslConfiguration.setTrustStoreFile(TestUtil.getAbsolutePath(TestUtil.TRUST_STORE_FILE_PATH));
+        sslConfiguration.getListenerSSLConfig();
     }
 
 }
