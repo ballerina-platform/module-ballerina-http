@@ -28,13 +28,13 @@ import java.util.Map;
  */
 public class HttpResourceArguments {
 
-    private Map<String, String> resourceArgumentValues = new HashMap<>();
+    private Map<String, Map<Integer, String>> resourceArgumentValues = new HashMap<>();
 
     public HttpResourceArguments() {
         resourceArgumentValues = new HashMap<>();
     }
 
-    public Map<String, String> getMap() {
+    public Map<String, Map<Integer, String>> getMap() {
         return resourceArgumentValues;
     }
 }
