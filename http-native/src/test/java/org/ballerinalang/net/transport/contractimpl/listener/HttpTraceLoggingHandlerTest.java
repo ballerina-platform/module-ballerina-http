@@ -161,4 +161,55 @@ public class HttpTraceLoggingHandlerTest {
         verify(ctx, times(3)).fireChannelRead(msg);
     }
 
+    @Test
+    public void testFormatWithOnlyStringAndCtx() {
+        HttpTraceLoggingHandler httpTraceLoggingHandler = new HttpTraceLoggingHandler(LogLevel.INFO);
+        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
+        Channel channel = mock(Channel.class);
+        ChannelId channelId = mock(ChannelId.class);
+        SocketAddress localAddress = mock(SocketAddress.class);
+        SocketAddress remoteAddress = mock(SocketAddress.class);
+        when(ctx.channel()).thenReturn(channel);
+        when(channel.id()).thenReturn(channelId);
+        when(channelId.asShortText()).thenReturn("55");
+        when(channel.localAddress()).thenReturn(localAddress);
+        when(localAddress.toString()).thenReturn("localAddress");
+        when(channel.remoteAddress()).thenReturn(remoteAddress);
+        when(remoteAddress.toString()).thenReturn("remoteAddress");
+        String returnVal = httpTraceLoggingHandler.format(ctx, "INBOUND");
+        String expected = "[id: 0x55, correlatedSource: n/a, host:localAddress - remote:remoteAddress] INBOUND";
+        Assert.assertEquals(returnVal, expected);
+
+        returnVal = httpTraceLoggingHandler.format(ctx, "CONNECT");
+        expected = "[id: 0x55] CONNECT";
+        Assert.assertEquals(returnVal, expected);
+
+        returnVal = httpTraceLoggingHandler.format(ctx, "REGISTERED");
+        expected = "[id: 0x55] REGISTERED";
+        Assert.assertEquals(returnVal, expected);
+    }
+
+    @Test
+    public void testFormatWithTwoObjects() {
+        HttpTraceLoggingHandler httpTraceLoggingHandler = new HttpTraceLoggingHandler(LogLevel.INFO);
+        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
+        Channel channel = mock(Channel.class);
+        ChannelId channelId = mock(ChannelId.class);
+        SocketAddress localAddress = mock(SocketAddress.class);
+        SocketAddress remoteAddress = mock(SocketAddress.class);
+        String arg1 = "arg1";
+        String arg2 = "arg2";
+        when(ctx.channel()).thenReturn(channel);
+        when(channel.id()).thenReturn(channelId);
+        when(channelId.asShortText()).thenReturn("55");
+        when(channel.localAddress()).thenReturn(localAddress);
+        when(localAddress.toString()).thenReturn("localAddress");
+        when(channel.remoteAddress()).thenReturn(remoteAddress);
+        when(remoteAddress.toString()).thenReturn("remoteAddress");
+        String returnVal = httpTraceLoggingHandler.format(ctx, "INBOUND", arg1, arg2);
+        String expected = "[id: 0x55, correlatedSource: n/a, host:localAddress - remote:remoteAddress] " +
+                "INBOUND: arg1, arg2";
+        Assert.assertEquals(returnVal, expected);
+    }
+
 }
