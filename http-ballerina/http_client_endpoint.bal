@@ -493,31 +493,17 @@ public type CookieConfig record {|
      PersistentCookieHandler persistentCookieHandler?;
 |};
 
-isolated function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
-    boolean httpClientRequired = false;
-    string url = serviceUrl;
-    if (url.endsWith("/")) {
-        int lastIndex = url.length() - 1;
-        url = url.substring(0, lastIndex);
-    }
+isolated function initialize(string url, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
     var cbConfig = config.circuitBreaker;
     if (cbConfig is CircuitBreakerConfig) {
-        if (url.endsWith("/")) {
-            int lastIndex = url.length() - 1;
-            url = url.substring(0, lastIndex);
-        }
+        return createCircuitBreakerClient(url, config, cookieStore);
     } else {
-        httpClientRequired = true;
-    }
-    if (httpClientRequired) {
         var redirectConfigVal = config.followRedirects;
         if (redirectConfigVal is FollowRedirects) {
             return createRedirectClient(url, config, cookieStore);
         } else {
             return checkForRetry(url, config, cookieStore);
         }
-    } else {
-        return createCircuitBreakerClient(url, config, cookieStore);
     }
 }
 
