@@ -50,6 +50,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,7 @@ import static io.ballerina.runtime.api.TypeTags.INT_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static org.ballerinalang.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.DEFAULT_HOST;
+import static org.ballerinalang.net.http.HttpConstants.EXTRA_PATH_INDEX;
 
 /**
  * {@code HttpDispatcher} is responsible for dispatching incoming http requests to the correct resource.
@@ -180,7 +182,7 @@ public class HttpDispatcher {
             // populate path params
             HttpResourceArguments resourceArgumentValues =
                     (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
-            updateWildcardToken(httpResource.getWildcardToken(), resourceArgumentValues.getMap());
+            updateWildcardToken(httpResource.getWildcardToken(), pathParamCount - 1, resourceArgumentValues.getMap());
             populatePathParams(httpResource, paramFeed, resourceArgumentValues, pathParamCount);
         }
         // Following was written assuming that they are validated
@@ -368,7 +370,7 @@ public class HttpDispatcher {
         String[] pathParamTokens = Arrays.copyOfRange(httpResource.getBalResource().getParamNames(), 0, pathParamCount);
         int actualSignatureParamIndex = 0;
         for (String paramName : pathParamTokens) {
-            String argumentValue = resourceArgumentValues.getMap().get(paramName);
+            String argumentValue = resourceArgumentValues.getMap().get(paramName).get(actualSignatureParamIndex);
             try {
                 argumentValue = URLDecoder.decode(argumentValue, "UTF-8");
             } catch (UnsupportedEncodingException e) {
@@ -393,12 +395,18 @@ public class HttpDispatcher {
         }
     }
 
-    private static void updateWildcardToken(String wildcardToken, Map<String, String> arguments) {
+    private static void updateWildcardToken(String wildcardToken, int wildCardIndex,
+                                            Map<String, Map<Integer, String>> arguments) {
         if (wildcardToken == null) {
             return;
         }
-        String wildcardPathSegment = arguments.get(HttpConstants.EXTRA_PATH_INFO);
-        arguments.putIfAbsent(wildcardToken, wildcardPathSegment);
+        String wildcardPathSegment = arguments.get(HttpConstants.EXTRA_PATH_INFO).get(EXTRA_PATH_INDEX);
+        if (arguments.containsKey(wildcardToken)) {
+            Map<Integer, String> indexValueMap = arguments.get(wildcardToken);
+            indexValueMap.put(wildCardIndex, wildcardPathSegment);
+        } else {
+            arguments.put(wildcardToken, Collections.singletonMap(wildCardIndex, wildcardPathSegment));
+        }
     }
 
     private static void populatePayloadParam(BObject inRequest, HttpCarbonMessage httpCarbonMessage,

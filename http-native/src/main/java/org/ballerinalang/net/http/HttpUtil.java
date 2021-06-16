@@ -728,9 +728,8 @@ public class HttpUtil {
         HttpResourceArguments resourceArgValues = (HttpResourceArguments) inboundRequestMsg.getProperty(
                 HttpConstants.RESOURCE_ARGS);
         if (resourceArgValues != null && resourceArgValues.getMap().get(HttpConstants.EXTRA_PATH_INFO) != null) {
-            inboundRequestObj.set(
-                    HttpConstants.REQUEST_EXTRA_PATH_INFO_FIELD, fromString(
-                            resourceArgValues.getMap().get(HttpConstants.EXTRA_PATH_INFO)));
+            Map<Integer, String> extraPath = resourceArgValues.getMap().get(HttpConstants.EXTRA_PATH_INFO);
+            inboundRequestObj.set(HttpConstants.REQUEST_EXTRA_PATH_INFO_FIELD, fromString(extraPath.get(0)));
         }
     }
 
