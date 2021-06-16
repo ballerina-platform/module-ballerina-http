@@ -179,6 +179,32 @@
             <class name="org.ballerinalang.net.transport.https.ServerCloseConnectionDuringSslTest"/>
         </classes>
     </test>
+    <test name="Transport Unit Tests" parallel="false">
+        <classes>
+            <class name="org.ballerinalang.net.transport.internal.HandlerExecutorTest"/>
+            <class name="org.ballerinalang.net.transport.internal.HttpTransportContextHolderTest"/>
+            <class name="org.ballerinalang.net.transport.internal.HttpTransportActivatorTest"/>
+            <class name="org.ballerinalang.net.transport.message.BlockingEntityCollectorTest"/>
+            <class name="org.ballerinalang.net.transport.message.HttpCarbonMessageTest"/>
+            <class name="org.ballerinalang.net.transport.message.HttpCarbonRequestTest"/>
+            <class name="org.ballerinalang.net.transport.message.HttpCarbonResponseTest"/>
+            <class name="org.ballerinalang.net.transport.message.HttpMessageDataStreamerTest"/>
+            <class name="org.ballerinalang.net.transport.message.DefaultFullHttpMessageFutureTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.ListenerConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.SenderConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.InboundMsgSizeValidationConfigTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.ParameterTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.ProxyServerConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.ServerBootstrapConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.TransportPropertyTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.TransportsConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.SslConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnectorConfigTest"/>
+            <class name="org.ballerinalang.net.transport.contract.exceptions.ExceptionTest"/>
+            <class name="org.ballerinalang.net.transport.contractimpl.listener.HttpAccessLoggingHandlerTest"/>
+            <class name="org.ballerinalang.net.transport.contractimpl.listener.HttpTraceLoggingHandlerTest"/>
+        </classes>
+    </test>
     <test name="Ballerina Http native Tests" parallel="false">
         <classes>
             <class name="org.ballerinalang.net.http.ExceptionTest"/>
