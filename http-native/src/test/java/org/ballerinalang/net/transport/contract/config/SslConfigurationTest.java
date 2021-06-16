@@ -26,6 +26,12 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.ballerinalang.net.transport.contract.Constants.SERVER_ENABLE_SESSION_CREATION;
+import static org.ballerinalang.net.transport.contract.Constants.SERVER_SUPPORTED_SERVER_NAMES;
+import static org.ballerinalang.net.transport.contract.Constants.SERVER_SUPPORTED_SNIMATCHERS;
+import static org.ballerinalang.net.transport.contract.Constants.SERVER_SUPPORT_CIPHERS;
+import static org.ballerinalang.net.transport.contract.Constants.SERVER_SUPPORT_SSL_PROTOCOLS;
+
 /**
  * A unit test class for Transport module SslConfiguration class functions.
  */
@@ -160,6 +166,23 @@ public class SslConfigurationTest {
         sslConfiguration.setParameters(null);
         sslConfiguration.setClientTrustCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
         Assert.assertNotNull(sslConfiguration.getClientSSLConfig());
+    }
+
+    @Test
+    public void testGetListenerSSLConfig() {
+        SslConfiguration sslConfiguration = new SslConfiguration();
+        sslConfiguration.setScheme("https");
+        sslConfiguration.setServerKeyFile(TestUtil.getAbsolutePath(TestUtil.KEY_FILE));
+        sslConfiguration.setServerCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
+        List<Parameter> parameters = new ArrayList<>();
+        parameters.add(new Parameter(SERVER_SUPPORT_CIPHERS, "cipherValue"));
+        parameters.add(new Parameter(SERVER_SUPPORT_SSL_PROTOCOLS, "sslProtocolValue"));
+        parameters.add(new Parameter(SERVER_SUPPORTED_SNIMATCHERS, "sniMatcherValue"));
+        parameters.add(new Parameter(SERVER_SUPPORTED_SERVER_NAMES, "serverNameValue"));
+        parameters.add(new Parameter(SERVER_ENABLE_SESSION_CREATION, "enableSessionCreationValue"));
+        parameters.add(new Parameter("testName", "testValue"));
+        sslConfiguration.setParameters(parameters);
+        Assert.assertNotNull(sslConfiguration.getListenerSSLConfig());
     }
 
     @Test
