@@ -53,6 +53,9 @@ public class FrameLoggerTest {
 
         when(data.readableBytes()).thenReturn(16);
         frameLogger.logData(direction, ctx, 5, data, 10, true);
+
+        when(data.readableBytes()).thenReturn(10);
+        frameLogger.logData(direction, ctx, 5, data, 10, true);
     }
 
 }
