@@ -87,5 +87,4 @@ public class ListenerConfigurationTest {
         InboundMsgSizeValidationConfig returnVal = listenerConfiguration.getMsgSizeValidationConfig();
         Assert.assertEquals(returnVal, requestSizeValidationConfig);
     }
-
 }
