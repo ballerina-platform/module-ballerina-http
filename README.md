@@ -38,6 +38,8 @@ This repository only contains the source code for the package.
         export packageUser=<Username>
         export packagePAT=<Personal access token>
 
+3. Download and install [Docker](https://www.docker.com/).
+
 ### Building the Source
 
 Execute the commands below to build from source.
