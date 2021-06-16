@@ -1,0 +1,75 @@
+{
+  "source": "sample_codeaction_package_1/service.bal",
+  "position": {
+    "line": 20,
+    "offset": 49
+  },
+  "expected": [
+    {
+      "codeaction": {
+        "title": "Change header param to 'string'",
+        "providerName": "HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING",
+        "arguments": [
+          {
+            "key": "node.location",
+            "value": {
+              "filePath": "service.bal",
+              "startLine": {
+                "line": 20,
+                "offset": 29
+              },
+              "endLine": {
+                "line": 20,
+                "offset": 52
+              }
+            }
+          }
+        ]
+      },
+      "edits": [
+        {
+          "fileUri": "sample_codeaction_package_1/service.bal",
+          "validations": [
+            {
+              "line": 20,
+              "text": "    resource function get . (@http:Header string length) {"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codeaction": {
+        "title": "Change header param to 'string[]'",
+        "providerName": "HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING_ARRAY",
+        "arguments": [
+          {
+            "key": "node.location",
+            "value": {
+              "filePath": "service.bal",
+              "startLine": {
+                "line": 20,
+                "offset": 29
+              },
+              "endLine": {
+                "line": 20,
+                "offset": 52
+              }
+            }
+          }
+        ]
+      },
+      "edits": [
+        {
+          "fileUri": "sample_codeaction_package_1/service.bal",
+          "validations": [
+            {
+              "line": 20,
+              "text": "    resource function get . (@http:Header string[] length) {"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

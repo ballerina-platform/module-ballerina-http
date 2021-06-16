@@ -20,13 +20,30 @@ package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.projects.plugins.CompilerPlugin;
 import io.ballerina.projects.plugins.CompilerPluginContext;
+import io.ballerina.projects.plugins.codeaction.CodeAction;
+import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToString;
+import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringArray;
+import io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCaller;
+
+import java.util.List;
 
 /**
  * The compiler plugin implementation for Ballerina Http package.
  */
 public class HttpCompilerPlugin extends CompilerPlugin {
+
     @Override
-    public void init(CompilerPluginContext compilerPluginContext) {
-        compilerPluginContext.addCodeAnalyzer(new HttpServiceAnalyzer());
+    public void init(CompilerPluginContext context) {
+        context.addCodeAnalyzer(new HttpServiceAnalyzer());
+
+        getCodeActions().forEach(context::addCodeAction);
+    }
+
+    private List<CodeAction> getCodeActions() {
+        return List.of(
+                new ChangeHeaderParamTypeToString(),
+                new ChangeHeaderParamTypeToStringArray(),
+                new ChangeReturnTypeWithCaller()
+        );
     }
 }
