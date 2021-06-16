@@ -144,7 +144,7 @@ public class HttpAccessLoggingHandlerTest {
         httpAccessLoggingHandler.write(ctx, msg, promise);
 
         verify(ctx, times(2)).write(httpResponse, promise);
-        verify(ctx, times(1)).write(msg, promise);
+        verify(ctx).write(msg, promise);
     }
 
     @Test

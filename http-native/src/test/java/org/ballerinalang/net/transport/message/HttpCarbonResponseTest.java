@@ -23,7 +23,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -38,7 +37,7 @@ public class HttpCarbonResponseTest {
         HttpResponseStatus status = new HttpResponseStatus(HttpResponseStatus.OK.code(),
                 HttpResponseStatus.OK.reasonPhrase());
         httpCarbonResponse.setStatus(status);
-        verify(httpResponse, times(1)).setStatus(status);
+        verify(httpResponse).setStatus(status);
     }
 
 }

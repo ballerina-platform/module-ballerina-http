@@ -25,7 +25,6 @@ import org.ballerinalang.net.transport.contract.Constants;
 import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -39,7 +38,7 @@ public class HttpCarbonRequestTest {
         HttpCarbonRequest httpCarbonRequest = new HttpCarbonRequest(httpRequest);
         HttpVersion version = new HttpVersion(Constants.DEFAULT_VERSION_HTTP_1_1, true);
         httpCarbonRequest.setHttpVersion(version);
-        verify(httpRequest, times(1)).setProtocolVersion(version);
+        verify(httpRequest).setProtocolVersion(version);
     }
 
     @Test
@@ -48,7 +47,7 @@ public class HttpCarbonRequestTest {
         HttpCarbonRequest httpCarbonRequest = new HttpCarbonRequest(httpRequest);
         HttpMethod method = new HttpMethod(Constants.HTTP_GET_METHOD);
         httpCarbonRequest.setHttpMethod(method);
-        verify(httpRequest, times(1)).setMethod(method);
+        verify(httpRequest).setMethod(method);
     }
 
     @Test
@@ -57,7 +56,7 @@ public class HttpCarbonRequestTest {
         HttpCarbonRequest httpCarbonRequest = new HttpCarbonRequest(httpRequest);
         String uri = "testURI";
         httpCarbonRequest.setUri(uri);
-        verify(httpRequest, times(1)).setUri(uri);
+        verify(httpRequest).setUri(uri);
     }
 
 }

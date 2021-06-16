@@ -44,7 +44,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -225,12 +224,12 @@ public class CommonUtilTestCase {
 
         Util.resetChannelAttributes(ctx);
 
-        verify(attr1, times(1)).set(null);
-        verify(attr2, times(1)).set(null);
-        verify(attr3, times(1)).set(null);
-        verify(attr4, times(1)).set(null);
-        verify(attr5, times(1)).set(null);
-        verify(attr6, times(1)).set(null);
+        verify(attr1).set(null);
+        verify(attr2).set(null);
+        verify(attr3).set(null);
+        verify(attr4).set(null);
+        verify(attr5).set(null);
+        verify(attr6).set(null);
     }
 
     @Test
