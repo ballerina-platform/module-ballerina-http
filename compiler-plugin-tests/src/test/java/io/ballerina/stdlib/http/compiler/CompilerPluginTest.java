@@ -22,7 +22,6 @@ import io.ballerina.projects.CodeActionManager;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
-import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.BuildProject;
@@ -36,13 +35,10 @@ import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * This class includes tests for Ballerina Http compiler plugin.
