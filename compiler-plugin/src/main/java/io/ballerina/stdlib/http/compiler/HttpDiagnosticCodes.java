@@ -23,6 +23,7 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_RETURN_UNION;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
+import static io.ballerina.tools.diagnostics.DiagnosticSeverity.INTERNAL;
 
 /**
  * {@code DiagnosticCodes} is used to hold diagnostic codes.
@@ -56,6 +57,8 @@ public enum HttpDiagnosticCodes {
     HTTP_118("HTTP_118", "invalid resource method return type: can not use 'http:Caller' " +
             "and return '%s' from a resource : expected 'error' or nil",
             ERROR);
+
+    HTTP_HINT_101("HTTP_HINT_101", "No resource annotation present", INTERNAL);
 
     private final String code;
     private final String message;

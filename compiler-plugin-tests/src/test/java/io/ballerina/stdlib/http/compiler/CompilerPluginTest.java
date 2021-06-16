@@ -18,20 +18,31 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import io.ballerina.projects.CodeActionManager;
 import io.ballerina.projects.DiagnosticResult;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
+import io.ballerina.projects.plugins.codeaction.CodeActionContextImpl;
+import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class includes tests for Ballerina Http compiler plugin.
@@ -305,5 +316,35 @@ public class CompilerPluginTest {
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
                 "and return 'http:BadRequest?' from a resource : expected 'error' or nil";
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
+    }
+
+    @Test
+    public void testCodeActions() {
+        Path projectRoot = RESOURCE_DIRECTORY.resolve("sample_package_12");
+        BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectRoot);
+
+        Path filePath = projectRoot.resolve("service.bal");
+        DocumentId documentId = project.documentId(filePath);
+
+        Package currentPackage = project.currentPackage();
+        PackageCompilation compilation = currentPackage.getCompilation();
+        CodeActionManager codeActionManager = compilation.getCodeActionManager();
+
+        Document document = currentPackage.getDefaultModule().document(documentId);
+
+        List<CodeActionInfo> codeActions = compilation.diagnosticResult().diagnostics().stream()
+                .filter(diagnostic -> project.sourceRoot().equals(filePath))
+                .flatMap(diagnostic -> {
+                    CodeActionContextImpl context = CodeActionContextImpl.from(filePath.toUri().toString(),
+                            filePath,
+                            LinePosition.from(24, 8),
+                            document,
+                            compilation.getSemanticModel(documentId.moduleId()),
+                            diagnostic);
+                    return codeActionManager.codeActions(context).stream();
+                })
+                .collect(Collectors.toList());
+        
+        Assert.assertTrue(codeActions.size() > 0);
     }
 }
