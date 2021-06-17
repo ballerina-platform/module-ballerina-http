@@ -22,10 +22,12 @@ import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpResourceArguments;
 import org.ballerinalang.net.uri.URITemplateException;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.ballerinalang.net.http.HttpConstants.EXTRA_PATH_INDEX;
 import static org.ballerinalang.net.uri.URIUtil.URI_PATH_DELIMITER;
 
 /**
@@ -128,7 +130,9 @@ public abstract class Node<DataType, InboundMsgType> {
     }
 
     private void setUriPostFix(HttpResourceArguments variables, String subUriFragment) {
-        variables.getMap().putIfAbsent(HttpConstants.EXTRA_PATH_INFO, URI_PATH_DELIMITER + subUriFragment);
+        Map<Integer, String> indexValueMap =
+                Collections.singletonMap(EXTRA_PATH_INDEX, URI_PATH_DELIMITER + subUriFragment);
+        variables.getMap().putIfAbsent(HttpConstants.EXTRA_PATH_INFO, indexValueMap);
     }
 
     abstract String expand(Map<String, String> variables);
