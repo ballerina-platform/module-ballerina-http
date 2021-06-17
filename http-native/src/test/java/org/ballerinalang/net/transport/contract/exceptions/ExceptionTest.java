@@ -20,6 +20,7 @@ package org.ballerinalang.net.transport.contract.exceptions;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorException;
+import org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -110,5 +111,20 @@ public class ExceptionTest {
         WebSocketConnectorException exception = new WebSocketConnectorException("error");
         Assert.assertEquals(exception.getMessage(), "error");
     }
+
+    @Test
+    public void testCertificateVerificationException() {
+        CertificateVerificationException exception = new CertificateVerificationException("error");
+        Assert.assertEquals(exception.getMessage(), "error");
+
+        Throwable throwable = new Throwable("This is a throwable");
+        exception = new CertificateVerificationException(throwable);
+        Assert.assertEquals(exception.getCause().getMessage(), "This is a throwable");
+
+        exception = new CertificateVerificationException("error", throwable);
+        Assert.assertEquals(exception.getMessage(), "error");
+        Assert.assertEquals(exception.getCause().getMessage(), "This is a throwable");
+    }
+
 
 }
