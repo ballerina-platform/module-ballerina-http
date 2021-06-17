@@ -26,6 +26,7 @@ import io.ballerina.runtime.observability.ObserverContext;
 import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
+import static org.ballerinalang.net.http.HttpConstants.INVALID_STATUS_CODE;
 import static org.ballerinalang.net.http.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 
 /**
@@ -50,12 +51,18 @@ public class HttpCallableUnitCallback implements Callback {
     @Override
     public void notifySuccess(Object result) {
         if (result == null) { // handles nil return and end of resource exec
-            requestMessage.waitAndReleaseAllEntities();
-            stopObservationWithContext();
-            return;
+            try {
+                HttpUtil.methodInvocationCheck(requestMessage, INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
+            } catch (BError err) {
+                // End of resource execution
+                requestMessage.waitAndReleaseAllEntities();
+                stopObservationWithContext();
+                return;
+            }
+        } else {
+            printStacktrace(result);
+            HttpUtil.methodInvocationCheck(requestMessage, INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
         }
-        printStacktrace(result);
-        HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
 
         Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
