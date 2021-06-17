@@ -31,7 +31,6 @@ import static io.netty.handler.logging.LogLevel.TRACE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 /**
  * A unit test class for Transport module FrameLogger class functions.
  */

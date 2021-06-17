@@ -125,6 +125,4 @@ public class ExceptionTest {
         Assert.assertEquals(exception.getMessage(), "error");
         Assert.assertEquals(exception.getCause().getMessage(), "This is a throwable");
     }
-
-
 }
