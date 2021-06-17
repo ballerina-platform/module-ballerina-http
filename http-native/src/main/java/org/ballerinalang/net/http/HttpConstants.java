@@ -478,6 +478,8 @@ public class HttpConstants {
     public static final String COLON = ":";
     public static final String DOLLAR = "$";
     public static final String SINGLE_SLASH = "/";
+    public static final String QUERY_CHAR = "?";
+    public static final String FRAGMENT_CHAR = "#";
     public static final String DOUBLE_SLASH = "//";
     public static final String REGEX = "(?<!(http:|https:))//";
 
