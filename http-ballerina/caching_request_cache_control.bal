@@ -29,9 +29,9 @@ public class RequestCacheControl {
     public boolean noStore = false;
     public boolean noTransform = false;
     public boolean onlyIfCached = false;
-    public int maxAge = -1;
-    public int maxStale = -1;
-    public int minFresh = -1;
+    public decimal maxAge = -1;
+    public decimal maxStale = -1;
+    public decimal minFresh = -1;
 
     # Builds the cache control directives string from the current `http:RequestCacheControl` configurations.
     #
@@ -42,40 +42,40 @@ public class RequestCacheControl {
 
         if (self.noCache) {
             directives[i] = NO_CACHE;
-            i = i + 1;
+            i += 1;
         }
 
         if (self.noStore) {
             directives[i] = NO_STORE;
-            i = i + 1;
+            i += 1;
         }
 
         if (self.noTransform) {
             directives[i] = NO_TRANSFORM;
-            i = i + 1;
+            i += 1;
         }
 
         if (self.onlyIfCached) {
             directives[i] = ONLY_IF_CACHED;
-            i = i + 1;
+            i += 1;
         }
 
-        if (self.maxAge >= 0) {
+        if (self.maxAge >= 0d) {
             directives[i] = MAX_AGE + "=" + self.maxAge.toString();
-            i = i + 1;
+            i += 1;
         }
 
         if (self.maxStale == MAX_STALE_ANY_AGE) {
             directives[i] = MAX_STALE;
-            i = i + 1;
-        } else if (self.maxStale >= 0) {
+            i += 1;
+        } else if (self.maxStale >= 0d) {
             directives[i] = MAX_STALE + "=" + self.maxStale.toString();
-            i = i + 1;
+            i += 1;
         }
 
-        if (self.minFresh >= 0) {
+        if (self.minFresh >= 0d) {
             directives[i] = MIN_FRESH + "=" + self.minFresh.toString();
-            i = i + 1;
+            i += 1;
         }
 
         return buildCommaSeparatedString(directives);

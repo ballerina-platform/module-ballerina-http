@@ -22,14 +22,14 @@ import ballerina/http;
 
 listener http:Listener LBbackendListener = new(8093);
 
-http:LoadBalanceClient lbBackendEP = check new({
-    targets: [
+http:LoadBalanceClient lbBackendEP = check new(
+    targets = [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
         { url: "http://localhost:8093/LBMock3" }
     ],
-    timeoutInMillis: 5000
-});
+    timeout = 5
+);
 
 http:LoadBalanceClient lbFailoverBackendEP = check new({
     targets: [
@@ -38,7 +38,7 @@ http:LoadBalanceClient lbFailoverBackendEP = check new({
         { url: "http://localhost:8093/LBMock3" }
     ],
     failover: true,
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 http:LoadBalanceClient delayedBackendEP = check new({
@@ -47,7 +47,7 @@ http:LoadBalanceClient delayedBackendEP = check new({
         { url: "http://localhost:8093/LBMock5" }
     ],
     failover: true,
-    timeoutInMillis: 2000
+    timeout: 2
 });
 
 CustomLoadBalancerRule customLbRule = new CustomLoadBalancerRule(2);
@@ -59,82 +59,82 @@ http:LoadBalanceClient customLbBackendEP = check new({
         { url: "http://localhost:8093/LBMock3" }
     ],
     lbRule: customLbRule,
-    timeoutInMillis: 5000
+    timeout: 5
 });
 
 service /loadBalancerDemoService on new http:Listener(9313) {
     resource function 'default roundRobin(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        var response = lbBackendEP->post("/", requestPayload);
+        http:Response|error response = lbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> response);
+            error? responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (response is error) {
+        } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
-            var responseToCaller = caller->respond(outResponse);
+            error? responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
 
     resource function 'default lbFailover(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        var response = lbFailoverBackendEP->post("/", requestPayload);
+        http:Response|error response = lbFailoverBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> response);
+            error? responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (response is error) {
+        } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
-            var responseToCaller = caller->respond(outResponse);
+            error? responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
 
     resource function 'default delayResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        var response = delayedBackendEP->post("/", requestPayload);
+        http:Response|error response = delayedBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> response);
+            error? responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (response is error) {
+        } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
-            var responseToCaller = caller->respond(outResponse);
+            error? responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
 
     resource function 'default customResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
-        var response = customLbBackendEP->post("/", requestPayload);
+        http:Response|error response = customLbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> response);
+            error? responseToCaller = caller->respond(<@untainted> response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (response is error) {
+        } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
             outResponse.setPayload(<@untainted> response.message());
-            var responseToCaller = caller->respond(outResponse);
+            error? responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -142,27 +142,27 @@ service /loadBalancerDemoService on new http:Listener(9313) {
 
 service /LBMock1 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
-        var responseToCaller = caller->respond("Mock1 Resource is Invoked.");
+        error? responseToCaller = caller->respond("Mock1 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
 
 service /LBMock2 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
-        var responseToCaller = caller->respond("Mock2 Resource is Invoked.");
+        error? responseToCaller = caller->respond("Mock2 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
 
 service /LBMock3 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
-        var responseToCaller = caller->respond("Mock3 Resource is Invoked.");
+        error? responseToCaller = caller->respond("Mock3 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -170,9 +170,9 @@ service /LBMock3 on LBbackendListener {
 service /LBMock4 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
         runtime:sleep(5);
-        var responseToCaller = caller->respond("Mock4 Resource is Invoked.");
+        error? responseToCaller = caller->respond("Mock4 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -180,9 +180,9 @@ service /LBMock4 on LBbackendListener {
 service /LBMock5 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
         runtime:sleep(5);
-        var responseToCaller = caller->respond("Mock5 Resource is Invoked.");
+        error? responseToCaller = caller->respond("Mock5 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -190,9 +190,9 @@ service /LBMock5 on LBbackendListener {
 # Implementation of custom load balancing strategy.
 #
 # + index - Keep tracks the current point of the CallerActions[]
-public class CustomLoadBalancerRule {
+public isolated class CustomLoadBalancerRule {
 
-    public int index;
+    private int index;
 
     public function init(int index) {
         self.index = index;
@@ -204,20 +204,22 @@ public class CustomLoadBalancerRule {
     # + return - Choosen `CallerActions` from the algorithm or an `error` for a failure in
     #            the algorithm implementation
     public isolated function getNextClient(http:Client?[] loadBalanceClientsArray) returns http:Client|http:ClientError {
-        http:Client httpClient = <http:Client>loadBalanceClientsArray[self.index];
-        if (self.index >= loadBalanceClientsArray.length()) {
-            return error http:AllLoadBalanceEndpointsFailedError("Provided index is doesn't match with the targets.");
-        }
         lock {
-            if (self.index == (loadBalanceClientsArray.length() - 1)) {
-                httpClient = <http:Client>loadBalanceClientsArray[self.index];
-                self.index = 0;
-            } else {
-                httpClient = <http:Client>loadBalanceClientsArray[self.index];
-                self.index += 1;
+            http:Client httpClient = <http:Client>loadBalanceClientsArray[self.index];
+            if (self.index >= loadBalanceClientsArray.length()) {
+                return error http:AllLoadBalanceEndpointsFailedError("Provided index is doesn't match with the targets.");
             }
+            lock {
+                if (self.index == (loadBalanceClientsArray.length() - 1)) {
+                    httpClient = <http:Client>loadBalanceClientsArray[self.index];
+                    self.index = 0;
+                } else {
+                    httpClient = <http:Client>loadBalanceClientsArray[self.index];
+                    self.index += 1;
+                }
+            }
+            return httpClient;
         }
-        return httpClient;
     }
 }
 
@@ -257,12 +259,12 @@ function roundRobinWithFailoverResponseDataProvider() returns DataFeed[][] {
 function testAllLbEndpointFailure() {
     string expectedMessage = "All the load balance endpoints failed. Last error was: Idle timeout triggered " +
                 "before initiating inbound response";
-    var response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
+    http:Response|error response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), expectedMessage);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

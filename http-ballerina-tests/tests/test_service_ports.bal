@@ -38,6 +38,10 @@ const int multipartRequestTest = 9018;
 const int responseTest = 9094;
 const int entityTest = 9097;
 const int mimeTest = 9096;
+const int proxyTest1 = 9019;
+const int proxyTest2 = 9020;
+const int streamTest1 = 9021;
+const int streamTest2 = 9022;
 
 // Integration test ports
 // HTTP
@@ -96,6 +100,17 @@ const int clientDatabindingTestPort3 = 9551;
 const int queryParamBindingTest = 9552;
 const int basePathTest = 9553;
 const int resourceReturnTest = 9554;
+const int requestLimitsTestPort5 = 9555;
+const int requestLimitsTestPort6 = 9556;
+const int responseLimitsTestPort1 = 9557;
+const int responseLimitsTestPort2 = 9558;
+const int responseLimitsTestPort3 = 9559;
+const int responseLimitsTestPort4 = 9560;
+const int responseLimitsTestPort5 = 9561;
+const int headerParamBindingTest = 9562;
+const int outRequestTypeTest = 9563;
+const int outRequestOptionsTest = 9564;
+const int pathParamCheckTestPort = 9565;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
@@ -103,7 +118,9 @@ const int serverPushTestPort2 = 9602;
 const int http2RedirectTestPort1 = 9603;
 const int http2RedirectTestPort2 = 9604;
 const int http2RedirectTestPort3 = 9605;
+const int http2RetryFunctionTestPort1 = 9606;
+const int http2RetryFunctionTestPort2 = 9607;
 
 //Security
-const int filterTestPort = 9400;
-const int oauth2AuthorizationServerPort = 9401;
+const int securedListenerPort = 9400;
+const int stsPort = 9445;

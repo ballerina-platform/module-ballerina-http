@@ -14,7 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
+import ballerina/time;
 
 // Cache-control directives
 # Forces the cache to validate a cached response with the origin server before serving.
@@ -65,7 +66,7 @@ public const string S_MAX_AGE = "s-maxage";
 
 // Other constants
 # Setting this as the `max-stale` directives indicates that the `max-stale` directive does not specify a limit.
-public const int MAX_STALE_ANY_AGE = 9223372036854775807;
+public const decimal MAX_STALE_ANY_AGE = 9223372036854775807;
 
 
 // Non-public constants/final vars
@@ -75,7 +76,7 @@ final string WARNING_110_RESPONSE_IS_STALE = "110 " + WARNING_AGENT + " \"Respon
 final string WARNING_111_REVALIDATION_FAILED = "111 " + WARNING_AGENT + " \"Revalidation Failed\"";
 
 const string WEAK_VALIDATOR_TAG = "W/";
-const int STALE = 0;
+const time:Seconds STALE = 0;
 
 isolated function getWarningAgent() returns string {
     string ballerinaVersion = getProperty("ballerina.version");

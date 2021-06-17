@@ -19,7 +19,7 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/crypto;
 import ballerina/time;
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/log;
 
 # Represents an HTTP response.
@@ -39,8 +39,8 @@ public class Response {
     public string resolvedRequestedURI = "";
     public ResponseCacheControl? cacheControl = ();
 
-    int receivedTime = 0;
-    int requestTime = 0;
+    time:Utc receivedTime = [0, 0.0];
+    time:Utc requestTime = [0, 0.0];
     private mime:Entity? entity = ();
 
     public isolated function init() {
@@ -182,9 +182,9 @@ public class Response {
         return trap self.setHeader(mime:CONTENT_TYPE, contentType);
     }
 
-    # Gets the type of the payload of the response (i.e: the `content-type` header value).
+    # Gets the type of the payload of the response (i.e., the `content-type` header value).
     #
-    # + return - Returns the `content-type` header value as a string
+    # + return - The `content-type` header value as a string
     public isolated function getContentType() returns @tainted string {
         string contentTypeHeaderValue = "";
         var value = self.getHeader(mime:CONTENT_TYPE);
@@ -264,7 +264,7 @@ public class Response {
     # `Response.getBodyParts()`.
     #
     # + return - A byte channel from which the message payload can be read or `http:ClientError` in case of errors
-    public isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
+    isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -275,6 +275,27 @@ public class Response {
                 return error GenericClientError(message, payload);
             } else {
                 return payload;
+            }
+        }
+    }
+
+    # Gets the response payload as  a stream of byte[], except in the case of multiparts. To retrieve multiparts, use
+    # `Response.getBodyParts()`.
+    #
+    # + arraySize - A defaultable parameter to state the size of the byte array. Default size is 8KB
+    # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
+    public isolated function getByteStream(int arraySize = 8196) returns @tainted stream<byte[], io:Error?>|ClientError {
+        var result = self.getEntityWithBodyAndWithoutHeaders();
+        if (result is error) {
+            return result;
+        } else {
+            externPopulateInputStream(result);
+            var byteStream = result.getByteStream(arraySize);
+            if (byteStream is mime:Error) {
+                string message = "Error occurred while retrieving the byte stream from the response";
+                return error GenericClientError(message, byteStream);
+            } else {
+                return byteStream;
             }
         }
     }
@@ -327,8 +348,8 @@ public class Response {
 
     # Sets the current time as the `last-modified` header.
     public isolated function setLastModified() {
-        time:Time currentT = time:currentTime();
-        var lastModified = time:format(currentT, time:RFC_1123_DATE_TIME);
+        time:Utc currentT = time:utcNow();
+        var lastModified = utcToString(currentT, RFC_1123_DATE_TIME);
         if (lastModified is string) {
             self.setHeader(LAST_MODIFIED, lastModified);
         } else {
@@ -398,7 +419,7 @@ public class Response {
     # + filePath - Path to the file to be set as the payload
     # + contentType - The content type of the specified file. Set this to override the default `content-type`
     #                 header value
-    public function setFileAsPayload(string filePath, string contentType = "application/octet-stream") {
+    public isolated function setFileAsPayload(string filePath, string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         entity.setFileAsEntityBody(filePath, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
@@ -409,17 +430,31 @@ public class Response {
     # + payload - A `ByteChannel` through which the message payload can be read
     # + contentType - The content type of the payload. Set this to override the default `content-type`
     #                 header value
-    public isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
+    isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setByteChannel(payload, contentType);
+        // entity.setByteChannel(payload, contentType);
+        self.setEntityAndUpdateContentTypeHeader(entity);
+    }
+
+    # Sets a `Stream` as the payload. This method overrides any existing content-type headers with the default 
+    # content-type, which is `application/octet-stream`. This default value can be overridden by passing the 
+    # content-type as an optional parameter.
+    #
+    # + byteStream - Byte stream, which needs to be set to the request
+    # + contentType - Content-type to be used with the payload. This is an optional parameter.
+    #                 The `application/octet-stream` is the default value
+    public isolated function setByteStream(stream<byte[], io:Error?> byteStream,
+            string contentType = "application/octet-stream") {
+        mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
+        entity.setByteStream(byteStream, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
     # Sets the response payload.
     #
-    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `ByteChannel` or `Entity[]` (i.e: a set
-    #             of body parts)
-    public isolated function setPayload(string|xml|json|byte[]|io:ReadableByteChannel|mime:Entity[] payload) {
+    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error?>`
+    #             or `Entity[]` (i.e: a set of body parts)
+    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error?> payload) {
         if (payload is string) {
             self.setTextPayload(payload);
         } else if (payload is xml) {
@@ -428,8 +463,8 @@ public class Response {
             self.setBinaryPayload(payload);
         } else if (payload is json) {
             self.setJsonPayload(payload);
-        } else if (payload is io:ReadableByteChannel) {
-            self.setByteChannel(payload);
+        } else if (payload is stream<byte[], io:Error?>) {
+            self.setByteStream(payload);
         } else {
             self.setBodyParts(payload);
         }
@@ -438,30 +473,31 @@ public class Response {
     # Adds the cookie to response.
     #
     # + cookie - The cookie, which is added to response
-    public function addCookie(Cookie cookie) {
+    public isolated function addCookie(Cookie cookie) {
         var result = cookie.isValid();
         if (result is boolean) {
             self.addHeader("Set-Cookie", cookie.toStringValue());
         } else {
-            log:printError("Invalid Cookie", err = result);
+            log:printError("Invalid Cookie", 'error = result);
         }
     }
 
     # Deletes the cookies in the client's cookie store.
     #
     # + cookiesToRemove - Cookies to be deleted
-    public function removeCookiesFromRemoteStore(Cookie...cookiesToRemove) {
+    public isolated function removeCookiesFromRemoteStore(Cookie...cookiesToRemove) {
         foreach var cookie in cookiesToRemove {
-            cookie.expires = "1994-03-12 08:12:22";
-            cookie.maxAge = 0;
-            self.addCookie(cookie);
+            string expires = "1994-03-12 08:12:22";
+            int maxAge = 0;
+            Cookie newCookie = getCloneWithExpiresAndMaxAge(cookie, expires, maxAge);
+            self.addCookie(newCookie);
         }
     }
 
     # Gets cookies from the response.
     #
     # + return - An array of cookie objects, which are included in the response
-    public function getCookies() returns @tainted Cookie[] {
+    public isolated function getCookies() returns @tainted Cookie[] {
         Cookie[] cookiesInResponse = [];
         string[]|error cookiesStringValues = self.getHeaders("Set-Cookie");
         if (cookiesStringValues is string[]) {

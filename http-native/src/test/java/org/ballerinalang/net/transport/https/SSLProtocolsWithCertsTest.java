@@ -69,7 +69,7 @@ public class SSLProtocolsWithCertsTest {
     public static Object[][] cipherSuites() {
         // true = expecting a SSL hand shake failure.
         // false = expecting no errors.
-        return new Object[][] { { "TLSv1.1", "TLSv1.1", false, TestUtil.SERVER_PORT1 },
+        return new Object[][] { { "TLSv1.2", "TLSv1.2", false, TestUtil.SERVER_PORT1 },
                 { "TLSv1.1", "TLSv1.2", true, TestUtil.SERVER_PORT2 } };
     }
 

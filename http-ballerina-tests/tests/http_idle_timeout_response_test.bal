@@ -14,14 +14,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
 import ballerina/log;
 import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
 
-listener http:Listener idleTimeoutListenerEP = new(idleTimeoutTestPort, { timeoutInMillis: 1000, server: "Mysql" });
+listener http:Listener idleTimeoutListenerEP = new(idleTimeoutTestPort, timeout = 1, server = "Mysql");
 http:Client idleTimeoutClient = check new("http://localhost:" + idleTimeoutTestPort.toString());
 
 service /idleTimeout on idleTimeoutListenerEP {
@@ -29,13 +29,13 @@ service /idleTimeout on idleTimeoutListenerEP {
     resource function post timeout408(http:Caller caller, http:Request req) {
         var result = req.getTextPayload();
         if (result is string) {
-            log:print(result);
+            log:printInfo(result);
         } else  {
-            log:printError("Error reading request", err = result);
+            log:printError("Error reading request", 'error = result);
         }
         var responseError = caller->respond("some");
         if (responseError is error) {
-            log:printError("Error sending response", err = responseError);
+            log:printError("Error sending response", 'error = responseError);
         }
     }
 
@@ -43,7 +43,7 @@ service /idleTimeout on idleTimeoutListenerEP {
         runtime:sleep(3);
         var responseError = caller->respond("some");
         if (responseError is error) {
-            log:printError("Error sending response", err = responseError);
+            log:printError("Error sending response", 'error = responseError);
         }
     }
 }
@@ -51,11 +51,11 @@ service /idleTimeout on idleTimeoutListenerEP {
 //Test header server name if 500 response is returned when the server times out. In this case a sleep is introduced in the server.
 @test:Config {}
 function test500Response() {
-    var response = idleTimeoutClient->get("/idleTimeout/timeout500");
+    http:Response|error response = idleTimeoutClient->get("/idleTimeout/timeout500");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 408, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

@@ -24,15 +24,15 @@ listener http:Listener circuitBreakerEP03 = new(9309);
 http:ClientConfiguration conf03 = {
     circuitBreaker: {
         rollingWindow: {
-            timeWindowInMillis: 60000,
-            bucketSizeInMillis: 20000,
+            timeWindow: 60,
+            bucketSize: 20,
             requestVolumeThreshold: 0
         },
         failureThreshold: 0.2,
-        resetTimeInMillis: 1000,
+        resetTime: 1,
         statusCodes: [501, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 };
 
 http:Client simpleClientEP = check new("http://localhost:8089", conf03);
@@ -41,23 +41,23 @@ service /cb on circuitBreakerEP03 {
 
     resource function 'default getstate(http:Caller caller, http:Request request) {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>simpleClientEP.httpClient;
-        var backendRes = simpleClientEP->forward("/simple", request);
+        http:Response|error backendRes = simpleClientEP->forward("/simple", request);
         http:CircuitState currentState = cbClient.getCurrentState();
         if (backendRes is http:Response) {
             if (!(currentState == http:CB_CLOSED_STATE)) {
                 backendRes.setPayload("Circuit Breaker is not in correct state state");
             }
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -66,9 +66,9 @@ service /cb on circuitBreakerEP03 {
 service /simple on new http:Listener(8089) {
     
     resource function 'default .(http:Caller caller, http:Request req) {
-        var responseToCaller = caller->respond("Hello World!!!");
+        error? responseToCaller = caller->respond("Hello World!!!");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

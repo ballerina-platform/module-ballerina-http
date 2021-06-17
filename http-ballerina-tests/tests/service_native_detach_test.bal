@@ -25,9 +25,9 @@ service /mock1 on serviceDetachTestEP {
     resource function get .(http:Caller caller, http:Request req) {
         checkpanic serviceDetachTestEP.attach(mock2, "/mock2");
         checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
-        var responseToCaller = caller->respond("Mock1 invoked. Mock2 attached. Mock3 attached");
+        error? responseToCaller = caller->respond("Mock1 invoked. Mock2 attached. Mock3 attached");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -36,9 +36,9 @@ http:Service mock2 = service object {
     resource function get mock2Resource(http:Caller caller, http:Request req) {
         checkpanic serviceDetachTestEP.detach(mock3);
         checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
-        var responseToCaller = caller->respond("Mock2 resource was invoked");
+        error? responseToCaller = caller->respond("Mock2 resource was invoked");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -47,9 +47,9 @@ http:Service mock3 = service object {
     resource function get mock3Resource(http:Caller caller, http:Request req) {
         checkpanic serviceDetachTestEP.detach(mock2);
         checkpanic serviceDetachTestEP.attach(mock4, "/mock4");
-        var responseToCaller = caller->respond("Mock3 invoked. Mock2 detached. Mock4 attached");
+        error? responseToCaller = caller->respond("Mock3 invoked. Mock2 detached. Mock4 attached");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -58,18 +58,18 @@ http:Service mock4 = service object {
     resource function get mock4Resource(http:Caller caller, http:Request req) {
         checkpanic serviceDetachTestEP.attach(mock2, "/mock2");
         checkpanic serviceDetachTestEP.detach(mock5);
-        var responseToCaller = caller->respond("Mock4 invoked. Mock2 attached");
+        error? responseToCaller = caller->respond("Mock4 invoked. Mock2 attached");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
 
 http:Service mock5 = service object {
     resource function get mock5Resource(http:Caller caller, http:Request req) {
-        var responseToCaller = caller->respond("Mock5 invoked");
+        error? responseToCaller = caller->respond("Mock5 invoked");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -77,11 +77,11 @@ http:Service mock5 = service object {
 //Test the detach method with multiple services attachments
 @test:Config {}
 function testServiceDetach() {
-    var response = serviceDetachClient->get("/mock1");
+    http:Response|error response = serviceDetachClient->get("/mock1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock1 invoked. Mock2 attached. Mock3 attached");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -90,7 +90,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock2 resource was invoked");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -99,7 +99,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock3 invoked. Mock2 detached. Mock4 attached");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -108,7 +108,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching service found for path : /mock2/mock2Resource");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -118,7 +118,7 @@ function testServiceDetach() {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
             "Service registration failed: two services have the same basePath : '/mock4'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -127,7 +127,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock4 invoked. Mock2 attached");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -136,7 +136,7 @@ function testServiceDetach() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock2 resource was invoked");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

@@ -29,8 +29,8 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import org.ballerinalang.net.transport.contract.ServerConnector;
 import org.ballerinalang.net.transport.contract.ServerConnectorFuture;
 import org.ballerinalang.net.transport.contract.config.ChunkConfig;
+import org.ballerinalang.net.transport.contract.config.InboundMsgSizeValidationConfig;
 import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
-import org.ballerinalang.net.transport.contract.config.RequestSizeValidationConfig;
 import org.ballerinalang.net.transport.contract.config.ServerBootstrapConfiguration;
 import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
 import org.ballerinalang.net.transport.contractimpl.HttpWsServerConnectorFuture;
@@ -141,7 +141,7 @@ public class ServerConnectorBootstrap {
         httpServerChannelInitializer.setCertandKeySslContext(sslContext);
     }
 
-    public void addHeaderAndEntitySizeValidation(RequestSizeValidationConfig requestSizeValidationConfig) {
+    public void addHeaderAndEntitySizeValidation(InboundMsgSizeValidationConfig requestSizeValidationConfig) {
         httpServerChannelInitializer.setReqSizeValidationConfig(requestSizeValidationConfig);
     }
 

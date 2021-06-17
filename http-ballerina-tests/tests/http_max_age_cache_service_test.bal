@@ -23,7 +23,7 @@ http:Client maxAgeCacheEp = check new("http://localhost:" + cachingTestPort4.toS
 service /maxAge on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) {
-        var response = maxAgeCacheEp->forward("/maxAgeBackend", req);
+        http:Response|error response = maxAgeCacheEp->forward("/maxAgeBackend", req);
         if (response is http:Response) {
             json responsePayload;
             if (response.hasHeader("cache-control")) {
@@ -32,7 +32,7 @@ service /maxAge on cachingProxyListener {
             } else {
                 checkpanic caller->respond(<@untainted> response);
             }
-        } else if (response is error) {
+        } else {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted> response.message());
@@ -67,12 +67,12 @@ service /maxAgeBackend on cachingBackendListener {
 //Test max-age cache control
 @test:Config {}
 function testMaxAgeCacheControl() {
-    var response = cachingProxyTestClient->get("/maxAge");
+    http:Response|error response = cachingProxyTestClient->get("/maxAge");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "public,max-age=5");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -81,7 +81,7 @@ function testMaxAgeCacheControl() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "public,max-age=5");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -93,7 +93,7 @@ function testMaxAgeCacheControl() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"after cache expiration"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

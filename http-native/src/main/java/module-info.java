@@ -21,7 +21,6 @@ module io.ballerina.stdlib.http {
     requires io.ballerina.tools.api;
     requires io.ballerina.lang;
     requires io.ballerina.lang.value;
-    requires io.ballerina.logging;
     requires io.ballerina.config;
     requires io.ballerina.stdlib.mime;
     requires io.ballerina.stdlib.io;
@@ -41,5 +40,4 @@ module io.ballerina.stdlib.http {
     exports org.ballerinalang.net.transport.message;
     exports org.ballerinalang.net.uri;
     exports org.ballerinalang.net.uri.parser;
-    exports org.ballerinalang.net.http.websocket.server;
 }

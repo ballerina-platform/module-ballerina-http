@@ -47,7 +47,7 @@ public class SenderConfiguration extends SslConfiguration {
     private String httpVersion = "1.1";
     private ProxyServerConfiguration proxyServerConfiguration;
     private PoolConfiguration poolConfiguration;
-
+    private InboundMsgSizeValidationConfig responseSizeValidationConfig = new InboundMsgSizeValidationConfig();
     private ForwardedExtensionConfig forwardedExtensionConfig = ForwardedExtensionConfig.DISABLE;
 
     public SenderConfiguration() {
@@ -142,5 +142,13 @@ public class SenderConfiguration extends SslConfiguration {
 
     public void setForwardedExtensionConfig(ForwardedExtensionConfig forwardedExtensionEnabled) {
         this.forwardedExtensionConfig = forwardedExtensionEnabled;
+    }
+
+    public InboundMsgSizeValidationConfig getMsgSizeValidationConfig() {
+        return responseSizeValidationConfig;
+    }
+
+    public void setMsgSizeValidationConfig(InboundMsgSizeValidationConfig responseSizeValidationConfig) {
+        this.responseSizeValidationConfig = responseSizeValidationConfig;
     }
 }

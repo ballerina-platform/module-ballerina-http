@@ -45,25 +45,20 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
             response.setPayload("Error in decoding multiparts!");
             response.statusCode = 500;
         }
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
         if (result is error) {
-            log:printError("Error sending response", err = result);
+            log:printError("Error sending response", 'error = result);
         }
     }
 
     resource function get initial(http:Caller caller, http:Request request) {
-        http:Response|http:PayloadType|error finalResponse;
-        http:Request req = new;
+        http:Response|error finalResponse;
         if (checkpanic request.getHeader("priorKnowledge") == "true") {
-            req.setHeader("priorKnowledge", "true");
-            finalResponse = priorKnowclientEP2->get("/multiparts/encode", req);
+            finalResponse = priorKnowclientEP2->get("/multiparts/encode", {"priorKnowledge":"true"});
         } else {
-            req.setHeader("priorKnowledge", "false");
-            finalResponse = mimeClientEP2->get("/multiparts/encode", req);
+            finalResponse = mimeClientEP2->get("/multiparts/encode", {"priorKnowledge":"false"});
         }
-        if (finalResponse is error) {
-            log:printError("Error sending response", err = finalResponse);
-        } else if (finalResponse is http:Response) {
+        if (finalResponse is http:Response) {
             var respBodyParts = finalResponse.getBodyParts();
             string finalMessage = "";
             if (respBodyParts is mime:Entity[]) {
@@ -71,7 +66,9 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
                     finalMessage = finalMessage + handleResponseBodyParts(part);
                 }
             }
-            var result = caller->respond(finalMessage);
+            error? result = caller->respond(finalMessage);
+        } else {
+            log:printError("Error sending response", 'error = finalResponse);
         }
     }
 
@@ -88,30 +85,30 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
         mime:Entity[] bodyParts = [jsonBodyPart, xmlFilePart, textPart];
         http:Request request = new;
         request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-        http:Response|http:PayloadType|error returnResponse;
+        http:Response|error returnResponse;
         if (checkpanic req.getHeader("priorKnowledge") == "true") {
             returnResponse = priorKnowclientEP1->post("/multiparts/decode", request);
         } else {
             returnResponse = mimeClientEP1->post("/multiparts/decode", request);
         }
         if (returnResponse is http:Response) {
-            var result = caller->respond(<@untainted> returnResponse);
+            error? result = caller->respond(<@untainted> returnResponse);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         } else {
             http:Response response = new;
             response.setPayload("Error occurred while sending multipart request!");
             response.statusCode = 500;
-            var result = caller->respond(response);
+            error? result = caller->respond(response);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         }
     }
 }
 
-function handleRespContent(mime:Entity bodyPart) returns @untainted mime:Entity {
+isolated function handleRespContent(mime:Entity bodyPart) returns @untainted mime:Entity {
     mime:Entity jsonPart = new;
     mime:Entity xmlPart = new;
     mime:Entity textPart = new;
@@ -151,7 +148,7 @@ function handleRespContent(mime:Entity bodyPart) returns @untainted mime:Entity 
     return textPart;
 }
 
-function handleResponseBodyParts(mime:Entity bodyPart) returns @untainted string {
+isolated function handleResponseBodyParts(mime:Entity bodyPart) returns @untainted string {
     var mediaType = mime:getMediaType(bodyPart.getContentType());
     if (mediaType is mime:MediaType) {
         string baseType = mediaType.getBaseType();
@@ -181,7 +178,7 @@ function handleResponseBodyParts(mime:Entity bodyPart) returns @untainted string
     return "error";
 }
 
-function getContDisposition(string partName) returns (mime:ContentDisposition) {
+isolated function getContDisposition(string partName) returns (mime:ContentDisposition) {
     mime:ContentDisposition contentDisposition = new;
     contentDisposition.name = partName;
     contentDisposition.disposition = "form-data";
@@ -191,12 +188,10 @@ function getContDisposition(string partName) returns (mime:ContentDisposition) {
 @test:Config {}
 public function testMultipart() {
     http:Client clientEP = checkpanic new("http://localhost:9100");
-    http:Request req = new;
-    req.setHeader("priorKnowledge", "false");
-    var resp = clientEP->get("/multiparts/initial", req);
+    http:Response|error resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"false"});
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -204,12 +199,10 @@ public function testMultipart() {
 @test:Config {}
 public function testMultipartsWithPriorKnowledge() {
     http:Client clientEP = checkpanic new("http://localhost:9100");
-    http:Request req = new;
-    req.setHeader("priorKnowledge", "true");
-    var resp = clientEP->get("/multiparts/initial", req);
+    http:Response|error resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"true"});
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

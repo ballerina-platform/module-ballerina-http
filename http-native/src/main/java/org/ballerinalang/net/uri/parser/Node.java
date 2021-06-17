@@ -22,9 +22,13 @@ import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpResourceArguments;
 import org.ballerinalang.net.uri.URITemplateException;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static org.ballerinalang.net.http.HttpConstants.EXTRA_PATH_INDEX;
+import static org.ballerinalang.net.uri.URIUtil.URI_PATH_DELIMITER;
 
 /**
  * Node represents different types of path segments in the uri-template.
@@ -74,7 +78,19 @@ public abstract class Node<DataType, InboundMsgType> {
         if (matchLength >= uriFragment.length()) {
             return false;
         }
-        String subUriFragment = nextURIFragment(uriFragment, matchLength);
+
+        String subUriFragment;
+        if (uriFragment.startsWith(URI_PATH_DELIMITER)) {
+            subUriFragment = uriFragment.substring(matchLength);
+        } else if (uriFragment.contains(URI_PATH_DELIMITER)) {
+            if (uriFragment.charAt(matchLength) != '/') {
+                return false;
+            }
+            subUriFragment = uriFragment.substring(matchLength + 1);
+        } else {
+            return false;
+        }
+
         String subPath = nextSubPath(subUriFragment);
 
         boolean isFound;
@@ -114,7 +130,9 @@ public abstract class Node<DataType, InboundMsgType> {
     }
 
     private void setUriPostFix(HttpResourceArguments variables, String subUriFragment) {
-        variables.getMap().putIfAbsent(HttpConstants.EXTRA_PATH_INFO, "/" + subUriFragment);
+        Map<Integer, String> indexValueMap =
+                Collections.singletonMap(EXTRA_PATH_INDEX, URI_PATH_DELIMITER + subUriFragment);
+        variables.getMap().putIfAbsent(HttpConstants.EXTRA_PATH_INFO, indexValueMap);
     }
 
     abstract String expand(Map<String, String> variables);
@@ -127,20 +145,11 @@ public abstract class Node<DataType, InboundMsgType> {
 
     private Node<DataType, InboundMsgType> getMatchingChildNode(Node<DataType, InboundMsgType> prospectiveChild,
             List<Node<DataType, InboundMsgType>> existingChildren) throws URITemplateException {
-        boolean dotSuffixExpression = prospectiveChild instanceof DotSuffixExpression;
         boolean simpleStringExpression = prospectiveChild instanceof SimpleStringExpression;
         String prospectiveChildToken = prospectiveChild.getToken();
 
         for (Node<DataType, InboundMsgType> existingChild : existingChildren) {
-            if (dotSuffixExpression) {
-                if (existingChild instanceof DotSuffixExpression) {
-                    return getExistingChildNode(prospectiveChild, existingChild);
-                } else {
-                    continue;
-                }
-            }
-            if (simpleStringExpression && existingChild instanceof Expression
-                    && !(existingChild instanceof DotSuffixExpression)) {
+            if (simpleStringExpression && existingChild instanceof Expression) {
                 return getExistingChildNode(prospectiveChild, existingChild);
             }
             if (existingChild.getToken().equals(prospectiveChildToken)) {
@@ -166,33 +175,15 @@ public abstract class Node<DataType, InboundMsgType> {
                 return 0;
             }
             return node.getToken().length() + 5;
-        } else if (node instanceof DotSuffixExpression) {
-            return 2;
         } else {
             return 1;
         }
     }
 
-    private String nextURIFragment(String uri, int matchLength) {
-        String uriFragment = uri;
-        if (uriFragment.startsWith("/")) {
-            uriFragment = uriFragment.substring(matchLength);
-        } else if (uriFragment.contains("/")) {
-            if (uriFragment.charAt(matchLength) == '/') {
-                uriFragment = uriFragment.substring(matchLength + 1);
-            } else {
-                uriFragment = uriFragment.substring(matchLength);
-            }
-        } else {
-            uriFragment = uriFragment.substring(matchLength);
-        }
-        return uriFragment;
-    }
-
     private String nextSubPath(String uriFragment) {
         String subPath;
-        if (uriFragment.contains("/")) {
-            subPath = uriFragment.substring(0, uriFragment.indexOf("/"));
+        if (uriFragment.contains(URI_PATH_DELIMITER)) {
+            subPath = uriFragment.substring(0, uriFragment.indexOf(URI_PATH_DELIMITER));
         } else {
             subPath = uriFragment;
         }

@@ -14,67 +14,47 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
 
-# Provides the HTTP actions for interacting with an HTTP server. Apart from the standard HTTP methods,
-# `HttpClient.forward()` and `HttpClient.execute()` functions are provided. More complex and specific endpoint types
-# can be created by wrapping this generic HTTP actions implementation.
-#
-# + url - The URL of the remote HTTP endpoint
-# + config - The configurations associated with the HttpClient
-public client class HttpClient {
+# Lies inside every type of client in the chain holding the native client connector. More complex and specific
+# endpoint types are created by wrapping this generic HTTP actions implementation internally.
+public client isolated class HttpClient {
 
-    public ClientConfiguration config = {};
-    public string url;
-
-    # Gets invoked to initialize the native `client`. During initialization, the configurations are provided through the
+    # Gets invoked to initialize the native `client`. During the initialization, the configurations are provided through the
     # `config`. The `HttpClient` lies inside every type of client in the chain holding the native client connector.
     #
     # + url - URL of the target service
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(string url, ClientConfiguration? config = ()) returns ClientError? {
-        self.config = config ?: {};
-        self.url = url;
-        return createSimpleHttpClient(self, globalHttpClientConnPool);
+    isolated function init(string url, ClientConfiguration? config = ()) returns ClientError? {
+        ClientConfiguration options = config ?: {};
+        return createSimpleHttpClient(self, globalHttpClientConnPool, url, options);
     }
 
     # The `HttpClient.post()` function can be used to send HTTP POST requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
-                returns Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function post(@untainted string path, RequestMessage message) returns Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_POST);
     }
 
     # The `HttpClient.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
+    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_HEAD);
     }
 
     # The `HttpClient.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function put(@untainted string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function put(@untainted string path, RequestMessage message) returns @tainted  Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PUT);
     }
 
@@ -82,70 +62,46 @@ public client class HttpClient {
     #
     # + httpVerb - HTTP verb value
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message)
+             returns @tainted Response|ClientError {
         return externExecute(self, httpVerb, path, <Request>message);
     }
 
     # The `HttpClient.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function patch(@untainted string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function patch(@untainted string path, RequestMessage message) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PATCH);
     }
 
     # The `HttpClient.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.
     #
     # + path - Resource path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function delete(@untainted string path, RequestMessage message = (),
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function delete(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_DELETE);
     }
 
     # The `HttpClient.get()` function can be used to send HTTP GET requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function get(@untainted string path, RequestMessage message = (),
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function get(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_GET);
     }
 
     # The `HttpClient.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
     #
     # + path - Request path
-    # + message - An optional HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function options(@untainted string path, RequestMessage message = (),
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function options(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_OPTIONS);
     }
 
@@ -153,12 +109,8 @@ public client class HttpClient {
     #
     # + path - Request path
     # + request - An HTTP inbound request message
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function forward(@untainted string path, Request request, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function forward(@untainted string path, Request request) returns @tainted Response|ClientError {
         return externForward(self, path, request);
     }
 
@@ -168,10 +120,9 @@ public client class HttpClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
-    remote function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote isolated function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return externSubmit(self, httpVerb, path, <Request>message);
     }
 
@@ -179,7 +130,7 @@ public client class HttpClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         return externGetResponse(self, httpFuture);
     }
 
@@ -187,7 +138,7 @@ public client class HttpClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return externHasPromise(self, httpFuture);
     }
 
@@ -195,7 +146,7 @@ public client class HttpClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return externGetNextPromise(self, httpFuture);
     }
 
@@ -203,7 +154,7 @@ public client class HttpClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return externGetPromisedResponse(self, promise);
     }
 
@@ -211,78 +162,67 @@ public client class HttpClient {
     # response using the rejected promise.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise) {
+    remote isolated function rejectPromise(PushPromise promise) {
         return externRejectPromise(self, promise);
     }
 }
 
 isolated function externGetResponse(HttpClient httpClient, HttpFuture httpFuture) returns Response|ClientError =
 @java:Method {
-    'class: "org.ballerinalang.net.http.actions.httpclient.GetResponse",
+    'class: "org.ballerinalang.net.http.client.actions.GetResponse",
     name: "getResponse"
 } external;
 
 isolated function externHasPromise(HttpClient httpClient, HttpFuture httpFuture) returns boolean =
 @java:Method {
-    'class: "org.ballerinalang.net.http.actions.httpclient.HasPromise",
+    'class: "org.ballerinalang.net.http.client.actions.HasPromise",
     name: "hasPromise"
 } external;
 
 isolated function externGetNextPromise(HttpClient httpClient, HttpFuture httpFuture) returns PushPromise|ClientError =
 @java:Method {
-    'class: "org.ballerinalang.net.http.actions.httpclient.GetNextPromise",
+    'class: "org.ballerinalang.net.http.client.actions.GetNextPromise",
     name: "getNextPromise"
 } external;
 
 isolated function externGetPromisedResponse(HttpClient httpClient, PushPromise promise) returns Response|ClientError =
 @java:Method {
-    'class: "org.ballerinalang.net.http.actions.httpclient.GetPromisedResponse",
+    'class: "org.ballerinalang.net.http.client.actions.GetPromisedResponse",
     name: "getPromisedResponse"
 } external;
 
 isolated function externRejectPromise(HttpClient httpClient, PushPromise promise) =
 @java:Method {
-    'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction",
+    'class: "org.ballerinalang.net.http.client.actions.HttpClientAction",
     name: "rejectPromise"
 } external;
 
 isolated function externExecute(HttpClient caller, string httpVerb, string path, Request req) returns Response|ClientError =
 @java:Method {
-    'class: "org.ballerinalang.net.http.actions.httpclient.Execute",
+    'class: "org.ballerinalang.net.http.client.actions.Execute",
     name: "execute"
 } external;
 
 isolated function externSubmit(HttpClient caller, string httpVerb, string path, Request req) returns HttpFuture|ClientError =
 @java:Method {
-    'class: "org.ballerinalang.net.http.actions.httpclient.Submit",
+    'class: "org.ballerinalang.net.http.client.actions.Submit",
     name: "submit"
 } external;
 
 isolated function externForward(HttpClient caller, string path, Request req) returns Response|ClientError =
 @java:Method {
-    'class: "org.ballerinalang.net.http.actions.httpclient.Forward",
+    'class: "org.ballerinalang.net.http.client.actions.Forward",
     name: "forward"
 } external;
 
 isolated function externExecuteClientAction(HttpClient caller, string path, Request req, string httpMethod)
                                   returns Response|ClientError =
 @java:Method {
-    'class: "org.ballerinalang.net.http.actions.httpclient.HttpClientAction",
+    'class: "org.ballerinalang.net.http.client.actions.HttpClientAction",
     name: "executeClientAction"
 } external;
 
-# Defines a timeout error occurred during service invocation.
-#
-# + message - An explanation on what went wrong
-# + cause - The error which caused the `HttpTimeoutError`
-# + statusCode - HTTP status code
-public type HttpTimeoutError record {|
-    string message = "";
-    error? cause = ();
-    int statusCode = 0;
-|};
-
-function createClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
+isolated function createClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpClient simpleClient = check new(url, config);
     return simpleClient;
 }

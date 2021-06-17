@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
+import java.util.Objects;
 
 import static org.ballerinalang.mime.util.EntityBodyHandler.constructBlobDataSource;
 import static org.ballerinalang.mime.util.EntityBodyHandler.constructJsonDataSource;
@@ -45,6 +46,7 @@ import static org.ballerinalang.mime.util.EntityBodyHandler.constructStringDataS
 import static org.ballerinalang.mime.util.EntityBodyHandler.constructXmlDataSource;
 import static org.ballerinalang.mime.util.EntityBodyHandler.isStreamingRequired;
 import static org.ballerinalang.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
+import static org.ballerinalang.mime.util.MimeConstants.MESSAGE_DATA_SOURCE;
 import static org.ballerinalang.mime.util.MimeConstants.NO_CONTENT_ERROR;
 import static org.ballerinalang.mime.util.MimeConstants.PARSER_ERROR;
 import static org.ballerinalang.mime.util.MimeConstants.TRANSPORT_MESSAGE;
@@ -141,8 +143,17 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
     }
 
     public static Object getByteChannel(BObject entityObj) {
+        populateInputStream(entityObj);
+        return MimeEntityBody.getByteChannel(entityObj);
+    }
+
+    public static void populateInputStream(BObject entityObj) {
+        Object dataSource = entityObj.getNativeData(MESSAGE_DATA_SOURCE);
+        if (Objects.nonNull(dataSource)) {
+            return;
+        }
         HttpCarbonMessage httpCarbonMessage = (HttpCarbonMessage) entityObj.getNativeData(TRANSPORT_MESSAGE);
-        if (httpCarbonMessage != null) {
+        if (Objects.nonNull(httpCarbonMessage)) {
             HttpMessageDataStreamer httpMessageDataStreamer = new HttpMessageDataStreamer(httpCarbonMessage);
 
             long contentLength = HttpUtil.extractContentLength(httpCarbonMessage);
@@ -151,7 +162,6 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
                         new EntityBodyChannel(httpMessageDataStreamer.getInputStream())));
             }
         }
-        return MimeEntityBody.getByteChannel(entityObj);
     }
 
     public static void constructNonBlockingDataSource(Future balFuture, BObject entity,
@@ -243,4 +253,6 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         TEXT,
         BLOB
     }
+
+    private ExternHttpDataSourceBuilder() {}
 }

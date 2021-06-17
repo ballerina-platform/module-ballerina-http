@@ -23,22 +23,37 @@ listener http:Listener mimeEP = new(mimeTest);
 
 service /test on mimeEP {
 
+    // TODO: Enable after the I/O revamp
+    // resource function post largepayload(http:Caller caller, http:Request request) {
+    //     http:Response response = new;
+    //     mime:Entity responseEntity = new;
+
+    //     var result = request.getByteChannel();
+    //     if (result is io:ReadableByteChannel) {
+    //         responseEntity.setByteChannel(result);
+    //     } else {
+    //         io:print("Error in getting byte channel");
+    //     }
+
+    //     response.setEntity(responseEntity);
+    //     checkpanic caller->respond(response);
+    // }
+
     resource function post largepayload(http:Caller caller, http:Request request) {
         http:Response response = new;
         mime:Entity responseEntity = new;
-
-        var result = request.getByteChannel();
-        if (result is io:ReadableByteChannel) {
-            responseEntity.setByteChannel(result);
+        var result = request.getByteStream();
+        if (result is stream<byte[], io:Error?>) {
+            responseEntity.setByteStream(result);
         } else {
-            io:print("Error in getting byte channel");
+            io:print("Error in getting byte stream");
         }
-
         response.setEntity(responseEntity);
         checkpanic caller->respond(response);
     }
 
-    resource function 'default getPayloadFromEntity(http:Caller caller, http:Request request) {
+    resource function 'default getPayloadFromEntity(http:Caller caller, http:Request request) returns
+            http:InternalServerError? {
         http:Response res = new;
         var entity = request.getEntity();
         if (entity is mime:Entity) {
@@ -47,13 +62,14 @@ service /test on mimeEP {
                 mime:Entity ent = new;
                 ent.setJson(<@untainted>{"payload" : jsonPayload, "header" : checkpanic entity.getHeader("Content-type")});
                 res.setEntity(ent);
-                checkpanic caller->ok(res);
+                checkpanic caller->respond(res);
             } else {
-                checkpanic caller->internalServerError("Error while retrieving from entity");
+                return {body: "Error while retrieving from entity"};
             }
         } else {
-            checkpanic caller->internalServerError({ message: "Error while retrieving from request" });
+            return {body: "Error while retrieving from request"};
         }
+        return;
     }
 }
 
@@ -154,10 +170,26 @@ function testAccessingPayloadFromEntity() {
     string jsonString = "{\"" + key + "\":\"" + value + "\"}";
     http:Request req = new;
     req.setTextPayload(jsonString);
-    var response = mimeClient->post(path, req);
+    http:Response|error response = mimeClient->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {"payload":{"lang":"ballerina"}, "header":"text/plain"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
+    }
+}
+
+@test:Config {}
+function testStreamResponseSerialize() {
+    string key = "lang";
+    string value = "ballerina";
+    string path = "/test/largepayload";
+    json jsonString = {[key]:value};
+    http:Request req = new;
+    req.setJsonPayload(jsonString);
+    json|error response = mimeClient->post(path, req, targetType = json);
+    if (response is json) {
+        assertJsonPayload(response, jsonString);
+    } else {
+        test:assertFail(msg = "Test Failed! " + response.message());
     }
 }

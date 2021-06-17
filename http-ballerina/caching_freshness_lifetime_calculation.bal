@@ -17,22 +17,22 @@
 import ballerina/time;
 
 isolated function isFreshResponse(Response cachedResponse, boolean isSharedCache) returns @tainted boolean {
-    int currentAge = getResponseAge(cachedResponse);
-    int freshnessLifetime = getFreshnessLifetime(cachedResponse, isSharedCache);
+    time:Seconds currentAge = getResponseAge(cachedResponse);
+    time:Seconds freshnessLifetime = getFreshnessLifetime(cachedResponse, isSharedCache);
     return freshnessLifetime > currentAge;
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.2.1
-isolated function getFreshnessLifetime(Response cachedResponse, boolean isSharedCache) returns int {
+isolated function getFreshnessLifetime(Response cachedResponse, boolean isSharedCache) returns time:Seconds {
     // TODO: Ensure that duplicate directives are not counted towards freshness lifetime.
     var responseCacheControl = cachedResponse.cacheControl;
     if (responseCacheControl is ResponseCacheControl) {
-        if (isSharedCache && responseCacheControl.sMaxAge >= 0) {
-            return responseCacheControl.sMaxAge;
+        if (isSharedCache && responseCacheControl.sMaxAge >= 0d) {
+            return <time:Seconds> responseCacheControl.sMaxAge;
         }
 
-        if (responseCacheControl.maxAge >= 0) {
-            return responseCacheControl.maxAge;
+        if (responseCacheControl.maxAge >= 0d) {
+            return <time:Seconds> responseCacheControl.maxAge;
         }
     }
 
@@ -54,10 +54,10 @@ isolated function getFreshnessLifetime(Response cachedResponse, boolean isShared
                 return STALE;
             }
 
-            var tExpiresHeader = time:parse(expiresHeader[0], time:RFC_1123_DATE_TIME);
-            var tDateHeader = time:parse(dateHeader[0], time:RFC_1123_DATE_TIME);
-            if (tExpiresHeader is time:Time && tDateHeader is time:Time) {
-                int freshnessLifetime = (tExpiresHeader.time - tDateHeader.time) /1000;
+            var tExpiresHeader = utcFromString(expiresHeader[0], RFC_1123_DATE_TIME);
+            var tDateHeader = utcFromString(dateHeader[0], RFC_1123_DATE_TIME);
+            if (tExpiresHeader is time:Utc && tDateHeader is time:Utc) {
+                time:Seconds freshnessLifetime = time:utcDiffSeconds(tExpiresHeader, tDateHeader);
                 return freshnessLifetime;
             }
 

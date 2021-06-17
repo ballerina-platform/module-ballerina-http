@@ -19,21 +19,18 @@ package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.mime.util.MimeUtil;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 
-import static org.ballerinalang.mime.util.MimeConstants.MEDIA_TYPE;
-import static org.ballerinalang.mime.util.MimeConstants.PROTOCOL_MIME_PKG_ID;
 import static org.ballerinalang.net.http.HttpConstants.CALLER;
 import static org.ballerinalang.net.http.HttpConstants.ENTITY;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP_PKG_ID;
-import static org.ballerinalang.net.http.HttpConstants.PUSH_PROMISE;
+import static org.ballerinalang.net.http.HttpConstants.HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_CACHE_CONTROL;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE;
-import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL;
 
 /**
  * Utility functions to create JVM values.
@@ -43,36 +40,27 @@ import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL;
 public class ValueCreatorUtils {
 
     public static BObject createRequestObject() {
-        return createObjectValue(PROTOCOL_HTTP_PKG_ID, REQUEST);
+        return createObjectValue(ModuleUtils.getHttpPackage(), REQUEST);
     }
 
     public static BObject createResponseObject() {
-        return createObjectValue(PROTOCOL_HTTP_PKG_ID, RESPONSE);
+        return createObjectValue(ModuleUtils.getHttpPackage(), RESPONSE);
     }
 
     public static BObject createEntityObject() {
-        return createObjectValue(PROTOCOL_MIME_PKG_ID, ENTITY);
-    }
-
-    public static BObject createMediaTypeObject() {
-        return createObjectValue(PROTOCOL_MIME_PKG_ID, MEDIA_TYPE);
-    }
-
-    public static BObject createPushPromiseObject() {
-        return createObjectValue(PROTOCOL_HTTP_PKG_ID, PUSH_PROMISE, StringUtils.fromString("/"),
-                                 StringUtils.fromString("GET"));
+        return createObjectValue(MimeUtil.getMimePackage(), ENTITY);
     }
 
     public static BObject createRequestCacheControlObject() {
-        return createObjectValue(PROTOCOL_HTTP_PKG_ID, REQUEST_CACHE_CONTROL);
-    }
-
-    public static BObject createResponseCacheControlObject() {
-        return createObjectValue(PROTOCOL_HTTP_PKG_ID, RESPONSE_CACHE_CONTROL);
+        return createObjectValue(ModuleUtils.getHttpPackage(), REQUEST_CACHE_CONTROL);
     }
 
     public static BObject createCallerObject() {
-        return createObjectValue(PROTOCOL_HTTP_PKG_ID, CALLER);
+        return createObjectValue(ModuleUtils.getHttpPackage(), CALLER);
+    }
+
+    static BObject createHeadersObject() {
+        return createObjectValue(ModuleUtils.getHttpPackage(), HEADERS);
     }
     
     /**
@@ -82,7 +70,7 @@ public class ValueCreatorUtils {
      * @return value of the record.
      */
     public static BMap<BString, Object> createHTTPRecordValue(String recordTypeName) {
-        return ValueCreator.createRecordValue(PROTOCOL_HTTP_PKG_ID, recordTypeName);
+        return ValueCreator.createRecordValue(ModuleUtils.getHttpPackage(), recordTypeName);
     }
 
     /**
@@ -107,4 +95,6 @@ public class ValueCreatorUtils {
         // passing scheduler, strand and properties as null for the moment, but better to expose them via this method
         return ValueCreator.createObjectValue(module, objectTypeName, null, null, null, fields);
     }
+
+    private ValueCreatorUtils() {}
 }

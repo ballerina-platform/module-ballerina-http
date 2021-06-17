@@ -68,7 +68,7 @@ service /multipart on mockEP2 {
 
 @test:Config {}
 function testMultipartsInOutResponse() {
-    var response = multipartRespClient->get("/multipart/encode_out_response");
+    http:Response|error response = multipartRespClient->get("/multipart/encode_out_response");
     if (response is http:Response) {
         mime:Entity[]|error bodyParts = response.getBodyParts();
         if (bodyParts is mime:Entity[]) {
@@ -91,14 +91,14 @@ function testMultipartsInOutResponse() {
             } else {
                test:assertFail(msg = errorMessage + textPart.message());
             }
-            io:ReadableByteChannel|error filePart = bodyParts[3].getByteChannel();
+            stream<byte[], io:Error?>|error filePart = bodyParts[3].getByteStream();
             if (filePart is error) {
                test:assertFail(msg = errorMessage + filePart.message());
             }
         } else {
             test:assertFail(msg = errorMessage + bodyParts.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = errorMessage + response.message());
     }
 }
@@ -107,7 +107,7 @@ function testMultipartsInOutResponse() {
 function testNestedPartsInOutResponse() {
     http:Request request = new;
     request.setBodyParts(createNestedPartRequest(), contentType = mime:MULTIPART_FORM_DATA);
-    var response = multipartRespClient->post("/multipart/nested_parts_in_outresponse", request);
+    http:Response|error response = multipartRespClient->post("/multipart/nested_parts_in_outresponse", request);
     if (response is http:Response) {
         mime:Entity[]|error bodyParts = response.getBodyParts();
         if (bodyParts is mime:Entity[]) {
@@ -123,7 +123,7 @@ function testNestedPartsInOutResponse() {
         } else {
             test:assertFail(msg = errorMessage + bodyParts.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = errorMessage + response.message());
     }
 }

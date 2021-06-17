@@ -30,17 +30,17 @@ service /'continue on httpClientContinueListenerEP1 {
         if (request.expects100Continue()) {
             string mediaType = checkpanic request.getHeader("Content-Type");
             if (mediaType.toLowerAscii() == "text/plain") {
-                var result = caller->continue();
+                error? result = caller->continue();
                 if (result is error) {
-                    log:printError("Error sending response", err = result);
+                    log:printError("Error sending response", 'error = result);
                 }
             } else {
                 http:Response res = new;
                 res.statusCode = 417;
                 res.setPayload("Unprocessable Entity");
-                var result = caller->respond(res);
+                error? result = caller->respond(res);
                 if (result is error) {
-                    log:printError("Error sending response", err = result);
+                    log:printError("Error sending response", 'error = result);
                 }
                 return;
             }
@@ -48,19 +48,18 @@ service /'continue on httpClientContinueListenerEP1 {
         http:Response res = new;
         var payload = request.getTextPayload();
         if (payload is string) {
-            log:print(payload);
             res.statusCode = 200;
             res.setPayload("Hello World!\n");
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         } else {
             res.statusCode = 500;
             res.setPayload(<@untainted> payload.message());
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
             if (result is error) {
-                log:printError("Error sending response", err = result);
+                log:printError("Error sending response", 'error = result);
             }
         }
     }
@@ -72,11 +71,11 @@ service /'continue on httpClientContinueListenerEP2  {
         req.addHeader("content-type", "text/plain");
         req.addHeader("Expect", "100-continue");
         req.setPayload("Hi");
-        var response = continueClient->post("/continue", <@untainted> req);
+        http:Response|error response = continueClient->post("/continue", <@untainted> req);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            checkpanic caller->respond("Error: " + <@untainted> (<error>response).toString());
+            checkpanic caller->respond("Error: " + <@untainted> response.toString());
         }
     }
 
@@ -84,11 +83,11 @@ service /'continue on httpClientContinueListenerEP2  {
         req.addHeader("Expect", "100-continue");
         req.addHeader("content-type", "application/json");
         req.setPayload({ name: "apple", color: "red" });
-        var response = continueClient->post("/continue", <@untainted> req);
+        http:Response|error response = continueClient->post("/continue", <@untainted> req);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
-            checkpanic caller->respond("Error: " + <@untainted> (<error>response).toString());
+            checkpanic caller->respond("Error: " + <@untainted> response.toString());
         }
     }
 }
@@ -96,12 +95,12 @@ service /'continue on httpClientContinueListenerEP2  {
 //Test 100 continue for http client
 @test:Config {}
 function testContinueAction() {
-    var response = httpClientContinueClient->get("/continue");
+    http:Response|error response = httpClientContinueClient->get("/continue");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!\n");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -109,11 +108,11 @@ function testContinueAction() {
 //Negative test case for 100 continue of http client
 @test:Config {dependsOn:[testContinueAction]}
 function testNegativeContinueAction() {
-    var response = httpClientContinueClient->get("/continue/failure");
+    http:Response|error response = httpClientContinueClient->get("/continue/failure");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -125,7 +124,7 @@ function testContinueActionWithMain() {
     req.addHeader("content-type", "text/plain");
     req.addHeader("Expect", "100-continue");
     req.setPayload("Hello World!");
-    var response = clientEP->post("/continue", req);
+    http:Response|error response = clientEP->post("/continue", req);
     if (response is http:Response) {
         var payload = response.getTextPayload();
         if (payload is string) {
@@ -134,7 +133,7 @@ function testContinueActionWithMain() {
         } else {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());
         }
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

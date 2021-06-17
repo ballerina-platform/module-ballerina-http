@@ -18,10 +18,72 @@
 
 import ballerina/http;
 import ballerina/regex;
+import ballerina/test;
 
 const string KEYSTORE_PATH = "tests/certsandkeys/ballerinaKeystore.p12";
 const string TRUSTSTORE_PATH = "tests/certsandkeys/ballerinaTruststore.p12";
-const string ACCESS_TOKEN = "2YotnFZFEjr1zCsicMWpAA";
+
+//{
+//  "alg": "RS256",
+//  "typ": "JWT",
+//  "kid": "NTAxZmMxNDMyZDg3MTU1ZGM0MzEzODJhZWI4NDNlZDU1OGFkNjFiMQ"
+//}
+//{
+//  "sub": "admin",
+//  "iss": "wso2",
+//  "exp": 1925955724,
+//  "jti": "100078234ba23",
+//  "aud": [
+//    "ballerina"
+//  ],
+//  "scp": "write"
+//}
+const string JWT1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
+                    "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTcyNCwgIm" +
+                    "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.H99ufLvCLFA5i1gfCt" +
+                    "klVdPrBvEl96aobNvtpEaCsO4v6_EgEZYz8Pg0B1Y7yJPbgpuAzXEg_CzowtfCTu3jUFf5FH_6M1fWGko5vpljtCb5Xknt_" +
+                    "YPqvbk5fJbifKeXqbkCGfM9c0GS0uQO5ss8StquQcofxNgvImRV5eEGcDdybkKBNkbA-sJFHd1jEhb8rMdT0M0SZFLnhrPL" +
+                    "8edbFZ-oa-ffLLls0vlEjUA7JiOSpnMbxRmT-ac6QjPxTQgNcndvIZVP2BHueQ1upyNorFKSMv8HZpATYHZjgnJQSpmt3Oa" +
+                    "oFJ6pgzbFuniVNuqYghikCQIizqzQNfC7JUD8wA";
+
+//{
+//  "alg": "RS256",
+//  "typ": "JWT",
+//  "kid": "NTAxZmMxNDMyZDg3MTU1ZGM0MzEzODJhZWI4NDNlZDU1OGFkNjFiMQ"
+//}
+//{
+//  "sub": "admin",
+//  "iss": "wso2",
+//  "exp": 1925955876,
+//  "jti": "100078234ba23",
+//  "aud": [
+//    "ballerina"
+//  ],
+//  "scp": "read"
+//}
+const string JWT2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
+                    "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTg3NiwgIm" +
+                    "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoicmVhZCJ9.MVx_bJJpRyQryrTZ1-WC" +
+                    "1BkJdeBulX2CnxYN5Y4r1XbVd0-rgbCQ86jEbWvLZOybQ8Hx7MB9thKaBvidBnctgMM1JzG-ULahl-afoyTCv_qxMCS-5B7" +
+                    "AUA1f-sOQHzq-n7T3b0FKsWtmOEXbGmRxQFv89_v8xwUzIItXtZ6IjkoiZn5GerGrozX0DEBDAeG-2BOj8gSlsFENdPB5Sn" +
+                    "5oEM6-Chrn6KFLXo3GFTwLQELgYkIGjgnMQfbyLLaw5oyJUyOCCsdMZ4oeVLO2rdKZs1L8ZDnolUfcdm5mTxxP9A4mTOTd-" +
+                    "xC404MKwxkRhkgI4EJkcEwMHce2iCInZer10Q";
+
+//{
+//  "alg": "HS256",
+//  "typ": "JWT"
+//}
+//{
+//  "sub": "1234567890",
+//  "name": "John Doe",
+//  "iat": 1516239022
+//}
+const string JWT3 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0Ij" +
+                    "oxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
+const string ACCESS_TOKEN_1 = "2YotnFZFEjr1zCsicMWpAA";
+const string ACCESS_TOKEN_2 = "1zCsicMWpAA2YotnFZFEjr";
+const string ACCESS_TOKEN_3 = "invalid-token";
 
 isolated function createDummyRequest() returns http:Request {
     http:Request request = new;
@@ -37,60 +99,168 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
     return request;
 }
 
-// Mock OAuth2 authorization server implementation, which treats the APIs with successful responses.
-listener http:Listener oauth2Listener = new(oauth2AuthorizationServerPort, {
+isolated function sendNoTokenRequest(string path) returns http:Response|http:ClientError {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+        secureSocket: {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    return <@untainted> clientEP->get(path);
+}
+
+isolated function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:ClientError {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+        auth: {
+            username: username,
+            password: password
+        },
+        secureSocket: {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    return <@untainted> clientEP->get(path);
+}
+
+isolated function sendBearerTokenRequest(string path, string token) returns http:Response|http:ClientError {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+        auth: {
+            token: token
+        },
+        secureSocket: {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    return <@untainted> clientEP->get(path);
+}
+
+isolated function sendJwtRequest(string path) returns http:Response|http:ClientError {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+        auth: {
+            username: "admin",
+            issuer: "wso2",
+            audience: ["ballerina"],
+            jwtId: "100078234ba23",
+            keyId: "NTAxZmMxNDMyZDg3MTU1ZGM0MzEzODJhZWI4NDNlZDU1OGFkNjFiMQ",
+            customClaims: { "scp": "write" },
+            signatureConfig: {
+                config: {
+                    keyStore: {
+                        path: KEYSTORE_PATH,
+                        password: "ballerina"
+                    },
+                    keyAlias: "ballerina",
+                    keyPassword: "ballerina"
+                }
+            }
+        },
+        secureSocket: {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    return <@untainted> clientEP->get(path);
+}
+
+isolated function sendOAuth2TokenRequest(string path) returns http:Response|http:ClientError {
+    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+        auth: {
+            tokenUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
+            clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
+            clientSecret: "9205371918321623741",
+            clientConfig: {
+                secureSocket: {
+                   cert: {
+                       path: TRUSTSTORE_PATH,
+                       password: "ballerina"
+                   }
+                }
+            }
+        },
+        secureSocket: {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    return <@untainted> clientEP->get(path);
+}
+
+isolated function assertSuccess(http:Response|http:ClientError response) {
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+isolated function assertForbidden(http:Response|http:ClientError response) {
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 403);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+isolated function assertUnauthorized(http:Response|http:ClientError response) {
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 401);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+// The mock authorization server, based with https://hub.docker.com/repository/docker/ldclakmal/ballerina-sts
+listener http:Listener sts = new(stsPort, {
     secureSocket: {
-        keyStore: {
+        key: {
             path: KEYSTORE_PATH,
             password: "ballerina"
         }
     }
 });
 
-service /oauth2 on oauth2Listener {
-    resource function post token(http:Caller caller, http:Request request) {
-        http:Response res = new;
+service /oauth2 on sts {
+    resource function post token() returns json {
         json response = {
-            "access_token": ACCESS_TOKEN,
+            "access_token": ACCESS_TOKEN_1,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
         };
-        res.setPayload(response);
-        checkpanic caller->respond(res);
+        return response;
     }
 
-    resource function post token/refresh(http:Caller caller, http:Request request) {
-        http:Response res = new;
-        json response = {
-            "access_token": ACCESS_TOKEN,
-            "token_type": "example",
-            "expires_in": 3600,
-            "example_parameter": "example_value"
-        };
-        res.setPayload(response);
-        checkpanic caller->respond(res);
-    }
-
-    resource function post token/introspect(http:Caller caller, http:Request request) {
+    resource function post introspect(http:Request request) returns json {
         string|http:ClientError payload = request.getTextPayload();
-        json response = ();
         if (payload is string) {
             string[] parts = regex:split(payload, "&");
             foreach string part in parts {
                 if (part.indexOf("token=") is int) {
                     string token = regex:split(part, "=")[1];
-                    if (token == ACCESS_TOKEN) {
-                        response = { "active": true, "exp": 3600, "scp": "read write" };
+                    if (token == ACCESS_TOKEN_1) {
+                        json response = { "active": true, "exp": 3600, "scp": "write update" };
+                        return response;
+                    } else if (token == ACCESS_TOKEN_2) {
+                        json response = { "active": true, "exp": 3600, "scp": "read" };
+                        return response;
                     } else {
-                        response = { "active": false };
+                        json response = { "active": false };
+                        return response;
                     }
-                    break;
                 }
             }
         }
-        http:Response res = new;
-        res.setPayload(response);
-        checkpanic caller->respond(res);
     }
 }

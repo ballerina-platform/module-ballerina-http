@@ -104,16 +104,20 @@ public class PassthroughMessageProcessorListener implements HttpConnectorListene
                         if (throwable instanceof ClientConnectorException) {
                             ClientConnectorException connectorException = (ClientConnectorException) throwable;
                             if (connectorException.getOutboundChannelID() != null) {
-                                sendTimeoutResponse(connectorException.getOutboundChannelID());
+                                // Send TimeoutResponse
+                                sendErrorResponse(connectorException.getOutboundChannelID(),
+                                                  HttpResponseStatus.GATEWAY_TIMEOUT);
                             }
+                        } else {
+                            sendErrorResponse(throwable.getMessage(), HttpResponseStatus.INTERNAL_SERVER_ERROR);
                         }
                     }
 
-                    private void sendTimeoutResponse(String channelId) {
+                    private void sendErrorResponse(String payload, HttpResponseStatus status) {
                         HttpCarbonResponse outboundResponse = new HttpCarbonResponse(
-                                new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.GATEWAY_TIMEOUT));
+                                new DefaultHttpResponse(HttpVersion.HTTP_1_1, status));
                         outboundResponse.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(
-                                channelId.getBytes())));
+                                payload.getBytes())));
                         try {
                             httpRequestMessage.respond(outboundResponse);
                         } catch (ServerConnectorException e) {

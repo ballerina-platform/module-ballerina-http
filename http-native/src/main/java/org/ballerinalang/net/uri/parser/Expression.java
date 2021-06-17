@@ -36,9 +36,12 @@ import java.util.List;
 public abstract class Expression<DataType, InboundMsgType> extends Node<DataType, InboundMsgType> {
 
     protected List<Variable> variableList = new ArrayList<Variable>(4);
+    private int expressionIndex = -1;
 
-    public Expression(DataElement<DataType, InboundMsgType> dataElement, String token) throws URITemplateException {
+    public Expression(DataElement<DataType, InboundMsgType> dataElement, String token, int index)
+            throws URITemplateException {
         super(dataElement, token);
+        this.expressionIndex = index;
         int startIndex = 0;
         for (int i = 0; i < token.length(); i++) {
             if (token.charAt(i) == ',') {
@@ -86,5 +89,9 @@ public abstract class Expression<DataType, InboundMsgType> extends Node<DataType
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("Error while encoding value: " + value, e);
         }
+    }
+
+    public int getExpressionIndex() {
+        return expressionIndex;
     }
 }

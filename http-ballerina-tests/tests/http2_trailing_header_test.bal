@@ -24,10 +24,10 @@ http:Client trailerClientEp = check new("http://localhost:9119", { httpVersion: 
 service /trailerInitiator on new http:Listener(9118) {
 
     resource function 'default [string svc]/[string rsc](http:Caller caller, http:Request request) {
-        var responseFromBackend = trailerClientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
+        http:Response|error responseFromBackend = trailerClientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
         if (responseFromBackend is http:Response) {
             string trailerHeaderValue = checkpanic responseFromBackend.getHeader("trailer");
-            var textPayload = responseFromBackend.getTextPayload();
+            string|error textPayload = responseFromBackend.getTextPayload();
             string firstTrailer = checkpanic responseFromBackend.getHeader("foo", position = "trailing");
             string secondTrailer = checkpanic responseFromBackend.getHeader("baz", position = "trailing");
 
@@ -37,9 +37,9 @@ service /trailerInitiator on new http:Listener(9118) {
             newResponse.setJsonPayload({ foo: <@untainted> firstTrailer, baz: <@untainted> secondTrailer, count:
                                         <@untainted> headerCount });
             newResponse.setHeader("response-trailer", trailerHeaderValue);
-            var resultSentToClient = caller->respond(<@untainted> newResponse);
+            error? resultSentToClient = caller->respond(<@untainted> newResponse);
         } else {
-            var resultSentToClient = caller->respond("No response from backend");
+            error? resultSentToClient = caller->respond("No response from backend");
         }
     }
 }
@@ -52,7 +52,7 @@ service /backend on backendEp {
         response.setTextPayload(<@untainted> inPayload);
         response.setHeader("foo", "Trailer for echo payload", position = "trailing");
         response.setHeader("baz", "The second trailer", position = "trailing");
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default responseEmptyPayloadWithTrailer(http:Caller caller, http:Request request) {
@@ -60,29 +60,29 @@ service /backend on backendEp {
         response.setTextPayload("");
         response.setHeader("foo", "Trailer for empty payload", position = "trailing");
         response.setHeader("baz", "The second trailer for empty payload", position = "trailing");
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 }
 
 service /passthroughservice on backendEp {
     resource function 'default forward(http:Caller caller, http:Request request) {
-        var responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
+        http:Response|error responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
         if (responseFromBackend is http:Response) {
-            var resultSentToClient = caller->respond(<@untainted> responseFromBackend);
+            error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
         } else {
-            var resultSentToClient = caller->respond("No response from backend");
+            error? resultSentToClient = caller->respond("No response from backend");
         }
     }
 
     resource function 'default buildPayload(http:Caller caller, http:Request request) {
-        var responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
+        http:Response|error responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
         if (responseFromBackend is http:Response) {
-            var textPayload = responseFromBackend.getTextPayload();
+            string|error textPayload = responseFromBackend.getTextPayload();
             responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
             responseFromBackend.setHeader("barr", "this is a new trailer", position = "trailing");
-            var resultSentToClient = caller->respond(<@untainted> responseFromBackend);
+            error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
         } else {
-            var resultSentToClient = caller->respond("No response from backend");
+            error? resultSentToClient = caller->respond("No response from backend");
         }
     }
 }
@@ -90,7 +90,7 @@ service /passthroughservice on backendEp {
 @test:Config {}
 public function testHttp2SmallPayloadResponseTrailers() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", "Small payload");
+    http:Response|error resp = clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", "Small payload");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -98,7 +98,7 @@ public function testHttp2SmallPayloadResponseTrailers() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -106,7 +106,7 @@ public function testHttp2SmallPayloadResponseTrailers() {
 @test:Config {}
 public function testHttp2LargePayloadResponseTrailers() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", LARGE_ENTITY);
+    http:Response|error resp = clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", LARGE_ENTITY);
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -114,7 +114,7 @@ public function testHttp2LargePayloadResponseTrailers() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -122,7 +122,7 @@ public function testHttp2LargePayloadResponseTrailers() {
 @test:Config {}
 public function testHttp2EmptyPayloadResponseTrailers() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->get("/trailerInitiator/backend/responseEmptyPayloadWithTrailer");
+    http:Response|error resp = clientEP->get("/trailerInitiator/backend/responseEmptyPayloadWithTrailer");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -130,7 +130,7 @@ public function testHttp2EmptyPayloadResponseTrailers() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -138,7 +138,7 @@ public function testHttp2EmptyPayloadResponseTrailers() {
 @test:Config {}
 public function testHttp2ProxiedTrailers() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->post("/trailerInitiator/passthroughservice/forward", "Small payload");
+    http:Response|error resp = clientEP->post("/trailerInitiator/passthroughservice/forward", "Small payload");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -146,7 +146,7 @@ public function testHttp2ProxiedTrailers() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -154,7 +154,7 @@ public function testHttp2ProxiedTrailers() {
 @test:Config {}
 public function testHttp2PassThroughButBuildPayload() {
     http:Client clientEP = checkpanic new("http://localhost:9118");
-    var resp = clientEP->get("/trailerInitiator/passthroughservice/buildPayload", "Small payload");
+    http:Response|error resp = clientEP->post("/trailerInitiator/passthroughservice/buildPayload", "Small payload");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -162,7 +162,7 @@ public function testHttp2PassThroughButBuildPayload() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

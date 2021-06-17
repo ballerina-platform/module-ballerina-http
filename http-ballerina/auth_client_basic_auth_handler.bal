@@ -16,15 +16,10 @@
 
 import ballerina/auth;
 
-# Represents credentials for Basic Auth authentication.
-public type CredentialsConfig record {|
-    *auth:CredentialsConfig;
-|};
-
 # Defines the Basic Auth handler for client authentication.
-public class ClientBasicAuthHandler {
+public isolated class ClientBasicAuthHandler {
 
-    auth:ClientBasicAuthProvider provider;
+    private final auth:ClientBasicAuthProvider provider;
 
     # Initializes the `http:ClientBasicAuthHandler` object.
     #
@@ -39,10 +34,39 @@ public class ClientBasicAuthHandler {
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
     public isolated function enrich(Request req) returns Request|ClientAuthError {
         string|auth:Error result = self.provider.generateToken();
-        if (result is auth:Error) {
+        if (result is string) {
+            req.setHeader(AUTH_HEADER, AUTH_SCHEME_BASIC + " " + result);
+            return req;
+        } else {
             return prepareClientAuthError("Failed to enrich request with Basic Auth token.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BASIC + " " + checkpanic result);
-        return req;
+    }
+
+    # Enrich the headers map with the relevant authentication requirements.
+    #
+    # + headers - The headers map
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function enrichHeaders(map<string|string[]> headers) returns map<string|string[]>|ClientAuthError {
+        string|auth:Error result = self.provider.generateToken();
+        if (result is string) {
+            headers[AUTH_HEADER] = AUTH_SCHEME_BASIC + " " + result;
+            return headers;
+        } else {
+            return prepareClientAuthError("Failed to enrich headers with Basic Auth token.", result);
+        }
+    }
+
+    # Returns the headers map with the relevant authentication requirements.
+    #
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function getSecurityHeaders() returns map<string|string[]>|ClientAuthError {
+        string|auth:Error result = self.provider.generateToken();
+        if (result is string) {
+            map<string|string[]> headers = {};
+            headers[AUTH_HEADER] = AUTH_SCHEME_BASIC + " " + result;
+            return headers;
+        } else {
+            return prepareClientAuthError("Failed to enrich headers with Basic Auth token.", result);
+        }
     }
 }

@@ -31,14 +31,17 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BXml;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.mime.util.EntityBodyHandler;
-import org.ballerinalang.net.http.signature.AllQueryParams;
-import org.ballerinalang.net.http.signature.NonRecurringParam;
-import org.ballerinalang.net.http.signature.ParamHandler;
-import org.ballerinalang.net.http.signature.Parameter;
-import org.ballerinalang.net.http.signature.PayloadParam;
-import org.ballerinalang.net.http.signature.QueryParam;
+import org.ballerinalang.net.http.service.signature.AllHeaderParams;
+import org.ballerinalang.net.http.service.signature.AllQueryParams;
+import org.ballerinalang.net.http.service.signature.HeaderParam;
+import org.ballerinalang.net.http.service.signature.NonRecurringParam;
+import org.ballerinalang.net.http.service.signature.ParamHandler;
+import org.ballerinalang.net.http.service.signature.Parameter;
+import org.ballerinalang.net.http.service.signature.PayloadParam;
+import org.ballerinalang.net.http.service.signature.QueryParam;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.URIUtil;
 
@@ -47,6 +50,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +63,7 @@ import static io.ballerina.runtime.api.TypeTags.INT_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static org.ballerinalang.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.DEFAULT_HOST;
+import static org.ballerinalang.net.http.HttpConstants.EXTRA_PATH_INDEX;
 
 /**
  * {@code HttpDispatcher} is responsible for dispatching incoming http requests to the correct resource.
@@ -171,13 +176,13 @@ public class HttpDispatcher {
         ParamHandler paramHandler = httpResource.getParamHandler();
         int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
-        int pathParamCount = paramHandler.getPathParamTokens().length;
+        int pathParamCount = paramHandler.getPathParamTokenLength();
         // Path params are located initially in the signature before the other user provided signature params
         if (pathParamCount != 0) {
             // populate path params
             HttpResourceArguments resourceArgumentValues =
                     (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
-            updateWildcardToken(httpResource.getWildcardToken(), resourceArgumentValues.getMap());
+            updateWildcardToken(httpResource.getWildcardToken(), pathParamCount - 1, resourceArgumentValues.getMap());
             populatePathParams(httpResource, paramFeed, resourceArgumentValues, pathParamCount);
         }
         // Following was written assuming that they are validated
@@ -197,8 +202,19 @@ public class HttpDispatcher {
                     paramFeed[index++] = inRequest;
                     paramFeed[index] = true;
                     break;
+                case HttpConstants.HEADERS:
+                    if (inRequest == null) {
+                        inRequest = createRequest(httpCarbonMessage);
+                    }
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = createHeadersObject(inRequest);
+                    paramFeed[index] = true;
+                    break;
                 case HttpConstants.QUERY_PARAM:
                     populateQueryParams(httpCarbonMessage, paramHandler, paramFeed, (AllQueryParams) param);
+                    break;
+                case HttpConstants.HEADER_PARAM:
+                    populateHeaderParams(httpCarbonMessage, paramFeed, (AllHeaderParams) param);
                     break;
                 case HttpConstants.PAYLOAD_PARAM:
                     if (inRequest == null) {
@@ -243,6 +259,33 @@ public class HttpDispatcher {
             } catch (Exception ex) {
                 throw new BallerinaConnectorException("Error in casting query param : " + ex.getMessage());
             }
+        }
+    }
+
+    private static void populateHeaderParams(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed,
+                                             AllHeaderParams headerParams) {
+        HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
+        for (HeaderParam headerParam : headerParams.getAllHeaderParams()) {
+            String token = headerParam.getHeaderName();
+            int index = headerParam.getIndex();
+            List<String> headerValues = httpHeaders.getAll(token);
+            if (headerValues.isEmpty()) {
+                if (headerParam.isNilable()) {
+                    paramFeed[index++] = null;
+                    paramFeed[index] = true;
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no header value found for '" + token + "'");
+                }
+            }
+            if (headerParam.getTypeTag() == ARRAY_TAG) {
+                String[] headerArray = headerValues.toArray(new String[0]);
+                paramFeed[index++] = StringUtils.fromStringArray(headerArray);
+            } else {
+                paramFeed[index++] = StringUtils.fromString(headerValues.get(0));
+            }
+            paramFeed[index] = true;
         }
     }
 
@@ -315,13 +358,19 @@ public class HttpDispatcher {
         return httpCaller;
     }
 
+    private static Object createHeadersObject(BObject inRequest) {
+        BObject headers = ValueCreatorUtils.createHeadersObject();
+        headers.set(HttpConstants.HEADER_REQUEST_FIELD, inRequest);
+        return headers;
+    }
+
     private static void populatePathParams(HttpResource httpResource, Object[] paramFeed,
                                            HttpResourceArguments resourceArgumentValues, int pathParamCount) {
 
         String[] pathParamTokens = Arrays.copyOfRange(httpResource.getBalResource().getParamNames(), 0, pathParamCount);
         int actualSignatureParamIndex = 0;
         for (String paramName : pathParamTokens) {
-            String argumentValue = resourceArgumentValues.getMap().get(paramName);
+            String argumentValue = resourceArgumentValues.getMap().get(paramName).get(actualSignatureParamIndex);
             try {
                 argumentValue = URLDecoder.decode(argumentValue, "UTF-8");
             } catch (UnsupportedEncodingException e) {
@@ -346,12 +395,18 @@ public class HttpDispatcher {
         }
     }
 
-    private static void updateWildcardToken(String wildcardToken, Map<String, String> arguments) {
+    private static void updateWildcardToken(String wildcardToken, int wildCardIndex,
+                                            Map<String, Map<Integer, String>> arguments) {
         if (wildcardToken == null) {
             return;
         }
-        String wildcardPathSegment = arguments.get(HttpConstants.EXTRA_PATH_INFO);
-        arguments.putIfAbsent(wildcardToken, wildcardPathSegment);
+        String wildcardPathSegment = arguments.get(HttpConstants.EXTRA_PATH_INFO).get(EXTRA_PATH_INDEX);
+        if (arguments.containsKey(wildcardToken)) {
+            Map<Integer, String> indexValueMap = arguments.get(wildcardToken);
+            indexValueMap.put(wildCardIndex, wildcardPathSegment);
+        } else {
+            arguments.put(wildcardToken, Collections.singletonMap(wildCardIndex, wildcardPathSegment));
+        }
     }
 
     private static void populatePayloadParam(BObject inRequest, HttpCarbonMessage httpCarbonMessage,

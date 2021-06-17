@@ -22,29 +22,29 @@ http:Client basePathTestClient = check new("http://localhost:" + basePathTest.to
 
 service http:Service /my/Tes\@tHello/go on basePathTestEP {
     resource function get foo(http:Caller caller) {
-        var result = caller->ok("special dispatched");
+        error? result = caller->respond("special dispatched");
     }
 }
 
 service http:Service "/Tes@tHello/go" on basePathTestEP {
     resource function get foo(http:Caller caller) {
-        var result = caller->ok("string dispatched");
+        error? result = caller->respond("string dispatched");
     }
 }
 
 service http:Service /myservice/'andversion/a\/b/id on basePathTestEP {
     resource function get .(http:Caller caller) {
-        var result = caller->ok("service/version/1/1/id");
+        error? result = caller->respond("service/version/1/1/id");
     }
 }
 
 @test:Config {}
 public function testBasePathSpecialChars() {
     http:Request req = new;
-    var resp = basePathTestClient->get("/my/Tes%40tHello/go/foo");
+    http:Response|error resp = basePathTestClient->get("/my/Tes%40tHello/go/foo");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "special dispatched");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -52,10 +52,10 @@ public function testBasePathSpecialChars() {
 @test:Config {}
 public function testBasePathAsString() {
     http:Request req = new;
-    var resp = basePathTestClient->get("/Tes%40tHello/go/foo");
+    http:Response|error resp = basePathTestClient->get("/Tes%40tHello/go/foo");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "string dispatched");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -64,10 +64,10 @@ public function testBasePathAsString() {
 @test:Config {}
 public function testMGWVersionBasePath() {
     http:Request req = new;
-    var resp = basePathTestClient->get("/myservice/andversion/a%2Fb/id");
+    http:Response|error resp = basePathTestClient->get("/myservice/andversion/a%2Fb/id");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "service/version/1/1/id");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

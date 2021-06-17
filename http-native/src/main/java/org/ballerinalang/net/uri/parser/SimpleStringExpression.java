@@ -21,6 +21,7 @@ package org.ballerinalang.net.uri.parser;
 import org.ballerinalang.net.http.HttpResourceArguments;
 import org.ballerinalang.net.uri.URITemplateException;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -36,9 +37,9 @@ public class SimpleStringExpression<DataType, InboundMsgType> extends Expression
             ':', '/', '?', '#', '[', ']', '@', '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='
     };
 
-    SimpleStringExpression(DataElement<DataType, InboundMsgType> dataElement, String token)
+    SimpleStringExpression(DataElement<DataType, InboundMsgType> dataElement, String token, int index)
             throws URITemplateException {
-        super(dataElement, token);
+        super(dataElement, token, index);
     }
 
     @Override
@@ -107,11 +108,15 @@ public class SimpleStringExpression<DataType, InboundMsgType> extends Expression
         String finalValue = decodeValue(expressionValue);
         for (Variable var : variableList) {
             String name = var.getName();
-            if (variables.getMap().containsKey(name) && !finalValue.equals(variables.getMap().get(name))) {
-                return false;
+            Map<Integer, String> indexValueMap;
+            if (variables.getMap().containsKey(name)) {
+                indexValueMap = variables.getMap().get(name);
+            } else {
+                indexValueMap = new HashMap<>();
+                variables.getMap().put(name, indexValueMap);
             }
             if (var.checkModifier(finalValue)) {
-                variables.getMap().put(name, finalValue);
+                indexValueMap.put(getExpressionIndex(), finalValue);
             } else {
                 return false;
             }

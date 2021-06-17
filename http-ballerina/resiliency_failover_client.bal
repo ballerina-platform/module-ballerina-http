@@ -14,133 +14,176 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/jballerina.java;
 import ballerina/lang.runtime as runtime;
 import ballerina/mime;
 
-# Provides a set of configurations for controlling the failover behaviour of the endpoint.
-#
-# + failoverCodes - Array of HTTP response status codes for which the failover mechanism triggers
-# + intervalInMillis - Failover delay intervalInMillis in milliseconds
-public type FailoverConfig record {|
-    int[] failoverCodes = [];
-    int intervalInMillis = 0;
-|};
-
-// TODO: This can be made package private
 # Represents the inferred failover configurations passed into the failover client.
 #
-# + failoverClientsArray - Array of HTTP Clients that needs to be Failover
 # + failoverCodesIndex - An indexed array of HTTP response status codes for which the failover mechanism triggers
-# + failoverInterval - Failover delay interval in milliseconds
-public type FailoverInferredConfig record {|
-    Client?[] failoverClientsArray = [];
+# + failoverInterval - Failover delay interval in seconds
+type FailoverInferredConfig record {|
     boolean[] failoverCodesIndex = [];
-    int failoverInterval = 0;
+    decimal failoverInterval = 0;
 |};
 
 # An HTTP client endpoint which provides failover support over multiple HTTP clients.
 #
-# + failoverClientConfig - The configurations for the failover client endpoint
-# + failoverInferredConfig - Configurations derived from `FailoverConfig`
 # + succeededEndpointIndex - Index of the `CallerActions[]` array which given a successful response
-public client class FailoverClient {
+# + failoverInferredConfig - Configurations derived from `FailoverConfig`
+# + failoverClientsArray - Array of `Client` for target endpoints
+public client isolated class FailoverClient {
+    *ClientObject;
 
-    public FailoverClientConfiguration failoverClientConfig;
-    public FailoverInferredConfig failoverInferredConfig;
-    public int succeededEndpointIndex;
+    private int succeededEndpointIndex;
+    private final FailoverInferredConfig & readonly failoverInferredConfig;
+    private final Client?[] failoverClientsArray;
 
     # Failover caller actions which provides failover capabilities to an HTTP client endpoint.
     #
     # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(FailoverClientConfiguration failoverClientConfig) returns ClientError? {
-        self.failoverClientConfig = failoverClientConfig;
+    public isolated function init(*FailoverClientConfiguration failoverClientConfig) returns ClientError? {
         self.succeededEndpointIndex = 0;
-        var failoverHttpClientArray = createFailoverHttpClientArray(failoverClientConfig);
-        if (failoverHttpClientArray is ClientError) {
-            return failoverHttpClientArray;
-        } else {
-            Client?[] clients = failoverHttpClientArray;
-            boolean[] failoverCodes = populateErrorCodeIndex(failoverClientConfig.failoverCodes);
-            FailoverInferredConfig failoverInferredConfig = {
-                failoverClientsArray:clients,
-                failoverCodesIndex:failoverCodes,
-                failoverInterval:failoverClientConfig.intervalInMillis
-            };
-            self.failoverInferredConfig = failoverInferredConfig;
+        self.failoverClientsArray = [];
+        Client clientEp;
+        Client?[] httpClients = self.failoverClientsArray;
+        int i = 0;
+        foreach var target in failoverClientConfig.targets {
+            ClientConfiguration epConfig = createClientEPConfigFromFailoverEPConfig(failoverClientConfig, target);
+            clientEp = check new(target.url, epConfig);
+            httpClients[i] = clientEp;
+            i += 1;
         }
+        boolean[] failoverCodes = populateErrorCodeIndex(failoverClientConfig.failoverCodes);
+        FailoverInferredConfig failoverInferredConfig = {
+            failoverCodesIndex:failoverCodes,
+            failoverInterval:failoverClientConfig.interval
+        };
+        self.failoverInferredConfig = failoverInferredConfig.cloneReadOnly();
     }
 
     # The POST remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        var result = performFailoverAction(path, req, HTTP_POST, self);
-        if (result is HttpFuture) {
-            return getInvalidTypeError();
-        } else {
-            return result;
-        }
-    }
+    remote isolated function post(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
 
-    # The HEAD remote function implementation of the Failover Connector.
-    #
-    # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
+    private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        var result = performFailoverAction(path, req, HTTP_HEAD, self);
+        populateOptions(req, mediaType, headers);
+        var result = self.performFailoverAction(path, req, HTTP_POST);
         if (result is HttpFuture) {
             return getInvalidTypeError();
         } else {
-            return result;
-        }
-    }
-
-    # The PATCH remote function implementation of the Failover Connector.
-    #
-    # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function patch(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        var result = performFailoverAction(path, req, HTTP_PATCH, self);
-        if (result is HttpFuture) {
-            return getInvalidTypeError();
-        } else {
-            return result;
+            return processResponse(result, targetType);
         }
     }
 
     # The PUT remote function  implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function put(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    remote isolated function put(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processPut(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        var result = performFailoverAction(path, req, HTTP_PUT, self);
+        populateOptions(req, mediaType, headers);
+        var result = self.performFailoverAction(path, req, HTTP_PUT);
+        if (result is HttpFuture) {
+            return getInvalidTypeError();
+        } else {
+            return processResponse(result, targetType);
+        }
+    }
+
+    # The PATCH remote function implementation of the Failover Connector.
+    #
+    # + path - Resource path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function patch(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processPatch(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
+        var result = self.performFailoverAction(path, req, HTTP_PATCH);
+        if (result is HttpFuture) {
+            return getInvalidTypeError();
+        } else {
+            return processResponse(result, targetType);
+        }
+    }
+
+    # The DELETE remote function implementation of the Failover Connector.
+    #
+    # + path - Resource path
+    # + message - An optional HTTP outbound request message or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function delete(@untainted string path, RequestMessage message = (), map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processDelete(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
+        var result = self.performFailoverAction(path, req, HTTP_DELETE);
+        if (result is HttpFuture) {
+            return getInvalidTypeError();
+        } else {
+            return processResponse(result, targetType);
+        }
+    }
+
+    # The HEAD remote function implementation of the Failover Connector.
+    #
+    # + path - Resource path
+    # + headers - The entity headers
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
+            Response|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        var result = self.performFailoverAction(path, req, HTTP_HEAD);
         if (result is HttpFuture) {
             return getInvalidTypeError();
         } else {
@@ -148,23 +191,81 @@ public client class FailoverClient {
         }
     }
 
-    # The OPTIONS remote function implementation of the Failover Connector.
+    # The GET remote function implementation of the Failover Connector.
     #
     # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
+    remote isolated function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+        
+    private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        var result = performFailoverAction(path, req, HTTP_OPTIONS, self);
+        Request req = buildRequestWithHeaders(headers);
+        var result = self.performFailoverAction(path, req, HTTP_GET);
         if (result is HttpFuture) {
             return getInvalidTypeError();
         } else {
-            return result;
+            return processResponse(result, targetType);
+        }
+    }
+
+    # The OPTIONS remote function implementation of the Failover Connector.
+    #
+    # + path - Resource path
+    # + headers - The entity headers
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
+            returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        var result = self.performFailoverAction(path, req, HTTP_OPTIONS);
+        if (result is HttpFuture) {
+            return getInvalidTypeError();
+        } else {
+            return processResponse(result, targetType);
+        }
+    }
+
+    # Invokes an HTTP call with the specified HTTP method.
+    #
+    # + httpVerb - HTTP verb value
+    # + path - Resource path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+            map<string|string[]>? headers = (), string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+            TargetType targetType, string? mediaType, map<string|string[]>? headers) 
+            returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
+        var result = self.performExecuteAction(path, req, httpVerb);
+        if (result is HttpFuture) {
+            return getInvalidTypeError();
+        } else {
+            return processResponse(result, targetType);
         }
     }
 
@@ -176,74 +277,18 @@ public client class FailoverClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function forward(string path, Request request, TargetType targetType = Response)
+    remote isolated function forward(@untainted string path, Request request, TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processForward(string path, Request request, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
-        var result = performFailoverAction(path, request, HTTP_FORWARD, self);
+        var result = self.performFailoverAction(path, request, HTTP_FORWARD);
         if (result is HttpFuture) {
             return getInvalidTypeError();
         } else {
-            return result;
-        }
-    }
-
-    # Invokes an HTTP call with the specified HTTP method.
-    #
-    # + httpVerb - HTTP method to be used for the request
-    # + path - Resource path
-    # + message - An HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(string httpVerb, string path, RequestMessage message,
-            TargetType targetType = Response) returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        var result = performExecuteAction(path, req, httpVerb, self);
-        if (result is HttpFuture) {
-            return getInvalidTypeError();
-        } else {
-            return result;
-        }
-    }
-
-    # The DELETE remote function implementation of the Failover Connector.
-    #
-    # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`, `io:ReadableByteChannel`
-    #             or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        var result = performFailoverAction(path, req, HTTP_DELETE, self);
-        if (result is HttpFuture) {
-            return getInvalidTypeError();
-        } else {
-            return result;
-        }
-    }
-
-    # The GET remote function implementation of the Failover Connector.
-    #
-    # + path - Resource path
-    # + message - An optional HTTP request or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        var result = performFailoverAction(path, req, HTTP_GET, self);
-        if (result is HttpFuture) {
-            return getInvalidTypeError();
-        } else {
-            return result;
+            return processResponse(result, targetType);
         }
     }
 
@@ -253,13 +298,12 @@ public client class FailoverClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
-    remote function submit(string httpVerb, string path, RequestMessage message) returns @tainted HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns @tainted HttpFuture|ClientError {
         Request req = buildRequest(message);
-        var result = performExecuteAction(path, req, "SUBMIT", self, verb = httpVerb);
+        var result = self.performExecuteAction(path, req, "SUBMIT", verb = httpVerb);
         if (result is Response) {
             return getInvalidTypeError();
         } else {
@@ -271,8 +315,8 @@ public client class FailoverClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
-        Client foClient = getLastSuceededClientEP(self);
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+        Client foClient = self.getLastSuceededClientEP();
         return foClient->getResponse(httpFuture);
     }
 
@@ -280,7 +324,7 @@ public client class FailoverClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return false;
     }
 
@@ -288,7 +332,7 @@ public client class FailoverClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return error UnsupportedActionError("Failover client not supported for getNextPromise action");
     }
 
@@ -296,7 +340,7 @@ public client class FailoverClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return error UnsupportedActionError("Failover client not supported for getPromisedResponse action");
     }
 
@@ -304,124 +348,159 @@ public client class FailoverClient {
     # response using the rejected promise.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise) {
+    remote isolated function rejectPromise(PushPromise promise) {
     }
-}
 
-// Performs execute action of the Failover connector. extract the corresponding http integer value representation
-// of the http verb and invokes the perform action method.
-// `verb` is used for HTTP `submit()` method.
-function performExecuteAction (string path, Request request, string httpVerb, @tainted FailoverClient failoverClient,
-        string verb = "") returns @tainted HttpResponse|ClientError {
-    HttpOperation connectorAction = extractHttpOperation(httpVerb);
-    return performFailoverAction(path, request, connectorAction, failoverClient, verb = verb);
-}
-
-// Handles all the actions exposed through the Failover connector.
-function performFailoverAction (string path, Request request, HttpOperation requestAction, @tainted FailoverClient
-        failoverClient, string verb = "") returns @tainted HttpResponse|ClientError {
-
-    Client foClient = getLastSuceededClientEP(failoverClient);
-    FailoverInferredConfig failoverInferredConfig = failoverClient.failoverInferredConfig;
-    Client?[] failoverClients = failoverInferredConfig.failoverClientsArray;
-    boolean[] failoverCodeIndex = failoverInferredConfig.failoverCodesIndex;
-    int noOfEndpoints = (failoverInferredConfig.failoverClientsArray.length());
-    // currentIndex and initialIndex are need to set to last succeeded endpoint index to start failover with
-    // the endpoint which gave the expected results.
-    int currentIndex = failoverClient.succeededEndpointIndex;
-    int initialIndex = failoverClient.succeededEndpointIndex;
-    int startIndex = -1;
-    int failoverInterval = failoverInferredConfig.failoverInterval;
-
-    Response inResponse = new;
-    HttpFuture inFuture = new;
-    Request failoverRequest = request;
-    ClientError?[] failoverActionErrData = [];
-    mime:Entity requestEntity = new;
-
-    if (isMultipartRequest(failoverRequest)) {
-        failoverRequest = check populateMultipartRequest(failoverRequest);
-    } else {
-        // When performing passthrough scenarios using Failover connector, message needs to be built before trying
-        // out the failover endpoints to keep the request message to failover the messages.
-        var binaryPayload = failoverRequest.getBinaryPayload();
-        requestEntity = check failoverRequest.getEntity();
+    # Gets the index of the `TargetService[]` array which given a successful response.
+    #
+    # + return - The successful target endpoint index
+    public isolated function getSucceededEndpointIndex() returns int {
+        lock {
+            return self.succeededEndpointIndex;
+        }
     }
-    while (startIndex != currentIndex) {
-        startIndex = initialIndex;
-        currentIndex = currentIndex + 1;
-        var endpointResponse = invokeEndpoint(path, failoverRequest, requestAction, foClient, verb = verb);
-        if (endpointResponse is Response) {
-            inResponse = endpointResponse;
-            int httpStatusCode = endpointResponse.statusCode;
-            // Check whether HTTP status code of the response falls into configured `failoverCodes`
-            if (failoverCodeIndex[httpStatusCode]) {
-                ClientError? result = ();
-                [currentIndex, result] = handleResponseWithErrorCode(endpointResponse, initialIndex, noOfEndpoints,
-                                                                                currentIndex, failoverActionErrData);
-                if (result is ClientError) {
-                    return result;
-                }
-            } else {
-                // If the execution reaches here, that means the first endpoint configured in the failover endpoints
-                // gives the expected response.
-                failoverClient.succeededEndpointIndex = currentIndex - 1;
-                break;
-            }
-        } else if (endpointResponse is HttpFuture) {
-            // Response came from the `submit()` method.
-            inFuture = endpointResponse;
-            var futureResponse = foClient->getResponse(endpointResponse);
-            if (futureResponse is Response) {
-                inResponse = futureResponse;
-                int httpStatusCode = futureResponse.statusCode;
+
+    isolated function setSucceededEndpointIndex(int succeededEndpointIndex) {
+        lock {
+            self.succeededEndpointIndex = succeededEndpointIndex;
+        }
+    }
+
+    // Performs execute action of the Failover connector. extract the corresponding http integer value representation
+    // of the http verb and invokes the perform action method.
+    // `verb` is used for HTTP `submit()` method.
+    isolated function performExecuteAction (string path, Request request, string httpVerb,
+            string verb = "") returns @tainted HttpResponse|ClientError {
+        HttpOperation connectorAction = extractHttpOperation(httpVerb);
+        return self.performFailoverAction(path, request, connectorAction, verb = verb);
+    }
+
+    // Handles all the actions exposed through the Failover connector.
+    isolated function performFailoverAction (string path, Request request, HttpOperation requestAction,
+            string verb = "") returns @tainted HttpResponse|ClientError {
+
+        Client foClient = self.getLastSuceededClientEP();
+        FailoverInferredConfig failoverInferredConfig = self.failoverInferredConfig;
+        boolean[] failoverCodeIndex = failoverInferredConfig.failoverCodesIndex;
+        int noOfEndpoints = 0;
+        lock {
+            noOfEndpoints = self.failoverClientsArray.length();
+        }
+        // currentIndex and initialIndex are need to set to last succeeded endpoint index to start failover with
+        // the endpoint which gave the expected results.
+        int currentIndex = self.getSucceededEndpointIndex();
+        int initialIndex = self.getSucceededEndpointIndex();
+        int startIndex = -1;
+        decimal failoverInterval = failoverInferredConfig.failoverInterval;
+
+        Response inResponse = new;
+        HttpFuture inFuture = new;
+        Request failoverRequest = request;
+        ClientError?[] failoverActionErrData = [];
+        mime:Entity requestEntity = new;
+
+        if (isMultipartRequest(failoverRequest)) {
+            failoverRequest = check populateMultipartRequest(failoverRequest);
+        } else {
+            // When performing passthrough scenarios using Failover connector, message needs to be built before trying
+            // out the failover endpoints to keep the request message to failover the messages.
+            byte[]|error binaryPayload = failoverRequest.getBinaryPayload();
+            requestEntity = check failoverRequest.getEntity();
+        }
+        while (startIndex != currentIndex) {
+            startIndex = initialIndex;
+            currentIndex = currentIndex + 1;
+            var endpointResponse = invokeEndpoint(path, failoverRequest, requestAction, foClient.httpClient, verb = verb);
+            if (endpointResponse is Response) {
+                inResponse = endpointResponse;
+                int httpStatusCode = endpointResponse.statusCode;
                 // Check whether HTTP status code of the response falls into configured `failoverCodes`
                 if (failoverCodeIndex[httpStatusCode]) {
                     ClientError? result = ();
-                    [currentIndex, result] = handleResponseWithErrorCode(futureResponse, initialIndex, noOfEndpoints,
-                                                                                currentIndex, failoverActionErrData);
+                    [currentIndex, result] = handleResponseWithErrorCode(endpointResponse, initialIndex, noOfEndpoints,
+                                                                                    currentIndex, failoverActionErrData);
                     if (result is ClientError) {
                         return result;
                     }
                 } else {
                     // If the execution reaches here, that means the first endpoint configured in the failover endpoints
                     // gives the expected response.
-                    failoverClient.succeededEndpointIndex = currentIndex - 1;
+                    self.setSucceededEndpointIndex(currentIndex - 1);
                     break;
+                }
+            } else if (endpointResponse is HttpFuture) {
+                // Response came from the `submit()` method.
+                inFuture = endpointResponse;
+                var futureResponse = foClient->getResponse(endpointResponse);
+                if (futureResponse is Response) {
+                    inResponse = futureResponse;
+                    int httpStatusCode = futureResponse.statusCode;
+                    // Check whether HTTP status code of the response falls into configured `failoverCodes`
+                    if (failoverCodeIndex[httpStatusCode]) {
+                        ClientError? result = ();
+                        [currentIndex, result] = handleResponseWithErrorCode(futureResponse, initialIndex, noOfEndpoints,
+                                                                                    currentIndex, failoverActionErrData);
+                        if (result is ClientError) {
+                            return result;
+                        }
+                    } else {
+                        // If the execution reaches here, that means the first endpoint configured in the failover endpoints
+                        // gives the expected response.
+                        self.setSucceededEndpointIndex(currentIndex - 1);
+                        break;
+                    }
+                } else {
+                    ClientError? httpConnectorErr = ();
+                    [currentIndex, httpConnectorErr] = handleError(futureResponse, initialIndex, noOfEndpoints,
+                                                                                    currentIndex, failoverActionErrData);
+
+                    if (httpConnectorErr is ClientError) {
+                        return httpConnectorErr;
+                    }
                 }
             } else {
                 ClientError? httpConnectorErr = ();
-                [currentIndex, httpConnectorErr] = handleError(futureResponse, initialIndex, noOfEndpoints,
-                                                                                currentIndex, failoverActionErrData);
+                [currentIndex, httpConnectorErr] = handleError(endpointResponse, initialIndex, noOfEndpoints,
+                                                                                    currentIndex, failoverActionErrData);
 
                 if (httpConnectorErr is ClientError) {
                     return httpConnectorErr;
                 }
             }
-        } else {
-            ClientError? httpConnectorErr = ();
-            [currentIndex, httpConnectorErr] = handleError(endpointResponse, initialIndex, noOfEndpoints,
-                                                                                currentIndex, failoverActionErrData);
+            failoverRequest = check createFailoverRequest(failoverRequest, requestEntity);
+            runtime:sleep(failoverInterval);
 
-            if (httpConnectorErr is ClientError) {
-                return httpConnectorErr;
+            Client? tmpClnt;
+            lock {
+                tmpClnt = self.failoverClientsArray[currentIndex];
+            }
+            if (tmpClnt is Client) {
+                foClient = tmpClnt;
+            } else {
+                error err = error("Unexpected type found for failover client.");
+                panic err;
             }
         }
-        failoverRequest = check createFailoverRequest(failoverRequest, requestEntity);
-        runtime:sleep(<decimal>failoverInterval/1000);
+        if (HTTP_SUBMIT == requestAction) {
+            return inFuture;
+        }
+        return inResponse;
+    }
 
-        var tmpClnt = failoverClients[currentIndex];
-        if (tmpClnt is Client) {
-            foClient = tmpClnt;
+    isolated function getLastSuceededClientEP() returns Client {
+        Client? lastSuccessClient;
+        lock {
+            lastSuccessClient = self.failoverClientsArray[self.succeededEndpointIndex];
+        }
+        if (lastSuccessClient is Client) {
+            // We don't have to check this again as we already check for the response when we get the future.
+            return lastSuccessClient;
         } else {
-            error err = error("Unexpected type found for failover client.");
+            // This should not happen as we only fill Client objects to the Clients array
+            error err = error("Unexpected type found for failover client");
             panic err;
         }
     }
-    if (HTTP_SUBMIT == requestAction) {
-        return inFuture;
-    }
-    return inResponse;
 }
 
 // Populates an error specific to the Failover connector by including all the errors returned from endpoints.
@@ -456,34 +535,17 @@ isolated function populateErrorsFromLastResponse (Response inResponse, ClientErr
 }
 
 # Provides a set of HTTP related configurations and failover related configurations.
-# Following fields are inherited from the other configuration records in addition to the failover client specific
+# The following fields are inherited from the other configuration records in addition to the failover client-specific
 # configs.
 #
-# |                                                         |
-# |:------------------------------------------------------- |
-# | httpVersion - Copied from CommonClientConfiguration     |
-# | http1Settings - Copied from CommonClientConfiguration   |
-# | http2Settings - Copied from CommonClientConfiguration   |
-# | timeoutInMillis - Copied from CommonClientConfiguration |
-# | forwarded - Copied from CommonClientConfiguration       |
-# | followRedirects - Copied from CommonClientConfiguration |
-# | poolConfig - Copied from CommonClientConfiguration      |
-# | cache - Copied from CommonClientConfiguration           |
-# | compression - Copied from CommonClientConfiguration     |
-# | auth - Copied from CommonClientConfiguration            |
-# | circuitBreaker - Copied from CommonClientConfiguration  |
-# | retryConfig - Copied from CommonClientConfiguration     |
-# | cookieConfig - Copied from CommonClientConfiguration    |
-#
-
 # + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be sent on failover
 # + failoverCodes - Array of HTTP response status codes for which the failover behaviour should be triggered
-# + intervalInMillis - Failover delay interval in milliseconds
+# + interval - Failover delay interval in seconds
 public type FailoverClientConfiguration record {|
     *CommonClientConfiguration;
     TargetService[] targets = [];
     int[] failoverCodes = [501, 502, 503, 504];
-    int intervalInMillis = 0;
+    decimal interval = 0;
 |};
 
 isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfiguration foConfig,
@@ -492,7 +554,7 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         http1Settings: foConfig.http1Settings,
         http2Settings: foConfig.http2Settings,
         circuitBreaker:foConfig.circuitBreaker,
-        timeoutInMillis:foConfig.timeoutInMillis,
+        timeout:foConfig.timeout,
         httpVersion:foConfig.httpVersion,
         forwarded:foConfig.forwarded,
         followRedirects:foConfig.followRedirects,
@@ -501,38 +563,11 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         secureSocket:target.secureSocket,
         cache:foConfig.cache,
         compression:foConfig.compression,
-        auth:foConfig.auth
+        auth:foConfig.auth,
+        cookieConfig:foConfig.cookieConfig,
+        responseLimits:foConfig.responseLimits
     };
     return clientEPConfig;
-}
-
-function createFailoverHttpClientArray(FailoverClientConfiguration failoverClientConfig)
-                                                                            returns Client?[]|ClientError {
-
-    Client clientEp;
-    Client?[] httpClients = [];
-    int i = 0;
-
-    foreach var target in failoverClientConfig.targets {
-        ClientConfiguration epConfig = createClientEPConfigFromFailoverEPConfig(failoverClientConfig, target);
-        clientEp = check new(target.url, epConfig);
-        httpClients[i] = clientEp;
-        i += 1;
-    }
-    return httpClients;
-}
-
-isolated function getLastSuceededClientEP(FailoverClient failoverClient) returns Client {
-    var lastSuccessClient = failoverClient.failoverInferredConfig
-                                            .failoverClientsArray[failoverClient.succeededEndpointIndex];
-    if (lastSuccessClient is Client) {
-        // We don't have to check this again as we already check for the response when we get the future.
-        return lastSuccessClient;
-    } else {
-        // This should not happen as we only fill Client objects to the Clients array
-        error err = error("Unexpected type found for failover client");
-        panic err;
-    }
 }
 
 isolated function handleResponseWithErrorCode(Response response, int initialIndex, int noOfEndpoints, int index,

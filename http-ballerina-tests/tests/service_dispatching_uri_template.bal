@@ -203,17 +203,14 @@ service /ech\[o14 on utTestEP {
 //Test accessing the variables parsed with URL. /products/{productId}/{regId}
 @test:Config{ dataProvider:validUrl }
 function testValidUrlTemplateDispatching(string path) {
-    http:Request req = new;
     string xOrderIdHeadeName = "X-ORDER-ID";
     string xOrderIdHeadeValue = "ORD12345";
-    req.setHeader(xOrderIdHeadeName, xOrderIdHeadeValue);
-    var response = utClient1->get(path, req);
+    http:Response|error response = utClient1->get(path, {[xOrderIdHeadeName]:[xOrderIdHeadeValue]});
     if (response is http:Response) {
-        //Expected Json message : {"X-ORDER-ID":"ORD12345","ProductID":"PID123","RegID":"RID123"}
         assertJsonValue(response.getJsonPayload(), xOrderIdHeadeName, xOrderIdHeadeValue);
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID123");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID123");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -228,15 +225,13 @@ function validUrl() returns (string[][]) {
 //Test resource dispatchers with invalid URL. /products/{productId}/{regId}
 @test:Config{ dataProvider:inValidUrl }
 function testInValidUrlTemplateDispatching(string path) {
-    http:Request req = new;
     string xOrderIdHeadeName = "X-ORDER-ID";
     string xOrderIdHeadeValue = "ORD12345";
-    req.setHeader(xOrderIdHeadeName, xOrderIdHeadeValue);
-    var response = utClient1->get(path, req);
+    http:Response|error response = utClient1->get(path, {[xOrderIdHeadeName]:[xOrderIdHeadeValue]});
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "no matching resource found for path");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type" + response.message());
     }
 }
@@ -253,12 +248,12 @@ function inValidUrl() returns (string[][]) {
 //Test accessing the variables parsed with URL. /products/{productId}
 @test:Config{ dataProvider:validUrlWithQueryParam }
 function testValidUrlTemplateWithQueryParamDispatching(string path) {
-    var response = utClient1->get(path);
+    http:Response|error response = utClient1->get(path);
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Template", "T4");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID123");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID123");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -272,12 +267,12 @@ function validUrlWithQueryParam() returns (string[][]) {
 //Test accessing the variables parsed with URL. /products2/{productId}/{regId}/item
 @test:Config{}
 function testValidUrlTemplate2Dispatching() {
-    var response = utClient1->get("/ecommerceservice/products2/PID125/RID125/item");
+    http:Response|error response = utClient1->get("/ecommerceservice/products2/PID125/RID125/item");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Template", "T2");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID125");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID125");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -285,12 +280,12 @@ function testValidUrlTemplate2Dispatching() {
 //Test accessing the variables parsed with URL. /products3/{productId}/{regId}/*
 @test:Config{}
 function testValidUrlTemplate3Dispatching() {
-    var response = utClient1->get("/ecommerceservice/products3/PID125/RID125/xyz?para1=value1");
+    http:Response|error response = utClient1->get("/ecommerceservice/products3/PID125/RID125/xyz?para1=value1");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Template", "T3");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID125");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID125");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -298,12 +293,12 @@ function testValidUrlTemplate3Dispatching() {
 //Test accessing the variables parsed with URL. /products5/{productId}/reg
 @test:Config{}
 function testValidUrlTemplate5Dispatching() {
-    var response = utClient1->get("/ecommerceservice/products5/PID125/reg?regID=RID125&para1=value1");
+    http:Response|error response = utClient1->get("/ecommerceservice/products5/PID125/reg?regID=RID125&para1=value1");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Template", "T5");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID125");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID125");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -311,12 +306,12 @@ function testValidUrlTemplate5Dispatching() {
 //Test dispatching with URL. /products
 @test:Config{}
 function testUrlTemplateWithMultipleQueryParamDispatching() {
-    var response = utClient1->get("/ecommerceservice/products?prodID=PID123&regID=RID123");
+    http:Response|error response = utClient1->get("/ecommerceservice/products?prodID=PID123&regID=RID123");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Template", "T6");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID123");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID123");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -324,12 +319,12 @@ function testUrlTemplateWithMultipleQueryParamDispatching() {
 //Test dispatching with URL. /products?productId=[string productId]&regID={regID}
 @test:Config{}
 function testUrlTemplateWithMultipleQueryParamWithURIEncodeCharacterDispatching() {
-    var response = utClient1->get("/ecommerceservice/products?prodID=PID%20123&regID=RID%20123");
+    http:Response|error response = utClient1->get("/ecommerceservice/products?prodID=PID%20123&regID=RID%20123");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "Template", "T6");
         assertJsonValue(response.getJsonPayload(), "ProductID", "PID 123");
         assertJsonValue(response.getJsonPayload(), "RegID", "RID 123");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -337,10 +332,10 @@ function testUrlTemplateWithMultipleQueryParamWithURIEncodeCharacterDispatching(
 //Test empty string resource path
 @test:Config{}
 function testEmptyStringResourcepath() {
-    var response = utClient1->get("/ecommerceservice/echo1");
+    http:Response|error response = utClient1->get("/ecommerceservice/echo1");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo11", "echo11");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -348,10 +343,10 @@ function testEmptyStringResourcepath() {
 //Test dispatching with OPTIONS method
 @test:Config{}
 function testOPTIONSMethods() {
-    var response = utClient1->options("/options/hi");
+    http:Response|error response = utClient1->options("/options/hi");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", "wso2");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -359,11 +354,11 @@ function testOPTIONSMethods() {
 //Test dispatching with OPTIONS request with GET method
 @test:Config{}
 function testOPTIONSWithGETMethods() {
-    var response = utClient1->options("/options/getme", "hi");
+    http:Response|error response = utClient1->options("/options/getme");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -371,11 +366,11 @@ function testOPTIONSWithGETMethods() {
 //Test dispatching with OPTIONS request with POST method
 @test:Config{}
 function testOPTIONSWithPOSTMethods() {
-    var response = utClient1->options("/options/post", "hi");
+    http:Response|error response = utClient1->options("/options/post");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -383,11 +378,11 @@ function testOPTIONSWithPOSTMethods() {
 //Test dispatching with OPTIONS request with PUT method
 @test:Config{}
 function testOPTIONSWithPUTMethods() {
-    var response = utClient1->options("/options/put/add");
+    http:Response|error response = utClient1->options("/options/put/add");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "PUT, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -395,11 +390,11 @@ function testOPTIONSWithPUTMethods() {
 //Test dispatching with OPTIONS request with PATH params
 @test:Config{}
 function testOPTIONSWithPathParams() {
-    var response = utClient1->options("/options/put/xyz");
+    http:Response|error response = utClient1->options("/options/put/xyz");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "DELETE, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -407,11 +402,11 @@ function testOPTIONSWithPathParams() {
 //Test dispatching with OPTIONS request multiple resources
 @test:Config{}
 function testOPTIONSWithMultiResources() {
-    var response = utClient1->options("/options/test");
+    http:Response|error response = utClient1->options("/options/test");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -419,11 +414,11 @@ function testOPTIONSWithMultiResources() {
 //Test dispatching with OPTIONS request to Root
 @test:Config{}
 function testOPTIONSAtRootPath() {
-    var response = utClient1->options("/options");
+    http:Response|error response = utClient1->options("/options");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -431,11 +426,11 @@ function testOPTIONSAtRootPath() {
 //Test dispatching with OPTIONS request wrong Root
 @test:Config{}
 function testOPTIONSAtWrongRootPath() {
-    var response = utClient1->options("/optionss");
+    http:Response|error response = utClient1->options("/optionss");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching service found for path : /optionss");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -443,11 +438,11 @@ function testOPTIONSAtWrongRootPath() {
 //Test dispatching with OPTIONS request when no resources available
 @test:Config{}
 function testOPTIONSWhenNoResourcesAvailable() {
-    var response = utClient1->options("/noResource");
+    http:Response|error response = utClient1->options("/noResource");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /noResource , method : OPTIONS");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -455,11 +450,11 @@ function testOPTIONSWhenNoResourcesAvailable() {
 //Test dispatching with OPTIONS request with wildcard
 @test:Config{}
 function testOPTIONSWithWildCards() {
-    var response = utClient1->options("/options/un");
+    http:Response|error response = utClient1->options("/options/un");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /options/un , method : OPTIONS");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -467,30 +462,30 @@ function testOPTIONSWithWildCards() {
 //Test dispatching with basePath ending with forward slash
 @test:Config{}
 function testBasePathEndingWithSlash() {
-    var response = utClient1->get("/hello/test");
+    http:Response|error response = utClient1->get("/hello/test");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo", "sanitized");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config{}
 function testSpecialCharacterURI() {
-    var response = utClient1->get("/ech%5Bo/ech%5Bo/b%5Bar");
+    http:Response|error response = utClient1->get("/ech%5Bo/ech%5Bo/b%5Bar");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo113", "b[ar");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config{}
 function testSpecialCharacterEscapedURI() {
-    var response = utClient1->get("/ech%5Bo14/ech%5Bo14/b%5Bar14");
+    http:Response|error response = utClient1->get("/ech%5Bo14/ech%5Bo14/b%5Bar14");
     if (response is http:Response) {
         assertJsonValue(response.getJsonPayload(), "echo114", "b[ar14");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -498,11 +493,11 @@ function testSpecialCharacterEscapedURI() {
 //Test a listener with no service registered
 @test:Config{ dataProvider:SomeUrlsWithCorrectHost }
 function testListenerWithNoServiceRegistered(string path) {
-    var response = utClient2->get(path);
+    http:Response|error response = utClient2->get(path);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "no service has registered for listener :");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type" + response.message());
     }
 }

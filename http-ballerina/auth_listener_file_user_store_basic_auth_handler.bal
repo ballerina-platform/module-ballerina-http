@@ -16,15 +16,10 @@
 
 import ballerina/auth;
 
-# Represents file user store configurations for Basic Auth authentication.
-public type FileUserStoreConfig record {|
-    *auth:FileUserStoreConfig;
-|};
-
 # Defines the file store Basic Auth handler for listener authentication.
-public class ListenerFileUserStoreBasicAuthHandler {
+public isolated class ListenerFileUserStoreBasicAuthHandler {
 
-    auth:ListenerFileUserStoreBasicAuthProvider provider;
+    private final auth:ListenerFileUserStoreBasicAuthProvider provider;
 
     # Initializes the `http:ListenerFileUserStoreBasicAuthHandler` object.
     #
@@ -35,20 +30,26 @@ public class ListenerFileUserStoreBasicAuthHandler {
 
     # Authenticates with the relevant authentication requirements.
     #
-    # + data - The `http:Request` instance or `string` Authorization header
+    # + data - The `http:Request` instance or `http:Headers` instance or `string` Authorization header
     # + return - The `auth:UserDetails` instance or else `Unauthorized` type in case of an error
-    public isolated function authenticate(Request|string data) returns auth:UserDetails|Unauthorized {
-        string? credential = extractCredential(data);
-        if (credential is ()) {
-            Unauthorized unauthorized = {};
+    public isolated function authenticate(Request|Headers|string data) returns auth:UserDetails|Unauthorized {
+        string|ListenerAuthError credential = extractCredential(data);
+        if (credential is string) {
+            auth:UserDetails|auth:Error details = self.provider.authenticate(credential);
+            if (details is auth:UserDetails) {
+                return details;
+            } else {
+                Unauthorized unauthorized = {
+                    body: buildCompleteErrorMessage(details)
+                };
+                return unauthorized;
+            }
+        } else {
+            Unauthorized unauthorized = {
+                body: credential.message()
+            };
             return unauthorized;
         }
-        auth:UserDetails|auth:Error details = self.provider.authenticate(<string>credential);
-        if (details is auth:Error) {
-            Unauthorized unauthorized = {};
-            return unauthorized;
-        }
-        return checkpanic details;
     }
 
     # Authorizes with the relevant authorization requirements.
@@ -57,11 +58,13 @@ public class ListenerFileUserStoreBasicAuthHandler {
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + return - `()`, if it is successful or else `Forbidden` type in case of an error
     public isolated function authorize(auth:UserDetails userDetails, string|string[] expectedScopes) returns Forbidden? {
-        string[] actualScopes = userDetails.scopes;
-        boolean matched = matchScopes(actualScopes, expectedScopes);
-        if (!matched) {
-            Forbidden forbidden = {};
-            return forbidden;
+        string[]? actualScopes = userDetails?.scopes;
+        if (actualScopes is string[]) {
+            boolean matched = matchScopes(actualScopes, expectedScopes);
+            if (matched) {
+                return;
+            }
         }
+        return {};
     }
 }

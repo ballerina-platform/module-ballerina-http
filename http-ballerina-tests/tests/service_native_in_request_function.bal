@@ -102,7 +102,7 @@ function testSetEntityBody() {
     io:WritableByteChannel writableFileResult = checkpanic io:openWritableFile("test.json");
     io:WritableCharacterChannel destinationChannel = new (writableFileResult, "UTF-8");
     var writeCharResult = checkpanic destinationChannel.write(value, 0);
-    var close = destinationChannel.close();
+    error? close = destinationChannel.close();
     http:Request req = new;
     req.setFileAsPayload(filePath);
     var payload = req.getEntity();
@@ -181,19 +181,9 @@ function testGetXmlPayload() {
 @test:Config {}
 function testAddCookies() {
     http:Request req = new;
-    http:Cookie cookie1 = new("SID1", "31d4d96e407aad42");
-    cookie1.domain = "google.com";
-    cookie1.path = "/sample";
-    http:Cookie cookie2 = new("SID2", "2638747623468bce72");
-    cookie2.name = "SID2";
-    cookie2.value = "2638747623468bce72";
-    cookie2.domain = "google.com";
-    cookie2.path = "/sample/about";
-    http:Cookie cookie3 = new("SID3", "782638747668bce72");
-    cookie3.name = "SID3";
-    cookie3.value = "782638747668bce72";
-    cookie3.domain = "google.com";
-    cookie3.path = "/sample";
+    http:Cookie cookie1 = new("SID1", "31d4d96e407aad42", path = "/sample", domain = "google.com");
+    http:Cookie cookie2 = new("SID2", "2638747623468bce72", path = "/sample/about", domain = "google.com");
+    http:Cookie cookie3 = new("SID3", "782638747668bce72", path = "/sample", domain = "google.com");
     http:Cookie[] cookiesToAdd = [cookie1, cookie2, cookie3];
     req.addCookies(cookiesToAdd);
     http:Cookie[] cookiesInRequest = req.getCookies();
@@ -206,9 +196,7 @@ function testAddCookies() {
 @test:Config {}
 function testGetCookies() {
     http:Request req = new;
-    http:Cookie cookie1 = new("SID1", "31d4d96e407aad42");
-    cookie1.domain = "google.com";
-    cookie1.path = "/sample";
+    http:Cookie cookie1 = new("SID1", "31d4d96e407aad42", path = "/sample", domain = "google.com");
     http:Cookie[] cookiesToAdd = [cookie1];
     req.addCookies(cookiesToAdd);
     http:Cookie[] cookiesInRequest = req.getCookies();
@@ -219,9 +207,7 @@ function testGetCookies() {
 @test:Config {}
 function testGetCookiesWithEmptyValue() {
     http:Request req = new;
-    http:Cookie cookie1 = new("SID1", "");
-    cookie1.domain = "google.com";
-    cookie1.path = "/sample";
+    http:Cookie cookie1 = new("SID1", "", path = "/sample", domain = "google.com");
     http:Cookie[] cookiesToAdd = [cookie1];
     req.addCookies(cookiesToAdd);
     http:Cookie[] cookiesInRequest = req.getCookies();
@@ -271,7 +257,7 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get getJsonPayload(http:Caller caller, http:Request req) {
+    resource function post getJsonPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getJsonPayload();
         if (returnResult is error) {
@@ -283,7 +269,7 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get GetTextPayload(http:Caller caller, http:Request req) {
+    resource function post GetTextPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getTextPayload();
         if (returnResult is error) {
@@ -295,7 +281,7 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get GetXmlPayload(http:Caller caller, http:Request req) {
+    resource function post GetXmlPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getXmlPayload();
         if (returnResult is error) {
@@ -308,7 +294,7 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get GetBinaryPayload(http:Caller caller, http:Request req) {
+    resource function post GetBinaryPayload(http:Caller caller, http:Request req) {
         http:Response res = new;
         var returnResult = req.getBinaryPayload();
         if (returnResult is error) {
@@ -326,14 +312,27 @@ service /requesthello on requestListner {
         checkpanic caller->respond(res);
     }
 
-    resource function get GetByteChannel(http:Caller caller, http:Request req) {
+    // TODO: Enable after the I/O revamp
+    // resource function post GetByteChannel(http:Caller caller, http:Request req) {
+    //     http:Response res = new;
+    //     var returnResult = req.getByteChannel();
+    //     if (returnResult is error) {
+    //         res.setTextPayload("Error occurred");
+    //         res.statusCode = 500;
+    //     } else {
+    //         res.setByteChannel(returnResult);
+    //     }
+    //     checkpanic caller->respond(res);
+    // }
+
+    resource function post GetByteStream(http:Caller caller, http:Request req) {
         http:Response res = new;
-        var returnResult = req.getByteChannel();
+        var returnResult = req.getByteStream();
         if (returnResult is error) {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setByteChannel(returnResult);
+            res.setByteStream(returnResult);
         }
         checkpanic caller->respond(res);
     }
@@ -446,15 +445,9 @@ service /requesthello on requestListner {
 
     resource function get addCookies(http:Caller caller, http:Request inReq) {
         http:Request req = new;
-        http:Cookie cookie1 = new("SID1", "31d4d96e407aad42");
-        cookie1.domain = "google.com";
-        cookie1.path = "/sample";
-        http:Cookie cookie2 = new("SID2", "2638747623468bce72");
-        cookie2.domain = "google.com";
-        cookie2.path = "/sample/about";
-        http:Cookie cookie3 = new("SID3", "782638747668bce72");
-        cookie3.domain = "google.com";
-        cookie3.path = "/sample";
+        http:Cookie cookie1 = new("SID1", "31d4d96e407aad42", path = "/sample", domain = "google.com");
+        http:Cookie cookie2 = new("SID2", "2638747623468bce72", path = "/sample/about", domain = "google.com");
+        http:Cookie cookie3 = new("SID3", "782638747668bce72", path = "/sample", domain = "google.com");
         http:Cookie[] cookiesToAdd = [cookie1, cookie2, cookie3];
         req.addCookies(cookiesToAdd);
         string result = <@untainted> checkpanic req.getHeader("Cookie");
@@ -465,9 +458,7 @@ service /requesthello on requestListner {
 
     resource function get getCookies(http:Caller caller, http:Request req) {
         http:Response res = new;
-        http:Cookie cookie1 = new("SID1", "31d4d96e407aad42");
-        cookie1.domain = "google.com";
-        cookie1.path = "/sample";
+        http:Cookie cookie1 = new("SID1", "31d4d96e407aad42", path = "/sample", domain = "google.com");
         http:Cookie[] cookiesToAdd = [cookie1];
         req.addCookies(cookiesToAdd);
         http:Cookie[] cookiesInRequest = req.getCookies();
@@ -484,10 +475,10 @@ function testServiceAddHeader() {
     string key = "lang";
     string value = "ballerina";
     string path = "/requesthello/addheader/" + key + "/" + value;
-    var response = requestClient->get(path);
+    http:Response|error response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {lang:"ballerina"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -497,12 +488,10 @@ function testServiceAddHeader() {
 function testServiceGetHeader() {
     string path = "/requesthello/getHeader";
     string contentType = "application/x-www-form-urlencoded";
-    http:Request req = new;
-    req.setHeader("content-type", contentType);
-    var response = requestClient->get(path, req);
+    http:Response|error response = requestClient->get(path, {"content-type":contentType});
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { value: contentType});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -517,10 +506,10 @@ function testServiceGetJsonPayload() {
     http:Request req = new;
     req.setHeader("content-type", contentType);
     req.setJsonPayload(payload);
-    var response = requestClient->get(path, req);
+    http:Response|error response = requestClient->post(path, req);
     if (response is http:Response) {
         test:assertEquals(response.getJsonPayload(), value, msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -534,10 +523,10 @@ function testServiceGetTextPayload() {
     http:Request req = new;
     req.setHeader("content-type", contentType);
     req.setTextPayload(value);
-    var response = requestClient->get(path, req);
+    http:Response|error response = requestClient->post(path, req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), value);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -550,10 +539,10 @@ function testServiceGetXmlPayload() {
     http:Request req = new;
     req.setHeader("content-type", "application/xml");
     req.setXmlPayload(xmlItem);
-    var response = requestClient->get(path, req);
+    http:Response|error response = requestClient->post(path, req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -561,10 +550,10 @@ function testServiceGetXmlPayload() {
 @test:Config {}
 function testGetMethodWithInService() {
     string path = "/requesthello/11";
-    var response = requestClient->get(path);
+    http:Response|error response = requestClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "GET");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -572,17 +561,18 @@ function testGetMethodWithInService() {
 @test:Config {}
 function testGetRequestURLWithInService() {
     string path = "/requesthello/12";
-    var response = requestClient->get(path);
+    http:Response|error response = requestClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), path);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
 
+// TODO: Enable after the I/O revamp
 // Test GetByteChannel function within a service. Send a json content as a request and then get a byte channel from
 // the Request and set that ByteChannel as the response content"
-@test:Config {}
+@test:Config {enable:false}
 function testServiceGetByteChannel() {
     string value = "ballerina";
     string path = "/requesthello/GetByteChannel";
@@ -591,10 +581,29 @@ function testServiceGetByteChannel() {
     http:Request req = new;
     req.setHeader("content-type", contentType);
     req.setJsonPayload(payload);
-    var response = requestClient->get(path, req);
+    http:Response|error response = requestClient->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), payload);
-    } else if (response is error) {
+    } else {
+        test:assertFail(msg = "Test Failed! " + <string>response.message());
+    }
+}
+
+// Test GetByteStream function within a service. Send a json content as a request and then get a byte Stream from
+// the Request and set that ByteStream as the response content"
+@test:Config {}
+function testServiceGetByteStream() {
+    string value = "ballerina";
+    string path = "/requesthello/GetByteStream";
+    json payload = {lang: value };
+    string contentType = "application/json";
+    http:Request req = new;
+    req.setHeader("content-type", contentType);
+    req.setJsonPayload(payload);
+    http:Response|error response = requestClient->post(path, req);
+    if (response is http:Response) {
+        assertJsonPayload(response.getJsonPayload(), payload);
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -603,10 +612,10 @@ function testServiceGetByteChannel() {
 @test:Config {}
 function testServiceRemoveAllHeaders() {
     string path = "/requesthello/RemoveAllHeaders";
-    var response = requestClient->get(path);
+    http:Response|error response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { value: "value is null" });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -617,10 +626,10 @@ function testServiceSetHeader() {
     string key = "lang";
     string value = "ballerina";
     string path = "/requesthello/setHeader/" + key + "/" + value;
-    var response = requestClient->get(path);
+    http:Response|error response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { value: value });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -630,10 +639,10 @@ function testServiceSetHeader() {
 function testServiceSetJsonPayload() {
     string value = "ballerina";
     string path = "/requesthello/SetJsonPayload/" + value;
-    var response = requestClient->get(path);
+    http:Response|error response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { "lang": value });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -643,10 +652,10 @@ function testServiceSetJsonPayload() {
 function testServiceSetStringPayload() {
     string value = "ballerina";
     string path = "/requesthello/SetJsonPayload/" + value;
-    var response = requestClient->get(path);
+    http:Response|error response = requestClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "{\"lang\":\"ballerina\"}");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -656,10 +665,10 @@ function testServiceSetStringPayload() {
 function testServiceSetXmlPayload() {
     string value = "Ballerina";
     string path = "/requesthello/SetXmlPayload/";
-    var response = requestClient->get(path);
+    http:Response|error response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { "lang": value });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -669,10 +678,10 @@ function testServiceSetXmlPayload() {
 function testServiceSetBinaryPayload() {
     string value = "Ballerina";
     string path = "/requesthello/SetBinaryPayload/";
-    var response = requestClient->get(path);
+    http:Response|error response = requestClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), { "lang": value });
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -685,10 +694,10 @@ public function testServiceGetBinaryPayload() {
     string path = "/requesthello/GetBinaryPayload";
     http:Request req = new;
     req.setBinaryPayload(payload);
-    var response = requestClient->get(path, req);
+    http:Response|error response = requestClient->post(path, req);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }

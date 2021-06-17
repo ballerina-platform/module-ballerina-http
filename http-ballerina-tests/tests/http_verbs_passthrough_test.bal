@@ -28,7 +28,7 @@ service /headQuote on httpVerbListenerEP {
         string method = req.method;
         http:Request clientRequest = new;
 
-        var response = endPoint -> execute(<@untainted> method, "/getQuote/stocks", clientRequest);
+        http:Response|error response = endPoint -> execute(<@untainted> method, "/getQuote/stocks", clientRequest);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -38,7 +38,7 @@ service /headQuote on httpVerbListenerEP {
     }
 
     resource function 'default forward11(http:Caller caller, http:Request req) {
-        var response = endPoint -> forward("/getQuote/stocks", req);
+        http:Response|error response = endPoint -> forward("/getQuote/stocks", req);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -48,7 +48,7 @@ service /headQuote on httpVerbListenerEP {
     }
 
     resource function 'default forward22(http:Caller caller, http:Request req) {
-        var response = endPoint -> forward("/getQuote/stocks", req);
+        http:Response|error response = endPoint -> forward("/getQuote/stocks", req);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -59,7 +59,7 @@ service /headQuote on httpVerbListenerEP {
 
     resource function 'default getStock/[string method](http:Caller caller, http:Request req) {
         http:Request clientRequest = new;
-        var response = endPoint -> execute(<@untainted> method, "/getQuote/stocks", clientRequest);
+        http:Response|error response = endPoint -> execute(<@untainted> method, "/getQuote/stocks", clientRequest);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -67,13 +67,32 @@ service /headQuote on httpVerbListenerEP {
            checkpanic caller->respond(errMsg);
         }
     }
+
+    resource function 'default empty(http:Caller caller, http:Request req) {
+        http:Response|error response = endPoint -> execute("", "/getQuote/stocks", req);
+        if (response is http:Response) {
+            checkpanic caller->respond(<@untainted> response);
+        } else {
+            json errMsg = {"error":"error occurred while invoking the service"};
+            checkpanic caller->respond(errMsg);
+        }
+    }
+
+    resource function 'default emptyErr(http:Caller caller, http:Request req) {
+        http:Request clientRequest = new;
+        http:Response|error response = endPoint -> execute("", "/getQuote/stocks", clientRequest);
+        if (response is http:Response) {
+            checkpanic caller->respond(<@untainted> response);
+        } else {
+            checkpanic caller->respond(response.message());
+        }
+    }
 }
 
 service /sampleHead on httpVerbListenerEP {
 
     resource function head .(http:Caller caller, http:Request req) {
-        http:Request clientRequest = new;
-        var response = endPoint -> get("/getQuote/stocks", clientRequest);
+        http:Response|error response = endPoint -> get("/getQuote/stocks");
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
         } else {
@@ -114,7 +133,7 @@ service /getQuote on httpVerbListenerEP {
 //Test simple passthrough test case For HEAD with URL. /sampleHead
 @test:Config {}
 function testPassthroughSampleForHEAD() {
-    var response = httpVerbClient->head("/sampleHead");
+    http:Response|error response = httpVerbClient->head("/sampleHead");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertTrue(response.hasHeader(CONTENT_LENGTH));
@@ -127,12 +146,12 @@ function testPassthroughSampleForHEAD() {
 //Test simple passthrough test case For GET with URL. /headQuote/default
 @test:Config {}
 function testPassthroughSampleForGET() {
-    var response = httpVerbClient->get("/headQuote/default");
+    http:Response|error response = httpVerbClient->get("/headQuote/default");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "wso2");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -140,12 +159,12 @@ function testPassthroughSampleForGET() {
 //Test simple passthrough test case For POST
 @test:Config {}
 function testPassthroughSampleForPOST() {
-    var response = httpVerbClient->post("/headQuote/default", "test");
+    http:Response|error response = httpVerbClient->post("/headQuote/default", "test");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -153,7 +172,7 @@ function testPassthroughSampleForPOST() {
 //Test simple passthrough test case with default resource
 @test:Config {}
 function testPassthroughSampleWithDefaultResource() {
-    var response = httpVerbClient->head("/headQuote/default");
+    http:Response|error response = httpVerbClient->head("/headQuote/default");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("Method"), "any");
@@ -165,12 +184,12 @@ function testPassthroughSampleWithDefaultResource() {
 //Test default resource for outbound PUT with URL. /headQuote/getStock/PUT
 @test:Config {}
 function testOutboundPUT() {
-    var response = httpVerbClient->get("/headQuote/getStock/PUT");
+    http:Response|error response = httpVerbClient->get("/headQuote/getStock/PUT");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("Method"), "any");
         assertTextPayload(response.getTextPayload(), "default");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -178,11 +197,11 @@ function testOutboundPUT() {
 //Test simple passthrough test case with 'forward' For GET with URL. /headQuote/forward11
 @test:Config {}
 function testForwardActionWithGET() {
-    var response = httpVerbClient->get("/headQuote/forward11");
+    http:Response|error response = httpVerbClient->get("/headQuote/forward11");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "wso2");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -190,11 +209,11 @@ function testForwardActionWithGET() {
 //Test simple passthrough test case with 'forward' For POST with URL. /headQuote/forward22
 @test:Config {}
 function testForwardActionWithPOST() {
-    var response = httpVerbClient->post("/headQuote/forward22", "test");
+    http:Response|error response = httpVerbClient->post("/headQuote/forward22", "test");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "ballerina");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -203,11 +222,11 @@ function testForwardActionWithPOST() {
 @test:Config {}
 function testDataBindingJsonPayload() {
     json payload = {name:"WSO2", team:"ballerina"};
-    var response = httpVerbClient->post("/getQuote/employee", payload);
+    http:Response|error response = httpVerbClient->post("/getQuote/employee", payload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonPayload(response.getJsonPayload(), payload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -216,11 +235,37 @@ function testDataBindingJsonPayload() {
 @test:Config {}
 function testDataBindingWithIncompatiblePayload() {
     string payload = "name:WSO2,team:ballerina";
-    var response = httpVerbClient->post("/getQuote/employee", payload);
+    http:Response|error response = httpVerbClient->post("/getQuote/employee", payload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'name:WSO2,team:ballerina'");
-    } else if (response is error) {
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test with empty method in execute remote method uses the inbound verb
+@test:Config {}
+function testEmptyVerb() {
+    http:Response|error response = httpVerbClient->get("/headQuote/empty");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "wso2");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test with empty method and new request to result in error
+@test:Config {}
+function testEmptyVerbError() {
+    http:Response|error response = httpVerbClient->get("/headQuote/emptyErr");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "client method invocation failed: HTTP Verb cannot be empty");
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

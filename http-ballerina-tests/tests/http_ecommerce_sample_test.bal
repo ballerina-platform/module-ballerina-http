@@ -37,6 +37,10 @@ service /customerservice on ecommerceListenerEP {
         res.setJsonPayload(payload);
         checkpanic caller->respond(res);
     }
+
+    function getCustomers() {
+        //This function is to test the object function holding capability in a http service
+    }
 }
 
 http:Client productsService = check new("http://localhost:" + ecommerceTestPort.toString());
@@ -45,8 +49,7 @@ service /ecommerceservice on ecommerceListenerEP {
 
     resource function get products/[string prodId](http:Caller caller, http:Request req) {
         string reqPath = "/productsservice/" + <@untainted> prodId;
-        http:Request clientRequest = new;
-        var clientResponse = productsService->get(<@untainted> reqPath, clientRequest);
+        http:Response|error clientResponse = productsService->get(<@untainted> reqPath);
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -64,7 +67,7 @@ service /ecommerceservice on ecommerceListenerEP {
         }
 
         http:Response clientResponse = new;
-        var clientRes = productsService->post("/productsservice", clientRequest);
+        http:Response|error clientRes = productsService->post("/productsservice", clientRequest);
         if (clientRes is http:Response) {
             clientResponse = clientRes;
         } else {
@@ -74,8 +77,7 @@ service /ecommerceservice on ecommerceListenerEP {
     }
 
     resource function get orders(http:Caller caller, http:Request req) {
-        http:Request clientRequest = new;
-        var clientResponse = productsService->get("/orderservice/orders", clientRequest);
+        http:Response|error clientResponse = productsService->get("/orderservice/orders");
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -85,7 +87,7 @@ service /ecommerceservice on ecommerceListenerEP {
 
     resource function post orders(http:Caller caller, http:Request req) {
         http:Request clientRequest = new;
-        var clientResponse = productsService->post("/orderservice/orders", clientRequest);
+        http:Response|error clientResponse = productsService->post("/orderservice/orders", clientRequest);
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -94,8 +96,7 @@ service /ecommerceservice on ecommerceListenerEP {
     }
 
     resource function get customers(http:Caller caller, http:Request req) {
-        http:Request clientRequest = new;
-        var clientResponse = productsService->get("/customerservice/customers", clientRequest);
+        http:Response|error clientResponse = productsService->get("/customerservice/customers");
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -105,7 +106,7 @@ service /ecommerceservice on ecommerceListenerEP {
 
     resource function post customers(http:Caller caller, http:Request req) {
         http:Request clientRequest = new;
-        var clientResponse = productsService->post("/customerservice/customers", clientRequest);
+        http:Response|error clientResponse = productsService->post("/customerservice/customers", clientRequest);
         if (clientResponse is http:Response) {
             checkpanic caller->respond(<@untainted>clientResponse);
         } else {
@@ -178,12 +179,12 @@ function populateSampleProducts() returns (map<anydata>) {
 //Test resource GET products in E-Commerce sample
 @test:Config {}
 function testGetProducts() {
-    var response = ecommerceClient->get("/ecommerceservice/products/123001");
+    http:Response|error response = ecommerceClient->get("/ecommerceservice/products/123001");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Product:{ID:"123001", Name:"ABC_2", Description:"Sample product."}});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -191,12 +192,12 @@ function testGetProducts() {
 //Test resource GET orders in E-Commerce sample
 @test:Config {}
 function testGetOrders() {
-    var response = ecommerceClient->get("/ecommerceservice/orders");
+    http:Response|error response = ecommerceClient->get("/ecommerceservice/orders");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Order:{ID:"111999", Name:"ABC123", Description:"Sample order."}});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -204,12 +205,12 @@ function testGetOrders() {
 //Test resource GET customers in E-Commerce sample
 @test:Config {}
 function testGetCustomers() {
-    var response = ecommerceClient->get("/ecommerceservice/customers");
+    http:Response|error response = ecommerceClient->get("/ecommerceservice/customers");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Customer:{ID:"987654", Name:"ABC PQR", Description:"Sample Customer."}});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -219,12 +220,12 @@ function testGetCustomers() {
 function testPostOrder() {
     http:Request req = new;
     req.setJsonPayload({Order:{ID:"111222",Name:"XYZ123"}});
-    var response = ecommerceClient->post("/ecommerceservice/orders", req);
+    http:Response|error response = ecommerceClient->post("/ecommerceservice/orders", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Status:"Order is successfully added."});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -234,12 +235,12 @@ function testPostOrder() {
 function testPostProduct() {
     http:Request req = new;
     req.setJsonPayload({Product:{ID:"123345",Name:"PQR"}});
-    var response = ecommerceClient->post("/ecommerceservice/products", req);
+    http:Response|error response = ecommerceClient->post("/ecommerceservice/products", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Status:"Product is successfully added."});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -249,12 +250,12 @@ function testPostProduct() {
 function testPostCustomers() {
     http:Request req = new;
     req.setJsonPayload({Customer:{ID:"97453",Name:"ABC XYZ"}});
-    var response = ecommerceClient->post("/ecommerceservice/customers", req);
+    http:Response|error response = ecommerceClient->post("/ecommerceservice/customers", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Status:"Customer is successfully added."});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

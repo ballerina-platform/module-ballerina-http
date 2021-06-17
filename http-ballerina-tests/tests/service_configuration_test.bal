@@ -14,16 +14,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/config;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener backendEP = new(config:getAsInt("\"backendEP.port\""));
+configurable int backendPort = ?;
+configurable string basePath = ?;
+
+listener http:Listener backendEP = new(backendPort);
 http:Client scClient = check new("http://localhost:" + serviceConfigTest.toString());
 
 service /schello on backendEP {
     resource function get sayHello(http:Caller caller, http:Request request) {
-        checkpanic backendEP.attach(testingService, config:getAsString("hello.basePath"));
+        checkpanic backendEP.attach(testingService, basePath);
         checkpanic backendEP.start();
         checkpanic caller->respond("Service started!");
     }
@@ -41,11 +43,11 @@ http:Service testingService = service object {
 //Test for configuring a service via config API
 @test:Config {}
 function testConfiguringAService() {
-    var response = scClient->get("/schello/sayHello");
+    http:Response|error response = scClient->get("/schello/sayHello");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Service started!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -53,7 +55,7 @@ function testConfiguringAService() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

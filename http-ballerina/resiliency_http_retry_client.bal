@@ -19,32 +19,28 @@ import ballerina/lang.runtime as runtime;
 # Derived set of configurations from the `RetryConfig`.
 #
 # + count - Number of retry attempts before giving up
-# + intervalInMillis - Retry interval in milliseconds
+# + interval - Retry interval in seconds
 # + backOffFactor - Multiplier of the retry interval to exponentially increase retry interval
-# + maxWaitIntervalInMillis - Maximum time of the retry interval in milliseconds
+# + maxWaitInterval - Maximum time of the retry interval in seconds
 # + statusCodes - HTTP response status codes which are considered as failures
-public type RetryInferredConfig record {|
+type RetryInferredConfig record {|
     int count = 0;
-    int intervalInMillis = 0;
+    decimal interval = 0;
     float backOffFactor = 0.0;
-    int maxWaitIntervalInMillis = 0;
+    decimal maxWaitInterval = 0;
     boolean[] statusCodes = [];
 |};
 
 # Provides the HTTP remote functions for interacting with an HTTP endpoint. This is created by wrapping the HTTP client
 # to provide retrying over HTTP requests.
 #
-# + url - Target service url
-# + config - HTTP ClientConfiguration to be used for HTTP client invocation
 # + retryInferredConfig - Derived set of configurations associated with retry
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner.
-public client class RetryClient {
+public client isolated class RetryClient {
 
-    public string url;
-    public ClientConfiguration config;
-    public RetryInferredConfig retryInferredConfig;
-    public HttpClient httpClient;
+    final RetryInferredConfig & readonly retryInferredConfig;
+    final HttpClient httpClient;
 
     # Provides the HTTP remote functions for interacting with an HTTP endpoint. This is created by wrapping the HTTP
     # client to provide retrying over HTTP requests.
@@ -54,11 +50,9 @@ public client class RetryClient {
     # + retryInferredConfig - Derived set of configurations associated with retry
     # + httpClient - HTTP client for outbound HTTP requests
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(string url, ClientConfiguration config, RetryInferredConfig retryInferredConfig,
+    isolated function init(string url, ClientConfiguration config, RetryInferredConfig retryInferredConfig,
                                         HttpClient httpClient) returns ClientError? {
-        self.url = url;
-        self.config = config;
-        self.retryInferredConfig = retryInferredConfig;
+        self.retryInferredConfig = retryInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
     }
 
@@ -66,14 +60,9 @@ public client class RetryClient {
     # retrying functionality for a given endpoint to recover from network level failures.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function post(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function post(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_POST, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -86,11 +75,9 @@ public client class RetryClient {
     # retrying functionality for a given endpoint to recover from network level failures.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
+    # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
+    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_HEAD, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -103,14 +90,9 @@ public client class RetryClient {
     # retrying functionality for a given endpoint to recover from network level failures.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel` or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function put(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_PUT, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -124,12 +106,8 @@ public client class RetryClient {
     #
     # + path - Resource path
     # + request - An HTTP inbound request message
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function forward(string path, Request request, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function forward(string path, Request request) returns @tainted Response|ClientError {
         var result = performRetryAction(path, request, HTTP_FORWARD, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -144,14 +122,9 @@ public client class RetryClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRetryClientExecuteAction(path, <Request>message, httpVerb, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -164,14 +137,9 @@ public client class RetryClient {
     # retrying functionality for a given endpoint to recover from network level failures.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function patch(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_PATCH, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -184,14 +152,9 @@ public client class RetryClient {
     # retrying functionality for a given endpoint to recover from network level failures.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_DELETE, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -204,14 +167,9 @@ public client class RetryClient {
     # retrying functionality for a given endpoint to recover from network level failures.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_GET, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -224,14 +182,9 @@ public client class RetryClient {
     # retrying functionality for a given endpoint to recover from network level failures.
     #
     # + path - Resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel`, or `mime:Entity[]`
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_OPTIONS, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -246,10 +199,9 @@ public client class RetryClient {
     #
     # + httpVerb - The HTTP verb value
     # + path - The resource path
-    # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`,
-    #             `io:ReadableByteChannel`, or `mime:Entity[]`
+    # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
-    remote function submit(string httpVerb, string path, RequestMessage message) returns
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns
             @tainted HttpFuture|ClientError {
         var result = performRetryClientExecuteAction(path, <Request>message, HTTP_SUBMIT, self, verb = httpVerb);
         if (result is Response) {
@@ -263,7 +215,7 @@ public client class RetryClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         // This need not be retried as the response is already checked when submit is called.
         return self.httpClient->getResponse(httpFuture);
     }
@@ -272,7 +224,7 @@ public client class RetryClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns (boolean) {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns (boolean) {
         return self.httpClient->hasPromise(httpFuture);
     }
 
@@ -280,7 +232,7 @@ public client class RetryClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
@@ -288,7 +240,7 @@ public client class RetryClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return self.httpClient->getPromisedResponse(promise);
     }
 
@@ -296,7 +248,7 @@ public client class RetryClient {
     # When an `http:PushPromise` is rejected, there is no chance of fetching a promised response using the rejected promise.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise) {
+    remote isolated function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
 }
@@ -305,22 +257,27 @@ public client class RetryClient {
 // Performs execute remote function of the retry client. extract the corresponding http integer value representation
 // of the http verb and invokes the perform action method.
 // verb is used for submit methods only.
-function performRetryClientExecuteAction(@untainted string path, Request request, @untainted string httpVerb,
+isolated function performRetryClientExecuteAction(@untainted string path, Request request, @untainted string httpVerb,
                                          RetryClient retryClient, string verb = "") returns @tainted HttpResponse|ClientError {
     HttpOperation connectorAction = extractHttpOperation(httpVerb);
     return performRetryAction(path, request, connectorAction, retryClient, verb = verb);
 }
 
 // Handles all the actions exposed through the retry client.
-function performRetryAction(@untainted string path, Request request, HttpOperation requestAction,
+isolated function performRetryAction(@untainted string path, Request request, HttpOperation requestAction,
                             RetryClient retryClient, string verb = "") returns @tainted HttpResponse|ClientError {
     HttpClient httpClient = retryClient.httpClient;
     int currentRetryCount = 0;
     int retryCount = retryClient.retryInferredConfig.count;
-    int intervalInMillis = retryClient.retryInferredConfig.intervalInMillis;
+    decimal interval = retryClient.retryInferredConfig.interval;
     boolean[] statusCodeIndex = retryClient.retryInferredConfig.statusCodes;
-    initializeBackOffFactorAndMaxWaitInterval(retryClient);
-    
+    //initializeBackOffFactorAndMaxWaitInterval(retryClient);
+    float inputBackOffFactor = retryClient.retryInferredConfig.backOffFactor;
+    float backOffFactor = inputBackOffFactor <= 0.0 ? 1.0 : inputBackOffFactor;
+
+    decimal inputMaxWaitInterval = retryClient.retryInferredConfig.maxWaitInterval;
+    decimal maxWaitInterval = inputMaxWaitInterval == 0D ? 60 : inputMaxWaitInterval;
+
     AllRetryAttemptsFailed retryFailedError = error AllRetryAttemptsFailed("All the retry attempts failed.");
     ClientError httpConnectorErr = retryFailedError;
     Request inRequest = request;
@@ -335,8 +292,9 @@ function performRetryAction(@untainted string path, Request request, HttpOperati
             int responseStatusCode = backendResponse.statusCode;
             if (statusCodeIndex.length() > responseStatusCode && (statusCodeIndex[responseStatusCode])
                                                               && currentRetryCount < (retryCount)) {
-                [intervalInMillis, currentRetryCount] =
-                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, intervalInMillis);
+                [interval, currentRetryCount] =
+                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                                backOffFactor, maxWaitInterval);
             } else {
                 return backendResponse;
             }
@@ -346,49 +304,42 @@ function performRetryAction(@untainted string path, Request request, HttpOperati
                 int responseStatusCode = response.statusCode;
                 if (statusCodeIndex.length() > responseStatusCode && (statusCodeIndex[responseStatusCode])
                                                                   && currentRetryCount < (retryCount)) {
-                    [intervalInMillis, currentRetryCount] =
-                                    calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, intervalInMillis);
+                    [interval, currentRetryCount] =
+                                    calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                                    backOffFactor, maxWaitInterval);
                 } else {
                     // We return the HttpFuture object as this is called by submit method.
                     return backendResponse;
                 }
             } else {
-                [intervalInMillis, currentRetryCount] =
-                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, intervalInMillis);
+                [interval, currentRetryCount] =
+                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                                backOffFactor, maxWaitInterval);
                 httpConnectorErr = response;
             }
         } else {
-            [intervalInMillis, currentRetryCount] =
-                            calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, intervalInMillis);
+            [interval, currentRetryCount] =
+                            calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                            backOffFactor, maxWaitInterval);
             httpConnectorErr = backendResponse;
         }
-        runtime:sleep(<decimal>intervalInMillis/1000);
+        runtime:sleep(interval);
     }
     return httpConnectorErr;
 }
 
-isolated function initializeBackOffFactorAndMaxWaitInterval(RetryClient retryClient) {
-    if (retryClient.retryInferredConfig.backOffFactor <= 0.0) {
-        retryClient.retryInferredConfig.backOffFactor = 1.0;
-    }
-    if (retryClient.retryInferredConfig.maxWaitIntervalInMillis == 0) {
-        retryClient.retryInferredConfig.maxWaitIntervalInMillis = 60000;
-    }
-}
-
-isolated function getWaitTime(float backOffFactor, int maxWaitTime, int interval) returns int {
-    int waitTime = <int>(interval * backOffFactor);
-    waitTime = waitTime > maxWaitTime ? maxWaitTime : waitTime;
-    return waitTime;
-}
-
-isolated function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount, int currentDelay)
-                                                 returns [int, int] {
-    int interval = currentDelay;
+isolated function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount,
+        decimal currentDelay, float backOffFactor, decimal maxWaitInterval) returns [decimal, int] {
+    decimal interval = currentDelay;
     if (currentRetryCount != 0) {
-        interval = getWaitTime(retryClient.retryInferredConfig.backOffFactor,
-                    retryClient.retryInferredConfig.maxWaitIntervalInMillis, interval);
+        interval = getWaitTime(backOffFactor, maxWaitInterval, interval);
     }
     int retryCount = currentRetryCount + 1;
     return [interval, retryCount];
+}
+
+
+isolated function getWaitTime(float backOffFactor, decimal maxWaitTime, decimal interval) returns decimal {
+    decimal waitTime = interval * <decimal> backOffFactor;
+    return (waitTime > maxWaitTime) ? maxWaitTime : waitTime;
 }

@@ -21,9 +21,12 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.observability.ObserveUtils;
+import io.ballerina.runtime.observability.ObserverContext;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
-import static org.ballerinalang.net.http.HttpConstants.NOTIFY_SUCCESS_METADATA;
+import static org.ballerinalang.net.http.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 
 /**
  * {@code HttpCallableUnitCallback} is the responsible for acting on notifications received from Ballerina side.
@@ -48,13 +51,11 @@ public class HttpCallableUnitCallback implements Callback {
     public void notifySuccess(Object result) {
         if (result == null) { // handles nil return and end of resource exec
             requestMessage.waitAndReleaseAllEntities();
+            stopObservationWithContext();
             return;
         }
+        printStacktrace(result);
         HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
-        if (result instanceof BError) { // handles error check and return
-            sendFailureResponse((BError) result);
-            return;
-        }
 
         Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
@@ -62,9 +63,10 @@ public class HttpCallableUnitCallback implements Callback {
         paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[3] = true;
 
-        runtime.invokeMethodAsync(caller, "returnResponse", null, NOTIFY_SUCCESS_METADATA, new Callback() {
+        Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
+                printStacktrace(result);
                 requestMessage.waitAndReleaseAllEntities();
             }
 
@@ -72,16 +74,41 @@ public class HttpCallableUnitCallback implements Callback {
             public void notifyFailure(BError result) {
                 sendFailureResponse(result);
             }
-        }, paramFeed);
+        };
+        runtime.invokeMethodAsync(caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                                  returnCallback, paramFeed);
     }
 
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
+        // This check is added to release the failure path since there is an authn/authz failure and responded
+        // with 401/403 internally.
+        if (error.getMessage().equals("Already responded by auth desugar.")) {
+            requestMessage.waitAndReleaseAllEntities();
+            return;
+        }
         sendFailureResponse(error);
     }
 
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
+        stopObservationWithContext();
         requestMessage.waitAndReleaseAllEntities();
+    }
+
+    private void stopObservationWithContext() {
+        if (ObserveUtils.isObservabilityEnabled()) {
+            ObserverContext observerContext
+                    = (ObserverContext) requestMessage.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            if (observerContext != null) {
+                ObserveUtils.stopObservationWithContext(observerContext);
+            }
+        }
+    }
+
+    private void printStacktrace(Object result) {
+        if (result instanceof BError) {
+            ((BError) result).printStackTrace();
+        }
     }
 }

@@ -14,21 +14,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-///////////////////////////
-/// Service Annotations ///
-///////////////////////////
-
 # Contains the configurations for an HTTP service.
 #
 # + host - Domain name of the service
 # + compression - The status of compression
 # + chunking - Configures the chunking behaviour for the service
 # + cors - The cross origin resource sharing configurations for the service
+# + auth - Listener authenticaton configurations
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
     Chunking chunking = CHUNKING_AUTO;
     CorsConfig cors = {};
+    ListenerAuthConfig[] auth?;
 |};
 
 # Configurations for CORS support.
@@ -45,75 +43,29 @@ public type CorsConfig record {|
     string[] allowOrigins = [];
     string[] exposeHeaders = [];
     boolean allowCredentials = false;
-    int maxAge= -1;
+    decimal maxAge= -1;
 |};
-
-# Configurations for a WebSocket service.
-#
-# + path - Path of the WebSocket service
-# + subProtocols - Negotiable sub protocol by the service
-# + idleTimeoutInSeconds - Idle timeout for the client connection. Upon timeout, `onIdleTimeout` resource (if defined)
-#                          in the server service will be triggered. Note that this overrides the `timeoutInMillis` config
-#                          in the `http:Listener`.
-# + maxFrameSize - The maximum payload size of a WebSocket frame in bytes.
-#                  If this is not set or is negative or zero, the default frame size will be used.
-public type WSServiceConfig record {|
-    string path = "";
-    string[] subProtocols = [];
-    int idleTimeoutInSeconds = 0;
-    int maxFrameSize = 0;
-|};
-
-// TODO: Enable this when Ballerina supports service life time
-//public type HttpServiceLifeTime "REQUEST"|"CONNECTION"|"SESSION"|"SINGLETON";
 
 # The annotation which is used to configure an HTTP service.
 public annotation HttpServiceConfig ServiceConfig on service;
 
-# The annotation which is used to configure a WebSocket service.
-public annotation WSServiceConfig WebSocketServiceConfig on service;
-
-////////////////////////////
-/// Resource Annotations ///
-////////////////////////////
-
 # Configuration for an HTTP resource.
 #
-# + body - Inbound request entity body name which declared in signature
 # + consumes - The media types which are accepted by resource
 # + produces - The media types which are produced by resource
 # + cors - The cross origin resource sharing configurations for the resource. If not set, the resource will inherit the CORS behaviour of the enclosing service.
 # + transactionInfectable - Allow to participate in the distributed transactions if value is true
-# + webSocketUpgrade - Annotation to define HTTP to WebSocket upgrade
+# + auth - Listener authenticaton configurations
 public type HttpResourceConfig record {|
     string[] consumes = [];
     string[] produces = [];
     CorsConfig cors = {};
     boolean transactionInfectable = true;
-    WebSocketUpgradeConfig? webSocketUpgrade = ();
-|};
-
-# Resource configuration to upgrade from HTTP to WebSocket.
-#
-# + upgradePath - Path which is used to upgrade from HTTP to WebSocket
-# + upgradeService - Callback service for a successful upgrade
-public type WebSocketUpgradeConfig record {|
-    string upgradePath = "";
-    Service upgradeService?;
+    ListenerAuthConfig[] auth?;
 |};
 
 # The annotation which is used to configure an HTTP resource.
 public annotation HttpResourceConfig ResourceConfig on object function;
-
-# Path param order config keep the signature path param index against the variable names for runtime path param processing.
-#
-# + pathParamOrder - Specifies index of signature path param against the param variable name
-type HttpParamOrderConfig record {|
-    map<int> pathParamOrder = {};
-|};
-
-//# The annotation which is used to configure an path param order.
-annotation HttpParamOrderConfig ParamOrderConfig on object function;
 
 # Defines the Payload resource signature parameter and return parameter.
 #
@@ -129,8 +81,18 @@ public annotation HttpPayload Payload on parameter, return;
 #
 # + respondType - Specifies the type of response
 public type HttpCallerInfo record {|
-    string respondType?;
+    typedesc<ResponseMessage> respondType?;
 |};
 
 # The annotation which is used to configure the type of the response.
 public annotation HttpCallerInfo CallerInfo on parameter;
+
+# Defines the Header resource signature parameter.
+#
+# + name - Specifies the name of the required header
+public type HttpHeader record {|
+    string name?;
+|};
+
+# The annotation which is used to define the Header resource signature parameter.
+public annotation HttpHeader Header on parameter;

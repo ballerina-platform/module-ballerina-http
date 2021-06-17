@@ -162,4 +162,6 @@ public class PipeliningHandler {
         pipeliningFuture.setPipeliningListener(pipeliningListener);
         httpResponse.setPipeliningFuture(pipeliningFuture);
     }
+
+    private PipeliningHandler() {}
 }

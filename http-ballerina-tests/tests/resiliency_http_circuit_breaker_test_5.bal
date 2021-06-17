@@ -24,15 +24,15 @@ listener http:Listener circuitBreakerEP04 = new(9310);
 http:ClientConfiguration conf04 = {
     circuitBreaker: {
         rollingWindow: {
-            timeWindowInMillis: 60000,
-            bucketSizeInMillis: 20000,
+            timeWindow: 60,
+            bucketSize: 20,
             requestVolumeThreshold: 6
         },
         failureThreshold: 0.3,
-        resetTimeInMillis: 10000,
+        resetTime: 10,
         statusCodes: [500, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 };
 
 http:Client errornousClientEP = check new("http://localhost:8090", conf04);
@@ -40,21 +40,8 @@ http:Client errornousClientEP = check new("http://localhost:8090", conf04);
 service /cb on circuitBreakerEP04 {
 
     resource function 'default requestvolume(http:Caller caller, http:Request request) {
-        var backendRes = errornousClientEP->forward("/errornous", request);
-        if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
-            if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
-            }
-        } else if (backendRes is error) {
-            http:Response response = new;
-            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
-            }
-        }
+        http:Response|error backendRes = errornousClientEP->post("/errornous", request);
+        handleBackendResponse(caller, backendRes);
     }
 }
 
@@ -64,9 +51,9 @@ service /errornous on new http:Listener(8090) {
         http:Response res = new;
         res.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
         res.setPayload("Internal error occurred while processing the request.");
-        var responseToCaller = caller->respond(res);
+        error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -74,7 +61,10 @@ service /errornous on new http:Listener(8090) {
 //Test for circuit breaker requestVolumeThreshold functionality
 http:Client testRequestVolumeClient = check new("http://localhost:9310");
 
-@test:Config{ dataProvider:requestVolumeResponseDataProvider }
+@test:Config{ 
+    groups: ["circuitBreakerRequestVolume"],
+    dataProvider:requestVolumeResponseDataProvider 
+}
 function requestVolumeTest(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed);
 }
