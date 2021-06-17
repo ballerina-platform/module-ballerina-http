@@ -204,6 +204,7 @@
             <class name="org.ballerinalang.net.transport.contractimpl.listener.HttpAccessLoggingHandlerTest"/>
             <class name="org.ballerinalang.net.transport.contractimpl.listener.HttpTraceLoggingHandlerTest"/>
             <class name="org.ballerinalang.net.transport.contractimpl.common.FrameLoggerTest"/>
+            <class name="org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.cache.CacheControllerTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
