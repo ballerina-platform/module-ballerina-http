@@ -127,7 +127,7 @@ public class ReceivingHeaders implements SenderState {
 
     @Override
     public void handleStreamTimeout(OutboundMsgHolder outboundMsgHolder, boolean serverPush,
-                                    ChannelHandlerContext ctx, int streamId) {
+            ChannelHandlerContext ctx, int streamId) {
         if (!serverPush) {
             outboundMsgHolder.getResponseFuture().notifyHttpListener(new EndpointTimeOutException(
                     IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_HEADERS,
@@ -138,7 +138,7 @@ public class ReceivingHeaders implements SenderState {
     @Override
     public void handleConnectionClose(OutboundMsgHolder outboundMsgHolder) {
         handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
-                REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS);
+                                       REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS);
     }
 
     private void onHeadersRead(ChannelHandlerContext ctx, Http2HeadersFrame http2HeadersFrame,
@@ -280,7 +280,7 @@ public class ReceivingHeaders implements SenderState {
         }
         // Create HTTP Carbon Response
         HttpCarbonResponse responseCarbonMsg = new HttpCarbonResponse(httpResponse, new Http2InboundContentListener(
-                streamId, ctx, http2TargetHandler.getConnection(), INBOUND_RESPONSE));
+           streamId, ctx, http2TargetHandler.getConnection(), INBOUND_RESPONSE));
 
         // Setting properties of the HTTP Carbon Response
         responseCarbonMsg.setProperty(POOLED_BYTE_BUFFER_FACTORY, new PooledDataStreamerFactory(ctx.alloc()));
