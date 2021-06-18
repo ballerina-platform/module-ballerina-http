@@ -104,6 +104,7 @@ public final class Constants {
     public static final int DEFAULT_HTTP_PORT = 80;
     public static final int DEFAULT_HTTPS_PORT = 443;
     public static final String DEFAULT_BASE_PATH = "/";
+    public static final String COMMA = ",";
 
     public static final String TO = "TO";
     public static final String PROTOCOL = "PROTOCOL";
