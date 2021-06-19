@@ -20,11 +20,10 @@ package org.ballerinalang.net.http;
 
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
 import org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.ballerinalang.net.uri.URITemplateException;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
 
 /**
  * Resource level dispatchers handler for HTTP protocol.

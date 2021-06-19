@@ -17,9 +17,10 @@
 */
 package org.ballerinalang.net.http;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BString;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BDecimal;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,12 +32,12 @@ import java.util.List;
  */
 public class CorsHeaders {
 
-    private static final BString ALLOW_CREDENTIALS_FIELD = BStringUtils.fromString("allowCredentials");
-    private static final BString ALLOW_HEADERS_FIELD = BStringUtils.fromString("allowHeaders");
-    private static final BString ALLOW_METHODS_FIELD = BStringUtils.fromString("allowMethods");
-    private static final BString ALLOWS_ORIGINS_FIELD = BStringUtils.fromString("allowOrigins");
-    private static final BString EXPOSE_HEADERS_FIELD = BStringUtils.fromString("exposeHeaders");
-    private static final BString MAX_AGE_FIELD = BStringUtils.fromString("maxAge");
+    private static final BString ALLOW_CREDENTIALS_FIELD = StringUtils.fromString("allowCredentials");
+    private static final BString ALLOW_HEADERS_FIELD = StringUtils.fromString("allowHeaders");
+    private static final BString ALLOW_METHODS_FIELD = StringUtils.fromString("allowMethods");
+    private static final BString ALLOWS_ORIGINS_FIELD = StringUtils.fromString("allowOrigins");
+    private static final BString EXPOSE_HEADERS_FIELD = StringUtils.fromString("exposeHeaders");
+    private static final BString MAX_AGE_FIELD = StringUtils.fromString("maxAge");
 
     private boolean available;
     private List<String> allowOrigins;
@@ -134,7 +135,7 @@ public class CorsHeaders {
         corsHeaders.setAllowOrigins(getAsStringList(corsConfig.getArrayValue(ALLOWS_ORIGINS_FIELD).getStringArray()));
         corsHeaders.setExposeHeaders(getAsStringList(corsConfig.getArrayValue(EXPOSE_HEADERS_FIELD).getStringArray()));
         corsHeaders.setAllowCredentials(corsConfig.getBooleanValue(ALLOW_CREDENTIALS_FIELD) ? 1 : 0);
-        corsHeaders.setMaxAge(corsConfig.getIntValue(MAX_AGE_FIELD));
+        corsHeaders.setMaxAge(((BDecimal) corsConfig.get(MAX_AGE_FIELD)).intValue());
 
         return corsHeaders;
     }

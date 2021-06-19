@@ -18,15 +18,12 @@
 
 package org.ballerinalang.net.http.nativeimpl;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.types.BArrayType;
-import org.ballerinalang.jvm.types.BTypes;
-import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.ArrayValueImpl;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HttpUtil;
-import org.wso2.transport.http.netty.message.Http2PushPromise;
+import org.ballerinalang.net.transport.message.Http2PushPromise;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -38,8 +35,6 @@ import java.util.TreeSet;
  */
 public class ExternPushPromise {
 
-    private static final BArrayType bArrayType = new BArrayType(BTypes.typeHandle);
-
     public static void addHeader(BObject pushPromiseObj, BString headerName, BString headerValue) {
         Http2PushPromise http2PushPromise =
                 HttpUtil.getPushPromise(pushPromiseObj, HttpUtil.createHttpPushPromise(pushPromiseObj));
@@ -49,26 +44,26 @@ public class ExternPushPromise {
     public static BString getHeader(BObject pushPromiseObj, BString headerName) {
         Http2PushPromise http2PushPromise =
                 HttpUtil.getPushPromise(pushPromiseObj, HttpUtil.createHttpPushPromise(pushPromiseObj));
-        return BStringUtils.fromString(http2PushPromise.getHeader(headerName.getValue()));
+        return StringUtils.fromString(http2PushPromise.getHeader(headerName.getValue()));
     }
 
-    public static ArrayValue getHeaderNames(BObject pushPromiseObj) {
+    public static BArray getHeaderNames(BObject pushPromiseObj) {
         Http2PushPromise http2PushPromise =
                 HttpUtil.getPushPromise(pushPromiseObj, HttpUtil.createHttpPushPromise(pushPromiseObj));
         Set<String> httpHeaderNames = http2PushPromise.getHttpRequest().headers().names();
         if (httpHeaderNames == null || httpHeaderNames.isEmpty()) {
-            return new ArrayValueImpl(new BString[0]);
+            return StringUtils.fromStringArray(new String[0]);
         }
         Set<String> distinctNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         distinctNames.addAll(httpHeaderNames);
-        return new ArrayValueImpl(BStringUtils.fromStringSet(distinctNames));
+        return StringUtils.fromStringSet(distinctNames);
     }
 
-    public static ArrayValue getHeaders(BObject pushPromiseObj, BString headerName) {
+    public static BArray getHeaders(BObject pushPromiseObj, BString headerName) {
         Http2PushPromise http2PushPromise =
                 HttpUtil.getPushPromise(pushPromiseObj, HttpUtil.createHttpPushPromise(pushPromiseObj));
         String[] headers = http2PushPromise.getHeaders(headerName.getValue());
-        return new ArrayValueImpl(BStringUtils.fromStringArray(headers));
+        return StringUtils.fromStringArray(headers);
     }
 
     public static boolean hasHeader(BObject pushPromiseObj, BString headerName) {
@@ -94,4 +89,6 @@ public class ExternPushPromise {
                 HttpUtil.getPushPromise(pushPromiseObj, HttpUtil.createHttpPushPromise(pushPromiseObj));
         http2PushPromise.setHeader(headerName.getValue(), headerValue.getValue());
     }
+
+    private ExternPushPromise() {}
 }

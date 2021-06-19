@@ -18,9 +18,8 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.HttpConstants;
 
 import java.net.InetSocketAddress;
@@ -33,11 +32,16 @@ import java.net.InetSocketAddress;
  */
 public class GetRemoteHostName {
 
-    public static BString nativeGetRemoteHostName(BObject caller) {
+    public static Object nativeGetRemoteHostName(BObject caller) {
         Object remoteSocketAddress = caller.getNativeData(HttpConstants.REMOTE_SOCKET_ADDRESS);
+        if (remoteSocketAddress == null) {
+            return null;
+        }
         if (remoteSocketAddress instanceof InetSocketAddress) {
-            return BStringUtils.fromString(((InetSocketAddress) remoteSocketAddress).getHostName());
+            return StringUtils.fromString(((InetSocketAddress) remoteSocketAddress).getHostName());
         }
         return null;
     }
+
+    private GetRemoteHostName() {}
 }

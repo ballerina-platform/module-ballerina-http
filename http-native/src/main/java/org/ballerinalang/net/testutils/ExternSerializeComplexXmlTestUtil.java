@@ -29,8 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 
-import static org.ballerinalang.jvm.XMLFactory.isEqual;
-import static org.ballerinalang.jvm.XMLFactory.parse;
+import static io.ballerina.runtime.api.utils.XmlUtils.parse;
 
 /**
  * Contains utility functions used for XML Serialization Test case.
@@ -46,8 +45,7 @@ public class ExternSerializeComplexXmlTestUtil {
             Assert.assertEquals(response.getResponseCode(), 200, "Response code mismatched");
             Assert.assertEquals(response.getHeaders().get(HttpHeaderNames.CONTENT_TYPE.toString()),
                                 TestConstant.CONTENT_TYPE_XML, "Content-Type mismatched");
-            Assert.assertTrue(isEqual(parse(response.getData()), parse(getInputStream())),
-                              "Message content mismatched");
+            Assert.assertEquals(parse(getInputStream()), parse(response.getData()), "Message content mismatched");
         } catch (IOException e) {
             log.error("Error in processing request" + e.getMessage());
             return false;
@@ -56,7 +54,7 @@ public class ExternSerializeComplexXmlTestUtil {
     }
 
     private static InputStream getInputStream() throws IOException {
-        String filePath = Paths.get("src/http-tests/tests/integration-tests/resources/ComplexTestXmlSample.xml")
+        String filePath = Paths.get("tests/datafiles/ComplexTestXmlSample.xml")
                 .toAbsolutePath().toString();
         return new FileInputStream(filePath);
     }

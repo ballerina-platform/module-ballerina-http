@@ -18,13 +18,13 @@
 
 package org.ballerinalang.net.http.nativeimpl.pipelining;
 
-import org.ballerinalang.jvm.api.values.BObject;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.DataContext;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.util.Objects;
 
-import static org.wso2.transport.http.netty.contract.Constants.MEANINGFULLY_EQUAL;
+import static org.ballerinalang.net.transport.contract.Constants.MEANINGFULLY_EQUAL;
 
 /**
  * Represents a pipelined response. Response order can be determined based on the sequence number.

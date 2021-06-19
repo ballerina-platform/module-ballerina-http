@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class DispatcherUtil {
 
     private static String[] allMethods = new String[]{HttpConstants.HTTP_METHOD_GET, HttpConstants.HTTP_METHOD_HEAD
-            , HttpConstants.HTTP_METHOD_POST, HttpConstants.HTTP_METHOD_DELETE
+            , HttpConstants.HTTP_METHOD_POST, HttpConstants.HTTP_METHOD_DELETE, HttpConstants.HTTP_METHOD_PATCH
             , HttpConstants.HTTP_METHOD_PUT, HttpConstants.HTTP_METHOD_OPTIONS};
 
     public static boolean isMatchingMethodExist(HttpResource resourceInfo, String method) {

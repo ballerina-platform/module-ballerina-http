@@ -18,11 +18,12 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
-import org.ballerinalang.jvm.api.BErrorCreator;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.values.ArrayValue;
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.mime.util.HeaderUtil;
 import org.ballerinalang.mime.util.MultipartDataSource;
@@ -30,11 +31,13 @@ import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
-import org.wso2.transport.http.netty.contract.HttpConnectorListener;
-import org.wso2.transport.http.netty.contract.HttpResponseFuture;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
-import org.wso2.transport.http.netty.message.HttpMessageDataStreamer;
-import org.wso2.transport.http.netty.message.PooledDataStreamerFactory;
+import org.ballerinalang.net.transport.contract.HttpConnectorListener;
+import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
+import org.ballerinalang.net.transport.message.PooledDataStreamerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,6 +51,8 @@ import static org.ballerinalang.net.http.HttpUtil.extractEntity;
  * @since 0.982.0
  */
 public class ResponseWriter {
+
+    private static final Logger log = LoggerFactory.getLogger(ResponseWriter.class);
 
     /**
      * Send outbound response to destination.
@@ -76,64 +81,65 @@ public class ResponseWriter {
         OutputStream messageOutputStream = outboundMsgDataStreamer.getOutputStream();
         if (entityObj != null) {
             if (boundaryString != null) {
-                serializeMultiparts(boundaryString, entityObj, messageOutputStream);
+                serializeMultiparts(dataContext.getEnvironment(), boundaryString, entityObj, messageOutputStream);
             } else {
                 Object outboundMessageSource = EntityBodyHandler.getMessageDataSource(entityObj);
-                serializeDataSource(outboundMessageSource, entityObj, messageOutputStream);
+                serializeDataSource(dataContext.getEnvironment(), outboundMessageSource, entityObj,
+                                    messageOutputStream);
             }
         }
     }
 
     /**
      * Serialize multipart entity body. If an array of body parts exist, encode body parts else serialize body content
-     * if it exist as a byte channel.
+     * if it exist as a byte channel/stream.
      *
+     * @param env                 Represents the runtime environment
      * @param boundaryString      Boundary string that should be used in encoding body parts
      * @param entity              Represents the entity that holds the actual body
      * @param messageOutputStream Represents the output stream
      */
-    private static void serializeMultiparts(String boundaryString, BObject entity,
-                                            OutputStream messageOutputStream) {
-        ArrayValue bodyParts = EntityBodyHandler.getBodyPartArray(entity);
-        try {
-            if (bodyParts != null && bodyParts.size() > 0) {
-                MultipartDataSource multipartDataSource = new MultipartDataSource(entity, boundaryString);
-                serializeDataSource(multipartDataSource, entity, messageOutputStream);
-                HttpUtil.closeMessageOutputStream(messageOutputStream);
-            } else {
-                EntityBodyHandler.writeByteChannelToOutputStream(entity, messageOutputStream);
-                HttpUtil.closeMessageOutputStream(messageOutputStream);
-            }
-        } catch (IOException ex) {
-            throw BErrorCreator.createError(BStringUtils.fromString(SERIALIZATION_ERROR),
-                                            BStringUtils.fromString(
-                                                    "error occurred while serializing byte channel content : " +
-                                                            ex.getMessage()));
+    private static void serializeMultiparts(Environment env, String boundaryString, BObject entity,
+                                             OutputStream messageOutputStream) {
+        BArray bodyParts = EntityBodyHandler.getBodyPartArray(entity);
+        if (bodyParts != null && bodyParts.size() > 0) {
+            MultipartDataSource multipartDataSource = new MultipartDataSource(env, entity, boundaryString);
+            multipartDataSource.serialize(messageOutputStream);
+            HttpUtil.closeMessageOutputStream(messageOutputStream);
+        } else {
+            serializeDataSource(env, EntityBodyHandler.getMessageDataSource(entity), entity,
+                                messageOutputStream);
         }
     }
 
     /**
      * Serialize message datasource.
      *
+     * @param env                   Represents the runtime environment
      * @param outboundMessageSource Outbound message datasource that needs to be serialized
      * @param entity                Represents the entity that holds headers and body content
      * @param messageOutputStream   Represents the output stream
      */
-    static void serializeDataSource(Object outboundMessageSource, BObject entity,
+    static void serializeDataSource(Environment env, Object outboundMessageSource, BObject entity,
                                     OutputStream messageOutputStream) {
         try {
             if (outboundMessageSource != null) {
                 HttpUtil.serializeDataSource(outboundMessageSource, entity, messageOutputStream);
                 HttpUtil.closeMessageOutputStream(messageOutputStream);
-            } else { //When the entity body is a byte channel
+            } else if (EntityBodyHandler.getByteStream(entity) != null) {
+                //When the entity body is a byte stream and when it is not null
+                EntityBodyHandler.writeByteStreamToOutputStream(env, entity, messageOutputStream);
+                HttpUtil.closeMessageOutputStream(messageOutputStream);
+            } else if (EntityBodyHandler.getByteChannel(entity) != null) {
+                //When the entity body is a byte channel and when it is not null
                 EntityBodyHandler.writeByteChannelToOutputStream(entity, messageOutputStream);
                 HttpUtil.closeMessageOutputStream(messageOutputStream);
+            }  else {
+                log.debug("Entity does not have a serializable payload");
             }
         } catch (IOException ex) {
-            throw BErrorCreator.createError(BStringUtils.fromString(SERIALIZATION_ERROR),
-                                            BStringUtils.fromString(
-                                                    "error occurred while serializing message data source : " +
-                                                            ex.getMessage()));
+            throw ErrorCreator.createError(StringUtils.fromString(SERIALIZATION_ERROR), StringUtils.fromString(
+                    "error occurred while serializing message data source : " + ex.getMessage()));
         }
     }
 
@@ -191,4 +197,6 @@ public class ResponseWriter {
             this.dataContext.notifyOutboundResponseStatus(httpConnectorError);
         }
     }
+
+    private ResponseWriter() {}
 }

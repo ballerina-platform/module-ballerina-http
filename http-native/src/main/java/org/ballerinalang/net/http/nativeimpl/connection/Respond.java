@@ -18,30 +18,26 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.observability.ObserveUtils;
+import io.ballerina.runtime.observability.ObserverContext;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.observability.ObserveUtils;
-import org.ballerinalang.jvm.observability.ObserverContext;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.State;
-import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
-import org.ballerinalang.net.http.caching.ResponseCacheControlObj;
+import org.ballerinalang.net.http.client.caching.ResponseCacheControlObj;
 import org.ballerinalang.net.http.nativeimpl.pipelining.PipelinedResponse;
 import org.ballerinalang.net.http.util.CacheUtils;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
 
-import java.util.Optional;
-
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
+import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
+import static org.ballerinalang.net.http.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_STATUS_CODE_FIELD;
 import static org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler.executePipeliningLogic;
@@ -57,20 +53,19 @@ public class Respond extends ConnectionAction {
 
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
 
-    public static Object nativeRespond(BalEnv env, BObject connectionObj, BObject outboundResponseObj) {
-
+    public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        Strand strand = Scheduler.getStrand();
-        DataContext dataContext = new DataContext(strand, env.markAsync(), inboundRequestMsg);
+        DataContext dataContext = new DataContext(env, inboundRequestMsg);
         if (isDirtyResponse(outboundResponseObj)) {
             String errorMessage = "Couldn't complete the respond operation as the response has been already used.";
             HttpUtil.sendOutboundResponse(inboundRequestMsg, HttpUtil.createErrorMessage(errorMessage, 500));
-            unBlockStrand(strand);
             if (log.isDebugEnabled()) {
                 log.debug("Couldn't complete the respond operation for the sequence id of the request: {} " +
-                        "as the response has been already used.", inboundRequestMsg.getSequenceId());
+                                  "as the response has been already used.", inboundRequestMsg.getSequenceId());
             }
-            return HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
+            BError httpError = HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
+            dataContext.getFuture().complete(httpError);
+            return null;
         }
         outboundResponseObj.addNativeData(HttpConstants.DIRTY_RESPONSE, true);
         HttpCarbonMessage outboundResponseMsg = HttpUtil.getCarbonMsg(outboundResponseObj, HttpUtil.
@@ -92,9 +87,17 @@ public class Respond extends ConnectionAction {
             outboundResponseMsg.completeMessage();
         }
 
-        Optional<ObserverContext> observerContext = ObserveUtils.getObserverContextOfCurrentFrame(strand);
-        int statusCode = (int) outboundResponseObj.getIntValue(RESPONSE_STATUS_CODE_FIELD);
-        observerContext.ifPresent(ctx -> ctx.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode));
+        if (ObserveUtils.isObservabilityEnabled()) {
+            int statusCode = (int) outboundResponseObj.getIntValue(RESPONSE_STATUS_CODE_FIELD);
+            ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(env);
+            if (observerContext == null) {
+                observerContext = (ObserverContext) inboundRequestMsg.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            }
+            observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
+            if (observerContext.isManuallyClosed()) {
+                ObserveUtils.stopObservationWithContext(observerContext);
+            }
+        }
         try {
             if (pipeliningRequired(inboundRequestMsg)) {
                 if (log.isDebugEnabled()) {
@@ -109,24 +112,16 @@ public class Respond extends ConnectionAction {
                 sendOutboundResponseRobust(dataContext, inboundRequestMsg, outboundResponseObj, outboundResponseMsg);
             }
         } catch (BError e) {
-            unBlockStrand(strand);
             log.debug(e.getPrintableStackTrace(), e);
-            return e;
+            dataContext.getFuture().complete(e);
         } catch (Throwable e) {
-            unBlockStrand(strand);
             //Exception is already notified by http transport.
-            String errorMessage = "Couldn't complete outbound response";
+            String errorMessage = "Couldn't complete outbound response: " + e != null ? e.getMessage() : "";
             log.debug(errorMessage, e);
-            return HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
+            dataContext.getFuture().complete(
+                    HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR));
         }
         return null;
-    }
-
-    // Please refer #18763. This should be done through a JBallerina API which provides the capability
-    // of high level strand state handling - There is no such API ATM.
-    private static void unBlockStrand(Strand strand) {
-        strand.setState(State.RUNNABLE);
-        strand.blockedOnExtern = false;
     }
 
     private static void setCacheControlHeader(BObject outboundRespObj, HttpCarbonMessage outboundResponse) {
@@ -142,4 +137,6 @@ public class Respond extends ConnectionAction {
         return outboundResponseObj.get(RESPONSE_CACHE_CONTROL_FIELD) == null && outboundResponseObj.
                 getNativeData(HttpConstants.DIRTY_RESPONSE) != null;
     }
+
+    private Respond() {}
 }

@@ -18,6 +18,25 @@
 
 package org.ballerinalang.net.http;
 
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.utils.JsonUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BDecimal;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BRefValue;
+import io.ballerina.runtime.api.values.BStreamingJson;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BXmlItem;
+import io.ballerina.runtime.api.values.BXmlSequence;
+import io.ballerina.runtime.observability.ObserveUtils;
+import io.ballerina.runtime.observability.ObserverContext;
+import io.ballerina.runtime.transactions.TransactionConstants;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
@@ -28,30 +47,8 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import org.apache.commons.lang3.StringUtils;
+import io.netty.util.CharsetUtil;
 import org.ballerinalang.config.ConfigRegistry;
-import org.ballerinalang.jvm.JSONGenerator;
-import org.ballerinalang.jvm.api.BErrorCreator;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.observability.ObserveUtils;
-import org.ballerinalang.jvm.observability.ObserverContext;
-import org.ballerinalang.jvm.scheduling.Strand;
-import org.ballerinalang.jvm.services.ErrorHandlerUtils;
-import org.ballerinalang.jvm.transactions.TransactionConstants;
-import org.ballerinalang.jvm.types.AttachedFunction;
-import org.ballerinalang.jvm.types.BPackage;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
-import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.ArrayValueImpl;
-import org.ballerinalang.jvm.values.MapValue;
-import org.ballerinalang.jvm.values.RefValue;
-import org.ballerinalang.jvm.values.StreamingJsonValue;
-import org.ballerinalang.jvm.values.XMLItem;
-import org.ballerinalang.jvm.values.XMLSequence;
 import org.ballerinalang.mime.util.EntityBodyChannel;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.mime.util.EntityHeaderHandler;
@@ -60,58 +57,63 @@ import org.ballerinalang.mime.util.HeaderUtil;
 import org.ballerinalang.mime.util.MimeUtil;
 import org.ballerinalang.mime.util.MultipartDataSource;
 import org.ballerinalang.mime.util.MultipartDecoder;
-import org.ballerinalang.net.http.caching.RequestCacheControlObj;
-import org.ballerinalang.net.http.caching.ResponseCacheControlObj;
-import org.ballerinalang.net.http.websocket.WebSocketConstants;
+import org.ballerinalang.net.http.client.caching.RequestCacheControlObj;
+import org.ballerinalang.net.http.client.caching.ResponseCacheControlObj;
+import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
+import org.ballerinalang.net.transport.contract.config.ChunkConfig;
+import org.ballerinalang.net.transport.contract.config.ForwardedExtensionConfig;
+import org.ballerinalang.net.transport.contract.config.InboundMsgSizeValidationConfig;
+import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
+import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
+import org.ballerinalang.net.transport.contract.config.Parameter;
+import org.ballerinalang.net.transport.contract.config.ProxyServerConfiguration;
+import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
+import org.ballerinalang.net.transport.contract.config.SslConfiguration;
+import org.ballerinalang.net.transport.contract.exceptions.ClientConnectorException;
+import org.ballerinalang.net.transport.contract.exceptions.ConnectionTimedOutException;
+import org.ballerinalang.net.transport.contract.exceptions.EndpointTimeOutException;
+import org.ballerinalang.net.transport.contract.exceptions.PromiseRejectedException;
+import org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException;
+import org.ballerinalang.net.transport.contract.exceptions.SslException;
+import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.ConnectionManager;
+import org.ballerinalang.net.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import org.ballerinalang.net.transport.message.Http2PushPromise;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 import org.ballerinalang.stdlib.io.utils.IOConstants;
+import org.ballerinalang.stdlib.io.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.contract.HttpResponseFuture;
-import org.wso2.transport.http.netty.contract.HttpWsConnectorFactory;
-import org.wso2.transport.http.netty.contract.config.ChunkConfig;
-import org.wso2.transport.http.netty.contract.config.ForwardedExtensionConfig;
-import org.wso2.transport.http.netty.contract.config.KeepAliveConfig;
-import org.wso2.transport.http.netty.contract.config.ListenerConfiguration;
-import org.wso2.transport.http.netty.contract.config.Parameter;
-import org.wso2.transport.http.netty.contract.config.ProxyServerConfiguration;
-import org.wso2.transport.http.netty.contract.config.RequestSizeValidationConfig;
-import org.wso2.transport.http.netty.contract.config.SenderConfiguration;
-import org.wso2.transport.http.netty.contract.config.SslConfiguration;
-import org.wso2.transport.http.netty.contract.exceptions.ClientConnectorException;
-import org.wso2.transport.http.netty.contract.exceptions.ConnectionTimedOutException;
-import org.wso2.transport.http.netty.contract.exceptions.EndpointTimeOutException;
-import org.wso2.transport.http.netty.contract.exceptions.PromiseRejectedException;
-import org.wso2.transport.http.netty.contract.exceptions.ServerConnectorException;
-import org.wso2.transport.http.netty.contract.exceptions.SslException;
-import org.wso2.transport.http.netty.contractimpl.sender.channel.pool.ConnectionManager;
-import org.wso2.transport.http.netty.contractimpl.sender.channel.pool.PoolConfiguration;
-import org.wso2.transport.http.netty.message.Http2PushPromise;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
-import org.wso2.transport.http.netty.message.HttpMessageDataStreamer;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
+import static io.ballerina.runtime.api.utils.StringUtils.fromString;
+import static io.ballerina.runtime.api.utils.StringUtils.fromStringArray;
+import static io.ballerina.runtime.api.utils.StringUtils.fromStringSet;
+import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_HOST;
+import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_PORT;
+import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
+import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
+import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
+import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
 import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.PROPERTY_HTTP_HOST;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.PROPERTY_HTTP_PORT;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
-import static org.ballerinalang.jvm.runtime.RuntimeConstants.BALLERINA_VERSION;
 import static org.ballerinalang.mime.util.EntityBodyHandler.checkEntityBodyAvailability;
 import static org.ballerinalang.mime.util.MimeConstants.BOUNDARY;
 import static org.ballerinalang.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
@@ -130,20 +132,7 @@ import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABL
 import static org.ballerinalang.net.http.HttpConstants.AUTO;
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_MANAGER;
 import static org.ballerinalang.net.http.HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION;
-import static org.ballerinalang.net.http.HttpConstants.ENABLED_PROTOCOLS;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_CERTIFICATE;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_DISABLE_SSL;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_KEY;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_KEY_PASSWORD;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_KEY_STORE;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_OCSP_STAPLING;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_PROTOCOLS;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_SESSION_TIMEOUT;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_TRUST_CERTIFICATES;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_TRUST_STORE;
-import static org.ballerinalang.net.http.HttpConstants.ENDPOINT_CONFIG_VALIDATE_CERT;
-import static org.ballerinalang.net.http.HttpConstants.FILE_PATH;
+import static org.ballerinalang.net.http.HttpConstants.DOUBLE_SLASH;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_ERROR_MESSAGE;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_TRAILER_HEADERS;
@@ -153,10 +142,8 @@ import static org.ballerinalang.net.http.HttpConstants.MUTUAL_SSL_HANDSHAKE_RECO
 import static org.ballerinalang.net.http.HttpConstants.NEVER;
 import static org.ballerinalang.net.http.HttpConstants.NO_CONTENT_LENGTH_FOUND;
 import static org.ballerinalang.net.http.HttpConstants.ONE_BYTE;
-import static org.ballerinalang.net.http.HttpConstants.PASSWORD;
 import static org.ballerinalang.net.http.HttpConstants.PKCS_STORE_TYPE;
 import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTPS;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_HTTP_PKG_ID;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_CACHE_CONTROL_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.REQUEST_MUTUAL_SSL_HANDSHAKE_FIELD;
@@ -167,32 +154,54 @@ import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_REASON_PHRASE_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_STATUS_CODE_FIELD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERTKEY_CERT_FILE;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERTKEY_KEY_FILE;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_CIPHERS;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_HANDSHAKE_TIMEOUT;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_HOST_NAME_VERIFICATION_ENABLED;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_KEY;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_KEYSTORE_FILE_PATH;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_KEYSTORE_PASSWORD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_MUTUAL_SSL;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_PROTOCOL;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_PROTOCOL_NAME;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_PROTOCOL_VERSIONS;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_SHARE_SESSION;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
+import static org.ballerinalang.net.http.HttpConstants.SECURESOCKET_CONFIG_VERIFY_CLIENT;
 import static org.ballerinalang.net.http.HttpConstants.SERVER_NAME;
-import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_ENABLE_SESSION_CREATION;
-import static org.ballerinalang.net.http.HttpConstants.SSL_CONFIG_SSL_VERIFY_CLIENT;
-import static org.ballerinalang.net.http.HttpConstants.SSL_PROTOCOL_VERSION;
 import static org.ballerinalang.net.http.HttpConstants.TRANSPORT_MESSAGE;
+import static org.ballerinalang.net.http.nativeimpl.ModuleUtils.getHttpPackage;
 import static org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler.sendPipelinedResponse;
-import static org.ballerinalang.stdlib.io.utils.IOConstants.IO_PACKAGE_ID;
-import static org.wso2.transport.http.netty.contract.Constants.ENCODING_GZIP;
-import static org.wso2.transport.http.netty.contract.Constants.HTTP_1_1_VERSION;
-import static org.wso2.transport.http.netty.contract.Constants.HTTP_2_0_VERSION;
-import static org.wso2.transport.http.netty.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
-import static org.wso2.transport.http.netty.contract.Constants.PROMISED_STREAM_REJECTED_ERROR;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_INBOUND_REQUEST;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_BODY;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_HEADERS;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_100_CONTINUE_RESPONSE;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
-import static org.wso2.transport.http.netty.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.ENCODING_GZIP;
+import static org.ballerinalang.net.transport.contract.Constants.HTTP_1_1_VERSION;
+import static org.ballerinalang.net.transport.contract.Constants.HTTP_2_0_VERSION;
+import static org.ballerinalang.net.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
+import static org.ballerinalang.net.transport.contract.Constants.PROMISED_STREAM_REJECTED_ERROR;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_INBOUND_REQUEST;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_BODY;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_100_CONTINUE_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
+import static org.ballerinalang.net.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 
 /**
  * Utility class providing utility methods.
@@ -207,6 +216,7 @@ public class HttpUtil {
     private static final String METHOD_ACCESSED = "isMethodAccessed";
     private static final String IO_EXCEPTION_OCCURRED = "I/O exception occurred";
     private static final String CHUNKING_CONFIG = "chunking_config";
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal function invocation";
 
     /**
      * Set new entity to in/out request/response struct.
@@ -329,15 +339,13 @@ public class HttpUtil {
         HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
         for (String key : httpHeaders.names()) {
             String[] values = httpHeaders.getAll(key).toArray(new String[0]);
-            headers.put(org.ballerinalang.jvm.api.BStringUtils.fromString(key.toLowerCase()),
-                        new ArrayValueImpl(org.ballerinalang.jvm.api.BStringUtils.fromStringArray(values)));
+            headers.put(fromString(key.toLowerCase(Locale.getDefault())), fromStringArray(values));
         }
         entity.set(HEADERS_MAP_FIELD, headers);
 
         Set<String> distinctNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         distinctNames.addAll(httpHeaders.names());
-        entity.set(HEADER_NAMES_ARRAY_FIELD, new ArrayValueImpl(
-                org.ballerinalang.jvm.api.BStringUtils.fromStringSet(distinctNames)));
+        entity.set(HEADER_NAMES_ARRAY_FIELD, fromStringSet(distinctNames));
     }
 
     /**
@@ -451,8 +459,7 @@ public class HttpUtil {
         return responseFuture;
     }
 
-    public static void handleFailure(HttpCarbonMessage requestMessage, BallerinaConnectorException ex) {
-        String errorMsg = ex.getMessage();
+    public static void handleFailure(HttpCarbonMessage requestMessage, String errorMsg) {
         int statusCode = getStatusCode(requestMessage, errorMsg);
         sendPipelinedResponse(requestMessage, createErrorMessage(errorMsg, statusCode));
     }
@@ -460,13 +467,13 @@ public class HttpUtil {
     static void handleFailure(HttpCarbonMessage requestMessage, BError error) {
         String errorMsg = getErrorMessage(error);
         int statusCode = getStatusCode(requestMessage, errorMsg);
-        ErrorHandlerUtils.printError("error: " + error.getPrintableStackTrace());
+        error.printStackTrace();
         sendPipelinedResponse(requestMessage, createErrorMessage(errorMsg, statusCode));
     }
 
     private static String getErrorMessage(BError error) {
         BMap errorDetails = (BMap) error.getDetails();
-        if (!errorDetails.isEmpty()) {
+        if (errorDetails != null && errorDetails.get(HTTP_ERROR_MESSAGE) != null) {
             return errorDetails.get(HTTP_ERROR_MESSAGE).toString();
         }
         return error.getErrorMessage().getValue();
@@ -486,8 +493,8 @@ public class HttpUtil {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         response.waitAndReleaseAllEntities();
         if (payload != null) {
-            payload = lowerCaseTheFirstLetter(payload);
-            response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(payload.getBytes())));
+            response.addHttpContent(
+                    new DefaultLastHttpContent(Unpooled.wrappedBuffer(payload.getBytes(CharsetUtil.UTF_8))));
         } else {
             response.addHttpContent(new DefaultLastHttpContent());
         }
@@ -496,18 +503,9 @@ public class HttpUtil {
         return response;
     }
 
-    private static String lowerCaseTheFirstLetter(String payload) {
-        if (!payload.isEmpty()) {
-            char[] characters = payload.toCharArray();
-            characters[0] = Character.toLowerCase(characters[0]);
-            payload = new String(characters);
-        }
-        return payload;
-    }
-
     private static void setHttpStatusCodes(int statusCode, HttpCarbonMessage response) {
         HttpHeaders httpHeaders = response.getHeaders();
-        httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, org.wso2.transport.http.netty.contract.Constants.TEXT_PLAIN);
+        httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, org.ballerinalang.net.transport.contract.Constants.TEXT_PLAIN);
 
         response.setHttpStatusCode(statusCode);
     }
@@ -519,7 +517,7 @@ public class HttpUtil {
      * @return Error struct
      */
     public static BError getError(Throwable throwable) {
-        if (throwable instanceof ClientConnectorException) {
+        if (throwable.getCause() instanceof ClientConnectorException) {
             return createHttpError(throwable);
         }
         if (throwable.getMessage() == null) {
@@ -543,28 +541,32 @@ public class HttpUtil {
         } else if (throwable instanceof PromiseRejectedException) {
             return createHttpError(throwable.getMessage(), HttpErrorType.HTTP2_CLIENT_ERROR);
         } else if (throwable instanceof ConnectionTimedOutException) {
-            cause = createErrorCause(throwable.getMessage(),
-                                     IOConstants.ErrorCode.ConnectionTimedOut.errorCode(),
-                                     IO_PACKAGE_ID);
+            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.ConnectionTimedOut.errorCode(),
+                                     IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else if (throwable instanceof ClientConnectorException) {
-            cause = createErrorCause(throwable.getMessage(),
-                                     IOConstants.ErrorCode.GenericError.errorCode(),
-                                     IO_PACKAGE_ID);
+            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
+                                     IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
+        } else if (throwable instanceof NullPointerException) {
+            return createHttpError("Exception occurred: null", HttpErrorType.GENERIC_CLIENT_ERROR,
+                                   createHttpError(throwable.toString()));
         } else {
-            return createHttpError(throwable.getMessage());
+            return createHttpError(throwable.getMessage(), HttpErrorType.CLIENT_ERROR);
         }
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType) {
-        return BErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
-                                                 BStringUtils.fromString(message));
+        return createHttpError(errorType, message, null, null);
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType, BError cause) {
-        return BErrorCreator.createDistinctError(errorType.getErrorName(), PROTOCOL_HTTP_PKG_ID,
-                                                 BStringUtils.fromString(message), cause);
+        return createHttpError(errorType, message, cause, null);
+    }
+
+    public static BError createHttpError(HttpErrorType errorType, String message, BError cause,
+                                         BMap<BString, Object> detail) {
+        return ErrorCreator.createError(getHttpPackage(), errorType.getErrorName(), fromString(message), cause, detail);
     }
 
     // TODO: Find a better way to get the error type than String matching.
@@ -610,8 +612,9 @@ public class HttpUtil {
         }
     }
 
-    private static BError createErrorCause(String message, String errorTypeId, BPackage packageName) {
-        return BErrorCreator.createDistinctError(errorTypeId, packageName, BStringUtils.fromString(message));
+    private static BError createErrorCause(String message, String errorTypeId, Module packageName) {
+        return ErrorCreator.createDistinctError(errorTypeId, packageName,
+                                                fromString(message));
     }
 
     public static HttpCarbonMessage getCarbonMsg(BObject objectValue, HttpCarbonMessage defaultMsg) {
@@ -648,10 +651,8 @@ public class HttpUtil {
     public static void populatePushPromiseStruct(BObject pushPromiseObj,
                                                  Http2PushPromise pushPromise) {
         pushPromiseObj.addNativeData(HttpConstants.TRANSPORT_PUSH_PROMISE, pushPromise);
-        pushPromiseObj.set(HttpConstants.PUSH_PROMISE_PATH_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                .fromString(pushPromise.getPath()));
-        pushPromiseObj.set(HttpConstants.PUSH_PROMISE_METHOD_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                .fromString(pushPromise.getMethod()));
+        pushPromiseObj.set(HttpConstants.PUSH_PROMISE_PATH_FIELD, fromString(pushPromise.getPath()));
+        pushPromiseObj.set(HttpConstants.PUSH_PROMISE_METHOD_FIELD, fromString(pushPromise.getMethod()));
     }
 
     /**
@@ -685,10 +686,9 @@ public class HttpUtil {
         BMap<BString, Object> mutualSslRecord = ValueCreatorUtils.createHTTPRecordValue(
                 MUTUAL_SSL_HANDSHAKE_RECORD);
         mutualSslRecord.put(REQUEST_MUTUAL_SSL_HANDSHAKE_STATUS,
-                            org.ballerinalang.jvm.api.BStringUtils.fromString(
-                                    (String) inboundRequestMsg.getProperty(HttpConstants.MUTUAL_SSL_RESULT)));
-        mutualSslRecord.put(MUTUAL_SSL_CERTIFICATE, org.ballerinalang.jvm.api.BStringUtils
-                .fromString((String) inboundRequestMsg.getProperty(HttpConstants.BASE_64_ENCODED_CERT)));
+                            fromString((String) inboundRequestMsg.getProperty(HttpConstants.MUTUAL_SSL_RESULT)));
+        mutualSslRecord.put(MUTUAL_SSL_CERTIFICATE,
+                            fromString((String) inboundRequestMsg.getProperty(HttpConstants.BASE_64_ENCODED_CERT)));
         inboundRequest.set(REQUEST_MUTUAL_SSL_HANDSHAKE_FIELD, mutualSslRecord);
 
         enrichWithInboundRequestInfo(inboundRequest, inboundRequestMsg);
@@ -710,7 +710,7 @@ public class HttpUtil {
     private static void enrichWithInboundRequestHeaders(BObject inboundRequestObj,
                                                         HttpCarbonMessage inboundRequestMsg) {
         if (inboundRequestMsg.getHeader(HttpHeaderNames.USER_AGENT.toString()) != null) {
-            BString agent = org.ballerinalang.jvm.api.BStringUtils.fromString(
+            BString agent = fromString(
                     inboundRequestMsg.getHeader(HttpHeaderNames.USER_AGENT.toString()));
             inboundRequestObj.set(HttpConstants.REQUEST_USER_AGENT_FIELD, agent);
             inboundRequestMsg.removeHeader(HttpHeaderNames.USER_AGENT.toString());
@@ -720,17 +720,16 @@ public class HttpUtil {
     private static void enrichWithInboundRequestInfo(BObject inboundRequestObj,
                                                      HttpCarbonMessage inboundRequestMsg) {
         inboundRequestObj.set(HttpConstants.REQUEST_RAW_PATH_FIELD,
-                              org.ballerinalang.jvm.api.BStringUtils.fromString(inboundRequestMsg.getRequestUrl()));
+                              fromString(inboundRequestMsg.getRequestUrl()));
         inboundRequestObj.set(HttpConstants.REQUEST_METHOD_FIELD,
-                              org.ballerinalang.jvm.api.BStringUtils.fromString(inboundRequestMsg.getHttpMethod()));
+                              fromString(inboundRequestMsg.getHttpMethod()));
         inboundRequestObj.set(HttpConstants.REQUEST_VERSION_FIELD,
-                              org.ballerinalang.jvm.api.BStringUtils.fromString(inboundRequestMsg.getHttpVersion()));
+                              fromString(inboundRequestMsg.getHttpVersion()));
         HttpResourceArguments resourceArgValues = (HttpResourceArguments) inboundRequestMsg.getProperty(
                 HttpConstants.RESOURCE_ARGS);
         if (resourceArgValues != null && resourceArgValues.getMap().get(HttpConstants.EXTRA_PATH_INFO) != null) {
-            inboundRequestObj.set(
-                    HttpConstants.REQUEST_EXTRA_PATH_INFO_FIELD, org.ballerinalang.jvm.api.BStringUtils.fromString(
-                            resourceArgValues.getMap().get(HttpConstants.EXTRA_PATH_INFO)));
+            Map<Integer, String> extraPath = resourceArgValues.getMap().get(HttpConstants.EXTRA_PATH_INFO);
+            inboundRequestObj.set(HttpConstants.REQUEST_EXTRA_PATH_INFO_FIELD, fromString(extraPath.get(0)));
         }
     }
 
@@ -762,7 +761,7 @@ public class HttpUtil {
         Object remoteSocketAddress = inboundMsg.getProperty(HttpConstants.REMOTE_ADDRESS);
         if (remoteSocketAddress instanceof InetSocketAddress) {
             InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteSocketAddress;
-            BString remoteHost = org.ballerinalang.jvm.api.BStringUtils.fromString(inetSocketAddress.getHostString());
+            BString remoteHost = fromString(inetSocketAddress.getHostString());
             long remotePort = inetSocketAddress.getPort();
             remote.put(HttpConstants.REMOTE_HOST_FIELD, remoteHost);
             remote.put(HttpConstants.REMOTE_PORT_FIELD, remotePort);
@@ -774,12 +773,12 @@ public class HttpUtil {
             InetSocketAddress inetSocketAddress = (InetSocketAddress) localSocketAddress;
             String localHost = inetSocketAddress.getHostName();
             long localPort = inetSocketAddress.getPort();
-            local.put(HttpConstants.LOCAL_HOST_FIELD, org.ballerinalang.jvm.api.BStringUtils.fromString(localHost));
+            local.put(HttpConstants.LOCAL_HOST_FIELD, fromString(localHost));
             local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
         }
         httpCaller.set(HttpConstants.LOCAL_STRUCT_INDEX, local);
-        httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                .fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
+        httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD,
+                       fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_CONFIG_FIELD, config);
         httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, httpResource.getParentService());
         httpCaller.addNativeData(HttpConstants.REMOTE_SOCKET_ADDRESS, remoteSocketAddress);
@@ -796,24 +795,23 @@ public class HttpUtil {
         inboundResponse.addNativeData(TRANSPORT_MESSAGE, inboundResponseMsg);
         int statusCode = inboundResponseMsg.getHttpStatusCode();
         inboundResponse.set(RESPONSE_STATUS_CODE_FIELD, (long) statusCode);
-        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                .fromString(HttpResponseStatus.valueOf(statusCode).reasonPhrase()));
+        String reasonPhrase = inboundResponseMsg.getReasonPhrase();
+        inboundResponse.set(RESPONSE_REASON_PHRASE_FIELD, fromString(reasonPhrase));
 
         if (inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) != null) {
-            inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                    .fromString(inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString())));
-            inboundResponseMsg.removeHeader(HttpHeaderNames.SERVER.toString());
+            inboundResponse.set(HttpConstants.RESPONSE_SERVER_FIELD,
+                                fromString(inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString())));
         }
 
         if (inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI) != null) {
-            inboundResponse.set(RESOLVED_REQUESTED_URI_FIELD, org.ballerinalang.jvm.api.BStringUtils
-                    .fromString(inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI).toString()));
+            inboundResponse.set(RESOLVED_REQUESTED_URI_FIELD,
+                                fromString(inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI).toString()));
         }
 
         String cacheControlHeader = inboundResponseMsg.getHeader(CACHE_CONTROL.toString());
         if (cacheControlHeader != null) {
-            ResponseCacheControlObj responseCacheControl = new ResponseCacheControlObj(PROTOCOL_HTTP_PKG_ID,
-                    RESPONSE_CACHE_CONTROL);
+            ResponseCacheControlObj responseCacheControl = new ResponseCacheControlObj(getHttpPackage(),
+                                                                                       RESPONSE_CACHE_CONTROL);
             responseCacheControl.populateStruct(cacheControlHeader);
             inboundResponse.set(RESPONSE_CACHE_CONTROL_FIELD, responseCacheControl.getObj());
         }
@@ -885,11 +883,10 @@ public class HttpUtil {
         BMap<BString, Object> entityHeaders = EntityHeaderHandler.getEntityHeaderMap(entityObj);
 
         for (BString entryKey : entityHeaders.getKeys()) {
-            ArrayValueImpl entryValues = (ArrayValueImpl) entityHeaders.get(entryKey);
+            BArray entryValues = (BArray) entityHeaders.get(entryKey);
             if (entryValues.size() > 1) {
-                Iterator<String> valueIterator = Arrays.stream(entryValues.getStringArray()).map(String::valueOf)
-                        .iterator();
-                httpHeaders.add(entryKey.getValue(), valueIterator);
+                Iterable<String> values = Arrays.asList(entryValues.getStringArray());
+                httpHeaders.add(entryKey.getValue(), values);
             } else if (entryValues.size() == 1) {
                 httpHeaders.set(entryKey.getValue(), entryValues.getBString(0).getValue());
             }
@@ -1013,7 +1010,8 @@ public class HttpUtil {
     }
 
     private static boolean isContentTypeMatched(List<String> contentTypes, String contentType) {
-        return contentType != null && contentTypes.stream().anyMatch(contentType.toLowerCase()::contains);
+        return contentType != null && contentTypes.stream().anyMatch(
+                contentType.toLowerCase(Locale.getDefault())::contains);
     }
 
     private static List<String> getAsStringList(Object[] values) {
@@ -1022,7 +1020,7 @@ public class HttpUtil {
             return valuesList;
         }
         for (Object val : values) {
-            valuesList.add(val.toString().trim().toLowerCase());
+            valuesList.add(val.toString().trim().toLowerCase(Locale.getDefault()));
         }
         return valuesList;
     }
@@ -1091,17 +1089,18 @@ public class HttpUtil {
                                              HttpCarbonMessage outboundResponseMsg) {
         serverConnectionStructCheck(reqMsg);
         int statusCode = outboundResponseMsg.getHttpStatusCode();
-        methodInvocationCheck(connectionObj, reqMsg, statusCode);
+        methodInvocationCheck(reqMsg, statusCode, ILLEGAL_FUNCTION_INVOKED);
     }
 
-    private static void methodInvocationCheck(BObject connectionObj, HttpCarbonMessage reqMsg, int statusCode) {
-        if (connectionObj.getNativeData(METHOD_ACCESSED) != null || reqMsg == null) {
-            throw new IllegalStateException("illegal function invocation");
+    static void methodInvocationCheck(HttpCarbonMessage reqMsg, int statusCode, String errMsg) {
+        if (reqMsg == null || reqMsg.getProperty(METHOD_ACCESSED) != null) {
+            throw createHttpError(errMsg, HttpErrorType.GENERIC_CLIENT_ERROR);
         }
 
-        if (!is100ContinueRequest(reqMsg, statusCode)) {
-            connectionObj.addNativeData(METHOD_ACCESSED, true);
+        if (is100ContinueRequest(reqMsg, statusCode) || statusCode == HttpConstants.INVALID_STATUS_CODE) {
+            return;
         }
+        reqMsg.setProperty(METHOD_ACCESSED, true);
     }
 
     public static void serverConnectionStructCheck(HttpCarbonMessage reqMsg) {
@@ -1116,9 +1115,9 @@ public class HttpUtil {
                 reqMsg.getHeader(HttpHeaderNames.EXPECT.toString())) || statusCode == 100;
     }
 
-    public static BMap getTransactionConfigAnnotation(AttachedFunction resource, String transactionPackagePath) {
-        return (BMap) resource.getAnnotation(transactionPackagePath,
-                                                 TransactionConstants.ANN_NAME_TRX_PARTICIPANT_CONFIG);
+    public static BMap getTransactionConfigAnnotation(MethodType resource, String transactionPackagePath) {
+        return (BMap) resource.getAnnotation(StringUtils.fromString(
+                transactionPackagePath + ":" + TransactionConstants.ANN_NAME_TRX_PARTICIPANT_CONFIG));
     }
 
     private static int getIntValue(long val) {
@@ -1172,21 +1171,22 @@ public class HttpUtil {
         return DefaultHttpWsConnectorFactoryHolder.getHttpConnectorFactory();
     }
 
-    public static void checkAndObserveHttpRequest(Strand strand, HttpCarbonMessage message) {
-        Optional<ObserverContext> observerContext = ObserveUtils.getObserverContextOfCurrentFrame(strand);
-        observerContext.ifPresent(ctx -> {
-            HttpUtil.injectHeaders(message, ObserveUtils.getContextProperties(ctx));
-            ctx.addTag(TAG_KEY_HTTP_METHOD, message.getHttpMethod());
-            ctx.addTag(TAG_KEY_HTTP_URL, String.valueOf(message.getProperty(HttpConstants.TO)));
-            ctx.addTag(TAG_KEY_PEER_ADDRESS,
+    public static void checkAndObserveHttpRequest(Environment environment, HttpCarbonMessage message) {
+        ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(environment);
+
+        if (observerContext != null) {
+            HttpUtil.injectHeaders(message, ObserveUtils.getContextProperties(observerContext));
+            observerContext.addTag(TAG_KEY_HTTP_METHOD, message.getHttpMethod());
+            observerContext.addTag(TAG_KEY_HTTP_URL, String.valueOf(message.getProperty(HttpConstants.TO)));
+            observerContext.addTag(TAG_KEY_PEER_ADDRESS,
                        message.getProperty(PROPERTY_HTTP_HOST) + ":" + message.getProperty(PROPERTY_HTTP_PORT));
             // Add HTTP Status Code tag. The HTTP status code will be set using the response message.
             // Sometimes the HTTP status code will not be set due to errors etc. Therefore, it's very important to set
             // some value to HTTP Status Code to make sure that tags will not change depending on various
             // circumstances.
             // HTTP Status code must be a number.
-            ctx.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, 0);
-        });
+            observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, 0);
+        }
     }
 
     public static void injectHeaders(HttpCarbonMessage msg, Map<String, String> headers) {
@@ -1219,7 +1219,8 @@ public class HttpUtil {
     public static void populateSenderConfigurations(SenderConfiguration senderConfiguration,
             BMap<BString, Object> clientEndpointConfig, String scheme) {
         ProxyServerConfiguration proxyServerConfiguration;
-        BMap secureSocket = clientEndpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURE_SOCKET);
+        BMap<BString, Object> secureSocket = (BMap<BString, Object>) clientEndpointConfig
+                .getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();
         if (secureSocket != null) {
             HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
@@ -1254,12 +1255,11 @@ public class HttpUtil {
                 senderConfiguration.setProxyServerConfiguration(proxyServerConfiguration);
             }
         }
-        long timeoutMillis = clientEndpointConfig.getIntValue(HttpConstants.CLIENT_EP_ENDPOINT_TIMEOUT);
-        if (timeoutMillis < 0) {
+        double timeout = ((BDecimal) clientEndpointConfig.get(HttpConstants.CLIENT_EP_ENDPOINT_TIMEOUT)).floatValue();
+        if (timeout < 0) {
             senderConfiguration.setSocketIdleTimeout(0);
         } else {
-            senderConfiguration.setSocketIdleTimeout(
-                    validateConfig(timeoutMillis, HttpConstants.CLIENT_EP_ENDPOINT_TIMEOUT.getValue()));
+            senderConfiguration.setSocketIdleTimeout((int) (timeout * 1000));
         }
         if (httpVersion != null) {
             senderConfiguration.setHttpVersion(httpVersion);
@@ -1268,7 +1268,7 @@ public class HttpUtil {
         senderConfiguration.setForwardedExtensionConfig(HttpUtil.getForwardedExtensionConfig(forwardedExtension));
     }
 
-    public static ConnectionManager getConnectionManager(BMap<BString, Long> poolStruct) {
+    public static ConnectionManager getConnectionManager(BMap poolStruct) {
         ConnectionManager poolManager = (ConnectionManager) poolStruct.getNativeData(CONNECTION_MANAGER);
         if (poolManager == null) {
             synchronized (poolStruct) {
@@ -1283,20 +1283,21 @@ public class HttpUtil {
         return poolManager;
     }
 
-    public static void populatePoolingConfig(BMap<BString, Long> poolRecord, PoolConfiguration poolConfiguration) {
-        long maxActiveConnections = poolRecord.get(HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_CONNECTIONS);
+    public static void populatePoolingConfig(BMap poolRecord, PoolConfiguration poolConfiguration) {
+        long maxActiveConnections = poolRecord.getIntValue(HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_CONNECTIONS);
         poolConfiguration.setMaxActivePerPool(
                 validateConfig(maxActiveConnections,
                                HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_CONNECTIONS.getValue()));
 
-        long maxIdleConnections = poolRecord.get(HttpConstants.CONNECTION_POOLING_MAX_IDLE_CONNECTIONS);
+        long maxIdleConnections = poolRecord.getIntValue(HttpConstants.CONNECTION_POOLING_MAX_IDLE_CONNECTIONS);
         poolConfiguration.setMaxIdlePerPool(
                 validateConfig(maxIdleConnections, HttpConstants.CONNECTION_POOLING_MAX_IDLE_CONNECTIONS.getValue()));
 
-        long waitTime = poolRecord.get(HttpConstants.CONNECTION_POOLING_WAIT_TIME);
-        poolConfiguration.setMaxWaitTime(waitTime);
+        double waitTime = ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_WAIT_TIME)).floatValue();
+        poolConfiguration.setMaxWaitTime((long) (waitTime * 1000));
 
-        long maxActiveStreamsPerConnection = poolRecord.get(CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION);
+        long maxActiveStreamsPerConnection =
+                poolRecord.getIntValue(CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION);
         poolConfiguration.setHttp2MaxActiveStreamsPerConnection(
                 maxActiveStreamsPerConnection == -1 ? Integer.MAX_VALUE : validateConfig(
                         maxActiveStreamsPerConnection,
@@ -1316,129 +1317,49 @@ public class HttpUtil {
     /**
      * Populates SSL configuration instance with secure socket configuration.
      *
-     * @param sslConfiguration  ssl configuration instance.
-     * @param secureSocket    secure socket configuration.
+     * @param senderConfiguration SSL configuration instance.
+     * @param secureSocket        Secure socket configuration.
      */
-    public static void populateSSLConfiguration(SslConfiguration sslConfiguration, BMap secureSocket) {
-        BMap trustStore = secureSocket.getMapValue(ENDPOINT_CONFIG_TRUST_STORE);
-        BMap keyStore = secureSocket.getMapValue(ENDPOINT_CONFIG_KEY_STORE);
-        BMap protocols = secureSocket.getMapValue(ENDPOINT_CONFIG_PROTOCOLS);
-        BMap validateCert = secureSocket.getMapValue(ENDPOINT_CONFIG_VALIDATE_CERT);
-        String keyFile = secureSocket.getStringValue(ENDPOINT_CONFIG_KEY).getValue();
-        String certFile = secureSocket.getStringValue(ENDPOINT_CONFIG_CERTIFICATE).getValue();
-        String trustCerts = secureSocket.getStringValue(ENDPOINT_CONFIG_TRUST_CERTIFICATES).getValue();
-        String keyPassword = secureSocket.getStringValue(ENDPOINT_CONFIG_KEY_PASSWORD).getValue();
-        boolean disableSslValidation = secureSocket.getBooleanValue(ENDPOINT_CONFIG_DISABLE_SSL);
-        List<Parameter> clientParams = new ArrayList<>();
-        if (disableSslValidation) {
-            sslConfiguration.disableSsl();
-            return;
-        } else if (StringUtils.isEmpty(trustCerts) && trustStore == null) {
-            sslConfiguration.useJavaDefaults();
+    public static void populateSSLConfiguration(SslConfiguration senderConfiguration,
+                                                BMap<BString, Object> secureSocket) {
+        List<Parameter> clientParamList = new ArrayList<>();
+        boolean enable = secureSocket.getBooleanValue(SECURESOCKET_CONFIG_DISABLE_SSL);
+        if (!enable) {
+            senderConfiguration.disableSsl();
             return;
         }
-        if (trustStore != null && StringUtils.isNotBlank(trustCerts)) {
-            throw createHttpError("Cannot configure both trustStore and trustCerts at the same time.",
-                    HttpErrorType.SSL_ERROR);
+        Object cert = secureSocket.get(SECURESOCKET_CONFIG_CERT);
+        if (cert == null) {
+            throw createHttpError("Need to configure 'crypto:TrustStore' or 'cert' with client SSL certificates file.",
+                                  HttpErrorType.SSL_ERROR);
         }
-        if (trustStore != null) {
-            String trustStoreFile = trustStore.getStringValue(FILE_PATH).getValue();
-            if (StringUtils.isNotBlank(trustStoreFile)) {
-                sslConfiguration.setTrustStoreFile(trustStoreFile);
-            }
-            String trustStorePassword = trustStore.getStringValue(PASSWORD).getValue();
-            if (StringUtils.isNotBlank(trustStorePassword)) {
-                sslConfiguration.setTrustStorePass(trustStorePassword);
-            }
-        } else if (StringUtils.isNotBlank(trustCerts)) {
-            sslConfiguration.setClientTrustCertificates(trustCerts);
+        evaluateCertField(cert, senderConfiguration);
+        BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_KEY);
+        if (key != null) {
+            evaluateKeyField(key, senderConfiguration);
         }
-        if (keyStore != null && StringUtils.isNotBlank(keyFile)) {
-            throw createHttpError("Cannot configure both keyStore and keyFile.", HttpErrorType.SSL_ERROR);
-        } else if (StringUtils.isNotBlank(keyFile) && StringUtils.isBlank(certFile)) {
-            throw createHttpError("Need to configure certFile containing client ssl certificates.",
-                    HttpErrorType.SSL_ERROR);
+        BMap<BString, Object> protocol = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_PROTOCOL);
+        if (protocol != null) {
+            evaluateProtocolField(protocol, senderConfiguration, clientParamList);
         }
-        if (keyStore != null) {
-            String keyStoreFile = keyStore.getStringValue(FILE_PATH).getValue();
-            if (StringUtils.isNotBlank(keyStoreFile)) {
-                sslConfiguration.setKeyStoreFile(keyStoreFile);
-            }
-            String keyStorePassword = keyStore.getStringValue(PASSWORD).getValue();
-            if (StringUtils.isNotBlank(keyStorePassword)) {
-                sslConfiguration.setKeyStorePass(keyStorePassword);
-            }
-        } else if (StringUtils.isNotBlank(keyFile)) {
-            sslConfiguration.setClientKeyFile(keyFile);
-            sslConfiguration.setClientCertificates(certFile);
-            if (StringUtils.isNotBlank(keyPassword)) {
-                sslConfiguration.setClientKeyPassword(keyPassword);
-            }
+        BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_CERT_VALIDATION);
+        if (certValidation != null) {
+            evaluateCertValidationField(certValidation, senderConfiguration);
         }
-        if (protocols != null) {
-            List<String> sslEnabledProtocolsValueList = Arrays.asList(
-                    protocols.getArrayValue(ENABLED_PROTOCOLS).getStringArray());
-            if (!sslEnabledProtocolsValueList.isEmpty()) {
-                String sslEnabledProtocols = sslEnabledProtocolsValueList.stream()
-                        .collect(Collectors.joining(",", "", ""));
-                Parameter clientProtocols = new Parameter(ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS, sslEnabledProtocols);
-                clientParams.add(clientProtocols);
-            }
+        BArray ciphers = secureSocket.containsKey(SECURESOCKET_CONFIG_CIPHERS) ?
+                secureSocket.getArrayValue(SECURESOCKET_CONFIG_CIPHERS) : null;
+        if (ciphers != null) {
+            evaluateCiphersField(ciphers, clientParamList);
+        }
+        evaluateCommonFields(secureSocket, senderConfiguration, clientParamList);
 
-            String sslProtocol = protocols.getStringValue(SSL_PROTOCOL_VERSION).getValue();
-            if (StringUtils.isNotBlank(sslProtocol)) {
-                sslConfiguration.setSSLProtocol(sslProtocol);
-            }
-        }
-
-        if (validateCert != null) {
-            boolean validateCertEnabled = validateCert.getBooleanValue(HttpConstants.ENABLE);
-            int cacheSize = validateCert.getIntValue(HttpConstants.SSL_CONFIG_CACHE_SIZE).intValue();
-            int cacheValidityPeriod = validateCert.getIntValue(HttpConstants.SSL_CONFIG_CACHE_VALIDITY_PERIOD)
-                    .intValue();
-            sslConfiguration.setValidateCertEnabled(validateCertEnabled);
-            if (cacheValidityPeriod != 0) {
-                sslConfiguration.setCacheValidityPeriod(cacheValidityPeriod);
-            }
-            if (cacheSize != 0) {
-                sslConfiguration.setCacheSize(cacheSize);
-            }
-        }
-        boolean hostNameVerificationEnabled = secureSocket
-                .getBooleanValue(HttpConstants.SSL_CONFIG_HOST_NAME_VERIFICATION_ENABLED);
-        boolean ocspStaplingEnabled = secureSocket.getBooleanValue(HttpConstants.ENDPOINT_CONFIG_OCSP_STAPLING);
-        sslConfiguration.setOcspStaplingEnabled(ocspStaplingEnabled);
-        sslConfiguration.setHostNameVerificationEnabled(hostNameVerificationEnabled);
-
-        sslConfiguration
-                .setSslSessionTimeOut((int) (((MapValue)secureSocket)
-                        .getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT)));
-
-        sslConfiguration.setSslHandshakeTimeOut(((MapValue)secureSocket)
-                .getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
-
-        Object[] cipherConfigs = secureSocket.getArrayValue(HttpConstants.SSL_CONFIG_CIPHERS).getStringArray();
-        if (cipherConfigs != null) {
-            List<Object> ciphersValueList = Arrays.asList(cipherConfigs);
-            if (ciphersValueList.size() > 0) {
-                String ciphers = ciphersValueList.stream().map(Object::toString)
-                        .collect(Collectors.joining(",", "", ""));
-                Parameter clientCiphers = new Parameter(HttpConstants.CIPHERS, ciphers);
-                clientParams.add(clientCiphers);
-            }
-        }
-        String enableSessionCreation = String.valueOf(
-                secureSocket.getBooleanValue(HttpConstants.SSL_CONFIG_ENABLE_SESSION_CREATION));
-        Parameter clientEnableSessionCreation = new Parameter(
-                HttpConstants.SSL_CONFIG_ENABLE_SESSION_CREATION.getValue(), enableSessionCreation);
-        clientParams.add(clientEnableSessionCreation);
-        if (!clientParams.isEmpty()) {
-            sslConfiguration.setParameters(clientParams);
+        if (!clientParamList.isEmpty()) {
+            senderConfiguration.setParameters(clientParamList);
         }
     }
 
     public static String sanitizeBasePath(String basePath) {
-        basePath = basePath.trim();
+        basePath = basePath.trim().replace(DOUBLE_SLASH, HttpConstants.SINGLE_SLASH);
 
         if (!basePath.startsWith(HttpConstants.DEFAULT_BASE_PATH)) {
             basePath = HttpConstants.DEFAULT_BASE_PATH.concat(basePath);
@@ -1466,9 +1387,7 @@ public class HttpUtil {
     public static void serializeDataSource(Object outboundMessageSource, BObject entity,
                                            OutputStream messageOutputStream) throws IOException {
         if (MimeUtil.generateAsJSON(outboundMessageSource, entity)) {
-            JSONGenerator gen = new JSONGenerator(messageOutputStream);
-            gen.serialize(outboundMessageSource);
-            gen.flush();
+            JsonUtils.serialize(outboundMessageSource, messageOutputStream);
         } else {
             serialize(outboundMessageSource, messageOutputStream);
         }
@@ -1478,25 +1397,25 @@ public class HttpUtil {
         //TODO check the possibility of value being null
         if (value == null) {
             throw createHttpError("error occurred while serializing null data");
-        } else if (value instanceof ArrayValue) {
-            if (value instanceof StreamingJsonValue) {
-                ((StreamingJsonValue) value).serialize(outputStream);
+        } else if (value instanceof BArray) {
+            if (value instanceof BStreamingJson) {
+                ((BStreamingJson) value).serialize(outputStream);
             } else {
-                ((ArrayValue) value).serialize(outputStream);
+                ((BArray) value).serialize(outputStream);
             }
         } else if (value instanceof MultipartDataSource) {
             ((MultipartDataSource) value).serialize(outputStream);
-        } else if (value instanceof XMLItem) {
-            ((XMLItem) value).serialize(outputStream);
-        } else if (value instanceof XMLSequence) {
-            ((XMLSequence) value).serialize(outputStream);
-        } else if (value instanceof Long || value instanceof String ||
+        } else if (value instanceof BXmlItem) {
+            ((BXmlItem) value).serialize(outputStream);
+        } else if (value instanceof BXmlSequence) {
+            ((BXmlSequence) value).serialize(outputStream);
+        } else if (value instanceof Long || value instanceof String || value instanceof BDecimal ||
                 value instanceof Double || value instanceof Integer || value instanceof Boolean) {
             outputStream.write(value.toString().getBytes(Charset.defaultCharset()));
         } else if (value instanceof BString) {
             outputStream.write(((BString) value).getValue().getBytes(Charset.defaultCharset()));
         } else {
-            ((RefValue) value).serialize(outputStream);
+            ((BRefValue) value).serialize(outputStream);
         }
     }
 
@@ -1519,20 +1438,24 @@ public class HttpUtil {
      */
     public static ListenerConfiguration getListenerConfig(long port, BMap endpointConfig) {
         String host = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_HOST).getValue();
-        BMap sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURE_SOCKET);
+        BMap<BString, Object> sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_VERSION).getValue();
-        BMap<BString, Object> http1Settings;
-        long idleTimeout = endpointConfig.getIntValue(HttpConstants.ENDPOINT_CONFIG_TIMEOUT);
-
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         if (HTTP_1_1_VERSION.equals(httpVersion)) {
-            http1Settings = (BMap<BString, Object>) endpointConfig.get(HttpConstants.HTTP1_SETTINGS);
+            BMap<BString, Object> http1Settings =
+                    (BMap<BString, Object>) endpointConfig.get(HttpConstants.HTTP1_SETTINGS);
             listenerConfiguration.setPipeliningLimit(http1Settings.getIntValue(HttpConstants.PIPELINING_REQUEST_LIMIT));
             String keepAlive = http1Settings.getStringValue(HttpConstants.ENDPOINT_CONFIG_KEEP_ALIVE).getValue();
             listenerConfiguration.setKeepAliveConfig(HttpUtil.getKeepAliveConfig(keepAlive));
-            // Set Request validation limits.
-            setRequestSizeValidationConfig(http1Settings, listenerConfiguration);
         }
+
+        // Set Request validation limits.
+        BMap<BString, Object> requestLimits =
+                (BMap<BString, Object>) endpointConfig.getMapValue(HttpConstants.REQUEST_LIMITS);
+        setInboundMgsSizeValidationConfig(requestLimits.getIntValue(HttpConstants.MAX_URI_LENGTH),
+                                          requestLimits.getIntValue(HttpConstants.MAX_HEADER_SIZE),
+                                          requestLimits.getIntValue(HttpConstants.MAX_ENTITY_BODY_SIZE),
+                                          listenerConfiguration.getMsgSizeValidationConfig());
 
         if (host == null || host.trim().isEmpty()) {
             listenerConfiguration.setHost(ConfigRegistry.getInstance().getConfigOrDefault("b7a.http.host",
@@ -1546,11 +1469,12 @@ public class HttpUtil {
         }
         listenerConfiguration.setPort(Math.toIntExact(port));
 
+        double idleTimeout = ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_TIMEOUT)).floatValue();
         if (idleTimeout < 0) {
             throw new BallerinaConnectorException("Idle timeout cannot be negative. If you want to disable the " +
                     "timeout please use value 0");
         }
-        listenerConfiguration.setSocketIdleTimeout(Math.toIntExact(idleTimeout));
+        listenerConfiguration.setSocketIdleTimeout((int) (idleTimeout * 1000));
 
         // Set HTTP version
         if (httpVersion != null) {
@@ -1569,37 +1493,28 @@ public class HttpUtil {
         }
 
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
-        Object webSocketCompressionEnabled = endpointConfig.get(WebSocketConstants.COMPRESSION_ENABLED_CONFIG);
-        if (webSocketCompressionEnabled != null) {
-            listenerConfiguration.setWebSocketCompressionEnabled((Boolean) webSocketCompressionEnabled);
-        }
-
         return listenerConfiguration;
     }
 
-    private static void setRequestSizeValidationConfig(BMap http1Settings,
-                                                     ListenerConfiguration listenerConfiguration) {
-        long maxUriLength = http1Settings.getIntValue(HttpConstants.REQUEST_LIMITS_MAXIMUM_URL_LENGTH);
-        long maxHeaderSize = http1Settings.getIntValue(HttpConstants.REQUEST_LIMITS_MAXIMUM_HEADER_SIZE);
-        long maxEntityBodySize = http1Settings.getIntValue(HttpConstants.REQUEST_LIMITS_MAXIMUM_ENTITY_BODY_SIZE);
-        RequestSizeValidationConfig requestSizeValidationConfig = listenerConfiguration
-                .getRequestSizeValidationConfig();
-
-        if (maxUriLength >= 0) {
-            requestSizeValidationConfig.setMaxUriLength(Math.toIntExact(maxUriLength));
+    public static void setInboundMgsSizeValidationConfig(long maxInitialLineLength, long maxHeaderSize,
+                                                         long maxEntityBodySize,
+                                                         InboundMsgSizeValidationConfig sizeValidationConfig) {
+        if (maxInitialLineLength >= 0) {
+            sizeValidationConfig.setMaxInitialLineLength(Math.toIntExact(maxInitialLineLength));
         } else {
-            throw new BallerinaConnectorException("Invalid configuration found for maxUriLength : " + maxUriLength);
+            throw new BallerinaConnectorException(
+                    "Invalid configuration found for max initial line length : " + maxInitialLineLength);
         }
 
         if (maxHeaderSize >= 0) {
-            requestSizeValidationConfig.setMaxHeaderSize(Math.toIntExact(maxHeaderSize));
+            sizeValidationConfig.setMaxHeaderSize(Math.toIntExact(maxHeaderSize));
         } else {
             throw new BallerinaConnectorException("Invalid configuration found for maxHeaderSize : " + maxHeaderSize);
         }
 
         if (maxEntityBodySize != -1) {
             if (maxEntityBodySize >= 0) {
-                requestSizeValidationConfig.setMaxEntityBodySize(maxEntityBodySize);
+                sizeValidationConfig.setMaxEntityBodySize(maxEntityBodySize);
             } else {
                 throw new BallerinaConnectorException(
                         "Invalid configuration found for maxEntityBodySize : " + maxEntityBodySize);
@@ -1618,147 +1533,214 @@ public class HttpUtil {
         return userAgent;
     }
 
-    private static ListenerConfiguration setSslConfig(BMap sslConfig, ListenerConfiguration listenerConfiguration) {
-        listenerConfiguration.setScheme(PROTOCOL_HTTPS);
-        BMap trustStore = sslConfig.getMapValue(ENDPOINT_CONFIG_TRUST_STORE);
-        BMap keyStore = sslConfig.getMapValue(ENDPOINT_CONFIG_KEY_STORE);
-        BMap protocols = sslConfig.getMapValue(ENDPOINT_CONFIG_PROTOCOLS);
-        BMap validateCert = sslConfig.getMapValue(ENDPOINT_CONFIG_VALIDATE_CERT);
-        BMap ocspStapling = sslConfig.getMapValue(ENDPOINT_CONFIG_OCSP_STAPLING);
-        String keyFile = sslConfig.getStringValue(ENDPOINT_CONFIG_KEY).getValue();
-        String certFile = sslConfig.getStringValue(ENDPOINT_CONFIG_CERTIFICATE).getValue();
-        String trustCerts = sslConfig.getStringValue(ENDPOINT_CONFIG_TRUST_CERTIFICATES).getValue();
-        String keyPassword = sslConfig.getStringValue(ENDPOINT_CONFIG_KEY_PASSWORD).getValue();
-
-        if (keyStore != null && StringUtils.isNotBlank(keyFile)) {
-            throw createHttpError("Cannot configure both keyStore and keyFile at the same time.",
-                                  HttpErrorType.SSL_ERROR);
-        } else if (keyStore == null && (StringUtils.isBlank(keyFile) || StringUtils.isBlank(certFile))) {
-            throw createHttpError("Either keystore or certificateKey and server certificates must be provided "
-                                          + "for secure connection", HttpErrorType.SSL_ERROR);
-        }
-        if (keyStore != null) {
-            String keyStoreFile = keyStore.getStringValue(FILE_PATH).getValue();
-            if (StringUtils.isBlank(keyStoreFile)) {
-                throw createHttpError("Keystore file location must be provided for secure connection.",
-                        HttpErrorType.SSL_ERROR);
-            }
-            String keyStorePassword = keyStore.getStringValue(PASSWORD).getValue();
-            if (StringUtils.isBlank(keyStorePassword)) {
-                throw createHttpError("Keystore password must be provided for secure connection",
-                        HttpErrorType.SSL_ERROR);
-            }
-            listenerConfiguration.setKeyStoreFile(keyStoreFile);
-            listenerConfiguration.setKeyStorePass(keyStorePassword);
-        } else {
-            listenerConfiguration.setServerKeyFile(keyFile);
-            listenerConfiguration.setServerCertificates(certFile);
-            if (StringUtils.isNotBlank(keyPassword)) {
-                listenerConfiguration.setServerKeyPassword(keyPassword);
-            }
-        }
-        String sslVerifyClient = sslConfig.getStringValue(SSL_CONFIG_SSL_VERIFY_CLIENT).getValue();
-        listenerConfiguration.setVerifyClient(sslVerifyClient);
-        listenerConfiguration
-                .setSslSessionTimeOut((int) ((MapValue) sslConfig)
-                        .getDefaultableIntValue(ENDPOINT_CONFIG_SESSION_TIMEOUT));
-        listenerConfiguration
-                .setSslHandshakeTimeOut(((MapValue) sslConfig)
-                                                .getDefaultableIntValue(ENDPOINT_CONFIG_HANDSHAKE_TIMEOUT));
-        if (trustStore == null && StringUtils.isNotBlank(sslVerifyClient) && StringUtils.isBlank(trustCerts)) {
-            throw createHttpError("Truststore location or trustCertificates must be provided to enable Mutual SSL",
-                    HttpErrorType.SSL_ERROR);
-        }
-        if (trustStore != null) {
-            String trustStoreFile = trustStore.getStringValue(FILE_PATH).getValue();
-            String trustStorePassword = trustStore.getStringValue(PASSWORD).getValue();
-            if (StringUtils.isBlank(trustStoreFile) && StringUtils.isNotBlank(sslVerifyClient)) {
-                throw createHttpError("Truststore location must be provided to enable Mutual SSL",
-                                      HttpErrorType.SSL_ERROR);
-            }
-            if (StringUtils.isBlank(trustStorePassword) && StringUtils.isNotBlank(sslVerifyClient)) {
-                throw createHttpError("Truststore password value must be provided to enable Mutual SSL",
-                                      HttpErrorType.SSL_ERROR);
-            }
-            listenerConfiguration.setTrustStoreFile(trustStoreFile);
-            listenerConfiguration.setTrustStorePass(trustStorePassword);
-        } else if (StringUtils.isNotBlank(trustCerts)) {
-            listenerConfiguration.setServerTrustCertificates(trustCerts);
-        }
+    private static ListenerConfiguration setSslConfig(BMap<BString, Object> secureSocket,
+                                                      ListenerConfiguration listenerConfiguration) {
         List<Parameter> serverParamList = new ArrayList<>();
-        Parameter serverParameters;
-        if (protocols != null) {
-            List<String> sslEnabledProtocolsValueList = Arrays.asList(
-                    protocols.getArrayValue(ENABLED_PROTOCOLS).getStringArray());
-            if (!sslEnabledProtocolsValueList.isEmpty()) {
-                String sslEnabledProtocols = sslEnabledProtocolsValueList.stream()
-                        .collect(Collectors.joining(",", "", ""));
-                serverParameters = new Parameter(ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS, sslEnabledProtocols);
-                serverParamList.add(serverParameters);
-            }
+        listenerConfiguration.setScheme(PROTOCOL_HTTPS);
+        BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_KEY);
+        assert key != null; // This validation happens at Ballerina level
+        evaluateKeyField(key, listenerConfiguration);
+        BMap<BString, Object> mutualSsl = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_MUTUAL_SSL);
+        if (mutualSsl != null) {
+            String verifyClient = mutualSsl.getStringValue(SECURESOCKET_CONFIG_VERIFY_CLIENT).getValue();
+            listenerConfiguration.setVerifyClient(verifyClient);
+            Object cert = mutualSsl.get(SECURESOCKET_CONFIG_CERT);
+            evaluateCertField(cert, listenerConfiguration);
+        }
+        BMap<BString, Object> protocol = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_PROTOCOL);
+        if (protocol != null) {
+            evaluateProtocolField(protocol, listenerConfiguration, serverParamList);
+        }
+        BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_CERT_VALIDATION);
+        if (certValidation != null) {
+            evaluateCertValidationField(certValidation, listenerConfiguration);
+        }
+        BArray ciphers = secureSocket.containsKey(SECURESOCKET_CONFIG_CIPHERS) ?
+                secureSocket.getArrayValue(SECURESOCKET_CONFIG_CIPHERS) : null;
+        if (ciphers != null) {
+            evaluateCiphersField(ciphers, serverParamList);
+        }
+        evaluateCommonFields(secureSocket, listenerConfiguration, serverParamList);
 
-            String sslProtocol = protocols.getStringValue(SSL_PROTOCOL_VERSION).getValue();
-            if (StringUtils.isNotBlank(sslProtocol)) {
-                listenerConfiguration.setSSLProtocol(sslProtocol);
-            }
-        }
-
-        List<String> ciphersValueList = Arrays.asList(
-                sslConfig.getArrayValue(HttpConstants.SSL_CONFIG_CIPHERS).getStringArray());
-        if (!ciphersValueList.isEmpty()) {
-            String ciphers = ciphersValueList.stream().collect(Collectors.joining(",", "", ""));
-            serverParameters = new Parameter(HttpConstants.CIPHERS, ciphers);
-            serverParamList.add(serverParameters);
-        }
-        if (validateCert != null) {
-            boolean validateCertificateEnabled = validateCert.getBooleanValue(HttpConstants.ENABLE);
-            long cacheSize = validateCert.getIntValue(HttpConstants.SSL_CONFIG_CACHE_SIZE);
-            long cacheValidationPeriod = validateCert.getIntValue(HttpConstants.SSL_CONFIG_CACHE_VALIDITY_PERIOD);
-            listenerConfiguration.setValidateCertEnabled(validateCertificateEnabled);
-            if (validateCertificateEnabled) {
-                if (cacheSize != 0) {
-                    listenerConfiguration.setCacheSize(Math.toIntExact(cacheSize));
-                }
-                if (cacheValidationPeriod != 0) {
-                    listenerConfiguration.setCacheValidityPeriod(Math.toIntExact(cacheValidationPeriod));
-                }
-            }
-        }
-        if (ocspStapling != null) {
-            boolean ocspStaplingEnabled = ocspStapling.getBooleanValue(HttpConstants.ENABLE);
-            listenerConfiguration.setOcspStaplingEnabled(ocspStaplingEnabled);
-            long cacheSize = ocspStapling.getIntValue(HttpConstants.SSL_CONFIG_CACHE_SIZE);
-            long cacheValidationPeriod = ocspStapling.getIntValue(HttpConstants.SSL_CONFIG_CACHE_VALIDITY_PERIOD);
-            listenerConfiguration.setValidateCertEnabled(ocspStaplingEnabled);
-            if (ocspStaplingEnabled) {
-                if (cacheSize != 0) {
-                    listenerConfiguration.setCacheSize(Math.toIntExact(cacheSize));
-                }
-                if (cacheValidationPeriod != 0) {
-                    listenerConfiguration.setCacheValidityPeriod(Math.toIntExact(cacheValidationPeriod));
-                }
-            }
-        }
         listenerConfiguration.setTLSStoreType(PKCS_STORE_TYPE);
-        String serverEnableSessionCreation = String
-                .valueOf(sslConfig.getBooleanValue(SSL_CONFIG_ENABLE_SESSION_CREATION));
-        Parameter enableSessionCreationParam = new Parameter(SSL_CONFIG_ENABLE_SESSION_CREATION.getValue(),
-                                                             serverEnableSessionCreation);
-        serverParamList.add(enableSessionCreationParam);
         if (!serverParamList.isEmpty()) {
             listenerConfiguration.setParameters(serverParamList);
         }
-
-        listenerConfiguration
-                .setId(HttpUtil.getListenerInterface(listenerConfiguration.getHost(), listenerConfiguration.getPort()));
-
+        listenerConfiguration.setId(HttpUtil.getListenerInterface(listenerConfiguration.getHost(),
+                                                                  listenerConfiguration.getPort()));
         return listenerConfiguration;
+    }
+
+    private static void evaluateKeyField(BMap<BString, Object> key, SslConfiguration sslConfiguration) {
+        if (key.containsKey(SECURESOCKET_CONFIG_KEYSTORE_FILE_PATH)) {
+            String keyStoreFile = key.getStringValue(SECURESOCKET_CONFIG_KEYSTORE_FILE_PATH).getValue();
+            if (keyStoreFile.isBlank()) {
+                throw createHttpError("KeyStore file location must be provided for secure connection",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            String keyStorePassword = key.getStringValue(SECURESOCKET_CONFIG_KEYSTORE_PASSWORD).getValue();
+            if (keyStorePassword.isBlank()) {
+                throw createHttpError("KeyStore password must be provided for secure connection",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            sslConfiguration.setKeyStoreFile(keyStoreFile);
+            sslConfiguration.setKeyStorePass(keyStorePassword);
+        } else {
+            String certFile = key.getStringValue(SECURESOCKET_CONFIG_CERTKEY_CERT_FILE).getValue();
+            String keyFile = key.getStringValue(SECURESOCKET_CONFIG_CERTKEY_KEY_FILE).getValue();
+            BString keyPassword = key.containsKey(SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD) ?
+                    key.getStringValue(SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD) : null;
+             if (certFile.isBlank()) {
+                throw createHttpError("Certificate file location must be provided for secure connection",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            if (keyFile.isBlank()) {
+                throw createHttpError("Private key file location must be provided for secure connection",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            if (sslConfiguration instanceof ListenerConfiguration) {
+                sslConfiguration.setServerCertificates(certFile);
+                sslConfiguration.setServerKeyFile(keyFile);
+                if (keyPassword != null && !keyPassword.getValue().isBlank()) {
+                    sslConfiguration.setServerKeyPassword(keyPassword.getValue());
+                }
+            } else {
+                sslConfiguration.setClientCertificates(certFile);
+                sslConfiguration.setClientKeyFile(keyFile);
+                if (keyPassword != null && !keyPassword.getValue().isBlank()) {
+                    sslConfiguration.setClientKeyPassword(keyPassword.getValue());
+                }
+            }
+        }
+    }
+
+    private static void evaluateCertField(Object cert, SslConfiguration sslConfiguration) {
+        if (cert instanceof BMap) {
+            BMap<BString, BString> trustStore = (BMap<BString, BString>) cert;
+            String trustStoreFile = trustStore.getStringValue(SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH).getValue();
+            String trustStorePassword = trustStore.getStringValue(SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD).getValue();
+            if (trustStoreFile.isBlank()) {
+                throw createHttpError("TrustStore file location must be provided for secure connection",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            if (trustStorePassword.isBlank()) {
+                throw createHttpError("TrustStore password must be provided for secure connection",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            sslConfiguration.setTrustStoreFile(trustStoreFile);
+            sslConfiguration.setTrustStorePass(trustStorePassword);
+        } else {
+            String certFile = ((BString) cert).getValue();
+            if (certFile.isBlank()) {
+                throw createHttpError("Certificate file location must be provided for secure connection",
+                                      HttpErrorType.SSL_ERROR);
+            }
+            if (sslConfiguration instanceof ListenerConfiguration) {
+                sslConfiguration.setServerTrustCertificates(certFile);
+            } else {
+                sslConfiguration.setClientTrustCertificates(certFile);
+            }
+        }
+    }
+
+    private static void evaluateProtocolField(BMap<BString, Object> protocol,
+                                              SslConfiguration sslConfiguration,
+                                              List<Parameter> paramList) {
+        List<String> sslEnabledProtocolsValueList = Arrays.asList(
+                protocol.getArrayValue(SECURESOCKET_CONFIG_PROTOCOL_VERSIONS).getStringArray());
+        if (!sslEnabledProtocolsValueList.isEmpty()) {
+            String sslEnabledProtocols = sslEnabledProtocolsValueList.stream().collect(Collectors.joining(",", "", ""));
+            Parameter serverProtocols = new Parameter(ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS, sslEnabledProtocols);
+            paramList.add(serverProtocols);
+        }
+        String sslProtocol = protocol.getStringValue(SECURESOCKET_CONFIG_PROTOCOL_NAME).getValue();
+        if (!sslProtocol.isBlank()) {
+            sslConfiguration.setSSLProtocol(sslProtocol);
+        }
+    }
+
+    private static void evaluateCertValidationField(BMap<BString, Object> certValidation,
+                                                    SslConfiguration sslConfiguration) {
+        String type = certValidation.getStringValue(SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE).getValue();
+        if (type.equals(SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING.getValue())) {
+            sslConfiguration.setOcspStaplingEnabled(true);
+        } else {
+            sslConfiguration.setValidateCertEnabled(true);
+        }
+        long cacheSize = certValidation.getIntValue(SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE).intValue();
+        long cacheValidityPeriod = ((BDecimal) certValidation.get(
+                SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD)).intValue();
+        if (cacheValidityPeriod != 0) {
+            sslConfiguration.setCacheValidityPeriod(Math.toIntExact(cacheValidityPeriod));
+        }
+        if (cacheSize != 0) {
+            sslConfiguration.setCacheSize(Math.toIntExact(cacheSize));
+        }
+    }
+
+    private static void evaluateCiphersField(BArray ciphers, List<Parameter> paramList) {
+        Object[] ciphersArray = ciphers.getStringArray();
+        List<Object> ciphersList = Arrays.asList(ciphersArray);
+        if (ciphersList.size() > 0) {
+            String ciphersString = ciphersList.stream().map(Object::toString).collect(Collectors.joining(",", "", ""));
+            Parameter serverParameters = new Parameter(HttpConstants.CIPHERS, ciphersString);
+            paramList.add(serverParameters);
+        }
+    }
+
+    private static void evaluateCommonFields(BMap<BString, Object> secureSocket, SslConfiguration sslConfiguration,
+                                             List<Parameter> paramList) {
+        if (!(sslConfiguration instanceof ListenerConfiguration)) {
+            boolean hostNameVerificationEnabled = secureSocket.getBooleanValue(
+                    SECURESOCKET_CONFIG_HOST_NAME_VERIFICATION_ENABLED);
+            sslConfiguration.setHostNameVerificationEnabled(hostNameVerificationEnabled);
+        }
+        sslConfiguration.setSslSessionTimeOut((int) getLongValueOrDefault(secureSocket,
+                                                                          SECURESOCKET_CONFIG_SESSION_TIMEOUT));
+        sslConfiguration.setSslHandshakeTimeOut(getLongValueOrDefault(secureSocket,
+                                                                      SECURESOCKET_CONFIG_HANDSHAKE_TIMEOUT));
+        String enableSessionCreation = String.valueOf(secureSocket.getBooleanValue(SECURESOCKET_CONFIG_SHARE_SESSION));
+        Parameter enableSessionCreationParam = new Parameter(SECURESOCKET_CONFIG_SHARE_SESSION.getValue(),
+                                                             enableSessionCreation);
+        paramList.add(enableSessionCreationParam);
+    }
+
+    private static BMap<BString, Object> getBMapValueIfPresent(BMap<BString, Object> map, BString key) {
+        return map.containsKey(key) ? (BMap<BString, Object>) map.getMapValue(key) : null;
+    }
+
+    private static long getLongValueOrDefault(BMap<BString, Object> map, BString key) {
+        return map.containsKey(key) ? ((BDecimal) map.get(key)).intValue() : 0L;
     }
 
     public static String getServiceName(BObject balService) {
         String serviceTypeName = balService.getType().getName();
         int serviceIndex = serviceTypeName.lastIndexOf("$$service$");
         return serviceTypeName.substring(0, serviceIndex);
+    }
+
+    /**
+     * This method will remove the escape character "\" from a string and encode it. This is used for both basePath and
+     * resource path sanitization. When the special chars are present in those paths, user can escape them in order to
+     * get through the compilation phrase. Then listener sanitize and register paths in both basePath map and resource
+     * syntax tree using encoded values as during the dispatching, the path matches with raw path.
+     *
+     * @param segment path segment
+     * @return encoded value
+     */
+    public static String unescapeAndEncodeValue(String segment) {
+        if (!segment.contains("\\")) {
+            return segment;
+        }
+        return encodeString(segment.replace("\\", ""));
+    }
+
+    public static String encodeString(String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.name()).replaceAll("\\+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new BallerinaConnectorException("Error while encoding value: " + value, e);
+        }
     }
 
     private HttpUtil() {

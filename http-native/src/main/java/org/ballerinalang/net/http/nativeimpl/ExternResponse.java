@@ -18,7 +18,7 @@
 
 package org.ballerinalang.net.http.nativeimpl;
 
-import org.ballerinalang.jvm.api.values.BObject;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.HttpUtil;
 
 /**
@@ -51,4 +51,6 @@ public class ExternResponse {
     public static void setEntityAndUpdateContentTypeHeader(BObject requestObj, BObject entityObj) {
         HttpUtil.setEntity(requestObj, entityObj, false, false);
     }
+
+    private ExternResponse() {}
 }

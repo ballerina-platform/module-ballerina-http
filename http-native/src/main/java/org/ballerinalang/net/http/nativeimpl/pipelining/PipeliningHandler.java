@@ -19,13 +19,13 @@
 package org.ballerinalang.net.http.nativeimpl.pipelining;
 
 import io.netty.channel.ChannelHandlerContext;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
+import org.ballerinalang.net.http.BallerinaConnectorException;
+import org.ballerinalang.net.transport.contract.Constants;
+import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpPipeliningFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.contract.Constants;
-import org.wso2.transport.http.netty.contract.HttpResponseFuture;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
-import org.wso2.transport.http.netty.message.HttpPipeliningFuture;
 
 import java.util.Queue;
 
@@ -61,7 +61,7 @@ public class PipeliningHandler {
             } else {
                 responseFuture = requestMsg.respond(responseMsg);
             }
-        } catch (org.wso2.transport.http.netty.contract.exceptions.ServerConnectorException e) {
+        } catch (org.ballerinalang.net.transport.contract.exceptions.ServerConnectorException e) {
             throw new BallerinaConnectorException("Error occurred while sending outbound response", e);
         }
         return responseFuture;
@@ -162,4 +162,6 @@ public class PipeliningHandler {
         pipeliningFuture.setPipeliningListener(pipeliningListener);
         httpResponse.setPipeliningFuture(pipeliningFuture);
     }
+
+    private PipeliningHandler() {}
 }

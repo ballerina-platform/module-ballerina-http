@@ -19,11 +19,10 @@
 package org.ballerinalang.net.http;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
-import org.ballerinalang.jvm.util.exceptions.BallerinaException;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.ballerinalang.net.uri.parser.DataElement;
 import org.ballerinalang.net.uri.parser.DataReturnAgent;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,7 +95,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             validateProduces(httpResource, carbonMessage);
             dataReturnAgent.setData(httpResource);
             return true;
-        } catch (BallerinaException e) {
+        } catch (BallerinaConnectorException e) {
             dataReturnAgent.setError(e);
             return false;
         }
@@ -122,14 +121,14 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             httpResource = tryMatchingToDefaultVerb(resources);
         }
         if (httpResource == null) {
-            isOptionsRequest = setAllowHeadersIfOPTIONS(httpMethod, carbonMessage);
+            isOptionsRequest = setAllowHeadersIfOPTIONS(resources, httpMethod, carbonMessage);
         }
         if (httpResource != null) {
             return httpResource;
         }
         if (!isOptionsRequest) {
             carbonMessage.setHttpStatusCode(405);
-            throw new BallerinaException("Method not allowed");
+            throw new BallerinaConnectorException("Method not allowed");
         }
         return null;
     }
@@ -137,25 +136,25 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
     private HttpResource tryMatchingToDefaultVerb(List<HttpResource> resources) {
         for (HttpResource resourceInfo : resources) {
             if (resourceInfo.getMethods() == null) {
-                //this means, no method mentioned in the dataElement, hence it has all the methods by default.
+                //this means, wildcard method mentioned in the dataElement, hence it has all the methods by default.
                 return resourceInfo;
             }
         }
         return null;
     }
 
-    private boolean setAllowHeadersIfOPTIONS(String httpMethod, HttpCarbonMessage cMsg) {
+    private boolean setAllowHeadersIfOPTIONS(List<HttpResource> resources, String httpMethod, HttpCarbonMessage cMsg) {
         if (httpMethod.equals(HttpConstants.HTTP_METHOD_OPTIONS)) {
-            cMsg.setHeader(HttpHeaderNames.ALLOW.toString(), getAllowHeaderValues(cMsg));
+            cMsg.setHeader(HttpHeaderNames.ALLOW.toString(), getAllowHeaderValues(resources, cMsg));
             return true;
         }
         return false;
     }
 
-    private String getAllowHeaderValues(HttpCarbonMessage cMsg) {
+    private String getAllowHeaderValues(List<HttpResource> resources, HttpCarbonMessage cMsg) {
         List<String> methods = new ArrayList<>();
         List<HttpResource> resourceInfos = new ArrayList<>();
-        for (HttpResource resourceInfo : this.resource) {
+        for (HttpResource resourceInfo : resources) {
             if (resourceInfo.getMethods() != null) {
                 methods.addAll(resourceInfo.getMethods());
             }
@@ -181,7 +180,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             }
         }
         cMsg.setHttpStatusCode(415);
-        throw new BallerinaException();
+        throw new BallerinaConnectorException();
     }
 
     private String extractContentMediaType(String header) {
@@ -224,7 +223,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
             }
         }
         cMsg.setHttpStatusCode(406);
-        throw new BallerinaException();
+        throw new BallerinaConnectorException();
     }
 
     private List<String> extractAcceptMediaTypes(String header) {

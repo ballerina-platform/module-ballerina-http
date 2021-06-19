@@ -16,44 +16,36 @@
   ~ under the License.
   -->
 <FindBugsFilter>
-    <!-- TODO Fix following findbug issues-->
     <Match>
-        <Class name="org.ballerinalang.net.http.CorsPopulator"/>
+        <Class name="org.ballerinalang.net.http.HttpUtil" />
+        <Method name="createHttpPushPromise"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
     </Match>
     <Match>
-        <Class name="org.ballerinalang.net.http.BallerinaHttpServerConnector"/>
+        <Class name="org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder" />
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
     <Match>
-        <Class name="org.ballerinalang.net.uri.DispatcherUtil"/>
+        <Class name="org.ballerinalang.net.transport.contractimpl.Http2OutboundRespListener$ResponseWriter" />
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
     <Match>
-        <Class name="org.ballerinalang.net.uri.parser.Node"/>
+        <Class name="org.ballerinalang.net.transport.contractimpl.sender.websocket.WebSocketClient" />
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
     <Match>
-        <Class name="org.ballerinalang.net.uri.parser.SimpleStringExpression"/>
+        <Class name="org.ballerinalang.net.transport.contractimpl.listener.states.SendingEntityBody" />
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.ballerinalang.net.ws.WebSocketService"/>
+        <Class name="org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier" />
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
     </Match>
     <Match>
-        <Class name="org.ballerinalang.net.ws.WebSocketServicesRegistry"/>
+        <Class name="org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.cache.CacheManager$CacheManagingTask$LRUEntryCollector" />
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
     <Match>
-        <Class name="org.ballerinalang.net.http.BallerinaHttpServerConnector"/>
-    </Match>
-    <Match>
-        <Package name="org.ballerinalang.net.http"/>
-    </Match>
-    <Match>
-        <Package name="org.ballerinalang.net.http.nativeimpl.session"/>
-    </Match>
-    <Match>
-        <Package name="org.ballerinalang.net.ws"/>
-    </Match>
-    <Match>
-        <Package name="org.ballerinalang.net.http.session"/>
-    </Match>
-    <Match>
-        <Package name="org.ballerinalang.net.http.util"/>
+        <Class name="org.ballerinalang.net.http.HttpDispatcher" />
     </Match>
 </FindBugsFilter>

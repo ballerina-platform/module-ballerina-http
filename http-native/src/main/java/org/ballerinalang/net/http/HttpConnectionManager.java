@@ -17,24 +17,22 @@
  */
 package org.ballerinalang.net.http;
 
-import org.wso2.transport.http.netty.contract.HttpWsConnectorFactory;
-import org.wso2.transport.http.netty.contract.ServerConnector;
-import org.wso2.transport.http.netty.contract.config.ListenerConfiguration;
-import org.wso2.transport.http.netty.contract.config.SenderConfiguration;
-import org.wso2.transport.http.netty.contract.config.ServerBootstrapConfiguration;
-import org.wso2.transport.http.netty.contract.config.TransportProperty;
-import org.wso2.transport.http.netty.contract.config.TransportsConfiguration;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketClientConnector;
-import org.wso2.transport.http.netty.contract.websocket.WebSocketClientConnectorConfig;
-import org.wso2.transport.http.netty.message.HttpConnectorUtil;
+import org.ballerinalang.net.transport.contract.HttpWsConnectorFactory;
+import org.ballerinalang.net.transport.contract.ServerConnector;
+import org.ballerinalang.net.transport.contract.config.ListenerConfiguration;
+import org.ballerinalang.net.transport.contract.config.SenderConfiguration;
+import org.ballerinalang.net.transport.contract.config.ServerBootstrapConfiguration;
+import org.ballerinalang.net.transport.contract.config.TransportProperty;
+import org.ballerinalang.net.transport.contract.config.TransportsConfiguration;
+import org.ballerinalang.net.transport.message.HttpConnectorUtil;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.ballerinalang.logging.util.Constants.HTTP_ACCESS_LOG_ENABLED;
-import static org.ballerinalang.logging.util.Constants.HTTP_TRACE_LOG_ENABLED;
+import static org.ballerinalang.net.http.HttpConstants.HTTP_ACCESS_LOG_ENABLED;
+import static org.ballerinalang.net.http.HttpConstants.HTTP_TRACE_LOG_ENABLED;
 
 /**
  * {@code HttpConnectionManager} is responsible for managing all the server connectors with ballerina runtime.
@@ -43,12 +41,12 @@ import static org.ballerinalang.logging.util.Constants.HTTP_TRACE_LOG_ENABLED;
  */
 public class HttpConnectionManager {
 
-    private static HttpConnectionManager instance = new HttpConnectionManager();
-    private Map<String, ServerConnector> startupDelayedHTTPServerConnectors = new HashMap<>();
-    private Map<String, HttpServerConnectorContext> serverConnectorPool = new HashMap<>();
+    private static final HttpConnectionManager instance = new HttpConnectionManager();
+    private final Map<String, ServerConnector> startupDelayedHTTPServerConnectors = new HashMap<>();
+    private final Map<String, HttpServerConnectorContext> serverConnectorPool = new HashMap<>();
     private ServerBootstrapConfiguration serverBootstrapConfiguration;
-    private TransportsConfiguration trpConfig;
-    private HttpWsConnectorFactory httpConnectorFactory = HttpUtil.createHttpWsConnectionFactory();
+    private final TransportsConfiguration trpConfig;
+    private final HttpWsConnectorFactory httpConnectorFactory = HttpUtil.createHttpWsConnectionFactory();
 
     private HttpConnectionManager() {
         trpConfig = buildDefaultTransportConfig();
@@ -103,8 +101,8 @@ public class HttpConnectionManager {
     }
 
     private static class HttpServerConnectorContext {
-        private ServerConnector serverConnector;
-        private ListenerConfiguration listenerConfiguration;
+        private final ServerConnector serverConnector;
+        private final ListenerConfiguration listenerConfiguration;
         private int referenceCount = 0;
 
         HttpServerConnectorContext(ServerConnector serverConnector, ListenerConfiguration listenerConfiguration) {
@@ -137,18 +135,12 @@ public class HttpConnectionManager {
         if (context == null) {
             return false;
         }
-        if (listenerConfiguration.getScheme().equalsIgnoreCase("https")) {
-            ListenerConfiguration config = context.getListenerConfiguration();
-            if (!listenerConfiguration.getKeyStoreFile().equals(config.getKeyStoreFile())
-                    || !listenerConfiguration.getKeyStorePass().equals(config.getKeyStorePass())) {
-                return true;
-            }
+        if (!listenerConfiguration.getScheme().equalsIgnoreCase("https")) {
+            return false;
         }
-        return false;
-    }
-
-    public WebSocketClientConnector getWebSocketClientConnector(WebSocketClientConnectorConfig configuration) {
-        return  httpConnectorFactory.createWsClientConnector(configuration);
+        ListenerConfiguration config = context.getListenerConfiguration();
+        return !listenerConfiguration.getKeyStoreFile().equals(config.getKeyStoreFile())
+                || !listenerConfiguration.getKeyStorePass().equals(config.getKeyStorePass());
     }
 
     public TransportsConfiguration getTransportConfig() {
@@ -195,5 +187,4 @@ public class HttpConnectionManager {
 
         return transportsConfiguration;
     }
-
 }

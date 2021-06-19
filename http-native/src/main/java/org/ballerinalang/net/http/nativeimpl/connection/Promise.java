@@ -18,24 +18,21 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.Strand;
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpUtil;
-import org.wso2.transport.http.netty.contract.HttpResponseFuture;
-import org.wso2.transport.http.netty.message.Http2PushPromise;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.message.Http2PushPromise;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 /**
  * {@code Promise} is the extern function to respond back to the client with a PUSH_PROMISE frame.
  */
 public class Promise extends ConnectionAction {
-    public static Object promise(BalEnv env, BObject connectionObj, BObject pushPromiseObj) {
+    public static Object promise(Environment env, BObject connectionObj, BObject pushPromiseObj) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        Strand strand = Scheduler.getStrand();
-        DataContext dataContext = new DataContext(strand, env.markAsync(), inboundRequestMsg);
+        DataContext dataContext = new DataContext(env, inboundRequestMsg);
         HttpUtil.serverConnectionStructCheck(inboundRequestMsg);
 
         Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj,
@@ -44,4 +41,6 @@ public class Promise extends ConnectionAction {
         setResponseConnectorListener(dataContext, outboundRespStatusFuture);
         return null;
     }
+
+    private Promise() {}
 }

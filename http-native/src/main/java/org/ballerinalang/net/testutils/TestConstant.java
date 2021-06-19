@@ -38,6 +38,7 @@ public class TestConstant {
     public static final String ENABLE_JBALLERINA_TESTS = "enableJBallerinaTests";
     public static final String ENABLE_OLD_PARSER_FOR_TESTS = "enableOldParserForTests";
     public static final String MODULE_INIT_CLASS_NAME = "___init";
+    public static final String BALLERINA_HOME = "ballerina.home";
 
     //HTTP2 related Constants
     public static final long HTTP2_RESPONSE_TIME_OUT = 10;

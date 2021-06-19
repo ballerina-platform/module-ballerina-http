@@ -18,6 +18,7 @@
 
 package org.ballerinalang.net.testutils;
 
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -162,14 +163,14 @@ public class ExternIdleTimeoutResponseTestUtil {
      *
      * @param socketChannel the channel to write to.
      * @throws IOException          if there's an error when writing.
-     * @throws InterruptedException if the thread sleep is interrrupted.
+     * @throws InterruptedException if the thread sleep is interrupted.
      */
     private static void writeDelayedRequest(SocketChannel socketChannel) throws IOException, InterruptedException {
         int numWritten = 0;
         int i = 0;
         ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE);
         buf.clear();
-        byte[] data = CLIENT_PAYLOAD.getBytes();
+        byte[] data = CLIENT_PAYLOAD.getBytes(CharsetUtil.UTF_8);
         while (i != data.length) {
             numWritten++;
             buf.clear();
@@ -185,7 +186,10 @@ public class ExternIdleTimeoutResponseTestUtil {
                 socketChannel.write(buf);
             }
             if (numWritten == 2) {
-                new CountDownLatch(1).await(2, TimeUnit.SECONDS);
+                boolean result = new CountDownLatch(1).await(2, TimeUnit.SECONDS);
+                if (!result) {
+                    log.warn("delay writing failed");
+                }
             }
         }
     }

@@ -18,20 +18,18 @@
 
 package org.ballerinalang.net.http.nativeimpl.connection;
 
-import org.ballerinalang.jvm.api.BErrorCreator;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.BalEnv;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.Strand;
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BObject;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpUtil;
-import org.wso2.transport.http.netty.contract.HttpConnectorListener;
-import org.wso2.transport.http.netty.contract.HttpResponseFuture;
-import org.wso2.transport.http.netty.message.Http2PushPromise;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
-import org.wso2.transport.http.netty.message.HttpMessageDataStreamer;
+import org.ballerinalang.net.transport.contract.HttpConnectorListener;
+import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.message.Http2PushPromise;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpMessageDataStreamer;
 
 import java.io.OutputStream;
 
@@ -42,16 +40,15 @@ import static org.ballerinalang.net.http.HttpUtil.extractEntity;
  */
 public class PushPromisedResponse extends ConnectionAction {
 
-    public static Object pushPromisedResponse(BalEnv env, BObject connectionObj, BObject pushPromiseObj,
+    public static Object pushPromisedResponse(Environment env, BObject connectionObj, BObject pushPromiseObj,
                                               BObject outboundResponseObj) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        Strand strand = Scheduler.getStrand();
-        DataContext dataContext = new DataContext(strand, env.markAsync(), inboundRequestMsg);
+        DataContext dataContext = new DataContext(env, inboundRequestMsg);
         HttpUtil.serverConnectionStructCheck(inboundRequestMsg);
 
         Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj, null);
         if (http2PushPromise == null) {
-            throw BErrorCreator.createError(BStringUtils.fromString("invalid push promise"));
+            throw ErrorCreator.createError(StringUtils.fromString("invalid push promise"));
         }
 
         HttpCarbonMessage outboundResponseMsg = HttpUtil
@@ -76,7 +73,9 @@ public class PushPromisedResponse extends ConnectionAction {
         BObject entityObj = extractEntity(outboundResponseObj);
         if (entityObj != null) {
             Object outboundMessageSource = EntityBodyHandler.getMessageDataSource(entityObj);
-            serializeMsgDataSource(outboundMessageSource, entityObj, messageOutputStream);
+            serializeMsgDataSource(dataContext, outboundMessageSource, entityObj, messageOutputStream);
         }
     }
+
+    private PushPromisedResponse() {}
 }

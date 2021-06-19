@@ -18,8 +18,8 @@
 
 package org.ballerinalang.net.uri.nativeimpl;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BString;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.net.http.HttpUtil;
 
 import java.net.URI;
@@ -41,9 +41,11 @@ public class Resolve {
                 uri = baseUri.resolve(uri.normalize());
 
             }
-            return BStringUtils.fromString(uri.toString());
+            return StringUtils.fromString(uri.toString());
         } catch (URISyntaxException e) {
             return HttpUtil.createHttpError("error occurred while resolving URI. " + e.getMessage());
         }
     }
+
+    private Resolve() {}
 }

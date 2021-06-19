@@ -18,25 +18,29 @@
 
 package org.ballerinalang.net.http.nativeimpl;
 
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.ArrayValueImpl;
 import org.ballerinalang.mime.util.MimeUtil;
+import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.HttpUtil;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.ballerinalang.mime.util.MimeConstants.HEADER_NOT_FOUND_ERROR;
 import static org.ballerinalang.mime.util.MimeConstants.INVALID_HEADER_OPERATION_ERROR;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.HTTP_TRAILER_HEADERS;
 import static org.ballerinalang.net.http.HttpConstants.LEADING_HEADER;
+import static org.ballerinalang.net.http.HttpErrorType.HEADER_NOT_FOUND_ERROR;
 
 /**
  * Utilities related to HTTP request/response headers.
@@ -46,9 +50,6 @@ import static org.ballerinalang.net.http.HttpConstants.LEADING_HEADER;
 public class ExternHeaders {
 
     public static void addHeader(BObject messageObj, BString headerName, BString headerValue, Object position) {
-        if (headerName == null || headerValue == null) {
-            return;
-        }
         try {
             getOrCreateHeadersBasedOnPosition(messageObj, position).add(headerName.getValue(), headerValue.getValue());
         } catch (IllegalArgumentException ex) {
@@ -56,38 +57,38 @@ public class ExternHeaders {
         }
     }
 
-    public static BString getHeader(BObject messageObj, BString headerName, Object position) {
+    public static Object getHeader(BObject messageObj, BString headerName, Object position) {
         HttpHeaders httpHeaders = getHeadersBasedOnPosition(messageObj, position);
         if (httpHeaders == null) {
-            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
         if (httpHeaders.get(headerName.getValue()) != null) {
-            return BStringUtils.fromString(httpHeaders.get(headerName.getValue()));
+            return StringUtils.fromString(httpHeaders.get(headerName.getValue()));
         } else {
-            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
     }
 
-    public static ArrayValue getHeaderNames(BObject messageObj, Object position) {
+    public static BArray getHeaderNames(BObject messageObj, Object position) {
         HttpHeaders httpHeaders = getHeadersBasedOnPosition(messageObj, position);
         if (httpHeaders == null || httpHeaders.isEmpty()) {
-            return new ArrayValueImpl(new BString[0]);
+            return StringUtils.fromStringArray(new String[0]);
         }
         Set<String> distinctNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         distinctNames.addAll(httpHeaders.names());
-        return new ArrayValueImpl(BStringUtils.fromStringArray(distinctNames.toArray(new String[0])));
+        return StringUtils.fromStringArray(distinctNames.toArray(new String[0]));
     }
 
-    public static ArrayValue getHeaders(BObject messageObj, BString headerName, Object position) {
+    public static Object getHeaders(BObject messageObj, BString headerName, Object position) {
         HttpHeaders httpHeaders = getHeadersBasedOnPosition(messageObj, position);
         if (httpHeaders == null) {
-            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
         List<String> headerValueList = httpHeaders.getAll(headerName.getValue());
-        if (headerValueList == null) {
-            throw MimeUtil.createError(HEADER_NOT_FOUND_ERROR, "Http header does not exist");
+        if (headerValueList == null || headerValueList.isEmpty()) {
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
         }
-        return new ArrayValueImpl(BStringUtils.fromStringArray(headerValueList.toArray(new String[0])));
+        return StringUtils.fromStringArray(headerValueList.toArray(new String[0]));
     }
 
     public static boolean hasHeader(BObject messageObj, BString headerName, Object position) {
@@ -125,13 +126,13 @@ public class ExternHeaders {
     }
 
     private static HttpHeaders getHeadersBasedOnPosition(BObject messageObj, Object position) {
-        return position.equals(BStringUtils.fromString(LEADING_HEADER)) ?
+        return position.equals(StringUtils.fromString(LEADING_HEADER)) ?
                 (HttpHeaders) messageObj.getNativeData(HTTP_HEADERS) :
                 (HttpHeaders) messageObj.getNativeData(HTTP_TRAILER_HEADERS);
     }
 
     private static HttpHeaders getOrCreateHeadersBasedOnPosition(BObject messageObj, Object position) {
-        return position.equals(BStringUtils.fromString(LEADING_HEADER)) ?
+        return position.equals(StringUtils.fromString(LEADING_HEADER)) ?
                 getHeaders(messageObj) : getTrailerHeaders(messageObj);
     }
 
@@ -156,4 +157,15 @@ public class ExternHeaders {
         }
         return httpTrailerHeaders;
     }
+
+    public static Object getAuthorizationHeader(Environment env) {
+        HttpCarbonMessage inboundMessage = (HttpCarbonMessage) env.getStrandLocal(HttpConstants.INBOUND_MESSAGE);
+        String authorizationHeader = inboundMessage.getHeader(HttpHeaderNames.AUTHORIZATION.toString());
+        if (authorizationHeader == null) {
+            return HttpUtil.createHttpError("Http header does not exist", HEADER_NOT_FOUND_ERROR);
+        }
+        return StringUtils.fromString(authorizationHeader);
+    }
+
+    private ExternHeaders() {}
 }

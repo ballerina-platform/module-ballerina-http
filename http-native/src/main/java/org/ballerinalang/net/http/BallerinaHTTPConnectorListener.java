@@ -17,30 +17,28 @@
  */
 package org.ballerinalang.net.http;
 
-import org.ballerinalang.jvm.api.BExecutor;
-import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.observability.ObservabilityConstants;
-import org.ballerinalang.jvm.observability.ObserveUtils;
-import org.ballerinalang.jvm.observability.ObserverContext;
-import org.ballerinalang.jvm.runtime.RuntimeConstants;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
-import org.ballerinalang.jvm.util.exceptions.BallerinaException;
+import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.constants.RuntimeConstants;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.observability.ObservabilityConstants;
+import io.ballerina.runtime.observability.ObserveUtils;
+import io.ballerina.runtime.observability.ObserverContext;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
+import org.ballerinalang.net.transport.contract.HttpConnectorListener;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.transport.http.netty.contract.HttpConnectorListener;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.PROPERTY_TRACE_PROPERTIES;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.SERVER_CONNECTOR_HTTP;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
-import static org.ballerinalang.jvm.observability.ObservabilityConstants.TAG_KEY_PROTOCOL;
-import static org.ballerinalang.net.http.HttpConstants.ON_MESSAGE_METADATA;
+import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_TRACE_PROPERTIES;
+import static io.ballerina.runtime.observability.ObservabilityConstants.SERVER_CONNECTOR_HTTP;
+import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
+import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
+import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PROTOCOL;
+import static org.ballerinalang.net.http.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 
 /**
  * HTTP connector listener for Ballerina.
@@ -80,11 +78,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 if (httpResource != null) {
                     extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
                 }
-            } catch (BallerinaException ex) {
-                HttpUtil.handleFailure(inboundMessage, new BallerinaConnectorException(ex.getMessage(), ex.getCause()));
+            } catch (BallerinaConnectorException ex) {
+                HttpUtil.handleFailure(inboundMessage, ex.getMessage());
             }
         } catch (Exception ex) {
-            HttpUtil.handleFailure(inboundMessage, new BallerinaConnectorException(ex.getMessage(), ex.getCause()));
+            HttpUtil.handleFailure(inboundMessage, ex.getMessage());
         }
     }
 
@@ -93,37 +91,40 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         log.warn("Error in HTTP server connector: {}", throwable.getMessage());
     }
 
+    @SuppressWarnings("unchecked")
     protected void extractPropertiesAndStartResourceExecution(HttpCarbonMessage inboundMessage,
                                                               HttpResource httpResource) {
         boolean isTransactionInfectable = httpResource.isTransactionInfectable();
-        boolean isInterruptible = httpResource.isInterruptible();
-        Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable,
-                isInterruptible, httpResource.isTransactionAnnotated());
+        Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable);
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig);
 
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = new ObserverContext();
+            observerContext.setManuallyClosed(true);
             observerContext.setObjectName(SERVER_CONNECTOR_HTTP);
             Map<String, String> httpHeaders = new HashMap<>();
             inboundMessage.getHeaders().forEach(entry -> httpHeaders.put(entry.getKey(), entry.getValue()));
             observerContext.addProperty(PROPERTY_TRACE_PROPERTIES, httpHeaders);
-            observerContext.addMainTag(TAG_KEY_HTTP_METHOD, inboundMessage.getHttpMethod());
-            observerContext.addMainTag(TAG_KEY_PROTOCOL, (String) inboundMessage.getProperty(HttpConstants.PROTOCOL));
-            observerContext.addMainTag(TAG_KEY_HTTP_URL, inboundMessage.getRequestUrl());
+            observerContext.addTag(TAG_KEY_HTTP_METHOD, inboundMessage.getHttpMethod());
+            observerContext.addTag(TAG_KEY_PROTOCOL, (String) inboundMessage.getProperty(HttpConstants.PROTOCOL));
+            observerContext.addTag(TAG_KEY_HTTP_URL, inboundMessage.getRequestUrl());
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
+            inboundMessage.setProperty(OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
-        CallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage);
+        Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime(),
+                                                         httpResource.getReturnMediaType());
         BObject service = httpResource.getParentService().getBalService();
-        BExecutor.submit(httpServicesRegistry.getScheduler(), service, httpResource.getName(), null,
-                        ON_MESSAGE_METADATA, callback, properties, signatureParams);
+        httpServicesRegistry.getRuntime().invokeMethodAsync(service, httpResource.getName(), null,
+                                                            ModuleUtils.getOnMessageMetaData(), callback,
+                                                            properties, httpResource.getBalResource().getReturnType(),
+                                                            signatureParams);
     }
 
     protected boolean accessed(HttpCarbonMessage inboundMessage) {
         return inboundMessage.getProperty(HTTP_RESOURCE) != null;
     }
 
-    private Map<String, Object> collectRequestProperties(HttpCarbonMessage inboundMessage, boolean isInfectable,
-                                                         boolean isInterruptible, boolean isTransactionAnnotated) {
+    private Map<String, Object> collectRequestProperties(HttpCarbonMessage inboundMessage, boolean isInfectable) {
         Map<String, Object> properties = new HashMap<>();
         if (inboundMessage.getProperty(HttpConstants.SRC_HANDLER) != null) {
             Object srcHandler = inboundMessage.getProperty(HttpConstants.SRC_HANDLER);
@@ -131,22 +132,23 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         }
         String txnId = inboundMessage.getHeader(HttpConstants.HEADER_X_XID);
         String registerAtUrl = inboundMessage.getHeader(HttpConstants.HEADER_X_REGISTER_AT_URL);
+        String trxInfo = inboundMessage.getHeader(HttpConstants.HEADER_X_INFO_RECORD);
         //Return 500 if txn context is received when transactionInfectable=false
         if (!isInfectable && txnId != null) {
             log.error("Infection attempt on resource with transactionInfectable=false, txnId:" + txnId);
             throw new BallerinaConnectorException("Cannot create transaction context: " +
                                                           "resource is not transactionInfectable");
         }
-        if (isTransactionAnnotated && isInfectable && txnId != null && registerAtUrl != null) {
+        if (isInfectable && txnId != null && registerAtUrl != null && trxInfo != null) {
             properties.put(RuntimeConstants.GLOBAL_TRANSACTION_ID, txnId);
             properties.put(RuntimeConstants.TRANSACTION_URL, registerAtUrl);
-            return properties;
+            properties.put(RuntimeConstants.TRANSACTION_INFO, trxInfo);
         }
         properties.put(HttpConstants.REMOTE_ADDRESS, inboundMessage.getProperty(HttpConstants.REMOTE_ADDRESS));
         properties.put(HttpConstants.ORIGIN_HOST, inboundMessage.getHeader(HttpConstants.ORIGIN_HOST));
         properties.put(HttpConstants.POOLED_BYTE_BUFFER_FACTORY,
                        inboundMessage.getHeader(HttpConstants.POOLED_BYTE_BUFFER_FACTORY));
-        properties.put(RuntimeConstants.IS_INTERRUPTIBLE, isInterruptible);
+        properties.put(HttpConstants.INBOUND_MESSAGE, inboundMessage);
         return properties;
     }
 }

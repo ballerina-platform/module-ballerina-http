@@ -18,13 +18,13 @@
 
 package org.ballerinalang.net.uri;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.util.exceptions.BallerinaConnectorException;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.net.http.BallerinaConnectorException;
 import org.ballerinalang.net.http.HttpConstants;
-import org.wso2.transport.http.netty.message.HttpCarbonMessage;
+import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -42,14 +42,6 @@ public class URIUtil {
 
     public static final String URI_PATH_DELIMITER = "/";
     public static final char DOT_SEGMENT = '.';
-    private static final BString[] EMPTY_STRING_ARRAY = new BString[0];
-
-    public static String[] getPathSegments(String path) {
-        if (path.startsWith(URI_PATH_DELIMITER)) {
-            path = path.substring(1);
-        }
-        return path.split(URI_PATH_DELIMITER);
-    }
 
     public static String getSubPath(String path, String basePath) {
         if (path.length() == basePath.length()) {
@@ -89,21 +81,21 @@ public class URIUtil {
 
         for (Map.Entry<String, List<String>> entry : tempParamMap.entrySet()) {
             List<String> entryValue = entry.getValue();
-            queryParamsMap.put(BStringUtils.fromString(entry.getKey()), BValueCreator
-                    .createArrayValue(BStringUtils.fromStringArray(entryValue.toArray(new String[0]))));
+            queryParamsMap.put(StringUtils.fromString(entry.getKey()),
+                               StringUtils.fromStringArray(entryValue.toArray(new String[0])));
         }
     }
 
     @SuppressWarnings("unchecked")
     public static BMap<BString, Object> getMatrixParamsMap(String path, HttpCarbonMessage carbonMessage) {
-        BMap<BString, Object> matrixParamsBMap = BValueCreator.createMapValue();
+        BMap<BString, Object> matrixParamsBMap = ValueCreator.createMapValue();
         Map<String, Map<String, String>> pathToMatrixParamMap =
                 (Map<String, Map<String, String>>) carbonMessage.getProperty(HttpConstants.MATRIX_PARAMS);
         Map<String, String> matrixParamsMap = pathToMatrixParamMap.get(path);
         if (matrixParamsMap != null) {
             for (Map.Entry<String, String> matrixParamEntry : matrixParamsMap.entrySet()) {
-                matrixParamsBMap.put(BStringUtils.fromString(matrixParamEntry.getKey()),
-                                     BStringUtils.fromString(matrixParamEntry.getValue()));
+                matrixParamsBMap.put(StringUtils.fromString(matrixParamEntry.getKey()),
+                                     StringUtils.fromString(matrixParamEntry.getValue()));
             }
         }
         return matrixParamsBMap;
@@ -138,4 +130,6 @@ public class URIUtil {
         }
         return pathToMatrixParam;
     }
+
+    private URIUtil() {}
 }

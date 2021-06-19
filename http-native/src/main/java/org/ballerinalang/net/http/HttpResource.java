@@ -17,30 +17,31 @@
 */
 package org.ballerinalang.net.http;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.BValueCreator;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.transactions.TransactionConstants;
-import org.ballerinalang.jvm.types.AttachedFunction;
-import org.ballerinalang.jvm.types.BType;
+import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.RemoteMethodType;
+import io.ballerina.runtime.api.types.ResourceMethodType;
+import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
+import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
+import org.ballerinalang.net.http.service.signature.ParamHandler;
 import org.ballerinalang.net.uri.DispatcherUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.ballerinalang.net.http.HttpConstants.ANN_FIELD_PATH_PARAM_ORDER;
-import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_INTERRUPTIBLE;
-import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_PARAM_ORDER_CONFIG;
 import static org.ballerinalang.net.http.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
-import static org.ballerinalang.net.http.HttpConstants.PACKAGE_BALLERINA_BUILTIN;
-import static org.ballerinalang.net.http.HttpConstants.PROTOCOL_PACKAGE_HTTP;
 import static org.ballerinalang.net.http.HttpUtil.checkConfigAnnotationAvailability;
+import static org.ballerinalang.net.http.service.signature.ParamHandler.PAYLOAD_ANNOTATION;
 
 /**
  * {@code HttpResource} This is the http wrapper for the {@code Resource} implementation.
@@ -51,15 +52,15 @@ public class HttpResource {
 
     private static final Logger log = LoggerFactory.getLogger(HttpResource.class);
 
-    private static final BString METHODS_FIELD = BStringUtils.fromString("methods");
-    private static final BString PATH_FIELD = BStringUtils.fromString("path");
-    private static final BString BODY_FIELD = BStringUtils.fromString("body");
-    private static final BString CONSUMES_FIELD = BStringUtils.fromString("consumes");
-    private static final BString PRODUCES_FIELD = BStringUtils.fromString("produces");
-    private static final BString CORS_FIELD = BStringUtils.fromString("cors");
-    private static final BString TRANSACTION_INFECTABLE_FIELD = BStringUtils.fromString("transactionInfectable");
+    private static final BString CONSUMES_FIELD = StringUtils.fromString("consumes");
+    private static final BString PRODUCES_FIELD = StringUtils.fromString("produces");
+    private static final BString CORS_FIELD = StringUtils.fromString("cors");
+    private static final BString TRANSACTION_INFECTABLE_FIELD = StringUtils.fromString("transactionInfectable");
+    private static final BString HTTP_RESOURCE_CONFIG =
+            StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
+    private static final String RETURN_ANNOT_PREFIX = "$returns$";
 
-    private AttachedFunction balResource;
+    private MethodType balResource;
     private List<String> methods;
     private String path;
     private String entityBodyAttribute;
@@ -67,21 +68,22 @@ public class HttpResource {
     private List<String> produces;
     private List<String> producesSubTypes;
     private CorsHeaders corsHeaders;
-    private SignatureParams signatureParams;
+    private ParamHandler paramHandler;
     private HttpService parentService;
     private boolean transactionInfectable = true; //default behavior
-    private boolean interruptible;
+    private String wildcardToken;
+    private int pathParamCount;
+    private String returnMediaType;
 
-    private boolean transactionAnnotated = false;
-
-    protected HttpResource(AttachedFunction resource, HttpService parentService) {
+    protected HttpResource(MethodType resource, HttpService parentService) {
         this.balResource = resource;
         this.parentService = parentService;
         this.producesSubTypes = new ArrayList<>();
-    }
-
-    public boolean isTransactionAnnotated() {
-        return transactionAnnotated;
+        if (balResource instanceof ResourceMethodType) {
+            this.populateResourcePath();
+            this.populateMethod();
+            this.populateReturnMediaType();
+        }
     }
 
     public String getName() {
@@ -89,40 +91,63 @@ public class HttpResource {
     }
 
     public String getServiceName() {
-        return balResource.parent.getName();
+        return balResource.getParentObjectType().getName();
     }
 
-    public SignatureParams getSignatureParams() {
-        return signatureParams;
+    public ParamHandler getParamHandler() {
+        return paramHandler;
     }
 
     public HttpService getParentService() {
         return parentService;
     }
 
-    public AttachedFunction getBalResource() {
-        return balResource;
+    public ResourceMethodType getBalResource() {
+        return (ResourceMethodType) balResource;
     }
 
     public List<String> getMethods() {
         return methods;
     }
 
-    public void setMethods(List<String> methods) {
-        this.methods = methods;
+    private void populateMethod() {
+        String accessor = getBalResource().getAccessor();
+        if (HttpConstants.DEFAULT_HTTP_METHOD.equals(accessor.toLowerCase(Locale.getDefault()))) {
+            // TODO: Fix this properly
+            // setting method as null means that no specific method. Resource is exposed for any method match
+            this.methods = null;
+        } else {
+            this.methods = Collections.singletonList(accessor.toUpperCase(Locale.getDefault()));
+        }
     }
 
     public String getPath() {
         return path;
     }
 
-    public void setPath(String resourcePath) {
-        if (resourcePath == null || resourcePath.isEmpty()) {
-            log.debug("Path not specified in the Resource instance, using default sub path");
-            path = balResource.getName();
-        } else {
-            path = resourcePath;
+    private void populateResourcePath() {
+        ResourceMethodType resourceFunctionType = getBalResource();
+        String[] paths = resourceFunctionType.getResourcePath();
+        StringBuilder resourcePath = new StringBuilder();
+        int count = 0;
+        for (String segment : paths) {
+            resourcePath.append(HttpConstants.SINGLE_SLASH);
+            if (HttpConstants.STAR_IDENTIFIER.equals(segment)) {
+                String pathSegment = resourceFunctionType.getParamNames()[count++];
+                resourcePath.append(HttpConstants.OPEN_CURL_IDENTIFIER)
+                        .append(pathSegment).append(HttpConstants.CLOSE_CURL_IDENTIFIER);
+            } else if (HttpConstants.DOUBLE_STAR_IDENTIFIER.equals(segment)) {
+                this.wildcardToken = resourceFunctionType.getParamNames()[count++];
+                resourcePath.append(HttpConstants.STAR_IDENTIFIER);
+            } else if (HttpConstants.DOT_IDENTIFIER.equals(segment)) {
+                // default set as "/"
+                break;
+            } else {
+                resourcePath.append(HttpUtil.unescapeAndEncodeValue(segment));
+            }
         }
+        this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
+        this.pathParamCount = count;
     }
 
     public List<String> getConsumes() {
@@ -173,61 +198,22 @@ public class HttpResource {
         this.transactionInfectable = transactionInfectable;
     }
 
-    public boolean isInterruptible() {
-        return interruptible;
-    }
-
-    public void setInterruptible(boolean interruptible) {
-        this.interruptible = interruptible;
-    }
-
-    public String getEntityBodyAttributeValue() {
-        return entityBodyAttribute;
-    }
-
-    public void setEntityBodyAttributeValue(String entityBodyAttribute) {
-        this.entityBodyAttribute = entityBodyAttribute;
-    }
-
-    public static HttpResource buildHttpResource(AttachedFunction resource, HttpService httpService) {
+    public static HttpResource buildHttpResource(MethodType resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
-        httpResource.setInterruptible(httpService.isInterruptible() || hasInterruptibleAnnotation(resource));
 
-        setupTransactionAnnotations(resource, httpResource);
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
-            httpResource.setPath(resourceConfigAnnotation.getStringValue(PATH_FIELD).getValue().replaceAll(
-                    HttpConstants.REGEX, HttpConstants.SINGLE_SLASH));
-            httpResource.setMethods(
-                    getAsStringList(resourceConfigAnnotation.getArrayValue(METHODS_FIELD).getStringArray()));
             httpResource.setConsumes(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(CONSUMES_FIELD).getStringArray()));
             httpResource.setProduces(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(PRODUCES_FIELD).getStringArray()));
-            httpResource.setEntityBodyAttributeValue(resourceConfigAnnotation.getStringValue(BODY_FIELD).getValue());
             httpResource.setCorsHeaders(CorsHeaders.buildCorsHeaders(resourceConfigAnnotation.getMapValue(CORS_FIELD)));
             httpResource
                     .setTransactionInfectable(resourceConfigAnnotation.getBooleanValue(TRANSACTION_INFECTABLE_FIELD));
-
-            processResourceCors(httpResource, httpService);
-            httpResource.prepareAndValidateSignatureParams();
-            return httpResource;
         }
-
-        if (log.isDebugEnabled()) {
-            log.debug("resourceConfig not specified in the Resource instance, using default sub path");
-        }
-        httpResource.setPath(resource.getName());
+        processResourceCors(httpResource, httpService);
         httpResource.prepareAndValidateSignatureParams();
         return httpResource;
-    }
-
-    private static void setupTransactionAnnotations(AttachedFunction resource, HttpResource httpResource) {
-        BMap transactionConfigAnnotation = HttpUtil.getTransactionConfigAnnotation(resource,
-                        TransactionConstants.TRANSACTION_PACKAGE_PATH);
-        if (transactionConfigAnnotation != null) {
-            httpResource.transactionAnnotated = true;
-        }
     }
 
     /**
@@ -236,18 +222,8 @@ public class HttpResource {
      * @param resource The resource
      * @return the resource configuration of the given resource
      */
-    public static BMap getResourceConfigAnnotation(AttachedFunction resource) {
-        return (BMap) resource.getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_RESOURCE_CONFIG);
-    }
-
-    protected static BMap getPathParamOrderMap(AttachedFunction resource) {
-        Object annotation = resource.getAnnotation(PROTOCOL_PACKAGE_HTTP, ANN_NAME_PARAM_ORDER_CONFIG);
-        return annotation == null ? BValueCreator.createMapValue() :
-                (BMap<BString, Object>) ((BMap<BString, Object>) annotation).get(ANN_FIELD_PATH_PARAM_ORDER);
-    }
-
-    private static boolean hasInterruptibleAnnotation(AttachedFunction resource) {
-        return resource.getAnnotation(PACKAGE_BALLERINA_BUILTIN, ANN_NAME_INTERRUPTIBLE) != null;
+    public static BMap getResourceConfigAnnotation(MethodType resource) {
+        return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
     }
 
     private static List<String> getAsStringList(Object[] values) {
@@ -263,7 +239,7 @@ public class HttpResource {
 
     private static void processResourceCors(HttpResource resource, HttpService service) {
         CorsHeaders corsHeaders = resource.getCorsHeaders();
-        if (!corsHeaders.isAvailable()) {
+        if (corsHeaders == null || !corsHeaders.isAvailable()) {
             //resource doesn't have CORS headers, hence use service CORS
             resource.setCorsHeaders(service.getCorsHeaders());
             return;
@@ -285,13 +261,53 @@ public class HttpResource {
     }
 
     private void prepareAndValidateSignatureParams() {
-        signatureParams = new SignatureParams(this);
-        signatureParams.validate();
+        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount);
     }
 
-    public List<BType> getParamTypes() {
-        List<BType> paramTypes = new ArrayList<>();
-        paramTypes.addAll(Arrays.asList(this.balResource.getParameterType()));
-        return paramTypes;
+    String getWildcardToken() {
+        return wildcardToken;
+    }
+
+    private void populateReturnMediaType() {
+        BMap annotations = (BMap) getBalResource().getAnnotation(StringUtils.fromString(RETURN_ANNOT_PREFIX));
+        if (annotations == null) {
+            return;
+        }
+        Object[] annotationsKeys = annotations.getKeys();
+        for (Object objKey : annotationsKeys) {
+            BString key = ((BString) objKey);
+            if (!PAYLOAD_ANNOTATION.equals(key.getValue())) {
+                continue;
+            }
+            Object mediaType = annotations.getMapValue(key).get(HttpConstants.ANN_FIELD_MEDIA_TYPE);
+            if (mediaType instanceof BString) {
+                this.returnMediaType = ((BString) mediaType).getValue();
+            } else if (mediaType instanceof BArray) {
+                BArray mediaTypeArr = (BArray) mediaType;
+                if (mediaTypeArr.getLength() != 0) {
+                    // When user provides an array of mediaTypes, the first element is considered for `Content-Type`
+                    // of the response assuming the priority order.
+                    this.returnMediaType = ((BArray) mediaType).get(0).toString();
+                }
+            }
+            return;
+        }
+    }
+
+    String getReturnMediaType() {
+        return returnMediaType;
+    }
+
+    // Followings added due to WebSub requirement
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public List<Type> getParamTypes() {
+        return new ArrayList<>(Arrays.asList(this.balResource.getParameterTypes()));
+    }
+
+    public RemoteMethodType getRemoteFunction() {
+        return (RemoteMethodType) balResource;
     }
 }

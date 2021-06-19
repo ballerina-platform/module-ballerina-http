@@ -16,7 +16,7 @@
  */
 
 plugins {
-    id "com.github.spotbugs" version "4.0.5"
+    id "com.github.spotbugs" version "4.2.3"
     id "com.github.johnrengelman.shadow" version "5.2.0"
     id "de.undercouch.download" version "4.0.4"
     id "net.researchgate.release" version "2.8.0"
@@ -26,30 +26,29 @@ ext.ballerinaLangVersion = project.ballerinaLangVersion
 ext.stdlibMimeVersion = project.stdlibMimeVersion
 ext.stdlibIoVersion = project.stdlibIoVersion
 ext.stdlibLogVersion = project.stdlibLogVersion
-ext.stdlibStringutilsVersion = project.stdlibStringutilsVersion
+ext.stdlibRegexVersion = project.stdlibRegexVersion
 ext.stdlibAuthVersion = project.stdlibAuthVersion
+ext.stdlibJwtVersion = project.stdlibJwtVersion
+ext.stdlibOAuth2Version = project.stdlibOAuth2Version
 ext.stdlibCacheVersion = project.stdlibCacheVersion
 ext.stdlibTimeVersion = project.stdlibTimeVersion
+ext.stdlibUrlVersion = project.stdlibUrlVersion
 ext.stdlibCryptoVersion = project.stdlibCryptoVersion
 ext.stdlibFileVersion = project.stdlibFileVersion
-ext.stdlibConfigVersion = project.stdlibConfigVersion
-ext.stdlibReflectVersion = project.stdlibReflectVersion
-ext.stdlibRuntimeVersion = project.stdlibRuntimeVersion
-ext.stdlibSystemVersion = project.stdlibSystemVersion
+ext.stdlibOsVersion = project.stdlibOsVersion
 ext.stdlibTaskVersion = project.stdlibTaskVersion
+ext.stdlibUuidVersion = project.stdlibUuidVersion
 
 ext.slf4jVersion = project.slf4jVersion
 ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
+ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
 ext.commonsLang3Version = project.commonsLang3Version
 ext.nettyVersion = project.nettyVersion
 ext.nettyTcnativeVersion = project.nettyTcnativeVersion
-ext.wso2TransportHttpNettyVersion = project.wso2TransportHttpNettyVersion
 ext.wso2CommonsPoolVersion = project.wso2CommonsPoolVersion
-ext.wso2SnakeYamlVersion = project.wso2SnakeYamlVersion
 ext.bouncycastleVersion = project.bouncycastleVersion
-ext.wso2CarbonMetricsVersion = project.wso2CarbonMetricsVersion
 ext.mimepullVersion = project.mimepullVersion
-ext.testngVersion =project.testngVersion
+ext.testngVersion = project.testngVersion
 
 allprojects {
     group = project.group
@@ -65,15 +64,7 @@ allprojects {
         }
 
         maven {
-            url = 'https://maven.wso2.org/nexus/content/repositories/snapshots/'
-        }
-
-        maven {
             url = 'https://maven.wso2.org/nexus/content/groups/wso2-public/'
-        }
-
-        maven {
-            url = 'https://maven.wso2.org/nexus/content/repositories/orgballerinalang-1614'
         }
 
         maven {
@@ -81,149 +72,60 @@ allprojects {
         }
 
         maven {
-            url "https://maven.pkg.github.com/ballerina-platform/module-ballerina-http"
+            url = 'https://maven.pkg.github.com/ballerina-platform/*'
             credentials {
                 username System.getenv("packageUser")
                 password System.getenv("packagePAT")
             }
         }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-mime'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-io'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-log'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-stringutils'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-auth'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-cache'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-time'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-crypto'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-file'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-config'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-reflect'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-runtime'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-system'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-        maven {
-            url 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-task'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
+    }
+
+    ext {
+        snapshotVersion= '-SNAPSHOT'
+        timestampedVersionRegex = '.*-\\d{8}-\\d{6}-\\w.*\$'
     }
 }
 
 subprojects {
-    apply plugin: 'java'
 
     configurations {
         ballerinaStdLibs
+        jbalTools
     }
     dependencies {
+        /* JBallerina Tools */
+        jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+            transitive = false
+        }
+
         /* Standard libraries */
         ballerinaStdLibs "org.ballerinalang:io-ballerina:${stdlibIoVersion}"
         ballerinaStdLibs "org.ballerinalang:log-ballerina:${stdlibLogVersion}"
-        ballerinaStdLibs "org.ballerinalang:stringutils-ballerina:${stdlibStringutilsVersion}"
+        ballerinaStdLibs "org.ballerinalang:regex-ballerina:${stdlibRegexVersion}"
         ballerinaStdLibs "org.ballerinalang:mime-ballerina:${stdlibMimeVersion}"
         ballerinaStdLibs "org.ballerinalang:auth-ballerina:${stdlibAuthVersion}"
+        ballerinaStdLibs "org.ballerinalang:jwt-ballerina:${stdlibJwtVersion}"
+        ballerinaStdLibs "org.ballerinalang:oauth2-ballerina:${stdlibOAuth2Version}"
         ballerinaStdLibs "org.ballerinalang:cache-ballerina:${stdlibCacheVersion}"
         ballerinaStdLibs "org.ballerinalang:time-ballerina:${stdlibTimeVersion}"
+        ballerinaStdLibs "org.ballerinalang:url-ballerina:${stdlibUrlVersion}"
         ballerinaStdLibs "org.ballerinalang:crypto-ballerina:${stdlibCryptoVersion}"
         ballerinaStdLibs "org.ballerinalang:file-ballerina:${stdlibFileVersion}"
-        ballerinaStdLibs "org.ballerinalang:config-ballerina:${stdlibConfigVersion}"
-        ballerinaStdLibs "org.ballerinalang:reflect-ballerina:${stdlibReflectVersion}"
-        ballerinaStdLibs "org.ballerinalang:runtime-ballerina:${stdlibRuntimeVersion}"
 
         // Transitive dependencies
-        ballerinaStdLibs "org.ballerinalang:system-ballerina:${stdlibSystemVersion}"
+        ballerinaStdLibs "org.ballerinalang:os-ballerina:${stdlibOsVersion}"
         ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
+        ballerinaStdLibs "org.ballerinalang:uuid-ballerina:${stdlibUuidVersion}"
     }
 }
 
-def moduleVersion = project.version
-if (moduleVersion.indexOf('-') != -1) {
-    moduleVersion = moduleVersion.substring(0, moduleVersion.indexOf('-'))
-}
+def moduleVersion = project.version.replace("-SNAPSHOT", "")
 
 release {
     failOnPublishNeeded = false
 
     buildTasks = ['build']
+    failOnSnapshotDependencies = true
     versionPropertyFile = 'gradle.properties'
     tagTemplate = 'v$version'
 
@@ -235,25 +137,4 @@ release {
 
 task build {
     dependsOn('http-ballerina:build')
-}
-
-task codeCoverageReport(type: JacocoReport) {
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/coverage-reports/*.exec")
-
-    subprojects.each {
-        sourceSets it.sourceSets.main
-    }
-
-    reports {
-        xml.enabled = true
-        html.enabled = true
-        csv.enabled = true
-        xml.destination = new File("${buildDir}/reports/jacoco/report.xml")
-        html.destination = new File("${buildDir}/reports/jacoco/report.html")
-        csv.destination = new File("${buildDir}/reports/jacoco/report.csv")
-    }
-
-    onlyIf = {
-        true
-    }
 }
