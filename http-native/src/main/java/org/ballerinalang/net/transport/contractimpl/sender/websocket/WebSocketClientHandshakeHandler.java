@@ -71,7 +71,6 @@ public class WebSocketClientHandshakeHandler extends ChannelInboundHandlerAdapte
         return httpCarbonResponse;
     }
 
-
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         handshaker.handshake(ctx.channel());

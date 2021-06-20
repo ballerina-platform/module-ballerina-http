@@ -74,7 +74,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     @Test(description = "Test the idle timeout for WebSocket")
     public void testIdleTimeout() throws Throwable {
         WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_REMOTE_SERVER_URL);
-        configuration.setIdleTimeoutInMillis(1000);
+        configuration.setIdleTimeoutInMillis(3000);
         HandshakeResult result = connectAndGetHandshakeResult(configuration);
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -85,9 +85,10 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
         Assert.assertTrue(result.getConnectorListener().isIdleTimeout(), "Should reach idle timeout");
     }
 
-    @Test(description = "Test the idle timeout for WebSocket")
+    @Test(description = "Test the handhshake timeout")
     public void testHandshakeTimeout() throws Throwable {
-        WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_URL);
+        WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(
+                WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_URL);
         configuration.setIdleTimeoutInMillis(1000);
         HandshakeResult result = connectAndGetHandshakeResult(configuration);
 
