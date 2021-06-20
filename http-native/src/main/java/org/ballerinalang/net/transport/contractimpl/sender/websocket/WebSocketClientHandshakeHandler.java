@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameDecoder;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketFrameDecoder;
+import io.netty.handler.timeout.IdleStateEvent;
 import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorFuture;
 import org.ballerinalang.net.transport.contractimpl.listener.WebSocketMessageQueueHandler;
@@ -70,9 +71,17 @@ public class WebSocketClientHandshakeHandler extends ChannelInboundHandlerAdapte
         return httpCarbonResponse;
     }
 
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         handshaker.handshake(ctx.channel());
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+        if (evt instanceof IdleStateEvent) {
+            handshakeFuture.notifyError(new Throwable("Idle timeout triggered"), null);
+        }
     }
 
     @Override

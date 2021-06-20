@@ -28,6 +28,7 @@ import org.ballerinalang.net.transport.contract.websocket.WebSocketConnection;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorListener;
 import org.ballerinalang.net.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.ballerinalang.net.transport.message.HttpCarbonResponse;
+import org.ballerinalang.net.transport.util.server.websocket.WebSocketHandshakeTimeoutServer;
 import org.ballerinalang.net.transport.util.server.websocket.WebSocketRemoteServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_PORT;
+import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_URL;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_REMOTE_SERVER_PORT;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_REMOTE_SERVER_URL;
 import static org.ballerinalang.net.transport.util.TestUtil.WEBSOCKET_TEST_IDLE_TIMEOUT;
@@ -57,18 +60,21 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
 
     private DefaultHttpWsConnectorFactory httpConnectorFactory;
     private WebSocketRemoteServer remoteServer;
+    private WebSocketHandshakeTimeoutServer handshakeTimeoutServer;
 
     @BeforeClass
     public void setup() throws InterruptedException {
         remoteServer = new WebSocketRemoteServer(WEBSOCKET_REMOTE_SERVER_PORT, "xml, json");
+        handshakeTimeoutServer = new WebSocketHandshakeTimeoutServer(WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_PORT);
         remoteServer.run();
+        handshakeTimeoutServer.run();
         httpConnectorFactory = new DefaultHttpWsConnectorFactory();
     }
 
     @Test(description = "Test the idle timeout for WebSocket")
     public void testIdleTimeout() throws Throwable {
         WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_REMOTE_SERVER_URL);
-        configuration.setIdleTimeoutInMillis(3000);
+        configuration.setIdleTimeoutInMillis(1000);
         HandshakeResult result = connectAndGetHandshakeResult(configuration);
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -77,6 +83,20 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
 
         Assert.assertNull(result.getThrowable());
         Assert.assertTrue(result.getConnectorListener().isIdleTimeout(), "Should reach idle timeout");
+    }
+
+    @Test(description = "Test the idle timeout for WebSocket")
+    public void testHandshakeTimeout() throws Throwable {
+        WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_URL);
+        configuration.setIdleTimeoutInMillis(1000);
+        HandshakeResult result = connectAndGetHandshakeResult(configuration);
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        result.getConnectorListener().setCountDownLatch(countDownLatch);
+        countDownLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, TimeUnit.SECONDS);
+
+        Assert.assertNotNull(result.getThrowable());
+        Assert.assertEquals(result.getThrowable().getMessage(), "Idle timeout triggered");
     }
 
     @Test(description = "Test the sub protocol negotiation with the remote server")
@@ -343,6 +363,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     @AfterClass
     public void cleanUp() throws ServerConnectorException, InterruptedException {
         remoteServer.stop();
+        handshakeTimeoutServer.stop();
         httpConnectorFactory.shutdown();
     }
 
