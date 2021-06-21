@@ -26,9 +26,6 @@ function testGlobalPoolConfig() {
     http:Client httpClient3 = checkpanic new("http://localhost:8081");
     http:Client[] clients = [httpClient1, httpClient2, httpClient3];
     test:assertEquals(clients.length(), 3);
-    test:assertEquals(clients[0].config.poolConfig.toString(), "");
-    test:assertEquals(clients[1].config.poolConfig.toString(), "");
-    test:assertEquals(clients[2].config.poolConfig.toString(), "");
 }
 
 @test:Config {}
@@ -37,8 +34,6 @@ function testSharedConfig() {
     http:Client httpClient2 = checkpanic new("http://localhost:8080", { poolConfig: sharedPoolConfig });
     http:Client[] clients = [httpClient1, httpClient2];
     test:assertEquals(clients.length(), 2);
-    test:assertEquals(clients[0].config.poolConfig, clients[1].config.poolConfig,
-                      msg = "Both the clients should have same connection manager");
 }
 
 @test:Config {}
@@ -47,6 +42,4 @@ function testPoolPerClient() {
     http:Client httpClient2 = checkpanic new("http://localhost:8080", { poolConfig: { maxActiveConnections: 25 } });
     http:Client[] clients = [httpClient1, httpClient2];
     test:assertEquals(clients.length(), 2);
-    test:assertNotEquals(clients[0].config.poolConfig, clients[1].config.poolConfig,
-                         msg = "Both the clients should have their own connection manager");
 }

@@ -29,7 +29,7 @@ import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
-import org.ballerinalang.net.http.caching.ResponseCacheControlObj;
+import org.ballerinalang.net.http.client.caching.ResponseCacheControlObj;
 import org.ballerinalang.net.http.nativeimpl.pipelining.PipelinedResponse;
 import org.ballerinalang.net.http.util.CacheUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
+import static org.ballerinalang.net.http.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_CACHE_CONTROL_FIELD;
 import static org.ballerinalang.net.http.HttpConstants.RESPONSE_STATUS_CODE_FIELD;
 import static org.ballerinalang.net.http.nativeimpl.pipelining.PipeliningHandler.executePipeliningLogic;
@@ -86,10 +87,16 @@ public class Respond extends ConnectionAction {
             outboundResponseMsg.completeMessage();
         }
 
-        ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(env);
-        int statusCode = (int) outboundResponseObj.getIntValue(RESPONSE_STATUS_CODE_FIELD);
-        if (observerContext != null) {
+        if (ObserveUtils.isObservabilityEnabled()) {
+            int statusCode = (int) outboundResponseObj.getIntValue(RESPONSE_STATUS_CODE_FIELD);
+            ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(env);
+            if (observerContext == null) {
+                observerContext = (ObserverContext) inboundRequestMsg.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            }
             observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
+            if (observerContext.isManuallyClosed()) {
+                ObserveUtils.stopObservationWithContext(observerContext);
+            }
         }
         try {
             if (pipeliningRequired(inboundRequestMsg)) {
@@ -130,4 +137,6 @@ public class Respond extends ConnectionAction {
         return outboundResponseObj.get(RESPONSE_CACHE_CONTROL_FIELD) == null && outboundResponseObj.
                 getNativeData(HttpConstants.DIRTY_RESPONSE) != null;
     }
+
+    private Respond() {}
 }

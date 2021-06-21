@@ -166,13 +166,8 @@ function testResposeSetXmlPayload() {
 @test:Config {}
 function testResposeAddCookie() {
     http:Response res = new;
-    http:Cookie cookie = new("SID3", "31d4d96e407aad42");
-    cookie.domain = "google.com";
-    cookie.path = "/sample";
-    cookie.maxAge = 3600 ;
-    cookie.expires = "2017-06-26 05:46:22";
-    cookie.httpOnly = true;
-    cookie.secure = true;
+    http:Cookie cookie = new("SID3", "31d4d96e407aad42", path = "/sample", domain = "google.com", maxAge = 3600,
+        expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
     res.addCookie(cookie);
     http:Cookie[] cookiesInRequest = res.getCookies();
     test:assertEquals(cookiesInRequest.length(), 1, msg = "Invalid cookie object");
@@ -182,8 +177,7 @@ function testResposeAddCookie() {
 @test:Config {}
 function testResposeRemoveCookiesFromRemoteStore() {
     http:Response res = new;
-    http:Cookie cookie = new("SID3", "31d4d96e407aad42");
-    cookie.expires = "2017-06-26 05:46:22";
+    http:Cookie cookie = new("SID3", "31d4d96e407aad42", expires = "2017-06-26 05:46:22");
     res.removeCookiesFromRemoteStore(cookie);
     http:Cookie[] cookiesInRequest = res.getCookies();
     test:assertEquals(cookiesInRequest.length(), 1, msg = "Invalid cookie object");
@@ -192,13 +186,8 @@ function testResposeRemoveCookiesFromRemoteStore() {
 @test:Config {}
 function testResposeGetCookies() {
     http:Response res = new;
-    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-    cookie1.path = "/sample";
-    cookie1.domain = ".GOOGLE.com.";
-    cookie1.maxAge = 3600 ;
-    cookie1.expires = "2017-06-26 05:46:22";
-    cookie1.httpOnly = true;
-    cookie1.secure = true;
+    http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = ".GOOGLE.com.", maxAge = 3600,
+        expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
     res.addCookie(cookie1);
     // Gets the added cookies from response.
     http:Cookie[] cookiesInResponse=res.getCookies();
@@ -312,13 +301,8 @@ service /response on responseEp {
 
     resource function get addCookie (http:Caller caller, http:Request req) {
         http:Response res = new;
-        http:Cookie cookie = new("SID3", "31d4d96e407aad42");
-        cookie.domain = "google.com";
-        cookie.path = "/sample";
-        cookie.maxAge = 3600 ;
-        cookie.expires = "2017-06-26 05:46:22";
-        cookie.httpOnly = true;
-        cookie.secure = true;
+        http:Cookie cookie = new("SID3", "31d4d96e407aad42", path = "/sample", domain = "google.com", maxAge = 3600,
+            expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
         res.addCookie(cookie);
         string result = <@untainted> checkpanic res.getHeader(<@untainted string> "Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
@@ -327,8 +311,7 @@ service /response on responseEp {
 
     resource function get removeCookieByServer (http:Caller caller, http:Request req) {
         http:Response res = new;
-        http:Cookie cookie = new("SID3", "31d4d96e407aad42");
-        cookie.expires="2017-06-26 05:46:22";
+        http:Cookie cookie = new("SID3", "31d4d96e407aad42", expires="2017-06-26 05:46:22");
         res.removeCookiesFromRemoteStore(cookie);
         string result = <@untainted> checkpanic res.getHeader(<@untainted string> "Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
@@ -337,13 +320,8 @@ service /response on responseEp {
 
     resource function get getCookies (http:Caller caller, http:Request req) {
         http:Response res = new;
-        http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-        cookie1.path = "/sample";
-        cookie1.domain = ".GOOGLE.com.";
-        cookie1.maxAge = 3600 ;
-        cookie1.expires = "2017-06-26 05:46:22";
-        cookie1.httpOnly = true;
-        cookie1.secure = true;
+        http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = ".GOOGLE.com.", maxAge = 3600,
+            expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
         res.addCookie(cookie1);
         //Gets the added cookies from response.
         http:Cookie[] cookiesInResponse=res.getCookies();
@@ -361,10 +339,10 @@ function testResponseServiceAddHeader() {
     string key = "lang";
     string value = "ballerina";
     string path = "/response/addheader/" + key + "/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {lang:"ballerina"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -374,10 +352,10 @@ function testResponseServiceAddHeader() {
 function testResponseServiceGetHeader() {
     string value = "test-header-value";
     string path = "/response/getHeader/" + "test-header-name" + "/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {value: value});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -387,10 +365,10 @@ function testResponseServiceGetHeader() {
 function testResponseServiceGetJsonPayload() {
     string value = "ballerina";
     string path = "/response/getJsonPayload/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), value);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -400,10 +378,10 @@ function testResponseServiceGetJsonPayload() {
 function testResponseServiceGetTextPayload() {
     string value = "ballerina";
     string path = "/response/GetTextPayload/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), value);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -413,10 +391,10 @@ function testResponseServiceGetTextPayload() {
 function testResponseServiceGetXmlPayload() {
     string value = "ballerina";
     string path = "/response/GetXmlPayload";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), value);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -424,7 +402,7 @@ function testResponseServiceGetXmlPayload() {
 @test:Config {}
 function testForwardMethod() {
     string path = "/response/eleven";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     test:assertTrue(response is http:Response, msg = "Found unexpected output");
 }
 
@@ -433,10 +411,10 @@ function testForwardMethod() {
 function testResponseServiceRemoveHeader() {
     string value = "x-www-form-urlencoded";
     string path = "/response/RemoveHeader/Content-Type/" + value;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -445,10 +423,10 @@ function testResponseServiceRemoveHeader() {
 @test:Config {}
 function testResponseServiceRemoveAllHeaders() {
     string path = "/response/RemoveAllHeaders";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -456,7 +434,7 @@ function testResponseServiceRemoveAllHeaders() {
 @test:Config {}
 function testRespondMethod() {
     string path = "/response/eleven";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     test:assertTrue(response is http:Response, msg = "Found unexpected output");
 }
 
@@ -464,10 +442,10 @@ function testRespondMethod() {
 function testSetReasonPhase() {
     string phase = "ballerina";
     string path = "/response/twelve/" + phase;
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         test:assertEquals(response.reasonPhrase, phase);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -475,10 +453,10 @@ function testSetReasonPhase() {
 @test:Config {}
 function testSetStatusCode() {
     string path = "/response/thirteen";
-    var response = responseClient->get(path);
+    http:Response|error response = responseClient->get(path);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 203);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }

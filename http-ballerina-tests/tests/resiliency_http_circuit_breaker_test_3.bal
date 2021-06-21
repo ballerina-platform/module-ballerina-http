@@ -27,15 +27,15 @@ listener http:Listener circuitBreakerEP02 = new(9308);
 http:ClientConfiguration conf02 = {
     circuitBreaker: {
         rollingWindow: {
-            timeWindowInMillis: 60000,
-            bucketSizeInMillis: 20000,
+            timeWindow: 60,
+            bucketSize: 20,
             requestVolumeThreshold: 2
         },
         failureThreshold: 0.6,
-        resetTimeInMillis: 1000,
+        resetTime: 1,
         statusCodes: [501, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 };
 
 http:Client unhealthyClientEP = check new("http://localhost:8088", conf02);
@@ -50,19 +50,19 @@ service /cb on circuitBreakerEP02 {
             runtime:sleep(5);
             cbClient.forceClose();
         }
-        var backendRes = unhealthyClientEP->forward("/unhealthy", request);
+        http:Response|error backendRes = unhealthyClientEP->forward("/unhealthy", request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -77,9 +77,9 @@ service /unhealthy on new http:Listener(8088) {
         } else {
             res.setPayload("Hello World!!!");
         }
-        var responseToCaller = caller->respond(res);
+        error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

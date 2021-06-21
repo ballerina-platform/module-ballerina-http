@@ -1,0 +1,12 @@
+fixes:
+  - "ballerina/http/*/::../http-ballerina/"
+
+ignore:
+  - "http-ballerina-tests"
+  - "http-compiler-plugin-tests"
+  - "http-native/src/main/java/org/ballerinalang/net/testutils"
+
+coverage:
+  precision: 2
+  round: down
+  range: "60...80"

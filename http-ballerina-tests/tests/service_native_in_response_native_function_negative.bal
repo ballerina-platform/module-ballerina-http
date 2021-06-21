@@ -44,7 +44,7 @@ function negativeTestResponseGetJsonPayload() {
     http:Response res = new;
     json|error jsonPayload = res.getJsonPayload();
     if (jsonPayload is error) {
-        test:assertEquals(jsonPayload.message(), "No payload");
+        test:assertEquals(jsonPayload.message(), "No content");
     } else {
         test:assertFail("Test failed");
     }
@@ -55,7 +55,7 @@ function negativeTestResponseGetTextPayload() {
     http:Response res = new;
     string|error textPayload = res.getTextPayload();
     if (textPayload is error) {
-        test:assertEquals(textPayload.message(), "No payload");
+        test:assertEquals(textPayload.message(), "No content");
     } else {
         test:assertFail("Test failed");
     }
@@ -77,7 +77,7 @@ function negativeTestResponseGetXmlPayload() {
     http:Response res = new;
     xml|error xmlPayload = res.getXmlPayload();
     if (xmlPayload is error) {
-        test:assertEquals(xmlPayload.message(), "No payload");
+        test:assertEquals(xmlPayload.message(), "No content");
     } else {
         test:assertFail("Payload mismatched");
     }
@@ -113,9 +113,7 @@ function negativeTestResponseRemoveAllHeaders() {
 @test:Config {}
 function negativeTestResponseAddCookieWithInvalidName() {
     http:Response res = new;
-    http:Cookie cookie = new("    ", "AD4567323");
-    cookie.path = "/sample";
-    cookie.expires = "2017-06-26 05:46:22";
+    http:Cookie cookie = new("    ", "AD4567323", path = "/sample", expires = "2017-06-26 05:46:22");
     res.addCookie(cookie);
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }
@@ -123,9 +121,7 @@ function negativeTestResponseAddCookieWithInvalidName() {
 @test:Config {}
 function negativeTestAddCookieWithInvalidPath1() {
     http:Response res = new;
-    http:Cookie cookie = new("SID002", "AD4567323");
-    cookie.path = "sample";
-    cookie.expires = "2017-06-26 05:46:22";
+    http:Cookie cookie = new("SID002", "AD4567323", path = "sample", expires = "2017-06-26 05:46:22");
     res.addCookie(cookie);
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }
@@ -133,9 +129,7 @@ function negativeTestAddCookieWithInvalidPath1() {
 @test:Config {}
 function negativeTestAddCookieWithInvalidPath2() {
     http:Response res = new;
-    http:Cookie cookie = new("SID002", "AD4567323");
-    cookie.path = "/sample?test=123";
-    cookie.expires = "2017-06-26 05:46:22";
+    http:Cookie cookie = new("SID002", "AD4567323", path = "/sample?test=123", expires = "2017-06-26 05:46:22");
     res.addCookie(cookie);
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }
@@ -143,9 +137,7 @@ function negativeTestAddCookieWithInvalidPath2() {
 @test:Config {}
 function negativeTestAddCookieWithInvalidPath3() {
     http:Response res = new;
-    http:Cookie cookie = new("SID002", "AD4567323");
-    cookie.path = " ";
-    cookie.expires = "2017-06-26 05:46:22";
+    http:Cookie cookie = new("SID002", "AD4567323", path = " ", expires = "2017-06-26 05:46:22");
     res.addCookie(cookie);
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }
@@ -153,10 +145,7 @@ function negativeTestAddCookieWithInvalidPath3() {
 @test:Config {}
 function negativeTestAddCookieWithInvalidDomain() {
     http:Response res = new;
-    http:Cookie cookie = new("SID002", "AD4567323");
-    cookie.domain = " ";
-    cookie.path = "/sample";
-    cookie.expires = "2017-06-26 05:46:22";
+    http:Cookie cookie = new("SID002", "AD4567323", path = "/sample", domain = " ", expires = "2017-06-26 05:46:22");
     res.addCookie(cookie);
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }
@@ -164,9 +153,7 @@ function negativeTestAddCookieWithInvalidDomain() {
 @test:Config {}
 function negativeTestAddCookieWithInvalidExpires1() {
     http:Response res = new;
-    http:Cookie cookie = new("SID002", "AD4567323");
-    cookie.path = "/sample";
-    cookie.expires = "2017 13 42 05:70:22";
+    http:Cookie cookie = new("SID002", "AD4567323", path = "/sample", expires = "2017 13 42 05:70:22");
     res.addCookie(cookie);
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }
@@ -174,9 +161,7 @@ function negativeTestAddCookieWithInvalidExpires1() {
 @test:Config {}
 function negativeTestAddCookieWithInvalidExpires2() {
     http:Response res = new;
-    http:Cookie cookie = new("SID002", "AD4567323");
-    cookie.path = "/sample";
-    cookie.expires = " ";
+    http:Cookie cookie = new("SID002", "AD4567323", path = "/sample", expires = " ");
     res.addCookie(cookie);
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }
@@ -184,10 +169,7 @@ function negativeTestAddCookieWithInvalidExpires2() {
 @test:Config {}
 function negativeTestAddCookieWithInvalidMaxAge() {
     http:Response res = new;
-    http:Cookie cookie = new("SID002", "AD4567323");
-    cookie.path = "/sample";
-    cookie.expires = "2017-06-26 05:46:22";
-    cookie.maxAge = -3600;
+    http:Cookie cookie = new("SID002", "AD4567323", path = "/sample", expires = "2017-06-26 05:46:22", maxAge = -3600);
     res.addCookie(cookie);
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }

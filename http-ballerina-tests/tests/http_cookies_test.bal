@@ -15,32 +15,35 @@
 // under the License.
 
 import ballerina/file;
-import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-service /cookie on new http:Listener(9253) {
+listener http:Listener CookieTestserverEP = new (9253);
+
+service /cookie on CookieTestserverEP {
 
     resource function get addPersistentAndSessionCookies(http:Caller caller, http:Request req) {
-        http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34");
-        cookie1.path = "/cookie/addPersistentAndSessionCookies";
-        cookie1.domain = "localhost:9253";
-        cookie1.httpOnly = true;
-        cookie1.secure = false;
-        cookie1.expires = "2030-06-26 05:46:22";
 
-        http:Cookie cookie2 = new("SID002", "178gd4dmnmsddd34");
-        cookie2.path = "/cookie/addPersistentAndSessionCookies";
-        cookie2.domain = "localhost:9253";
-        cookie2.httpOnly = true;
-        cookie2.secure = false;
-        cookie2.expires = "2030-07-15 05:46:22";
+        http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34",
+            path = "/cookie/addPersistentAndSessionCookies",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false,
+            expires = "2030-06-26 05:46:22");
 
-        http:Cookie cookie3 = new("SID003", "895gd4dmnmsddd34");
-        cookie3.path = "/cookie/addPersistentAndSessionCookies";
-        cookie3.domain = "localhost:9253";
-        cookie3.httpOnly = true;
-        cookie3.secure = false;
+        http:Cookie cookie2 = new("SID002", "178gd4dmnmsddd34",
+            path = "/cookie/addPersistentAndSessionCookies",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false,
+            expires = "2030-07-15 05:46:22");
+
+
+        http:Cookie cookie3 = new("SID003", "895gd4dmnmsddd34",
+            path = "/cookie/addPersistentAndSessionCookies",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false);
 
         http:Response res = new;
         http:Cookie[] reqstCookies=req.getCookies();
@@ -48,28 +51,28 @@ service /cookie on new http:Listener(9253) {
         if (reqstCookies.length() == 0) {
             res.addCookie(cookie1);
             res.addCookie(cookie3);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else if (reqstCookies.length() == 2) {
             res.addCookie(cookie2);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         }
     }
 
     resource function get addSimilarSessionCookie(http:Caller caller, http:Request req) {
         // Creates the cookies.
-        http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34");
-        cookie1.path = "/cookie";
-        cookie1.domain = "localhost:9253";
-        cookie1.httpOnly = true;
+        http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34",
+            path = "/cookie",
+            domain = "localhost:9253",
+            httpOnly = true);
 
-        http:Cookie cookie2 = new("SID002", "178gd4dmnmsddd34");
-        cookie2.path = "/cookie";
-        cookie2.domain = "localhost:9253";
-        cookie2.httpOnly = false;
+        http:Cookie cookie2 = new("SID002", "178gd4dmnmsddd34",
+            path = "/cookie",
+            domain = "localhost:9253",
+            httpOnly = false);
 
         http:Response res = new;
         http:Cookie[] reqstCookies=req.getCookies();
@@ -77,26 +80,26 @@ service /cookie on new http:Listener(9253) {
         if (reqstCookies.length() == 0) {
             res.addCookie(cookie1);
             res.addCookie(cookie2);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         }
     }
 
     resource function get removeSessionCookie(http:Caller caller, http:Request req) {
         // Creates the cookies.
-        http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34");
-        cookie1.path = "/cookie";
-        cookie1.domain = "localhost:9253";
-        cookie1.httpOnly = true;
+        http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34",
+            path = "/cookie",
+            domain = "localhost:9253",
+            httpOnly = true);
 
-        http:Cookie cookie2 = new("SID002", "178gd4dmnmsddd34");
-        cookie2.path = "/cookie/removeSessionCookie";
-        cookie2.domain = "localhost:9253";
-        cookie2.httpOnly = true;
-        cookie2.secure = false;
+        http:Cookie cookie2 = new("SID002", "178gd4dmnmsddd34",
+            path = "/cookie/removeSessionCookie",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false);
 
         http:Response res = new;
         http:Cookie[] reqstCookies=req.getCookies();
@@ -104,31 +107,31 @@ service /cookie on new http:Listener(9253) {
         if (reqstCookies.length() == 0) {
             res.addCookie(cookie1);
             res.addCookie(cookie2);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else if (reqstCookies.length() == 2) {
             res.removeCookiesFromRemoteStore(cookie1);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         }
     }
 
     resource function get sendSimilarPersistentCookies(http:Caller caller, http:Request req) {
-        http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34");
-        cookie1.path = "/cookie/sendSimilarPersistentCookies";
-        cookie1.domain = "localhost:9253";
-        cookie1.httpOnly = false;
-        cookie1.secure = false;
-        cookie1.expires = "2030-06-26 05:46:22";
+        http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34",
+            path = "/cookie/sendSimilarPersistentCookies",
+            domain = "localhost:9253",
+            httpOnly = false,
+            secure = false,
+            expires = "2030-06-26 05:46:22");
 
-        http:Cookie cookie3 = new("SID001", "895gd4dmnmsddd34");
-        cookie3.path = "/cookie/sendSimilarPersistentCookies";
-        cookie3.domain = "localhost:9253";
-        cookie3.httpOnly = true;
-        cookie3.secure = false;
-        cookie3.expires = "2030-06-26 05:46:22";
+        http:Cookie cookie3 = new("SID001", "895gd4dmnmsddd34",
+            path = "/cookie/sendSimilarPersistentCookies",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false,
+            expires = "2030-06-26 05:46:22");
         http:Response res = new;
 
         http:Cookie[] reqstCookies=req.getCookies();
@@ -136,27 +139,27 @@ service /cookie on new http:Listener(9253) {
         if (reqstCookies.length() == 0) {
             res.addCookie(cookie1);
             res.addCookie(cookie3);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         }
     }
 
     resource function get sendSimilarPersistentAndSessionCookies_1(http:Caller caller, http:Request req) {
-        http:Cookie cookie2 = new("SID003", "895gd4dmnmsddd34");
-        cookie2.path = "/cookie/sendSimilarPersistentAndSessionCookies_1";
-        cookie2.domain = "localhost:9253";
-        cookie2.httpOnly = true;
-        cookie2.secure = false;
+        http:Cookie cookie2 = new("SID003", "895gd4dmnmsddd34",
+            path = "/cookie/sendSimilarPersistentAndSessionCookies_1",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false);
 
-        http:Cookie cookie3 = new("SID003", "aeaa895gd4dmnmsddd34");
-        cookie3.path = "/cookie/sendSimilarPersistentAndSessionCookies_1";
-        cookie3.domain = "localhost:9253";
-        cookie3.httpOnly = false;
-        cookie3.secure = false;
-        cookie3.expires = "2030-07-15 05:46:22";
+        http:Cookie cookie3 = new("SID003", "aeaa895gd4dmnmsddd34",
+            path = "/cookie/sendSimilarPersistentAndSessionCookies_1",
+            domain = "localhost:9253",
+            httpOnly = false,
+            secure = false,
+            expires = "2030-07-15 05:46:22");
 
         http:Response res = new;
         http:Cookie[] reqstCookies=req.getCookies();
@@ -164,27 +167,27 @@ service /cookie on new http:Listener(9253) {
         if (reqstCookies.length() == 0) {
             res.addCookie(cookie2); // Adds a session cookie.
             res.addCookie(cookie3); // Adds a similar persistent cookie.
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         }
     }
 
     resource function get sendSimilarPersistentAndSessionCookies_2(http:Caller caller, http:Request req) {
-        http:Cookie cookie2 = new("SID003", "aeaa895gd4dmnmsddd34");
-        cookie2.path = "/cookie/sendSimilarPersistentAndSessionCookies_2";
-        cookie2.domain = "localhost:9253";
-        cookie2.httpOnly = false;
-        cookie2.secure = false;
-        cookie2.expires = "2030-07-15 05:46:22";
+        http:Cookie cookie2 = new("SID003", "aeaa895gd4dmnmsddd34",
+            path = "/cookie/sendSimilarPersistentAndSessionCookies_2",
+            domain = "localhost:9253",
+            httpOnly = false,
+            secure = false,
+            expires = "2030-07-15 05:46:22");
 
-        http:Cookie cookie3 = new("SID003", "895gd4dmnmsddd34");
-        cookie3.path = "/cookie/sendSimilarPersistentAndSessionCookies_2";
-        cookie3.domain = "localhost:9253";
-        cookie3.httpOnly = true;
-        cookie3.secure = false;
+        http:Cookie cookie3 = new("SID003", "895gd4dmnmsddd34",
+            path = "/cookie/sendSimilarPersistentAndSessionCookies_2",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false);
 
         http:Response res = new;
         http:Cookie[] reqstCookies=req.getCookies();
@@ -192,27 +195,27 @@ service /cookie on new http:Listener(9253) {
         if (reqstCookies.length() == 0) {
             res.addCookie(cookie2); // Adds a persistent cookie.
             res.addCookie(cookie3); // Adds a similar session cookie.
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         }
     }
 
     resource function get removePersistentCookieByServer(http:Caller caller, http:Request req) {
         // Creates the cookies.
-        http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34");
-        cookie1.path = "/cookie/removePersistentCookieByServer";
-        cookie1.domain = "localhost:9253";
-        cookie1.httpOnly = true;
-        cookie1.expires = "2030-07-15 05:46:22";
+        http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34",
+            path = "/cookie/removePersistentCookieByServer",
+            domain = "localhost:9253",
+            httpOnly = true,
+            expires = "2030-07-15 05:46:22");
 
-        http:Cookie cookie2 = new("SID002", "178gd4dmnmsddd34");
-        cookie2.path = "/cookie/removePersistentCookieByServer";
-        cookie2.domain = "localhost:9253";
-        cookie2.httpOnly = true;
-        cookie2.secure = false;
+        http:Cookie cookie2 = new("SID002", "178gd4dmnmsddd34",
+            path = "/cookie/removePersistentCookieByServer",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false);
 
         http:Response res = new;
         http:Cookie[] reqstCookies=req.getCookies();
@@ -220,14 +223,14 @@ service /cookie on new http:Listener(9253) {
         if (reqstCookies.length() == 0) {
             res.addCookie(cookie1);
             res.addCookie(cookie2);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else if (reqstCookies.length() == 2) {
             res.removeCookiesFromRemoteStore(cookie1);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
             res.setPayload(<@untainted> cookieHeader);
-            var result = caller->respond(res);
+            error? result = caller->respond(res);
         }
     }
 
@@ -235,35 +238,108 @@ service /cookie on new http:Listener(9253) {
         http:Cookie[] reqstCookies = req.getCookies();
         string message = "Valid cookies: ";
         foreach http:Cookie cookie in reqstCookies {
-            var value = cookie.value;
-            var name = cookie.name;
-            if (value is string && name is string) {
-                message = message.concat(name, "=", value , ",");
-            }
+            message = message.concat(cookie.name, "=", cookie.value , ",");
         }
         http:Response res = new;
         res.setPayload(<@untainted> message);
-        var result = caller->respond(res);
+        error? result = caller->respond(res);
+    }
+
+    resource function 'default addPersistentAndSessionCookiesDefault(http:Caller caller, http:Request req) {
+        http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34",
+            path = "/cookie/addPersistentAndSessionCookiesDefault",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false,
+            expires = "2030-06-26 05:46:22");
+
+        http:Cookie cookie2 = new("SID002", "178gd4dmnmsddd34",
+            path = "/cookie/addPersistentAndSessionCookiesDefault",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false,
+            expires = "2030-07-15 05:46:22");
+
+        http:Cookie cookie3 = new("SID003", "895gd4dmnmsddd34",
+            path = "/cookie/addPersistentAndSessionCookiesDefault",
+            domain = "localhost:9253",
+            httpOnly = true,
+            secure = false);
+
+        http:Response res = new;
+        http:Cookie[] reqstCookies=req.getCookies();
+        // Adds cookies if there are no cookies in the inbound request.
+        if (reqstCookies.length() == 0) {
+            res.addCookie(cookie1);
+            res.addCookie(cookie3);
+            error? result = caller->respond(res);
+        } else if (reqstCookies.length() == 2) {
+            res.addCookie(cookie2);
+            error? result = caller->respond(res);
+        } else {
+            string cookieHeader = checkpanic req.getHeader("Cookie");
+            res.setPayload(<@untainted> cookieHeader);
+            error? result = caller->respond(res);
+        }
+    }
+}
+
+service /cookieDemo on CookieTestserverEP {
+    resource function post login(http:Request req) returns http:Response|http:BadRequest {
+        json|error details = req.getJsonPayload();
+        if (details is json) {
+            json|error name = details.name;
+            json|error password = details.password;
+
+            if (name is json && password is json) {
+                if (password == "p@ssw0rd") {
+                    http:Cookie cookie = new("username", name.toString(), path = "/", hostOnly = false);
+                    http:Response response = new;
+                    response.addCookie(cookie);
+                    response.setTextPayload("Login succeeded");
+                    return response;
+                }
+            }
+        }
+        return {body: "Invalid request payload"};
+    }
+
+    resource function get welcome(http:Request req) returns string {
+        http:Cookie[] cookies = req.getCookies();
+        http:Cookie[] usernameCookie = cookies.filter(function
+                                (http:Cookie cookie) returns boolean {
+            return cookie.name == "username";
+        });
+
+        if (usernameCookie.length() > 0) {
+            string? user = usernameCookie[0].value;
+            if (user is string) {
+                return "Welcome back " + <@untainted> user;
+            } else {
+                return "Please login";
+            }
+        } else {
+            return "Please login";
+        }
     }
 }
 
 // Test to send requests by cookie client for first, second and third times
 @test:Config {}
-public function testSendRequestsByCookieClient() {
+public isolated function testSendRequestsByCookieClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-1.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
-    http:Request req = new;
     // Server sends the cookies in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Second request is with a cookie header and server sends more cookies in the response.
-    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Third request is with the cookie header including all relevant cookies.
-    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34; SID001=239d4dmnmsddd34; SID002=178gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
@@ -271,27 +347,24 @@ public function testSendRequestsByCookieClient() {
 
 // Test to remove a session cookie by client
 @test:Config {}
-public function testRemoveSessionCookieByClient() {
+public isolated function testRemoveSessionCookieByClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-2.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
-    http:Request req = new;
     // Server sends cookies in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Removes a session cookie.
     http:CookieStore? myCookieStore = cookieClientEndpoint.getCookieStore();
     if (myCookieStore is http:CookieStore) {
-        var removeResult = myCookieStore.removeCookie("SID003", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
-        if (removeResult is error) {
-            io:println(removeResult);
-        }
+        http:CookieHandlingError? removeResult =
+                myCookieStore.removeCookie("SID003", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
     }
     // Sends a request again after one session cookie is removed.
-    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID001=239d4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
@@ -300,39 +373,37 @@ public function testRemoveSessionCookieByClient() {
 // Test sending similar session cookies in the response by server,old cookie is replaced by new
 // cookie in the cookie store
 @test:Config {}
-public function testAddSimilarSessionCookies() {
+public isolated function testAddSimilarSessionCookies() {
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true }
         });
-    http:Request req = new;
     // Server sends similar session cookies in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/addSimilarSessionCookie", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/addSimilarSessionCookie");
     // Sends second request after replacing the old cookie with the new.
-    response = cookieClientEndpoint->get("/cookie/addSimilarSessionCookie", req);
+    response = cookieClientEndpoint->get("/cookie/addSimilarSessionCookie");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID002=178gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 // Test to remove a session cookie by server
 @test:Config {}
-public function testRemoveSessionCookieByServer() {
+public isolated function testRemoveSessionCookieByServer() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookies-test-data/client-4.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
-    http:Request req = new;
     // Server sends the session cookies in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/removeSessionCookie", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/removeSessionCookie");
     // Server removes an existing session cookie in the cookie store by sending an expired cookie in the response.
-    response = cookieClientEndpoint->get("/cookie/removeSessionCookie", req);
+    response = cookieClientEndpoint->get("/cookie/removeSessionCookie");
     // Third request after removing the cookie.
-    response = cookieClientEndpoint->get("/cookie/removeSessionCookie", req);
+    response = cookieClientEndpoint->get("/cookie/removeSessionCookie");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID002=178gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -347,37 +418,33 @@ public function testSendConcurrentRequests() {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
     worker w1 {
-        http:Request req = new;
-        var response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+        http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     }
     worker w2 {
-        http:Request req = new;
-        var response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+        http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     }
     worker w3 {
-        http:Request req = new;
-        var response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+        http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     }
     worker w4 {
-        http:Request req = new;
-        var response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+        http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     }
     _ = wait {w1, w2, w3, w4};
     http:CookieStore? myCookieStore = cookieClientEndpoint.getCookieStore();
     string[] names =[];
     if (myCookieStore is http:CookieStore) {
         http:Cookie[] cookies = myCookieStore.getAllCookies();
-        io:println(cookies.length());
         int i = 0;
-        test:assertEquals(cookies.length(), 3, msg = "Found unexpected output");
+        test:assertEquals(cookies.length(), 2, msg = "Found unexpected output");
         foreach var item in cookies {
             string? name = item.name;
             if (name is string) {
                 names[i] = name;
             }
-            i = i + 1;
+            i += 1;
         }
-        test:assertEquals(names, ["SID003", "SID001", "SID002"], msg = "Found unexpected output");
+        //Since same two cookies are sent for all concurrent requests, only two cookies are stored in the cookie store.
+        test:assertEquals(names, ["SID003", "SID001"], msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output");
     }
@@ -386,40 +453,36 @@ public function testSendConcurrentRequests() {
 
 // Test to send requests by a client with Circuit Breaker, Retry and Cookie configurations are enabled
 @test:Config {}
-public function testSendRequestsByClient() {
+public isolated function testSendRequestsByClient() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-6.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             retryConfig: {
-                intervalInMillis: 3000,
+                interval: 3,
                 count: 3,
                 backOffFactor: 2.0,
-                maxWaitIntervalInMillis: 20000
+                maxWaitInterval: 20
             },
             circuitBreaker: {
                 rollingWindow: {
-                    timeWindowInMillis: 10000,
-                    bucketSizeInMillis: 2000,
+                    timeWindow: 10,
+                    bucketSize: 2,
                     requestVolumeThreshold: 0
                 },
                 failureThreshold: 0.2,
-                resetTimeInMillis: 10000,
+                resetTime: 10,
                 statusCodes: [400, 404, 500]
             },
-            cookieConfig: {
-                enabled: true,
-                persistentCookieHandler: myPersistentStore
-            }
+            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
-    http:Request req = new;
     // Server sends cookies in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Second request is with a cookie header and server sends more cookies in the response.
-    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
      // Third request is with the cookie header including all relevant cookies.
-    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34; SID001=239d4dmnmsddd34; SID002=178gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
@@ -432,22 +495,19 @@ public function testRemovePersistentCookieByClient() {
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
-    http:Request req = new;
     // Server sends the cookies in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Removes a persistent cookie.
     http:CookieStore? myCookieStore = cookieClientEndpoint.getCookieStore();
     if (myCookieStore is http:CookieStore) {
-        var removeResult = myCookieStore.removeCookie("SID001", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
-        if (removeResult is error) {
-            io:println(removeResult);
-        }
+        http:CookieHandlingError? removeResult =
+            myCookieStore.removeCookie("SID001", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
     }
     // Sends a request again after one persistent cookie is removed.
-    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
@@ -461,14 +521,13 @@ public function testAddSimilarPersistentCookies() {
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
-    http:Request req = new;
     // Server sends similar persistent cookies in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentCookies", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentCookies");
     // Sends the second request after replacing the old cookie with the new.
-    response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentCookies", req);
+    response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentCookies");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID001=895gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
@@ -482,14 +541,13 @@ public function testSendSimilarPersistentAndSessionCookies_1() {
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
-    http:Request req = new;
     // Server sends a session cookie and a similar persistent cookie in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_1", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_1");
     // Sends the second request after replacing the session cookie with the new persistent cookie.
-    response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_1", req);
+    response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_1");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=aeaa895gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
@@ -503,14 +561,13 @@ public function testSendSimilarPersistentAndSessionCookies_2() {
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
-    http:Request req = new;
     // Server sends a persistent cookie and a similar session cookie in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_2", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_2");
     // Sends the second request after replacing the persistent cookie with the new session cookie.
-    response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_2", req);
+    response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_2");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
@@ -523,16 +580,15 @@ public function testRemovePersistentCookieByServer() {
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
         });
-    http:Request req = new;
     // Server sends cookies in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/removePersistentCookieByServer", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/removePersistentCookieByServer");
     // Server removes an existing persistent cookie in the cookie store by sending an expired cookie in the response.
-    response = cookieClientEndpoint->get("/cookie/removePersistentCookieByServer", req);
+    response = cookieClientEndpoint->get("/cookie/removePersistentCookieByServer");
     // Third request is sent after removing the cookie.
-    response = cookieClientEndpoint->get("/cookie/removePersistentCookieByServer", req);
+    response = cookieClientEndpoint->get("/cookie/removePersistentCookieByServer");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID002=178gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE);
@@ -545,16 +601,15 @@ public function testSendPersistentCookiesWithoutPersistentCookieHandler() {
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
             cookieConfig: { enabled: true }
         });
-    http:Request req = new;
     // Server sends the cookies in the response for the first request.
-    var response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Second request is with a cookie header and server sends more cookies in the response.
-    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Third request is sent with the cookie header including all relevant cookies.
-    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies", req);
+    response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
@@ -564,12 +619,172 @@ public function testSendPersistentCookiesWithoutPersistentCookieHandler() {
 @test:Config {}
 public function testCookieValidation() {
     http:Client clientEP = checkpanic new("http://localhost:9253");
-    http:Request req = new;
-    req.addHeader("Cookie", "user=John; asd=; =sdsdfsf; =gffg; ");
-    var response = clientEP->get("/cookie/validateCookie", req);
+    http:Response|error response = clientEP->get("/cookie/validateCookie", {"Cookie":"user=John; asd=; =sdsdfsf; =gffg; "});
     if (response is http:Response) {
         assertTextPayload(response.getTextPayload(), "Valid cookies: user=John,asd=,");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+// Test for different client methods
+// Test to send persistent cookies when the persistentCookieHandler is not configured
+@test:Config {}
+public function testPostSendPersistentCookiesWithoutPersistentCookieHandler() {
+    http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-20.csv");
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
+            cookieConfig: { enabled: true }
+        });
+    // Server sends the cookies in the response for the first request.
+    http:Response|error response = cookieClientEndpoint->post("/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Second request is with a cookie header and server sends more cookies in the response.
+    response = cookieClientEndpoint->post("/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Third request is sent with the cookie header including all relevant cookies.
+    response = cookieClientEndpoint->post("/cookie/addPersistentAndSessionCookiesDefault", "");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
+}
+
+@test:Config {}
+public function testPutSendPersistentCookiesWithoutPersistentCookieHandler() {
+    http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-20.csv");
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
+            cookieConfig: { enabled: true }
+        });
+    // Server sends the cookies in the response for the first request.
+    http:Response|error response = cookieClientEndpoint->put("/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Second request is with a cookie header and server sends more cookies in the response.
+    response = cookieClientEndpoint->put("/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Third request is sent with the cookie header including all relevant cookies.
+    response = cookieClientEndpoint->put("/cookie/addPersistentAndSessionCookiesDefault", "");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
+}
+
+@test:Config {}
+public function testPatchSendPersistentCookiesWithoutPersistentCookieHandler() {
+    http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-20.csv");
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
+            cookieConfig: { enabled: true }
+        });
+    // Server sends the cookies in the response for the first request.
+    http:Response|error response = cookieClientEndpoint->patch("/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Second request is with a cookie header and server sends more cookies in the response.
+    response = cookieClientEndpoint->patch("/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Third request is sent with the cookie header including all relevant cookies.
+    response = cookieClientEndpoint->patch("/cookie/addPersistentAndSessionCookiesDefault", "");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
+}
+
+@test:Config {}
+public function testDeleteSendPersistentCookiesWithoutPersistentCookieHandler() {
+    http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-20.csv");
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
+            cookieConfig: { enabled: true }
+        });
+    // Server sends the cookies in the response for the first request.
+    http:Response|error response = cookieClientEndpoint->delete("/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Second request is with a cookie header and server sends more cookies in the response.
+    response = cookieClientEndpoint->delete("/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Third request is sent with the cookie header including all relevant cookies.
+    response = cookieClientEndpoint->delete("/cookie/addPersistentAndSessionCookiesDefault", "");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
+}
+
+@test:Config {}
+public function testHeadSendPersistentCookiesWithoutPersistentCookieHandler() {
+    http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-20.csv");
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
+            cookieConfig: { enabled: true }
+        });
+    // Server sends the cookies in the response for the first request.
+    http:Response|error response = cookieClientEndpoint->head("/cookie/addPersistentAndSessionCookiesDefault");
+    // Second request is with a cookie header and server sends more cookies in the response.
+    response = cookieClientEndpoint->head("/cookie/addPersistentAndSessionCookiesDefault");
+    // Third request is sent with the cookie header including all relevant cookies.
+    response = cookieClientEndpoint->head("/cookie/addPersistentAndSessionCookiesDefault");
+    if (response is error) {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
+}
+
+@test:Config {}
+public function testOptionsSendPersistentCookiesWithoutPersistentCookieHandler() {
+    http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-20.csv");
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
+            cookieConfig: { enabled: true }
+        });
+    // Server sends the cookies in the response for the first request.
+    http:Response|error response = cookieClientEndpoint->options("/cookie/addPersistentAndSessionCookiesDefault");
+    // Second request is with a cookie header and server sends more cookies in the response.
+    response = cookieClientEndpoint->options("/cookie/addPersistentAndSessionCookiesDefault");
+    // Third request is sent with the cookie header including all relevant cookies.
+    response = cookieClientEndpoint->options("/cookie/addPersistentAndSessionCookiesDefault");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
+}
+
+@test:Config {}
+public function testExecuteSendPersistentCookiesWithoutPersistentCookieHandler() {
+    http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-20.csv");
+    http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
+            cookieConfig: { enabled: true }
+        });
+    // Server sends the cookies in the response for the first request.
+    http:Response|error response = cookieClientEndpoint->execute("GET",
+        "/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Second request is with a cookie header and server sends more cookies in the response.
+    response = cookieClientEndpoint->execute("GET", "/cookie/addPersistentAndSessionCookiesDefault", "");
+    // Third request is sent with the cookie header including all relevant cookies.
+    response = cookieClientEndpoint->execute("GET", "/cookie/addPersistentAndSessionCookiesDefault", "");
+    if (response is http:Response) {
+        assertTextPayload(response.getTextPayload(), "SID003=895gd4dmnmsddd34");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+    error? removeResults = file:remove("./cookie-test-data", file:RECURSIVE); // Removes persistent store file.
+}
+
+@test:Config {}
+public function testCaseSensitiveDomain() returns error? {
+    http:Client httpClient = checkpanic new("http://localhost:9253/cookieDemo", {
+          cookieConfig: { enabled: true }
+      });
+    http:Request request = new;
+    json jsonPart = {
+        name: "John",
+        password: "p@ssw0rd"
+    };
+    request.setJsonPayload(jsonPart);
+    http:Response|error loginResp = httpClient->post("/login", request);
+
+    if (loginResp is error) {
+        test:assertFail(msg = "Found unexpected output type: " + loginResp.message());
+    } else {
+        string welcomeResp = check httpClient->get("/welcome");
+        test:assertEquals(welcomeResp, "Welcome back John");
     }
 }

@@ -27,7 +27,7 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
         var jsonPayload = request.getJsonPayload();
         if (jsonPayload is json) {
             response.setPayload(<@untainted> jsonPayload);
-            var result = caller->respond(response);
+            error? result = caller->respond(response);
         } else {
             log:printError("Error getting the json payload");
         }
@@ -136,11 +136,11 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
              }
          };
         req.setPayload(jsonPayload);
-        var finalResponse = eP1->post("/http2EchoService/echoResource", req);
+        http:Response|error finalResponse = eP1->post("/http2EchoService/echoResource", req);
         if (finalResponse is error) {
-            log:printError("Error sending response", err = finalResponse);
-        } else if (finalResponse is http:Response) {
-            var result = caller->respond(<@untainted> finalResponse);
+            log:printError("Error sending response", 'error = finalResponse);
+        } else {
+            error? result = caller->respond(<@untainted> finalResponse);
         }
     }
 }
@@ -148,7 +148,7 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
 @test:Config {}
 public function testClientUpgradewithLargePayload() {
     http:Client clientEP = checkpanic new("http://localhost:9106");
-    var resp = clientEP->get("/http2EchoService/initial");
+    http:Response|error resp = clientEP->get("/http2EchoService/initial");
     string expectedPayload = "{\"web-app\":{\"servlet\":[{\"servlet-name\":\"cofaxCDS\", \"servlet-class\":"
                         + "\"org.cofax.cds.CDSServlet\", \"init-param\":{\"configGlossary:installationAt\":"
                         + "\"Philadelphia, PA\", \"configGlossary:adminEmail\":\"ksm@pobox.com\", "
@@ -189,7 +189,7 @@ public function testClientUpgradewithLargePayload() {
                         + "\"cofax.tld\", \"taglib-location\":\"/WEB-INF/tlds/cofax.tld\"}}}";
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), expectedPayload);
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

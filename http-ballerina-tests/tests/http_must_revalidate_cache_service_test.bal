@@ -25,11 +25,11 @@ service /mustRevalidate on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) {
         numberOfProxyHits += 1;
-        var response = cachingEP3->forward("/mustRevalidateBE", req);
+        http:Response|error response = cachingEP3->forward("/mustRevalidateBE", req);
         if (response is http:Response) {
             response.setHeader("x-proxy-hit-count", numberOfProxyHits.toString());
             checkpanic caller->respond(<@untainted> response);
-        } else if (response is error) {
+        } else {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted> response.message());
@@ -62,14 +62,14 @@ service /mustRevalidateBE on cachingBackendListener {
 //Test must-revalidate cache control
 @test:Config {}
 function testMustRevalidateCacheControl() {
-    var response = cachingProxyTestClient->get("/mustRevalidate");
+    http:Response|error response = cachingProxyTestClient->get("/mustRevalidate");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -80,7 +80,7 @@ function testMustRevalidateCacheControl() {
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "2");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -94,7 +94,7 @@ function testMustRevalidateCacheControl() {
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "3");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

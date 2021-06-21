@@ -112,10 +112,22 @@ public client class Caller {
         return nativeGetRemoteHostName(self);
     }
 
-    private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType) 
+    private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType)
             returns ListenerError? {
         Response response = new;
-        if (message is StatusCodeResponse) {
+        if (message is error) {
+            if (message is ApplicationResponseError) {
+                InternalServerError err = {
+                    headers: message.detail().headers,
+                    body: message.detail().body
+                };
+                response = createStatusCodeResponse(err, returnMediaType);
+                response.statusCode = message.detail().statusCode;
+            } else {
+                response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
+                response.setTextPayload(message.message());
+            }
+        } else if (message is StatusCodeResponse) {
             response = createStatusCodeResponse(message, returnMediaType);
         } else if (message is Response) {
             response = message;
@@ -206,15 +218,11 @@ isolated function nativeRespond(Caller caller, Response response) returns Listen
     name: "nativeRespond"
 } external;
 
-isolated function nativeGetRemoteHostName(Caller caller) returns string = @java:Method {
+isolated function nativeGetRemoteHostName(Caller caller) returns string? = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.connection.GetRemoteHostName",
     name: "nativeGetRemoteHostName"
 } external;
 
-
-/////////////////////////////////
-/// Ballerina Implementations ///
-/////////////////////////////////
 # Defines the HTTP redirect codes as a type.
 public type RedirectCode REDIRECT_MULTIPLE_CHOICES_300|REDIRECT_MOVED_PERMANENTLY_301|REDIRECT_FOUND_302|REDIRECT_SEE_OTHER_303|
 REDIRECT_NOT_MODIFIED_304|REDIRECT_USE_PROXY_305|REDIRECT_TEMPORARY_REDIRECT_307|REDIRECT_PERMANENT_REDIRECT_308;

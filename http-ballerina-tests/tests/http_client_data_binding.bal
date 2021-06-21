@@ -17,6 +17,8 @@
 import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
+import ballerina/mime;
+import ballerina/lang.'string as strings;
 
 listener http:Listener clientDBProxyListener = new(clientDatabindingTestPort1);
 listener http:Listener clientDBBackendListener = new(clientDatabindingTestPort2);
@@ -31,145 +33,126 @@ type ClientDBPerson record {|
 
 int clientDBCounter = 0;
 
-// Need to define a type due to https://github.com/ballerina-platform/ballerina-lang/issues/26253
-type ByteArray byte[];
-type ClientDBPersonArray ClientDBPerson[];
-type MapOfJson map<json>;
-
 service /passthrough on clientDBProxyListener {
 
     resource function get allTypes(http:Caller caller, http:Request request) returns @tainted error? {
         string payload = "";
 
-        var res = clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
-        json p = <json> checkpanic res;
+        json p = check clientDBBackendClient->post("/backend/getJson", "want json");
         payload = payload + p.toJsonString();
 
-        res = clientDBBackendClient->post("/backend/getJson", "want json", MapOfJson);
-        map<json> p1 = <map<json>> checkpanic res;
+        map<json> p1 = check clientDBBackendClient->post("/backend/getJson", "want json");
         json name = check p1.id;
         payload = payload + " | " + name.toJsonString();
 
-        res = clientDBBackendClient->post("/backend/getXml", "want xml", xml);
-        xml q = <xml> checkpanic res;
+        xml q = check clientDBBackendClient->post("/backend/getXml", "want xml");
         payload = payload + " | " + q.toString();
 
-        res = clientDBBackendClient->post("/backend/getString", "want string", targetType = string);
-        string r = <string> checkpanic res;
+        string r = check clientDBBackendClient->post("/backend/getString", "want string");
         payload = payload + " | " + r;
 
-        res = clientDBBackendClient->post("/backend/getByteArray", "want byte[]", ByteArray);
-        byte[] val = <byte[]> checkpanic res;
+        byte[] val = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
-        res = clientDBBackendClient->post("/backend/getRecord", "want record", targetType = ClientDBPerson);
-        ClientDBPerson t = <ClientDBPerson> checkpanic res;
+        ClientDBPerson t = check clientDBBackendClient->post("/backend/getRecord", "want record");
         payload = payload + " | " + t.name;
 
-        res = clientDBBackendClient->post("/backend/getRecordArr", "want record[]", targetType = ClientDBPersonArray);
-        ClientDBPerson[] u = <ClientDBPerson[]> checkpanic res;
+        ClientDBPerson[] u = check clientDBBackendClient->post("/backend/getRecordArr", "want record[]");
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
-        res = clientDBBackendClient->post("/backend/getResponse", "want record[]", targetType = http:Response);
-        http:Response v = <http:Response> checkpanic res;
-        payload = payload + " | " + checkpanic v.getHeader("x-fact");
+        http:Response v = check clientDBBackendClient->post("/backend/getResponse", "want record[]");
+        payload = payload + " | " + check v.getHeader("x-fact");
 
-        var result = caller->respond(<@untainted>payload);
+        error? result = caller->respond(<@untainted>payload);
     }
 
     resource function get allMethods(http:Caller caller, http:Request request) returns error? {
         string payload = "";
 
-        var res = clientDBBackendClient->get("/backend/getJson", targetType = json);
-        json p = <json> checkpanic res;
+        // This is to check any compile failures with multiple default-able args
+        json hello = check clientDBBackendClient->get("/backend/getJson");
+
+        json p = check clientDBBackendClient->get("/backend/getJson");
         payload = payload + p.toJsonString();
 
-        res = clientDBBackendClient->head("/backend/getXml", "want xml");
-        http:Response v = <http:Response> checkpanic res;
-        payload = payload + " | " + checkpanic v.getHeader("Content-type");
+        http:Response v = check clientDBBackendClient->head("/backend/getXml");
+        payload = payload + " | " + check v.getHeader("Content-type");
 
-        res = clientDBBackendClient->delete("/backend/getString", "want string", targetType = string);
-        string r = <string> checkpanic res;
+        string r = check clientDBBackendClient->delete("/backend/getString", "want string");
         payload = payload + " | " + r;
 
-        res = clientDBBackendClient->put("/backend/getByteArray", "want byte[]", ByteArray);
-        byte[] val = <byte[]> checkpanic res;
+        byte[] val = check clientDBBackendClient->put("/backend/getByteArray", "want byte[]");
         string s = check <@untainted>'string:fromBytes(val);
         payload = payload + " | " + s;
 
-        res = clientDBBackendClient->execute("POST", "/backend/getRecord", "want record", targetType = ClientDBPerson);
-        ClientDBPerson t = <ClientDBPerson> checkpanic res;
+        ClientDBPerson t = check clientDBBackendClient->execute("POST", "/backend/getRecord", "want record");
         payload = payload + " | " + t.name;
 
-        res = clientDBBackendClient->forward("/backend/getRecordArr", request, targetType = ClientDBPersonArray);
-        ClientDBPerson[] u = <ClientDBPerson[]> checkpanic res;
+        ClientDBPerson[] u = check clientDBBackendClient->forward("/backend/getRecordArr", request);
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
-        var result = caller->respond(<@untainted>payload);
+        error? result = caller->respond(<@untainted>payload);
     }
 
-    resource function get redirect(http:Caller caller, http:Request req) {
-        http:Client redirectClient = checkpanic new("http://localhost:" + clientDatabindingTestPort3.toString(),
+    resource function get redirect(http:Caller caller, http:Request req) returns error? {
+        http:Client redirectClient = check new("http://localhost:" + clientDatabindingTestPort3.toString(),
                                                         {followRedirects: {enabled: true, maxCount: 5}});
-        var res = redirectClient->post("/redirect1/", "want json", targetType = json);
-        json p = <json> checkpanic res;
-        var result = caller->respond(<@untainted>p);
+        json p = check redirectClient->post("/redirect1/", "want json", targetType = json);
+        error? result = caller->respond(<@untainted>p);
     }
 
-    resource function get 'retry(http:Caller caller, http:Request request) {
-        http:Client retryClient = checkpanic new("http://localhost:" + clientDatabindingTestPort2.toString(), {
-                retryConfig: { intervalInMillis: 3000, count: 3, backOffFactor: 2.0,
-                maxWaitIntervalInMillis: 20000 },  timeoutInMillis: 2000
+    resource function get 'retry(http:Caller caller, http:Request request) returns error? {
+        http:Client retryClient = check new("http://localhost:" + clientDatabindingTestPort2.toString(), {
+                retryConfig: { interval: 3, count: 3, backOffFactor: 2.0,
+                maxWaitInterval: 2 },  timeout: 2
             }
         );
-        var backendResponse = retryClient->forward("/backend/getRetryResponse", request, targetType = string);
-        string r = <string> checkpanic backendResponse;
-        var responseToCaller = caller->respond(<@untainted>r);
+        string r = check retryClient->forward("/backend/getRetryResponse", request);
+        error? responseToCaller = caller->respond(<@untainted>r);
     }
 
-    resource function 'default cast(http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/getJson", "want json", targetType = json);
-        xml p = <xml> checkpanic res;
-        var responseToCaller = caller->respond(<@untainted>p);
+    resource function 'default '500(http:Caller caller, http:Request request) returns error? {
+        json p = check clientDBBackendClient->post("/backend/get5XX", "want 500");
+        error? responseToCaller = caller->respond(<@untainted>p);
     }
 
-    resource function 'default '500(http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/get5XX", "want 500", targetType = json);
-        json p = <json> checkpanic res;
-        var responseToCaller = caller->respond(<@untainted>p);
-    }
-
-    resource function 'default '500handle(http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/get5XX", "want 500", targetType = json);
+    resource function 'default '500handle(http:Caller caller, http:Request request) returns error? {
+        json|error res = clientDBBackendClient->post("/backend/get5XX", "want 500");
         if res is http:RemoteServerError {
             http:Response resp = new;
-            resp.statusCode = res.detail()?.statusCode ?: 500;
-            resp.setPayload(<@untainted>res.message());
-            var responseToCaller = caller->respond(<@untainted>resp);
+            resp.statusCode = res.detail().statusCode;
+            resp.setPayload(<string>res.detail().body);
+            string[] val = res.detail().headers.get("X-Type");
+            resp.setHeader("X-Type", val[0]);
+            error? responseToCaller = caller->respond(<@untainted>resp);
         } else {
-            json p = <json> checkpanic res;
-            var responseToCaller = caller->respond(<@untainted>p);
+            json p = check res;
+            error? responseToCaller = caller->respond(<@untainted>p);
         }
     }
 
-    resource function 'default '404(http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500", targetType = json);
-        json p = <json> checkpanic res;
-        var responseToCaller = caller->respond(<@untainted>p);
+    resource function 'default '404(http:Caller caller, http:Request request) returns error? {
+        json p = check clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500");
+        error? responseToCaller = caller->respond(<@untainted>p);
     }
 
-    resource function  'default '404/[string path](http:Caller caller, http:Request request) {
-        var res = clientDBBackendClient->post("/backend/" + <@untainted>path, "want 500", targetType = json);
+    resource function  'default '404/[string path](http:Caller caller, http:Request request) returns error? {
+        json|error res = clientDBBackendClient->post("/backend/" + <@untainted>path, "want 500");
         if res is http:ClientRequestError {
             http:Response resp = new;
-            resp.statusCode = res.detail()?.statusCode ?: 400;
-            resp.setPayload(<@untainted>res.message());
-            var responseToCaller = caller->respond(<@untainted>resp);
+            resp.statusCode = res.detail().statusCode;
+            resp.setPayload(<string>res.detail().body);
+            error? responseToCaller = caller->respond(<@untainted>resp);
         } else {
-            json p = <json> checkpanic res;
-            var responseToCaller = caller->respond(<@untainted>p);
+            json p = check res;
+            error? responseToCaller = caller->respond(<@untainted>p);
         }
+    }
+
+    resource function get testBody/[string path](http:Caller caller, http:Request request) returns error? {
+        json p = check clientDBBackendClient->get("/backend/" + <@untainted>path);
+        error? responseToCaller = caller->respond(<@untainted>p);
     }
 }
 
@@ -177,54 +160,54 @@ service /backend on clientDBBackendListener {
     resource function 'default getJson(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setJsonPayload({id: "chamil", values: {a: 2, b: 45, c: {x: "mnb", y: "uio"}}});
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getXml(http:Caller caller, http:Request req) {
         http:Response response = new;
         xml xmlStr = xml `<name>Ballerina</name>`;
         response.setXmlPayload(xmlStr);
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getString(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setTextPayload("This is my @4491*&&#$^($@");
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getByteArray(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setBinaryPayload("BinaryPayload is textVal".toBytes());
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getRecord(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setJsonPayload({name: "chamil", age: 15});
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getRecordArr(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setJsonPayload([{name: "wso2", age: 12}, {name: "ballerina", age: 3}]);
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function post getResponse(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setJsonPayload({id: "hello"});
         response.setHeader("x-fact", "data-binding");
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
     }
 
     resource function 'default getRetryResponse(http:Caller caller, http:Request req) {
         clientDBCounter = clientDBCounter + 1;
         if (clientDBCounter == 1) {
             runtime:sleep(5);
-            var responseToCaller = caller->respond("Not received");
+            error? responseToCaller = caller->respond("Not received");
         } else {
-            var responseToCaller = caller->respond("Hello World!!!");
+            error? responseToCaller = caller->respond("Hello World!!!");
         }
     }
 
@@ -232,14 +215,33 @@ service /backend on clientDBBackendListener {
         http:Response response = new;
         response.statusCode = 501;
         response.setTextPayload("data-binding-failed-with-501");
-        var result = caller->respond(response);
+        response.setHeader("X-Type", "test");
+        error? result = caller->respond(response);
     }
 
     resource function get get4XX(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.statusCode = 400;
         response.setTextPayload("data-binding-failed-due-to-bad-request");
-        var result = caller->respond(response);
+        error? result = caller->respond(response);
+    }
+
+    resource function get xmltype() returns http:NotFound {
+        return {body: xml `<test>Bad Request</test>`};
+    }
+
+    resource function get jsontype() returns http:InternalServerError {
+        json j = {id:"hello"};
+        return {body: j};
+    }
+
+    resource function get binarytype() returns http:ServiceUnavailable {
+        byte[] b = "ballerina".toBytes();
+        return {body: b};
+    }
+
+    resource function 'default getErrorResponseWithErrorContentType() returns http:BadRequest {
+        return { body : {name: "hello", age: 15}, mediaType : "application/xml"};
     }
 }
 
@@ -247,7 +249,7 @@ service /redirect1 on clientDBBackendListener2 {
 
     resource function 'default .(http:Caller caller, http:Request req) {
         http:Response res = new;
-        var result = caller->redirect(res, http:REDIRECT_SEE_OTHER_303,
+        error? result = caller->redirect(res, http:REDIRECT_SEE_OTHER_303,
                         ["http://localhost:" + clientDatabindingTestPort2.toString() + "/backend/getJson"]);
     }
 }
@@ -255,14 +257,14 @@ service /redirect1 on clientDBBackendListener2 {
 // Test HTTP basic client with all binding data types(targetTypes)
 @test:Config {}
 function testAllBindingDataTypes() {
-    var response = clientDBTestClient->get("/passthrough/allTypes");
+    http:Response|error response = clientDBTestClient->get("/passthrough/allTypes");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
-                 "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | chamil | <name>Ballerina</name> | " +
+                 "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | \"chamil\" | <name>Ballerina</name> | " +
                  "This is my @4491*&&#$^($@ | BinaryPayload is textVal | chamil | wso2 | 3 | data-binding");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -270,28 +272,28 @@ function testAllBindingDataTypes() {
 // Test basic client with all HTTP request methods
 @test:Config {}
 function testDifferentMethods() {
-    var response = clientDBTestClient->get("/passthrough/allMethods");
+    http:Response|error response = clientDBTestClient->get("/passthrough/allMethods");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
                 "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | application/xml | This is my @4491*&&#$^($@ | BinaryPayload" +
                 " is textVal | chamil | wso2 | 3");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 // Test HTTP redirect client data binding
-@test:Config {groups: ["now"]}
+@test:Config {}
 function testRedirectClientDataBinding() {
-    var response = clientDBTestClient->get("/passthrough/redirect");
+    http:Response|error response = clientDBTestClient->get("/passthrough/redirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         json j = {id:"chamil", values:{a:2, b:45, c:{x:"mnb", y:"uio"}}};
         assertJsonPayload(response.getJsonPayload(), j);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -299,26 +301,12 @@ function testRedirectClientDataBinding() {
 // Test HTTP retry client data binding
 @test:Config {}
 function testRetryClientDataBinding() {
-    var response = clientDBTestClient->get("/passthrough/retry");
+    http:Response|error response = clientDBTestClient->get("/passthrough/retry");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
-    } else if (response is error) {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-// Test cast error panic for incompatible types
-@test:Config {}
-function testCastError() {
-    var response = clientDBTestClient->get("/passthrough/cast");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "incompatible types: 'map<json>' cannot be cast to " +
-                            "'xml<lang.xml:Element|lang.xml:Comment|lang.xml:ProcessingInstruction|lang.xml:Text>'");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -326,12 +314,13 @@ function testCastError() {
 // Test 500 error panic
 @test:Config {}
 function test5XXErrorPanic() {
-    var response = clientDBTestClient->get("/passthrough/500");
+    http:Response|error response = clientDBTestClient->get("/passthrough/500");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader("X-Type"), "test");
         assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -339,12 +328,13 @@ function test5XXErrorPanic() {
 // Test 500 error handle
 @test:Config {}
 function test5XXHandleError() {
-    var response = clientDBTestClient->get("/passthrough/500handle");
+    http:Response|error response = clientDBTestClient->get("/passthrough/500handle");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(checkpanic response.getHeader("X-Type"), "test");
         assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -352,13 +342,13 @@ function test5XXHandleError() {
 // Test 404 error panic
 @test:Config {}
 function test4XXErrorPanic() {
-    var response = clientDBTestClient->get("/passthrough/404");
+    http:Response|error response = clientDBTestClient->get("/passthrough/404");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), 
             "no matching resource found for path : /backend/getIncorrectPath404 , method : POST");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -366,12 +356,12 @@ function test4XXErrorPanic() {
 // Test 404 error handle
 @test:Config {}
 function test4XXHandleError() {
-    var response = clientDBTestClient->get("/passthrough/404/handle");
+    http:Response|error response = clientDBTestClient->get("/passthrough/404/handle");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /backend/handle , method : POST");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -379,12 +369,104 @@ function test4XXHandleError() {
 // Test 405 error handle
 @test:Config {}
 function test405HandleError() {
-    var response = clientDBTestClient->get("/passthrough/404/get4XX");
+    http:Response|error response = clientDBTestClient->get("/passthrough/404/get4XX");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Method not allowed");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function test405AsApplicationResponseError() {
+    json|error response = clientDBTestClient->post("/passthrough/allMethods", "hi");
+    if (response is http:ApplicationResponseError) {
+        test:assertEquals(response.detail().statusCode, 405, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        assertTextPayload(<string> response.detail().body, "Method not allowed");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: json");
+    }
+}
+
+@test:Config {}
+function testXmlErrorSerialize() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/testBody/xmltype");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+        test:assertEquals(response.getXmlPayload(), xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testJsonErrorSerialize() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/testBody/jsontype");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayload(response.getJsonPayload(), {id:"hello"});
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testBinaryErrorSerialize() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/testBody/binarytype");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 503, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), mime:APPLICATION_OCTET_STREAM);
+        var blobValue = response.getBinaryPayload();
+        if (blobValue is byte[]) {
+            test:assertEquals(strings:fromBytes(blobValue), "ballerina", msg = "Payload mismatched");
+        } else {
+            test:assertFail(msg = "Found unexpected output: " +  blobValue.message());
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+type ClientDBErrorPerson record {|
+    string name;
+    int age;
+    float weight;
+|};
+
+@test:Config {}
+function testDetailBodyCreationFailure() {
+    string|error response = clientDBBackendClient->get("/backend/getErrorResponseWithErrorContentType");
+    if (response is error) {
+        test:assertEquals(response.message(),
+            "http:ApplicationResponseError creation failed: 400 response payload extraction failed");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: string");
+    }
+}
+
+@test:Config {}
+function testDBRecordErrorNegative() {
+    ClientDBErrorPerson|error response =  clientDBBackendClient->post("/backend/getRecord", "want record");
+    if (response is error) {
+        test:assertEquals(response.message(),
+            "Payload binding failed: 'map<json>' value cannot be converted to 'http_tests:ClientDBErrorPerson'");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson");
+    }
+}
+
+@test:Config {}
+function testDBRecordArrayNegative() {
+    ClientDBErrorPerson[]|error response =  clientDBBackendClient->post("/backend/getRecordArr", "want record arr");
+    if (response is error) {
+        test:assertEquals(response.message(),
+            "Payload binding failed: 'json[]' value cannot be converted to 'http_tests:ClientDBErrorPerson[]'");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson[]");
     }
 }

@@ -18,6 +18,8 @@
 
 package org.ballerinalang.net.transport.unitfunction;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
@@ -28,11 +30,22 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.Attribute;
 import org.ballerinalang.net.transport.contract.Constants;
+import org.ballerinalang.net.transport.contract.HttpResponseFuture;
+import org.ballerinalang.net.transport.contract.config.KeepAliveConfig;
+import org.ballerinalang.net.transport.contract.exceptions.ConfigurationException;
 import org.ballerinalang.net.transport.contractimpl.common.Util;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * A unit test class for common/Util functions.
@@ -102,4 +115,127 @@ public class CommonUtilTestCase {
         Assert.assertEquals(httpOutboundRequest.getHeader(HttpHeaderNames.CONTENT_LENGTH.toString()), "10",
                             "Content length header is been removed");
     }
+
+    @Test
+    public void testGetIntProperty() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("key", 15);
+        Assert.assertEquals(Util.getIntProperty(properties, "key", 10), 15);
+
+        Assert.assertEquals(Util.getIntProperty(properties, "keyNew", 10), 10);
+
+        Assert.assertEquals(Util.getIntProperty(null, "key", 10), 10);
+    }
+
+    @Test (expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Property : key must be an integer")
+    public void testGetIntPropertyIllegalArgument() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("key", "invalid");
+        Util.getIntProperty(properties, "key", 10);
+    }
+
+    @Test
+    public void testGetStringProperty() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("key", "value");
+        Assert.assertEquals(Util.getStringProperty(properties, "key", "default"), "value");
+
+        Assert.assertEquals(Util.getStringProperty(properties, "keyNew", "default"), "default");
+
+        Assert.assertEquals(Util.getStringProperty(null, "key", "default"), "default");
+    }
+
+    @Test (expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Property : key must be a string")
+    public void testGetStringPropertyIllegalArgument() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("key", 10);
+        Util.getStringProperty(properties, "key", "default");
+    }
+
+    @Test
+    public void testGetBooleanProperty() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("key", false);
+        Assert.assertFalse(Util.getBooleanProperty(properties, "key", true));
+
+        Assert.assertTrue(Util.getBooleanProperty(properties, "keyNew", true));
+
+        Assert.assertTrue(Util.getBooleanProperty(null, "key", true));
+    }
+
+    @Test (expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Property : key must be a boolean")
+    public void testGetBooleanPropertyIllegalArgument() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("key", "invalid");
+        Util.getBooleanProperty(properties, "key", true);
+    }
+
+    @Test
+    public void testGetLongProperty() {
+        Map<String, Object> properties = new HashMap<>();
+        long value = 5;
+        long defaultVal = 10;
+        properties.put("key", value);
+        long returnVal = Util.getLongProperty(properties, "key", defaultVal);
+        Assert.assertEquals(returnVal, value);
+
+        returnVal = Util.getLongProperty(properties, "keyNew", defaultVal);
+        Assert.assertEquals(returnVal, defaultVal);
+
+        returnVal = Util.getLongProperty(null, "keyNew", defaultVal);
+        Assert.assertEquals(returnVal, defaultVal);
+    }
+
+    @Test (expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Property : key must be a long")
+    public void testGetLongPropertyIllegalArgument() {
+        Map<String, Object> properties = new HashMap<>();
+        long defaultVal = 10;
+        properties.put("key", "invalid");
+        Util.getLongProperty(properties, "key", defaultVal);
+    }
+
+    @Test (expectedExceptions = RuntimeException.class,
+            expectedExceptionsMessageRegExp = "System property carbon.home is not specified")
+    public void testSubstituteVariablesWithUnspecifiedVariable() {
+        Util.substituteVariables("${carbon.home} ");
+    }
+
+    @Test
+    public void testResetChannelAttributes() {
+        ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
+        Channel channel = mock(Channel.class);
+        when(ctx.channel()).thenReturn(channel);
+        Attribute<HttpResponseFuture> attr1 = mock(Attribute.class);
+        when(channel.attr(Constants.RESPONSE_FUTURE_OF_ORIGINAL_CHANNEL)).thenReturn(attr1);
+        Attribute<HttpCarbonMessage> attr2 = mock(Attribute.class);
+        when(channel.attr(Constants.ORIGINAL_REQUEST)).thenReturn(attr2);
+        Attribute<Integer> attr3 = mock(Attribute.class);
+        when(channel.attr(Constants.REDIRECT_COUNT)).thenReturn(attr3);
+        Attribute<String> attr4 = mock(Attribute.class);
+        when(channel.attr(Constants.RESOLVED_REQUESTED_URI_ATTR)).thenReturn(attr4);
+        Attribute<Long> attr5 = mock(Attribute.class);
+        when(channel.attr(Constants.ORIGINAL_CHANNEL_START_TIME)).thenReturn(attr5);
+        Attribute<Integer> attr6 = mock(Attribute.class);
+        when(channel.attr(Constants.ORIGINAL_CHANNEL_TIMEOUT)).thenReturn(attr6);
+
+        Util.resetChannelAttributes(ctx);
+
+        verify(attr1).set(null);
+        verify(attr2).set(null);
+        verify(attr3).set(null);
+        verify(attr4).set(null);
+        verify(attr5).set(null);
+        verify(attr6).set(null);
+    }
+
+    @Test
+    public void testIsKeepAlive() throws ConfigurationException {
+        HttpCarbonMessage outboundRequestMsg = mock(HttpCarbonMessage.class);
+        Assert.assertFalse(Util.isKeepAlive(KeepAliveConfig.NEVER, outboundRequestMsg));
+    }
+
 }

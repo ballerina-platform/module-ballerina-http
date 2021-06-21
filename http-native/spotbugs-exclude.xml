@@ -48,7 +48,4 @@
     <Match>
         <Class name="org.ballerinalang.net.http.HttpDispatcher" />
     </Match>
-    <Match>
-        <Class name="org.ballerinalang.net.http.signature.ParamHandler" />
-    </Match>
 </FindBugsFilter>

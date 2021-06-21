@@ -88,13 +88,6 @@ version = "@commmon.pool.version@"
 
 
 [[platform.java11.dependency]]
-path = "./lib/snakeyaml-@snakeyaml.version@.jar"
-groupId = "org.wso2.orbit.org.yaml"
-artifactId = "snakeyaml"
-version = "@snakeyaml.version@"
-
-
-[[platform.java11.dependency]]
 path = "./lib/bcprov-jdk15on-@bouncycastle.version@.jar"
 groupId = "org.bouncycastle"
 artifactId = "bcprov-jdk15on"

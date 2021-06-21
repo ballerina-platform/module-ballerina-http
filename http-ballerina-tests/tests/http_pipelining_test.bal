@@ -21,7 +21,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener pipeliningListenerEP1 = new(pipeliningTestPort1);
-listener http:Listener pipeliningListenerEP2 = new(pipeliningTestPort2, { timeoutInMillis: 1000 });
+listener http:Listener pipeliningListenerEP2 = new(pipeliningTestPort2, { timeout: 1 });
 listener http:Listener pipeliningListenerEP3 = new(pipeliningTestPort3, { http1Settings: { maxPipelinedRequests: 2 } });
 
 service /pipeliningTest on pipeliningListenerEP1 {
@@ -49,10 +49,10 @@ service /pipeliningTest on pipeliningListenerEP1 {
             }
         }
 
-        var result = caller->respond(<@untainted> response);
+        error? result = caller->respond(<@untainted> response);
         if (result is error) {
             error err = result;
-            log:printError(err.message(), err = result);
+            log:printError(err.message(), 'error = result);
         }
     }
 }
@@ -83,7 +83,7 @@ service /pipelining on pipeliningListenerEP2 {
 
         var responseError = caller->respond(response);
         if (responseError is error) {
-            log:printError("Pipeline timeout:" + responseError.message(), err = responseError);
+            log:printError("Pipeline timeout:" + responseError.message(), 'error = responseError);
         }
     }
 }
@@ -98,7 +98,7 @@ service /pipeliningLimit on pipeliningListenerEP3 {
 
         var responseError = caller->respond(response);
         if (responseError is error) {
-            log:printError("Pipeline limit exceeded:" + responseError.message(), err = responseError);
+            log:printError("Pipeline limit exceeded:" + responseError.message(), 'error = responseError);
         }
     }
 }

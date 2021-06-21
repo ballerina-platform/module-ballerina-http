@@ -17,24 +17,20 @@
 import ballerina/crypto;
 import ballerina/jballerina.java;
 
-/////////////////////////////
-/// HTTP Listener Endpoint ///
-/////////////////////////////
 # This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
 public class Listener {
 
-    private int port = 0;
-    private ListenerConfiguration config = {};
-    private string instanceId;
+    private int port;
+    private ListenerConfiguration config;
 
     # Gets invoked during module initialization to initialize the listener.
     #
     # + port - Listening port of the HTTP service listener
     # + config - Configurations for the HTTP service listener
-    public isolated function init(int port, ListenerConfiguration? config = ()) returns ListenerError? {
-        self.instanceId = uuid();
-        self.config = config ?: {};
+    # + return - A `ListenerError` if an error occurred during the listener initialization
+    public isolated function init(int port, *ListenerConfiguration config) returns ListenerError? {
+        self.config = config;
         self.port = port;
         return externInitEndpoint(self);
     }
@@ -63,19 +59,19 @@ public class Listener {
 
     # Attaches a service to the listener.
     #
-    # + s - The service that needs to be attached
+    # + httpService - The service that needs to be attached
     # + name - Name of the service
-    # + return - An `error` an error occurred during the service attachment process or else nil
-    public isolated function attach(Service s, string[]|string? name = ()) returns error? {
-        return externRegister(self, s, name);
+    # + return - An `error` if an error occurred during the service attachment process or else `()`
+    public isolated function attach(Service httpService, string[]|string? name = ()) returns error? {
+        return externRegister(self, httpService, name);
     }
 
-    # Detaches a Http service from the listener.
+    # Detaches an HTTP service from the listener.
     #
-    # + s - The service to be detached
+    # + httpService - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
-    public isolated function detach(Service s) returns error? {
-        return externDetach(self, s);
+    public isolated function detach(Service httpService) returns error? {
+        return externDetach(self, httpService);
     }
 
     # Retrieves the port of the HTTP listener.
@@ -94,28 +90,28 @@ public class Listener {
 }
 
 isolated function externInitEndpoint(Listener listenerObj) returns ListenerError? = @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.InitEndpoint",
+    'class: "org.ballerinalang.net.http.service.endpoint.InitEndpoint",
     name: "initEndpoint"
 } external;
 
-isolated function externRegister(Listener listenerObj, Service s, string[]|string? name) returns error? =
+isolated function externRegister(Listener listenerObj, Service httpService, string[]|string? name) returns error? =
 @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.Register",
+    'class: "org.ballerinalang.net.http.service.endpoint.Register",
     name: "register"
 } external;
 
 isolated function externStart(Listener listenerObj) returns error? = @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.Start",
+    'class: "org.ballerinalang.net.http.service.endpoint.Start",
     name: "start"
 } external;
 
 isolated function externGracefulStop(Listener listenerObj) returns error? = @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.GracefulStop",
+    'class: "org.ballerinalang.net.http.service.endpoint.GracefulStop",
     name: "gracefulStop"
 } external;
 
-isolated function externDetach(Listener listenerObj, Service s) returns error? = @java:Method {
-    'class: "org.ballerinalang.net.http.serviceendpoint.Detach",
+isolated function externDetach(Listener listenerObj, Service httpService) returns error? = @java:Method {
+    'class: "org.ballerinalang.net.http.service.endpoint.Detach",
     name: "detach"
 } external;
 
@@ -144,7 +140,7 @@ public type Local record {|
 # + secureSocket - The SSL configurations for the service endpoint. This needs to be configured in order to
 #                  communicate through HTTPS.
 # + httpVersion - Highest HTTP version supported by the endpoint
-# + timeoutInMillis - Period of time in milliseconds that a connection waits for a read/write operation. Use value 0 to
+# + timeout - Period of time in seconds that a connection waits for a read/write operation. Use value 0 to
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
@@ -153,7 +149,7 @@ public type ListenerConfiguration record {|
     ListenerHttp1Settings http1Settings = {};
     ListenerSecureSocket? secureSocket = ();
     string httpVersion = "1.1";
-    int timeoutInMillis = DEFAULT_LISTENER_TIMEOUT;
+    decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
 |};
@@ -187,41 +183,69 @@ public type RequestLimitConfigs record {|
 
 # Configures the SSL/TLS options to be used for HTTP service.
 #
-# + trustStore - Configures the trust store to be used
-# + keyStore - Configures the key store to be used
-# + certFile - A file containing the certificate of the server
-# + keyFile - A file containing the private key of the server
-# + keyPassword - Password of the private key if it is encrypted
-# + trustedCertFile - A file containing a list of certificates or a single certificate that the server trusts
+# + key - Configurations associated with `crypto:KeyStore` or combination of certificate and (PKCS8) private key of the server
+# + mutualSsl - Configures associated with mutual SSL operations
 # + protocol - SSL/TLS protocol related options
-# + certValidation - Certificate validation against CRL or OCSP related options
-# + ciphers - List of ciphers to be used (e.g.: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-#             TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
-# + sslVerifyClient - The type of client certificate verification. (e.g.: "require" or "optional")
-# + shareSession - Enable/disable new SSL session creation
-# + handshakeTimeoutInSeconds - SSL handshake time out
-# + sessionTimeoutInSeconds - SSL session time out
-# + ocspStapling - Enable/disable OCSP stapling
+# + certValidation - Certificate validation against OCSP_CRL, OCSP_STAPLING related options
+# + ciphers - List of ciphers to be used
+#             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+# + shareSession - Enable/Disable new SSL session creation
+# + handshakeTimeout - SSL handshake time out
+# + sessionTimeout - SSL session time out
 public type ListenerSecureSocket record {|
-    crypto:TrustStore? trustStore = ();
-    crypto:KeyStore? keyStore = ();
-    string certFile = "";
-    string keyFile = "";
-    string keyPassword = "";
-    string trustedCertFile = "";
-    Protocols? protocol = ();
-    ValidateCert? certValidation = ();
+    crypto:KeyStore|CertKey key;
+    record {|
+        VerifyClient verifyClient = REQUIRE;
+        crypto:TrustStore|string cert;
+    |} mutualSsl?;
+    record {|
+        Protocol name;
+        string[] versions = [];
+    |} protocol?;
+    record {|
+        CertValidationType 'type = OCSP_STAPLING;
+        int cacheSize;
+        int cacheValidityPeriod;
+    |} certValidation?;
     string[] ciphers = ["TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
                         "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
                         "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA", "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
                         "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
                         "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"];
-    string sslVerifyClient = "";
     boolean shareSession = true;
-    int? handshakeTimeoutInSeconds = ();
-    int? sessionTimeoutInSeconds = ();
-    ListenerOcspStapling? ocspStapling = ();
+    decimal handshakeTimeout?;
+    decimal sessionTimeout?;
 |};
+
+# Represents combination of certificate, private key and private key password if encrypted.
+#
+# + certFile - A file containing the certificate
+# + keyFile - A file containing the private key in PKCS8 format
+# + keyPassword - Password of the private key if it is encrypted
+public type CertKey record {|
+   string certFile;
+   string keyFile;
+   string keyPassword?;
+|};
+
+# Represents client verify options.
+public enum VerifyClient {
+   REQUIRE,
+   OPTIONAL
+}
+
+# Represents protocol options.
+public enum Protocol {
+   SSL,
+   TLS,
+   DTLS
+}
+
+# Represents certification validation type options.
+public enum CertValidationType {
+   OCSP_CRL,
+   OCSP_STAPLING
+}
 
 # Defines the possible values for the keep-alive configuration in service and client endpoints.
 public type KeepAlive KEEPALIVE_AUTO|KEEPALIVE_ALWAYS|KEEPALIVE_NEVER;

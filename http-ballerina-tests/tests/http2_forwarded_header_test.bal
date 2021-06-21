@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/io;
 import ballerina/test;
 
 service /initiatingService on new http:Listener(9107) {
@@ -23,10 +22,10 @@ service /initiatingService on new http:Listener(9107) {
         http:Client forwadingClient = checkpanic new("http://localhost:9108",
                                        {forwarded: "enable", httpVersion: "2.0",
                                         http2Settings: { http2PriorKnowledge: true }});
-        var responseFromForwardBackend = forwadingClient->get(
-                                        "/forwardedBackend/forwardedResource", <@untainted> request);
+        http:Response|error responseFromForwardBackend = forwadingClient->execute("GET", "/forwardedBackend/forwardedResource",
+                                                            <@untainted> request);
         if (responseFromForwardBackend is http:Response) {
-            var resultSentToClient = caller->respond(<@untainted> responseFromForwardBackend);
+            error? resultSentToClient = caller->respond(<@untainted> responseFromForwardBackend);
         }
     }
 }
@@ -34,21 +33,20 @@ service /initiatingService on new http:Listener(9107) {
 service /forwardedBackend on new http:Listener(9108, {httpVersion: "2.0"}) {
     resource function get forwardedResource(http:Caller caller, http:Request request) {
         string header = checkpanic request.getHeader("forwarded");
-        io:println(header);
         http:Response response = new();
         response.setHeader("forwarded", header);
         response.setPayload("forward is working");
-        var resultSentToInitClient = caller->respond(<@untainted> response);
+        error? resultSentToClient = caller->respond(<@untainted> response);
     }
 }
 
 @test:Config {}
 public function testForwardHeader() {
     http:Client clientEP = checkpanic new("http://localhost:9107");
-    var resp = clientEP->get("/initiatingService/initiatingResource");
+    http:Response|error resp = clientEP->get("/initiatingService/initiatingResource");
     if (resp is http:Response) {
         assertHeaderValue(checkpanic resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

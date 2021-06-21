@@ -14,6 +14,11 @@
  * limitations under the License.
  *
  */
+plugins {
+    id 'jacoco'
+}
+
+apply plugin: 'java'
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
@@ -21,15 +26,28 @@ description = 'Ballerina - HTTP/WS Ballerina Tests'
 
 def packageName = "http"
 def packageOrg = "ballerina"
-def snapshotVersion = "-SNAPSHOT"
-def tomlVersion = project.version.replace("${snapshotVersion}", "")
+def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
-def artifactCodeCoverageReport = file("$project.projectDir/target/cache/tests_cache/coverage/ballerina.exec")
 def originalConfig = ballerinaConfigFile.text
 def originalDependency = ballerinaDependencyFile.text
 def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
 def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
+def testCoverageParam = "--code-coverage --coverage-format=xml --includes=org.ballerinalang.net.*:ballerina.http*"
+
+def stripBallerinaExtensionVersion(String extVersion) {
+    if (extVersion.matches(project.ext.timestampedVersionRegex)) {
+        def splitVersion = extVersion.split('-');
+        if (splitVersion.length > 3) {
+            def strippedValues = splitVersion[0..-4]
+            return strippedValues.join('-')
+        } else {
+            return extVersion
+        }
+    } else {
+        return extVersion.replace("${project.ext.snapshotVersion}", "")
+    }
+}
 
 configurations {
     jbalTools
@@ -95,22 +113,22 @@ task copyHttpStdlib {
     doLast {
         /* Copy HTTP module */
         copy {
-            from "$project.rootDir/http-ballerina/target/bala"
-            into "${ballerinaDist}/repo/bala/${packageOrg}/http/${tomlVersion}"
+            from "$project.rootDir/http-ballerina/build/cache_parent/bala"
+            into "${ballerinaDist}/repo/bala"
         }
     }
 }
 
 task updateTomlVerions {
     doLast {
-        def stdlibDependentIoVersion = project.stdlibIoVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentLogVersion = project.stdlibLogVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentRegexVersion = project.stdlibRegexVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentMimeVersion = project.stdlibMimeVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentAuthVersion = project.stdlibAuthVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentJwtVersion = project.stdlibJwtVersion.replace("${snapshotVersion}", "")
-        def stdlibDependentOAuth2Version = project.stdlibOAuth2Version.replace("${snapshotVersion}", "")
-        def stdlibDependentFileVersion = project.stdlibFileVersion.replace("${snapshotVersion}", "")
+        def stdlibDependentIoVersion = stripBallerinaExtensionVersion(project.stdlibIoVersion)
+        def stdlibDependentLogVersion = stripBallerinaExtensionVersion(project.stdlibLogVersion)
+        def stdlibDependentRegexVersion = stripBallerinaExtensionVersion(project.stdlibRegexVersion)
+        def stdlibDependentMimeVersion = stripBallerinaExtensionVersion(project.stdlibMimeVersion)
+        def stdlibDependentAuthVersion = stripBallerinaExtensionVersion(project.stdlibAuthVersion)
+        def stdlibDependentJwtVersion = stripBallerinaExtensionVersion(project.stdlibJwtVersion)
+        def stdlibDependentOAuth2Version = stripBallerinaExtensionVersion(project.stdlibOAuth2Version)
+        def stdlibDependentFileVersion = stripBallerinaExtensionVersion(project.stdlibFileVersion)
 
         def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
@@ -140,6 +158,7 @@ def groupParams = ""
 def disableGroups = ""
 def debugParams = ""
 def balJavaDebugParam = ""
+def testParams = ""
 
 task initializeVariables {
     if (project.hasProperty("groups")) {
@@ -153,6 +172,14 @@ task initializeVariables {
     }
     if (project.hasProperty("balJavaDebug")) {
         balJavaDebugParam = "BAL_JAVA_DEBUG=${project.findProperty("balJavaDebug")}"
+    }
+
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":${packageName}-ballerina:test")) {
+            testParams = "${testCoverageParam}"
+        } else {
+            testParams = "--skip-tests"
+        }
     }
 }
 
@@ -173,34 +200,19 @@ task ballerinaTest {
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
-            // code coverage is not added due to issue https://github.com/ballerina-platform/ballerina-lang/issues/25399
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "$balJavaDebugParam $distributionBinPath/bal.bat test " +
-                        "--code-coverage --includes=* ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
+                commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test " +
+                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
                         "exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$balJavaDebugParam $distributionBinPath/bal test " +
-                        "--code-coverage --includes=* ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
+                commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test " +
+                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
             }
         }
     }
 }
 
-test {
-    dependsOn(ballerinaTest)
-}
-
-build {
-    dependsOn(test)
-}
-
 publishing {
-    publications {
-        maven(MavenPublication) {
-            artifact source: artifactCodeCoverageReport, classifier: 'jacoco'
-        }
-    }
-
     repositories {
         maven {
             name = "GitHubPackages"
@@ -212,3 +224,60 @@ publishing {
         }
     }
 }
+
+task startLdapServer() {
+    doLast {
+        // This check is added to prevent starting the server in Windows OS, since the Docker image does not support
+        // for Windows OS.
+        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
+            def stdOut = new ByteArrayOutputStream()
+            exec {
+                commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
+                standardOutput = stdOut
+            }
+            if (!stdOut.toString().contains("openldap-server")) {
+                println "Starting LDAP server."
+                exec {
+                    commandLine 'sh', '-c', "docker-compose -f $project.projectDir/tests/openldap/docker-compose.yml up -d"
+                    standardOutput = stdOut
+                }
+                println stdOut.toString()
+                println "Waiting 15s until the LDAP server get initiated."
+                sleep(15 * 1000)
+            } else {
+                println "LDAP server is already started."
+            }
+        }
+    }
+}
+
+task stopLdapServer() {
+    doLast {
+        // This check is added to prevent trying to stop the server in Windows OS, since the Docker image not started
+        // in Windows OS.
+        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
+            def stdOut = new ByteArrayOutputStream()
+            exec {
+                commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
+                standardOutput = stdOut
+            }
+            if (stdOut.toString().contains("openldap-server")) {
+                println "Stopping LDAP server."
+                exec {
+                    commandLine 'sh', '-c', "docker stop openldap-server"
+                    standardOutput = stdOut
+                }
+                println stdOut.toString()
+                println "Waiting 5s until the LDAP server get stopped."
+                sleep(5 * 1000)
+            } else {
+                println "LDAP server is not started."
+            }
+        }
+    }
+}
+
+ballerinaTest.finalizedBy stopLdapServer
+ballerinaTest.dependsOn startLdapServer
+test.dependsOn ballerinaTest
+build.dependsOn test

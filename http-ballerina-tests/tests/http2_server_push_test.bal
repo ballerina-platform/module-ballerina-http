@@ -197,14 +197,16 @@ service /backendHttp2Service on serverPushBackendEP {
 }
 
 //Test HTTP/2.0 Server Push scenario
-@test:Config {}
+@test:Config {
+    groups: ["http2ServerPush"]
+}
 function testPushPromise() {
-    var response = serverPushClient->get("/frontendHttpService");
+    http:Response|error response = serverPushClient->get("/frontendHttpService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {status:"successful"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

@@ -27,15 +27,15 @@ listener http:Listener circuitBreakerEP00 = new(9306);
 http:ClientConfiguration conf = {
     circuitBreaker: {
         rollingWindow: {
-            timeWindowInMillis: 60000,
-            bucketSizeInMillis: 20000,
+            timeWindow: 60,
+            bucketSize: 20,
             requestVolumeThreshold: 0
         },
         failureThreshold: 0.3,
-        resetTimeInMillis: 3000,
+        resetTime: 3,
         statusCodes: [501, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 };
 
 http:Client backendClientEP00 = check new("http://localhost:8086", conf);
@@ -43,24 +43,24 @@ http:Client backendClientEP00 = check new("http://localhost:8086", conf);
 service /cb on circuitBreakerEP00 {
 
     resource function 'default typical(http:Caller caller, http:Request request) {
-        var backendRes = backendClientEP00->forward("/hello/typical", request);
+        http:Response|error backendRes = backendClientEP00->forward("/hello/typical", request);
         if (cbCounter % 5 == 0) {
             runtime:sleep(3);
         } else {
             runtime:sleep(1);
         }
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -78,9 +78,9 @@ service /hello on new http:Listener(8086) {
         } else {
             cbCounter += 1;
         }
-        var responseToCaller = caller->respond("Hello World!!!");
+        error? responseToCaller = caller->respond("Hello World!!!");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

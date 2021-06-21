@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/cache;
+import ballerina/log;
 
 # Implements a cache for storing HTTP responses. This cache complies with the caching policy set when configuring
 # HTTP caching in the HTTP client endpoint.
@@ -24,11 +25,11 @@ import ballerina/cache;
 #            `CACHE_CONTROL_AND_VALIDATORS`. The default behaviour is to allow caching only when the `cache-control`
 #            header and either the `etag` or `last-modified` header are present.
 # + isShared - Specifies whether the HTTP caching layer should behave as a public cache or a private cache
-public class HttpCache {
+public isolated class HttpCache {
 
-    public cache:Cache cache;
-    public CachingPolicy policy = CACHE_CONTROL_AND_VALIDATORS;
-    public boolean isShared = false;
+    final cache:Cache cache;
+    private final CachingPolicy policy;
+    private final boolean isShared;
 
     # Creates the HTTP cache.
     #
@@ -59,8 +60,8 @@ public class HttpCache {
         if (self.isCacheableResponse(inboundResponse)) {
             // IMPT: The call to getBinaryPayload() builds the payload from the stream. If this is not done, the stream
             // will be read by the client and the response will be after the first cache hit.
-            var binaryPayload = inboundResponse.getBinaryPayload();
-            // log:printDebug("Adding new cache entry for: " + key);
+            byte[]|error binaryPayload = inboundResponse.getBinaryPayload();
+            log:printDebug("Adding new cache entry for: " + key);
             addEntry(self.cache, key, inboundResponse);
         }
     }
@@ -83,7 +84,7 @@ public class HttpCache {
         boolean allowedByCacheControl = false;
 
         if (respCC is ResponseCacheControl) {
-            if (respCC.maxAge >= 0 || (self.isShared && (respCC.sMaxAge >= 0)) || !respCC.isPrivate) {
+            if (respCC.maxAge >= 0d || (self.isShared && (respCC.sMaxAge >= 0d)) || !respCC.isPrivate) {
                 allowedByCacheControl = true;
             }
         }
@@ -119,7 +120,8 @@ public class HttpCache {
         }
 
         foreach var cachedResp in cachedResponses {
-            if (cachedResp.getHeader(ETAG) == etag && !etag.startsWith(WEAK_VALIDATOR_TAG)) {
+            string|error headerValue = cachedResp.getHeader(ETAG);
+            if (headerValue is string && headerValue == etag && !etag.startsWith(WEAK_VALIDATOR_TAG)) {
                 matchingResponses[i] = cachedResp;
                 i = i + 1;
             }
@@ -155,7 +157,7 @@ public class HttpCache {
     isolated function remove(string key) {
         cache:Error? result = self.cache.invalidate(key);
         if (result is cache:Error) {
-            // log:printDebug("Failed to remove the key: " + key + " from the HTTP cache.");
+            log:printDebug("Failed to remove the key: " + key + " from the HTTP cache.");
         }
     }
 }
@@ -177,7 +179,7 @@ isolated function addEntry(cache:Cache cache, string key, Response inboundRespon
         Response[] cachedResponses = [inboundResponse];
         cache:Error? result = cache.put(key, cachedResponses);
         if (result is cache:Error) {
-            // log:printDebug("Failed to add cached response with the key: " + key + " to the HTTP cache.");
+            log:printDebug("Failed to add cached response with the key: " + key + " to the HTTP cache.");
         }
     }
 }

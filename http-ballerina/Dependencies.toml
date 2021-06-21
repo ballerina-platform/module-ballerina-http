@@ -55,5 +55,5 @@ version = "@stdlib.regex.version@"
 
 [[dependency]]
 org = "ballerina"
-name = "reflect"
-version = "@stdlib.reflect.version@"
+name = "url"
+version = "@stdlib.url.version@"

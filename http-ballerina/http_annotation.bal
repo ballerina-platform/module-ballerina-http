@@ -14,10 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-///////////////////////////
-/// Service Annotations ///
-///////////////////////////
-
 # Contains the configurations for an HTTP service.
 #
 # + host - Domain name of the service
@@ -47,22 +43,14 @@ public type CorsConfig record {|
     string[] allowOrigins = [];
     string[] exposeHeaders = [];
     boolean allowCredentials = false;
-    int maxAge= -1;
+    decimal maxAge= -1;
 |};
-
-// TODO: Enable this when Ballerina supports service life time
-//public type HttpServiceLifeTime "REQUEST"|"CONNECTION"|"SESSION"|"SINGLETON";
 
 # The annotation which is used to configure an HTTP service.
 public annotation HttpServiceConfig ServiceConfig on service;
 
-////////////////////////////
-/// Resource Annotations ///
-////////////////////////////
-
 # Configuration for an HTTP resource.
 #
-# + body - Inbound request entity body name which declared in signature
 # + consumes - The media types which are accepted by resource
 # + produces - The media types which are produced by resource
 # + cors - The cross origin resource sharing configurations for the resource. If not set, the resource will inherit the CORS behaviour of the enclosing service.
@@ -93,7 +81,7 @@ public annotation HttpPayload Payload on parameter, return;
 #
 # + respondType - Specifies the type of response
 public type HttpCallerInfo record {|
-    string respondType?;
+    typedesc<ResponseMessage> respondType?;
 |};
 
 # The annotation which is used to configure the type of the response.

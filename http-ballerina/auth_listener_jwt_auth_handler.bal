@@ -16,44 +16,42 @@
 
 import ballerina/jwt;
 
-# Represents JWT validator configurations for JWT authentication.
-#
-# + scopeKey - The key used to fetch the scopes
-public type JwtValidatorConfig record {|
-    *jwt:ValidatorConfig;
-    string scopeKey = "scope";
-|};
-
 # Defines the JWT auth handler for listener authentication.
-public class ListenerJwtAuthHandler {
+public isolated class ListenerJwtAuthHandler {
 
-    jwt:ListenerJwtAuthProvider provider;
-    string scopeKey;
+    private final jwt:ListenerJwtAuthProvider provider;
+    private final string & readonly scopeKey;
 
     # Initializes the `http:ListenerJwtAuthHandler` object.
     #
     # + config - The `http:JwtValidatorConfig` instance
     public isolated function init(JwtValidatorConfig config) {
-        self.scopeKey = config.scopeKey;
+        self.scopeKey = config.scopeKey.cloneReadOnly();
         self.provider = new(config);
     }
 
     # Authenticates with the relevant authentication requirements.
     #
-    # + data - The `http:Request` instance or `string` Authorization header
+    # + data - The `http:Request` instance or `http:Headers` instance or `string` Authorization header
     # + return - The `jwt:Payload` instance or else `Unauthorized` type in case of an error
-    public isolated function authenticate(Request|string data) returns jwt:Payload|Unauthorized {
-        string? credential = extractCredential(data);
-        if (credential is ()) {
-            Unauthorized unauthorized = {};
+    public isolated function authenticate(Request|Headers|string data) returns jwt:Payload|Unauthorized {
+        string|ListenerAuthError credential = extractCredential(data);
+        if (credential is string) {
+            jwt:Payload|jwt:Error details = self.provider.authenticate(credential);
+            if (details is jwt:Payload) {
+                return details;
+            } else {
+                Unauthorized unauthorized = {
+                    body: buildCompleteErrorMessage(details)
+                };
+                return unauthorized;
+            }
+        } else {
+            Unauthorized unauthorized = {
+                body: credential.message()
+            };
             return unauthorized;
         }
-        jwt:Payload|jwt:Error details = self.provider.authenticate(<string>credential);
-        if (details is jwt:Error) {
-            Unauthorized unauthorized = {};
-            return unauthorized;
-        }
-        return checkpanic details;
     }
 
     # Authorizes with the relevant authorization requirements.

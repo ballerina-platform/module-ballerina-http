@@ -16,61 +16,66 @@
 
 import ballerina/oauth2;
 
-# Represents OAuth2 introspection server configurations for OAuth2 authentication.
-#
-# + scopeKey - The key used to fetch the scopes
-public type OAuth2IntrospectionConfig record {|
-    *oauth2:IntrospectionConfig;
-    string scopeKey = "scope";
-|};
-
 # Defines the OAuth2 handler for listener authentication.
-public client class ListenerOAuth2Handler {
+public isolated client class ListenerOAuth2Handler {
 
-    oauth2:ListenerOAuth2Provider provider;
-    string scopeKey;
+    private final oauth2:ListenerOAuth2Provider provider;
+    private final string & readonly scopeKey;
 
     # Initializes the `http:ListenerOAuth2Handler` object.
     #
     # + config - The `http:OAuth2IntrospectionConfig` instance
     public isolated function init(OAuth2IntrospectionConfig config) {
-        self.scopeKey = config.scopeKey;
+        self.scopeKey = config.scopeKey.cloneReadOnly();
         self.provider = new(config);
     }
 
     # Authorizes with the relevant authentication & authorization requirements.
     #
-    # + data - The `http:Request` instance or `string` Authorization header
+    # + data - The `http:Request` instance or `http:Headers` instance or `string` Authorization header
     # + expectedScopes - The expected scopes as `string` or `string[]`
     # + optionalParams - Map of optional parameters that need to be sent to introspection endpoint
     # + return - The `oauth2:IntrospectionResponse` instance or else `Unauthorized` or `Forbidden` type in case of an error
-    remote isolated function authorize(Request|string data, string|string[]? expectedScopes = (),
+    remote isolated function authorize(Request|Headers|string data, string|string[]? expectedScopes = (),
                                        map<string>? optionalParams = ())
                                        returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
-        string? credential = extractCredential(data);
-        if (credential is ()) {
-            Unauthorized unauthorized = {};
-            return unauthorized;
-        }
-        oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(<string>credential, optionalParams);
-        if (details is oauth2:Error || !details.active) {
-            Unauthorized unauthorized = {};
-            return unauthorized;
-        }
-        oauth2:IntrospectionResponse introspectionResponse = checkpanic details;
-        if (expectedScopes is ()) {
-            return introspectionResponse;
-        }
+        string|ListenerAuthError credential = extractCredential(data);
+        if (credential is string) {
+            oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(credential, optionalParams);
+            if (details is oauth2:IntrospectionResponse) {
+                if (!details.active) {
+                    Unauthorized unauthorized = {
+                        body: "The provided access-token is not active."
+                    };
+                    return unauthorized;
+                }
 
-        string scopeKey = self.scopeKey;
-        var actualScope = introspectionResponse[scopeKey];
-        if (actualScope is string) {
-            boolean matched = matchScopes(convertToArray(actualScope), <string|string[]>expectedScopes);
-            if (matched) {
-                return introspectionResponse;
+                if (expectedScopes is ()) {
+                    return details;
+                }
+
+                string scopeKey = self.scopeKey;
+                var actualScope = details[scopeKey];
+                if (actualScope is string) {
+                    boolean matched = matchScopes(convertToArray(actualScope), <string|string[]>expectedScopes);
+                    if (matched) {
+                        return details;
+                    }
+                }
+                Forbidden forbidden = {};
+                return forbidden;
+            } else {
+                Unauthorized unauthorized = {
+                    body: buildCompleteErrorMessage(details)
+                };
+                return unauthorized;
             }
+
+        } else {
+            Unauthorized unauthorized = {
+                body: credential.message()
+            };
+            return unauthorized;
         }
-        Forbidden forbidden = {};
-        return forbidden;
     }
 }

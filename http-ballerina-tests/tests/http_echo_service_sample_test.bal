@@ -26,7 +26,7 @@ http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestP
 
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: keystore,
             password: "ballerina"
         }
@@ -37,7 +37,7 @@ listener http:Listener echoHttpsServiceTestListenerEP = new(echoHttpsServiceTest
 
 http:ClientConfiguration echoHttpsServiceClientConfig = {
     secureSocket: {
-        trustStore: {
+        cert: {
             path: truststore,
             password: "ballerina"
         }
@@ -58,7 +58,7 @@ service /echoServiceTest1 on echoServiceTestListenerEP {
             log:printError("Failed to retrieve payload from request: " + payload.message());
             var responseError = caller->respond(resp);
             if (responseError is error) {
-                log:printError("Error sending response", err = responseError);
+                log:printError("Error sending response", 'error = responseError);
             }
         }
     }
@@ -88,12 +88,12 @@ function testEchoServiceByBasePath() {
     http:Request req = new;
     string requestMessage = "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}";
     req.setTextPayload(requestMessage);
-    var response = echoServiceClient->post("/echoServiceTest1", req);
+    http:Response|error response = echoServiceClient->post("/echoServiceTest1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), requestMessage);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -103,12 +103,12 @@ function testEchoServiceByBasePath() {
 function testEchoServiceWithDynamicPortShared() {
     http:Request req = new;
     req.setJsonPayload({key:"value"});
-    var response = echoServiceClient->post("/echoServiceTest1One/abc", req);
+    http:Response|error response = echoServiceClient->post("/echoServiceTest1One/abc", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -118,12 +118,12 @@ function testEchoServiceWithDynamicPortShared() {
 function testEchoServiceWithDynamicPortHttpsByBasePath() {
     http:Request req = new;
     req.setJsonPayload({key:"value"});
-    var response = echoHttpsServiceClient->post("/echoServiceTest1", req);
+    http:Response|error response = echoHttpsServiceClient->post("/echoServiceTest1", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -133,12 +133,12 @@ function testEchoServiceWithDynamicPortHttpsByBasePath() {
 function testEchoServiceWithDynamicPortHttpsShared() {
     http:Request req = new;
     req.setJsonPayload({key:"value"});
-    var response = echoHttpsServiceClient->post("/echoServiceTest1One/abc", req);
+    http:Response|error response = echoHttpsServiceClient->post("/echoServiceTest1One/abc", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

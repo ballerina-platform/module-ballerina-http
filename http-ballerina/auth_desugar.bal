@@ -19,13 +19,6 @@ import ballerina/jballerina.java;
 import ballerina/jwt;
 import ballerina/log;
 import ballerina/oauth2;
-import ballerina/reflect;
-
-// Service level annotation name.
-const string SERVICE_ANNOTATION = "ServiceConfig";
-
-// Resource level annotation name.
-const string RESOURCE_ANNOTATION = "ResourceConfig";
 
 // This function is used for declarative auth design, where the authentication/authorization decision is taken by
 // reading the auth annotations provided in service/resource and the `Authorization` header taken with an interop call.
@@ -36,36 +29,43 @@ const string RESOURCE_ANNOTATION = "ResourceConfig";
 // with a distinct error.
 # Uses for declarative auth design, where the authentication/authorization decision is taken
 # by reading the auth annotations provided in service/resource and the `Authorization` header of request.
-public isolated function authenticateResource(Service servieRef, string methodName, string[] resourcePath) {
-    ListenerAuthConfig[]? authConfig = getListenerAuthConfig(servieRef, methodName, resourcePath);
+# 
+# + serviceRef - The service reference where the resource locates
+# + methodName - The name of the subjected resource
+# + resourcePath - The relative path
+public isolated function authenticateResource(Service serviceRef, string methodName, string[] resourcePath) {
+    ListenerAuthConfig[]? authConfig = getListenerAuthConfig(serviceRef, methodName, resourcePath);
     if (authConfig is ()) {
         return;
     }
     string|HeaderNotFoundError header = getAuthorizationHeader();
-    if (header is HeaderNotFoundError) {
+    if (header is string) {
+        Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authConfig, header);
+        if (result is Unauthorized) {
+            sendResponse(create401Response());
+        } else if (result is Forbidden) {
+            sendResponse(create403Response());
+        }
+    } else {
         sendResponse(create401Response());
-    }
-    Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authConfig, checkpanic header);
-    if (result is Unauthorized) {
-        sendResponse(create401Response());
-    } else if (result is Forbidden) {
-        sendResponse(create403Response());
     }
 }
 
-isolated function tryAuthenticate(ListenerAuthConfig[] authHandlers, string header) returns Unauthorized|Forbidden? {
-    foreach ListenerAuthConfig config in authHandlers {
-        // TODO: Enable these tests once the configurable features supports for map data types.
-        // https://github.com/ballerina-platform/ballerina-standard-library/issues/862
-        //if (config is FileUserStoreConfigWithScopes) {
-        //    ListenerFileUserStoreBasicAuthHandler handler = new(config.fileUserStoreConfig);
-        //    auth:UserDetails|Unauthorized authn = handler.authenticate(header);
-        //    if (authn is auth:UserDetails) {
-        //        Forbidden? authz = handler.authorize(authn, <string|string[]>config?.scopes);
-        //        return authz;
-        //    }
-        if (config is LdapUserStoreConfigWithScopes) {
-            ListenerLdapUserStoreBasicAuthProvider handler = new(config.ldapUserStoreConfig);
+isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header) returns Unauthorized|Forbidden? {
+    foreach ListenerAuthConfig config in authConfig {
+        if (config is FileUserStoreConfigWithScopes) {
+            ListenerFileUserStoreBasicAuthHandler handler = new(config.fileUserStoreConfig);
+            auth:UserDetails|Unauthorized authn = handler.authenticate(header);
+            string|string[]? scopes = config?.scopes;
+            if (authn is auth:UserDetails) {
+                if (scopes is string|string[]) {
+                    Forbidden? authz = handler.authorize(authn, scopes);
+                    return authz;
+                }
+                return;
+            }
+        } else if (config is LdapUserStoreConfigWithScopes) {
+            ListenerLdapUserStoreBasicAuthHandler handler = new(config.ldapUserStoreConfig);
             auth:UserDetails|Unauthorized authn = handler->authenticate(header);
             string|string[]? scopes = config?.scopes;
             if (authn is auth:UserDetails) {
@@ -129,8 +129,7 @@ isolated function getResourceAuthConfig(Service serviceRef, string methodName, s
     foreach string path in resourcePath {
         resourceName += "$" + path;
     }
-    any resourceAnnotation = reflect:getResourceAnnotations(serviceRef, resourceName, RESOURCE_ANNOTATION,
-                                                            getModuleIdentifier());
+    any resourceAnnotation = getResourceAnnotation(serviceRef, resourceName);
     if (resourceAnnotation is ()) {
         return;
     }
@@ -154,7 +153,7 @@ isolated function sendResponse(Response response) {
     Caller caller = getCaller();
     error? err = caller->respond(response);
     if (err is error) {
-        log:printError("Failed to respond the 401/403 request.", err = err);
+        log:printError("Failed to respond the 401/403 request.", 'error = err);
     }
     // This panic is added to break the execution of the implementation inside the resource function after there is
     // an authn/authz failure and responded with 401/403 internally.
@@ -169,6 +168,6 @@ isolated function getCaller() returns Caller = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternCaller"
 } external;
 
-isolated function getModuleIdentifier() returns string = @java:Method {
-    'class: "org.ballerinalang.net.http.nativeimpl.ModuleUtils"
+isolated function getResourceAnnotation(service object {} serviceType, string resourceName) returns any = @java:Method {
+    'class: "org.ballerinalang.net.http.nativeimpl.ExternResource"
 } external;

@@ -22,19 +22,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class holds the resource signature path parameters.
+ * This class holds the resource signature path parameters. Each path template has an associated map which keeps
+ * URI segment value against the expression position index(initialized during the load time).
+ * Eg :
+ * resource function get [string aaa]/go/[string bbb]() {}
+ * resource function get [string bbb]/go/[string aaa]/[string ccc]() {}
+ *
+ * URL - bal/go/java/c
+ * aaa:
+ *   0: bal
+ *   1: java
+ * bbb:
+ *   0: bal
+ *   1: java
+ * ccc:
+ *   2: c
  *
  * @since 0.995.0
  */
 public class HttpResourceArguments {
 
-    private Map<String, String> resourceArgumentValues = new HashMap<>();
+    private Map<String, Map<Integer, String>> resourceArgumentValues = new HashMap<>();
 
     public HttpResourceArguments() {
         resourceArgumentValues = new HashMap<>();
     }
 
-    public Map<String, String> getMap() {
+    public Map<String, Map<Integer, String>> getMap() {
         return resourceArgumentValues;
     }
 }

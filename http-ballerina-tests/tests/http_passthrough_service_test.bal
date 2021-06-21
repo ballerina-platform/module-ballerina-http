@@ -25,27 +25,27 @@ service /passthrough on passthroughEP1 {
 
     resource function get .(http:Caller caller, http:Request clientRequest) {
         http:Client nyseEP1 = checkpanic new("http://localhost:9113");
-        var response = nyseEP1->get("/nyseStock/stocks", <@untainted> clientRequest);
+        http:Response|error response = nyseEP1->post("/nyseStock/stocks", <@untainted> clientRequest);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
-        } else if (response is error) {
+        } else {
             checkpanic caller->respond({ "error": "error occurred while invoking the service" });
         }
     }
 
     resource function post forwardMultipart(http:Caller caller, http:Request clientRequest) {
         http:Client nyseEP1 = checkpanic new("http://localhost:9113");
-        var response = nyseEP1->forward("/nyseStock/stocksAsMultiparts", clientRequest);
+        http:Response|error response = nyseEP1->forward("/nyseStock/stocksAsMultiparts", clientRequest);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
-        } else if (response is error) {
+        } else {
             checkpanic caller->respond({ "error": "error occurred while invoking the service" });
         }
     }
 
     resource function post forward(http:Request clientRequest) returns @tainted http:Ok|http:InternalServerError {
         http:Client nyseEP1 = checkpanic new("http://localhost:9113");
-        var response = nyseEP1->forward("/nyseStock/entityCheck", clientRequest);
+        http:Response|error response = nyseEP1->forward("/nyseStock/entityCheck", clientRequest);
         if (response is http:Response) {
             var entity = response.getEntity();
             if (entity is mime:Entity) {
@@ -62,7 +62,7 @@ service /passthrough on passthroughEP1 {
                 return err;
             }
         } else {
-            http:InternalServerError err = {body: (<error>response).toString()};
+            http:InternalServerError err = {body: response.toString()};
             return err;
         }
     }
@@ -70,7 +70,7 @@ service /passthrough on passthroughEP1 {
 
 service /nyseStock on passthroughEP1 {
 
-    resource function get stocks(http:Caller caller, http:Request clientRequest) {
+    resource function post stocks(http:Caller caller, http:Request clientRequest) {
         checkpanic caller->respond({ "exchange": "nyse", "name": "IBM", "value": "127.50" });
     }
 
@@ -107,7 +107,7 @@ service /nyseStock on passthroughEP1 {
 @test:Config {}
 public function testPassthroughServiceByBasePath() {
     http:Client httpClient = checkpanic new("http://localhost:9113");
-    var resp = httpClient->get("/passthrough");
+    http:Response|error resp = httpClient->get("/passthrough");
     if (resp is http:Response) {
         string contentType = checkpanic resp.getHeader("content-type");
         test:assertEquals(contentType, "application/json");
@@ -117,7 +117,7 @@ public function testPassthroughServiceByBasePath() {
         } else {
             test:assertFail(msg = "Found unexpected output: " + body.message());
         } 
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -125,7 +125,7 @@ public function testPassthroughServiceByBasePath() {
 @test:Config {}
 public function testPassthroughServiceWithMimeEntity() {
     http:Client httpClient = checkpanic new("http://localhost:9113");
-    var resp = httpClient->post("/passthrough/forward", "Hello from POST!");
+    http:Response|error resp = httpClient->post("/passthrough/forward", "Hello from POST!");
     if (resp is http:Response) {
         string contentType = checkpanic resp.getHeader("content-type");
         test:assertEquals(contentType, "text/plain");
@@ -135,7 +135,7 @@ public function testPassthroughServiceWithMimeEntity() {
         } else {
             test:assertFail(msg = "Found unexpected output: " + body.message());
         } 
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
@@ -154,7 +154,7 @@ public function testPassthroughWithMultiparts() {
     mime:Entity[] bodyParts = [textPart1, textPart2];
     http:Request request = new;
     request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
-    var resp = httpClient->post("/passthrough/forwardMultipart", request);
+    http:Response|error resp = httpClient->post("/passthrough/forwardMultipart", request);
     if (resp is http:Response) {
         string contentType = checkpanic resp.getHeader("content-type");
         test:assertTrue(strings:includes(contentType, "multipart/form-data"));
@@ -174,7 +174,7 @@ public function testPassthroughWithMultiparts() {
                 test:assertFail(msg = errorMessage + txtPart2.message());
             }
         }         
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

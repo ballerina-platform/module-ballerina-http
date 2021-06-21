@@ -21,12 +21,13 @@ import ballerina/test;
 
 http:ListenerConfiguration sslProtocolServiceConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
          },
          protocol: {
-             versions: ["TLSv1.1"]
+             name: http:TLS,
+             versions: ["TLSv1.2"]
          }
     }
 };
@@ -36,21 +37,22 @@ listener http:Listener sslProtocolListener = new(9249, config = sslProtocolServi
 service /protocol on sslProtocolListener {
     
     resource function get protocolResource(http:Caller caller, http:Request req) {
-        var result = caller->respond("Hello World!");
+        error? result = caller->respond("Hello World!");
         if (result is error) {
-           log:printError("Failed to respond", err = result);
+           log:printError("Failed to respond", 'error = result);
         }
     }
 }
 
 http:ClientConfiguration sslProtocolClientConfig = {
     secureSocket: {
-        trustStore: {
+        cert: {
             path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         },
         protocol: {
-            versions: ["TLSv1.2"]
+            name: http:TLS,
+            versions: ["TLSv1.3"]
         }
     }
 };
@@ -59,10 +61,10 @@ http:ClientConfiguration sslProtocolClientConfig = {
 public function testSslProtocol() {
     http:Client clientEP = checkpanic new("https://localhost:9249", sslProtocolClientConfig);
     http:Request req = new;
-    var resp = clientEP->get("/protocol/protocolResource");
+    http:Response|error resp = clientEP->get("/protocol/protocolResource");
     if (resp is http:Response) {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
-    } else if (resp is error) {
+    } else {
         test:assertTrue(strings:includes(resp.message(), "SSL connection failed"));
     }
 }

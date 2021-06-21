@@ -50,9 +50,6 @@ import static org.ballerinalang.net.http.HttpErrorType.HEADER_NOT_FOUND_ERROR;
 public class ExternHeaders {
 
     public static void addHeader(BObject messageObj, BString headerName, BString headerValue, Object position) {
-        if (headerName == null || headerValue == null) {
-            return;
-        }
         try {
             getOrCreateHeadersBasedOnPosition(messageObj, position).add(headerName.getValue(), headerValue.getValue());
         } catch (IllegalArgumentException ex) {
@@ -169,4 +166,6 @@ public class ExternHeaders {
         }
         return StringUtils.fromString(authorizationHeader);
     }
+
+    private ExternHeaders() {}
 }

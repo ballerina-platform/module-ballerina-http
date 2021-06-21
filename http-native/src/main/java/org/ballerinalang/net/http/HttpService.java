@@ -1,20 +1,20 @@
 /*
-*  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-*  WSO2 Inc. licenses this file to you under the Apache License,
-*  Version 2.0 (the "License"); you may not use this file except
-*  in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-*  Unless required by applicable law or agreed to in writing,
-*  software distributed under the License is distributed on an
-*  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-*  KIND, either express or implied.  See the License for the
-*  specific language governing permissions and limitations
-*  under the License.
-*/
+ *  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
 package org.ballerinalang.net.http;
 
 import io.ballerina.runtime.api.flags.SymbolFlags;
@@ -51,7 +51,7 @@ import static org.ballerinalang.net.http.HttpUtil.checkConfigAnnotationAvailabil
  *
  * @since 0.94
  */
-public class HttpService implements Cloneable {
+public class HttpService {
 
     private static final Logger log = LoggerFactory.getLogger(HttpService.class);
 
@@ -80,10 +80,6 @@ public class HttpService implements Cloneable {
     // Added due to WebSub requirement
     protected HttpService(BObject service) {
         this.balService = service;
-    }
-
-    public java.lang.Object clone() throws CloneNotSupportedException {
-        return super.clone();
     }
 
     public boolean isKeepAlive() {
@@ -122,7 +118,7 @@ public class HttpService implements Cloneable {
         return balService;
     }
 
-    public List<HttpResource>   getResources() {
+    public List<HttpResource> getResources() {
         return resources;
     }
 
@@ -153,7 +149,8 @@ public class HttpService implements Cloneable {
     // Added due to WebSub requirement
     public void setBasePath(String basePath) {
         if (basePath == null || basePath.trim().isEmpty()) {
-            this.basePath = DEFAULT_BASE_PATH.concat(this.getName().startsWith(DOLLAR) ? "" : this.getName());
+            String serviceName = this.getName();
+            this.basePath = DEFAULT_BASE_PATH.concat(serviceName.startsWith(DOLLAR) ? "" : serviceName);
         } else {
             this.basePath = HttpUtil.sanitizeBasePath(basePath);
         }
@@ -174,15 +171,6 @@ public class HttpService implements Cloneable {
         if (this.corsHeaders.getAllowMethods() == null) {
             this.corsHeaders.setAllowMethods(Stream.of("*").collect(Collectors.toList()));
         }
-    }
-
-    public List<HttpResource> getUpgradeToWebSocketResources() {
-        return upgradeToWebSocketResources;
-    }
-
-    public void setUpgradeToWebSocketResources(
-            List<HttpResource> upgradeToWebSocketResources) {
-        this.upgradeToWebSocketResources = upgradeToWebSocketResources;
     }
 
     public URITemplate<HttpResource, HttpCarbonMessage> getUriTemplate() throws URITemplateException {
@@ -211,77 +199,22 @@ public class HttpService implements Cloneable {
 
     private static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
-        List<HttpResource> upgradeToWebSocketResources = new ArrayList<>();
         for (MethodType resource :
                 ((ServiceType) httpService.getBalService().getType()).getResourceMethods()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
-            BMap resourceConfigAnnotation = HttpResource.getResourceConfigAnnotation(resource);
-            if (websocketUpgradeResource(resourceConfigAnnotation)) {
-                HttpResource upgradeResource = HttpResource.buildHttpResource(resource, httpService);
-                upgradeToWebSocketResources.add(upgradeResource);
-            } else {
-                HttpResource httpResource = HttpResource.buildHttpResource(resource, httpService);
-                try {
-                    httpService.getUriTemplate().parse(httpResource.getPath(), httpResource,
-                                                       new HttpResourceElementFactory());
-                } catch (URITemplateException | UnsupportedEncodingException e) {
-                    throw new BallerinaConnectorException(e.getMessage());
-                }
-                httpResources.add(httpResource);
+            HttpResource httpResource = HttpResource.buildHttpResource(resource, httpService);
+            try {
+                httpService.getUriTemplate().parse(httpResource.getPath(), httpResource,
+                                                   new HttpResourceElementFactory());
+            } catch (URITemplateException | UnsupportedEncodingException e) {
+                throw new BallerinaConnectorException(e.getMessage());
             }
+            httpResources.add(httpResource);
         }
         httpService.setResources(httpResources);
-        httpService.setUpgradeToWebSocketResources(upgradeToWebSocketResources);
     }
-
-    private static boolean websocketUpgradeResource(BMap resourceConfigAnnotation) {
-        return checkConfigAnnotationAvailability(resourceConfigAnnotation)
-                && resourceConfigAnnotation.getMapValue(HttpConstants.ANN_CONFIG_ATTR_WEBSOCKET_UPGRADE) != null;
-    }
-
-//    private static void prepareBasePathList(BMap versioningConfig, String basePath, List<String> basePathList,
-//                                            String packageVersion) {
-//        String patternAnnotValue = HttpConstants.DEFAULT_VERSION;
-//        Boolean allowNoVersionAnnotValue = false;
-//        Boolean matchMajorVersionAnnotValue = false;
-//        if (versioningConfig != null) {
-//            patternAnnotValue = versioningConfig.getStringValue(HttpConstants.ANN_CONFIG_ATTR_PATTERN).getValue();
-//            allowNoVersionAnnotValue = versioningConfig.getBooleanValue(
-//                    HttpConstants.ANN_CONFIG_ATTR_ALLOW_NO_VERSION);
-//            matchMajorVersionAnnotValue = versioningConfig.getBooleanValue(
-//                    HttpConstants.ANN_CONFIG_ATTR_MATCH_MAJOR_VERSION);
-//        }
-//        patternAnnotValue = patternAnnotValue.toLowerCase(Locale.getDefault());
-//        basePathList.add(replaceServiceVersion(basePath, packageVersion, patternAnnotValue));
-//
-//        if (allowNoVersionAnnotValue) {
-//            basePathList.add(basePath.replace(HttpConstants.VERSION, "").replace("//", "/"));
-//        }
-//        if (matchMajorVersionAnnotValue) {
-//            String patternWithMajor = patternAnnotValue.replace(HttpConstants.MINOR_VERSION, "");
-//            patternWithMajor = patternWithMajor.endsWith(".") ?
-//                    patternWithMajor.substring(0, patternWithMajor.length() - 1) : patternWithMajor;
-//            basePathList.add(replaceServiceVersion(basePath, packageVersion, patternWithMajor));
-//        }
-//    }
-
-//    private static String replaceServiceVersion(String basePath, String version, String pattern) {
-//        pattern = pattern.toLowerCase(Locale.getDefault());
-//        String[] versionElements = version.split("\\.");
-//        String majorVersion = versionElements[0];
-//        String minorVersion = versionElements.length > 1 ? versionElements[1] : "";
-//
-//        if (pattern.contains(HttpConstants.MAJOR_VERSION) || pattern.contains(HttpConstants.MINOR_VERSION)) {
-//            String patternReplaced = pattern.replace(HttpConstants.MAJOR_VERSION, majorVersion);
-//            String result = patternReplaced.replace(HttpConstants.MINOR_VERSION, minorVersion);
-//
-//            return basePath.replace(HttpConstants.VERSION, result);
-//        }
-//        throw new BallerinaConnectorException("Invalid versioning pattern: expect \"" + HttpConstants.MAJOR_VERSION +
-//                                              "," + HttpConstants.MINOR_VERSION + "\" elements");
-//    }
 
     private static BMap getHttpServiceConfigAnnotation(BObject service) {
         return getServiceConfigAnnotation(service, ModuleUtils.getHttpPackageIdentifier(),

@@ -26,10 +26,10 @@ http:Client cachingEP1 = check new("http://localhost:" + cachingTestPort4.toStri
 service /cachingProxyService on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) {
-        var response = cachingEP1->forward("/nocachebackend", req);
+        http:Response|error response = cachingEP1->forward("/nocachebackend", req);
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted> response);
-        } else if (response is error) {
+        } else {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted> response.message());
@@ -65,13 +65,13 @@ service /nocacheBackend on cachingBackendListener {
 //Test no-cache cache control
 @test:Config {}
 function testNoCacheCacheControl() {
-    var response = cachingProxyTestClient->get("/cachingProxyService");
+    http:Response|error response = cachingProxyTestClient->get("/cachingProxyService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"1st response"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -81,7 +81,7 @@ function testNoCacheCacheControl() {
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "2");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"2nd response"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -91,7 +91,7 @@ function testNoCacheCacheControl() {
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "3");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"2nd response"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

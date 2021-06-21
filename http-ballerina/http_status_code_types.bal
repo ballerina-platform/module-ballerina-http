@@ -14,7 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Defines the possible Status code response record types.
+// Remove the union once https://github.com/ballerina-platform/ballerina-lang/issues/30490 is fixed.
+# Defines the possible status code response record types.
 public type StatusCodeResponse Continue|SwitchingProtocols|Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|
     ResetContent|PartialContent|MultipleChoices|MovedPermanently|Found|SeeOther|NotModified|UseProxy|TemporaryRedirect|
     PermanentRedirect|BadRequest|Unauthorized|PaymentRequired|Forbidden|NotFound|MethodNotAllowed|NotAcceptable|
@@ -481,6 +482,7 @@ public type NonAuthoritativeInformation record {|
 
 # The status code response record of `NoContent`.
 #
+# + headers - The response headers
 # + status - The response status code obj
 public type NoContent record {|
     map<string|string[]> headers?;

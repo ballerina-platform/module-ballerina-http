@@ -19,28 +19,9 @@
 import ballerina/http;
 import ballerina/test;
 
-const string JWT1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
-                    "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTcyNCwgIm" +
-                    "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.H99ufLvCLFA5i1gfCt" +
-                    "klVdPrBvEl96aobNvtpEaCsO4v6_EgEZYz8Pg0B1Y7yJPbgpuAzXEg_CzowtfCTu3jUFf5FH_6M1fWGko5vpljtCb5Xknt_" +
-                    "YPqvbk5fJbifKeXqbkCGfM9c0GS0uQO5ss8StquQcofxNgvImRV5eEGcDdybkKBNkbA-sJFHd1jEhb8rMdT0M0SZFLnhrPL" +
-                    "8edbFZ-oa-ffLLls0vlEjUA7JiOSpnMbxRmT-ac6QjPxTQgNcndvIZVP2BHueQ1upyNorFKSMv8HZpATYHZjgnJQSpmt3Oa" +
-                    "oFJ6pgzbFuniVNuqYghikCQIizqzQNfC7JUD8wA";
-
-const string JWT2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV0k" +
-                    "0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTk1NTg3NiwgIm" +
-                    "p0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoicmVhZCJ9.MVx_bJJpRyQryrTZ1-WC" +
-                    "1BkJdeBulX2CnxYN5Y4r1XbVd0-rgbCQ86jEbWvLZOybQ8Hx7MB9thKaBvidBnctgMM1JzG-ULahl-afoyTCv_qxMCS-5B7" +
-                    "AUA1f-sOQHzq-n7T3b0FKsWtmOEXbGmRxQFv89_v8xwUzIItXtZ6IjkoiZn5GerGrozX0DEBDAeG-2BOj8gSlsFENdPB5Sn" +
-                    "5oEM6-Chrn6KFLXo3GFTwLQELgYkIGjgnMQfbyLLaw5oyJUyOCCsdMZ4oeVLO2rdKZs1L8ZDnolUfcdm5mTxxP9A4mTOTd-" +
-                    "xC404MKwxkRhkgI4EJkcEwMHce2iCInZer10Q";
-
-const string JWT3 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0Ij" +
-                    "oxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-
 listener http:Listener authListener = new(securedListenerPort, {
     secureSocket: {
-        keyStore: {
+        key: {
             path: KEYSTORE_PATH,
             password: "ballerina"
         }
@@ -76,18 +57,109 @@ service /baz on authListener {
 }
 
 @test:Config {}
-function testNoAuthServiceResourceSuccess() {
-    assertSuccess(sendRequest("/baz/foo", JWT1));
+isolated function testNoAuthServiceResourceSuccess() {
+    assertSuccess(sendBearerTokenRequest("/baz/foo", JWT1));
+    assertSuccess(sendJwtRequest("/baz/foo"));
 }
 
 @test:Config {}
-function testNNoAuthServiceResourceWithRequestSuccess() {
-    assertSuccess(sendRequest("/baz/bar", JWT2));
+isolated function testNoAuthServiceResourceWithRequestSuccess() {
+    assertSuccess(sendBearerTokenRequest("/baz/bar", JWT2));
 }
 
 @test:Config {}
-function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
-    assertSuccess(sendRequest("/baz/baz", JWT3));
+isolated function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
+    assertSuccess(sendBearerTokenRequest("/baz/baz", JWT3));
+}
+
+// Basic auth (file user store) secured service - Unsecured resource
+
+@http:ServiceConfig {
+    auth: [
+        {
+            fileUserStoreConfig: {},
+            scopes: ["write", "update"]
+        }
+    ]
+}
+service /basicAuthFile on authListener {
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceAuthSuccess() {
+    assertSuccess(sendBasicTokenRequest("/basicAuthFile", "alice", "xxx"));
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceAuthzFailure() {
+    assertForbidden(sendBasicTokenRequest("/basicAuthFile", "bob", "yyy"));
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceAuthnFailure() {
+    assertUnauthorized(sendBasicTokenRequest("/basicAuthFile", "peter", "123"));
+    assertUnauthorized(sendNoTokenRequest("/basicAuthFile"));
+}
+
+// Basic auth (LDAP user store) secured service - Unsecured resource
+
+@http:ServiceConfig {
+    auth: [
+        {
+            ldapUserStoreConfig: {
+                domainName: "avix.lk",
+                connectionUrl: "ldap://localhost:389",
+                connectionName: "cn=admin,dc=avix,dc=lk",
+                connectionPassword: "avix123",
+                userSearchBase: "ou=Users,dc=avix,dc=lk",
+                userEntryObjectClass: "inetOrgPerson",
+                userNameAttribute: "uid",
+                userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
+                userNameListFilter: "(objectClass=inetOrgPerson)",
+                groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
+                groupEntryObjectClass: "groupOfNames",
+                groupNameAttribute: "cn",
+                groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
+                groupNameListFilter: "(objectClass=groupOfNames)",
+                membershipAttribute: "member",
+                userRolesCacheEnabled: true,
+                connectionPoolingEnabled: false,
+                connectionTimeout: 5,
+                readTimeout: 60
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /basicAuthLdap on authListener {
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {
+    groups: ["ldap"]
+}
+isolated function testBasicAuthLdapUserStoreServiceAuthSuccess() {
+    assertSuccess(sendBasicTokenRequest("/basicAuthLdap", "ldclakmal", "ldclakmal@123"));
+}
+
+@test:Config {
+    groups: ["ldap"]
+}
+isolated function testBasicAuthLdapUserStoreServiceAuthzFailure() {
+    assertForbidden(sendBasicTokenRequest("/basicAuthLdap", "alice", "alice@123"));
+}
+
+@test:Config {
+    groups: ["ldap"]
+}
+isolated function testBasicAuthLdapUserStoreServiceAuthnFailure() {
+    assertUnauthorized(sendBasicTokenRequest("/basicAuthLdap", "eve", "eve@123"));
+    assertUnauthorized(sendNoTokenRequest("/basicAuthLdap"));
 }
 
 // JWT auth secured service - Unsecured resource
@@ -114,29 +186,88 @@ function testNoAuthServiceResourceWithRequestAndCallerSuccess() {
     ]
 }
 service /jwtAuth on authListener {
-    resource function get foo() returns string {
+    resource function get .() returns string {
         return "Hello World!";
     }
 }
 
 @test:Config {}
-function testServiceAuthSuccess() {
-    assertSuccess(sendRequest("/jwtAuth/foo", JWT1));
+function testJwtAuthServiceAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/jwtAuth", JWT1));
+    assertSuccess(sendJwtRequest("/jwtAuth"));
 }
 
 @test:Config {}
-function testServiceAuthzFailure() {
-    assertForbidden(sendRequest("/jwtAuth/foo", JWT2));
+function testJwtAuthServiceAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/jwtAuth", JWT2));
 }
 
 @test:Config {}
-function testServiceAuthnFailure() {
-    assertUnauthorized(sendRequest("/jwtAuth/foo", JWT3));
+function testJwtAuthServiceAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/jwtAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/jwtAuth"));
 }
 
-// Unsecured service - JWT auth secured resource
+// OAuth2 auth secured service - Unsecured resource
+
+@http:ServiceConfig {
+    auth: [
+        {
+            oauth2IntrospectionConfig: {
+                url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
+                tokenTypeHint: "access_token",
+                scopeKey: "scp",
+                clientConfig: {
+                    secureSocket: {
+                       cert: {
+                           path: TRUSTSTORE_PATH,
+                           password: "ballerina"
+                       }
+                    }
+                }
+            },
+            scopes: ["write", "update"]
+        }
+    ]
+}
+service /oauth2 on authListener {
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {}
+function testOAuth2ServiceAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/oauth2", ACCESS_TOKEN_1));
+    assertSuccess(sendOAuth2TokenRequest("/oauth2"));
+}
+
+@test:Config {}
+function testOAuth2ServiceAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/oauth2", ACCESS_TOKEN_2));
+}
+
+@test:Config {}
+function testOAuth2ServiceAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/oauth2", ACCESS_TOKEN_3));
+    assertUnauthorized(sendNoTokenRequest("/oauth2"));
+}
+
+// Unsecured service - Basic auth secured resource, JWT auth secured resource & OAuth2 secured resource
 
 service /foo on authListener {
+
+    @http:ResourceConfig {
+        auth: [
+            {
+                fileUserStoreConfig: {},
+                scopes: ["write", "update"]
+            }
+        ]
+    }
+    resource function get basicAuth() returns string {
+        return "Hello World!";
+    }
 
     @http:ResourceConfig {
         auth: [
@@ -162,35 +293,95 @@ service /foo on authListener {
     resource function get jwtAuth() returns string {
         return "Hello World!";
     }
+
+    @http:ResourceConfig {
+        auth: [
+            {
+                oauth2IntrospectionConfig: {
+                    url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
+                    tokenTypeHint: "access_token",
+                    scopeKey: "scp",
+                    clientConfig: {
+                        secureSocket: {
+                           cert: {
+                               path: TRUSTSTORE_PATH,
+                               password: "ballerina"
+                           }
+                        }
+                    }
+                },
+                scopes: ["write", "update"]
+            }
+        ]
+    }
+    resource function get oauth2() returns string {
+        return "Hello World!";
+    }
 }
 
 @test:Config {}
-function testResourceAuthSuccess() {
-    assertSuccess(sendRequest("/foo/jwtAuth", JWT1));
+function testBasicAuthResourceAuthSuccess() {
+    assertSuccess(sendBasicTokenRequest("/foo/basicAuth", "alice", "xxx"));
 }
 
 @test:Config {}
-function testResourceAuthzFailure() {
-    assertForbidden(sendRequest("/foo/jwtAuth", JWT2));
+function testBasicAuthResourceAuthzFailure() {
+    assertForbidden(sendBasicTokenRequest("/foo/basicAuth", "bob", "yyy"));
 }
 
 @test:Config {}
-function testResourceAuthnFailure() {
-    assertUnauthorized(sendRequest("/foo/jwtAuth", JWT3));
+function testBasicAuthResourceAuthnFailure() {
+    assertUnauthorized(sendBasicTokenRequest("/foo/basicAuth", "peter", "123"));
+    assertUnauthorized(sendNoTokenRequest("/foo/basicAuth"));
 }
 
+@test:Config {}
+function testJwtAuthResourceAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/foo/jwtAuth", JWT1));
+    assertSuccess(sendJwtRequest("/foo/jwtAuth"));
+}
+
+@test:Config {}
+function testJwtAuthResourceAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/foo/jwtAuth", JWT2));
+}
+
+@test:Config {}
+function testJwtAuthResourceAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/foo/jwtAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/foo/jwtAuth"));
+}
+
+@test:Config {}
+function testOAuth2ResourceAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/foo/oauth2", ACCESS_TOKEN_1));
+    assertSuccess(sendOAuth2TokenRequest("/foo/oauth2"));
+}
+
+@test:Config {}
+function testOAuth2ResourceAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/foo/oauth2", ACCESS_TOKEN_2));
+}
+
+@test:Config {}
+function testOAuth2ResourceAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/foo/oauth2", ACCESS_TOKEN_3));
+    assertUnauthorized(sendNoTokenRequest("/foo/oauth2"));
+}
+
+// Testing configurations overwritten support.
 // OAuth2 secured service - JWT auth secured resource
 
 @http:ServiceConfig {
     auth: [
         {
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
                     secureSocket: {
-                       trustStore: {
+                       cert: {
                            path: TRUSTSTORE_PATH,
                            password: "ballerina"
                        }
@@ -201,7 +392,7 @@ function testResourceAuthnFailure() {
         }
     ]
 }
-service /oauth2 on authListener {
+service /ignoreOAuth2 on authListener {
 
     @http:ResourceConfig {
         auth: [
@@ -231,31 +422,34 @@ service /oauth2 on authListener {
 
 @test:Config {}
 function testServiceResourceAuthSuccess() {
-    assertSuccess(sendRequest("/oauth2/jwtAuth", JWT1));
+    assertSuccess(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT1));
+    assertSuccess(sendJwtRequest("/ignoreOAuth2/jwtAuth"));
 }
 
 @test:Config {}
 function testServiceResourceAuthzFailure() {
-    assertForbidden(sendRequest("/oauth2/jwtAuth", JWT2));
+    assertForbidden(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT2));
 }
 
 @test:Config {}
 function testServiceResourceAuthnFailure() {
-    assertUnauthorized(sendRequest("/oauth2/jwtAuth", JWT3));
+    assertUnauthorized(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/ignoreOAuth2/jwtAuth"));
 }
 
+// Testing multiple auth configurations support.
 // OAuth2, Basic auth & JWT auth secured service - Unsecured resource
 
 @http:ServiceConfig {
     auth: [
         {
             oauth2IntrospectionConfig: {
-                url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
                 tokenTypeHint: "access_token",
                 scopeKey: "scp",
                 clientConfig: {
                     secureSocket: {
-                       trustStore: {
+                       cert: {
                            path: TRUSTSTORE_PATH,
                            password: "ballerina"
                        }
@@ -264,15 +458,10 @@ function testServiceResourceAuthnFailure() {
             },
             scopes: ["write", "update"]
         },
-        // TODO: Enable these tests once the configurable features supports for map data types.
-        // https://github.com/ballerina-platform/ballerina-standard-library/issues/862
-        //{
-        //    fileUserStoreConfig: {
-        //        tableName: "b7a.users",
-        //        scopeKey: "scopes"
-        //    },
-        //    scopes: ["write", "update"]
-        //},
+        {
+            fileUserStoreConfig: {},
+            scopes: ["write", "update"]
+        },
         {
             jwtValidatorConfig: {
                 issuer: "wso2",
@@ -293,39 +482,43 @@ function testServiceResourceAuthnFailure() {
     ]
 }
 service /multipleAuth on authListener {
-    resource function get bar() returns string {
+    resource function get .() returns string {
         return "Hello World!";
     }
 }
 
 @test:Config {}
-function testMultipleServiceAuthSuccess() {
-    assertSuccess(sendRequest("/multipleAuth/bar", JWT1));
+function testMultipleAuthServiceAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/multipleAuth", JWT1));
+    assertSuccess(sendJwtRequest("/multipleAuth"));
 }
 
 @test:Config {}
-function testMultipleServiceAuthzFailure() {
-    assertForbidden(sendRequest("/multipleAuth/bar", JWT2));
+function testMultipleAuthServiceAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/multipleAuth", JWT2));
 }
 
 @test:Config {}
-function testMultipleServiceAuthnFailure() {
-    assertUnauthorized(sendRequest("/multipleAuth/bar", JWT3));
+function testMultipleAuthServiceAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/multipleAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/multipleAuth"));
 }
 
+// Testing multiple auth configurations support.
 // Unsecured service - OAuth2, Basic auth & JWT auth secured resource
 
 service /bar on authListener {
+
     @http:ResourceConfig {
         auth: [
             {
                 oauth2IntrospectionConfig: {
-                    url: "https://localhost:" + oauth2AuthorizationServerPort.toString() + "/oauth2/token/introspect",
+                    url: "https://localhost:" + stsPort.toString() + "/oauth2/introspect",
                     tokenTypeHint: "access_token",
                     scopeKey: "scp",
                     clientConfig: {
                         secureSocket: {
-                           trustStore: {
+                           cert: {
                                path: TRUSTSTORE_PATH,
                                password: "ballerina"
                            }
@@ -334,15 +527,10 @@ service /bar on authListener {
                 },
                 scopes: ["write", "update"]
             },
-            // TODO: Enable these tests once the configurable features supports for map data types.
-            // https://github.com/ballerina-platform/ballerina-standard-library/issues/862
-            //{
-            //    fileUserStoreConfig: {
-            //        tableName: "b7a.users",
-            //        scopeKey: "scopes"
-            //    },
-            //    scopes: ["write", "update"]
-            //},
+            {
+                fileUserStoreConfig: {},
+                scopes: ["write", "update"]
+            },
             {
                 jwtValidatorConfig: {
                     issuer: "wso2",
@@ -368,18 +556,20 @@ service /bar on authListener {
 }
 
 @test:Config {}
-function testMultipleResourceAuthSuccess() {
-    assertSuccess(sendRequest("/bar/multipleAuth", JWT1));
+function testMultipleAuthResourceAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/bar/multipleAuth", JWT1));
+    assertSuccess(sendJwtRequest("/bar/multipleAuth"));
 }
 
 @test:Config {}
-function testMultipleResourceAuthzFailure() {
-    assertForbidden(sendRequest("/bar/multipleAuth", JWT2));
+function testMultipleAuthResourceAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/bar/multipleAuth", JWT2));
 }
 
 @test:Config {}
-function testMultipleResourceAuthnFailure() {
-    assertUnauthorized(sendRequest("/bar/multipleAuth", JWT3));
+function testMultipleAuthResourceAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/bar/multipleAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/bar/multipleAuth"));
 }
 
 // JWT auth secured service (without scopes) - Unsecured resource
@@ -403,23 +593,21 @@ function testMultipleResourceAuthnFailure() {
         }
     ]
 }
-service /noscopes on authListener {
-    resource function get auth() returns string {
+service /noScopes on authListener {
+    resource function get .() returns string {
         return "Hello World!";
     }
 }
 
 @test:Config {}
-function testServiceAuthWithoutScopesAuthSuccess1() {
-    assertSuccess(sendRequest("/noscopes/auth", JWT1));
-}
-
-@test:Config {}
-function testServiceAuthWithoutScopesAuthSuccess2() {
-    assertSuccess(sendRequest("/noscopes/auth", JWT2));
+function testServiceAuthWithoutScopesAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/noScopes", JWT1));
+    assertSuccess(sendBearerTokenRequest("/noScopes", JWT2));
+    assertSuccess(sendJwtRequest("/noScopes"));
 }
 
 @test:Config {}
 function testServiceAuthWithoutScopesAuthnFailure() {
-    assertUnauthorized(sendRequest("/noscopes/auth", JWT3));
+    assertUnauthorized(sendBearerTokenRequest("/noScopes", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/noScopes"));
 }

@@ -37,16 +37,25 @@ service /serviceEndpointHello on serviceEndpointTestEP {
         res.setJsonPayload(<@untainted json> connectionJson);
         checkpanic caller->respond(res);
     }
+
+    resource function get host(http:Caller caller) returns string {
+        return caller.getRemoteHostName() ?: "nohost";
+    }
+
+    resource function get nohost(http:Caller caller) returns string {
+        http:Caller caller2 = new;
+        return caller2.getRemoteHostName() ?: "nohost";
+    }
 }
 
 //Test the protocol value of ServiceEndpoint struct within a service
 @test:Config {}
 function testGetProtocolConnectionStruct() {
-    var response = serviceEndpointClient->get("/serviceEndpointHello/protocol");
+    http:Response|error response = serviceEndpointClient->get("/serviceEndpointHello/protocol");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "protocol", "http");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
@@ -54,7 +63,7 @@ function testGetProtocolConnectionStruct() {
 //Test the local struct values of the ServiceEndpoint struct within a service
 @test:Config {}
 function testLocalStructInConnection() {
-    var response = serviceEndpointClient->get("/serviceEndpointHello/local");
+    http:Response|error response = serviceEndpointClient->get("/serviceEndpointHello/local");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         var payload = response.getJsonPayload();
@@ -64,7 +73,27 @@ function testLocalStructInConnection() {
         } else if payload is error {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());
         }
-    } else if (response is error) {
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testGetHostName() {
+    var response = serviceEndpointClient->get("/serviceEndpointHello/host", targetType = string);
+    if (response is string) {
+        test:assertTrue(response.length() != 0, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testGetNoHostName() {
+    var response = serviceEndpointClient->get("/serviceEndpointHello/nohost", targetType = string);
+    if (response is string) {
+        test:assertEquals(response, "nohost", msg = "Found unexpected output");
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

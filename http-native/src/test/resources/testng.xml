@@ -54,7 +54,8 @@
             <class name="org.ballerinalang.net.transport.contentaware.RequestResponseTransformTestCase" />
             <class name="org.ballerinalang.net.transport.contentaware.RequestResponseTransformStreamingTestCase" />
 
-            <class name="org.ballerinalang.net.transport.proxyserver.HttpsProxyServerTestCase" />
+<!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
+<!--            <class name="org.ballerinalang.net.transport.proxyserver.HttpsProxyServerTestCase" />-->
             <class name="org.ballerinalang.net.transport.proxyserver.HttpProxyServerTestCase" />
 
             <class name="org.ballerinalang.net.transport.ClientConnectorTimeoutTestCase" />
@@ -105,7 +106,8 @@
             <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMaxConnTestCase" />
             <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolTimeoutProxyTestCase" />
             <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolMainTestCase" />
-            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />
+<!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
+<!--            <class name="org.ballerinalang.net.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />-->
 
             <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedEnableTestCase" />
             <class name="org.ballerinalang.net.transport.forwardedextension.ForwardedTransitionTestCase" />
@@ -149,6 +151,7 @@
             <class name="org.ballerinalang.net.transport.http2.expect100continue.ClientContinueResponseTimeout"/>
             <class name="org.ballerinalang.net.transport.http2.trailer.H2ListenerIntendedResponseTrailerHeaderTestCase"/>
             <class name="org.ballerinalang.net.transport.http2.trailer.H2ListenerPushResponseTrailerHeaderTestCase"/>
+            <class name="org.ballerinalang.net.transport.http2.trailer.H2ListenerTrailersInInitialHeaderFrameTestCase"/>
         </classes>
     </test>
     <test name="Transport Security Tests" parallel="false">
@@ -175,6 +178,40 @@
             <class name="org.ballerinalang.net.transport.http2.ssl.DisableSslTest"/>
             <class name="org.ballerinalang.net.transport.disablessl.SslDisabledClientTest"/>
             <class name="org.ballerinalang.net.transport.https.ServerCloseConnectionDuringSslTest"/>
+        </classes>
+    </test>
+    <test name="Transport Unit Tests" parallel="false">
+        <classes>
+            <class name="org.ballerinalang.net.transport.internal.HandlerExecutorTest"/>
+            <class name="org.ballerinalang.net.transport.internal.HttpTransportContextHolderTest"/>
+            <class name="org.ballerinalang.net.transport.internal.HttpTransportActivatorTest"/>
+            <class name="org.ballerinalang.net.transport.message.BlockingEntityCollectorTest"/>
+            <class name="org.ballerinalang.net.transport.message.HttpCarbonMessageTest"/>
+            <class name="org.ballerinalang.net.transport.message.HttpCarbonRequestTest"/>
+            <class name="org.ballerinalang.net.transport.message.HttpCarbonResponseTest"/>
+            <class name="org.ballerinalang.net.transport.message.HttpMessageDataStreamerTest"/>
+            <class name="org.ballerinalang.net.transport.message.DefaultFullHttpMessageFutureTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.ListenerConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.SenderConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.InboundMsgSizeValidationConfigTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.ParameterTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.ProxyServerConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.ServerBootstrapConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.TransportPropertyTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.TransportsConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.config.SslConfigurationTest"/>
+            <class name="org.ballerinalang.net.transport.contract.websocket.WebSocketClientConnectorConfigTest"/>
+            <class name="org.ballerinalang.net.transport.contract.exceptions.ExceptionTest"/>
+            <class name="org.ballerinalang.net.transport.contractimpl.listener.HttpAccessLoggingHandlerTest"/>
+            <class name="org.ballerinalang.net.transport.contractimpl.listener.HttpTraceLoggingHandlerTest"/>
+            <class name="org.ballerinalang.net.transport.contractimpl.common.FrameLoggerTest"/>
+            <class name="org.ballerinalang.net.transport.contractimpl.common.certificatevalidation.cache.CacheControllerTest"/>
+        </classes>
+    </test>
+    <test name="Ballerina Http native Tests" parallel="false">
+        <classes>
+            <class name="org.ballerinalang.net.http.ExceptionTest"/>
+            <class name="org.ballerinalang.net.http.HttpServiceTest"/>
         </classes>
     </test>
 </suite>

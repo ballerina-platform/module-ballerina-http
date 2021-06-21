@@ -53,10 +53,10 @@ public function testAccessingPayloadAsTextAndJSON()  {
     string path = "/MyService/myResource";
     http:Request req = new;
     req.setTextPayload(payload);
-    var response = requestClient2->post(path, req);
+    http:Response|error response = requestClient2->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getTextPayload(), "bar");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }

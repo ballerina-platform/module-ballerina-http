@@ -15,18 +15,18 @@
 // under the License.
 
 # The representation of a persistent cookie handler object type for managing persistent cookies.
-public type PersistentCookieHandler object {
+public type PersistentCookieHandler isolated object {
 
     # Adds a persistent cookie to the cookie store.
     #
     # + cookie - Cookie to be added
     # + return - An `http:CookieHandlingError` if there is any error occurred during the storing process of the cookie or else `()`
-    public function storeCookie(Cookie cookie) returns CookieHandlingError?;
+    public isolated function storeCookie(Cookie cookie) returns CookieHandlingError?;
 
     # Gets all persistent cookies.
     #
     # + return - Array of persistent cookies stored in the cookie store or else an `http:CookieHandlingError` if one occurred during the retrieval of the cookies
-    public function getAllCookies() returns Cookie[]|CookieHandlingError;
+    public isolated function getAllCookies() returns Cookie[]|CookieHandlingError;
 
     # Removes a specific persistent cookie.
     #
@@ -34,10 +34,10 @@ public type PersistentCookieHandler object {
     # + domain - Domain of the persistent cookie to be removed
     # + path - Path of the persistent cookie to be removed
     # + return - An `http:CookieHandlingError` if there is one occurred during the removal of the cookie or else `()`
-    public function removeCookie(string name, string domain, string path) returns CookieHandlingError?;
+    public isolated function removeCookie(string name, string domain, string path) returns CookieHandlingError?;
 
     # Removes all persistent cookies.
     #
     # + return - An `http:CookieHandlingError` if there is one occurred during the removal of all the cookies or else `()`
-    public function removeAllCookies() returns CookieHandlingError?;
+    public isolated function removeAllCookies() returns CookieHandlingError?;
 };

@@ -40,12 +40,13 @@ function getSingletonResponse() returns http:Response {
     return res;
 }
 
-@test:Config {}
+// Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/305#issuecomment-824047016
+@test:Config {enable:false}
 function testDirtyResponse() {
-    var response = dirtyResponseTestClient->get("/hello");
+    http:Response|error response = dirtyResponseTestClient->get("/hello");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -57,7 +58,7 @@ function testDirtyResponse() {
                         " been already used.");
         test:assertEquals(dirtyErrorLog, "Couldn't complete the respond operation as the response has" +
                         " been already used.");
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

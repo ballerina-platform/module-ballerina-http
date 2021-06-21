@@ -27,9 +27,11 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http2.DefaultHttp2Headers;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.HttpConversionUtil;
+import org.ballerinalang.net.transport.contract.Constants;
 import org.ballerinalang.net.transport.contract.exceptions.EndpointTimeOutException;
 import org.ballerinalang.net.transport.contractimpl.common.states.Http2MessageStateContext;
 import org.ballerinalang.net.transport.contractimpl.common.states.StateUtil;
@@ -45,6 +47,8 @@ import org.ballerinalang.net.transport.message.HttpCarbonResponse;
 import org.ballerinalang.net.transport.message.PooledDataStreamerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Locale;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.TRAILER;
 import static org.ballerinalang.net.transport.contract.Constants.DIRECTION;
@@ -164,7 +168,7 @@ public class ReceivingHeaders implements SenderState {
             } else if (http2Headers.contains(HTTP2_STATUS)) {
                 // if the header frame is an initial header frame and also it has endOfStream
                 responseMessage = setupResponseCarbonMessage(ctx, streamId, http2Headers, outboundMsgHolder);
-                onTrailersRead(streamId, http2Headers, outboundMsgHolder, responseMessage);
+                checkForTrailerHeaders(streamId, http2Headers, outboundMsgHolder, responseMessage);
                 outboundMsgHolder.addPushResponse(streamId, responseMessage);
             }
             http2ClientChannel.removePromisedMessage(streamId);
@@ -189,7 +193,7 @@ public class ReceivingHeaders implements SenderState {
             } else if (http2Headers.contains(HTTP2_STATUS)) {
                 // if the header frame is an initial header frame and also it has endOfStream
                 responseMessage = setupResponseCarbonMessage(ctx, streamId, http2Headers, outboundMsgHolder);
-                onTrailersRead(streamId, http2Headers, outboundMsgHolder, responseMessage);
+                checkForTrailerHeaders(streamId, http2Headers, outboundMsgHolder, responseMessage);
                 outboundMsgHolder.setResponse(responseMessage);
             }
             http2ClientChannel.removeInFlightMessage(streamId);
@@ -200,6 +204,29 @@ public class ReceivingHeaders implements SenderState {
                     http2Headers, outboundMsgHolder);
             outboundMsgHolder.setResponse(responseMessage);
             http2MessageStateContext.setSenderState(new ReceivingEntityBody(http2TargetHandler, http2RequestWriter));
+        }
+    }
+
+    private void checkForTrailerHeaders(int streamId, Http2Headers http2Headers, OutboundMsgHolder outboundMsgHolder,
+                                        HttpCarbonResponse responseMessage) {
+        if (!http2Headers.contains(TRAILER)) {
+            completeResponseMessage(responseMessage, new DefaultLastHttpContent());
+            return;
+        }
+        String trailerHeader = http2Headers.get(TRAILER).toString();
+        Http2Headers newHttp2Headers = new DefaultHttp2Headers();
+        String[] trailerKeys = trailerHeader.split(Constants.COMMA);
+        for (String key : trailerKeys) {
+            String headerKey = key.toLowerCase(Locale.getDefault()).trim();
+            CharSequence headerValue = http2Headers.get(headerKey);
+            if (headerValue != null) {
+                newHttp2Headers.add(headerKey, headerValue);
+            }
+        }
+        if (newHttp2Headers.isEmpty()) {
+            completeResponseMessage(responseMessage, new DefaultLastHttpContent());
+        } else {
+            onTrailersRead(streamId, newHttp2Headers, outboundMsgHolder, responseMessage);
         }
     }
 
@@ -216,6 +243,11 @@ public class ReceivingHeaders implements SenderState {
             outboundMsgHolder.getResponseFuture().
                     notifyHttpListener(new Exception("Error while setting http headers", e));
         }
+
+        completeResponseMessage(responseMessage, lastHttpContent);
+    }
+
+    private void completeResponseMessage(HttpCarbonMessage responseMessage, LastHttpContent lastHttpContent) {
         responseMessage.addHttpContent(lastHttpContent);
         responseMessage.setLastHttpContentArrived();
     }

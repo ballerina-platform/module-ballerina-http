@@ -16,15 +16,10 @@
 
 import ballerina/jwt;
 
-# Represents JWT issuer configurations for JWT authentication.
-public type JwtIssuerConfig record {|
-    *jwt:IssuerConfig;
-|};
-
 # Defines the self signed JWT handler for client authentication.
-public class ClientSelfSignedJwtAuthHandler {
+public isolated class ClientSelfSignedJwtAuthHandler {
 
-    jwt:ClientSelfSignedJwtAuthProvider provider;
+    private final jwt:ClientSelfSignedJwtAuthProvider provider;
 
     # Initializes the `http:ClientSelfSignedJwtAuthProvider` object.
     #
@@ -39,10 +34,39 @@ public class ClientSelfSignedJwtAuthHandler {
     # + return - The updated `http:Request` instance or else an `http:ClientAuthError` in case of an error
     public isolated function enrich(Request req) returns Request|ClientAuthError {
         string|jwt:Error result = self.provider.generateToken();
-        if (result is jwt:Error) {
+        if (result is string) {
+            req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + result);
+            return req;
+        } else {
             return prepareClientAuthError("Failed to enrich request with JWT.", result);
         }
-        req.setHeader(AUTH_HEADER, AUTH_SCHEME_BEARER + " " + checkpanic result);
-        return req;
+    }
+
+    # Enrich the headers map with the relevant authentication requirements.
+    #
+    # + headers - The headers map
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function enrichHeaders(map<string|string[]> headers) returns map<string|string[]>|ClientAuthError {
+        string|jwt:Error result = self.provider.generateToken();
+        if (result is string) {
+            headers[AUTH_HEADER] = AUTH_SCHEME_BEARER + " " + result;
+            return headers;
+        } else {
+            return prepareClientAuthError("Failed to enrich headers with JWT.", result);
+        }
+    }
+
+    # Returns the headers map with the relevant authentication requirements.
+    #
+    # + return - The updated headers map or else an `http:ClientAuthError` in case of an error
+    public isolated function getSecurityHeaders() returns map<string|string[]>|ClientAuthError {
+        string|jwt:Error result = self.provider.generateToken();
+        if (result is string) {
+            map<string|string[]> headers = {};
+            headers[AUTH_HEADER] = AUTH_SCHEME_BEARER + " " + result;
+            return headers;
+        } else {
+            return prepareClientAuthError("Failed to enrich headers with JWT.", result);
+        }
     }
 }

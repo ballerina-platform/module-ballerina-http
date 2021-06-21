@@ -19,11 +19,11 @@ import ballerina/mime;
 
 # The types of messages that are accepted by HTTP `client` when sending out the outbound request.
 public type RequestMessage Request|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
-                           (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error>|();
+                           (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
 
 # The types of messages that are accepted by HTTP `listener` when sending out the outbound response.
 public type ResponseMessage Response|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
-                            (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error>|();
+                            (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
 
 # The HTTP service type
 public type Service service object {
@@ -56,37 +56,6 @@ type safeHttpOperation HTTP_GET|HTTP_HEAD|HTTP_OPTIONS;
 // Common type used for HttpFuture and Response used for resiliency clients.
 type HttpResponse Response|HttpFuture;
 
-# A record for configuring SSL/TLS protocol and version to be used.
-#
-# + name - SSL Protocol to be used (e.g.: TLS1.2)
-# + versions - SSL/TLS protocols to be enabled (e.g.: TLSv1,TLSv1.1,TLSv1.2)
-public type Protocols record {|
-    string name = "";
-    string[] versions = [];
-|};
-
-# A record for providing configurations for certificate revocation status checks.
-#
-# + enable - The status of `validateCertEnabled`
-# + cacheSize - Maximum size of the cache
-# + cacheValidityPeriod - The time period for which a cache entry is valid
-public type ValidateCert record {|
-    boolean enable = false;
-    int cacheSize = 0;
-    int cacheValidityPeriod = 0;
-|};
-
-# A record for providing configurations for certificate revocation status checks.
-#
-# + enable - The status of OCSP stapling
-# + cacheSize - Maximum size of the cache
-# + cacheValidityPeriod - The time period for which a cache entry is valid
-public type ListenerOcspStapling record {|
-    boolean enable = false;
-    int cacheSize = 0;
-    int cacheValidityPeriod = 0;
-|};
-
 # A record for providing configurations for content compression.
 #
 # + enable - The status of compression
@@ -105,7 +74,7 @@ type HTTPError record {
 # + httpVersion - The HTTP version understood by the client
 # + http1Settings - Configurations related to HTTP/1.x protocol
 # + http2Settings - Configurations related to HTTP/2 protocol
-# + timeoutInMillis - The maximum time to wait (in milliseconds) for a response before closing the connection
+# + timeout - The maximum time to wait (in seconds) for a response before closing the connection
 # + forwarded - The choice of setting `forwarded`/`x-forwarded` header
 # + followRedirects - Configurations associated with Redirection
 # + poolConfig - Configurations associated with request pooling
@@ -120,7 +89,7 @@ public type CommonClientConfiguration record {|
     string httpVersion = HTTP_1_1;
     ClientHttp1Settings http1Settings = {};
     ClientHttp2Settings http2Settings = {};
-    int timeoutInMillis = 60000;
+    decimal timeout = 60;
     string forwarded = "disable";
     FollowRedirects? followRedirects = ();
     PoolConfiguration? poolConfig = ();

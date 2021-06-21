@@ -28,18 +28,36 @@ int cachingProxyHitcount = 0;
 service /cache on cachingListener1 {
 
     resource function get .(http:Caller caller, http:Request req) {
-        var response = cachingEP->forward("/cachingBackend", req);
+        http:Response|error response = cachingEP->forward("/cachingBackend", req);
 
         if (response is http:Response) {
             cachingProxyHitcount += 1;
             response.setHeader("x-proxy-hit-count", cachingProxyHitcount.toString());
             checkpanic caller->respond(<@untainted> response);
-        } else if (response is error) {
+        } else {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(<@untainted> response.message());
             checkpanic caller->respond(res);
         }
+    }
+
+    resource function get checkReqCC(http:Request req) returns json {
+        http:RequestCacheControl? reqCC = req.cacheControl;
+        if (reqCC is http:RequestCacheControl) {
+            json value = { noCache : reqCC.noCache, noStore : reqCC.noStore, noTransform : reqCC.noTransform,
+                onlyIfCached : reqCC.onlyIfCached, maxAge : reqCC.maxAge, maxStale : reqCC.maxStale,
+                minFresh : reqCC.minFresh };
+            return value;
+        } else {
+            return { value : "no reqCC"};
+        }
+    }
+
+    resource function get checkResCC(http:Request req) returns http:Ok {
+        string hValue = "must-revalidate, no-cache, no-store, no-transform, public, proxy-revalidate, " +
+                        "max-age=60, s-maxage=65";
+        return { headers: { "Cache-Control": hValue }};
     }
 }
 
@@ -76,14 +94,14 @@ json cachingPayload = {message:"Hello, World!"};
 //Test basic caching behaviour
 @test:Config {}
 function testBasicCachingBehaviour() {
-    var response = cachingTestClient->get("/cache");
+    http:Response|error response = cachingTestClient->get("/cache");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -94,7 +112,7 @@ function testBasicCachingBehaviour() {
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "2");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
@@ -108,7 +126,71 @@ function testBasicCachingBehaviour() {
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "3");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
-    } else if (response is error) {
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testRequestCacheControlBuildCacheControlDirectives() {
+    http:RequestCacheControl reqCC = new;
+    reqCC.maxAge = 60;
+    reqCC.noCache = true;
+    reqCC.noStore = true;
+    reqCC.noTransform = true;
+    reqCC.onlyIfCached = true;
+    reqCC.maxStale = 120;
+    reqCC.minFresh = 6;
+    test:assertEquals(reqCC.buildCacheControlDirectives(),
+        "no-cache, no-store, no-transform, only-if-cached, max-age=60, max-stale=120, min-fresh=6");
+}
+
+@test:Config {}
+function testResponseCacheControlBuildCacheControlDirectives() {
+    http:ResponseCacheControl resCC = new;
+    resCC.maxAge = 60;
+    resCC.isPrivate = false;
+    resCC.mustRevalidate = true;
+    resCC.noCache = true;
+    resCC.noStore = true;
+    resCC.noTransform = true;
+    resCC.proxyRevalidate = true;
+    resCC.sMaxAge = 60;
+    test:assertEquals(resCC.buildCacheControlDirectives(),
+        "must-revalidate, no-cache, no-store, no-transform, public, proxy-revalidate, max-age=60, s-maxage=60");
+}
+
+@test:Config {}
+function testReqCCPopulation() {
+    string hValue = "no-cache, no-store, no-transform, only-if-cached, max-age=60, max-stale=120, min-fresh=6";
+    json|error response = cachingTestClient->get("/cache/checkReqCC", { "Cache-Control": hValue });
+    if (response is json) {
+        json expected =
+            {noCache:true,noStore:true,noTransform:true,onlyIfCached:true,maxAge:60,maxStale:120,minFresh:6};
+        test:assertEquals(response, expected);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testResCCPopulation() {
+    http:Response|error response = cachingTestClient->get("/cache/checkResCC");
+    if (response is http:Response) {
+        http:ResponseCacheControl? resCC = response.cacheControl;
+        if (resCC is http:ResponseCacheControl) {
+            test:assertEquals(resCC.mustRevalidate, true);
+            test:assertEquals(resCC.noCache, true);
+            test:assertEquals(resCC.noStore, true);
+            test:assertEquals(resCC.noTransform, true);
+            test:assertEquals(resCC.isPrivate, false);
+            test:assertEquals(resCC.proxyRevalidate, true);
+            test:assertEquals(resCC.maxAge, 60d);
+            test:assertEquals(resCC.sMaxAge, 65d);
+        } else {
+            test:assertFail(msg = "Found unexpected output type: ()");
+        }
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

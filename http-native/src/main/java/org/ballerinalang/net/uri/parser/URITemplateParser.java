@@ -19,7 +19,6 @@
 package org.ballerinalang.net.uri.parser;
 
 import org.ballerinalang.net.uri.URITemplateException;
-import org.ballerinalang.net.uri.URIUtil;
 
 import java.io.UnsupportedEncodingException;
 
@@ -53,6 +52,7 @@ public class URITemplateParser<DataType, InboundMgsType> {
             this.syntaxTree.getDataElement().setData(resource);
             return syntaxTree;
         }
+        int expressionIndex = 0;
         String[] segments = template.split("/");
         for (int currentElement = 0; currentElement < segments.length; currentElement++) {
             String segment = segments[currentElement];
@@ -90,7 +90,7 @@ public class URITemplateParser<DataType, InboundMgsType> {
                         }
                         expression = false;
                         String token = segment.substring(startIndex, pointerIndex);
-                        createExpressionNode(token, segment, maxIndex, pointerIndex);
+                        createExpressionNode(token, segment, maxIndex, pointerIndex, expressionIndex++);
                         startIndex = pointerIndex + 1;
                         break;
                     case '*':
@@ -103,7 +103,7 @@ public class URITemplateParser<DataType, InboundMgsType> {
                         if (pointerIndex == maxIndex) {
                             String tokenVal = segment.substring(startIndex);
                             if (expression) {
-                                createExpressionNode(tokenVal, segment, maxIndex, pointerIndex);
+                                createExpressionNode(tokenVal, segment, maxIndex, pointerIndex, expressionIndex++);
                             } else {
                                 addNode(new Literal<>(createElement(), tokenVal));
                             }
@@ -123,13 +123,11 @@ public class URITemplateParser<DataType, InboundMgsType> {
         currentNode = currentNode.addChild(node);
     }
 
-    private void createExpressionNode(String expression, String segment, int maxIndex, int pointerIndex)
-            throws URITemplateException {
+    private void createExpressionNode(String expression, String segment, int maxIndex, int pointerIndex,
+                                      int expressionIndex) throws URITemplateException {
         Node<DataType, InboundMgsType> node;
         if (maxIndex == pointerIndex) {
-            node = new SimpleStringExpression<>(createElement(), expression);
-        } else if (maxIndex > pointerIndex && segment.charAt(pointerIndex + 1) == URIUtil.DOT_SEGMENT) {
-            node = new DotSuffixExpression<>(createElement(), expression);
+            node = new SimpleStringExpression<>(createElement(), expression, expressionIndex);
         } else {
             throw new URITemplateException("Template expression: " + segment + " is not implemented");
         }

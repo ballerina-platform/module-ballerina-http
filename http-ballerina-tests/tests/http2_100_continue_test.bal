@@ -24,13 +24,13 @@ http:Client h2Client = check new("http://localhost:9127", {
     http2Settings: {
         http2PriorKnowledge: true
     },
-    timeoutInMillis: 300000
+    timeout: 300
 });
 
 service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
 
     resource function post abnormalResource(http:Caller caller, http:Request request) {
-        var result = caller->continue();
+        error? result = caller->continue();
         handleRespError(result);
         http:Response res = new;
         var payload = request.getTextPayload();
@@ -52,7 +52,7 @@ service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
 
     resource function get initial(http:Caller caller, http:Request req) {
         io:println("test100ContinueResource");
-        var response = h2Client->post("/helloWorld/abnormalResource", "100 continue response should be ignored by this client");
+        http:Response|error response = h2Client->post("/helloWorld/abnormalResource", "100 continue response should be ignored by this client");
         if (response is http:Response) {
             checkpanic caller->respond(<@untainted>response);
         } else {
@@ -63,14 +63,14 @@ service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
 
 function handleRespError(error? result) {
     if (result is error) {
-        log:printError(result.message(), err = result);
+        log:printError(result.message(), 'error = result);
     }
 }
 
 @test:Config {}
 public function testUnexpected100ContinueResponse() {
     http:Client clientEP = checkpanic new("http://localhost:9128");
-    var resp = clientEP->get("/continueService/initial");
+    http:Response|error resp = clientEP->get("/continueService/initial");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -78,7 +78,7 @@ public function testUnexpected100ContinueResponse() {
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

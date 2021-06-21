@@ -29,9 +29,9 @@ listener http:Listener backendEP03 = new(8083);
 
 // Define the failover client end point to call the backend services.
 http:FailoverClient foBackendEP03 = check new({
-    timeoutInMillis: 5000,
+    timeout: 5,
     failoverCodes: [501, 502, 503],
-    intervalInMillis: 5000,
+    interval: 5,
     // Define set of HTTP Clients that needs to be Failover.
     targets: [
         { url: "http://localhost:3467/inavalidEP" },
@@ -42,9 +42,9 @@ http:FailoverClient foBackendEP03 = check new({
 });
 
 http:FailoverClient foBackendFailureEP03 = check new({
-    timeoutInMillis: 5000,
+    timeout: 5,
     failoverCodes: [501, 502, 503],
-    intervalInMillis: 5000,
+    interval: 5,
     // Define set of HTTP Clients that needs to be Failover.
     targets: [
         { url: "http://localhost:3467/inavalidEP" },
@@ -54,9 +54,9 @@ http:FailoverClient foBackendFailureEP03 = check new({
 });
 
 http:FailoverClient foStatusCodesEP03 = check new({
-    timeoutInMillis: 5000,
+    timeout: 5,
     failoverCodes: [501, 502, 503],
-    intervalInMillis: 5000,
+    interval: 5,
     // Define set of HTTP Clients that needs to be Failover.
     targets: [
         { url: "http://localhost:8083/failureStatusCodeService03" },
@@ -67,75 +67,75 @@ http:FailoverClient foStatusCodesEP03 = check new({
 
 service /failoverDemoService03 on failoverEP03 {
     resource function 'default invokeAllFailureEndpoint03(http:Caller caller, http:Request request) {
-        var backendRes = foBackendEP03->forward("/", <@untainted> request);
+        http:Response|error backendRes = foBackendEP03->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
 
     resource function 'default invokeAllFailureEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = foBackendFailureEP03->forward("/", <@untainted> request);
+        http:Response|error backendRes = foBackendFailureEP03->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
 
     resource function 'default invokeAllFailureStatusCodesEndpoint(http:Caller caller, http:Request request) {
-        var backendRes = foStatusCodesEP03->forward("/", <@untainted> request);
+        http:Response|error backendRes = foStatusCodesEP03->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
 
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
-        string startIndex = foBackendEP03.succeededEndpointIndex.toString();
-        var backendRes = foBackendEP03->forward("/", <@untainted> request);
+        string startIndex = foBackendEP03.getSucceededEndpointIndex().toString();
+        http:Response|error backendRes = foBackendEP03->forward("/", <@untainted> request);
         if (backendRes is http:Response) {
             string responseMessage = "Failover start index is : " + startIndex;
-            var responseToCaller = caller->respond(<@untainted> responseMessage);
+            error? responseToCaller = caller->respond(<@untainted> responseMessage);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = 500;
             response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -147,9 +147,9 @@ service /echo03 on backendEP03 {
         http:Response outResponse = new;
         // Delay the response for 30000 milliseconds to mimic network level delays.
         runtime:sleep(30);
-        var responseToCaller = caller->respond("echo Resource is invoked");
+        error? responseToCaller = caller->respond("echo Resource is invoked");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -184,13 +184,13 @@ service /mock03 on backendEP03 {
                             foreach var childPart in childParts {
                                 // When performing passthrough scenarios, message needs to be built before
                                 // invoking the endpoint to create a message datasource.
-                                var childBlobContent = childPart.getByteArray();
+                                byte[]|error childBlobContent = childPart.getByteArray();
                             }
                             io:println(bodyPart.getContentType());
                             bodyPart.setBodyParts(<@untainted> childParts, <@untainted> bodyPart.getContentType());
                         }
                     } else {
-                        var bodyPartBlobContent = bodyPart.getByteArray();
+                        byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
                     }
                 }
                 response.setBodyParts(<@untainted> mimeEntity, <@untainted> req.getContentType());
@@ -199,9 +199,9 @@ service /mock03 on backendEP03 {
             response.setPayload("Mock Resource is Invoked.");
         }
 
-        var responseToCaller = caller->respond(response);
+        error? responseToCaller = caller->respond(response);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -212,9 +212,9 @@ service /failureStatusCodeService03 on backendEP03 {
         http:Response outResponse = new;
         outResponse.statusCode = 503;
         outResponse.setPayload("Failure status code scenario");
-        var responseToCaller = caller->respond(outResponse);
+        error? responseToCaller = caller->respond(outResponse);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -225,12 +225,12 @@ function testAllEndpointFailure() {
     string expectedMessage = "All the failover endpoints failed. Last error was: " +
                 "Idle timeout triggered before initiating inbound response";
     http:Client testClient = checkpanic new("http://localhost:9303");
-    var response = testClient->post("/failoverDemoService03/invokeAllFailureEndpoint", requestPayload);
+    http:Response|error response = testClient->post("/failoverDemoService03/invokeAllFailureEndpoint", requestPayload);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), expectedMessage);
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }

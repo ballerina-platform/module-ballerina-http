@@ -43,7 +43,7 @@ service /test on mimeEP {
         http:Response response = new;
         mime:Entity responseEntity = new;
         var result = request.getByteStream();
-        if (result is stream<byte[], io:Error>) {
+        if (result is stream<byte[], io:Error?>) {
             responseEntity.setByteStream(result);
         } else {
             io:print("Error in getting byte stream");
@@ -170,10 +170,10 @@ function testAccessingPayloadFromEntity() {
     string jsonString = "{\"" + key + "\":\"" + value + "\"}";
     http:Request req = new;
     req.setTextPayload(jsonString);
-    var response = mimeClient->post(path, req);
+    http:Response|error response = mimeClient->post(path, req);
     if (response is http:Response) {
         assertJsonPayload(response.getJsonPayload(), {"payload":{"lang":"ballerina"}, "header":"text/plain"});
-    } else if (response is error) {
+    } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
     }
 }
@@ -186,10 +186,10 @@ function testStreamResponseSerialize() {
     json jsonString = {[key]:value};
     http:Request req = new;
     req.setJsonPayload(jsonString);
-    var response = mimeClient->post(path, req);
-    if (response is http:Response) {
-        assertJsonPayload(response.getJsonPayload(), jsonString);
-    } else if (response is error) {
-        test:assertFail(msg = "Test Failed! " + <string>response.message());
+    json|error response = mimeClient->post(path, req, targetType = json);
+    if (response is json) {
+        assertJsonPayload(response, jsonString);
+    } else {
+        test:assertFail(msg = "Test Failed! " + response.message());
     }
 }

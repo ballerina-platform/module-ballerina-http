@@ -30,31 +30,29 @@ service /general on ep {
 
     resource function get serverDown(http:Caller caller, http:Request req) {
         http:Request serviceReq = new;
-        var result1 = priorOn->get("/bogusResource");
-        var result2 = priorOff->get("/bogusResource");
+        http:Response|error result1 = priorOn->get("/bogusResource");
+        http:Response|error result2 = priorOff->get("/bogusResource");
         string response = handleResponse(result1) + "--" + handleResponse(result2);
         checkpanic caller->respond(<@untainted> response);
     }
 }
 
-function handleResponse(http:Response|http:PayloadType|error result) returns string {
-    string response = "";
+isolated function handleResponse(http:Response|error result) returns string {
     if (result is http:Response) {
-        response = "Call succeeded";
-    } else if (result is error) {
-        response = "Call to backend failed due to:" + result.message();
+        return "Call succeeded";
+    } else {
+        return "Call to backend failed due to:" + result.message();
     }
-    return response;
 }
 
 @test:Config {}
 public function testServerDown() {
     http:Client clientEP = checkpanic new("http://localhost:9099");
-    var resp = clientEP->get("/general/serverDown");
+    http:Response|error resp = clientEP->get("/general/serverDown");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Call to backend failed due to:Something wrong with the connection--Call to backend " +
                                     "failed due to:Something wrong with the connection");
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }

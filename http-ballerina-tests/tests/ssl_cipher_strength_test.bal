@@ -19,13 +19,15 @@ import ballerina/test;
 
 http:ListenerConfiguration strongCipherConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
-        trustStore: {
-            path: "tests/certsandkeys/ballerinaTruststore.p12",
-            password: "ballerina"
+        mutualSsl: {
+            cert: {
+                path: "tests/certsandkeys/ballerinaTruststore.p12",
+                password: "ballerina"
+            }
         }
         // Service will start with the strong cipher suites. No need to specify.
     }
@@ -44,13 +46,15 @@ service /strongService on strongCipher {
 
 http:ListenerConfiguration weakCipherConfig = {
     secureSocket: {
-        keyStore: {
+        key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         },
-        trustStore: {
-            path: "tests/certsandkeys/ballerinaTruststore.p12",
-            password: "ballerina"
+        mutualSsl: {
+            cert: {
+                path: "tests/certsandkeys/ballerinaTruststore.p12",
+                password: "ballerina"
+            }
         },
         ciphers: ["TLS_RSA_WITH_AES_128_CBC_SHA"]
     }
@@ -72,11 +76,11 @@ service /weakService on weakCipher {
 public function testWithStrongClientWithWeakService() {
     http:Client clientEP = checkpanic new("https://localhost:9227", {
         secureSocket: {
-            keyStore: {
+            key: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",
                 password: "ballerina"
             },
-            trustStore: {
+            cert: {
                 path: "tests/certsandkeys/ballerinaTruststore.p12",
                 password: "ballerina"
             },
@@ -84,10 +88,10 @@ public function testWithStrongClientWithWeakService() {
         }
     });
     http:Request req = new;
-    var resp = clientEP->get("/weakService/");
+    http:Response|error resp = clientEP->get("/weakService/");
     if (resp is http:Response) {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
-    } else if (resp is error) {
+    } else {
         test:assertEquals(resp.message(), "SSL connection failed:Received fatal alert: handshake_failure localhost/127.0.0.1:9227");
     }
 }
@@ -96,11 +100,11 @@ public function testWithStrongClientWithWeakService() {
 public function testWithStrongClientWithStrongService() {
     http:Client clientEP = checkpanic new("https://localhost:9226", {
         secureSocket: {
-            keyStore: {
+            key: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",
                 password: "ballerina"
             },
-            trustStore: {
+            cert: {
                 path: "tests/certsandkeys/ballerinaTruststore.p12",
                 password: "ballerina"
             },
@@ -108,7 +112,7 @@ public function testWithStrongClientWithStrongService() {
         }
     });
     http:Request req = new;
-    var resp = clientEP->get("/strongService/");
+    http:Response|error resp = clientEP->get("/strongService/");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
         if (payload is string) {
@@ -116,7 +120,7 @@ public function testWithStrongClientWithStrongService() {
         } else {
             test:assertFail(msg = "Found unexpected output: " + payload.message());
         }
-    } else if (resp is error) {
+    } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
 }

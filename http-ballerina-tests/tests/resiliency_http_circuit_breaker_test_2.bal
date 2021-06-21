@@ -19,22 +19,30 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-int forceOpenStateCount = 0;
+isolated int forceOpen = 0;
+
+isolated function retrieveAndIncrementCounter() returns int {
+    lock {
+        int currentCounter = forceOpen;
+        forceOpen += 1;
+        return currentCounter;
+    }
+}
 
 listener http:Listener circuitBreakerEP01 = new(9307);
 
 http:ClientConfiguration conf01 = {
     circuitBreaker: {
         rollingWindow: {
-            timeWindowInMillis: 60000,
-            bucketSizeInMillis: 20000,
+            timeWindow: 60,
+            bucketSize: 20,
             requestVolumeThreshold: 0
         },
         failureThreshold: 0.2,
-        resetTimeInMillis: 1000,
+        resetTime: 1,
         statusCodes: [501, 502, 503]
     },
-    timeoutInMillis: 2000
+    timeout: 2
 };
 
 http:Client healthyClientEP = checkpanic new("http://localhost:8087", conf01);
@@ -43,24 +51,133 @@ service /cb on circuitBreakerEP01 {
 
     resource function 'default forceopen(http:Caller caller, http:Request request) {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
-        forceOpenStateCount += 1;
-        if (forceOpenStateCount == 2) {
+        int counter = retrieveAndIncrementCounter();
+        if (counter % 3 == 0) {
+            cbClient.forceClose();
+        } else if (counter % 3 == 1) {
             cbClient.forceOpen();
         }
-        var backendRes = healthyClientEP->forward("/healthy", request);
+
+        http:Response|error backendRes = healthyClientEP->forward("/healthy", request);
+        handleBackendResponse(caller, backendRes);
+    }
+
+    resource function get forceopen(http:Caller caller, http:Request request) {
+        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
+        int counter = retrieveAndIncrementCounter();
+        if (counter % 3 == 0) {
+            cbClient.forceClose();
+        } else if (counter % 3 == 1) {
+            cbClient.forceOpen();
+        }
+
+        http:Response|error backendRes = healthyClientEP->get("/healthy");
+        handleBackendResponse(caller, backendRes);
+    }
+
+    resource function head forceopen(http:Caller caller, http:Request request) {
+        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
+        int counter = retrieveAndIncrementCounter();
+        if (counter % 3 == 0) {
+            cbClient.forceClose();
+        } else if (counter % 3 == 1) {
+            cbClient.forceOpen();
+        }
+        http:Response|error backendRes = healthyClientEP->head("/healthy");
         if (backendRes is http:Response) {
-            var responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
-        } else if (backendRes is error) {
+        } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendRes.message());
-            var responseToCaller = caller->respond(response);
+            response.setHeader(CB_HEADER, CB_FAILURE_HEADER_VALUE);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", err = responseToCaller);
+                log:printError("Error sending response", 'error = responseToCaller);
             }
+        }
+    }
+
+    resource function options forceopen(http:Caller caller, http:Request request) {
+        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
+        int counter = retrieveAndIncrementCounter();
+        if (counter % 3 == 0) {
+            cbClient.forceClose();
+        } else if (counter % 3 == 1) {
+            cbClient.forceOpen();
+        }
+        http:Response|error backendRes = healthyClientEP->options("/healthy");
+        if (backendRes is http:Response) {
+            error? responseToCaller = caller->respond(<@untainted> backendRes);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        } else {
+            http:Response response = new;
+            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+            response.setHeader(ALLOW_HEADER, CB_FAILUE_ALLOW_HEADER_VALUE);
+            error? responseToCaller = caller->respond(response);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
+            }
+        }
+    }
+
+    resource function put forceopen(http:Caller caller, http:Request request) {
+        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
+        int counter = retrieveAndIncrementCounter();
+        if (counter % 3 == 0) {
+            cbClient.forceClose();
+        } else if (counter % 3 == 1) {
+            cbClient.forceOpen();
+        }
+
+        http:Response|error backendRes = healthyClientEP->put("/healthy", request);
+        handleBackendResponse(caller, backendRes);
+    }
+
+    resource function patch forceopen(http:Caller caller, http:Request request) {
+        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
+        int counter = retrieveAndIncrementCounter();
+        if (counter % 3 == 0) {
+            cbClient.forceClose();
+        } else if (counter % 3 == 1) {
+            cbClient.forceOpen();
+        }
+
+        http:Response|error backendRes = healthyClientEP->patch("/healthy", request);
+        handleBackendResponse(caller, backendRes);
+    }
+
+    resource function delete forceopen(http:Caller caller, http:Request request) {
+        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
+        int counter = retrieveAndIncrementCounter();
+        if (counter % 3 == 0) {
+            cbClient.forceClose();
+        } else if (counter % 3 == 1) {
+            cbClient.forceOpen();
+        }
+
+        http:Response|error backendRes = healthyClientEP->delete("/healthy", request);
+        handleBackendResponse(caller, backendRes);
+    }
+}
+
+isolated function handleBackendResponse(http:Caller caller, http:Response|error backendRes) {
+    if (backendRes is http:Response) {
+        error? responseToCaller = caller->respond(<@untainted> backendRes);
+        if (responseToCaller is error) {
+            log:printError("Error sending response", 'error = responseToCaller);
+        }
+    } else {
+        http:Response response = new;
+        response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+        response.setPayload(<@untainted> backendRes.message());
+        error? responseToCaller = caller->respond(response);
+        if (responseToCaller is error) {
+            log:printError("Error sending response", 'error = responseToCaller);
         }
     }
 }
@@ -68,9 +185,27 @@ service /cb on circuitBreakerEP01 {
 service /healthy on new http:Listener(8087) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
-        var responseToCaller = caller->respond("Hello World!!!");
+        error? responseToCaller = caller->respond("Hello World!!!");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", err = responseToCaller);
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
+        }
+    }
+
+    resource function head .(http:Caller caller, http:Request req) {
+        http:Response res = new;
+        res.setHeader(CB_HEADER, CB_SUCCESS_HEADER_VALUE);
+        error? responseToCaller = caller->respond(res);
+        if (responseToCaller is error) {
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
+        }
+    }
+
+    resource function options .(http:Caller caller, http:Request req) {
+        http:Response res = new;
+        res.setHeader(ALLOW_HEADER, CB_SUCCESS_ALLOW_HEADER_VALUE);
+        error? responseToCaller = caller->respond(res);
+        if (responseToCaller is error) {
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -79,9 +214,60 @@ service /healthy on new http:Listener(8087) {
 //Test for circuit breaker forceOpen functionality
 http:Client testForceOpenClient = checkpanic new("http://localhost:9307");
 
-@test:Config{ dataProvider:forceOpenResponseDataProvider }
+@test:Config{ 
+    groups: ["circuitBreakerForceOpen"],
+    dataProvider:forceOpenResponseDataProvider 
+}
 function testForceOpen(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(testForceOpenClient, "/cb/forceopen", dataFeed);
+}
+
+@test:Config{ 
+    groups: ["circuitBreakerForceOpen"],
+    dataProvider:forceOpenResponseDataProvider 
+}
+function testForceOpenWithHttpGet(DataFeed dataFeed) {
+    invokeApiAndVerifyResponseWithHttpGet(testForceOpenClient, "/cb/forceopen", dataFeed);
+}
+
+@test:Config{ 
+    groups: ["circuitBreakerForceOpen"],
+    dataProvider:forceOpenResponseDataProviderForHeadRequest 
+}
+function testForceOpenWithHttpHead(DataFeed dataFeed) {
+    invokeApiAndVerifyResponseWithHttpHead(testForceOpenClient, "/cb/forceopen", dataFeed);
+}
+
+@test:Config{ 
+    groups: ["circuitBreakerForceOpen"],
+    dataProvider:forceOpenResponseDataProviderForOptionsRequest 
+}
+function testForceOpenWithHttpOptions(DataFeed dataFeed) {
+    invokeApiAndVerifyResponseWithHttpOptions(testForceOpenClient, "/cb/forceopen", dataFeed);
+}
+
+@test:Config{ 
+    groups: ["circuitBreakerForceOpen"],
+    dataProvider:forceOpenResponseDataProvider 
+}
+function testForceOpenWithHttpPut(DataFeed dataFeed) {
+    invokeApiAndVerifyResponseWithHttpPut(testForceOpenClient, "/cb/forceopen", dataFeed);
+}
+
+@test:Config{ 
+    groups: ["circuitBreakerForceOpen"],
+    dataProvider:forceOpenResponseDataProvider 
+}
+function testForceOpenWithHttpPatch(DataFeed dataFeed) {
+    invokeApiAndVerifyResponseWithHttpPatch(testForceOpenClient, "/cb/forceopen", dataFeed);
+}
+
+@test:Config{ 
+    groups: ["circuitBreakerForceOpen"],
+    dataProvider:forceOpenResponseDataProvider 
+}
+function testForceOpenWithHttpDelete(DataFeed dataFeed) {
+    invokeApiAndVerifyResponseWithHttpDelete(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
 function forceOpenResponseDataProvider() returns DataFeed[][] {
@@ -89,5 +275,21 @@ function forceOpenResponseDataProvider() returns DataFeed[][] {
         [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
         [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}],
         [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}]
+    ];
+}
+
+function forceOpenResponseDataProviderForHeadRequest() returns DataFeed[][] {
+    return [
+        [{responseCode:SC_OK, message:CB_SUCCESS_HEADER_VALUE}],
+        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:CB_FAILURE_HEADER_VALUE}],
+        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:CB_FAILURE_HEADER_VALUE}]
+    ];
+}
+
+function forceOpenResponseDataProviderForOptionsRequest() returns DataFeed[][] {
+    return [
+        [{responseCode:SC_OK, message:CB_SUCCESS_ALLOW_HEADER_VALUE}],
+        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:CB_FAILUE_ALLOW_HEADER_VALUE}],
+        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:CB_FAILUE_ALLOW_HEADER_VALUE}]
     ];
 }

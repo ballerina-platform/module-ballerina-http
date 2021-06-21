@@ -14,40 +14,43 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/jballerina.java;
 import ballerina/mime;
 
 # LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients.
 #
-# + loadBalanceClientConfig - The configurations for the load balance client endpoint
 # + loadBalanceClientsArray - Array of HTTP clients for load balancing
 # + lbRule - Load balancing rule
 # + failover - Whether to fail over in case of a failure
-public client class LoadBalanceClient {
+public client isolated class LoadBalanceClient {
+    *ClientObject;
 
-    public LoadBalanceClientConfiguration loadBalanceClientConfig;
-    public Client?[] loadBalanceClientsArray;
-    public LoadBalancerRule lbRule;
-    public boolean failover;
+    private final Client?[] loadBalanceClientsArray;
+    private LoadBalancerRule lbRule;
+    private final boolean failover;
 
     # Load Balancer adds an additional layer to the HTTP client to make network interactions more resilient.
     #
     # + loadBalanceClientConfig - The configurations for the load balance client endpoint
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    public function init(LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
-        self.loadBalanceClientConfig = loadBalanceClientConfig;
+    public isolated function init(*LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
         self.failover = loadBalanceClientConfig.failover;
-        var lbClients = createLoadBalanceHttpClientArray(loadBalanceClientConfig);
-        if (lbClients is ClientError) {
-            return lbClients;
+        self.loadBalanceClientsArray = [];
+        Client clientEp;
+        Client?[] lbClients = self.loadBalanceClientsArray;
+        int i = 0;
+        foreach var target in loadBalanceClientConfig.targets {
+            ClientConfiguration epConfig = createClientEPConfigFromLoalBalanceEPConfig(loadBalanceClientConfig, target);
+            clientEp =  check new(target.url , epConfig);
+            lbClients[i] = clientEp;
+            i += 1;
+        }
+        var lbRule = loadBalanceClientConfig.lbRule;
+        if (lbRule is LoadBalancerRule) {
+            self.lbRule = lbRule;
         } else {
-            self.loadBalanceClientsArray = lbClients;
-            var lbRule = loadBalanceClientConfig.lbRule;
-            if (lbRule is LoadBalancerRule) {
-                self.lbRule = lbRule;
-            } else {
-                LoadBalancerRoundRobinRule loadBalancerRoundRobinRule = new;
-                self.lbRule = loadBalancerRoundRobinRule;
-            }
+            LoadBalancerRoundRobinRule loadBalancerRoundRobinRule = new;
+            self.lbRule = loadBalancerRoundRobinRule;
         }
     }
 
@@ -55,67 +58,173 @@ public client class LoadBalanceClient {
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function post(@untainted string path, RequestMessage message, TargetType targetType = Response)
-                returns @tainted Response|PayloadType|ClientError {
+    remote isolated function post(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_POST);
-    }
-
-    # The HEAD remote function implementation of the LoadBalancer Connector.
-    #
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
-    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_HEAD);
-    }
-
-    # The PATCH remote function implementation of the LoadBalancer Connector.
-    #
-    # + path - Resource path
-    # + message - An HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function patch(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_PATCH);
+        populateOptions(req, mediaType, headers);
+        var result = self.performLoadBalanceAction(path, req, HTTP_POST);
+        return processResponse(result, targetType);
     }
 
     # The PUT remote function implementation of the Load Balance Connector.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function put(string path, RequestMessage message, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
+    remote isolated function put(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processPut(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_PUT);
+        populateOptions(req, mediaType, headers);
+        var result = self.performLoadBalanceAction(path, req, HTTP_PUT);
+        return processResponse(result, targetType);
+    }
+
+    # The PATCH remote function implementation of the LoadBalancer Connector.
+    #
+    # + path - Resource path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function patch(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processPatch(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
+        var result = self.performLoadBalanceAction(path, req, HTTP_PATCH);
+        return processResponse(result, targetType);
+    }
+
+    # The DELETE remote function implementation of the LoadBalancer Connector.
+    #
+    # + path - Resource path
+    # + message - An optional HTTP outbound request message or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function delete(@untainted string path, RequestMessage message = (), map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processDelete(@untainted string path, RequestMessage message, TargetType targetType, 
+            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequest(message);
+        populateOptions(req, mediaType, headers);
+        var result = self.performLoadBalanceAction(path, req, HTTP_DELETE);
+        return processResponse(result, targetType);
+    }
+
+    # The HEAD remote function implementation of the LoadBalancer Connector.
+    #
+    # + path - Resource path
+    # + headers - The entity headers
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    remote isolated function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
+            Response|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        return self.performLoadBalanceAction(path, req, HTTP_HEAD);
+    }
+
+    # The GET remote function implementation of the LoadBalancer Connector.
+    # 
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
+            returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        var result = self.performLoadBalanceAction(path, req, HTTP_GET);
+        return processResponse(result, targetType);
     }
 
     # The OPTIONS remote function implementation of the LoadBalancer Connector.
     #
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
+    # + path - Request path
+    # + headers - The entity headers
     # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function options(string path, RequestMessage message = (), TargetType targetType = Response)
+    remote isolated function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
+            returns @tainted Response|PayloadType|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        var result = self.performLoadBalanceAction(path, req, HTTP_OPTIONS);
+        return processResponse(result, targetType);
+    }
+
+    # The EXECUTE remote function implementation of the LoadBalancer Connector.
+    #
+    # + httpVerb - HTTP verb value
+    # + path - Resource path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
+    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+            map<string|string[]>? headers = (), string? mediaType = (), TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
+    
+    private isolated function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+            TargetType targetType, string? mediaType, map<string|string[]>? headers) 
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_OPTIONS);
+        populateOptions(req, mediaType, headers);
+        var result = self.performLoadBalanceExecuteAction(path, req, httpVerb);
+        return processResponse(result, targetType);
     }
 
     # The FORWARD remote function implementation of the LoadBalancer Connector.
@@ -126,53 +235,15 @@ public client class LoadBalanceClient {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote function forward(string path, Request request, TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
-        return performLoadBalanceAction(self, path, request, HTTP_FORWARD);
-    }
+    remote isolated function forward(@untainted string path, Request request, TargetType targetType = <>)
+            returns @tainted targetType|ClientError = @java:Method {
+        'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
+    } external;
 
-    # The EXECUTE remote function implementation of the LoadBalancer Connector.
-    # The Execute remote function can be used to invoke an HTTP call with the given HTTP verb.
-    #
-    # + httpVerb - HTTP method to be used for the request
-    # + path - Resource path
-    # + message - An HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function execute(string httpVerb, string path, RequestMessage message, TargetType targetType = Response)
+    private isolated function processForward(string path, Request request, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceExecuteAction(self, path, req, httpVerb);
-    }
-
-    # The DELETE remote function implementation of the LoadBalancer Connector.
-    #
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function delete(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_DELETE);
-    }
-
-    # The GET remote function implementation of the LoadBalancer Connector.
-
-    # + path - Resource path
-    # + message - An optional HTTP outbound request or any allowed payload
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote function get(string path, RequestMessage message = (), TargetType targetType = Response)
-            returns @tainted Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
-        return performLoadBalanceAction(self, path, req, HTTP_GET);
+        var result = self.performLoadBalanceAction(path, request, HTTP_FORWARD);
+        return processResponse(result, targetType);
     }
 
     # The submit implementation of the LoadBalancer Connector.
@@ -182,7 +253,7 @@ public client class LoadBalanceClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
-    remote function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return error UnsupportedActionError("Load balancer client not supported for submit action");
     }
 
@@ -190,7 +261,7 @@ public client class LoadBalanceClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getResponse(HttpFuture httpFuture) returns Response|ClientError {
+    remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         return error UnsupportedActionError("Load balancer client not supported for getResponse action");
     }
 
@@ -198,7 +269,7 @@ public client class LoadBalanceClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
-    remote function hasPromise(HttpFuture httpFuture) returns boolean {
+    remote isolated function hasPromise(HttpFuture httpFuture) returns boolean {
         return false;
     }
 
@@ -206,7 +277,7 @@ public client class LoadBalanceClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
-    remote function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
+    remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError {
         return error UnsupportedActionError("Load balancer client not supported for getNextPromise action");
     }
 
@@ -214,124 +285,104 @@ public client class LoadBalanceClient {
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
-    remote function getPromisedResponse(PushPromise promise) returns Response|ClientError {
+    remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError {
         return error UnsupportedActionError("Load balancer client not supported for getPromisedResponse action");
     }
 
     # The rejectPromise implementation of the LoadBalancer Connector.
     #
     # + promise - The Push Promise to be rejected
-    remote function rejectPromise(PushPromise promise) {}
-}
+    remote isolated function rejectPromise(PushPromise promise) {}
 
-# Represents the error attributes in addition to the message and the cause of the `LoadBalanceActionError`.
-#
-# + httpActionErr - Array of errors occurred at each endpoint
-public type LoadBalanceActionErrorData record {
-    error?[] httpActionErr = [];
-};
-
-# Represents an error occurred in an remote function of the Load Balance connector.
-public type LoadBalanceActionError distinct error<LoadBalanceActionErrorData>;
-
-// Performs execute action of the Load Balance connector. extract the corresponding http integer value representation
-// of the http verb and invokes the perform action method.
-function performLoadBalanceExecuteAction(LoadBalanceClient lb, string path, Request request,
-                                         string httpVerb) returns @tainted Response|ClientError {
-    HttpOperation connectorAction = extractHttpOperation(httpVerb);
-    if (connectorAction != HTTP_NONE) {
-        return performLoadBalanceAction(lb, path, request, connectorAction);
-    } else {
-        return error UnsupportedActionError("Load balancer client not supported for http method: " + httpVerb);
+    // Performs execute action of the Load Balance connector. extract the corresponding http integer value representation
+    // of the http verb and invokes the perform action method.
+    isolated function performLoadBalanceExecuteAction(string path, Request request,
+                                             string httpVerb) returns @tainted Response|ClientError {
+        HttpOperation connectorAction = extractHttpOperation(httpVerb);
+        if (connectorAction != HTTP_NONE) {
+            return self.performLoadBalanceAction(path, request, connectorAction);
+        } else {
+            return error UnsupportedActionError("Load balancer client not supported for http method: " + httpVerb);
+        }
     }
-}
 
-// Handles all the actions exposed through the Load Balance connector.
-function performLoadBalanceAction(LoadBalanceClient lb, string path, Request request, HttpOperation requestAction)
+    // Handles all the actions exposed through the Load Balance connector.
+    isolated function performLoadBalanceAction(string path, Request request, HttpOperation requestAction)
              returns @tainted Response|ClientError {
-    int loadBalanceTermination = 0; // Tracks at which point failover within the load balancing should be terminated.
-    //TODO: workaround to initialize a type inside a function. Change this once fix is available.
-    LoadBalanceActionErrorData loadBalanceActionErrorData = {httpActionErr:[]};
-    int lbErrorIndex = 0;
-    Request loadBalancerInRequest = request;
-    mime:Entity requestEntity = new;
+        int loadBalanceTermination = 0; // Tracks at which point failover within the load balancing should be terminated.
+        //TODO: workaround to initialize a type inside a function. Change this once fix is available.
+        LoadBalanceActionErrorData loadBalanceActionErrorData = {httpActionErr:[]};
+        int lbErrorIndex = 0;
+        Request loadBalancerInRequest = request;
+        mime:Entity requestEntity = new;
 
-    if (lb.failover) {
-        if (isMultipartRequest(loadBalancerInRequest)) {
-            loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest);
-        } else {
-            // When performing passthrough scenarios using Load Balance connector,
-            // message needs to be built before trying out the load balance endpoints to keep the request message
-            // to load balance the messages in case of failure.
-            var binaryPayload = loadBalancerInRequest.getBinaryPayload();
-            requestEntity = check loadBalancerInRequest.getEntity();
-        }
-    }
-
-    while (loadBalanceTermination < lb.loadBalanceClientsArray.length()) {
-        var loadBalanceClient = lb.lbRule.getNextClient(lb.loadBalanceClientsArray);
-        if (loadBalanceClient is Client) {
-            var serviceResponse = invokeEndpoint(path, request, requestAction, loadBalanceClient);
-            if (serviceResponse is Response) {
-                return serviceResponse;
-            } else if (serviceResponse is HttpFuture) {
-                return getInvalidTypeError();
+        if (self.failover) {
+            if (isMultipartRequest(loadBalancerInRequest)) {
+                loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest);
             } else {
-                if (lb.failover) {
-                    loadBalancerInRequest = check createFailoverRequest(loadBalancerInRequest, requestEntity);
-                    loadBalanceActionErrorData.httpActionErr[lbErrorIndex] = serviceResponse;
-                    lbErrorIndex += 1;
-                    loadBalanceTermination = loadBalanceTermination + 1;
-                } else {
-                    return serviceResponse;
-                }
+                // When performing passthrough scenarios using Load Balance connector,
+                // message needs to be built before trying out the load balance endpoints to keep the request message
+                // to load balance the messages in case of failure.
+                byte[]|error binaryPayload = loadBalancerInRequest.getBinaryPayload();
+                requestEntity = check loadBalancerInRequest.getEntity();
             }
-        } else {
-            return loadBalanceClient;
         }
+
+        int arrLength;
+        lock {
+            arrLength = self.loadBalanceClientsArray.length();
+        }
+        while (loadBalanceTermination < arrLength) {
+            Client|ClientError loadBalanceClient;
+            lock {
+                loadBalanceClient = self.lbRule.getNextClient(self.loadBalanceClientsArray);
+            }
+            if (loadBalanceClient is Client) {
+                var serviceResponse = invokeEndpoint(path, request, requestAction, loadBalanceClient.httpClient);
+                if (serviceResponse is Response) {
+                    return serviceResponse;
+                } else if (serviceResponse is HttpFuture) {
+                    return getInvalidTypeError();
+                } else {
+                    if (self.failover) {
+                        loadBalancerInRequest = check createFailoverRequest(loadBalancerInRequest, requestEntity);
+                        loadBalanceActionErrorData.httpActionErr[lbErrorIndex] = serviceResponse;
+                        lbErrorIndex += 1;
+                        loadBalanceTermination = loadBalanceTermination + 1;
+                    } else {
+                        return serviceResponse;
+                    }
+                }
+            } else {
+                return loadBalanceClient;
+            }
+        }
+        return populateGenericLoadBalanceActionError(loadBalanceActionErrorData);
     }
-    return populateGenericLoadBalanceActionError(loadBalanceActionErrorData);
 }
 
 // Populates generic error specific to Load Balance connector by including all the errors returned from endpoints.
 isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorData loadBalanceActionErrorData)
                                                     returns ClientError {
-    int nErrs = loadBalanceActionErrorData.httpActionErr.length();
-    error? lastError = loadBalanceActionErrorData.httpActionErr[nErrs - 1];
-    if (lastError is ()) {
+    error[]? errArray = loadBalanceActionErrorData?.httpActionErr;
+    if (errArray is ()) {
         panic error("Unexpected nil");
+    } else {
+        int nErrs = errArray.length();
+        error actError = errArray[nErrs - 1];
+        string lastErrorMessage = actError.message();
+        string message = "All the load balance endpoints failed. Last error was: " + lastErrorMessage;
+        return error AllLoadBalanceEndpointsFailedError(message, httpActionError = errArray);
     }
-
-    error actError = <error> lastError;
-    string lastErrorMessage = actError.message();
-    string message = "All the load balance endpoints failed. Last error was: " + lastErrorMessage;
-    return error AllLoadBalanceEndpointsFailedError(message, httpActionError = loadBalanceActionErrorData.httpActionErr);
 }
 
 
-# The configurations related to the load balance client endpoint. Following fields are inherited from the other
-# configuration records in addition to the load balance client specific configs.
-#
-# |                                                         |
-# |:------------------------------------------------------- |
-# | httpVersion - Copied from CommonClientConfiguration     |
-# | http1Settings - Copied from CommonClientConfiguration   |
-# | http2Settings - Copied from CommonClientConfiguration   |
-# | timeoutInMillis - Copied from CommonClientConfiguration |
-# | forwarded - Copied from CommonClientConfiguration       |
-# | followRedirects - Copied from CommonClientConfiguration |
-# | poolConfig - Copied from CommonClientConfiguration      |
-# | cache - Copied from CommonClientConfiguration           |
-# | compression - Copied from CommonClientConfiguration     |
-# | auth - Copied from CommonClientConfiguration            |
-# | circuitBreaker - Copied from CommonClientConfiguration  |
-# | retryConfig - Copied from CommonClientConfiguration     |
-# | cookieConfig - Copied from CommonClientConfiguration    |
-# | responseLimits - Copied from CommonClientConfiguration  |
+# The configurations related to the load balancing client endpoint. The following fields are inherited from the other
+# configuration records in addition to the load balancing client specific configs.
 #
 # + targets - The upstream HTTP endpoints among which the incoming HTTP traffic load should be distributed
-# + lbRule - LoadBalancing rule
-# + failover - Configuration for load balancer whether to fail over in case of a failure
+# + lbRule - The `LoadBalancing` rule
+# + failover - Configuration for the load balancer whether to fail over a failure
 public type LoadBalanceClientConfiguration record {|
     *CommonClientConfiguration;
     TargetService[] targets = [];
@@ -345,7 +396,7 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         http1Settings: lbConfig.http1Settings,
         http2Settings: lbConfig.http2Settings,
         circuitBreaker:lbConfig.circuitBreaker,
-        timeoutInMillis:lbConfig.timeoutInMillis,
+        timeout:lbConfig.timeout,
         httpVersion:lbConfig.httpVersion,
         forwarded:lbConfig.forwarded,
         followRedirects:lbConfig.followRedirects,
@@ -359,18 +410,4 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         responseLimits:lbConfig.responseLimits
     };
     return clientEPConfig;
-}
-
-function createLoadBalanceHttpClientArray(LoadBalanceClientConfiguration loadBalanceClientConfig)
-                                                                                    returns Client?[]|ClientError {
-    Client cl;
-    Client?[] httpClients = [];
-    int i = 0;
-    foreach var target in loadBalanceClientConfig.targets {
-        ClientConfiguration epConfig = createClientEPConfigFromLoalBalanceEPConfig(loadBalanceClientConfig, target);
-        cl =  check new(target.url , epConfig);
-        httpClients[i] = cl;
-        i += 1;
-    }
-    return httpClients;
 }
