@@ -38,7 +38,7 @@ public class HttpCallableUnitCallback implements Callback {
     private final Runtime runtime;
     private final String returnMediaType;
     private HttpCarbonMessage requestMessage;
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: request has already been responded";
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType) {
         this.requestMessage = requestMessage;
@@ -50,12 +50,13 @@ public class HttpCallableUnitCallback implements Callback {
     @Override
     public void notifySuccess(Object result) {
         if (result == null) { // handles nil return and end of resource exec
-            requestMessage.waitAndReleaseAllEntities();
-            stopObservationWithContext();
+            cleanupRequestAndContext();
             return;
         }
-        printStacktrace(result);
-        HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
+        if (alreadyResponded(result)) {
+            return;
+        }
+        printStacktraceIfError(result);
 
         Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
@@ -66,8 +67,8 @@ public class HttpCallableUnitCallback implements Callback {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
-                printStacktrace(result);
-                requestMessage.waitAndReleaseAllEntities();
+                cleanupRequestAndContext();
+                printStacktraceIfError(result);
             }
 
             @Override
@@ -87,13 +88,20 @@ public class HttpCallableUnitCallback implements Callback {
             requestMessage.waitAndReleaseAllEntities();
             return;
         }
+        if (alreadyResponded(error)) {
+            return;
+        }
         sendFailureResponse(error);
     }
 
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
-        stopObservationWithContext();
+        cleanupRequestAndContext();
+    }
+
+    private void cleanupRequestAndContext() {
         requestMessage.waitAndReleaseAllEntities();
+        stopObservationWithContext();
     }
 
     private void stopObservationWithContext() {
@@ -106,7 +114,19 @@ public class HttpCallableUnitCallback implements Callback {
         }
     }
 
-    private void printStacktrace(Object result) {
+    private boolean alreadyResponded(Object result) {
+        try {
+            HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
+        } catch (BError err) {
+            printStacktraceIfError(result);
+            err.printStackTrace();
+            cleanupRequestAndContext();
+            return true;
+        }
+        return false;
+    }
+
+    private void printStacktraceIfError(Object result) {
         if (result instanceof BError) {
             ((BError) result).printStackTrace();
         }
