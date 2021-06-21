@@ -66,14 +66,10 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
 import static io.netty.handler.codec.http.HttpHeaderNames.ACCEPT_ENCODING;
 import static org.ballerinalang.net.http.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION;
-import static org.ballerinalang.net.http.HttpConstants.FRAGMENT_CHAR;
-import static org.ballerinalang.net.http.HttpConstants.QUERY_CHAR;
-import static org.ballerinalang.net.http.HttpConstants.SINGLE_SLASH;
 import static org.ballerinalang.net.http.HttpUtil.extractEntity;
 import static org.ballerinalang.net.http.HttpUtil.getCompressionState;
 import static org.ballerinalang.net.transport.contract.Constants.ENCODING_DEFLATE;
