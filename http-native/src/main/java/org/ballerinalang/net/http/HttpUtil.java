@@ -216,7 +216,7 @@ public class HttpUtil {
     private static final String METHOD_ACCESSED = "isMethodAccessed";
     private static final String IO_EXCEPTION_OCCURRED = "I/O exception occurred";
     private static final String CHUNKING_CONFIG = "chunking_config";
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal respond: request has already been responded";
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal respond: response has already been sent";
 
     /**
      * Set new entity to in/out request/response struct.

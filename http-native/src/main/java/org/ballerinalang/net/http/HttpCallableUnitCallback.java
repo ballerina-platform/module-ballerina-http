@@ -38,7 +38,7 @@ public class HttpCallableUnitCallback implements Callback {
     private final Runtime runtime;
     private final String returnMediaType;
     private HttpCarbonMessage requestMessage;
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: request has already been responded";
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType) {
         this.requestMessage = requestMessage;
