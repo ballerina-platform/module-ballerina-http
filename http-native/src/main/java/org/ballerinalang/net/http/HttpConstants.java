@@ -319,10 +319,10 @@ public class HttpConstants {
     public static final String CONNECTION_HEADER = "Connection";
     public static final String HEADER_VAL_CONNECTION_CLOSE = "Close";
     public static final String HEADER_VAL_CONNECTION_KEEP_ALIVE = "Keep-Alive";
-    public static final String HEADER_VAL_100_CONTINUE = "100-continue";
 
     //Response codes
     public static final int INVALID_STATUS_CODE = 000;
+    public static final int STATUS_CODE_100_CONTINUE = 100;
     public static final String HTTP_BAD_REQUEST = "400";
     public static final String HEADER_X_XID = "x-b7a-xid";
     public static final String HEADER_X_REGISTER_AT_URL = "x-b7a-register-at";
