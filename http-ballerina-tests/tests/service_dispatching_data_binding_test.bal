@@ -95,16 +95,18 @@ service /echo on dataBindingEP {
         var err = dataBindingEP.attach(multipleAnnot1, "multipleAnnot1");
         if err is error {
             checkpanic caller->respond(err.message());
+        } else {
+            checkpanic caller->respond("ok");
         }
-        checkpanic caller->respond("ok");
     }
 
     resource function get negative2(http:Caller caller) {
         var err = dataBindingEP.attach(multipleAnnot2, "multipleAnnot2");
         if err is error {
             checkpanic caller->respond(err.message());
+        } else {
+            checkpanic caller->respond("ok");
         }
-        checkpanic caller->respond("ok");
     }
 }
 

@@ -50,18 +50,13 @@ public class HttpCallableUnitCallback implements Callback {
     @Override
     public void notifySuccess(Object result) {
         if (result == null) { // handles nil return and end of resource exec
-            requestMessage.waitAndReleaseAllEntities();
-            stopObservationWithContext();
+            cleanupRequestAndContext();
             return;
         }
-        printStacktrace(result);
-        try {
-            HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
-        } catch (BError err) {
-            err.printStackTrace();
-            requestMessage.waitAndReleaseAllEntities();
+        if (alreadyResponded(result)) {
             return;
         }
+        printStacktraceIfError(result);
 
         Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
@@ -72,8 +67,8 @@ public class HttpCallableUnitCallback implements Callback {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
-                printStacktrace(result);
-                requestMessage.waitAndReleaseAllEntities();
+                cleanupRequestAndContext();
+                printStacktraceIfError(result);
             }
 
             @Override
@@ -93,13 +88,20 @@ public class HttpCallableUnitCallback implements Callback {
             requestMessage.waitAndReleaseAllEntities();
             return;
         }
+        if (alreadyResponded(error)) {
+            return;
+        }
         sendFailureResponse(error);
     }
 
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
-        stopObservationWithContext();
+        cleanupRequestAndContext();
+    }
+
+    private void cleanupRequestAndContext() {
         requestMessage.waitAndReleaseAllEntities();
+        stopObservationWithContext();
     }
 
     private void stopObservationWithContext() {
@@ -112,7 +114,19 @@ public class HttpCallableUnitCallback implements Callback {
         }
     }
 
-    private void printStacktrace(Object result) {
+    private boolean alreadyResponded(Object result) {
+        try {
+            HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
+        } catch (BError err) {
+            printStacktraceIfError(result);
+            err.printStackTrace();
+            cleanupRequestAndContext();
+            return true;
+        }
+        return false;
+    }
+
+    private void printStacktraceIfError(Object result) {
         if (result instanceof BError) {
             ((BError) result).printStackTrace();
         }
