@@ -1112,7 +1112,7 @@ public class HttpUtil {
 
     private static boolean is100ContinueRequest(HttpCarbonMessage reqMsg, int statusCode) {
         return HttpConstants.HEADER_VAL_100_CONTINUE.equalsIgnoreCase(
-                reqMsg.getHeader(HttpHeaderNames.EXPECT.toString())) || statusCode == 100;
+                reqMsg.getHeader(HttpHeaderNames.EXPECT.toString())) && statusCode == 100;
     }
 
     public static BMap getTransactionConfigAnnotation(MethodType resource, String transactionPackagePath) {

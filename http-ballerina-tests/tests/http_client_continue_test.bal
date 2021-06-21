@@ -91,9 +91,29 @@ service /'continue on httpClientContinueListenerEP2  {
         }
     }
 }
+@test:Config {}
+function testContinueActionWithMain() {
+    http:Client clientEP = checkpanic new("http://localhost:" + httpClientContinueTestPort1.toString());
+    http:Request req = new();
+    req.addHeader("content-type", "text/plain");
+    req.addHeader("Expect", "100-continue");
+    req.setPayload("Hello World!");
+    http:Response|error response = clientEP->post("/continue", req);
+    if (response is http:Response) {
+        var payload = response.getTextPayload();
+        if (payload is string) {
+            test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+            assertTextPayload(response.getTextPayload(), "Hello World!\n");
+        } else {
+            test:assertFail(msg = "Found unexpected output type: " + payload.message());
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
 
 //Test 100 continue for http client
-@test:Config {}
+@test:Config {dependsOn:[testContinueActionWithMain]}
 function testContinueAction() {
     http:Response|error response = httpClientContinueClient->get("/continue");
     if (response is http:Response) {
@@ -112,27 +132,6 @@ function testNegativeContinueAction() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {dependsOn:[testNegativeContinueAction]}
-function testContinueActionWithMain() {
-    http:Client clientEP = checkpanic new("http://localhost:" + httpClientContinueTestPort1.toString());
-    http:Request req = new();
-    req.addHeader("content-type", "text/plain");
-    req.addHeader("Expect", "100-continue");
-    req.setPayload("Hello World!");
-    http:Response|error response = clientEP->post("/continue", req);
-    if (response is http:Response) {
-        var payload = response.getTextPayload();
-        if (payload is string) {
-            test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-            assertTextPayload(response.getTextPayload(), "Hello World!\n");
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + payload.message());
-        }
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
