@@ -20,7 +20,7 @@ import ballerina/mime;
 import ballerina/test;
 
 @test:Config {}
-function testSetPayloadWithString() returns error? {
+function testRequestSetPayloadWithString() returns error? {
     http:Request req = new;
     req.setPayload("test");
     test:assertEquals(req.getContentType(), "text/plain", msg = "Found unexpected headerValue");
@@ -32,7 +32,7 @@ function testSetPayloadWithString() returns error? {
 }
 
 @test:Config {}
-function testSetPayloadWithXml() returns error? {
+function testRequestSetPayloadWithXml() returns error? {
     http:Request req = new;
     xml testValue = xml `<test><name>ballerina</name></test>`;
     req.setPayload(testValue);
@@ -45,7 +45,7 @@ function testSetPayloadWithXml() returns error? {
 }
 
 @test:Config {}
-function testSetPayloadWithJson() returns error? {
+function testRequestSetPayloadWithJson() returns error? {
     http:Request req = new;
     req.setPayload({"payload": "test"});
     test:assertEquals(req.getContentType(), "application/json", msg = "Found unexpected headerValue");
@@ -57,7 +57,7 @@ function testSetPayloadWithJson() returns error? {
 }
 
 @test:Config {}
-function testSetPayloadWithByteArray() returns error? {
+function testRequestSetPayloadWithByteArray() returns error? {
     http:Request req = new;
     req.setPayload("test".toBytes());
     test:assertEquals(req.getContentType(), "application/octet-stream", msg = "Found unexpected headerValue");
@@ -69,7 +69,7 @@ function testSetPayloadWithByteArray() returns error? {
 }
 
 @test:Config {}
-function testSetPayloadWithByteStream() returns error? {
+function testRequestSetPayloadWithByteStream() returns error? {
     http:Request req = new;
     io:ReadableByteChannel byteChannel = check io:openReadableFile("tests/datafiles/test.tmp");
     stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
@@ -83,7 +83,7 @@ function testSetPayloadWithByteStream() returns error? {
 }
 
 @test:Config {}
-function testSetPayloadWithEntityArray() returns error? {
+function testRequestSetPayloadWithEntityArray() returns error? {
     http:Request req = new;
     io:ReadableByteChannel byteChannel = check io:openReadableFile ("tests/datafiles/test.tmp");
     stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
@@ -100,7 +100,7 @@ function testSetPayloadWithEntityArray() returns error? {
 }
 
 @test:Config{}
-function testSetFileAsPayload() returns error? {
+function testRequestSetFileAsPayload() returns error? {
     http:Request req = new;
     req.setFileAsPayload("tests/datafiles/testFile.txt");
     test:assertEquals(req.getContentType(), "application/octet-stream", msg = "Found unexpected headerValue");
@@ -109,4 +109,29 @@ function testSetFileAsPayload() returns error? {
     check req.setContentType("file/test2");
     req.setFileAsPayload("tests/datafiles/testFile.txt");
     test:assertEquals(req.getContentType(), "file/test2", msg = "Found unexpected headerValue");
+}
+
+@test:Config {}
+function testRequestSetXmlPayload() returns error? {
+    http:Request req = new;
+    xml testValue = xml `<test><name>ballerina</name></test>`;
+    req.setXmlPayload(testValue);
+    test:assertEquals(req.getContentType(), "application/xml", msg = "Found unexpected headerValue");
+    req.setXmlPayload(testValue, "xml/test1");
+    test:assertEquals(req.getContentType(), "xml/test1", msg = "Found unexpected headerValue");
+    check req.setContentType("xml/test2");
+    req.setXmlPayload(testValue);
+    test:assertEquals(req.getContentType(), "xml/test2", msg = "Found unexpected headerValue");
+}
+
+@test:Config {}
+function testRequestSetBinaryPayload() returns error? {
+    http:Request req = new;
+    req.setBinaryPayload("test".toBytes());
+    test:assertEquals(req.getContentType(), "application/octet-stream", msg = "Found unexpected headerValue");
+    req.setBinaryPayload("test".toBytes(), "binary/test1");
+    test:assertEquals(req.getContentType(), "binary/test1", msg = "Found unexpected headerValue");
+    check req.setContentType("binary/test2");
+    req.setBinaryPayload("test".toBytes());
+    test:assertEquals(req.getContentType(), "binary/test2", msg = "Found unexpected headerValue");
 }
