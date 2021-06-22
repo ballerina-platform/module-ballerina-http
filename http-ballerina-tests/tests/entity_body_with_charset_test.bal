@@ -23,31 +23,31 @@ xml xmlValue = xml `<菜鸟驿站><name>菜鸟驿站</name></菜鸟驿站>`;
 
 //Request charset with json payload
 @test:Config {}
-function testSetJsonPayloadWithoutCharset() {
+function testSetJsonPayloadWithoutCharset() returns error? {
     http:Request request = new;
     request.setJsonPayload({ test: "testValue" });
-    string[] headers = checkpanic request.getHeaders("content-type");
+    string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json", msg = "Content-type mismatched");
 
 }
 
 @test:Config {}
-function testCharsetWithExistingContentType() {
+function testCharsetWithExistingContentType() returns error? {
     http:Request request = new;
     request.setJsonPayload({ test: "testValue" }, "application/json;charset=\"ISO_8859-1:1987\"");
-    string[] headers = checkpanic request.getHeaders("content-type");
+    string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json;charset=ISO_8859-1:1987", msg = "Content-type mismatched");
 }
 
 @test:Config {}
-function testSetHeaderAfterJsonPayload() {
+function testSetHeaderAfterJsonPayload() returns error? {
     http:Request request = new;
     request.setHeader("content-type", "application/json;charset=utf-8");
     request.setJsonPayload({ test: "testValue" });
     request.setHeader("content-type", "application/json;charset=\"ISO_8859-1:1987\"");
-    string[] headers = checkpanic request.getHeaders("content-type");
+    string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json;charset=\"ISO_8859-1:1987\"", msg = "Content-type mismatched");
 }
@@ -79,31 +79,31 @@ function testJsonPayloadWithCharset() {
 
 //Request charset with xml payload
 @test:Config {}
-function testSetXmlPayloadWithoutCharset() {
+function testSetXmlPayloadWithoutCharset() returns error? {
     http:Request request = new;
     request.setXmlPayload(testValue);
-    string[] headers = checkpanic request.getHeaders("content-type");
+    string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml");
 }
 
 @test:Config {}
-function testCharsetWithExistingContentTypeXml() {
+function testCharsetWithExistingContentTypeXml() returns error? {
     http:Request request = new;
     request.setHeader("content-type", "application/xml;charset=\"ISO_8859-1:1987\"");
     request.setXmlPayload(testValue);
-    string[] headers = checkpanic request.getHeaders("content-type");
+    string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml;charset=ISO_8859-1:1987");
 }
 
 @test:Config {}
-function testSetHeaderAfterXmlPayload() {
+function testSetHeaderAfterXmlPayload() returns error? {
     http:Request request = new;
     request.setHeader("content-type", "application/xml;charset=utf-8");
     request.setXmlPayload(testValue);
     request.setHeader("content-type", "application/xml;charset=\"ISO_8859-1:1987\"");
-    string[] headers = checkpanic request.getHeaders("content-type");
+    string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml;charset=\"ISO_8859-1:1987\"");
 }
@@ -136,31 +136,31 @@ function testXmlPayloadWithCharset() {
 
 //Request charset with string payload
 @test:Config {}
-function testSetStringPayloadWithoutCharset() {
+function testSetStringPayloadWithoutCharset() returns error? {
     http:Request request = new;
     request.setTextPayload(textValue);
-    string[] headers = checkpanic request.getHeaders("content-type");
+    string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain");
 }
 
 @test:Config {}
-function testCharsetWithExistingContentTypeString() {
+function testCharsetWithExistingContentTypeString() returns error? {
     http:Request request = new;
     request.setHeader("content-type", "text/plain;charset=\"ISO_8859-1:1987\"");
     request.setTextPayload(textValue);
-    string[] headers = checkpanic request.getHeaders("content-type");
+    string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain;charset=ISO_8859-1:1987");
 }
 
 @test:Config {}
-function testSetHeaderAfterStringPayload() {
+function testSetHeaderAfterStringPayload() returns error? {
     http:Request request = new;
     request.setHeader("content-type", "text/plain;charset=utf-8");
     request.setTextPayload(textValue);
     request.setHeader("content-type", "text/plain;charset=\"ISO_8859-1:1987\"");
-    string[] headers = checkpanic request.getHeaders("content-type");
+    string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain;charset=\"ISO_8859-1:1987\"", msg = "Payload mismatched");
 }
@@ -191,93 +191,93 @@ function testTextPayloadWithCharset() {
 
 //Response charset with json payload
 @test:Config {}
-function testSetJsonPayloadWithoutCharsetResponse() {
+function testSetJsonPayloadWithoutCharsetResponse() returns error? {
     http:Response response = new;
     response.setJsonPayload({ test: "testValue" });
-    string[] headers = checkpanic response.getHeaders("content-type");
+    string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json");
 }
 
 @test:Config {}
-function testCharsetWithExistingContentTypeResponse() {
+function testCharsetWithExistingContentTypeResponse() returns error? {
     http:Response response = new;
     response.setHeader("content-type", "application/json;charset=\"ISO_8859-1:1987\"");
     response.setJsonPayload({ test: "testValue" });
-    string[] headers = checkpanic response.getHeaders("content-type");
+    string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json");
 }
 
 @test:Config {}
-function testSetHeaderAfterJsonPayloadResponse() {
+function testSetHeaderAfterJsonPayloadResponse() returns error? {
     http:Response response = new;
     response.setHeader("content-type", "application/json;charset=utf-8");
     response.setJsonPayload({ test: "testValue" });
     response.setHeader("content-type", "application/json;charset=\"ISO_8859-1:1987\"");
-    string[] headers = checkpanic response.getHeaders("content-type");
+    string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json;charset=\"ISO_8859-1:1987\"");
 }
 
 //Response charset with xml payload
 @test:Config {}
-function testSetXmlPayloadWithoutCharsetResponse() {
+function testSetXmlPayloadWithoutCharsetResponse() returns error? {
     http:Response response = new;
     response.setXmlPayload(testValue);
-    string[] headers = checkpanic response.getHeaders("content-type");
+    string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml");
 }
 
 @test:Config {}
-function testCharsetWithExistingContentTypeXmlResponse() {
+function testCharsetWithExistingContentTypeXmlResponse() returns error? {
     http:Response response = new;
     response.setHeader("content-type", "application/xml;charset=\"ISO_8859-1:1987\"");
     response.setXmlPayload(testValue);
-    string[] headers = checkpanic response.getHeaders("content-type");
+    string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml");
 }
 
 @test:Config {}
-function testSetHeaderAfterXmlPayloadResponse() {
+function testSetHeaderAfterXmlPayloadResponse() returns error? {
     http:Response response = new;
     response.setHeader("content-type", "application/xml;charset=utf-8");
     response.setXmlPayload(testValue);
     response.setHeader("content-type", "application/xml;charset=\"ISO_8859-1:1987\"");
-    string[] headers = checkpanic response.getHeaders("content-type");
+    string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml;charset=\"ISO_8859-1:1987\"");
 }
 
 //Response charset with string payload
 @test:Config {}
-function testSetStringPayloadWithoutCharsetResponse() {
+function testSetStringPayloadWithoutCharsetResponse() returns error? {
     http:Response response = new;
     response.setTextPayload(textValue);
-    string[] headers = checkpanic response.getHeaders("content-type");
+    string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain");
 }
 
 @test:Config {}
-function testCharsetWithExistingContentTypeStringResponse() {
+function testCharsetWithExistingContentTypeStringResponse() returns error? {
     http:Response response = new;
     response.setHeader("content-type", "text/plain;charset=\"ISO_8859-1:1987\"");
     response.setTextPayload(textValue);
-    string[] headers = checkpanic response.getHeaders("content-type");
+    string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain");
 }
 
 @test:Config {}
-function testSetHeaderAfterStringPayloadResponse() {
+function testSetHeaderAfterStringPayloadResponse() returns error? {
     http:Response response = new;
     response.setHeader("content-type", "text/plain;charset=utf-8");
     response.setTextPayload(textValue);
     response.setHeader("content-type", "text/plain;charset=\"ISO_8859-1:1987\"");
-    string[] headers = checkpanic response.getHeaders("content-type");
+    string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain;charset=\"ISO_8859-1:1987\"");
 }
