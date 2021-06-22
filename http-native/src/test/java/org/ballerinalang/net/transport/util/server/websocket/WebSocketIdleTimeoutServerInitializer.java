@@ -28,7 +28,7 @@ import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketSe
 import org.ballerinalang.net.transport.contract.Constants;
 
 /**
- * Initializer for WebSocket handshake timeout server for Testing.
+ * Initializer for WebSocket handshake timeout server for testing.
  */
 public class WebSocketIdleTimeoutServerInitializer extends ChannelInitializer<SocketChannel> {
 
