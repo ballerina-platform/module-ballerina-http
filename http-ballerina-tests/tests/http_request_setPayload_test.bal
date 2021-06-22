@@ -54,7 +54,6 @@ function testSetPayloadWithJson() returns error? {
     check req.setContentType("json/test2");
     req.setPayload({"payload": "test"});
     test:assertEquals(req.getContentType(), "json/test2", msg = "Found unexpected headerValue");
-
 }
 
 @test:Config {}
@@ -70,7 +69,7 @@ function testSetPayloadWithByteArray() returns error? {
 }
 
 @test:Config {}
-function testSetPayloadWithByteStream() returns @tainted error? {
+function testSetPayloadWithByteStream() returns error? {
     http:Request req = new;
     io:ReadableByteChannel byteChannel = check io:openReadableFile("tests/datafiles/test.tmp");
     stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
@@ -84,10 +83,9 @@ function testSetPayloadWithByteStream() returns @tainted error? {
 }
 
 @test:Config {}
-function testSetPayloadWithEntityArray() returns @tainted error? {
+function testSetPayloadWithEntityArray() returns error? {
     http:Request req = new;
-    io:ReadableByteChannel byteChannel = check io:openReadableFile
-                                    ("tests/datafiles/test.tmp");
+    io:ReadableByteChannel byteChannel = check io:openReadableFile ("tests/datafiles/test.tmp");
     stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
     mime:Entity binaryFilePart = new;
     binaryFilePart.setByteStream(blockStream);
