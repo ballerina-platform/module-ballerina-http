@@ -26,6 +26,7 @@ import io.ballerina.runtime.observability.ObserverContext;
 import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
+import static java.lang.System.err;
 import static org.ballerinalang.net.http.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 
 /**
@@ -49,10 +50,6 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifySuccess(Object result) {
-        if (result == null) { // handles nil return and end of resource exec
-            cleanupRequestAndContext();
-            return;
-        }
         if (alreadyResponded(result)) {
             return;
         }
@@ -117,9 +114,11 @@ public class HttpCallableUnitCallback implements Callback {
     private boolean alreadyResponded(Object result) {
         try {
             HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
-        } catch (BError err) {
-            printStacktraceIfError(result);
-            err.printStackTrace();
+        } catch (BError e) {
+            if (result != null) { // handles nil return and end of resource exec
+                printStacktraceIfError(result);
+                err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + e.getMessage());
+            }
             cleanupRequestAndContext();
             return true;
         }
