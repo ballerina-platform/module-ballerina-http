@@ -41,7 +41,7 @@ service "/url" on httpReturnNilListener  {
     }
 }
 
-//@test:Config {}
+@test:Config {}
 function testNilReturn() {
     http:Response|error response = httpReturnNilClient->get("/url/nil");
     if (response is http:Response) {
@@ -51,7 +51,7 @@ function testNilReturn() {
     }
 }
 
-//@test:Config {}
+@test:Config {}
 function testEmptyResource() {
     http:Response|error response = httpReturnNilClient->get("/url/empty");
     if (response is http:Response) {
@@ -61,7 +61,7 @@ function testEmptyResource() {
     }
 }
 
-//@test:Config {}
+@test:Config {}
 function testNilReturnAsEndExec() {
     http:Response|error response = httpReturnNilClient->get("/url/end");
     if (response is http:Response) {
@@ -74,7 +74,7 @@ function testNilReturnAsEndExec() {
 }
 
 @test:Config {}
-function testDoubleResponse() {
+function testDoubleResponseWithExecption() {
     http:Response|error response = httpReturnNilClient->get("/url/double");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");

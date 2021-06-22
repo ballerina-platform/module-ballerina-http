@@ -36,6 +36,7 @@ public class HttpConstants {
     public static final String HTTP_ENDPOINT_STARTED = "[ballerina/http] started HTTP/WS listener ";
     public static final String HTTPS_ENDPOINT_STOPPED = "[ballerina/http] stopped HTTPS/WSS listener ";
     public static final String HTTP_ENDPOINT_STOPPED = "[ballerina/http] stopped HTTP/WS listener ";
+    public static final String HTTP_RUNTIME_WARNING_PREFIX = "warning: [ballerina/http] ";
 
     public static final String BASE_PATH = "BASE_PATH";
     public static final String SUB_PATH = "SUB_PATH";
@@ -478,8 +479,6 @@ public class HttpConstants {
     public static final String COLON = ":";
     public static final String DOLLAR = "$";
     public static final String SINGLE_SLASH = "/";
-    public static final String QUERY_CHAR = "?";
-    public static final String FRAGMENT_CHAR = "#";
     public static final String DOUBLE_SLASH = "//";
     public static final String REGEX = "(?<!(http:|https:))//";
 

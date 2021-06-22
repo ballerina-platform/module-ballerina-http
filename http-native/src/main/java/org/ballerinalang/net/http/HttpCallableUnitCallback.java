@@ -26,7 +26,7 @@ import io.ballerina.runtime.observability.ObserverContext;
 import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
-import static org.ballerinalang.net.http.HttpConstants.INVALID_STATUS_CODE;
+import static java.lang.System.err;
 import static org.ballerinalang.net.http.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 
 /**
@@ -39,7 +39,7 @@ public class HttpCallableUnitCallback implements Callback {
     private final Runtime runtime;
     private final String returnMediaType;
     private HttpCarbonMessage requestMessage;
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: request has already been responded";
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType) {
         this.requestMessage = requestMessage;
@@ -50,19 +50,10 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifySuccess(Object result) {
-        if (result == null) { // handles nil return and end of resource exec
-            try {
-                HttpUtil.methodInvocationCheck(requestMessage, INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
-            } catch (BError err) {
-                // End of resource execution
-                requestMessage.waitAndReleaseAllEntities();
-                stopObservationWithContext();
-                return;
-            }
-        } else {
-            printStacktrace(result);
-            HttpUtil.methodInvocationCheck(requestMessage, INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
+        if (alreadyResponded(result)) {
+            return;
         }
+        printStacktraceIfError(result);
 
         Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
@@ -73,8 +64,8 @@ public class HttpCallableUnitCallback implements Callback {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
-                printStacktrace(result);
-                requestMessage.waitAndReleaseAllEntities();
+                cleanupRequestAndContext();
+                printStacktraceIfError(result);
             }
 
             @Override
@@ -94,13 +85,20 @@ public class HttpCallableUnitCallback implements Callback {
             requestMessage.waitAndReleaseAllEntities();
             return;
         }
+        if (alreadyResponded(error)) {
+            return;
+        }
         sendFailureResponse(error);
     }
 
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
-        stopObservationWithContext();
+        cleanupRequestAndContext();
+    }
+
+    private void cleanupRequestAndContext() {
         requestMessage.waitAndReleaseAllEntities();
+        stopObservationWithContext();
     }
 
     private void stopObservationWithContext() {
@@ -113,7 +111,21 @@ public class HttpCallableUnitCallback implements Callback {
         }
     }
 
-    private void printStacktrace(Object result) {
+    private boolean alreadyResponded(Object result) {
+        try {
+            HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
+        } catch (BError e) {
+            if (result != null) { // handles nil return and end of resource exec
+                printStacktraceIfError(result);
+                err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + e.getMessage());
+            }
+            cleanupRequestAndContext();
+            return true;
+        }
+        return false;
+    }
+
+    private void printStacktraceIfError(Object result) {
         if (result instanceof BError) {
             ((BError) result).printStackTrace();
         }
