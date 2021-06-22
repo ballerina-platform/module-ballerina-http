@@ -49,7 +49,10 @@ public class HttpCallableUnitCallback implements Callback {
             requestMessage.waitAndReleaseAllEntities();
             return;
         }
-        HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
+        if (alreadyResponded(result)) {
+            return;
+        }
+
         if (result instanceof BError) { // handles error check and return
             sendFailureResponse((BError) result);
             return;
@@ -64,6 +67,7 @@ public class HttpCallableUnitCallback implements Callback {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
+                printStacktraceIfError(result);
                 requestMessage.waitAndReleaseAllEntities();
             }
 
@@ -84,11 +88,32 @@ public class HttpCallableUnitCallback implements Callback {
             requestMessage.waitAndReleaseAllEntities();
             return;
         }
+        if (alreadyResponded(error)) {
+            return;
+        }
         sendFailureResponse(error);
     }
 
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
         requestMessage.waitAndReleaseAllEntities();
+    }
+
+    private boolean alreadyResponded(Object result) {
+        try {
+            HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
+        } catch (BError err) {
+            printStacktraceIfError(result);
+            err.printStackTrace();
+            requestMessage.waitAndReleaseAllEntities();
+            return true;
+        }
+        return false;
+    }
+
+    private void printStacktraceIfError(Object result) {
+        if (result instanceof BError) {
+            ((BError) result).printStackTrace();
+        }
     }
 }
