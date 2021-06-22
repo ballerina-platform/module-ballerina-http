@@ -252,6 +252,38 @@ public class HttpCarbonMessage {
     }
 
     /**
+     * Add a new header value for the given name.
+     *
+     * @param key   header name.
+     * @param value header value as a string.
+     */
+    public void addHeader(String key, String value) {
+
+        this.httpMessage.headers().add(key, value);
+    }
+
+    /**
+     * Add a new header value for the given name.
+     *
+     * @param key   header name.
+     * @param value header value as an object.
+     */
+    public void addHeader(String key, Object value) {
+
+        this.httpMessage.headers().add(key, value);
+    }
+
+    /**
+     * Add a set of headers to the HTTP message.
+     *
+     * @param httpHeaders set of headers that needs to be set.
+     */
+    public void addHeaders(HttpHeaders httpHeaders) {
+
+        this.httpMessage.headers().add(httpHeaders);
+    }
+
+    /**
      * Remove the header using header name.
      *
      * @param key header name.

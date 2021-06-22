@@ -216,7 +216,7 @@ public class HttpUtil {
     private static final String METHOD_ACCESSED = "isMethodAccessed";
     private static final String IO_EXCEPTION_OCCURRED = "I/O exception occurred";
     private static final String CHUNKING_CONFIG = "chunking_config";
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal function invocation";
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal respond: response has already been sent";
 
     /**
      * Set new entity to in/out request/response struct.
@@ -1085,8 +1085,7 @@ public class HttpUtil {
         return httpCarbonMessage;
     }
 
-    public static void checkFunctionValidity(BObject connectionObj, HttpCarbonMessage reqMsg,
-                                             HttpCarbonMessage outboundResponseMsg) {
+    public static void checkFunctionValidity(HttpCarbonMessage reqMsg, HttpCarbonMessage outboundResponseMsg) {
         serverConnectionStructCheck(reqMsg);
         int statusCode = outboundResponseMsg.getHttpStatusCode();
         methodInvocationCheck(reqMsg, statusCode, ILLEGAL_FUNCTION_INVOKED);
@@ -1094,7 +1093,7 @@ public class HttpUtil {
 
     static void methodInvocationCheck(HttpCarbonMessage reqMsg, int statusCode, String errMsg) {
         if (reqMsg == null || reqMsg.getProperty(METHOD_ACCESSED) != null) {
-            throw createHttpError(errMsg, HttpErrorType.GENERIC_CLIENT_ERROR);
+            throw createHttpError(errMsg, HttpErrorType.GENERIC_LISTENER_ERROR);
         }
 
         if (statusCode == HttpConstants.STATUS_CODE_100_CONTINUE || statusCode == HttpConstants.INVALID_STATUS_CODE) {
