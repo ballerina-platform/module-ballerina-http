@@ -17,6 +17,7 @@
 import ballerina/io;
 import ballerina/lang.array;
 import ballerina/lang.'string as strings;
+import ballerina/log;
 import ballerina/mime;
 import ballerina/regex;
 import ballerina/jballerina.java;
@@ -422,69 +423,130 @@ public class Request {
         }
     }
 
-    # Sets a `json` as the payload.
+    # Sets a `json` as the payload. If the content-type header is not set then this method set content-type
+    # headers with the default content-type, which is `application/json`. Any existing content-type can be
+    # overridden by passing the content-type as an optional parameter.
     #
     # + payload - The `json` payload
-    # + contentType - The content type of the payload. Set this to override the default `content-type` header value
-    #                 for `json`
-    public isolated function setJsonPayload(json payload, string contentType = "application/json") {
+    # + contentType - The content type of the payload. This is an optional parameter.
+    #                 The `application/json` is the default value
+    public isolated function setJsonPayload(json payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setJson(payload, contentType);
+        if (contentType is string) {
+            entity.setJson(payload, contentType);
+        } else {
+            if (self.getContentType() == "") {
+                entity.setJson(payload);
+            } else {
+                entity.setJson(payload, self.getContentType());
+            }
+        }
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
-    # Sets an `xml` as the payload.
+    # Sets an `xml` as the payload. If the content-type header is not set then this method set content-type
+    # headers with the default content-type, which is `application/xml`. Any existing content-type can be
+    # overridden by passing the content-type as an optional parameter.
     #
     # + payload - The `xml` payload
-    # + contentType - The content type of the payload. Set this to override the default `content-type` header value
-    #                 for `xml`
-    public isolated function setXmlPayload(xml payload, string contentType = "application/xml") {
+    # + contentType - The content type of the payload. This is an optional parameter.
+    #                 The `application/xml` is the default value
+    public isolated function setXmlPayload(xml payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setXml(payload, contentType);
+        if (contentType is string) {
+            entity.setXml(payload, contentType);
+        } else {
+            if (self.getContentType() == "") {
+                entity.setXml(payload);
+            } else {
+                entity.setXml(payload, self.getContentType());
+            }
+        }
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
-    # Sets a `string` as the payload.
+    # Sets a `string` as the payload. If the content-type header is not set then this method set
+    # content-type headers with the default content-type, which is `text/plain`. Any
+    # existing content-type can be overridden by passing the content-type as an optional parameter.
     #
     # + payload - The `string` payload
-    # + contentType - The content type of the payload. Set this to override the default `content-type` header value
-    #                 for `string`
-    public isolated function setTextPayload(string payload, string contentType = "text/plain") {
+    # + contentType - The content type of the payload. This is an optional parameter.
+    #                 The `text/plain` is the default value
+    public isolated function setTextPayload(string payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setText(payload, contentType);
+        if (contentType is string) {
+            entity.setText(payload, contentType);
+        } else {
+            if (self.getContentType() == "") {
+                entity.setText(payload);
+            } else {
+                entity.setText(payload, self.getContentType());
+            }
+        }
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
-    # Sets a `byte[]` as the payload.
+    # Sets a `byte[]` as the payload. If the content-type header is not set then this method set content-type
+    # headers with the default content-type, which is `application/octet-stream`. Any existing content-type
+    # can be overridden by passing the content-type as an optional parameter.
     #
     # + payload - The `byte[]` payload
-    # + contentType - The content type of the payload. Set this to override the default `content-type` header value
-    #                 for `byte[]`
-    public isolated function setBinaryPayload(byte[] payload, string contentType = "application/octet-stream") {
+    # + contentType - The content type of the payload. This is an optional parameter.
+    #                 The `application/octet-stream` is the default value
+    public isolated function setBinaryPayload(byte[] payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setByteArray(payload, contentType);
+        if (contentType is string) {
+            entity.setByteArray(payload, contentType);
+        } else {
+            if (self.getContentType() == "") {
+                entity.setByteArray(payload, "application/octet-stream");
+            } else {
+                entity.setByteArray(payload, self.getContentType());
+            }
+        }
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
-    # Set multiparts as the payload.
+    # Set multiparts as the payload. If the content-type header is not set then this method
+    # set content-type headers with the default content-type, which is `multipart/form-data`.
+    # Any existing content-type can be overridden by passing the content-type as an optional parameter.
     #
     # + bodyParts - The entities which make up the message body
-    # + contentType - The content type of the top level message. Set this to override the default
-    #                 `content-type` header value
-    public isolated function setBodyParts(mime:Entity[] bodyParts, string contentType = "multipart/form-data") {
+    # + contentType - The content type of the top level message. This is an optional parameter.
+    #                 The `multipart/form-data` is the default value
+    public isolated function setBodyParts(mime:Entity[] bodyParts, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setBodyParts(bodyParts, contentType);
+        if (contentType is string) {
+            entity.setBodyParts(bodyParts, contentType);
+        } else {
+            if (self.getContentType() == "") {
+                entity.setBodyParts(bodyParts);
+            } else {
+                entity.setBodyParts(bodyParts, self.getContentType());
+            }
+        }
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
-    # Sets the content of the specified file as the entity body of the request.
+    # Sets the content of the specified file as the entity body of the request. If the content-type header
+    # is not set then this method set content-type headers with the default content-type, which is
+    # `application/octet-stream`. Any existing content-type can be overridden by passing the content-type
+    # as an optional parameter.
     #
     # + filePath - Path to the file to be set as the payload
-    # + contentType - The content type of the specified file. Set this to override the default `content-type`
-    #                 header value
-    public isolated function setFileAsPayload(string filePath, string contentType = "application/octet-stream") {
+    # + contentType - The content type of the specified file. This is an optional parameter.
+    #                 The `application/octet-stream` is the default value
+    public isolated function setFileAsPayload(string filePath, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setFileAsEntityBody(filePath, contentType);
+        if (contentType is string) {
+            entity.setFileAsEntityBody(filePath, contentType);
+        } else {
+            if (self.getContentType() == "") {
+                entity.setFileAsEntityBody(filePath);
+            } else {
+                entity.setFileAsEntityBody(filePath, self.getContentType());
+            }
+        }
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -499,26 +561,43 @@ public class Request {
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
-    # Sets a `Stream` as the payload. This method overrides any existing content-type headers with the default 
-    # content-type, which is `application/octet-stream`. This default value can be overridden by passing the 
-    # content-type as an optional parameter.
+    # Sets a `Stream` as the payload. If the content-type header is not set then this method set content-type
+    # headers with the default content-type, which is `application/octet-stream`. Any existing content-type can
+    # be overridden by passing the content-type as an optional parameter.
     #
     # + byteStream - Byte stream, which needs to be set to the request
     # + contentType - Content-type to be used with the payload. This is an optional parameter.
     #                 The `application/octet-stream` is the default value
-    public isolated function setByteStream(stream<byte[], io:Error?> byteStream,
-            string contentType = "application/octet-stream") {
+    public isolated function setByteStream(stream<byte[], io:Error?> byteStream, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity.setByteStream(byteStream, contentType);
+        if (contentType is string) {
+            entity.setByteStream(byteStream, contentType);
+        } else {
+            if (self.getContentType() == "") {
+                entity.setByteStream(byteStream);
+            } else {
+                entity.setByteStream(byteStream, self.getContentType());
+            }
+        }
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
-    # Sets the request payload. Note that any string value is set as `text/plain`. To send a JSON-compatible string,
-    # set the content-type header to `application/json` or use the `setJsonPayload` method instead.
+    # Sets the request payload. This method overrides any existing content-type by passing the content-type
+    # as an optional parameter. If the content type parameter is not provided then the default value derived
+    # from the payload will be used as content-type only when there are no existing content-type header.
     #
     # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error?>`
     #             or `Entity[]` (i.e., a set of body parts).
-    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error?> payload) {
+    # + contentType - Content-type to be used with the payload. This is an optional parameter
+    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error?> payload,
+            string? contentType = ()) {
+        if (contentType is string) {
+            error? err = self.setContentType(contentType);
+            if (err is error) {
+                log:printDebug(err.message());
+            }
+        }
+
         if (payload is string) {
             self.setTextPayload(payload);
         } else if (payload is xml) {
