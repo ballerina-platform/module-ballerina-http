@@ -53,10 +53,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.ballerina.stdlib.http.compiler.CompilerPluginUtils.constructReturnTypeDescription;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.ERROR;
 import static io.ballerina.stdlib.http.compiler.Constants.FIELD_RESPONSE_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
@@ -75,6 +77,7 @@ class HttpResourceValidator {
         extractResourceAnnotationAndValidate(ctx, member);
         extractInputParamTypeAndValidate(ctx, member);
         extractReturnTypeAndValidate(ctx, member);
+        validateHttpCallerUsage(ctx, member);
     }
 
     private static void extractResourceAnnotationAndValidate(SyntaxNodeAnalysisContext ctx,
@@ -534,6 +537,37 @@ class HttpResourceValidator {
             return false;
         }
         return expectedType.equals(typeName.get());
+    }
+
+    private static void validateHttpCallerUsage(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
+        Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
+        if (resourceMethodSymbolOptional.isPresent()) {
+            ResourceMethodSymbol resourceMethod = (ResourceMethodSymbol) resourceMethodSymbolOptional.get();
+            FunctionTypeSymbol typeDescriptor = resourceMethod.typeDescriptor();
+            Optional<List<ParameterSymbol>> parameterOptional = typeDescriptor.params();
+            boolean isCallerPresent = parameterOptional.isPresent() &&
+                    parameterOptional.get().stream().anyMatch(HttpResourceValidator::isHttpCaller);
+            if (isCallerPresent) {
+                Optional<TypeSymbol> returnTypeDescriptorOpt = typeDescriptor.returnTypeDescriptor();
+                if (returnTypeDescriptorOpt.isPresent()) {
+                    TypeSymbol typeSymbol = returnTypeDescriptorOpt.get();
+                    String returnTypeDescription = constructReturnTypeDescription(typeSymbol);
+                    if (!(ERROR.equals(returnTypeDescription) || "".equals(returnTypeDescription))) {
+                        updateDiagnostic(ctx, member, returnTypeDescription, HttpDiagnosticCodes.HTTP_118);
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean isHttpCaller(ParameterSymbol param) {
+        TypeDescKind typeDescKind = param.typeDescriptor().typeKind();
+        if (TypeDescKind.TYPE_REFERENCE.equals(typeDescKind)) {
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
+            return isHttpModuleType(CALLER_OBJ_NAME, typeDescriptor);
+        } else {
+            return false;
+        }
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node,

@@ -52,7 +52,8 @@ public enum HttpDiagnosticCodes {
             "to the 'http:CallerInfo' annotation", ERROR),
     HTTP_115("HTTP_115", "invalid multiple 'http:Caller' parameter: '%s'", ERROR),
     HTTP_116("HTTP_116", "invalid multiple 'http:Request' parameter: '%s'", ERROR),
-    HTTP_117("HTTP_117", "invalid multiple 'http:Headers' parameter: '%s'", ERROR);
+    HTTP_117("HTTP_117", "invalid multiple 'http:Headers' parameter: '%s'", ERROR),
+    HTTP_118("HTTP_118", "could not use 'http:Caller' and return '%s' from a resource", ERROR);
 
     private final String code;
     private final String message;

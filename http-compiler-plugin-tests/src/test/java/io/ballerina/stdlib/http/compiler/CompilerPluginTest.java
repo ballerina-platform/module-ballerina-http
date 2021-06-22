@@ -60,6 +60,7 @@ public class CompilerPluginTest {
     private static final String HTTP_115 = "HTTP_115";
     private static final String HTTP_116 = "HTTP_116";
     private static final String HTTP_117 = "HTTP_117";
+    private static final String HTTP_118 = "HTTP_118";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -282,5 +283,15 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 3, "invalid multiple 'http:Caller' parameter: 'ccc'", HTTP_115);
         assertTrue(diagnosticResult, 4, "invalid multiple 'http:Request' parameter: 'fwdw'", HTTP_116);
         assertTrue(diagnosticResult, 5, "invalid multiple 'http:Headers' parameter: 'ccc'", HTTP_117);
+    }
+
+    @Test
+    public void testInvalidReturnTypeWithHttpCaller() {
+        Package currentPackage = loadPackage("sample_package_13");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 1);
+        assertTrue(diagnosticResult, 0,
+                "could not use http:Caller and return 'http:BadRequest' from a resource", HTTP_118);
     }
 }
