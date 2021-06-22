@@ -73,7 +73,14 @@ public class Respond extends ConnectionAction {
         outboundResponseMsg.setSequenceId(inboundRequestMsg.getSequenceId());
         setCacheControlHeader(outboundResponseObj, outboundResponseMsg);
         HttpUtil.prepareOutboundResponse(connectionObj, inboundRequestMsg, outboundResponseMsg, outboundResponseObj);
-        HttpUtil.checkFunctionValidity(connectionObj, inboundRequestMsg, outboundResponseMsg);
+
+        try {
+            HttpUtil.checkFunctionValidity(inboundRequestMsg, outboundResponseMsg);
+        } catch (BError e) {
+            log.debug(e.getPrintableStackTrace(), e);
+            dataContext.getFuture().complete(e);
+            return null;
+        }
 
         // Based on https://tools.ietf.org/html/rfc7232#section-4.1
         if (CacheUtils.isValidCachedResponse(outboundResponseMsg, inboundRequestMsg)) {
