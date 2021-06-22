@@ -97,7 +97,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
         countDownLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, TimeUnit.SECONDS);
 
         Assert.assertNotNull(result.getThrowable());
-        Assert.assertEquals(result.getThrowable().getMessage(), "Handshake timedout");
+        Assert.assertEquals(result.getThrowable().getMessage(), "Handshake timed out");
     }
 
     @Test(description = "Test the sub protocol negotiation with the remote server")

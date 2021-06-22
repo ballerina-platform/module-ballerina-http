@@ -80,7 +80,7 @@ public class WebSocketClientHandshakeHandler extends ChannelInboundHandlerAdapte
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         if (evt instanceof IdleStateEvent) {
-            handshakeFuture.notifyError(new WebSocketConnectorException("Handshake timedout"), null);
+            handshakeFuture.notifyError(new WebSocketConnectorException("Handshake timed out"), null);
         }
     }
 

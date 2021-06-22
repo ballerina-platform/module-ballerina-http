@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * WebSocket server used to test initial WebSocket handshake timeout.
  */
 public class WebSocketHandshakeTimeoutServer {
-    private static final Logger LOG = LoggerFactory.getLogger(WebSocketRemoteServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(WebSocketHandshakeTimeoutServer.class);
 
     private final int port;
     private EventLoopGroup bossGroup;
