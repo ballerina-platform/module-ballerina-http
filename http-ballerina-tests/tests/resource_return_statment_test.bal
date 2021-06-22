@@ -191,6 +191,24 @@ service http:Service /mytest on resourceReturnTestEP {
         }
         return "hello";
     }
+
+    resource function get test29(http:Caller caller) {
+        error? a = caller->respond("Hello");
+        error? b = caller->respond("Hello2"); // return error
+    }
+
+    resource function get test30(http:Caller caller) returns string? {
+        error? a = caller->respond("Hello");
+        return "Hello2"; // log error
+    }
+
+    resource function get test31(http:Caller caller) returns error? {
+        check caller->respond("Hello"); // log error
+    }
+
+    resource function get test32(http:Caller caller) {
+        checkpanic caller->respond("Hello"); // log error
+    }
 }
 
 @test:Config {}
@@ -600,6 +618,50 @@ public function testReturnMultipleTypes() {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), "application/custom+json");
         assertTextPayload(resp.getTextPayload(), "hello");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testDoubleResponse() {
+    http:Response|error resp = resourceReturnTestClient->get("/mytest/test29");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertTextPayload(resp.getTextPayload(), "Hello");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testReturnAfterResponse() {
+    http:Response|error resp = resourceReturnTestClient->get("/mytest/test30");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertTextPayload(resp.getTextPayload(), "Hello");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testCheckErrorAfterResponse() {
+    http:Response|error resp = resourceReturnTestClient->get("/mytest/test31");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertTextPayload(resp.getTextPayload(), "Hello");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testCheckPanicErrorAfterResponse() {
+    http:Response|error resp = resourceReturnTestClient->get("/mytest/test32");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertTextPayload(resp.getTextPayload(), "Hello");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
