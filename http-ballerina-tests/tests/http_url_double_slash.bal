@@ -112,3 +112,26 @@ function testResourcePathWithFragmentParam() returns error? {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
+
+@test:Config {}
+function testResourcePathNegative() returns error? {
+    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString());
+    http:Response|error response = httpUrlClient->get("url");
+    if (response is error) {
+        test:assertEquals(response.message(),
+            "client method invocation failed: malformed URL specified. Error at index 4 in: \"9521url\"");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: http:Response");
+    }
+}
+
+@test:Config {}
+function testResourcePath404Negative() returns error? {
+    http:Response|error response = urlClient->get("test");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "no matching service found for path : /urltest");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
