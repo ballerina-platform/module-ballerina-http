@@ -1096,7 +1096,7 @@ public class HttpUtil {
             throw createHttpError(errMsg, HttpErrorType.GENERIC_LISTENER_ERROR);
         }
 
-        if (is100ContinueRequest(reqMsg, statusCode) || statusCode == HttpConstants.INVALID_STATUS_CODE) {
+        if (statusCode == HttpConstants.STATUS_CODE_100_CONTINUE || statusCode == HttpConstants.INVALID_STATUS_CODE) {
             return;
         }
         reqMsg.setProperty(METHOD_ACCESSED, true);
@@ -1107,11 +1107,6 @@ public class HttpUtil {
             throw createHttpError("operation not allowed:invalid Connection variable",
                     HttpErrorType.GENERIC_LISTENER_ERROR);
         }
-    }
-
-    private static boolean is100ContinueRequest(HttpCarbonMessage reqMsg, int statusCode) {
-        return HttpConstants.HEADER_VAL_100_CONTINUE.equalsIgnoreCase(
-                reqMsg.getHeader(HttpHeaderNames.EXPECT.toString())) || statusCode == 100;
     }
 
     public static BMap getTransactionConfigAnnotation(MethodType resource, String transactionPackagePath) {
