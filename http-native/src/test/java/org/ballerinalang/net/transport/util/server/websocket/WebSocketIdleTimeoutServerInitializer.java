@@ -36,6 +36,7 @@ public class WebSocketIdleTimeoutServerInitializer extends ChannelInitializer<So
 
     @Override
     public void initChannel(SocketChannel ch) throws InterruptedException {
+        // Intention of having this is to exceed the idle timeout of test client which is set to 1 second.
         Thread.sleep(3000);
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new HttpServerCodec());
