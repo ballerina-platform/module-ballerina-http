@@ -69,7 +69,7 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType, 
+    private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -96,7 +96,7 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processPut(@untainted string path, RequestMessage message, TargetType targetType, 
+    private isolated function processPut(@untainted string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -123,7 +123,7 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processPatch(@untainted string path, RequestMessage message, TargetType targetType, 
+    private isolated function processPatch(@untainted string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -150,7 +150,7 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processDelete(@untainted string path, RequestMessage message, TargetType targetType, 
+    private isolated function processDelete(@untainted string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -189,7 +189,7 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processGet(@untainted string path, map<string|string[]>? headers, TargetType targetType) 
+    private isolated function processGet(@untainted string path, map<string|string[]>? headers, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
@@ -212,7 +212,7 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processOptions(@untainted string path, map<string|string[]>? headers, TargetType targetType) 
+    private isolated function processOptions(@untainted string path, map<string|string[]>? headers, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
@@ -240,7 +240,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType, string? mediaType, map<string|string[]>? headers) 
+            TargetType targetType, string? mediaType, map<string|string[]>? headers)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -264,7 +264,7 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processForward(@untainted string path, Request request, TargetType targetType) 
+    private isolated function processForward(@untainted string path, Request request, TargetType targetType)
             returns @tainted Response|PayloadType|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
@@ -493,31 +493,17 @@ public type CookieConfig record {|
      PersistentCookieHandler persistentCookieHandler?;
 |};
 
-isolated function initialize(string serviceUrl, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
-    boolean httpClientRequired = false;
-    string url = serviceUrl;
-    if (url.endsWith("/")) {
-        int lastIndex = url.length() - 1;
-        url = url.substring(0, lastIndex);
-    }
+isolated function initialize(string url, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
     var cbConfig = config.circuitBreaker;
     if (cbConfig is CircuitBreakerConfig) {
-        if (url.endsWith("/")) {
-            int lastIndex = url.length() - 1;
-            url = url.substring(0, lastIndex);
-        }
+        return createCircuitBreakerClient(url, config, cookieStore);
     } else {
-        httpClientRequired = true;
-    }
-    if (httpClientRequired) {
         var redirectConfigVal = config.followRedirects;
         if (redirectConfigVal is FollowRedirects) {
             return createRedirectClient(url, config, cookieStore);
         } else {
             return checkForRetry(url, config, cookieStore);
         }
-    } else {
-        return createCircuitBreakerClient(url, config, cookieStore);
     }
 }
 
