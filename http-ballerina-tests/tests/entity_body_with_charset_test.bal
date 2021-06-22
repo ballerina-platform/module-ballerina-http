@@ -94,7 +94,7 @@ function testCharsetWithExistingContentTypeXml() {
     request.setXmlPayload(testValue);
     string[] headers = checkpanic request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
-    test:assertEquals(headers[0], "application/xml");
+    test:assertEquals(headers[0], "application/xml;charset=ISO_8859-1:1987");
 }
 
 @test:Config {}
@@ -151,7 +151,7 @@ function testCharsetWithExistingContentTypeString() {
     request.setTextPayload(textValue);
     string[] headers = checkpanic request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
-    test:assertEquals(headers[0], "text/plain");
+    test:assertEquals(headers[0], "text/plain;charset=ISO_8859-1:1987");
 }
 
 @test:Config {}
