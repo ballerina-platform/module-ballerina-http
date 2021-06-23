@@ -57,4 +57,8 @@ service http:Service on new http:Listener(9090) {
     resource function get headerErr6(@http:Header {name: "x-type"} string|json|xml abc) returns string {
         return "done"; //error
     }
+
+    resource function get headerErr7(@http:Header {name: "x-type"} int[] abc) returns string {
+        return "done"; //error
+    }
 }

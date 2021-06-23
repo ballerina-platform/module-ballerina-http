@@ -147,7 +147,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 7);
         assertError(diagnosticResult, 0, "invalid type of header param 'abc': expected 'string' or 'string[]'",
                     HTTP_109);
         assertError(diagnosticResult, 1, "invalid multiple resource parameter annotations for 'abc': expected one of " +
@@ -164,6 +164,9 @@ public class CompilerPluginTest {
                     "invalid union type of header param 'abc': a string or an array of a string can only be union " +
                             "with '()'. Eg: string|() or string[]|()",
                     HTTP_110);
+        assertError(diagnosticResult, 6,
+                "invalid type of header param 'abc': expected 'string' or 'string[]'",
+                HTTP_109);
     }
 
     @Test
