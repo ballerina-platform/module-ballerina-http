@@ -373,7 +373,7 @@ isolated function utcToString(time:Utc utc, string pattern) returns string|error
     'class: "org.ballerinalang.net.http.nativeimpl.ExternFormatter"
 } external;
 
-// Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
+// Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/json`
 isolated function setJson(mime:Entity entity, json payload, string existingContentType, string? newContentType) {
     if (newContentType is string) {
@@ -387,7 +387,7 @@ isolated function setJson(mime:Entity entity, json payload, string existingConte
     }
 }
 
-// Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
+// Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/xml`
 isolated function setXml(mime:Entity entity, xml payload, string existingContentType, string? newContentType) {
     if (newContentType is string) {
@@ -401,7 +401,7 @@ isolated function setXml(mime:Entity entity, xml payload, string existingContent
     }
 }
 
-// Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
+// Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `text/plain`
 isolated function setText(mime:Entity entity, string payload, string existingContentType, string? newContentType) {
     if (newContentType is string) {
@@ -415,7 +415,7 @@ isolated function setText(mime:Entity entity, string payload, string existingCon
     }
 }
 
-// Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
+// Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/octet-stream`
 isolated function setByteArray(mime:Entity entity, byte[] payload, string existingContentType, string? newContentType) {
     if (newContentType is string) {
@@ -429,7 +429,7 @@ isolated function setByteArray(mime:Entity entity, byte[] payload, string existi
     }
 }
 
-// Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
+// Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `multipart/form-data`
 isolated function setBodyParts(mime:Entity entity, mime:Entity[] bodyParts, string existingContentType,
         string? newContentType) {
@@ -444,7 +444,7 @@ isolated function setBodyParts(mime:Entity entity, mime:Entity[] bodyParts, stri
     }
 }
 
-// Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
+// Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/octet-stream`
 isolated function setFile(mime:Entity entity, string filePath, string existingContentType, string? newContentType) {
     if (newContentType is string) {
@@ -458,7 +458,7 @@ isolated function setFile(mime:Entity entity, string filePath, string existingCo
     }
 }
 
-// Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
+// Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/octet-stream`
 isolated function setByteStream(mime:Entity entity, stream<byte[], io:Error?> byteStream, string existingContentType,
         string? newContentType) {
