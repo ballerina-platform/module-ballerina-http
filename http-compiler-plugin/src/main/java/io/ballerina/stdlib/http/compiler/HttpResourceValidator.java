@@ -582,6 +582,10 @@ class HttpResourceValidator {
                     .memberTypeDescriptors().stream()
                     .map(HttpResourceValidator::isValidReturnTypeWithCaller)
                     .reduce(true, (a , b) -> a && b);
+        } else if (TypeDescKind.TYPE_REFERENCE.equals(typeKind)) {
+            TypeSymbol typeRef = ((TypeReferenceTypeSymbol) returnTypeDescriptor).typeDescriptor();
+            TypeDescKind typeRefKind = typeRef.typeKind();
+            return TypeDescKind.ERROR.equals(typeRefKind) || TypeDescKind.NIL.equals(typeRefKind);
         } else {
             return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }

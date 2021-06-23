@@ -45,4 +45,11 @@ service / on new http:Listener(9999) {
     resource function get validWithCaller (http:Caller caller, string action) returns error? {
         check caller->respond("Hello, World..!");
     }
+
+    resource function get validWithHttpErrors (http:Caller caller, http:Request request) returns http:ListenerError|http:ClientError? {
+        string payload = check request.getTextPayload();
+        if payload == "sample content" {
+            check caller->respond("Received message");
+        }
+    }
 }

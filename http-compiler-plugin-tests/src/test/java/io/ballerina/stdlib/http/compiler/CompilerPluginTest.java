@@ -171,11 +171,16 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_6");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 3);
-        assertError(diagnosticResult, 0, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_111);
-        assertError(diagnosticResult, 1, "invalid multiple resource parameter annotations for 'abc': expected one of " +
+        diagnosticResult.diagnostics().forEach(System.out::println);
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 5);
+        String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
+                "and return 'string' from a resource : expected 'error?'";
+        assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
+        assertError(diagnosticResult, 1, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_111);
+        assertError(diagnosticResult, 2, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
-        assertError(diagnosticResult, 2, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_111);
+        assertTrue(diagnosticResult, 3, expectedMsg, HTTP_118);
+        assertError(diagnosticResult, 4, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_111);
     }
 
     @Test
@@ -183,11 +188,14 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_7");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 4);
-        assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/http", HTTP_106);
-        assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 5);
+        String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
+                "and return 'string' from a resource : expected 'error?'";
+        assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
+        assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/http", HTTP_106);
         assertTrue(diagnosticResult, 2, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
-        assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'http_test/sample_6", HTTP_106);
+        assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
+        assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_6", HTTP_106);
     }
 
     @Test
@@ -292,7 +300,7 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 1);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
-                "and return 'http:BadRequest' from a resource : expected 'error?'";
+                "and return 'http:BadRequest?' from a resource : expected 'error?'";
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
     }
 }
