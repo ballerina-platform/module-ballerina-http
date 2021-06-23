@@ -22,12 +22,12 @@ http:Client headerBindingClient = check new("http://localhost:" + headerParamBin
 
 service /headerparamservice on HeaderBindingEP {
 
-    resource function get .(@http:Header {} string foo, int bar, http:Request req) returns json {
+    resource function get .(@http:Header string foo, int bar, http:Request req) returns json {
         json responseJson = { value1: foo, value2: bar};
         return responseJson;
     }
 
-    resource function post q1/[string go](@http:Header {} string[] foo, @http:Payload {} string a, string b) 
+    resource function post q1/[string go](@http:Header string[] foo, @http:Payload string a, string b) 
             returns json {
         json responseJson = { xType: foo, path: go, payload:a, page: b};
         return responseJson;
@@ -39,7 +39,7 @@ service /headerparamservice on HeaderBindingEP {
         return responseJson;
     }
 
-    resource function get q3(@http:Header {} string? foo, http:Request req, @http:Header {} string[]? bar, 
+    resource function get q3(@http:Header string? foo, http:Request req, @http:Header string[]? bar, 
             http:Headers headerObj) returns json {
         string[] err = ["bar header not found"];
         string header1 = foo ?: "foo header not found";
@@ -49,7 +49,7 @@ service /headerparamservice on HeaderBindingEP {
         return responseJson;
     }
 
-    resource function get q4(http:Caller caller, @http:Header {} string? foo, http:Headers headerObj) returns json {
+    resource function get q4(http:Caller caller, @http:Header string? foo, http:Headers headerObj) returns json {
         string header1 = foo ?: "foo header not found";
         boolean headerBool = headerObj.hasHeader("foo");
 
