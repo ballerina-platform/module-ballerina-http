@@ -54,7 +54,8 @@ public enum HttpDiagnosticCodes {
     HTTP_116("HTTP_116", "invalid multiple 'http:Request' parameter: '%s'", ERROR),
     HTTP_117("HTTP_117", "invalid multiple 'http:Headers' parameter: '%s'", ERROR),
     HTTP_118("HTTP_118", "invalid resource method return type: can not use 'http:Caller' " +
-            "and return '%s' from a resource : expected 'error?'", ERROR);
+            "and return '%s' from a resource : expected 'error' or nil",
+            ERROR);
 
     private final String code;
     private final String message;

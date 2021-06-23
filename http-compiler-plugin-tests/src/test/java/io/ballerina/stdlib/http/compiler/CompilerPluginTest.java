@@ -177,7 +177,7 @@ public class CompilerPluginTest {
         diagnosticResult.diagnostics().forEach(System.out::println);
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 5);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
-                "and return 'string' from a resource : expected 'error?'";
+                "and return 'string' from a resource : expected 'error' or nil";
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
         assertError(diagnosticResult, 1, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_111);
         assertError(diagnosticResult, 2, "invalid multiple resource parameter annotations for 'abc': expected one of " +
@@ -193,7 +193,7 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 5);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
-                "and return 'string' from a resource : expected 'error?'";
+                "and return 'string' from a resource : expected 'error' or nil";
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
         assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/http", HTTP_106);
         assertTrue(diagnosticResult, 2, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
@@ -303,7 +303,7 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 1);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
-                "and return 'http:BadRequest?' from a resource : expected 'error?'";
+                "and return 'http:BadRequest?' from a resource : expected 'error' or nil";
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
     }
 }
