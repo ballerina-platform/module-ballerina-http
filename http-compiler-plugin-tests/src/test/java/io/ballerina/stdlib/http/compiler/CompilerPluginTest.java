@@ -291,7 +291,8 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 1);
-        assertTrue(diagnosticResult, 0,
-                "could not use 'http:Caller' and return 'http:BadRequest' from a resource", HTTP_118);
+        String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
+                "and return 'http:BadRequest' from a resource : expected 'error?'";
+        assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
     }
 }
