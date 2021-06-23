@@ -368,7 +368,7 @@ public class Response {
     #                 The `application/json` is the default value
     public isolated function setJsonPayload(json payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity = setJson(entity, payload, self.getContentType(), contentType);
+        setJson(entity, payload, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -381,7 +381,7 @@ public class Response {
     #                 The `application/xml` is the default value
     public isolated function setXmlPayload(xml payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity = setXml(entity, payload, self.getContentType(), contentType);
+        setXml(entity, payload, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -394,7 +394,7 @@ public class Response {
     #                 The `text/plain` is the default value
     public isolated function setTextPayload(string payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity = setText(entity, payload, self.getContentType(), contentType);
+        setText(entity, payload, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -407,7 +407,7 @@ public class Response {
     #                 The `application/octet-stream` is the default value
     public isolated function setBinaryPayload(byte[] payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity = setByteArray(entity, payload, self.getContentType(), contentType);
+        setByteArray(entity, payload, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -420,7 +420,7 @@ public class Response {
     #                 The `multipart/form-data` is the default value
     public isolated function setBodyParts(mime:Entity[] bodyParts, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity = setBodyParts(entity, bodyParts, self.getContentType(), contentType);
+        setBodyParts(entity, bodyParts, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -434,7 +434,7 @@ public class Response {
     #                 The `application/octet-stream` is the default value
     public isolated function setFileAsPayload(string filePath, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity = setFile(entity, filePath, self.getContentType(), contentType);
+         setFile(entity, filePath, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -458,7 +458,7 @@ public class Response {
     #                 The `application/octet-stream` is the default value
     public isolated function setByteStream(stream<byte[], io:Error?> byteStream, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        entity = setByteStream(entity, byteStream, self.getContentType(), contentType);
+        setByteStream(entity, byteStream, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 

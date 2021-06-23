@@ -375,8 +375,7 @@ isolated function utcToString(time:Utc utc, string pattern) returns string|error
 
 // Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/json`
-isolated function setJson(mime:Entity entity, json payload, string existingContentType, string? newContentType)
-        returns mime:Entity {
+isolated function setJson(mime:Entity entity, json payload, string existingContentType, string? newContentType) {
     if (newContentType is string) {
         entity.setJson(payload, newContentType);
     } else {
@@ -386,13 +385,11 @@ isolated function setJson(mime:Entity entity, json payload, string existingConte
             entity.setJson(payload, existingContentType);
         }
     }
-    return entity;
 }
 
 // Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/xml`
-isolated function setXml(mime:Entity entity, xml payload, string existingContentType, string? newContentType)
-        returns mime:Entity {
+isolated function setXml(mime:Entity entity, xml payload, string existingContentType, string? newContentType) {
     if (newContentType is string) {
         entity.setXml(payload, newContentType);
     } else {
@@ -402,13 +399,11 @@ isolated function setXml(mime:Entity entity, xml payload, string existingContent
             entity.setXml(payload, existingContentType);
         }
     }
-    return entity;
 }
 
 // Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `text/plain`
-isolated function setText(mime:Entity entity, string payload, string existingContentType, string? newContentType)
-        returns mime:Entity {
+isolated function setText(mime:Entity entity, string payload, string existingContentType, string? newContentType) {
     if (newContentType is string) {
         entity.setText(payload, newContentType);
     } else {
@@ -418,13 +413,11 @@ isolated function setText(mime:Entity entity, string payload, string existingCon
             entity.setText(payload, existingContentType);
         }
     }
-    return entity;
 }
 
 // Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/octet-stream`
-isolated function setByteArray(mime:Entity entity, byte[] payload, string existingContentType, string? newContentType)
-        returns mime:Entity {
+isolated function setByteArray(mime:Entity entity, byte[] payload, string existingContentType, string? newContentType) {
     if (newContentType is string) {
         entity.setByteArray(payload, newContentType);
     } else {
@@ -434,13 +427,12 @@ isolated function setByteArray(mime:Entity entity, byte[] payload, string existi
             entity.setByteArray(payload, existingContentType);
         }
     }
-    return entity;
 }
 
 // Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `multipart/form-data`
-isolated function setBodyParts(mime:Entity entity, mime:Entity[] bodyParts, string existingContentType, string? newContentType)
-        returns mime:Entity {
+isolated function setBodyParts(mime:Entity entity, mime:Entity[] bodyParts, string existingContentType,
+        string? newContentType) {
     if (newContentType is string) {
         entity.setBodyParts(bodyParts, newContentType);
     } else {
@@ -450,13 +442,11 @@ isolated function setBodyParts(mime:Entity entity, mime:Entity[] bodyParts, stri
             entity.setBodyParts(bodyParts, existingContentType);
         }
     }
-    return entity;
 }
 
 // Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/octet-stream`
-isolated function setFile(mime:Entity entity, string filePath, string existingContentType, string? newContentType)
-        returns mime:Entity {
+isolated function setFile(mime:Entity entity, string filePath, string existingContentType, string? newContentType) {
     if (newContentType is string) {
         entity.setFileAsEntityBody(filePath, newContentType);
     } else {
@@ -466,13 +456,12 @@ isolated function setFile(mime:Entity entity, string filePath, string existingCo
             entity.setFileAsEntityBody(filePath, existingContentType);
         }
     }
-    return entity;
 }
 
 // Returns an Entity object with content-type overridden by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/octet-stream`
 isolated function setByteStream(mime:Entity entity, stream<byte[], io:Error?> byteStream, string existingContentType,
-        string? newContentType) returns mime:Entity {
+        string? newContentType) {
     if (newContentType is string) {
         entity.setByteStream(byteStream, newContentType);
     } else {
@@ -482,5 +471,4 @@ isolated function setByteStream(mime:Entity entity, stream<byte[], io:Error?> by
             entity.setByteStream(byteStream, existingContentType);
         }
     }
-    return entity;
 }
