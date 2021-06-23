@@ -292,6 +292,6 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 1);
         assertTrue(diagnosticResult, 0,
-                "could not use http:Caller and return 'http:BadRequest' from a resource", HTTP_118);
+                "could not use 'http:Caller' and return 'http:BadRequest' from a resource", HTTP_118);
     }
 }
