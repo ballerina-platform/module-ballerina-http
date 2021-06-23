@@ -567,14 +567,11 @@ class HttpResourceValidator {
         if (TypeDescKind.TYPE_REFERENCE.equals(typeDescKind)) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
             return isHttpModuleType(CALLER_OBJ_NAME, typeDescriptor);
-        } else {
-            return false;
-        }
+        return false;
     }
 
     private static String getReturnTypeDescription(ReturnTypeDescriptorNode returnTypeDescriptorNode) {
-        Node returnTypeDescriptor = returnTypeDescriptorNode.type();
-        return returnTypeDescriptor.toString().split(" ")[0];
+        return returnTypeDescriptorNode.type().toString().split(" ")[0];
     }
 
     private static boolean isValidReturnTypeWithCaller(TypeSymbol returnTypeDescriptor) {
