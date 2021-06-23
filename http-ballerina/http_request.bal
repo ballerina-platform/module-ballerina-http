@@ -432,15 +432,7 @@ public class Request {
     #                 The `application/json` is the default value
     public isolated function setJsonPayload(json payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        if (contentType is string) {
-            entity.setJson(payload, contentType);
-        } else {
-            if (self.getContentType() == "") {
-                entity.setJson(payload);
-            } else {
-                entity.setJson(payload, self.getContentType());
-            }
-        }
+        entity = setJson(entity, payload, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -453,15 +445,7 @@ public class Request {
     #                 The `application/xml` is the default value
     public isolated function setXmlPayload(xml payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        if (contentType is string) {
-            entity.setXml(payload, contentType);
-        } else {
-            if (self.getContentType() == "") {
-                entity.setXml(payload);
-            } else {
-                entity.setXml(payload, self.getContentType());
-            }
-        }
+        entity = setXml(entity, payload, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -474,15 +458,7 @@ public class Request {
     #                 The `text/plain` is the default value
     public isolated function setTextPayload(string payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        if (contentType is string) {
-            entity.setText(payload, contentType);
-        } else {
-            if (self.getContentType() == "") {
-                entity.setText(payload);
-            } else {
-                entity.setText(payload, self.getContentType());
-            }
-        }
+        entity = setText(entity, payload, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -495,15 +471,7 @@ public class Request {
     #                 The `application/octet-stream` is the default value
     public isolated function setBinaryPayload(byte[] payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        if (contentType is string) {
-            entity.setByteArray(payload, contentType);
-        } else {
-            if (self.getContentType() == "") {
-                entity.setByteArray(payload, "application/octet-stream");
-            } else {
-                entity.setByteArray(payload, self.getContentType());
-            }
-        }
+        entity = setByteArray(entity, payload, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -516,15 +484,7 @@ public class Request {
     #                 The `multipart/form-data` is the default value
     public isolated function setBodyParts(mime:Entity[] bodyParts, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        if (contentType is string) {
-            entity.setBodyParts(bodyParts, contentType);
-        } else {
-            if (self.getContentType() == "") {
-                entity.setBodyParts(bodyParts);
-            } else {
-                entity.setBodyParts(bodyParts, self.getContentType());
-            }
-        }
+        entity = setBodyParts(entity, bodyParts, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -538,15 +498,7 @@ public class Request {
     #                 The `application/octet-stream` is the default value
     public isolated function setFileAsPayload(string filePath, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        if (contentType is string) {
-            entity.setFileAsEntityBody(filePath, contentType);
-        } else {
-            if (self.getContentType() == "") {
-                entity.setFileAsEntityBody(filePath);
-            } else {
-                entity.setFileAsEntityBody(filePath, self.getContentType());
-            }
-        }
+        entity = setFile(entity, filePath, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -570,15 +522,7 @@ public class Request {
     #                 The `application/octet-stream` is the default value
     public isolated function setByteStream(stream<byte[], io:Error?> byteStream, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        if (contentType is string) {
-            entity.setByteStream(byteStream, contentType);
-        } else {
-            if (self.getContentType() == "") {
-                entity.setByteStream(byteStream);
-            } else {
-                entity.setByteStream(byteStream, self.getContentType());
-            }
-        }
+        entity = setByteStream(entity, byteStream, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
