@@ -454,6 +454,7 @@ public class HttpConstants {
     public static final String RETRY_INTERVAL = "intervalInMillis";
 
     public static final BString SERVICE_ENDPOINT_PROTOCOL_FIELD = StringUtils.fromString("protocol");
+    public static final BString CALLER_PRESENT_FIELD = StringUtils.fromString("present");
 
     //Remote struct field names
     public static final BString REMOTE_STRUCT_FIELD = StringUtils.fromString("remoteAddress");
