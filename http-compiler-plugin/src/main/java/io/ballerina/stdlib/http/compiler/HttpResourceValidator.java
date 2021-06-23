@@ -567,6 +567,7 @@ class HttpResourceValidator {
         if (TypeDescKind.TYPE_REFERENCE.equals(typeDescKind)) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
             return isHttpModuleType(CALLER_OBJ_NAME, typeDescriptor);
+        }
         return false;
     }
 
