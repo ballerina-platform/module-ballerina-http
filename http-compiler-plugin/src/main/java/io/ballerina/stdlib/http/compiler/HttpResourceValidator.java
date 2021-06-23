@@ -53,12 +53,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static io.ballerina.stdlib.http.compiler.CompilerPluginUtils.constructReturnTypeDescription;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
-import static io.ballerina.stdlib.http.compiler.Constants.ERROR;
 import static io.ballerina.stdlib.http.compiler.Constants.FIELD_RESPONSE_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
@@ -448,15 +446,12 @@ class HttpResourceValidator {
         if (returnTypeDescriptorNode.isEmpty()) {
             return;
         }
-        Node returnTypeDescriptor = returnTypeDescriptorNode.get().type();
-        String returnTypeStringValue = returnTypeDescriptor.toString().split(" ")[0];
-
+        String returnTypeStringValue = getReturnTypeDescription(returnTypeDescriptorNode.get());
         Optional<Symbol> functionSymbol = ctx.semanticModel().symbol(member);
         if (functionSymbol.isEmpty()) {
             return;
         }
         FunctionTypeSymbol functionTypeSymbol = ((FunctionSymbol) functionSymbol.get()).typeDescriptor();
-
         Optional<TypeSymbol> returnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
         returnTypeSymbol.ifPresent(typeSymbol -> validateReturnType(ctx, member, returnTypeStringValue, typeSymbol));
     }
@@ -541,23 +536,28 @@ class HttpResourceValidator {
 
     private static void validateHttpCallerUsage(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
         Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
-        if (resourceMethodSymbolOptional.isPresent()) {
-            ResourceMethodSymbol resourceMethod = (ResourceMethodSymbol) resourceMethodSymbolOptional.get();
-            FunctionTypeSymbol typeDescriptor = resourceMethod.typeDescriptor();
-            Optional<List<ParameterSymbol>> parameterOptional = typeDescriptor.params();
-            boolean isCallerPresent = parameterOptional.isPresent() &&
-                    parameterOptional.get().stream().anyMatch(HttpResourceValidator::isHttpCaller);
-            if (isCallerPresent) {
-                Optional<TypeSymbol> returnTypeDescriptorOpt = typeDescriptor.returnTypeDescriptor();
-                if (returnTypeDescriptorOpt.isPresent()) {
-                    TypeSymbol typeSymbol = returnTypeDescriptorOpt.get();
-                    String returnTypeDescription = constructReturnTypeDescription(typeSymbol);
-                    if (!(ERROR.equals(returnTypeDescription) || "".equals(returnTypeDescription))) {
-                        updateDiagnostic(ctx, member, returnTypeDescription, HttpDiagnosticCodes.HTTP_118);
-                    }
-                }
-            }
+        Optional<ReturnTypeDescriptorNode> returnTypeDescOpt = member.functionSignature().returnTypeDesc();
+        if (resourceMethodSymbolOptional.isEmpty() || returnTypeDescOpt.isEmpty()) {
+            return;
         }
+        String returnTypeDescription = getReturnTypeDescription(returnTypeDescOpt.get());
+        ResourceMethodSymbol resourceMethod = (ResourceMethodSymbol) resourceMethodSymbolOptional.get();
+        FunctionTypeSymbol typeDescriptor = resourceMethod.typeDescriptor();
+        Optional<List<ParameterSymbol>> parameterOptional = typeDescriptor.params();
+        boolean isCallerPresent = parameterOptional.isPresent() &&
+                parameterOptional.get().stream().anyMatch(HttpResourceValidator::isHttpCaller);
+        if (!isCallerPresent) {
+            return;
+        }
+        Optional<TypeSymbol> returnTypeDescriptorOpt = typeDescriptor.returnTypeDescriptor();
+        if (returnTypeDescriptorOpt.isEmpty()) {
+            return;
+        }
+        TypeSymbol typeSymbol = returnTypeDescriptorOpt.get();
+        if (isValidReturnTypeWithCaller(typeSymbol)) {
+            return;
+        }
+        updateDiagnostic(ctx, member, returnTypeDescription, HttpDiagnosticCodes.HTTP_118);
     }
 
     private static boolean isHttpCaller(ParameterSymbol param) {
@@ -567,6 +567,23 @@ class HttpResourceValidator {
             return isHttpModuleType(CALLER_OBJ_NAME, typeDescriptor);
         } else {
             return false;
+        }
+    }
+
+    private static String getReturnTypeDescription(ReturnTypeDescriptorNode returnTypeDescriptorNode) {
+        Node returnTypeDescriptor = returnTypeDescriptorNode.type();
+        return returnTypeDescriptor.toString().split(" ")[0];
+    }
+
+    private static boolean isValidReturnTypeWithCaller(TypeSymbol returnTypeDescriptor) {
+        TypeDescKind typeKind = returnTypeDescriptor.typeKind();
+        if (TypeDescKind.UNION.equals(typeKind)) {
+            return ((UnionTypeSymbol) returnTypeDescriptor)
+                    .memberTypeDescriptors().stream()
+                    .map(HttpResourceValidator::isValidReturnTypeWithCaller)
+                    .reduce(true, (a , b) -> a && b);
+        } else {
+            return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }
     }
 
