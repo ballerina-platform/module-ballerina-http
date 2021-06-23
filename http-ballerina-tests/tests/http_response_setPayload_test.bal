@@ -135,3 +135,41 @@ function testResponseSetBinaryPayload() returns error? {
     res.setBinaryPayload("test".toBytes());
     test:assertEquals(res.getContentType(), "binary/test2", msg = "Found unexpected headerValue");
 }
+
+@test:Config {}
+function testResponseSetTextPayload() returns error? {
+    http:Response res = new;
+    res.setTextPayload("test");
+    test:assertEquals(res.getContentType(), "text/plain", msg = "Found unexpected headerValue");
+    res.setTextPayload("test", "text/test1");
+    test:assertEquals(res.getContentType(), "text/test1", msg = "Found unexpected headerValue");
+    check res.setContentType("text/test2");
+    res.setTextPayload("test");
+    test:assertEquals(res.getContentType(), "text/test2", msg = "Found unexpected headerValue");
+}
+
+@test:Config {}
+function testResponseSetJsonPayload() returns error? {
+    http:Response res = new;
+    res.setJsonPayload({"payload": "test"});
+    test:assertEquals(res.getContentType(), "application/json", msg = "Found unexpected headerValue");
+    res.setJsonPayload({"payload": "test"}, "json/test1");
+    test:assertEquals(res.getContentType(), "json/test1", msg = "Found unexpected headerValue");
+    check res.setContentType("json/test2");
+    res.setJsonPayload({"payload": "test"});
+    test:assertEquals(res.getContentType(), "json/test2", msg = "Found unexpected headerValue");
+}
+
+@test:Config {}
+function testResponseSetByteStream() returns error? {
+    http:Response res = new;
+    io:ReadableByteChannel byteChannel = check io:openReadableFile("tests/datafiles/test.tmp");
+    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
+    res.setByteStream(blockStream);
+    test:assertEquals(res.getContentType(), "application/octet-stream", msg = "Found unexpected headerValue");
+    res.setByteStream(blockStream, "stream/test1");
+    test:assertEquals(res.getContentType(), "stream/test1", msg = "Found unexpected headerValue");
+    check res.setContentType("stream/test2");
+    res.setByteStream(blockStream);
+    test:assertEquals(res.getContentType(), "stream/test2", msg = "Found unexpected headerValue");
+}
