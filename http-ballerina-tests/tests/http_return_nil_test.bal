@@ -39,6 +39,13 @@ service "/url" on httpReturnNilListener  {
         error? err = caller->respond("Hello"); // 200 response
         return "hi"; // exception
     }
+
+    resource function get errorCaller(http:Caller caller, boolean err) returns error? {
+        if err {
+            return; //500 response
+        }
+        check caller->respond("success");
+    }
 }
 
 @test:Config {}
@@ -80,6 +87,31 @@ function testDoubleResponseWithExecption() {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testNilReturnWithCaller() {
+    http:Response|error response = httpReturnNilClient->get("/url/errorCaller?err=true");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        string|error payload = response.getTextPayload();
+        if payload is error {
+            test:assertEquals(payload.message(), "No content", msg = "Found unexpected output");
+        } else {
+            test:assertFail(msg = "Found unexpected payload type: string");
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpReturnNilClient->get("/url/errorCaller?err=false");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "success");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
