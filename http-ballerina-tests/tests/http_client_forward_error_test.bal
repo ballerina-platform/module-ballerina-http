@@ -17,18 +17,17 @@
 import ballerina/http;
 import ballerina/test;
 
-http:Client clientTest2 = check new ("http://localhost:9092");
-http:Listener listenerTest = check new(9090);
-http:Client clientTest1 = check new ("http://localhost:9090");
+http:Client clientTest1 = check new ("http://localhost:" + clientForwardTestPort1.toString());
+http:Client clientTest2 = check new ("http://localhost:" + clientForwardTestPort2.toString());
 
-service / on new http:Listener(9092) {
+service / on new http:Listener(clientForwardTestPort2) {
 
     resource function get test() returns string {
         return "HelloWorld";
     }
 }
 
-service / on new http:Listener(9090) {
+service / on new http:Listener(clientForwardTestPort1) {
 
     resource function get test(http:Request req) returns http:Response|error {
         http:Request req_new = new;
