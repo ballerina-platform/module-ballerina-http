@@ -27,7 +27,9 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.websocketx.WebSocket13FrameDecoder;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketFrameDecoder;
+import io.netty.handler.timeout.IdleStateEvent;
 import org.ballerinalang.net.transport.contract.Constants;
+import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorException;
 import org.ballerinalang.net.transport.contract.websocket.WebSocketConnectorFuture;
 import org.ballerinalang.net.transport.contractimpl.listener.WebSocketMessageQueueHandler;
 import org.ballerinalang.net.transport.contractimpl.websocket.DefaultClientHandshakeFuture;
@@ -73,6 +75,13 @@ public class WebSocketClientHandshakeHandler extends ChannelInboundHandlerAdapte
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         handshaker.handshake(ctx.channel());
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+        if (evt instanceof IdleStateEvent) {
+            handshakeFuture.notifyError(new WebSocketConnectorException("Handshake timed out"), null);
+        }
     }
 
     @Override

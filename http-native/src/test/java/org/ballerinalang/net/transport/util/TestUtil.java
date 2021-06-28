@@ -80,6 +80,7 @@ public class TestUtil {
     public static final int SERVER_PORT3 = 9003;
     public static final int SERVER_CONNECTOR_PORT = 8490;
     public static final int WEBSOCKET_REMOTE_SERVER_PORT = 9010;
+    public static final int WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_PORT = 9011;
     public static final int WEBSOCKET_TEST_IDLE_TIMEOUT = 30;
     public static final long HTTP2_RESPONSE_TIME_OUT = 30;
     public static final long SSL_HANDSHAKE_TIMEOUT = 20;
@@ -94,6 +95,8 @@ public class TestUtil {
     public static final TimeUnit HTTP2_RESPONSE_TIME_UNIT = TimeUnit.SECONDS;
     public static final String WEBSOCKET_REMOTE_SERVER_URL =
             String.format("ws://%s:%d/%s", TEST_HOST, WEBSOCKET_REMOTE_SERVER_PORT, "websocket");
+    public static final String WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_URL = String
+            .format("ws://%s:%d/%s", TEST_HOST, WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_PORT, "websocket");
     public static final String WEBSOCKET_SECURE_REMOTE_SERVER_URL =
             String.format("wss://%s:%d/%s", TEST_HOST, WEBSOCKET_REMOTE_SERVER_PORT, "websocket");
     public static final String KEY_FILE = "/simple-test-config/certsAndKeys/private.key";
