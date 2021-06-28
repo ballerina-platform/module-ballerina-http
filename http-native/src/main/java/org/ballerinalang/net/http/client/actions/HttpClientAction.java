@@ -164,7 +164,6 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {
         Future balFuture = env.markAsync();
-        Map<String, Object> propertyMap = getPropertiesToPropagate(env);
         env.getRuntime().invokeMethodAsync(client, methodName, null, null, new Callback() {
             @Override
             public void notifySuccess(Object result) {
@@ -178,21 +177,8 @@ public class HttpClientAction extends AbstractHTTPAction {
                                                  HttpErrorType.CLIENT_ERROR, bError);
                 balFuture.complete(invocationError);
             }
-        }, propertyMap, PredefinedTypes.TYPE_NULL, paramFeed);
+        }, env.getStrandLocals(), PredefinedTypes.TYPE_NULL, paramFeed);
         return null;
-    }
-
-    private static Map<String, Object> getPropertiesToPropagate(Environment env) {
-        String[] keys = {CURRENT_TRANSACTION_CONTEXT_PROPERTY, KEY_OBSERVER_CONTEXT, SRC_HANDLER,
-                POOLED_BYTE_BUFFER_FACTORY, REMOTE_ADDRESS, ORIGIN_HOST};
-        Map<String, Object> subMap = new HashMap<>();
-        for (String key : keys) {
-            Object value = env.getStrandLocal(key);
-            if (value != null) {
-                subMap.put(key, value);
-            }
-        }
-        return subMap;
     }
 
     private HttpClientAction() {
