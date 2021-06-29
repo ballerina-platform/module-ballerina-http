@@ -21,9 +21,9 @@ package org.ballerinalang.net.http.client.actions;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import org.ballerinalang.net.http.BallerinaConnectorException;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
+import org.ballerinalang.net.http.HttpErrorType;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.transport.contract.HttpClientConnector;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
@@ -50,7 +50,8 @@ public class Forward extends AbstractHTTPAction {
     protected static HttpCarbonMessage createOutboundRequestMsg(String serviceUri, String path, BObject requestObj) {
         if (requestObj.getNativeData(HttpConstants.REQUEST) == null &&
                 !HttpUtil.isEntityDataSourceAvailable(requestObj)) {
-            throw new BallerinaConnectorException("invalid inbound request parameter");
+            throw HttpUtil.createHttpError("invalid inbound request parameter",
+                    HttpErrorType.GENERIC_CLIENT_ERROR);
         }
         HttpCarbonMessage outboundRequestMsg = HttpUtil
                 .getCarbonMsg(requestObj, HttpUtil.createHttpCarbonMessage(true));
