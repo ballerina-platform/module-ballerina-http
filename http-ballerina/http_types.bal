@@ -25,15 +25,15 @@ public type RequestMessage Request|string|xml|json|byte[]|int|float|decimal|bool
 public type ResponseMessage Response|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
                             (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
 
-# The HTTP service type
+# The HTTP service type.
 public type Service service object {
 
 };
 
-# The types of the response payload that are returned by the HTTP `client` after the data binding operation
+# The types of the response payload that are returned by the HTTP `client` after the data binding operation.
 public type PayloadType string|xml|json|map<json>|byte[]|record {| anydata...; |}|record {| anydata...; |}[];
 
-# The types of data values that are expected by the HTTP `client` to return after the data binding operation
+# The types of data values that are expected by the HTTP `client` to return after the data binding operation.
 public type TargetType typedesc<Response|PayloadType>;
 
 # Defines the HTTP operations related to circuit breaker, failover and load balancer.
