@@ -688,7 +688,9 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
     } else if (targetType is typedesc<json>) {
-        return response.getJsonPayload();
+        json payload = check response.getJsonPayload();
+        var result = payload.cloneWithType(targetType);
+        return result is error ? createPayloadBindingError(result): result;
     }
 }
 
