@@ -31,6 +31,10 @@ type ClientDBPerson record {|
     int age;
 |};
 
+type ClientDBPersonOtp ClientDBPerson?;
+
+type ClientDBPersonArrOtp ClientDBPerson[]?;
+
 int clientDBCounter = 0;
 
 service /passthrough on clientDBProxyListener {
@@ -65,6 +69,20 @@ service /passthrough on clientDBProxyListener {
         payload = payload + " | " + check v.getHeader("x-fact");
 
         error? result = caller->respond(<@untainted>payload);
+    }
+
+    resource function get nillableRecordTypes() returns string|error {
+        string payload = "";
+        ClientDBPerson? t = check clientDBBackendClient->post("/backend/getRecord", "want record", targetType = ClientDBPersonOtp);
+        if t is ClientDBPerson {
+            payload = payload + t.name;
+        }
+
+        ClientDBPerson[]? u = check clientDBBackendClient->post("/backend/getRecordArr", "want record[]", targetType = ClientDBPersonArrOtp);
+        if u is ClientDBPerson[] {
+            payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
+        }
+        return payload;
     }
 
     resource function get allMethods(http:Caller caller, http:Request request) returns error? {
@@ -264,6 +282,18 @@ function testAllBindingDataTypes() {
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
                  "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | \"chamil\" | <name>Ballerina</name> | " +
                  "This is my @4491*&&#$^($@ | BinaryPayload is textVal | chamil | wso2 | 3 | data-binding");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testAllBindingNillableDataTypes() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/nillableRecordTypes");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "chamil | wso2 | 3");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
