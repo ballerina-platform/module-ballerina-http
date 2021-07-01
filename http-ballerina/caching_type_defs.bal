@@ -38,7 +38,7 @@ public const RFC_7234 = "RFC_7234";
 public type CacheConfig record {|
     boolean enabled = true;
     boolean isShared = false;
-    int capacity = 8388608; // 8MB
+    int capacity = 16;
     float evictionFactor = 0.2;
     CachingPolicy policy = CACHE_CONTROL_AND_VALIDATORS;
 |};
