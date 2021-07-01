@@ -135,20 +135,23 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     private static Object invokeClientMethod(Environment env, BObject client, BString path, Object message,
                                              BTypedesc targetType, String methodName) {
-        Object[] paramFeed = new Object[6];
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = path;
         paramFeed[1] = true;
         paramFeed[2] = message;
         paramFeed[3] = true;
         paramFeed[4] = targetType;
         paramFeed[5] = true;
+        paramFeed[6] = targetType.getDescribingType().isNilable();
+        paramFeed[7] = true;
         return invokeClientMethod(env, client, methodName, paramFeed);
     }
 
     private static Object invokeClientMethod(Environment env, BObject client, BString path, Object message,
                                              Object mediaType, Object headers, BTypedesc targetType,
                                              String methodName) {
-        Object[] paramFeed = new Object[10];
+
+        Object[] paramFeed = new Object[12];
         paramFeed[0] = path;
         paramFeed[1] = true;
         paramFeed[2] = message;
@@ -159,6 +162,8 @@ public class HttpClientAction extends AbstractHTTPAction {
         paramFeed[7] = true;
         paramFeed[8] = headers;
         paramFeed[9] = true;
+        paramFeed[10] = targetType.getDescribingType().isNilable();
+        paramFeed[11] = true;
         return invokeClientMethod(env, client, methodName, paramFeed);
     }
 

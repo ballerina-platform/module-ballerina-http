@@ -73,6 +73,7 @@ service /passthrough on clientDBProxyListener {
 
     resource function get nillableRecordTypes() returns string|error {
         string payload = "";
+
         ClientDBPerson? t = check clientDBBackendClient->post("/backend/getRecord", "want record", targetType = ClientDBPersonOtp);
         if t is ClientDBPerson {
             payload = payload + t.name;
@@ -82,6 +83,23 @@ service /passthrough on clientDBProxyListener {
         if u is ClientDBPerson[] {
             payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
         }
+
+        return payload;
+    }
+
+    resource function get nilRecords() returns string|error {
+        string payload = "";
+        
+        ClientDBPerson? t = check clientDBBackendClient->post("/backend/getNil", "want record", targetType = ClientDBPersonOtp);
+        if t is () {
+            payload = payload + "NilRecord";
+        }
+
+        ClientDBPerson[]? u = check clientDBBackendClient->post("/backend/getNil", "want record[]", targetType = ClientDBPersonArrOtp);
+        if u is () {
+            payload = payload + " | " + "NilRecordArr";
+        }
+
         return payload;
     }
 
@@ -212,6 +230,9 @@ service /backend on clientDBBackendListener {
         error? result = caller->respond(response);
     }
 
+    resource function 'default getNil() {
+    }
+
     resource function post getResponse(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setJsonPayload({id: "hello"});
@@ -287,13 +308,29 @@ function testAllBindingDataTypes() {
     }
 }
 
-@test:Config {}
-function testAllBindingNillableDataTypes() {
+@test:Config {
+    groups: ["dataBinding"]
+}
+function testAllBindingNillableDataTypes() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/nillableRecordTypes");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "chamil | wso2 | 3");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {
+    groups: ["dataBinding"]
+}
+function testAllBindingNilRecords() returns error? {
+    http:Response|error response = clientDBTestClient->get("/passthrough/nilRecords");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "NilRecord | NilRecordArr");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
