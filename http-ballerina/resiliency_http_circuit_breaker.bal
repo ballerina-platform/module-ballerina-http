@@ -109,7 +109,7 @@ public type Bucket record {|
 public type CircuitBreakerInferredConfig record {|
     float failureThreshold = 0.0;
     decimal resetTime = 0;
-    boolean[] statusCodes = [];
+    int[] statusCodes = [];
     int noOfBuckets = 0;
     RollingWindow rollingWindow = {};
 |};
@@ -474,7 +474,7 @@ public client isolated class CircuitBreakerClient {
 
     isolated function updateCircuitHealthAndRespond(Response|ClientError serviceResponse) returns Response|ClientError {
         if (serviceResponse is Response) {
-            if (self.circuitBreakerInferredConfig.statusCodes[serviceResponse.statusCode]) {
+            if (self.circuitBreakerInferredConfig.statusCodes.indexOf(serviceResponse.statusCode) is int) {
                 self.updateCircuitHealthFailure();
             } else {
                 self.updateCircuitHealthSuccess();
