@@ -114,6 +114,8 @@ const int pathParamCheckTestPort = 9565;
 const int httpReturnNilTestPort = 9566;
 const int clientForwardTestPort1 = 9567;
 const int clientForwardTestPort2 = 9568;
+const int cBClientWithoutStatusCodesTestPort1 = 9569;
+const int cBClientWithoutStatusCodesTestPort2 = 9570;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;

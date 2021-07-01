@@ -539,7 +539,6 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
     var cbConfig = configuration.circuitBreaker;
     if (cbConfig is CircuitBreakerConfig) {
         validateCircuitBreakerConfiguration(cbConfig);
-        boolean[] statusCodes = populateErrorCodeIndex(cbConfig.statusCodes);
         var redirectConfig = configuration.followRedirects;
         if (redirectConfig is FollowRedirects) {
             var redirectClient = createRedirectClient(uri, configuration, cookieStore);
@@ -569,7 +568,7 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
         CircuitBreakerInferredConfig circuitBreakerInferredConfig = {
             failureThreshold: cbConfig.failureThreshold,
             resetTime: cbConfig.resetTime,
-            statusCodes: statusCodes,
+            statusCodes: cbConfig.statusCodes,
             noOfBuckets: numberOfBuckets,
             rollingWindow: cbConfig.rollingWindow
         };
