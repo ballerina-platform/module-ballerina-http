@@ -37,13 +37,11 @@ http:Client nonExistingBackend = check new ("https://nuwandiasbanda.com", conf1)
 service / on new http:Listener(cBClientWithoutStatusCodesTestPort2) {
 
     resource function get test1() returns string|error {
-        string payload = check cbrBackend->get("/hello");
-        return payload;
+        return cbrBackend->get("/hello");
     }
 
     resource function get test2() returns string|error {
-        string payload = check nonExistingBackend->get("/hello");
-        return payload;
+        return nonExistingBackend->get("/hello");
     }
 }
 
@@ -61,7 +59,6 @@ service / on new http:Listener(cBClientWithoutStatusCodesTestPort1) {
 }
 
 @test:Config {
-    enable: true,
     dataProvider: responseDataProvider1
 }
 function testCircuitBreakerWithoutStatusCodes1(DataFeed dataFeed) {
@@ -79,7 +76,6 @@ function responseDataProvider1() returns DataFeed[][] {
 }
 
 @test:Config {
-    enable: true,
     dataProvider: responseDataProvider2
 }
 function testCircuitBreakerWithoutStatusCodes2(DataFeed dataFeed) {
