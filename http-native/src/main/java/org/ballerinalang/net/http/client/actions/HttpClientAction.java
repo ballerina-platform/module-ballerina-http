@@ -115,7 +115,7 @@ public class HttpClientAction extends AbstractHTTPAction {
     public static Object execute(Environment env, BObject client, BString httpVerb, BString path, Object message,
                                  Object headers, Object mediaType, BTypedesc targetType) {
         Type currentType = targetType.getDescribingType();
-        boolean isNilable = currentType.isNilable();
+        boolean nilable = currentType.isNilable();
         Object[] paramFeed = new Object[14];
         paramFeed[0] = httpVerb;
         paramFeed[1] = true;
@@ -123,28 +123,28 @@ public class HttpClientAction extends AbstractHTTPAction {
         paramFeed[3] = true;
         paramFeed[4] = message;
         paramFeed[5] = true;
-        paramFeed[6] = resolveType(currentType, isNilable);
+        paramFeed[6] = resolveType(currentType, nilable);
         paramFeed[7] = true;
         paramFeed[8] = mediaType;
         paramFeed[9] = true;
         paramFeed[10] = headers;
         paramFeed[11] = true;
-        paramFeed[12] = isNilable;
+        paramFeed[12] = nilable;
         paramFeed[13] = true;
         return invokeClientMethod(env, client, "processExecute", paramFeed);
     }
 
     public static Object forward(Environment env, BObject client, BString path, BObject message, BTypedesc targetType) {
         Type currentType = targetType.getDescribingType();
-        boolean isNilable = currentType.isNilable();
+        boolean nilable = currentType.isNilable();
         Object[] paramFeed = new Object[8];
         paramFeed[0] = path;
         paramFeed[1] = true;
         paramFeed[2] = message;
         paramFeed[3] = true;
-        paramFeed[4] = resolveType(currentType, isNilable);
+        paramFeed[4] = resolveType(currentType, nilable);
         paramFeed[5] = true;
-        paramFeed[6] = isNilable;
+        paramFeed[6] = nilable;
         paramFeed[7] = true;
         return invokeClientMethod(env, client, "processForward", paramFeed);
     }
@@ -152,15 +152,15 @@ public class HttpClientAction extends AbstractHTTPAction {
     private static Object invokeClientMethod(Environment env, BObject client, BString path, Object message,
                                              BTypedesc targetType, String methodName) {
         Type currentType = targetType.getDescribingType();
-        boolean isNilable = currentType.isNilable();
+        boolean nilable = currentType.isNilable();
         Object[] paramFeed = new Object[8];
         paramFeed[0] = path;
         paramFeed[1] = true;
         paramFeed[2] = message;
         paramFeed[3] = true;
-        paramFeed[4] = resolveType(currentType, isNilable);
+        paramFeed[4] = resolveType(currentType, nilable);
         paramFeed[5] = true;
-        paramFeed[6] = isNilable;
+        paramFeed[6] = nilable;
         paramFeed[7] = true;
         return invokeClientMethod(env, client, methodName, paramFeed);
     }
@@ -169,25 +169,25 @@ public class HttpClientAction extends AbstractHTTPAction {
                                              Object mediaType, Object headers, BTypedesc targetType,
                                              String methodName) {
         Type currentType = targetType.getDescribingType();
-        boolean isNilable = currentType.isNilable();
+        boolean nilable = currentType.isNilable();
         Object[] paramFeed = new Object[12];
         paramFeed[0] = path;
         paramFeed[1] = true;
         paramFeed[2] = message;
         paramFeed[3] = true;
-        paramFeed[4] = resolveType(currentType, isNilable);
+        paramFeed[4] = resolveType(currentType, nilable);
         paramFeed[5] = true;
         paramFeed[6] = mediaType;
         paramFeed[7] = true;
         paramFeed[8] = headers;
         paramFeed[9] = true;
-        paramFeed[10] = isNilable;
+        paramFeed[10] = nilable;
         paramFeed[11] = true;
         return invokeClientMethod(env, client, methodName, paramFeed);
     }
 
-    private static BTypedesc resolveType(Type currentType, boolean isNilable) {
-        if (isNilable && !(currentType instanceof JsonType) &&
+    private static BTypedesc resolveType(Type currentType, boolean nilable) {
+        if (nilable && !(currentType instanceof JsonType) &&
                 (currentType instanceof UnionType)) {
             List<Type> nonNullableTypes = ((UnionType) currentType)
                     .getOriginalMemberTypes().stream()

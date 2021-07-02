@@ -70,14 +70,14 @@ public client isolated class Client {
     } external;
 
     private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers, boolean isNilable) returns @tainted Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers, boolean nilable) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, isNilable);
+        return processResponse(response, targetType, nilable);
     }
 
     # The `Client.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
@@ -97,14 +97,14 @@ public client isolated class Client {
     } external;
 
     private isolated function processPut(@untainted string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers, boolean isNilable) returns @tainted Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers, boolean nilable) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, isNilable);
+        return processResponse(response, targetType, nilable);
     }
 
     # The `Client.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
@@ -124,14 +124,14 @@ public client isolated class Client {
     } external;
 
     private isolated function processPatch(@untainted string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers, boolean isNilable) returns @tainted Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers, boolean nilable) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, isNilable);
+        return processResponse(response, targetType, nilable);
     }
 
     # The `Client.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.
@@ -151,14 +151,14 @@ public client isolated class Client {
     } external;
 
     private isolated function processDelete(@untainted string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers, boolean isNilable) returns @tainted Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers, boolean nilable) returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, isNilable);
+        return processResponse(response, targetType, nilable);
     }
 
     # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
@@ -189,14 +189,14 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processGet(@untainted string path, map<string|string[]>? headers, TargetType targetType, boolean isNilable)
+    private isolated function processGet(@untainted string path, map<string|string[]>? headers, TargetType targetType, boolean nilable)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, isNilable);
+        return processResponse(response, targetType, nilable);
     }
 
     # The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
@@ -212,14 +212,14 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processOptions(@untainted string path, map<string|string[]>? headers, TargetType targetType, boolean isNilable)
+    private isolated function processOptions(@untainted string path, map<string|string[]>? headers, TargetType targetType, boolean nilable)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, isNilable);
+        return processResponse(response, targetType, nilable);
     }
 
     # Invokes an HTTP call with the specified HTTP verb.
@@ -240,7 +240,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType, string? mediaType, map<string|string[]>? headers, boolean isNilable)
+            TargetType targetType, string? mediaType, map<string|string[]>? headers, boolean nilable)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -248,7 +248,7 @@ public client isolated class Client {
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, isNilable);
+        return processResponse(response, targetType, nilable);
     }
 
     # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
@@ -264,13 +264,13 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processForward(@untainted string path, Request request, TargetType targetType, boolean isNilable)
+    private isolated function processForward(@untainted string path, Request request, TargetType targetType, boolean nilable)
             returns @tainted Response|PayloadType|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, isNilable);
+        return processResponse(response, targetType, nilable);
     }
 
     # Submits an HTTP request to a service with the specified HTTP verb.
@@ -662,23 +662,23 @@ isolated function processResponse(Response|ClientError result, TargetType target
     return performDataBinding(response, targetType, isNillable);
 }
 
-isolated function performDataBinding(Response response, TargetType targetType, boolean isNilable) returns @tainted PayloadType|ClientError {
+isolated function performDataBinding(Response response, TargetType targetType, boolean nilable) returns @tainted PayloadType|ClientError {
     if (targetType is typedesc<string>) {
         string|ClientError payload = response.getTextPayload();
         if payload is ClientError {
-            return isNilable ? () : payload;
+            return nilable ? () : payload;
         }
         return payload;
     } else if (targetType is typedesc<xml>) {
         xml|ClientError payload = response.getXmlPayload();
         if payload is ClientError {
-            return isNilable ? () : payload;
+            return nilable ? () : payload;
         }
         return payload;
     } else if (targetType is typedesc<byte[]>) {
         byte[]|ClientError payload = response.getBinaryPayload();
         if payload is ClientError {
-            return isNilable ? () : payload;
+            return nilable ? () : payload;
         }
         return payload;
     } else if (targetType is typedesc<record {| anydata...; |}>) {
@@ -686,23 +686,23 @@ isolated function performDataBinding(Response response, TargetType targetType, b
         if payload is json {
             var result = payload.cloneWithType(targetType);
             if result is error {
-                return isNilable ? () : createPayloadBindingError(result);
+                return nilable ? () : createPayloadBindingError(result);
             } else {
                 return result;
             }
         }
-        return isNilable ? () : payload;
+        return nilable ? () : payload;
     } else if (targetType is typedesc<record {| anydata...; |}[]>) {
         json|ClientError payload = check response.getJsonPayload();
         if payload is json {
             var result = payload.cloneWithType(targetType);
             if (result is error) {
-                return isNilable ? () : createPayloadBindingError(result);
+                return nilable ? () : createPayloadBindingError(result);
             } else {
                 return result;
             }
         }
-        return isNilable ? () : payload;
+        return nilable ? () : payload;
     } else if (targetType is typedesc<map<json>>) {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
