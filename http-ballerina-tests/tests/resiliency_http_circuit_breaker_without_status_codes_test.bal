@@ -75,7 +75,9 @@ function responseDataProvider1() returns DataFeed[][] {
     ];
 }
 
+// Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
 @test:Config {
+    enable: false,
     dataProvider: responseDataProvider2
 }
 function testCircuitBreakerWithoutStatusCodes2(DataFeed dataFeed) {
