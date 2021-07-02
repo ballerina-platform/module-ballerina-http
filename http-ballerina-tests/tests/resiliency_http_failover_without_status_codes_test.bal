@@ -18,28 +18,26 @@ import ballerina/http;
 import ballerina/lang.runtime;
 import ballerina/test;
 
-http:Client foClientEP = check new ("http://localhost:9571");
+http:Client foClientEP = check new ("http://localhost:" + foClientWithoutStatusCodeTestPort1.toString());
 
 http:FailoverClient foBackendEP = check new ({
-
     timeout: 5,
     failoverCodes: [],
     interval: 5,
     targets: [
             {url: "http://nonexistentEP/mock1"},
-            {url: "http://localhost:9572/echo"},
-            {url: "http://localhost:9572/mock"}
+            {url: "http://localhost:" + foClientWithoutStatusCodeTestPort2.toString() + "/echo"},
+            {url: "http://localhost:" + foClientWithoutStatusCodeTestPort2.toString() + "/mock"}
         ]
 });
 
-service / on new http:Listener(9571) {
+service / on new http:Listener(foClientWithoutStatusCodeTestPort1) {
     resource function 'default fo() returns string|error {
-        string payload = check foBackendEP->get("/");
-        return payload;
+        return foBackendEP->get("/");
     }
 }
 
-service / on new http:Listener(9572) {
+service / on new http:Listener(foClientWithoutStatusCodeTestPort2) {
     resource function 'default echo() returns string {
         runtime:sleep(30);
         return "echo Resource is invoked";
