@@ -240,7 +240,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
-            TargetType targetType, string? mediaType, map<string|string[]>? headers)
+            TargetType targetType, string? mediaType, map<string|string[]>? headers, boolean isNilable)
             returns @tainted Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
@@ -248,7 +248,7 @@ public client isolated class Client {
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, isNilable);
     }
 
     # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
@@ -264,13 +264,13 @@ public client isolated class Client {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processForward(@untainted string path, Request request, TargetType targetType)
+    private isolated function processForward(@untainted string path, Request request, TargetType targetType, boolean isNilable)
             returns @tainted Response|PayloadType|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, isNilable);
     }
 
     # Submits an HTTP request to a service with the specified HTTP verb.

@@ -39,7 +39,7 @@ int clientDBCounter = 0;
 
 service /passthrough on clientDBProxyListener {
 
-    resource function get allTypes(http:Caller caller, http:Request request) returns @tainted error? {
+    resource function get allTypes(http:Caller caller, http:Request request) returns error? {
         string payload = "";
 
         json p = check clientDBBackendClient->post("/backend/getJson", "want json");

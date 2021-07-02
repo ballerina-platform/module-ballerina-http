@@ -106,7 +106,7 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     public static Object execute(Environment env, BObject client, BString httpVerb, BString path, Object message,
                                  Object headers, Object mediaType, BTypedesc targetType) {
-        Object[] paramFeed = new Object[12];
+        Object[] paramFeed = new Object[14];
         paramFeed[0] = httpVerb;
         paramFeed[1] = true;
         paramFeed[2] = path;
@@ -119,17 +119,21 @@ public class HttpClientAction extends AbstractHTTPAction {
         paramFeed[9] = true;
         paramFeed[10] = headers;
         paramFeed[11] = true;
+        paramFeed[12] = targetType.getDescribingType().isNilable();
+        paramFeed[13] = true;
         return invokeClientMethod(env, client, "processExecute", paramFeed);
     }
 
     public static Object forward(Environment env, BObject client, BString path, BObject message, BTypedesc targetType) {
-        Object[] paramFeed = new Object[6];
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = path;
         paramFeed[1] = true;
         paramFeed[2] = message;
         paramFeed[3] = true;
         paramFeed[4] = targetType;
         paramFeed[5] = true;
+        paramFeed[6] = targetType.getDescribingType().isNilable();;
+        paramFeed[7] = true;
         return invokeClientMethod(env, client, "processForward", paramFeed);
     }
 
