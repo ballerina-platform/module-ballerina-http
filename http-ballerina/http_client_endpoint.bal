@@ -664,36 +664,50 @@ isolated function processResponse(Response|ClientError result, TargetType target
 
 isolated function performDataBinding(Response response, TargetType targetType, boolean isNilable) returns @tainted PayloadType|ClientError {
     if (targetType is typedesc<string>) {
-        return response.getTextPayload();
+        string|ClientError payload = response.getTextPayload();
+        if payload is ClientError {
+            return isNilable ? () : payload;
+        }
+        return payload;
     } else if (targetType is typedesc<xml>) {
-        return response.getXmlPayload();
+        xml|ClientError payload = response.getXmlPayload();
+        if payload is ClientError {
+            return isNilable ? () : payload;
+        }
+        return payload;
     } else if (targetType is typedesc<byte[]>) {
-        return response.getBinaryPayload();
+        byte[]|ClientError payload = response.getBinaryPayload();
+        if payload is ClientError {
+            return isNilable ? () : payload;
+        }
+        return payload;
     } else if (targetType is typedesc<record {| anydata...; |}>) {
-        json payload = check response.getJsonPayload();
-        var result = payload.cloneWithType(targetType);
-        if (result is error) {
-            return createPayloadBindingError(result);
+        json|ClientError payload = response.getJsonPayload();
+        if payload is json {
+            var result = payload.cloneWithType(targetType);
+            if result is error {
+                return isNilable ? () : createPayloadBindingError(result);
+            } else {
+                return result;
+            }
         }
-        return <record {| anydata...; |}> checkpanic result;
+        return isNilable ? () : payload;
     } else if (targetType is typedesc<record {| anydata...; |}[]>) {
-        json payload = check response.getJsonPayload();
-        var result = payload.cloneWithType(targetType);
-        if (result is error) {
-            return createPayloadBindingError(result);
+        json|ClientError payload = check response.getJsonPayload();
+        if payload is json {
+            var result = payload.cloneWithType(targetType);
+            if (result is error) {
+                return isNilable ? () : createPayloadBindingError(result);
+            } else {
+                return result;
+            }
         }
-        return <record {| anydata...; |}[]> checkpanic result;
+        return isNilable ? () : payload;
     } else if (targetType is typedesc<map<json>>) {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
     } else if (targetType is typedesc<json>) {
-        json|ClientError payload = response.getJsonPayload();
-        if payload is json {
-            var result = payload.cloneWithType(targetType);
-            return result is error ? createPayloadBindingError(result): result;
-        } else {
-            return isNilable ? () : payload;
-        }
+        return response.getJsonPayload();
     }
 }
 
