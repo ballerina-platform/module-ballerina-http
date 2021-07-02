@@ -27,7 +27,7 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
     }
 
     resource function get okWithoutBody() returns http:Ok {
-        return http:OK;
+        return {};
     }
 
     resource function get createdWithBody() returns http:Created {
@@ -47,11 +47,11 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
     }
 
     resource function get acceptedWithoutBody() returns http:Accepted {
-        return http:ACCEPTED;
+        return {};
     }
 
     resource function get noContentWithoutBody() returns http:NoContent {
-        return http:NO_CONTENT; //Does not have body, media type field
+        return {}; //Does not have body, media type field
     }
 
     resource function get badRequestWithBody() returns http:BadRequest {
@@ -59,7 +59,7 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
     }
 
     resource function get badRequestWithoutBody() returns http:BadRequest {
-        return http:BAD_REQUEST;
+        return {};
     }
 
     resource function get notFoundWithBody() returns http:NotFound {
@@ -67,7 +67,7 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
     }
 
     resource function get notFoundWithoutBody() returns http:NotFound {
-        return http:NOT_FOUND;
+        return {};
     }
 
     resource function get serverErrWithBody() returns http:InternalServerError {
@@ -75,7 +75,7 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
     }
 
     resource function get serverErrWithoutBody() returns http:InternalServerError {
-        return http:INTERNAL_SERVER_ERROR;
+        return {};
     }
 }
 
