@@ -74,7 +74,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
             balFuture = env.markAsync();
             constructNonBlockingDataSource(balFuture, entityObj, SourceType.BLOB);
         } catch (Exception exception) {
-            notifyError(balFuture, exception, "blob");
+            return notifyError(balFuture, exception, "blob");
         }
         return null;
     }
@@ -94,7 +94,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
              balFuture = env.markAsync();
             constructNonBlockingDataSource(balFuture, entityObj, SourceType.JSON);
         } catch (Exception exception) {
-            notifyError(balFuture, exception, "json");
+            return notifyError(balFuture, exception, "json");
         }
         return null;
     }
@@ -114,7 +114,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
             balFuture = env.markAsync();
             constructNonBlockingDataSource(balFuture, entityObj, SourceType.TEXT);
         } catch (Exception exception) {
-            notifyError(balFuture, exception, "text");
+            return notifyError(balFuture, exception, "text");
         }
         return null;
     }
@@ -135,7 +135,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
             balFuture = env.markAsync();
             constructNonBlockingDataSource(balFuture, entityObj, SourceType.XML);
         } catch (Exception exception) {
-            notifyError(balFuture, exception, "xml");
+            return notifyError(balFuture, exception, "xml");
         }
         return null;
     }
@@ -204,9 +204,13 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         });
     }
 
-    private static void notifyError(Future balFuture, Exception exception, String type) {
+    private static Object notifyError(Future balFuture, Exception exception, String type) {
         BError error = (BError) createError(exception, type);
-        setReturnValuesAndNotify(balFuture, error);
+        if (balFuture != null) {
+            setReturnValuesAndNotify(balFuture, error);
+            return null;
+        }
+        return error;
     }
 
     private static void createErrorAndNotify(Future balFuture, String errMsg) {
