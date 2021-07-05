@@ -118,6 +118,8 @@ const int cBClientWithoutStatusCodesTestPort1 = 9569;
 const int cBClientWithoutStatusCodesTestPort2 = 9570;
 const int foClientWithoutStatusCodeTestPort1 = 9571;
 const int foClientWithoutStatusCodeTestPort2 = 9572;
+const int inResponseCachedPayloadTestPort = 9573;
+const int inResponseCachedPayloadTestBEPort = 9574;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
