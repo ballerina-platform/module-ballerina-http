@@ -19,7 +19,6 @@ import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/observe;
 import ballerina/time;
-import ballerina/io;
 
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes the functions for the standard HTTP methods forwarding a received request and sending requests
@@ -663,7 +662,6 @@ isolated function processResponse(Response|ClientError result, TargetType target
 }
 
 isolated function performDataBinding(Response response, TargetType targetType) returns @tainted PayloadType|ClientError {
-    io:println("[Data-Binding] Received target-type ", targetType);
     if (targetType is typedesc<string>) {
         return response.getTextPayload();
     } else if (targetType is typedesc<string|()>) {
@@ -702,11 +700,9 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         }
         return ();
     } else if (targetType is typedesc<map<json>>) {
-        io:println("Selectd target type map<json>");
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
     } else if (targetType is typedesc<json>) {
-        io:println("Selectd target type json");
         return response.getJsonPayload();
     }
 }
