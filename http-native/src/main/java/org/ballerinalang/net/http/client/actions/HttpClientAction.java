@@ -22,17 +22,11 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.async.Callback;
-import io.ballerina.runtime.api.creators.TypeCreator;
-import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.JsonType;
-import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
-import org.ballerinalang.model.types.NilType;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
@@ -42,9 +36,7 @@ import org.ballerinalang.net.transport.message.Http2PushPromise;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.KEY_OBSERVER_CONTEXT;
 import static org.ballerinalang.net.http.HttpConstants.CLIENT_ENDPOINT_CONFIG;
@@ -114,93 +106,60 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     public static Object execute(Environment env, BObject client, BString httpVerb, BString path, Object message,
                                  Object headers, Object mediaType, BTypedesc targetType) {
-        Type currentType = targetType.getDescribingType();
-        boolean nilable = currentType.isNilable();
-        Object[] paramFeed = new Object[14];
+        Object[] paramFeed = new Object[12];
         paramFeed[0] = httpVerb;
         paramFeed[1] = true;
         paramFeed[2] = path;
         paramFeed[3] = true;
         paramFeed[4] = message;
         paramFeed[5] = true;
-        paramFeed[6] = resolveType(currentType, nilable);
+        paramFeed[6] = targetType;
         paramFeed[7] = true;
         paramFeed[8] = mediaType;
         paramFeed[9] = true;
         paramFeed[10] = headers;
         paramFeed[11] = true;
-        paramFeed[12] = nilable;
-        paramFeed[13] = true;
         return invokeClientMethod(env, client, "processExecute", paramFeed);
     }
 
     public static Object forward(Environment env, BObject client, BString path, BObject message, BTypedesc targetType) {
-        Type currentType = targetType.getDescribingType();
-        boolean nilable = currentType.isNilable();
-        Object[] paramFeed = new Object[8];
+        Object[] paramFeed = new Object[6];
         paramFeed[0] = path;
         paramFeed[1] = true;
         paramFeed[2] = message;
         paramFeed[3] = true;
-        paramFeed[4] = resolveType(currentType, nilable);
+        paramFeed[4] = targetType;
         paramFeed[5] = true;
-        paramFeed[6] = nilable;
-        paramFeed[7] = true;
         return invokeClientMethod(env, client, "processForward", paramFeed);
     }
 
     private static Object invokeClientMethod(Environment env, BObject client, BString path, Object message,
                                              BTypedesc targetType, String methodName) {
-        Type currentType = targetType.getDescribingType();
-        boolean nilable = currentType.isNilable();
-        Object[] paramFeed = new Object[8];
+        Object[] paramFeed = new Object[6];
         paramFeed[0] = path;
         paramFeed[1] = true;
         paramFeed[2] = message;
         paramFeed[3] = true;
-        paramFeed[4] = resolveType(currentType, nilable);
+        paramFeed[4] = targetType;
         paramFeed[5] = true;
-        paramFeed[6] = nilable;
-        paramFeed[7] = true;
         return invokeClientMethod(env, client, methodName, paramFeed);
     }
 
     private static Object invokeClientMethod(Environment env, BObject client, BString path, Object message,
                                              Object mediaType, Object headers, BTypedesc targetType,
                                              String methodName) {
-        Type currentType = targetType.getDescribingType();
-        boolean nilable = currentType.isNilable();
-        Object[] paramFeed = new Object[12];
+        Object[] paramFeed = new Object[10];
         paramFeed[0] = path;
         paramFeed[1] = true;
         paramFeed[2] = message;
         paramFeed[3] = true;
-        paramFeed[4] = resolveType(currentType, nilable);
+        paramFeed[4] = targetType;
         paramFeed[5] = true;
         paramFeed[6] = mediaType;
         paramFeed[7] = true;
         paramFeed[8] = headers;
         paramFeed[9] = true;
-        paramFeed[10] = nilable;
-        paramFeed[11] = true;
         return invokeClientMethod(env, client, methodName, paramFeed);
-    }
-
-    private static BTypedesc resolveType(Type currentType, boolean nilable) {
-        if (nilable && !(currentType instanceof JsonType) &&
-                (currentType instanceof UnionType)) {
-            List<Type> nonNullableTypes = ((UnionType) currentType)
-                    .getOriginalMemberTypes().stream()
-                    .filter(t -> !(t instanceof NilType))
-                    .collect(Collectors.toList());
-            if (nonNullableTypes.size() == 1) {
-                return ValueCreator.createTypedescValue(nonNullableTypes.get(0));
-            }
-            UnionType nonNullableUnion = TypeCreator.createUnionType(nonNullableTypes);
-            return ValueCreator.createTypedescValue(nonNullableUnion);
-        } else {
-            return ValueCreator.createTypedescValue(currentType);
-        }
     }
 
     private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {

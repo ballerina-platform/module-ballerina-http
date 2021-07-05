@@ -35,6 +35,10 @@ type ClientDBPersonOtp ClientDBPerson?;
 
 type ClientDBPersonArrOtp ClientDBPerson[]?;
 
+type StringOpt string?;
+type XmlOpt xml?;
+type ByteOpt byte[]?;
+
 int clientDBCounter = 0;
 
 service /passthrough on clientDBProxyListener {
@@ -71,6 +75,28 @@ service /passthrough on clientDBProxyListener {
         error? result = caller->respond(<@untainted>payload);
     }
 
+    resource function get nillableTypes() returns string|error {
+        string payload = "";
+
+        xml? q = check clientDBBackendClient->post("/backend/getXml", "want xml", targetType = XmlOpt);
+        if q is xml {
+            payload = payload + q.toString();
+        }
+
+        string? r = check clientDBBackendClient->post("/backend/getString", "want string", targetType = StringOpt);
+        if r is string {
+            payload = payload + " | " + r;
+        }
+
+        byte[]? val = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]", targetType = ByteOpt);
+        if val is byte[] {
+            string s = check <@untainted>'string:fromBytes(val);
+            payload = payload + " | " + s;
+        }
+
+        return payload;
+    }
+
     resource function get nillableRecordTypes() returns string|error {
         string payload = "";
 
@@ -82,6 +108,26 @@ service /passthrough on clientDBProxyListener {
         ClientDBPerson[]? u = check clientDBBackendClient->post("/backend/getRecordArr", "want record[]", targetType = ClientDBPersonArrOtp);
         if u is ClientDBPerson[] {
             payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
+        }
+
+        return payload;
+    }
+
+    resource function get nilTypes() returns string|error {
+        string payload = "";
+        xml? q = check clientDBBackendClient->post("/backend/getNil", "want xml", targetType = XmlOpt);
+        if q is () {
+            payload = payload + "Nil XML";
+        }
+
+        string? r = check clientDBBackendClient->post("/backend/getNil", "want string", targetType = StringOpt);
+        if r is () {
+            payload = payload + " | " + "Nil String";
+        }
+
+        byte[]? val = check clientDBBackendClient->post("/backend/getNil", "want byte[]", targetType = ByteOpt);
+        if val is () || (val is byte[] && val.length() == 0) {
+            payload = payload + " | " + "Nil Bytes";
         }
 
         return payload;
@@ -294,7 +340,9 @@ service /redirect1 on clientDBBackendListener2 {
 }
 
 // Test HTTP basic client with all binding data types(targetTypes)
-@test:Config {}
+@test:Config {
+    groups: ["dataBinding"]
+}
 function testAllBindingDataTypes() {
     http:Response|error response = clientDBTestClient->get("/passthrough/allTypes");
     if (response is http:Response) {
@@ -303,6 +351,20 @@ function testAllBindingDataTypes() {
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
                  "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | \"chamil\" | <name>Ballerina</name> | " +
                  "This is my @4491*&&#$^($@ | BinaryPayload is textVal | chamil | wso2 | 3 | data-binding");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {
+    groups: ["dataBinding"]
+}
+function testAllBindingNillableTypes() returns error? {
+    http:Response|error response = clientDBTestClient->get("/passthrough/nillableTypes");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "<name>Ballerina</name> | This is my @4491*&&#$^($@ | BinaryPayload is textVal");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -325,6 +387,20 @@ function testAllBindingNillableDataTypes() returns error? {
 @test:Config {
     groups: ["dataBinding"]
 }
+function testAllBindingNilTypes() returns error? {
+    http:Response|error response = clientDBTestClient->get("/passthrough/nilTypes");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Nil XML | Nil String | Nil Bytes");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {
+    groups: ["dataBinding"]
+}
 function testAllBindingNilRecords() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/nilRecords");
     if (response is http:Response) {
@@ -337,7 +413,9 @@ function testAllBindingNilRecords() returns error? {
 }
 
 // Test basic client with all HTTP request methods
-@test:Config {}
+@test:Config {
+    groups: ["dataBinding"]
+}
 function testDifferentMethods() {
     http:Response|error response = clientDBTestClient->get("/passthrough/allMethods");
     if (response is http:Response) {
