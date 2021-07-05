@@ -127,6 +127,8 @@ const int http2RedirectTestPort2 = 9604;
 const int http2RedirectTestPort3 = 9605;
 const int http2RetryFunctionTestPort1 = 9606;
 const int http2RetryFunctionTestPort2 = 9607;
+const int inResponseCachedPayloadTestPort = 9573;
+const int inResponseCachedPayloadTestBEPort = 9574;
 
 //Security
 const int securedListenerPort = 9400;
