@@ -588,13 +588,12 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
 isolated function createRetryClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     var retryConfig = configuration.retryConfig;
     if (retryConfig is RetryConfig) {
-        boolean[] statusCodes = populateErrorCodeIndex(retryConfig.statusCodes);
         RetryInferredConfig retryInferredConfig = {
             count: retryConfig.count,
             interval: retryConfig.interval,
             backOffFactor: retryConfig.backOffFactor,
             maxWaitInterval: retryConfig.maxWaitInterval,
-            statusCodes: statusCodes
+            statusCodes: retryConfig.statusCodes
         };
         var httpCookieClient = createCookieClient(url, configuration, cookieStore);
         if (httpCookieClient is HttpClient) {

@@ -204,16 +204,6 @@ isolated function extractHttpOperation (string httpVerb) returns HttpOperation {
     return inferredConnectorAction;
 }
 
-// Populate boolean index array by looking at the configured Http status codes to get better performance
-// at runtime.
-isolated function populateErrorCodeIndex (int[] errorCode) returns boolean[] {
-    boolean[] result = [];
-    foreach var i in errorCode {
-        result[i] = true;
-    }
-    return result;
-}
-
 isolated function getError() returns UnsupportedActionError {
     return error UnsupportedActionError("Unsupported connector action received.");
 }
