@@ -28,7 +28,7 @@ type RetryInferredConfig record {|
     decimal interval = 0;
     float backOffFactor = 0.0;
     decimal maxWaitInterval = 0;
-    boolean[] statusCodes = [];
+    int[] statusCodes = [];
 |};
 
 # Provides the HTTP remote functions for interacting with an HTTP endpoint. This is created by wrapping the HTTP client
@@ -270,7 +270,7 @@ isolated function performRetryAction(@untainted string path, Request request, Ht
     int currentRetryCount = 0;
     int retryCount = retryClient.retryInferredConfig.count;
     decimal interval = retryClient.retryInferredConfig.interval;
-    boolean[] statusCodeIndex = retryClient.retryInferredConfig.statusCodes;
+    int[] statusCodes = retryClient.retryInferredConfig.statusCodes;
     //initializeBackOffFactorAndMaxWaitInterval(retryClient);
     float inputBackOffFactor = retryClient.retryInferredConfig.backOffFactor;
     float backOffFactor = inputBackOffFactor <= 0.0 ? 1.0 : inputBackOffFactor;
@@ -290,8 +290,7 @@ isolated function performRetryAction(@untainted string path, Request request, Ht
         var backendResponse = invokeEndpoint(path, inRequest, requestAction, httpClient, verb = verb);
         if (backendResponse is Response) {
             int responseStatusCode = backendResponse.statusCode;
-            if (statusCodeIndex.length() > responseStatusCode && (statusCodeIndex[responseStatusCode])
-                                                              && currentRetryCount < (retryCount)) {
+            if ((statusCodes.indexOf(responseStatusCode) is int) && currentRetryCount < (retryCount)) {
                 [interval, currentRetryCount] =
                                 calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
                                 backOffFactor, maxWaitInterval);
@@ -302,8 +301,7 @@ isolated function performRetryAction(@untainted string path, Request request, Ht
             var response = httpClient->getResponse(backendResponse);
             if (response is Response) {
                 int responseStatusCode = response.statusCode;
-                if (statusCodeIndex.length() > responseStatusCode && (statusCodeIndex[responseStatusCode])
-                                                                  && currentRetryCount < (retryCount)) {
+                if ((statusCodes.indexOf(responseStatusCode) is int) && currentRetryCount < (retryCount)) {
                     [interval, currentRetryCount] =
                                     calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
                                     backOffFactor, maxWaitInterval);
