@@ -20,10 +20,10 @@ import ballerina/mime;
 
 # Represents the inferred failover configurations passed into the failover client.
 #
-# + failoverCodesIndex - An indexed array of HTTP response status codes for which the failover mechanism triggers
+# + failoverCodes - An array of HTTP response status codes for which the failover mechanism triggers
 # + failoverInterval - Failover delay interval in seconds
 type FailoverInferredConfig record {|
-    boolean[] failoverCodesIndex = [];
+    int[] failoverCodes = [];
     decimal failoverInterval = 0;
 |};
 
@@ -55,9 +55,8 @@ public client isolated class FailoverClient {
             httpClients[i] = clientEp;
             i += 1;
         }
-        boolean[] failoverCodes = populateErrorCodeIndex(failoverClientConfig.failoverCodes);
         FailoverInferredConfig failoverInferredConfig = {
-            failoverCodesIndex:failoverCodes,
+            failoverCodes:failoverClientConfig.failoverCodes,
             failoverInterval:failoverClientConfig.interval
         };
         self.failoverInferredConfig = failoverInferredConfig.cloneReadOnly();
@@ -381,7 +380,7 @@ public client isolated class FailoverClient {
 
         Client foClient = self.getLastSuceededClientEP();
         FailoverInferredConfig failoverInferredConfig = self.failoverInferredConfig;
-        boolean[] failoverCodeIndex = failoverInferredConfig.failoverCodesIndex;
+        int[] failoverCodes = failoverInferredConfig.failoverCodes;
         int noOfEndpoints = 0;
         lock {
             noOfEndpoints = self.failoverClientsArray.length();
@@ -415,7 +414,7 @@ public client isolated class FailoverClient {
                 inResponse = endpointResponse;
                 int httpStatusCode = endpointResponse.statusCode;
                 // Check whether HTTP status code of the response falls into configured `failoverCodes`
-                if (failoverCodeIndex[httpStatusCode]) {
+                if (failoverCodes.indexOf(httpStatusCode) is int) {
                     ClientError? result = ();
                     [currentIndex, result] = handleResponseWithErrorCode(endpointResponse, initialIndex, noOfEndpoints,
                                                                                     currentIndex, failoverActionErrData);
@@ -436,7 +435,7 @@ public client isolated class FailoverClient {
                     inResponse = futureResponse;
                     int httpStatusCode = futureResponse.statusCode;
                     // Check whether HTTP status code of the response falls into configured `failoverCodes`
-                    if (failoverCodeIndex[httpStatusCode]) {
+                    if (failoverCodes.indexOf(httpStatusCode) is int) {
                         ClientError? result = ();
                         [currentIndex, result] = handleResponseWithErrorCode(futureResponse, initialIndex, noOfEndpoints,
                                                                                     currentIndex, failoverActionErrData);
