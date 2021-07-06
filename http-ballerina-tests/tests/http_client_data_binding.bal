@@ -172,28 +172,19 @@ service /passthrough on clientDBProxyListener {
     resource function get errorReturns() returns string {
         string payload = "";
 
-        do {
-            map<json> jsonMapPayload = check clientDBBackendClient->post("/backend/getNil", "want json");
-        } on fail var err {
-            if err is http:ClientError {
-                payload = payload + "Error Map Json";
-            }
+        map<json>|http:ClientError jsonMapPayload = clientDBBackendClient->post("/backend/getNil", "want json");
+        if jsonMapPayload is http:ClientError {
+            payload = payload + "Error Map Json";
         }
 
-        do {
-            xml xmlPayload = check clientDBBackendClient->post("/backend/getNil", "want xml");
-        } on fail var err {
-            if err is http:ClientError {
-                payload = payload + " | " + "Error XML";
-            }
+        xml|http:ClientError xmlPayload = clientDBBackendClient->post("/backend/getNil", "want xml");
+        if xmlPayload is http:ClientError {
+            payload = payload + " | " + "Error XML";
         }
 
-        do {
-            string stringPaylod = check clientDBBackendClient->post("/backend/getNil", "want string");
-        } on fail var err {
-            if err is http:ClientError {
-                payload = payload + " | " + "Error String";
-            }
+        string|http:ClientError stringPaylod = clientDBBackendClient->post("/backend/getNil", "want string");
+        if stringPaylod is http:ClientError {
+            payload = payload + " | " + "Error String";
         }
 
         return payload;
@@ -202,17 +193,15 @@ service /passthrough on clientDBProxyListener {
     resource function get runtimeErrors() returns string {
         string[] payload = [];
         
-        do {
-            xml|json unionPayload = check clientDBBackendClient->post("/backend/getJson", "want json");
-        } on fail var err {
-            payload.push(err.message());
+        xml|json|http:ClientError unionPayload = clientDBBackendClient->post("/backend/getJson", "want json");
+        if unionPayload is http:ClientError {
+            payload.push(unionPayload.message());
         }
 
-        do {
-            int|string basicTypeUnionPayload = check clientDBBackendClient->post("/backend/getString", "want string");
-        } on fail var err {
-            payload.push(err.message());
-        }
+        int|string|http:ClientError basicTypeUnionPayload = clientDBBackendClient->post("/backend/getString", "want string");
+        if basicTypeUnionPayload is http:ClientError {
+            payload.push(basicTypeUnionPayload.message());
+        } 
 
         return string:'join("|", ...payload);
     }
