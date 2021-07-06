@@ -19,7 +19,6 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/mime;
 import ballerina/lang.'string as strings;
-import ballerina/io;
 
 listener http:Listener clientDBProxyListener = new(clientDatabindingTestPort1);
 listener http:Listener clientDBBackendListener = new(clientDatabindingTestPort2);
@@ -45,31 +44,31 @@ service /passthrough on clientDBProxyListener {
     resource function get allTypes(http:Caller caller, http:Request request) returns error? {
         string payload = "";
 
-        json p = check clientDBBackendClient->post("/backend/getJson", "want json");
-        payload = payload + p.toJsonString();
+        json jsonPayload = check clientDBBackendClient->post("/backend/getJson", "want json");
+        payload = payload + jsonPayload.toJsonString();
 
-        map<json> p1 = check clientDBBackendClient->post("/backend/getJson", "want json");
-        json name = check p1.id;
+        map<json> jsonMapPayload = check clientDBBackendClient->post("/backend/getJson", "want json");
+        json name = check jsonMapPayload.id;
         payload = payload + " | " + name.toJsonString();
 
-        xml q = check clientDBBackendClient->post("/backend/getXml", "want xml");
-        payload = payload + " | " + q.toString();
+        xml xmlPayload = check clientDBBackendClient->post("/backend/getXml", "want xml");
+        payload = payload + " | " + xmlPayload.toString();
 
-        string r = check clientDBBackendClient->post("/backend/getString", "want string");
-        payload = payload + " | " + r;
+        string stringPayload = check clientDBBackendClient->post("/backend/getString", "want string");
+        payload = payload + " | " + stringPayload;
 
-        byte[] val = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
-        string s = check <@untainted>'string:fromBytes(val);
+        byte[] binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
+        string s = check <@untainted>'string:fromBytes(binaryPaylod);
         payload = payload + " | " + s;
 
-        ClientDBPerson t = check clientDBBackendClient->post("/backend/getRecord", "want record");
-        payload = payload + " | " + t.name;
+        ClientDBPerson person = check clientDBBackendClient->post("/backend/getRecord", "want record");
+        payload = payload + " | " + person.name;
 
-        ClientDBPerson[] u = check clientDBBackendClient->post("/backend/getRecordArr", "want record[]");
-        payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
+        ClientDBPerson[] clients = check clientDBBackendClient->post("/backend/getRecordArr", "want record[]");
+        payload = payload + " | " + clients[0].name + " | " + clients[1].age.toString();
 
-        http:Response v = check clientDBBackendClient->post("/backend/getResponse", "want record[]");
-        payload = payload + " | " + check v.getHeader("x-fact");
+        http:Response response = check clientDBBackendClient->post("/backend/getResponse", "want record[]");
+        payload = payload + " | " + check response.getHeader("x-fact");
 
         error? result = caller->respond(<@untainted>payload);
     }
@@ -77,30 +76,30 @@ service /passthrough on clientDBProxyListener {
     resource function get nillableTypes() returns string|error {
         string payload = "";
 
-        var p = check clientDBBackendClient->post("/backend/getJson", "want json", targetType = JsonOpt);
-        if p is json {
-            payload = payload + p.toJsonString();
+        var jsonPayload = check clientDBBackendClient->post("/backend/getJson", "want json", targetType = JsonOpt);
+        if jsonPayload is json {
+            payload = payload + jsonPayload.toJsonString();
         }
         
-        map<json>? p1 = check clientDBBackendClient->post("/backend/getJson", "want json", targetType = MapJsonOpt);
-        if p1 is map<json> {
-            json name = check p1.id;
+        map<json>? jsonMapPayload = check clientDBBackendClient->post("/backend/getJson", "want json", targetType = MapJsonOpt);
+        if jsonMapPayload is map<json> {
+            json name = check jsonMapPayload.id;
             payload = payload + " | " + name.toJsonString();
         }
 
-        var q = check clientDBBackendClient->post("/backend/getXml", "want xml", targetType = XmlOpt);
-        if q is xml {
-            payload = payload + " | " + q.toString();
+        var xmlPayload = check clientDBBackendClient->post("/backend/getXml", "want xml", targetType = XmlOpt);
+        if xmlPayload is xml {
+            payload = payload + " | " + xmlPayload.toString();
         }
 
-        var r = check clientDBBackendClient->post("/backend/getString", "want string", targetType = StringOpt);
-        if r is string {
-            payload = payload + " | " + r;
+        var stringPayload = check clientDBBackendClient->post("/backend/getString", "want string", targetType = StringOpt);
+        if stringPayload is string {
+            payload = payload + " | " + stringPayload;
         }
 
-        var val = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]", targetType = ByteOpt);
-        if val is byte[] {
-            string s = check <@untainted>'string:fromBytes(val);
+        var binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]", targetType = ByteOpt);
+        if binaryPaylod is byte[] {
+            string s = check <@untainted>'string:fromBytes(binaryPaylod);
             payload = payload + " | " + s;
         }
 
@@ -110,14 +109,14 @@ service /passthrough on clientDBProxyListener {
     resource function get nillableRecordTypes() returns string|error {
         string payload = "";
 
-        ClientDBPerson? t = check clientDBBackendClient->post("/backend/getRecord", "want record");
-        if t is ClientDBPerson {
-            payload = payload + t.name;
+        ClientDBPerson? person = check clientDBBackendClient->post("/backend/getRecord", "want record");
+        if person is ClientDBPerson {
+            payload = payload + person.name;
         }
 
-        ClientDBPerson[]? u = check clientDBBackendClient->post("/backend/getRecordArr", "want record[]");
-        if u is ClientDBPerson[] {
-            payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
+        ClientDBPerson[]? clients = check clientDBBackendClient->post("/backend/getRecordArr", "want record[]");
+        if clients is ClientDBPerson[] {
+            payload = payload + " | " + clients[0].name + " | " + clients[1].age.toString();
         }
 
         return payload;
@@ -126,28 +125,28 @@ service /passthrough on clientDBProxyListener {
     resource function get nilTypes() returns string|error {
         string payload = "";
         
-        var p = check clientDBBackendClient->post("/backend/getNil", "want json", targetType = JsonOpt);
-        if p is () {
+        var jsonPayload = check clientDBBackendClient->post("/backend/getNil", "want json", targetType = JsonOpt);
+        if jsonPayload is () {
             payload = payload + "Nil Json";
         }
 
-        var p1 = check clientDBBackendClient->post("/backend/getNil", "want json", targetType = MapJsonOpt);
-        if p1 is () {
+        var jsonMapPayload = check clientDBBackendClient->post("/backend/getNil", "want json", targetType = MapJsonOpt);
+        if jsonMapPayload is () {
             payload = payload + " | " + "Nil Map Json";
         }
 
-        var q = check clientDBBackendClient->post("/backend/getNil", "want xml", targetType = XmlOpt);
-        if q is () {
+        var xmlPayload = check clientDBBackendClient->post("/backend/getNil", "want xml", targetType = XmlOpt);
+        if xmlPayload is () {
             payload = payload + " | " + "Nil XML";
         }
 
-        var r = check clientDBBackendClient->post("/backend/getNil", "want string", targetType = StringOpt);
-        if r is () {
+        var stringPayload = check clientDBBackendClient->post("/backend/getNil", "want string", targetType = StringOpt);
+        if stringPayload is () {
             payload = payload + " | " + "Nil String";
         }
 
-        var val = check clientDBBackendClient->post("/backend/getNil", "want byte[]", targetType = ByteOpt);
-        if val is () || (val is byte[] && val.length() == 0) {
+        var binaryPaylod = check clientDBBackendClient->post("/backend/getNil", "want byte[]", targetType = ByteOpt);
+        if binaryPaylod is () || (binaryPaylod is byte[] && binaryPaylod.length() == 0) {
             payload = payload + " | " + "Nil Bytes";
         }
 
@@ -157,13 +156,13 @@ service /passthrough on clientDBProxyListener {
     resource function get nilRecords() returns string|error {
         string payload = "";
         
-        ClientDBPerson? t = check clientDBBackendClient->post("/backend/getNil", "want record");
-        if t is () {
+        ClientDBPerson? person = check clientDBBackendClient->post("/backend/getNil", "want record");
+        if person is () {
             payload = payload + "NilRecord";
         }
 
-        ClientDBPerson[]? u = check clientDBBackendClient->post("/backend/getNil", "want record[]");
-        if u is () {
+        ClientDBPerson[]? clients = check clientDBBackendClient->post("/backend/getNil", "want record[]");
+        if clients is () {
             payload = payload + " | " + "NilRecordArr";
         }
 
@@ -174,25 +173,25 @@ service /passthrough on clientDBProxyListener {
         string payload = "";
 
         do {
-            map<json> p1 = check clientDBBackendClient->post("/backend/getNil", "want json");
-        } on fail var e {
-            if e is http:ClientError {
+            map<json> jsonMapPayload = check clientDBBackendClient->post("/backend/getNil", "want json");
+        } on fail var err {
+            if err is http:ClientError {
                 payload = payload + "Error Map Json";
             }
         }
 
         do {
-            xml q = check clientDBBackendClient->post("/backend/getNil", "want xml");
-        } on fail var e {
-            if e is http:ClientError {
+            xml xmlPayload = check clientDBBackendClient->post("/backend/getNil", "want xml");
+        } on fail var err {
+            if err is http:ClientError {
                 payload = payload + " | " + "Error XML";
             }
         }
 
         do {
-            string r = check clientDBBackendClient->post("/backend/getNil", "want string");
-        } on fail var e {
-            if e is http:ClientError {
+            string stringPaylod = check clientDBBackendClient->post("/backend/getNil", "want string");
+        } on fail var err {
+            if err is http:ClientError {
                 payload = payload + " | " + "Error String";
             }
         }
