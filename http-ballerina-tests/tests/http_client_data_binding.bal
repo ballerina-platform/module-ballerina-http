@@ -76,28 +76,28 @@ service /passthrough on clientDBProxyListener {
     resource function get nillableTypes() returns string|error {
         string payload = "";
 
-        var jsonPayload = check clientDBBackendClient->post("/backend/getJson", "want json", targetType = JsonOpt);
+        json? jsonPayload = check clientDBBackendClient->post("/backend/getJson", "want json");
         if jsonPayload is json {
             payload = payload + jsonPayload.toJsonString();
         }
         
-        map<json>? jsonMapPayload = check clientDBBackendClient->post("/backend/getJson", "want json", targetType = MapJsonOpt);
+        map<json>? jsonMapPayload = check clientDBBackendClient->post("/backend/getJson", "want json");
         if jsonMapPayload is map<json> {
             json name = check jsonMapPayload.id;
             payload = payload + " | " + name.toJsonString();
         }
 
-        var xmlPayload = check clientDBBackendClient->post("/backend/getXml", "want xml", targetType = XmlOpt);
+        xml? xmlPayload = check clientDBBackendClient->post("/backend/getXml", "want xml");
         if xmlPayload is xml {
             payload = payload + " | " + xmlPayload.toString();
         }
 
-        var stringPayload = check clientDBBackendClient->post("/backend/getString", "want string", targetType = StringOpt);
+        string? stringPayload = check clientDBBackendClient->post("/backend/getString", "want string");
         if stringPayload is string {
             payload = payload + " | " + stringPayload;
         }
 
-        var binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]", targetType = ByteOpt);
+        byte[] binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
         if binaryPaylod is byte[] {
             string s = check <@untainted>'string:fromBytes(binaryPaylod);
             payload = payload + " | " + s;
