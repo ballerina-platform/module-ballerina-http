@@ -191,6 +191,7 @@ public class HttpDispatcher {
             switch (typeName) {
                 case HttpConstants.CALLER:
                     int index = ((NonRecurringParam) param).getIndex();
+                    httpCaller.set(HttpConstants.CALLER_PRESENT_FIELD, true);
                     paramFeed[index++] = httpCaller;
                     paramFeed[index] = true;
                     break;

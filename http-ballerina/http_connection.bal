@@ -30,6 +30,7 @@ public client class Caller {
     public Remote remoteAddress = {};
     public Local localAddress = {};
     public string protocol = "";
+    private boolean present = false;
 
     # Sends the outbound response to the caller.
     #
@@ -115,7 +116,15 @@ public client class Caller {
     private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType)
             returns ListenerError? {
         Response response = new;
-        if (message is error) {
+        if (message is ()) {
+            if (self.present) {
+                InternalServerError errResponse = {};
+                response = createStatusCodeResponse(errResponse);
+            } else {
+                Accepted AcceptedResponse = {};
+                response = createStatusCodeResponse(AcceptedResponse);
+            }
+        } else if (message is error) {
             if (message is ApplicationResponseError) {
                 InternalServerError err = {
                     headers: message.detail().headers,
@@ -146,7 +155,7 @@ public client class Caller {
     }
 }
 
-isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType) returns Response {
+isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = ()) returns Response {
     Response response = new;
     response.statusCode = message.status.code;
 

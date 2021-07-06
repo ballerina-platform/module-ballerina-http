@@ -111,6 +111,15 @@ const int headerParamBindingTest = 9562;
 const int outRequestTypeTest = 9563;
 const int outRequestOptionsTest = 9564;
 const int pathParamCheckTestPort = 9565;
+const int httpReturnNilTestPort = 9566;
+const int clientForwardTestPort1 = 9567;
+const int clientForwardTestPort2 = 9568;
+const int cBClientWithoutStatusCodesTestPort1 = 9569;
+const int cBClientWithoutStatusCodesTestPort2 = 9570;
+const int foClientWithoutStatusCodeTestPort1 = 9571;
+const int foClientWithoutStatusCodeTestPort2 = 9572;
+const int inResponseCachedPayloadTestPort = 9573;
+const int inResponseCachedPayloadTestBEPort = 9574;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;

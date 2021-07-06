@@ -173,3 +173,63 @@ function negativeTestAddCookieWithInvalidMaxAge() {
     res.addCookie(cookie);
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }
+
+listener http:Listener inResponseCachedPayloadListener = new(inResponseCachedPayloadTestPort);
+listener http:Listener inResponseCachedPayloadBEListener = new(inResponseCachedPayloadTestBEPort);
+http:Client inRespCacheTestClient = check new("http://localhost:" + inResponseCachedPayloadTestPort.toString());
+
+service / on inResponseCachedPayloadListener {
+    resource function get checkJson() returns json|error {
+        http:Client diseaseEndpoint = check new ("http://localhost:" + inResponseCachedPayloadTestBEPort.toString());
+        http:Response resp = check diseaseEndpoint -> get("/getXml");
+        byte[] b = check resp.getBinaryPayload(); // represents cache behaviour
+        return resp.getJsonPayload();
+    }
+
+    resource function get checkXml() returns xml|error {
+        http:Client diseaseEndpoint = check new ("http://localhost:" + inResponseCachedPayloadTestBEPort.toString());
+        http:Response resp = check diseaseEndpoint -> get("/getJson");
+        byte[] b = check resp.getBinaryPayload(); // represents cache behaviour
+        return resp.getXmlPayload();
+    }
+}
+
+service / on inResponseCachedPayloadBEListener {
+    resource function get getXml(http:Caller caller) {
+        http:Response response = new;
+        xml xmlStr = xml `<name>Ballerina</name>`;
+        response.setXmlPayload(xmlStr);
+        error? result = caller->respond(response);
+    }
+
+    resource function get getJson(http:Caller caller) {
+        http:Response response = new;
+        json jsonStr = {"Ballerina" : "hello"};
+        response.setJsonPayload(jsonStr);
+        error? result = caller->respond(response);
+    }
+}
+
+@test:Config {}
+function testInRespGetJsonWhenAlreadyBuildBlobNegative() {
+    http:Response|error response = inRespCacheTestClient->get("/checkJson");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "Error occurred while retrieving the json payload from " +
+            "the response");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testInRespGetXmlWhenAlreadyBuildBlobNegative() {
+    http:Response|error response = inRespCacheTestClient->get("/checkXml");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "Error occurred while retrieving the xml payload from " +
+            "the response");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
