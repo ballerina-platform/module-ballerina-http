@@ -63,14 +63,14 @@ public client isolated class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function post(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
+    remote isolated function post(string path, RequestMessage message, map<string|string[]>? headers = (),
             string? mediaType = (), TargetType targetType = <>)
-            returns @tainted targetType|ClientError = @java:Method {
+            returns targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processPost(@untainted string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+    private isolated function processPost(string path, RequestMessage message, TargetType targetType,
+            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
@@ -90,14 +90,14 @@ public client isolated class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function put(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
+    remote isolated function put(string path, RequestMessage message, map<string|string[]>? headers = (),
             string? mediaType = (), TargetType targetType = <>)
-            returns @tainted targetType|ClientError = @java:Method {
+            returns targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processPut(@untainted string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+    private isolated function processPut(string path, RequestMessage message, TargetType targetType,
+            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
@@ -117,14 +117,14 @@ public client isolated class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function patch(@untainted string path, RequestMessage message, map<string|string[]>? headers = (),
+    remote isolated function patch(string path, RequestMessage message, map<string|string[]>? headers = (),
             string? mediaType = (), TargetType targetType = <>)
-            returns @tainted targetType|ClientError = @java:Method {
+            returns targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processPatch(@untainted string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+    private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
+            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
@@ -144,14 +144,14 @@ public client isolated class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function delete(@untainted string path, RequestMessage message = (),
+    remote isolated function delete(string path, RequestMessage message = (),
             map<string|string[]>? headers = (), string? mediaType = (), TargetType targetType = <>)
-            returns @tainted targetType|ClientError = @java:Method {
+            returns targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processDelete(@untainted string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns @tainted Response|PayloadType|ClientError {
+    private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
+            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
@@ -166,8 +166,7 @@ public client isolated class Client {
     # + path - Resource path
     # + headers - The entity headers
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function head(@untainted string path, map<string|string[]>? headers = ()) returns @tainted
-            Response|ClientError {
+    remote isolated function head(string path, map<string|string[]>? headers = ()) returns Response|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->head(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -184,13 +183,13 @@ public client isolated class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function get(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
-            returns @tainted targetType|ClientError = @java:Method {
+    remote isolated function get(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
+            returns targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processGet(@untainted string path, map<string|string[]>? headers, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
+    private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
+            returns Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -207,13 +206,13 @@ public client isolated class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function options(@untainted string path, map<string|string[]>? headers = (), TargetType targetType = <>)
-            returns @tainted targetType|ClientError = @java:Method {
+    remote isolated function options(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
+            returns targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processOptions(@untainted string path, map<string|string[]>? headers, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
+    private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
+            returns Response|PayloadType|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if (observabilityEnabled && response is Response) {
@@ -233,15 +232,15 @@ public client isolated class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+    remote isolated function execute(string httpVerb, string path, RequestMessage message,
             map<string|string[]>? headers = (), string? mediaType = (), TargetType targetType = <>)
-            returns @tainted targetType|ClientError = @java:Method {
+            returns targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processExecute(@untainted string httpVerb, @untainted string path, RequestMessage message,
+    private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers)
-            returns @tainted Response|PayloadType|ClientError {
+            returns Response|PayloadType|ClientError {
         Request req = buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
@@ -259,13 +258,13 @@ public client isolated class Client {
     #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function forward(@untainted string path, Request request, TargetType targetType = <>)
-            returns @tainted targetType|ClientError = @java:Method {
+    remote isolated function forward(string path, Request request, TargetType targetType = <>)
+            returns targetType|ClientError = @java:Method {
         'class: "org.ballerinalang.net.http.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processForward(@untainted string path, Request request, TargetType targetType)
-            returns @tainted Response|PayloadType|ClientError {
+    private isolated function processForward(string path, Request request, TargetType targetType)
+            returns Response|PayloadType|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if (observabilityEnabled && response is Response) {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
@@ -281,7 +280,7 @@ public client isolated class Client {
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
-    remote isolated function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = buildRequest(message);
         return self.httpClient->submit(httpVerb, path, req);
 
@@ -633,8 +632,7 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError result, TargetType targetType) returns @tainted
-        Response|PayloadType|ClientError {
+isolated function processResponse(Response|ClientError result, TargetType targetType) returns Response|PayloadType|ClientError {
     if (targetType is typedesc<Response> || result is ClientError) {
         return result;
     }
@@ -661,7 +659,7 @@ isolated function processResponse(Response|ClientError result, TargetType target
     return performDataBinding(response, targetType);
 }
 
-isolated function performDataBinding(Response response, TargetType targetType) returns @tainted PayloadType|ClientError {
+isolated function performDataBinding(Response response, TargetType targetType) returns PayloadType|ClientError {
     if (targetType is typedesc<string>) {
         return response.getTextPayload();
     } else if (targetType is typedesc<xml>) {

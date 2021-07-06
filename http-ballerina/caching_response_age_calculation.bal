@@ -19,7 +19,7 @@ import ballerina/lang.'decimal;
 import ballerina/time;
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.2.3
-isolated function calculateCurrentResponseAge(Response cachedResponse) returns @tainted int {
+isolated function calculateCurrentResponseAge(Response cachedResponse) returns int {
     time:Seconds ageValue = getResponseAge(cachedResponse);
     time:Utc dateValue = getDateValue(cachedResponse);
     time:Utc now = time:utcNow();
@@ -38,7 +38,7 @@ isolated function calculateCurrentResponseAge(Response cachedResponse) returns @
     return <int>((correctedInitialAge + residentTime));
 }
 
-isolated function getResponseAge(Response cachedResponse) returns @tainted time:Seconds {
+isolated function getResponseAge(Response cachedResponse) returns time:Seconds {
     string|error ageHeaderString = cachedResponse.getHeader(AGE);
     if (ageHeaderString is error) {
         return 0;

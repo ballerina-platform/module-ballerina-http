@@ -86,7 +86,7 @@ public class Request {
     # + key - Represents the query param key
     # + return - The query param value associated with the given key as a string. If multiple param values are
     #            present, then the first value is returned. `()` is returned if no key is found.
-    public isolated function getQueryParamValue(@untainted string key) returns @tainted string? {
+    public isolated function getQueryParamValue(string key) returns string? {
         map<string[]> params = self.getQueryParams();
         var result = params[key];
         return result is () ? () : result[0];
@@ -97,7 +97,7 @@ public class Request {
     # + key - Represents the query param key
     # + return - All the query param values associated with the given key as a `string[]`. `()` is returned if no key
     #            is found.
-    public isolated function getQueryParamValues(@untainted string key) returns @tainted string[]? {
+    public isolated function getQueryParamValues(string key) returns string[]? {
         map<string[]> params = self.getQueryParams();
         return params[key];
     }
@@ -143,7 +143,7 @@ public class Request {
     # + headerName - The header name
     # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
     #            found.
-    public isolated function getHeader(string headerName) returns @tainted string|HeaderNotFoundError {
+    public isolated function getHeader(string headerName) returns string|HeaderNotFoundError {
         return externRequestGetHeader(self, headerName);
     }
 
@@ -152,7 +152,7 @@ public class Request {
     # + headerName - The header name
     # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
     #            found.
-    public isolated function getHeaders(string headerName) returns @tainted string[]|HeaderNotFoundError {
+    public isolated function getHeaders(string headerName) returns string[]|HeaderNotFoundError {
         return externRequestGetHeaders(self, headerName);
     }
 
@@ -188,7 +188,7 @@ public class Request {
     # Gets all the names of the headers of the request.
     #
     # + return - An array of all the header names
-    public isolated function getHeaderNames() returns @tainted string[] {
+    public isolated function getHeaderNames() returns string[] {
         return externRequestGetHeaderNames(self);
     }
 
@@ -214,7 +214,7 @@ public class Request {
     # Gets the type of the payload of the request (i.e: the `content-type` header value).
     #
     # + return - The `content-type` header value as a string
-    public isolated function getContentType() returns @tainted string {
+    public isolated function getContentType() returns string {
         string contentTypeHeaderValue = "";
         var value = self.getHeader(mime:CONTENT_TYPE);
         if (value is string) {
@@ -226,7 +226,7 @@ public class Request {
     # Extracts `json` payload from the request. If the content type is not JSON, an `http:ClientError` is returned.
     #
     # + return - The `json` payload or `http:ClientError` in case of errors
-    public isolated function getJsonPayload() returns @tainted json|ClientError {
+    public isolated function getJsonPayload() returns json|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -248,7 +248,7 @@ public class Request {
     # Extracts `xml` payload from the request. If the content type is not XML, an `http:ClientError` is returned.
     #
     # + return - The `xml` payload or `http:ClientError` in case of errors
-    public isolated function getXmlPayload() returns @tainted xml|ClientError {
+    public isolated function getXmlPayload() returns xml|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -270,7 +270,7 @@ public class Request {
     # Extracts `text` payload from the request. If the content type is not of type text, an `http:ClientError` is returned.
     #
     # + return - The `text` payload or `http:ClientError` in case of errors
-    public isolated function getTextPayload() returns @tainted string|ClientError {
+    public isolated function getTextPayload() returns string|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -293,7 +293,7 @@ public class Request {
     # `Request.getBodyParts()`.
     #
     # + return - A byte channel from which the message payload can be read or `http:ClientError` in case of errors
-    isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
+    isolated function getByteChannel() returns io:ReadableByteChannel|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -313,7 +313,7 @@ public class Request {
     #
     # + arraySize - A defaultable parameter to state the size of the byte array. Default size is 8KB
     # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
-    public isolated function getByteStream(int arraySize = 8196) returns @tainted stream<byte[], io:Error?>|ClientError {
+    public isolated function getByteStream(int arraySize = 8196) returns stream<byte[], io:Error?>|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -332,7 +332,7 @@ public class Request {
     # Gets the request payload as a `byte[]`.
     #
     # + return - The byte[] representation of the message payload or `http:ClientError` in case of errors
-    public isolated function getBinaryPayload() returns @tainted byte[]|ClientError {
+    public isolated function getBinaryPayload() returns byte[]|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -350,7 +350,7 @@ public class Request {
     # Gets the form parameters from the HTTP request as a `map` when content type is application/x-www-form-urlencoded.
     #
     # + return - The map of form params or `http:ClientError` in case of errors
-    public isolated function getFormParams() returns @tainted map<string>|ClientError {
+    public isolated function getFormParams() returns map<string>|ClientError {
         var mimeEntity = self.getEntityWithBodyAndWithoutHeaders();
         if (mimeEntity is error) {
             return mimeEntity;
@@ -731,18 +731,18 @@ public const NONE = ();
 
 // HTTP header related external functions
 isolated function externRequestGetHeader(Request request, string headerName, HeaderPosition position = LEADING)
-                         returns @tainted string|HeaderNotFoundError = @java:Method {
+                         returns string|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeader"
 } external;
 
 isolated function externRequestGetHeaders(Request request, string headerName, HeaderPosition position = LEADING)
-                          returns @tainted string[]|HeaderNotFoundError = @java:Method {
+                          returns string[]|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaders"
 } external;
 
-isolated function externRequestGetHeaderNames(Request request, HeaderPosition position = LEADING) returns @tainted string[] =
+isolated function externRequestGetHeaderNames(Request request, HeaderPosition position = LEADING) returns string[] =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaderNames"

@@ -50,7 +50,7 @@ public isolated class CsvPersistentCookieHandler {
     #
     # + cookie - Cookie to be added
     # + return - An error will be returned if there is any error occurred during the storing process of the cookie or else nil is returned
-    public isolated function storeCookie(Cookie cookie) returns @tainted CookieHandlingError? {
+    public isolated function storeCookie(Cookie cookie) returns CookieHandlingError? {
         lock {
             if (fileExist(self.fileName) && self.cookiesTable.length() == 0) {
                 var tblResult = readFile(self.fileName);
@@ -67,7 +67,7 @@ public isolated class CsvPersistentCookieHandler {
                 return error CookieHandlingError("Error in updating the records in csv file",
                 cause = tableUpdateResult);
             }
-            var result = writeToFile(self.cookiesTable, <@untainted> self.fileName);
+            var result = writeToFile(self.cookiesTable, self.fileName);
             if (result is error) {
                 return error CookieHandlingError("Error in writing the csv file", result);
             }
@@ -77,7 +77,7 @@ public isolated class CsvPersistentCookieHandler {
     # Gets all the persistent cookies.
     #
     # + return - Array of persistent cookies stored in the cookie store or else an error is returned if one occurred during the retrieval of the cookies
-    public isolated function getAllCookies() returns @tainted Cookie[]|CookieHandlingError {
+    public isolated function getAllCookies() returns Cookie[]|CookieHandlingError {
         Cookie[] cookies = [];
         if (fileExist(self.fileName)) {
             var tblResult = readFile(self.fileName);
@@ -118,7 +118,7 @@ public isolated class CsvPersistentCookieHandler {
     # + domain - Domain of the persistent cookie to be removed
     # + path - Path of the persistent cookie to be removed
     # + return - An error will be returned if there is any error occurred during the removal of the cookie or else nil is returned
-    public isolated function removeCookie(string name, string domain, string path) returns @tainted CookieHandlingError? {
+    public isolated function removeCookie(string name, string domain, string path) returns CookieHandlingError? {
         string cookieNameToRemove = name;
         string cookieDomainToRemove = domain;
         string cookiePathToRemove = path;
@@ -133,11 +133,11 @@ public isolated class CsvPersistentCookieHandler {
                     }
                 }
                 var removedCookie = self.cookiesTable.remove([name, domain, path]);
-                error? removeResults = file:remove(<@untainted> self.fileName);
+                error? removeResults = file:remove(self.fileName);
                 if (removeResults is error) {
                     return error CookieHandlingError("Error in removing the csv file", removeResults);
                 }
-                var writeResult = writeToFile(self.cookiesTable, <@untainted> self.fileName);
+                var writeResult = writeToFile(self.cookiesTable, self.fileName);
                 if (writeResult is error) {
                     return error CookieHandlingError("Error in writing the csv file", writeResult);
                 }
@@ -165,7 +165,7 @@ isolated function validateFileExtension(string fileName) returns string|CookieHa
     return error CookieHandlingError("Invalid file format");
 }
 
-isolated function readFile(string fileName) returns @tainted error|table<myCookie> key(name, domain, path) {
+isolated function readFile(string fileName) returns error|table<myCookie> key(name, domain, path) {
     io:ReadableCSVChannel rCsvChannel2 = check io:openReadableCsvFile(fileName);
     var tblResult = rCsvChannel2.getTable(myCookie, ["name", "domain", "path"]);
     closeReadableCSVChannel(rCsvChannel2);
@@ -205,7 +205,7 @@ returns table<myCookie> key(name, domain, path)|error {
 }
 
 // Writes the updated table to the file.
-isolated function writeToFile(table<myCookie> key(name, domain, path) cookiesTable, string fileName) returns @tainted error? {
+isolated function writeToFile(table<myCookie> key(name, domain, path) cookiesTable, string fileName) returns error? {
     io:WritableCSVChannel wCsvChannel2 = check io:openWritableCsvFile(fileName);
     foreach var entry in cookiesTable {
         string[] rec = [entry.name, entry.value, entry.domain, entry.path, entry.expires, entry.maxAge.toString(),

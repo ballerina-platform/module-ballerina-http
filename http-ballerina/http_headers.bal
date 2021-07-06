@@ -41,7 +41,7 @@ public class Headers {
     # + headerName - The header name
     # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
     #            found.
-    public isolated function getHeader(string headerName) returns @tainted string|HeaderNotFoundError {
+    public isolated function getHeader(string headerName) returns  string|HeaderNotFoundError {
         return self.getRequest().getHeader(headerName);
     }
 
@@ -50,14 +50,14 @@ public class Headers {
     # + headerName - The header name
     # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
     #            found.
-    public isolated function getHeaders(string headerName) returns @tainted string[]|HeaderNotFoundError {
+    public isolated function getHeaders(string headerName) returns  string[]|HeaderNotFoundError {
         return self.getRequest().getHeaders(headerName);
     }
 
     # Gets all the names of the headers of the request.
     #
     # + return - An array of all the header names
-    public isolated function getHeaderNames() returns @tainted string[] {
+    public isolated function getHeaderNames() returns  string[] {
         return self.getRequest().getHeaderNames();
     }
 }

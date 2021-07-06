@@ -146,7 +146,7 @@ isolated function populateHeaders(Request request, map<string|string[]>? headers
 # + verb - HTTP verb used for submit method
 # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
 public isolated function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
-        string verb = "") returns @tainted HttpResponse|ClientError {
+        string verb = "") returns  HttpResponse|ClientError {
 
     if (HTTP_GET == requestAction) {
         var result = httpClient->get(path, message = outRequest);
@@ -235,22 +235,22 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
                     // invoking the endpoint to create a message datasource.
                     byte[]|error childBlobContent = childPart.getByteArray();
                 }
-                bodyPart.setBodyParts(childParts, <@untainted> bodyPart.getContentType());
+                bodyPart.setBodyParts(childParts, bodyPart.getContentType());
             } else {
                 byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
             }
         }
-        inRequest.setBodyParts(bodyParts, <@untainted> inRequest.getContentType());
+        inRequest.setBodyParts(bodyParts, inRequest.getContentType());
     }
     return inRequest;
 }
 
-isolated function isMultipartRequest(Request request) returns @tainted boolean {
+isolated function isMultipartRequest(Request request) returns boolean {
     return request.hasHeader(mime:CONTENT_TYPE) &&
         request.getContentType().startsWith(MULTIPART_AS_PRIMARY_TYPE);
 }
 
-isolated function isNestedEntity(mime:Entity entity) returns @tainted boolean {
+isolated function isNestedEntity(mime:Entity entity) returns boolean {
     return entity.hasHeader(mime:CONTENT_TYPE) &&
         entity.getContentType().startsWith(MULTIPART_AS_PRIMARY_TYPE);
 }
@@ -322,27 +322,27 @@ isolated function nativeUuid() returns handle = @java:Method {
 } external;
 
 // Non-blocking payload retrieval common external isolated functions
-isolated function externGetJson(mime:Entity entity) returns @tainted json|mime:ParserError = @java:Method {
+isolated function externGetJson(mime:Entity entity) returns json|mime:ParserError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getNonBlockingJson"
 } external;
 
-isolated function externGetXml(mime:Entity entity) returns @tainted xml|mime:ParserError = @java:Method {
+isolated function externGetXml(mime:Entity entity) returns xml|mime:ParserError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getNonBlockingXml"
 } external;
 
-isolated function externGetText(mime:Entity entity) returns @tainted string|mime:ParserError = @java:Method {
+isolated function externGetText(mime:Entity entity) returns string|mime:ParserError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getNonBlockingText"
 } external;
 
-isolated function externGetByteArray(mime:Entity entity) returns @tainted byte[]|mime:ParserError = @java:Method {
+isolated function externGetByteArray(mime:Entity entity) returns byte[]|mime:ParserError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getNonBlockingByteArray"
 } external;
 
-isolated function externGetByteChannel(mime:Entity entity) returns @tainted io:ReadableByteChannel|mime:ParserError =
+isolated function externGetByteChannel(mime:Entity entity) returns io:ReadableByteChannel|mime:ParserError =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHttpDataSourceBuilder",
     name: "getByteChannel"
