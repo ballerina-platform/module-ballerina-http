@@ -36,7 +36,7 @@ service /ABCBank on serviceChainingListenerEP {
             io:println("Zip Code " + zipCode);
             map<map<json>> branchLocatorReq = {"BranchLocator":{"ZipCode":""}};
             branchLocatorReq["BranchLocator"]["ZipCode"] = zipCode;
-            backendServiceReq.setPayload(<@untainted> branchLocatorReq);
+            backendServiceReq.setPayload(branchLocatorReq);
         } else {
             io:println("Error occurred while reading ATM locator request");
         }
@@ -56,7 +56,7 @@ service /ABCBank on serviceChainingListenerEP {
             io:println("Branch Code " + branchCode);
             map<map<json>> bankInfoReq = {"BranchInfo":{"BranchCode":""}};
             bankInfoReq["BranchInfo"]["BranchCode"] = branchCode;
-            backendServiceReq.setJsonPayload(<@untainted> bankInfoReq);
+            backendServiceReq.setJsonPayload(bankInfoReq);
         } else {
             io:println("Error occurred while reading branch locator response");
         }
@@ -68,7 +68,7 @@ service /ABCBank on serviceChainingListenerEP {
         } else {
             io:println("Error occurred while writing info response");
         }
-        checkpanic caller->respond(<@untainted> informationResponse);
+        checkpanic caller->respond(informationResponse);
     }
 }
 

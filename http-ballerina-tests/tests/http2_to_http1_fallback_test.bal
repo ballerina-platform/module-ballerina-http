@@ -32,14 +32,14 @@ listener http:Listener serviceEndpointWithSSL = new(9105, {
 service /helloWorldWithoutSSL on serviceEndpointWithoutSSL {
 
     resource function get .(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("Version: " + <@untainted> req.httpVersion);
+        checkpanic caller->respond("Version: " + req.httpVersion);
     }
 }
 
 service /helloWorldWithSSL on serviceEndpointWithSSL {
 
     resource function get .(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("Version: " + <@untainted> req.httpVersion);
+        checkpanic caller->respond("Version: " + req.httpVersion);
     }
 }
 

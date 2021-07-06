@@ -52,14 +52,14 @@ service /cb on circuitBreakerEP02 {
         }
         http:Response|error backendRes = unhealthyClientEP->forward("/unhealthy", request);
         if (backendRes is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendRes);
+            error? responseToCaller = caller->respond(backendRes);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendRes.message());
+            response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);

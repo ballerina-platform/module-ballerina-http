@@ -108,7 +108,7 @@ isolated function sendNoTokenRequest(string path) returns http:Response|http:Cli
             }
         }
     });
-    return <@untainted> clientEP->get(path);
+    return clientEP->get(path);
 }
 
 isolated function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:ClientError {
@@ -124,7 +124,7 @@ isolated function sendBasicTokenRequest(string path, string username, string pas
             }
         }
     });
-    return <@untainted> clientEP->get(path);
+    return clientEP->get(path);
 }
 
 isolated function sendBearerTokenRequest(string path, string token) returns http:Response|http:ClientError {
@@ -139,7 +139,7 @@ isolated function sendBearerTokenRequest(string path, string token) returns http
             }
         }
     });
-    return <@untainted> clientEP->get(path);
+    return clientEP->get(path);
 }
 
 isolated function sendJwtRequest(string path) returns http:Response|http:ClientError {
@@ -169,7 +169,7 @@ isolated function sendJwtRequest(string path) returns http:Response|http:ClientE
             }
         }
     });
-    return <@untainted> clientEP->get(path);
+    return clientEP->get(path);
 }
 
 isolated function sendOAuth2TokenRequest(string path) returns http:Response|http:ClientError {
@@ -194,7 +194,7 @@ isolated function sendOAuth2TokenRequest(string path) returns http:Response|http
             }
         }
     });
-    return <@untainted> clientEP->get(path);
+    return clientEP->get(path);
 }
 
 isolated function assertSuccess(http:Response|http:ClientError response) {

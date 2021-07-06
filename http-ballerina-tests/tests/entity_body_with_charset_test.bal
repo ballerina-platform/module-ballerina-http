@@ -290,9 +290,9 @@ service /test on entityEP {
         http:Response response = new;
         var payload = request.getJsonPayload();
         if (payload is json) {
-            response.setPayload(<@untainted> payload);
+            response.setPayload( payload);
         } else {
-            response.setPayload(<@untainted> payload.message());
+            response.setPayload( payload.message());
         }
         checkpanic caller->respond(response);
     }

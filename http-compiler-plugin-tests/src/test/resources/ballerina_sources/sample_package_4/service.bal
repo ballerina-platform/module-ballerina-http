@@ -24,7 +24,7 @@ public annotation Person Pp on parameter;
 
 service http:Service on new http:Listener(9090) {
 
-    resource function get dbJson(@untainted @http:Payload json abc) returns string {
+    resource function get dbJson(@http:Payload json abc) returns string {
         return "done";
     }
 

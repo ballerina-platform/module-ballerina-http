@@ -56,7 +56,7 @@ function createNestedPartRequest() returns mime:Entity[] {
     return bodyParts;
 }
 
-function handleNestedParts(mime:Entity parentPart) returns @tainted string {
+function handleNestedParts(mime:Entity parentPart) returns string {
     string content = "";
     string contentTypeOfParent = parentPart.getContentType();
     if (contentTypeOfParent.startsWith("multipart/")) {

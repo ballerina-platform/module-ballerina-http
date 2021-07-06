@@ -29,11 +29,11 @@ service /headerService on httpHeaderListenerEP1 {
         req.setHeader("core", "aaa");
         req.addHeader("core", "bbb");
 
-        http:Response|error result = stockqEP->execute("GET", "/quoteService1/stocks", <@untainted> req);
+        http:Response|error result = stockqEP->execute("GET", "/quoteService1/stocks", req);
         if (result is http:Response) {
-            checkpanic caller->respond(<@untainted> result);
+            checkpanic caller->respond(result);
         } else {
-            checkpanic caller->respond(<@untainted> result.message());
+            checkpanic caller->respond(result.message());
         }
     }
 
@@ -54,25 +54,25 @@ service /headerService on httpHeaderListenerEP1 {
             }
             checkpanic caller->respond(payload);
         } else {
-            checkpanic caller->respond(<@untainted> clientResponse.message());
+            checkpanic caller->respond(clientResponse.message());
         }
     }
 
     resource function 'default nonEntityBodyGet(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->get("/quoteService1/entitySizeChecker");
         if (result is http:Response) {
-            checkpanic caller->respond(<@untainted> result);
+            checkpanic caller->respond(result);
         } else {
-            checkpanic caller->respond(<@untainted> result.message());
+            checkpanic caller->respond(result.message());
         }
     }
 
     resource function 'default entityBodyGet(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->post("/quoteService1/entitySizeChecker", "hello");
         if (result is http:Response) {
-            checkpanic caller->respond(<@untainted> result);
+            checkpanic caller->respond(result);
         } else {
-            checkpanic caller->respond(<@untainted> result.message());
+            checkpanic caller->respond(result.message());
         }
     }
 
@@ -81,45 +81,45 @@ service /headerService on httpHeaderListenerEP1 {
         request.setHeader("X_test", "One header");
         http:Response|error result = stockqEP->get("/quoteService1/entitySizeChecker", {"X_test":"One header"});
         if (result is http:Response) {
-            checkpanic caller->respond(<@untainted> result);
+            checkpanic caller->respond(result);
         } else {
-            checkpanic caller->respond(<@untainted> result.message());
+            checkpanic caller->respond(result.message());
         }
     }
 
     resource function 'default entityForward(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->forward("/quoteService1/entitySizeChecker", req);
         if (result is http:Response) {
-            checkpanic caller->respond(<@untainted> result);
+            checkpanic caller->respond(result);
         } else {
-            checkpanic caller->respond(<@untainted> result.message());
+            checkpanic caller->respond(result.message());
         }
     }
 
     resource function 'default entityExecute(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->execute("GET", "/quoteService1/entitySizeChecker", "hello ballerina");
         if (result is http:Response) {
-            checkpanic caller->respond(<@untainted> result);
+            checkpanic caller->respond(result);
         } else {
-            checkpanic caller->respond(<@untainted> result.message());
+            checkpanic caller->respond(result.message());
         }
     }
 
     resource function 'default noEntityExecute(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->execute("GET", "/quoteService1/entitySizeChecker", ());
         if (result is http:Response) {
-            checkpanic caller->respond(<@untainted> result);
+            checkpanic caller->respond(result);
         } else {
-            checkpanic caller->respond(<@untainted> result.message());
+            checkpanic caller->respond(result.message());
         }
     }
 
     resource function 'default passthruGet(http:Caller caller, http:Request req) {
-        http:Response|error result = stockqEP->post("/quoteService1/entitySizeChecker", <@untainted> req);
+        http:Response|error result = stockqEP->post("/quoteService1/entitySizeChecker", req);
         if (result is http:Response) {
-            checkpanic caller->respond(<@untainted> result);
+            checkpanic caller->respond(result);
         } else {
-            checkpanic caller->respond(<@untainted> result.message());
+            checkpanic caller->respond(result.message());
         }
     }
 }
@@ -139,7 +139,7 @@ service /quoteService1 on httpHeaderListenerEP2 {
             payload = {"response":"core header not available"};
         }
         http:Response res = new;
-        res.setJsonPayload(<@untainted> payload);
+        res.setJsonPayload(payload);
         checkpanic caller->respond(res);
     }
 

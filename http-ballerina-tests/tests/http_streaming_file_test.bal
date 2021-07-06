@@ -84,7 +84,7 @@ service /streamBack on new http:Listener(streamTest2) {
 
 function setError(http:Response res, error err) {
     res.statusCode = 500;
-    res.setPayload(<@untainted>err.message());
+    res.setPayload(err.message());
 }
 
 @test:Config {}

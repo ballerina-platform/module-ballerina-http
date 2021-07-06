@@ -35,7 +35,7 @@ int clientDBCounter = 0;
 
 service /passthrough on clientDBProxyListener {
 
-    resource function get allTypes(http:Caller caller, http:Request request) returns @tainted error? {
+    resource function get allTypes(http:Caller caller, http:Request request) returns error? {
         string payload = "";
 
         json p = check clientDBBackendClient->post("/backend/getJson", "want json");
@@ -52,7 +52,7 @@ service /passthrough on clientDBProxyListener {
         payload = payload + " | " + r;
 
         byte[] val = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
-        string s = check <@untainted>'string:fromBytes(val);
+        string s = check 'string:fromBytes(val);
         payload = payload + " | " + s;
 
         ClientDBPerson t = check clientDBBackendClient->post("/backend/getRecord", "want record");
@@ -64,7 +64,7 @@ service /passthrough on clientDBProxyListener {
         http:Response v = check clientDBBackendClient->post("/backend/getResponse", "want record[]");
         payload = payload + " | " + check v.getHeader("x-fact");
 
-        error? result = caller->respond(<@untainted>payload);
+        error? result = caller->respond(payload);
     }
 
     resource function get allMethods(http:Caller caller, http:Request request) returns error? {
@@ -83,7 +83,7 @@ service /passthrough on clientDBProxyListener {
         payload = payload + " | " + r;
 
         byte[] val = check clientDBBackendClient->put("/backend/getByteArray", "want byte[]");
-        string s = check <@untainted>'string:fromBytes(val);
+        string s = check 'string:fromBytes(val);
         payload = payload + " | " + s;
 
         ClientDBPerson t = check clientDBBackendClient->execute("POST", "/backend/getRecord", "want record");
@@ -92,14 +92,14 @@ service /passthrough on clientDBProxyListener {
         ClientDBPerson[] u = check clientDBBackendClient->forward("/backend/getRecordArr", request);
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
-        error? result = caller->respond(<@untainted>payload);
+        error? result = caller->respond(payload);
     }
 
     resource function get redirect(http:Caller caller, http:Request req) returns error? {
         http:Client redirectClient = check new("http://localhost:" + clientDatabindingTestPort3.toString(),
                                                         {followRedirects: {enabled: true, maxCount: 5}});
         json p = check redirectClient->post("/redirect1/", "want json", targetType = json);
-        error? result = caller->respond(<@untainted>p);
+        error? result = caller->respond(p);
     }
 
     resource function get 'retry(http:Caller caller, http:Request request) returns error? {
@@ -109,12 +109,12 @@ service /passthrough on clientDBProxyListener {
             }
         );
         string r = check retryClient->forward("/backend/getRetryResponse", request);
-        error? responseToCaller = caller->respond(<@untainted>r);
+        error? responseToCaller = caller->respond(r);
     }
 
     resource function 'default '500(http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->post("/backend/get5XX", "want 500");
-        error? responseToCaller = caller->respond(<@untainted>p);
+        error? responseToCaller = caller->respond(p);
     }
 
     resource function 'default '500handle(http:Caller caller, http:Request request) returns error? {
@@ -125,34 +125,34 @@ service /passthrough on clientDBProxyListener {
             resp.setPayload(<string>res.detail().body);
             string[] val = res.detail().headers.get("X-Type");
             resp.setHeader("X-Type", val[0]);
-            error? responseToCaller = caller->respond(<@untainted>resp);
+            error? responseToCaller = caller->respond(resp);
         } else {
             json p = check res;
-            error? responseToCaller = caller->respond(<@untainted>p);
+            error? responseToCaller = caller->respond(p);
         }
     }
 
     resource function 'default '404(http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500");
-        error? responseToCaller = caller->respond(<@untainted>p);
+        error? responseToCaller = caller->respond(p);
     }
 
     resource function  'default '404/[string path](http:Caller caller, http:Request request) returns error? {
-        json|error res = clientDBBackendClient->post("/backend/" + <@untainted>path, "want 500");
+        json|error res = clientDBBackendClient->post("/backend/" + path, "want 500");
         if res is http:ClientRequestError {
             http:Response resp = new;
             resp.statusCode = res.detail().statusCode;
             resp.setPayload(<string>res.detail().body);
-            error? responseToCaller = caller->respond(<@untainted>resp);
+            error? responseToCaller = caller->respond(resp);
         } else {
             json p = check res;
-            error? responseToCaller = caller->respond(<@untainted>p);
+            error? responseToCaller = caller->respond(p);
         }
     }
 
     resource function get testBody/[string path](http:Caller caller, http:Request request) returns error? {
-        json p = check clientDBBackendClient->get("/backend/" + <@untainted>path);
-        error? responseToCaller = caller->respond(<@untainted>p);
+        json p = check clientDBBackendClient->get("/backend/" + path);
+        error? responseToCaller = caller->respond(p);
     }
 }
 

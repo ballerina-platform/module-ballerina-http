@@ -49,7 +49,7 @@ service /hello on matrixEP {
         string yVal = y is string[] ? y[0] : "";
         outJson["queryParams"] = string `x=${xVal}&y=${yVal}`;
 
-        res.setJsonPayload(<@untainted json> outJson);
+        res.setJsonPayload(outJson);
         checkpanic caller->respond(res);
     }
 
@@ -64,7 +64,7 @@ service /hello on matrixEP {
         map<any> fooMParams = req.getMatrixParams(string `/hello/t2/${person}/foo`);
         outJson["fooParamSize"] = fooMParams.length();
 
-        res.setJsonPayload(<@untainted json> outJson);
+        res.setJsonPayload(outJson);
         checkpanic caller->respond(res);
     }
 }

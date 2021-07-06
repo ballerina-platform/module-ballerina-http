@@ -92,7 +92,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
             returnResponse = mimeClientEP1->post("/multiparts/decode", request);
         }
         if (returnResponse is http:Response) {
-            error? result = caller->respond(<@untainted> returnResponse);
+            error? result = caller->respond(returnResponse);
             if (result is error) {
                 log:printError("Error sending response", 'error = result);
             }
@@ -108,7 +108,7 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
     }
 }
 
-isolated function handleRespContent(mime:Entity bodyPart) returns @untainted mime:Entity {
+isolated function handleRespContent(mime:Entity bodyPart) returns mime:Entity {
     mime:Entity jsonPart = new;
     mime:Entity xmlPart = new;
     mime:Entity textPart = new;
@@ -118,7 +118,7 @@ isolated function handleRespContent(mime:Entity bodyPart) returns @untainted mim
         if (mime:APPLICATION_XML == baseType || mime:TEXT_XML == baseType) {
             var payload = bodyPart.getXml();
             if (payload is xml) {
-                xmlPart.setXml(<@untainted>payload, contentType = "application/xml");
+                xmlPart.setXml(payload, contentType = "application/xml");
                 return xmlPart;
             } else {
                 xmlPart.setXml(xml `<message>error</message>`, contentType = "application/xml");
@@ -127,7 +127,7 @@ isolated function handleRespContent(mime:Entity bodyPart) returns @untainted mim
         } else if (mime:APPLICATION_JSON == baseType) {
             var payload = bodyPart.getJson();
             if (payload is json) {
-                jsonPart.setJson(<@untainted>payload, contentType = "application/json");
+                jsonPart.setJson(payload, contentType = "application/json");
                 return jsonPart;
             } else {
                 jsonPart.setJson("error", contentType = "application/json");
@@ -136,7 +136,7 @@ isolated function handleRespContent(mime:Entity bodyPart) returns @untainted mim
         } else if (mime:TEXT_PLAIN == baseType) {
             var payload = bodyPart.getText();
             if (payload is string) {
-                textPart.setText(<@untainted>payload, contentType = "text/plain");
+                textPart.setText(payload, contentType = "text/plain");
                 return textPart;
             } else {
                 textPart.setText("error", contentType = "text/plain");
@@ -148,7 +148,7 @@ isolated function handleRespContent(mime:Entity bodyPart) returns @untainted mim
     return textPart;
 }
 
-isolated function handleResponseBodyParts(mime:Entity bodyPart) returns @untainted string {
+isolated function handleResponseBodyParts(mime:Entity bodyPart) returns string {
     var mediaType = mime:getMediaType(bodyPart.getContentType());
     if (mediaType is mime:MediaType) {
         string baseType = mediaType.getBaseType();

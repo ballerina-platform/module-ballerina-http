@@ -72,8 +72,8 @@ service /testRedirectService on serviceEndpoint3 {
         http:Response|error response = endPoint1->get("/redirect1");
         http:Response finalResponse = new;
         if (response is http:Response) {
-            finalResponse.setPayload(<@untainted> response.resolvedRequestedURI);
-            checkpanic caller->respond(<@untainted> finalResponse);
+            finalResponse.setPayload(response.resolvedRequestedURI);
+            checkpanic caller->respond(finalResponse);
         } else {
             io:println("Connector error!");
         }
@@ -87,7 +87,7 @@ service /testRedirectService on serviceEndpoint3 {
                 value = checkpanic response.getHeader(http:LOCATION);
             }
             value = value + ":" + response.resolvedRequestedURI;
-            checkpanic caller->respond(<@untainted> value);
+            checkpanic caller->respond(value);
         } else {
             io:println("Connector error!");
         }
@@ -99,7 +99,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -114,7 +114,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -129,7 +129,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else  {
                 io:println("Payload error!");
             }
@@ -144,7 +144,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -159,7 +159,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -174,7 +174,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -191,7 +191,7 @@ service /testRedirectService on serviceEndpoint3 {
                 value = checkpanic response.getHeader(http:LOCATION);
             }
             value = value + ":" + response.resolvedRequestedURI;
-            checkpanic caller->respond(<@untainted> value);
+            checkpanic caller->respond(value);
         } else {
             io:println("Connector error!");
         }
@@ -203,7 +203,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -222,7 +222,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -238,7 +238,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getHeader("X-Redirect-Details");
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -257,7 +257,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -276,7 +276,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -295,7 +295,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -311,7 +311,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getHeader("Allow");
             if (value is string) {
                 value = "Received:" + value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -329,7 +329,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -352,7 +352,7 @@ service /testRedirectService on serviceEndpoint3 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 io:println("Payload error!");
             }
@@ -411,7 +411,7 @@ service /redirect1 on serviceEndpoint3 {
         string[]? arr1 = paramsMap["key"];
         string[]? arr2 = paramsMap["lang"];
         string returnVal = (arr1 is string[] ? arr1[0] : "") + ":" + (arr2 is string[] ? arr2[0] : "");
-        checkpanic caller->respond(<@untainted> returnVal);
+        checkpanic caller->respond(returnVal);
     }
 
     resource function head handleHead(http:Caller caller, http:Request req) {
@@ -461,7 +461,7 @@ service /redirect2 on serviceEndpoint2 {
         var value = req.getTextPayload();
         if (value is string) {
             value = string`Received:${value}:${hasAuthHeader}`;
-            checkpanic caller->respond(<@untainted> value);
+            checkpanic caller->respond(value);
         } else if (req.hasHeader("X-Redirect-Action")) {
             string redirectActionName = checkpanic req.getHeader("X-Redirect-Action");
             string message = string`Received:${hasAuthHeader}:${redirectActionName}`;
@@ -475,9 +475,9 @@ service /redirect2 on serviceEndpoint2 {
                 foreach var part in bodyParts {
                     var payload = part.getJson();
                     if (payload is json) {
-                        res.setPayload(<@untainted> payload);
+                        res.setPayload(payload);
                     } else {
-                        res.setPayload(<@untainted> payload.message());
+                        res.setPayload(payload.message());
                     }
                     break; //Accepts only one part
                 }

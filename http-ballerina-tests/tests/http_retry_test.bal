@@ -54,14 +54,14 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
         if (backendResponse is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendResponse.message());
+            response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -72,14 +72,14 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     resource function get .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->execute("GET", "/mockHelloService", request);
         if (backendResponse is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendResponse.message());
+            response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -90,14 +90,14 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     resource function head .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->head("/mockHelloService");
         if (backendResponse is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendResponse.message());
+            response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -108,14 +108,14 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     resource function put .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->put("/mockHelloService", request);
         if (backendResponse is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendResponse.message());
+            response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -126,14 +126,14 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     resource function patch .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->patch("/mockHelloService", request);
         if (backendResponse is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendResponse.message());
+            response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -144,14 +144,14 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     resource function options .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->options("/mockHelloService");
         if (backendResponse is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendResponse.message());
+            response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -162,14 +162,14 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     resource function delete .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->delete("/mockHelloService", request);
         if (backendResponse is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> backendResponse);
+            error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(<@untainted> backendResponse.message());
+            response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -228,13 +228,13 @@ service /mockHelloService on retryTestserviceEndpoint1 {
                                     byte[]|error childBlobContent = childPart.getByteArray();
                                 }
                                 io:println(bodyPart.getContentType());
-                                bodyPart.setBodyParts(<@untainted> childParts, <@untainted> bodyPart.getContentType());
+                                bodyPart.setBodyParts(childParts, bodyPart.getContentType());
                             }
                         } else {
                             byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
                         }
                     }
-                    response.setBodyParts(<@untainted> bodyParts, <@untainted> req.getContentType());
+                    response.setBodyParts(bodyParts, req.getContentType());
                 } else {
                     log:printError(bodyParts.message());
                     response.setPayload("Error in decoding multiparts!");
@@ -329,32 +329,32 @@ isolated function waitForRetry(int counter) {
 service /retryStatusService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         if (checkpanic request.getHeader("x-retry") == "recover") {
-            http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", <@untainted> request);
+            http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", request);
             if (backendResponse is http:Response) {
-                var responseError = caller->respond(<@untainted> backendResponse);
+                var responseError = caller->respond(backendResponse);
                 if (responseError is error) {
                     log:printError("Error sending response", 'error = responseError);
                 }
             } else {
                 http:Response errorResponse = new;
                 errorResponse.statusCode = 500;
-                errorResponse.setPayload(<@untainted> backendResponse.message());
+                errorResponse.setPayload(backendResponse.message());
                 var responseError = caller->respond(errorResponse);
                 if (responseError is error) {
                     log:printError("Error sending response", 'error = responseError);
                 }
             }
         } else if (checkpanic request.getHeader("x-retry") == "internalError") {
-            http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/internalError", <@untainted> request);
+            http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/internalError", request);
             if (backendResponse is http:Response) {
-                var responseError = caller->respond(<@untainted> backendResponse);
+                var responseError = caller->respond(backendResponse);
                 if (responseError is error) {
                     log:printError("Error sending response", 'error = responseError);
                 }
             } else {
                 http:Response errorResponse = new;
                 errorResponse.statusCode = 500;
-                errorResponse.setPayload(<@untainted> backendResponse.message());
+                errorResponse.setPayload(backendResponse.message());
                 var responseError = caller->respond(errorResponse);
                 if (responseError is error) {
                     log:printError("Error sending response", 'error = responseError);

@@ -47,7 +47,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
     resource function get .(http:Caller caller, http:Request req) {
         http:Response|error response = http2RedirectEndPoint1->get("/redirect1");
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response.resolvedRequestedURI);
+            checkpanic caller->respond(response.resolvedRequestedURI);
         } else {
             io:println("Connector error!");
         }
@@ -61,7 +61,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
                 value = checkpanic response.getHeader(http:LOCATION);
             }
             value = value + ":" + response.resolvedRequestedURI;
-            checkpanic caller->respond(<@untainted> value);
+            checkpanic caller->respond(value);
         } else {
             io:println("Connector error!");
         }
@@ -73,7 +73,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 panic <error>value;
             }
@@ -88,7 +88,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 panic <error>value;
             }
@@ -103,7 +103,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 panic <error>value;
             }
@@ -118,7 +118,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 panic <error>value;
             }
@@ -133,7 +133,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 panic <error>value;
             }
@@ -148,7 +148,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(<@untainted> value);
+                checkpanic caller->respond(value);
             } else {
                 panic <error>value;
             }
@@ -207,7 +207,7 @@ service /redirect1 on http2RedirectServiceEndpoint2 {
         string[]? val1 = paramsMap["key"];
         string[]? val2 = paramsMap["lang"];
         string returnVal = (val1 is string[] ? val1[0] : "") + ":" + (val2 is string[] ? val2[0] : "");
-        checkpanic caller->respond(<@untainted> returnVal);
+        checkpanic caller->respond(returnVal);
     }
 }
 

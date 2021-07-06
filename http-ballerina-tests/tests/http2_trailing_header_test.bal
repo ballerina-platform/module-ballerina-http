@@ -24,7 +24,7 @@ http:Client trailerClientEp = check new("http://localhost:9119", { httpVersion: 
 service /trailerInitiator on new http:Listener(9118) {
 
     resource function 'default [string svc]/[string rsc](http:Caller caller, http:Request request) {
-        http:Response|error responseFromBackend = trailerClientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
+        http:Response|error responseFromBackend = trailerClientEp->forward("/" + svc + "/" + rsc, request);
         if (responseFromBackend is http:Response) {
             string trailerHeaderValue = checkpanic responseFromBackend.getHeader("trailer");
             string|error textPayload = responseFromBackend.getTextPayload();
@@ -34,10 +34,9 @@ service /trailerInitiator on new http:Listener(9118) {
             int headerCount = responseFromBackend.getHeaderNames(position = "trailing").length();
 
             http:Response newResponse = new;
-            newResponse.setJsonPayload({ foo: <@untainted> firstTrailer, baz: <@untainted> secondTrailer, count:
-                                        <@untainted> headerCount });
+            newResponse.setJsonPayload({ foo: firstTrailer, baz: secondTrailer, count: headerCount });
             newResponse.setHeader("response-trailer", trailerHeaderValue);
-            error? resultSentToClient = caller->respond(<@untainted> newResponse);
+            error? resultSentToClient = caller->respond(newResponse);
         } else {
             error? resultSentToClient = caller->respond("No response from backend");
         }
@@ -49,7 +48,7 @@ service /backend on backendEp {
         http:Response response = new;
         var textPayload = request.getTextPayload();
         string inPayload = textPayload is string ? textPayload : "error in accessing payload";
-        response.setTextPayload(<@untainted> inPayload);
+        response.setTextPayload(inPayload);
         response.setHeader("foo", "Trailer for echo payload", position = "trailing");
         response.setHeader("baz", "The second trailer", position = "trailing");
         error? result = caller->respond(response);
@@ -68,7 +67,7 @@ service /passthroughservice on backendEp {
     resource function 'default forward(http:Caller caller, http:Request request) {
         http:Response|error responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
         if (responseFromBackend is http:Response) {
-            error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
+            error? resultSentToClient = caller->respond(responseFromBackend);
         } else {
             error? resultSentToClient = caller->respond("No response from backend");
         }
@@ -80,7 +79,7 @@ service /passthroughservice on backendEp {
             string|error textPayload = responseFromBackend.getTextPayload();
             responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
             responseFromBackend.setHeader("barr", "this is a new trailer", position = "trailing");
-            error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
+            error? resultSentToClient = caller->respond(responseFromBackend);
         } else {
             error? resultSentToClient = caller->respond("No response from backend");
         }

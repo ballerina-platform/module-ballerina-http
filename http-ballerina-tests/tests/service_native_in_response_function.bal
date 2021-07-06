@@ -207,7 +207,7 @@ service /response on responseEp {
     resource function get twelve/[string phase](http:Caller caller, http:Request req) {
         http:Response res = new;
         res.reasonPhrase = phase;
-        checkpanic caller->respond(<@untainted http:Response> res);
+        checkpanic caller->respond(res);
     }
 
     resource function get thirteen(http:Caller caller, http:Request req) {
@@ -218,43 +218,43 @@ service /response on responseEp {
 
     resource function get addheader/[string key]/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
-        res.addHeader(<@untainted string> key, value);
-        string result = <@untainted> checkpanic res.getHeader(<@untainted string> key);
+        res.addHeader(key, value);
+        string result = checkpanic res.getHeader(key);
         res.setJsonPayload({lang:result});
         checkpanic caller->respond(res);
     }
 
     resource function get getHeader/[string header]/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
-        res.setHeader(<@untainted string> header, value);
-        string result = <@untainted> checkpanic res.getHeader(<@untainted string> header);
+        res.setHeader(header, value);
+        string result = checkpanic res.getHeader(header);
         res.setJsonPayload({value:result});
-        checkpanic caller->respond(<@untainted> res);
+        checkpanic caller->respond(res);
     }
 
     resource function get getJsonPayload/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
         json jsonStr = {lang:value};
-        res.setJsonPayload(<@untainted json> jsonStr);
+        res.setJsonPayload(jsonStr);
         var returnResult = res.getJsonPayload();
         if (returnResult is error) {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setJsonPayload(<@untainted json> checkpanic returnResult.lang);
+            res.setJsonPayload(checkpanic returnResult.lang);
         }
         checkpanic caller->respond(res);
     }
 
     resource function get GetTextPayload/[string valueStr](http:Caller caller, http:Request req) {
         http:Response res = new;
-        res.setTextPayload(<@untainted string> valueStr);
+        res.setTextPayload(valueStr);
         var returnResult = res.getTextPayload();
         if (returnResult is error) {
             res.setTextPayload("Error occurred");
             res.statusCode =500;
         } else {
-            res.setTextPayload(<@untainted string> returnResult);
+            res.setTextPayload(returnResult);
         }
         checkpanic caller->respond(res);
     }
@@ -269,21 +269,21 @@ service /response on responseEp {
             res.statusCode =500;
         } else {
             var name = (returnResult/*).toString();
-            res.setTextPayload(<@untainted string> name);
+            res.setTextPayload(<string> name);
         }
         checkpanic caller->respond(res);
     }
 
     resource function get RemoveHeader/[string key]/[string value](http:Caller caller, http:Request req) {
         http:Response res = new;
-        res.setHeader(<@untainted string> key, value);
-        res.removeHeader(<@untainted string> key);
+        res.setHeader(key, value);
+        res.removeHeader(key);
         string header = "";
-        if (!res.hasHeader(<@untainted> key)) {
+        if (!res.hasHeader(key)) {
             header = "value is null";
         }
         res.setJsonPayload({value:header});
-        checkpanic caller->respond(<@untainted> res);
+        checkpanic caller->respond(res);
     }
 
     resource function get RemoveAllHeaders (http:Caller caller, http:Request req) {
@@ -304,7 +304,7 @@ service /response on responseEp {
         http:Cookie cookie = new("SID3", "31d4d96e407aad42", path = "/sample", domain = "google.com", maxAge = 3600,
             expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
         res.addCookie(cookie);
-        string result = <@untainted> checkpanic res.getHeader(<@untainted string> "Set-Cookie");
+        string result = checkpanic res.getHeader("Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
         checkpanic caller->respond(res);
     }
@@ -313,7 +313,7 @@ service /response on responseEp {
         http:Response res = new;
         http:Cookie cookie = new("SID3", "31d4d96e407aad42", expires="2017-06-26 05:46:22");
         res.removeCookiesFromRemoteStore(cookie);
-        string result = <@untainted> checkpanic res.getHeader(<@untainted string> "Set-Cookie");
+        string result = checkpanic res.getHeader("Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
         checkpanic caller->respond(res);
     }
@@ -325,7 +325,7 @@ service /response on responseEp {
         res.addCookie(cookie1);
         //Gets the added cookies from response.
         http:Cookie[] cookiesInResponse=res.getCookies();
-        string result = <@untainted string>  cookiesInResponse[0].name ;
+        string result = <string>  cookiesInResponse[0].name ;
         res.setJsonPayload({cookie:result});
         checkpanic caller->respond(res);
     }

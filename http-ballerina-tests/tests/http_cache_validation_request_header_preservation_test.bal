@@ -25,12 +25,12 @@ service /validation\-request on cachingProxyListener {
     resource function get .(http:Caller caller, http:Request req) {
         http:Response|error response = cachingEP4->forward("/validation-req-be", req);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond( response);
         } else {
             http:Response res = new;
             res.statusCode = 500;
-            res.setPayload(<@untainted> response.message());
-            checkpanic caller->respond(<@untainted> res);
+            res.setPayload( response.message());
+            checkpanic caller->respond( res);
         }
     }
 }
@@ -48,7 +48,7 @@ service /validation\-req\-be on cachingBackendListener {
         res.setPayload(payload);
         res.setHeader("x-caller-req-header", checkpanic req.getHeader("x-caller-req-header"));
 
-        checkpanic caller->respond(<@untainted>res);
+        checkpanic caller->respond(res);
     }
 }
 

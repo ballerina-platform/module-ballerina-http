@@ -36,12 +36,12 @@ service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
         var payload = request.getTextPayload();
         if (payload is string) {
             res.statusCode = 200;
-            res.setPayload(<@untainted string>payload);
+            res.setPayload(payload);
             var result1 = caller->respond(res);
             handleRespError(result1);
         } else {
             res.statusCode = 500;
-            res.setPayload(<@untainted> payload.message());
+            res.setPayload(payload.message());
             var result1 = caller->respond(res);
             handleRespError(result1);
         }
@@ -54,7 +54,7 @@ service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
         io:println("test100ContinueResource");
         http:Response|error response = h2Client->post("/helloWorld/abnormalResource", "100 continue response should be ignored by this client");
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted>response);
+            checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error sending client request");
         }

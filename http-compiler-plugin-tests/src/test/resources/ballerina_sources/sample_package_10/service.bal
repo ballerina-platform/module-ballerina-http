@@ -87,7 +87,7 @@ service http:Service on new http:Listener(9090) {
        checkpanic xyz->respond("done"); // error:multiple callers
     }
 
-    resource function get callerInfo14(@untainted @http:CallerInfo {respondType: string} http:Caller abc) {
+    resource function get callerInfo14(@http:CallerInfo {respondType: string} http:Caller abc) {
        checkpanic abc->respond("done"); // multiple annotations
     }
 

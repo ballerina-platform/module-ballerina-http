@@ -27,7 +27,7 @@ service http:Service on new http:Listener(9090) {
         return "done";
     }
 
-    resource function get callerInfo2(@untainted string a, @tainted int[] b) returns string {
+    resource function get callerInfo2(string a, int[] b) returns string {
         return "done";
     }
 
@@ -47,7 +47,7 @@ service http:Service on new http:Listener(9090) {
         return "done";
     }
 
-    resource function get callerErr1(@untainted json a) returns string {
+    resource function get callerErr1(json a) returns string {
         return "done";
     }
 

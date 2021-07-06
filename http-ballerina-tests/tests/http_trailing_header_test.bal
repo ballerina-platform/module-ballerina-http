@@ -26,7 +26,7 @@ http:Client clientEp = check new("http://localhost:" + trailingHeaderTestPort2.t
 service /initiator on trailingHeaderListenerEP1 {
 
     resource function 'default [string svc]/[string rsc](http:Caller caller, http:Request request) {
-        http:Response|error responseFromBackend = clientEp->forward("/" + <@untainted> svc + "/" + <@untainted> rsc, request);
+        http:Response|error responseFromBackend = clientEp->forward("/" + svc + "/" + rsc, request);
         if (responseFromBackend is http:Response) {
             string|error textPayload = responseFromBackend.getTextPayload();
 
@@ -46,10 +46,9 @@ service /initiator on trailingHeaderListenerEP1 {
             int headerCount = responseFromBackend.getHeaderNames(position = "trailing").length();
 
             http:Response newResponse = new;
-            newResponse.setJsonPayload({ foo: <@untainted> firstTrailer, baz: <@untainted> secondTrailer, count:
-                                        <@untainted> headerCount });
+            newResponse.setJsonPayload({ foo: firstTrailer, baz: secondTrailer, count: headerCount });
             newResponse.setHeader("response-trailer", trailerHeaderValue);
-            error? resultSentToClient = caller->respond(<@untainted> newResponse);
+            error? resultSentToClient = caller->respond(newResponse);
         } else {
             error? resultSentToClient = caller->respond("No response from backend");
         }
@@ -64,7 +63,7 @@ service /chunkingBackend on trailingHeaderListenerEP2 {
         http:Response response = new;
         var textPayload = request.getTextPayload();
         string inPayload = textPayload is string ? textPayload : "error in accessing payload";
-        response.setTextPayload(<@untainted> inPayload);
+        response.setTextPayload(inPayload);
         response.setHeader("foo", "Trailer for chunked payload", position = "trailing");
         response.setHeader("baz", "The second trailer", position = "trailing");
         error? result = caller->respond(response);
@@ -87,7 +86,7 @@ service /nonChunkingBackend on trailingHeaderListenerEP2 {
         http:Response response = new;
         var textPayload = request.getTextPayload();
         string inPayload = textPayload is string ? textPayload : "error in accessing payload";
-        response.setTextPayload(<@untainted> inPayload);
+        response.setTextPayload(inPayload);
         response.setHeader("foo", "Trailer for non chunked payload", position = "trailing");
         response.setHeader("baz", "The second trailer", position = "trailing");
         error? result = caller->respond(response);
@@ -101,7 +100,7 @@ service /passthroughsvc on trailingHeaderListenerEP2 {
     resource function 'default forward(http:Caller caller, http:Request request) {
         http:Response|error responseFromBackend = clientEp->forward("/chunkingBackend/echo", request);
         if (responseFromBackend is http:Response) {
-            error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
+            error? resultSentToClient = caller->respond(responseFromBackend);
         } else {
             error? resultSentToClient = caller->respond("No response from backend");
         }
@@ -113,7 +112,7 @@ service /passthroughsvc on trailingHeaderListenerEP2 {
             string|error textPayload = responseFromBackend.getTextPayload();
             responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
             responseFromBackend.setHeader("barr", "this is a new trailer", position = "trailing");
-            error? resultSentToClient = caller->respond(<@untainted> responseFromBackend);
+            error? resultSentToClient = caller->respond(responseFromBackend);
         } else {
             error? resultSentToClient = caller->respond("No response from backend");
         }

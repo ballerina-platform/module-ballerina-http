@@ -28,11 +28,11 @@ service /cachingProxyService on cachingProxyListener {
     resource function get .(http:Caller caller, http:Request req) {
         http:Response|error response = cachingEP1->forward("/nocachebackend", req);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             http:Response res = new;
             res.statusCode = 500;
-            res.setPayload(<@untainted> response.message());
+            res.setPayload(response.message());
             checkpanic caller->respond(res);
         }
     }

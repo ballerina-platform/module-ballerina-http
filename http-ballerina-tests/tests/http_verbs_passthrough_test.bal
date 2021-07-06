@@ -28,9 +28,9 @@ service /headQuote on httpVerbListenerEP {
         string method = req.method;
         http:Request clientRequest = new;
 
-        http:Response|error response = endPoint -> execute(<@untainted> method, "/getQuote/stocks", clientRequest);
+        http:Response|error response = endPoint -> execute(method, "/getQuote/stocks", clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -40,7 +40,7 @@ service /headQuote on httpVerbListenerEP {
     resource function 'default forward11(http:Caller caller, http:Request req) {
         http:Response|error response = endPoint -> forward("/getQuote/stocks", req);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -50,7 +50,7 @@ service /headQuote on httpVerbListenerEP {
     resource function 'default forward22(http:Caller caller, http:Request req) {
         http:Response|error response = endPoint -> forward("/getQuote/stocks", req);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -59,9 +59,9 @@ service /headQuote on httpVerbListenerEP {
 
     resource function 'default getStock/[string method](http:Caller caller, http:Request req) {
         http:Request clientRequest = new;
-        http:Response|error response = endPoint -> execute(<@untainted> method, "/getQuote/stocks", clientRequest);
+        http:Response|error response = endPoint -> execute(method, "/getQuote/stocks", clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -71,7 +71,7 @@ service /headQuote on httpVerbListenerEP {
     resource function 'default empty(http:Caller caller, http:Request req) {
         http:Response|error response = endPoint -> execute("", "/getQuote/stocks", req);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
             checkpanic caller->respond(errMsg);
@@ -82,7 +82,7 @@ service /headQuote on httpVerbListenerEP {
         http:Request clientRequest = new;
         http:Response|error response = endPoint -> execute("", "/getQuote/stocks", clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond(response.message());
         }
@@ -94,7 +94,7 @@ service /sampleHead on httpVerbListenerEP {
     resource function head .(http:Caller caller, http:Request req) {
         http:Response|error response = endPoint -> get("/getQuote/stocks");
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             json errMsg = {"error":"error occurred while invoking the service"};
            checkpanic caller->respond(errMsg);
@@ -125,7 +125,7 @@ service /getQuote on httpVerbListenerEP {
 
     resource function post employee (http:Caller caller, http:Request req, @http:Payload {} json person) {
         http:Response res = new;
-        res.setJsonPayload(<@untainted> person);
+        res.setJsonPayload(person);
         checkpanic caller->respond(res);
     }
 }
