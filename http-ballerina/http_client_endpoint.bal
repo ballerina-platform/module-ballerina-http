@@ -703,7 +703,8 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
     } else if (targetType is typedesc<json>) {
-        return response.getJsonPayload();
+        json|ClientError result = response.getJsonPayload();
+        return result is NoContentError ? (): result;
     } else {
         return error ClientError("invalid target type, expected: http:Response, string, xml, json, map<json>, byte[], record, record[] or their optional types");
     }
