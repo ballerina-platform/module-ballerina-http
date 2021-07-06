@@ -97,7 +97,7 @@ service /passthrough on clientDBProxyListener {
             payload = payload + " | " + stringPayload;
         }
 
-        byte[] binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
+        byte[]? binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
         if binaryPaylod is byte[] {
             string s = check <@untainted>'string:fromBytes(binaryPaylod);
             payload = payload + " | " + s;
@@ -174,17 +174,17 @@ service /passthrough on clientDBProxyListener {
 
         map<json>|http:ClientError jsonMapPayload = clientDBBackendClient->post("/backend/getNil", "want json");
         if jsonMapPayload is http:ClientError {
-            payload = payload + "Error Map Json";
+            payload = payload + jsonMapPayload.message();
         }
 
         xml|http:ClientError xmlPayload = clientDBBackendClient->post("/backend/getNil", "want xml");
         if xmlPayload is http:ClientError {
-            payload = payload + " | " + "Error XML";
+            payload = payload + " | " + xmlPayload.message();
         }
 
         string|http:ClientError stringPaylod = clientDBBackendClient->post("/backend/getNil", "want string");
         if stringPaylod is http:ClientError {
-            payload = payload + " | " + "Error String";
+            payload = payload + " | " + stringPaylod.message();
         }
 
         return payload;
