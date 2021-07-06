@@ -707,7 +707,7 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         json|ClientError result = response.getJsonPayload();
         return result is NoContentError ? (): result;
     } else {
-        return prepareClientError("invalid target type, expected: http:Response, string, xml, json, map<json>, byte[], record, record[] or their optional types");
+        return prepareClientError("invalid target type, expected: http:Response, string, xml, json, map<json>, byte[], record, record[] or a union of such a type with nil");
     }
 }
 
@@ -778,7 +778,6 @@ isolated function createPayloadBindingError(error result) returns PayloadBinding
 }
 
 isolated function prepareClientError(string message, error? err = ()) returns ClientError {
-    log:printError(message, 'error = err);
     if (err is error) {
         return error ClientError(message + " " + err.message(), err);
     }
