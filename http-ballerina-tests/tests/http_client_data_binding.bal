@@ -199,6 +199,24 @@ service /passthrough on clientDBProxyListener {
         return payload;
     }
 
+    resource function get runtimeErrors() returns string {
+        string[] payload = [];
+        
+        do {
+            xml|json unionPayload = check clientDBBackendClient->post("/backend/getJson", "want json");
+        } on fail var err {
+            payload.push(err.message());
+        }
+
+        do {
+            int|string basicTypeUnionPayload = check clientDBBackendClient->post("/backend/getString", "want string");
+        } on fail var err {
+            payload.push(err.message());
+        }
+
+        return string:'join("|", ...payload);
+    }
+
     resource function get allMethods(http:Caller caller, http:Request request) returns error? {
         string payload = "";
 
@@ -473,6 +491,21 @@ function testAllBindingErrorReturns() returns error? {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Error Map Json | Error XML | Error String");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {
+    groups: ["dataBinding"]
+}
+function testAllBindingErrors() returns error? {
+    http:Response|error response = clientDBTestClient->get("/passthrough/runtimeErrors");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "invalid target type, expected: http:Response, string, xml, json, map<json>, " + 
+        "byte[], record, record[] or their optional types|Error occurred while retrieving the json payload from the response");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
