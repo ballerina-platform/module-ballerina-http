@@ -58,8 +58,8 @@ service /passthrough on clientDBProxyListener {
         payload = payload + " | " + stringPayload;
 
         byte[] binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
-        string s = check <@untainted>'string:fromBytes(binaryPaylod);
-        payload = payload + " | " + s;
+        string convertedPayload = check 'string:fromBytes(binaryPaylod);
+        payload = payload + " | " + convertedPayload;
 
         ClientDBPerson person = check clientDBBackendClient->post("/backend/getRecord", "want record");
         payload = payload + " | " + person.name;
@@ -99,8 +99,8 @@ service /passthrough on clientDBProxyListener {
 
         byte[]? binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
         if binaryPaylod is byte[] {
-            string s = check <@untainted>'string:fromBytes(binaryPaylod);
-            payload = payload + " | " + s;
+            string convertedPayload = check 'string:fromBytes(binaryPaylod);
+            payload = payload + " | " + convertedPayload;
         }
 
         return payload;
