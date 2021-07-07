@@ -32,7 +32,7 @@ service /globalClientTest on multipleClientListener1 {
     resource function get h1(http:Caller caller, http:Request req) {
         http:Response|error response = h1Client->post("/backend", "HTTP/1.1 request");
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error in client post - HTTP/1.1");
         }
@@ -41,7 +41,7 @@ service /globalClientTest on multipleClientListener1 {
     resource function get h2(http:Caller caller, http:Request req) {
         http:Response|error response = h2WithPriorKnowledgeClient->post("/backend", "HTTP/2 with prior knowledge");
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error in client post - HTTP/2");
         }
@@ -60,7 +60,7 @@ service /backend on multipleClientListener2 {
             outboundResponse = "Connection and upgrade headers are not present";
         }
         outboundResponse = outboundResponse + "--" + checkpanic req.getTextPayload() + "--" + req.httpVersion;
-        checkpanic caller->respond(<@untainted> outboundResponse);
+        checkpanic caller->respond(outboundResponse);
     }
 }
 

@@ -37,12 +37,12 @@ service /echo on dataBindingEP {
 
     resource function 'default body1(http:Caller caller, @http:Payload {} string person, http:Request req) {
         json responseJson = { "Person": person };
-        checkpanic caller->respond(<@untainted json> responseJson);
+        checkpanic caller->respond(responseJson);
     }
 
     resource function post body2/[string key](@http:Payload {mediaType:"text/plain"} string person, http:Caller caller) {
         json responseJson = { Key: key, Person: person };
-        checkpanic caller->respond(<@untainted json> responseJson);
+        checkpanic caller->respond(responseJson);
     }
 
     resource function 'default body3(http:Caller caller, @http:Payload {mediaType:["text/plain"]} json person) {
@@ -50,19 +50,19 @@ service /echo on dataBindingEP {
         json|error val2 = person.team;
         json name = val1 is json ? val1 : ();
         json team = val2 is json ? val2 : ();
-        checkpanic caller->respond(<@untainted> { Key: name, Team: team });
-    }
-
-    resource function post body4(@http:Payload {} @tainted xml person, http:Caller caller, http:Request req) {
-        xmllib:Element elem = <xmllib:Element> person;
-        string name = <@untainted string> elem.getName();
-        string team = <@untainted string> (person/*).toString();
         checkpanic caller->respond({ Key: name, Team: team });
     }
 
-    resource function post body5(http:Caller caller, @tainted @http:Payload {} byte[] person) {
+    resource function post body4(@http:Payload {} xml person, http:Caller caller, http:Request req) {
+        xmllib:Element elem = <xmllib:Element> person;
+        string name = <string> elem.getName();
+        string team = <string> (person/*).toString();
+        checkpanic caller->respond({ Key: name, Team: team });
+    }
+
+    resource function post body5(http:Caller caller, @http:Payload {} byte[] person) {
         http:Response res = new;
-        var name = <@untainted> strings:fromBytes(person);
+        var name = strings:fromBytes(person);
         if (name is string) {
             res.setJsonPayload({ Key: name });
         } else {
@@ -73,8 +73,8 @@ service /echo on dataBindingEP {
     }
 
     resource function post body6(http:Caller caller, http:Request req, @http:Payload {} Person person) {
-        string name = <@untainted string> person.name;
-        int age = <@untainted int> person.age;
+        string name = person.name;
+        int age = person.age;
         checkpanic caller->respond({ Key: name, Age: age });
     }
 
@@ -85,9 +85,9 @@ service /echo on dataBindingEP {
     resource function post body8(http:Caller caller, @http:Payload {} Person[] persons) {
         var jsonPayload = persons.cloneWithType(json);
         if (jsonPayload is json) {
-            checkpanic caller->respond(<@untainted json> jsonPayload);
+            checkpanic caller->respond(jsonPayload);
         } else {
-            checkpanic caller->respond(<@untainted string> jsonPayload.message());
+            checkpanic caller->respond(jsonPayload.message());
         }
     }
 

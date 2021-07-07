@@ -35,28 +35,28 @@ service /hello on utmTestEP {
     resource function get echo2/[string abc](http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo3":abc};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
     resource function get echo2/[string abc]/bar(http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"first":abc, "echo4":"echo4"};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
     resource function get echo2/literal\.id(http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo6":"literal invoked"};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
     resource function get echo2/[string zz]/foo(http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo6":"specific path invoked"};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -73,7 +73,7 @@ service /hello on utmTestEP {
         json responseJson = {"first":abc, "second":(foo is string[] ? foo[0] : "go"), "echo9":"echo9"};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -83,7 +83,7 @@ service /hello on utmTestEP {
         json responseJson = {"third":(foo is string[] ? foo[0] : "go"), "echo10":"echo10"};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -93,14 +93,14 @@ service /hello on utmTestEP {
         json responseJson = {"third":(foo is string[] ? foo[0] : ""), "echo11":"echo11"};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
     resource function get echo12/[string abc]/bar(http:Caller caller) {
         http:Response res = new;
         json responseJson = {"echo12":abc};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -110,7 +110,7 @@ service /hello on utmTestEP {
         json responseJson = {"echo125":(bar is string[] ? bar[0] : "")};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -120,7 +120,7 @@ service /hello on utmTestEP {
         json responseJson = {"echo125":(bar is string[] ? bar[0] : "")};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -132,7 +132,7 @@ service /hello on utmTestEP {
         json responseJson = {"echo13":bar};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -144,7 +144,7 @@ service /hello on utmTestEP {
         json responseJson = {"echo14":bar};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -160,7 +160,7 @@ service /hello on utmTestEP {
         json responseJson = {"echo15":bar};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -175,21 +175,21 @@ service /hello on utmTestEP {
         json responseJson = {"name1":name1 , "name2":name2, "name3":(name3 != "" ? name3 : ()),
                                 "name4":name4};
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
     resource function get echo156/[string key](http:Caller caller, http:Request req) {
         map<string[]> paramMap = req.getQueryParams();
-        string[] valueArray = req.getQueryParamValues(<@untainted> key) ?: ["array not found"];
-        string value = req.getQueryParamValue(<@untainted> key) ?: "value not found";
+        string[] valueArray = req.getQueryParamValues(key) ?: ["array not found"];
+        string value = req.getQueryParamValue(key) ?: "value not found";
         string[]? paramVals = paramMap[key];
         string mapVal = paramVals is string[] ? paramVals[0] : "";
         string[]? paramVals2 = paramMap["foo"];
         string mapVal2 = paramVals2 is string[] ? paramVals2[0] : "";
         json responseJson = {"map":mapVal , "array":valueArray[0], "value":value,
                                 "map_":mapVal2, "array_":valueArray[1] };
-        checkpanic caller->respond(<@untainted> responseJson);
+        checkpanic caller->respond(responseJson);
     }
 
     resource function post so2(http:Caller caller, http:Request req) {
@@ -227,7 +227,7 @@ service on utmTestEP {
         json responseJson = {"third":(foo is string[] ? foo[0] : ""), "echo33":"echo1"};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 }
@@ -247,7 +247,7 @@ service /echo44 on utmTestEP {
         json responseJson = {"first":(foo is string[] ? foo[0] : ""), "echo44":"echo1"};
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -293,7 +293,7 @@ service /echo69 on utmTestEP {
     resource function 'default a/[string... a](http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo66":req.extraPathInfo};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -303,7 +303,7 @@ service /echo69 on utmTestEP {
             req.extraPathInfo = "empty";
         }
         json responseJson = {"echo66":req.extraPathInfo};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 }
@@ -327,14 +327,14 @@ service /wildcard on utmTestEP {
     resource function 'default go/[string aaa]/[string bbb]/[string ccc](http:Caller caller) {
         http:Response res = new;
         json responseJson = {aaa:aaa, bbb:bbb, ccc:ccc};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
     resource function 'default go/[string xxx]/[string yyy](http:Caller caller) {
         http:Response res = new;
         json responseJson = {xxx:xxx, yyy:yyy};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -348,7 +348,7 @@ service /wildcard on utmTestEP {
     resource function 'default twisted/[string age]/[string name](http:Caller caller) {
         http:Response res = new;
         json responseJson = { Name:name, Age:age };
-        checkpanic caller->respond(<@untainted> responseJson);
+        checkpanic caller->respond(responseJson);
     }
 
     resource function 'default 'type/[int age]/[string name]/[boolean status]/[float weight](http:Caller caller) {
@@ -360,7 +360,7 @@ service /wildcard on utmTestEP {
             balName = name;
         }
         json responseJson = { Name:name, Age:balAge, Weight:balWeight, Status:status, Lang: balName};
-        checkpanic caller->respond(<@untainted> responseJson);
+        checkpanic caller->respond(responseJson);
     }
 }
 
@@ -368,7 +368,7 @@ service /encodedUri on utmTestEP {
     resource function 'default test/[string aaa]/[string bbb]/[string ccc](http:Caller caller) {
         http:Response res = new;
         json responseJson = {aaa:aaa, bbb:bbb, ccc:ccc};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 }
@@ -377,28 +377,28 @@ service /restParam on utmTestEP {
     resource function 'default 'int/[int... aaa](http:Caller caller) {
         http:Response res = new;
         json responseJson = {aaa:aaa};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
     resource function 'default 'bool/[boolean... aaa](http:Caller caller) {
         http:Response res = new;
         json responseJson = {aaa:aaa};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
     resource function 'default 'float/[float... aaa](http:Caller caller) {
         http:Response res = new;
         json responseJson = {aaa:aaa};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
      resource function 'default 'decimal/[decimal... aaa](http:Caller caller) {
          http:Response res = new;
          json responseJson = {aaa:aaa};
-         res.setJsonPayload(<@untainted json> responseJson);
+         res.setJsonPayload(responseJson);
          checkpanic caller->respond(res);
      }
 }

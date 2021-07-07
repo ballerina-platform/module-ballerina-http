@@ -37,18 +37,18 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
     // resource function post byteChannel(http:Caller caller, http:Request req) {
     //     var byteChannel = req.getByteChannel();
     //     if (byteChannel is io:ReadableByteChannel) {
-    //         checkpanic caller->respond(<@untainted> byteChannel);
+    //         checkpanic caller->respond( byteChannel);
     //     } else {
-    //         checkpanic caller->respond(<@untainted> byteChannel.message());
+    //         checkpanic caller->respond( byteChannel.message());
     //     }
     // }
 
     resource function post byteStream(http:Caller caller, http:Request req) {
         var byteStream = req.getByteStream();
         if (byteStream is stream<byte[], io:Error?>) {
-            checkpanic caller->respond(<@untainted> byteStream);
+            checkpanic caller->respond(byteStream);
         } else {
-            checkpanic caller->respond(<@untainted> byteStream.message());
+            checkpanic caller->respond(byteStream.message());
         }
     }
 
@@ -60,37 +60,37 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
                 if (mime:TEXT_PLAIN == baseType) {
                     var textValue = req.getTextPayload();
                     if (textValue is string) {
-                        checkpanic caller->respond(<@untainted> textValue);
+                        checkpanic caller->respond(textValue);
                     } else {
-                        checkpanic caller->respond(<@untainted> textValue.message());
+                        checkpanic caller->respond(textValue.message());
                     }
                 } else if (mime:APPLICATION_XML == baseType) {
                     var xmlValue = req.getXmlPayload();
                     if (xmlValue is xml) {
-                        checkpanic caller->respond(<@untainted> xmlValue);
+                        checkpanic caller->respond(xmlValue);
                     } else {
-                        checkpanic caller->respond(<@untainted> xmlValue.message());
+                        checkpanic caller->respond(xmlValue.message());
                     }
                 } else if (mime:APPLICATION_JSON == baseType) {
                     var jsonValue = req.getJsonPayload();
                     if (jsonValue is json) {
-                        checkpanic caller->respond(<@untainted> jsonValue);
+                        checkpanic caller->respond(jsonValue);
                     } else {
-                        checkpanic caller->respond(<@untainted> jsonValue.message());
+                        checkpanic caller->respond(jsonValue.message());
                     }
                 } else if (mime:APPLICATION_OCTET_STREAM == baseType) {
                     var blobValue = req.getBinaryPayload();
                     if (blobValue is byte[]) {
-                        checkpanic caller->respond(<@untainted> blobValue);
+                        checkpanic caller->respond(blobValue);
                     } else {
-                        checkpanic caller->respond(<@untainted> blobValue.message());
+                        checkpanic caller->respond(blobValue.message());
                     }
                 } else if (mime:MULTIPART_FORM_DATA == baseType) {
                     var bodyParts = req.getBodyParts();
                     if (bodyParts is mime:Entity[]) {
-                        checkpanic caller->respond(<@untainted> bodyParts);
+                        checkpanic caller->respond(bodyParts);
                     } else {
-                        checkpanic caller->respond(<@untainted> bodyParts.message());
+                        checkpanic caller->respond(bodyParts.message());
                     }
                 }
             } else {
@@ -102,13 +102,12 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
     }
 
     resource function 'default _bulk(http:Caller caller, http:Request request) {
-        checkpanic caller->respond(checkpanic <@untainted> request.getTextPayload());
+        checkpanic caller->respond(checkpanic request.getTextPayload());
     }
 
     // withWhitespacedExpression
     resource function 'default [string id](http:Caller caller, http:Request request) {
-        
-        error? res = caller->respond(<@untainted> id);
+        error? res = caller->respond(id);
     }
 
     // withWhitespacedLiteral
@@ -156,7 +155,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 value = value + result.message();
             }
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function get clientPostWithoutBody(http:Caller caller, http:Request req) {
@@ -174,7 +173,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
             value = clientResponse.message();
         }
 
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function get clientPostWithBody(http:Caller caller, http:Request req) {
@@ -208,7 +207,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 value = value + result.message();
             }
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function get handleBinary(http:Caller caller, http:Request req) {
@@ -224,7 +223,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 value = result.message();
             }
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function get handleStringJson(http:Caller caller, http:Request request) {
@@ -232,7 +231,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
       string payload = "a" + "\n" + "b" + "\n";
       req.setJsonPayload(payload);
       string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-      checkpanic caller->respond(<@untainted> backendPayload);
+      checkpanic caller->respond(backendPayload);
     }
 
     resource function get handleTextAndJsonContent(http:Caller caller, http:Request request) {
@@ -240,7 +239,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "application/json");
         string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-        checkpanic caller->respond(<@untainted> backendPayload);
+        checkpanic caller->respond(backendPayload);
     }
 
     resource function get handleTextAndXmlContent(http:Caller caller, http:Request request) {
@@ -248,7 +247,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "text/xml");
         string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-        checkpanic caller->respond(<@untainted> backendPayload);
+        checkpanic caller->respond(backendPayload);
     }
 
     resource function get handleTextAndJsonAlternateContent(http:Caller caller, http:Request request) {
@@ -257,7 +256,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         req.setTextPayload(payload, contentType = "application/json");
         req.setJsonPayload(payload);
         string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-        checkpanic caller->respond(<@untainted> backendPayload);
+        checkpanic caller->respond(backendPayload);
     }
 
     resource function get handleStringJsonAlternate(http:Caller caller, http:Request request) {
@@ -266,7 +265,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
       req.setJsonPayload(payload);
       req.setTextPayload(payload, contentType = "application/json");
       string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-      checkpanic caller->respond(<@untainted> backendPayload);
+      checkpanic caller->respond(backendPayload);
     }
 
     // TODO: Enable after the I/O revamp
@@ -274,7 +273,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     //     string value = "";
     //     var byteChannel = req.getByteChannel();
     //     if (byteChannel is io:ReadableByteChannel) {
-    //         http:Response|error res = clientEP2->post("/httpClientActionBE/byteChannel", <@untainted> byteChannel);
+    //         http:Response|error res = clientEP2->post("/httpClientActionBE/byteChannel",  byteChannel);
     //         if (res is http:Response) {
     //             var result = res.getTextPayload();
     //             if (result is string) {
@@ -288,14 +287,14 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     //     } else {
     //         value = byteChannel.message();
     //     }
-    //     checkpanic caller->respond(<@untainted> value);
+    //     checkpanic caller->respond( value);
     // }
 
     resource function post handleByteStream(http:Caller caller, http:Request req) {
         string value = "";
         var byteStream = req.getByteStream();
         if (byteStream is stream<byte[], io:Error?>) {
-            http:Response|error res = clientEP2->post("/httpClientActionBE/byteStream", <@untainted> byteStream);
+            http:Response|error res = clientEP2->post("/httpClientActionBE/byteStream", byteStream);
             if (res is http:Response) {
                 stream<byte[], io:Error?>|error str = res.getByteStream();
                 if (str is stream<byte[], io:Error?>) {
@@ -314,14 +313,14 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         } else {
             value = byteStream.message();
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function post handleByteStreamToText(http:Caller caller, http:Request req) {
         string value = "";
         var byteStream = req.getByteStream();
         if (byteStream is stream<byte[], io:Error?>) {
-            http:Response|error res = clientEP2->post("/httpClientActionBE/byteStream", <@untainted> byteStream);
+            http:Response|error res = clientEP2->post("/httpClientActionBE/byteStream", byteStream);
             if (res is http:Response) {
                 var result = res.getTextPayload();
                 if (result is string) {
@@ -335,14 +334,14 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         } else {
             value = byteStream.message();
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function post handleTextToByteStream(http:Caller caller, http:Request req) {
         string value = "";
         var text = req.getTextPayload();
         if (text is string) {
-            http:Response|error res = clientEP2->post("/httpClientActionBE/_bulk", <@untainted> text);
+            http:Response|error res = clientEP2->post("/httpClientActionBE/_bulk", text);
             if (res is http:Response) {
                 stream<byte[], io:Error?>|error str = res.getByteStream();
                 if (str is stream<byte[], io:Error?>) {
@@ -361,7 +360,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         } else {
             value = text.message();
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function get handleMultiparts(http:Caller caller, http:Request req) {
@@ -406,17 +405,17 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         } else {
             value = res.message();
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond( value);
     }
 
-    resource function get testPathWithWhitespacesForLiteral(http:Caller caller) returns @tainted error? {
+    resource function get testPathWithWhitespacesForLiteral(http:Caller caller) returns error? {
         http:Response response = check clientEP2->get("/httpClientActionBE/a/b c/d ");
-        error? res = caller->respond(<@untainted> response);
+        error? res = caller->respond( response);
     }
 
-    resource function get testClientPathWithWhitespacesForExpression(http:Caller caller) returns @tainted error? {
+    resource function get testClientPathWithWhitespacesForExpression(http:Caller caller) returns error? {
         http:Response response = check clientEP2->get("/httpClientActionBE/dispatched to white_spaced expression ");
-        error? res = caller->respond(<@untainted> response);
+        error? res = caller->respond( response);
     }
 }
 

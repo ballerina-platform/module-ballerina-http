@@ -48,10 +48,10 @@ http:Client productsService = check new("http://localhost:" + ecommerceTestPort.
 service /ecommerceservice on ecommerceListenerEP {
 
     resource function get products/[string prodId](http:Caller caller, http:Request req) {
-        string reqPath = "/productsservice/" + <@untainted> prodId;
-        http:Response|error clientResponse = productsService->get(<@untainted> reqPath);
+        string reqPath = "/productsservice/" +  prodId;
+        http:Response|error clientResponse = productsService->get( reqPath);
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(<@untainted>clientResponse);
+            checkpanic caller->respond(clientResponse);
         } else {
             io:println("Error occurred while reading product response");
         }
@@ -61,7 +61,7 @@ service /ecommerceservice on ecommerceListenerEP {
         http:Request clientRequest = new;
         var jsonReq = req.getJsonPayload();
         if (jsonReq is json) {
-            clientRequest.setPayload(<@untainted> jsonReq);
+            clientRequest.setPayload(jsonReq);
         } else {
             io:println("Error occurred while reading products payload");
         }
@@ -73,13 +73,13 @@ service /ecommerceservice on ecommerceListenerEP {
         } else {
             io:println("Error occurred while reading locator response");
         }
-        checkpanic caller->respond(<@untainted>clientResponse);
+        checkpanic caller->respond(clientResponse);
     }
 
     resource function get orders(http:Caller caller, http:Request req) {
         http:Response|error clientResponse = productsService->get("/orderservice/orders");
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(<@untainted>clientResponse);
+            checkpanic caller->respond(clientResponse);
         } else {
             io:println("Error occurred while reading orders response");
         }
@@ -89,7 +89,7 @@ service /ecommerceservice on ecommerceListenerEP {
         http:Request clientRequest = new;
         http:Response|error clientResponse = productsService->post("/orderservice/orders", clientRequest);
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(<@untainted>clientResponse);
+            checkpanic caller->respond(clientResponse);
         } else {
             io:println("Error occurred while writing orders response");
         }
@@ -98,7 +98,7 @@ service /ecommerceservice on ecommerceListenerEP {
     resource function get customers(http:Caller caller, http:Request req) {
         http:Response|error clientResponse = productsService->get("/customerservice/customers");
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(<@untainted>clientResponse);
+            checkpanic caller->respond(clientResponse);
         } else {
             io:println("Error occurred while reading customers response");
         }
@@ -108,7 +108,7 @@ service /ecommerceservice on ecommerceListenerEP {
         http:Request clientRequest = new;
         http:Response|error clientResponse = productsService->post("/customerservice/customers", clientRequest);
         if (clientResponse is http:Response) {
-            checkpanic caller->respond(<@untainted>clientResponse);
+            checkpanic caller->respond(clientResponse);
         } else {
             io:println("Error occurred while writing customers response");
         }
@@ -132,7 +132,7 @@ service /orderservice on ecommerceListenerEP {
     }
 }
 
-@tainted map<anydata> productsMap = populateSampleProducts();
+map<anydata> productsMap = populateSampleProducts();
 
 service /productsservice on ecommerceListenerEP {
 
@@ -140,9 +140,9 @@ service /productsservice on ecommerceListenerEP {
         http:Response res = new;
         var result = productsMap[prodId].cloneWithType(json);
         if (result is json) {
-            res.setPayload(<@untainted> result);
+            res.setPayload(result);
         } else {
-            res.setPayload(<@untainted> result.message());
+            res.setPayload(result.message());
         }
         checkpanic caller->respond(res);
     }

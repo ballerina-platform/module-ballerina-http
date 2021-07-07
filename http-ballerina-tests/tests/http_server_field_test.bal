@@ -29,10 +29,10 @@ service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
         var payload = req.getTextPayload();
         http:Response resp = new;
         if (payload is string) {
-            checkpanic caller->respond(<@untainted> payload);
+            checkpanic caller->respond(payload);
         } else {
             resp.statusCode = 500;
-            resp.setPayload(<@untainted> payload.message());
+            resp.setPayload(payload.message());
             log:printError("Failed to retrieve payload from request: " + payload.message());
             var responseError = caller->respond(resp);
             if (responseError is error) {

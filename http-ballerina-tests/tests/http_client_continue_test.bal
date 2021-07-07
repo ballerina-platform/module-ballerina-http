@@ -56,7 +56,7 @@ service /'continue on httpClientContinueListenerEP1 {
             }
         } else {
             res.statusCode = 500;
-            res.setPayload(<@untainted> payload.message());
+            res.setPayload(payload.message());
             error? result = caller->respond(res);
             if (result is error) {
                 log:printError("Error sending response", 'error = result);
@@ -71,11 +71,11 @@ service /'continue on httpClientContinueListenerEP2  {
         req.addHeader("content-type", "text/plain");
         req.addHeader("Expect", "100-continue");
         req.setPayload("Hi");
-        http:Response|error response = continueClient->post("/continue", <@untainted> req);
+        http:Response|error response = continueClient->post("/continue", req);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
-            checkpanic caller->respond("Error: " + <@untainted> response.toString());
+            checkpanic caller->respond("Error: " + response.toString());
         }
     }
 
@@ -83,11 +83,11 @@ service /'continue on httpClientContinueListenerEP2  {
         req.addHeader("Expect", "100-continue");
         req.addHeader("content-type", "application/json");
         req.setPayload({ name: "apple", color: "red" });
-        http:Response|error response = continueClient->post("/continue", <@untainted> req);
+        http:Response|error response = continueClient->post("/continue", req);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
-            checkpanic caller->respond("Error: " + <@untainted> response.toString());
+            checkpanic caller->respond("Error: " + response.toString());
         }
     }
 }

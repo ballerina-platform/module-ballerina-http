@@ -222,8 +222,8 @@ service /requesthello on requestListner {
 
     resource function get addheader/[string key]/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
-        req.addHeader(<@untainted string> key, value);
-        string result = <@untainted> checkpanic req.getHeader(<@untainted string> key);
+        req.addHeader(key, value);
+        string result = checkpanic req.getHeader(key);
         http:Response res = new;
         res.setJsonPayload({ lang: result });
         checkpanic caller->respond(res);
@@ -232,27 +232,27 @@ service /requesthello on requestListner {
     resource function get '11(http:Caller caller, http:Request req) {
         http:Response res = new;
         string method = req.method;
-        res.setTextPayload(<@untainted string> method);
+        res.setTextPayload(method);
         checkpanic caller->respond(res);
     }
 
     resource function get '12(http:Caller caller, http:Request req) {
         http:Response res = new;
         string url = req.rawPath;
-        res.setTextPayload(<@untainted string> url);
+        res.setTextPayload(url);
         checkpanic caller->respond(res);
     }
 
     resource function get '13(http:Caller caller, http:Request req) {
         http:Response res = new;
         string url = req.rawPath;
-        res.setTextPayload(<@untainted string> url);
+        res.setTextPayload(url);
         checkpanic caller->respond(res);
     }
 
     resource function get getHeader(http:Caller caller, http:Request req) {
         http:Response res = new;
-        string header = <@untainted> checkpanic req.getHeader("content-type");
+        string header = checkpanic req.getHeader("content-type");
         res.setJsonPayload({ value: header });
         checkpanic caller->respond(res);
     }
@@ -264,7 +264,7 @@ service /requesthello on requestListner {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setJsonPayload(<@untainted json> checkpanic returnResult.lang);
+            res.setJsonPayload(checkpanic returnResult.lang);
         }
         checkpanic caller->respond(res);
     }
@@ -276,7 +276,7 @@ service /requesthello on requestListner {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setTextPayload(<@untainted string> returnResult);
+            res.setTextPayload(returnResult);
         }
         checkpanic caller->respond(res);
     }
@@ -289,7 +289,7 @@ service /requesthello on requestListner {
             res.statusCode = 500;
         } else {
             var name = (returnResult/*).toString();
-            res.setTextPayload(<@untainted string> name);
+            res.setTextPayload(name);
         }
         checkpanic caller->respond(res);
     }
@@ -303,7 +303,7 @@ service /requesthello on requestListner {
         } else {
             var name = strings:fromBytes(returnResult);
             if (name is string) {
-                res.setTextPayload(<@untainted string> name);
+                res.setTextPayload(name);
             } else {
                 res.setTextPayload("Error occurred while byte array to string conversion");
                 res.statusCode = 500;
@@ -367,9 +367,9 @@ service /requesthello on requestListner {
 
     resource function get setHeader/[string key]/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
-        req.setHeader(<@untainted string> key, "abc");
-        req.setHeader(<@untainted string> key, value);
-        string result = <@untainted> checkpanic req.getHeader(<@untainted string> key);
+        req.setHeader(key, "abc");
+        req.setHeader(key, value);
+        string result = checkpanic req.getHeader(key);
 
         http:Response res = new;
         res.setJsonPayload({ value: result });
@@ -379,28 +379,28 @@ service /requesthello on requestListner {
     resource function get SetJsonPayload/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
         json jsonStr = { lang: value };
-        req.setJsonPayload(<@untainted json> jsonStr);
+        req.setJsonPayload(jsonStr);
         var returnResult = req.getJsonPayload();
         http:Response res = new;
         if (returnResult is error) {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setJsonPayload(<@untainted json> returnResult);
+            res.setJsonPayload(returnResult);
         }
         checkpanic caller->respond(res);
     }
 
     resource function get SetStringPayload/[string value](http:Caller caller, http:Request inReq) {
         http:Request req = new;
-        req.setTextPayload(<@untainted string> value);
+        req.setTextPayload(value);
         http:Response res = new;
         var returnResult = req.getTextPayload();
         if (returnResult is error) {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setJsonPayload({ lang: <@untainted string> returnResult });
+            res.setJsonPayload({ lang: returnResult });
         }
         checkpanic caller->respond(res);
     }
@@ -415,7 +415,7 @@ service /requesthello on requestListner {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            var name = <@untainted string> (returnResult/*).toString();
+            var name = (returnResult/*).toString();
             res.setJsonPayload({ lang: name });
         }
         checkpanic caller->respond(res);
@@ -434,7 +434,7 @@ service /requesthello on requestListner {
         } else {
             var name = strings:fromBytes(returnResult);
             if (name is string) {
-                res.setJsonPayload({ lang: <@untainted string> name });
+                res.setJsonPayload({ lang: name });
             } else {
                 res.setTextPayload("Error occurred while byte array to string conversion");
                 res.statusCode = 500;
@@ -450,7 +450,7 @@ service /requesthello on requestListner {
         http:Cookie cookie3 = new("SID3", "782638747668bce72", path = "/sample", domain = "google.com");
         http:Cookie[] cookiesToAdd = [cookie1, cookie2, cookie3];
         req.addCookies(cookiesToAdd);
-        string result = <@untainted> checkpanic req.getHeader("Cookie");
+        string result = checkpanic req.getHeader("Cookie");
         http:Response res = new;
         res.setJsonPayload({ cookieHeader: result });
         checkpanic caller->respond(res);
@@ -462,7 +462,7 @@ service /requesthello on requestListner {
         http:Cookie[] cookiesToAdd = [cookie1];
         req.addCookies(cookiesToAdd);
         http:Cookie[] cookiesInRequest = req.getCookies();
-        res.setTextPayload(<@untainted string>  cookiesInRequest[0].name );
+        res.setTextPayload(cookiesInRequest[0].name );
         checkpanic caller->respond(res);
     }
 }

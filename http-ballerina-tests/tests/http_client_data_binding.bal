@@ -58,8 +58,8 @@ service /passthrough on clientDBProxyListener {
         payload = payload + " | " + stringPayload;
 
         byte[] binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
-        string s = check <@untainted>'string:fromBytes(binaryPaylod);
-        payload = payload + " | " + s;
+        string convertedPayload = check 'string:fromBytes(binaryPaylod);
+        payload = payload + " | " + convertedPayload;
 
         ClientDBPerson person = check clientDBBackendClient->post("/backend/getRecord", "want record");
         payload = payload + " | " + person.name;
@@ -70,7 +70,7 @@ service /passthrough on clientDBProxyListener {
         http:Response response = check clientDBBackendClient->post("/backend/getResponse", "want record[]");
         payload = payload + " | " + check response.getHeader("x-fact");
 
-        error? result = caller->respond(<@untainted>payload);
+        error? result = caller->respond(payload);
     }
 
     resource function get nillableTypes() returns string|error {
@@ -80,7 +80,7 @@ service /passthrough on clientDBProxyListener {
         if jsonPayload is json {
             payload = payload + jsonPayload.toJsonString();
         }
-        
+
         map<json>? jsonMapPayload = check clientDBBackendClient->post("/backend/getJson", "want json");
         if jsonMapPayload is map<json> {
             json name = check jsonMapPayload.id;
@@ -99,8 +99,8 @@ service /passthrough on clientDBProxyListener {
 
         byte[]? binaryPaylod = check clientDBBackendClient->post("/backend/getByteArray", "want byte[]");
         if binaryPaylod is byte[] {
-            string s = check <@untainted>'string:fromBytes(binaryPaylod);
-            payload = payload + " | " + s;
+            string convertedPayload = check 'string:fromBytes(binaryPaylod);
+            payload = payload + " | " + convertedPayload;
         }
 
         return payload;
@@ -124,7 +124,7 @@ service /passthrough on clientDBProxyListener {
 
     resource function get nilTypes() returns string|error {
         string payload = "";
-        
+
         var jsonPayload = check clientDBBackendClient->post("/backend/getNil", "want json", targetType = JsonOpt);
         if jsonPayload is () {
             payload = payload + "Nil Json";
@@ -155,7 +155,7 @@ service /passthrough on clientDBProxyListener {
 
     resource function get nilRecords() returns string|error {
         string payload = "";
-        
+
         ClientDBPerson? person = check clientDBBackendClient->post("/backend/getNil", "want record");
         if person is () {
             payload = payload + "NilRecord";
@@ -192,7 +192,7 @@ service /passthrough on clientDBProxyListener {
 
     resource function get runtimeErrors() returns string {
         string[] payload = [];
-        
+
         xml|json|http:ClientError unionPayload = clientDBBackendClient->post("/backend/getJson", "want json");
         if unionPayload is http:ClientError {
             payload.push(unionPayload.message());
@@ -201,7 +201,7 @@ service /passthrough on clientDBProxyListener {
         int|string|http:ClientError basicTypeUnionPayload = clientDBBackendClient->post("/backend/getString", "want string");
         if basicTypeUnionPayload is http:ClientError {
             payload.push(basicTypeUnionPayload.message());
-        } 
+        }
 
         return string:'join("|", ...payload);
     }
@@ -222,7 +222,7 @@ service /passthrough on clientDBProxyListener {
         payload = payload + " | " + r;
 
         byte[] val = check clientDBBackendClient->put("/backend/getByteArray", "want byte[]");
-        string s = check <@untainted>'string:fromBytes(val);
+        string s = check 'string:fromBytes(val);
         payload = payload + " | " + s;
 
         ClientDBPerson t = check clientDBBackendClient->execute("POST", "/backend/getRecord", "want record");
@@ -231,14 +231,14 @@ service /passthrough on clientDBProxyListener {
         ClientDBPerson[] u = check clientDBBackendClient->forward("/backend/getRecordArr", request);
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
-        error? result = caller->respond(<@untainted>payload);
+        error? result = caller->respond(payload);
     }
 
     resource function get redirect(http:Caller caller, http:Request req) returns error? {
         http:Client redirectClient = check new("http://localhost:" + clientDatabindingTestPort3.toString(),
                                                         {followRedirects: {enabled: true, maxCount: 5}});
         json p = check redirectClient->post("/redirect1/", "want json", targetType = json);
-        error? result = caller->respond(<@untainted>p);
+        error? result = caller->respond(p);
     }
 
     resource function get 'retry(http:Caller caller, http:Request request) returns error? {
@@ -248,12 +248,12 @@ service /passthrough on clientDBProxyListener {
             }
         );
         string r = check retryClient->forward("/backend/getRetryResponse", request);
-        error? responseToCaller = caller->respond(<@untainted>r);
+        error? responseToCaller = caller->respond(r);
     }
 
     resource function 'default '500(http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->post("/backend/get5XX", "want 500");
-        error? responseToCaller = caller->respond(<@untainted>p);
+        error? responseToCaller = caller->respond(p);
     }
 
     resource function 'default '500handle(http:Caller caller, http:Request request) returns error? {
@@ -264,34 +264,34 @@ service /passthrough on clientDBProxyListener {
             resp.setPayload(<string>res.detail().body);
             string[] val = res.detail().headers.get("X-Type");
             resp.setHeader("X-Type", val[0]);
-            error? responseToCaller = caller->respond(<@untainted>resp);
+            error? responseToCaller = caller->respond(resp);
         } else {
             json p = check res;
-            error? responseToCaller = caller->respond(<@untainted>p);
+            error? responseToCaller = caller->respond(p);
         }
     }
 
     resource function 'default '404(http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500");
-        error? responseToCaller = caller->respond(<@untainted>p);
+        error? responseToCaller = caller->respond(p);
     }
 
     resource function  'default '404/[string path](http:Caller caller, http:Request request) returns error? {
-        json|error res = clientDBBackendClient->post("/backend/" + <@untainted>path, "want 500");
+        json|error res = clientDBBackendClient->post("/backend/" + path, "want 500");
         if res is http:ClientRequestError {
             http:Response resp = new;
             resp.statusCode = res.detail().statusCode;
             resp.setPayload(<string>res.detail().body);
-            error? responseToCaller = caller->respond(<@untainted>resp);
+            error? responseToCaller = caller->respond(resp);
         } else {
             json p = check res;
-            error? responseToCaller = caller->respond(<@untainted>p);
+            error? responseToCaller = caller->respond(p);
         }
     }
 
     resource function get testBody/[string path](http:Caller caller, http:Request request) returns error? {
-        json p = check clientDBBackendClient->get("/backend/" + <@untainted>path);
-        error? responseToCaller = caller->respond(<@untainted>p);
+        json p = check clientDBBackendClient->get("/backend/" + path);
+        error? responseToCaller = caller->respond(p);
     }
 }
 
@@ -493,7 +493,7 @@ function testAllBindingErrors() returns error? {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "invalid target type, expected: http:Response, string, xml, json, map<json>, " + 
+        assertTextPayload(response.getTextPayload(), "invalid target type, expected: http:Response, string, xml, json, map<json>, " +
         "byte[], record, record[] or a union of such a type with nil|Error occurred while retrieving the json payload from the response");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

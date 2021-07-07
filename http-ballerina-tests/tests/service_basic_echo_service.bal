@@ -50,13 +50,13 @@ service /echo on serviceTestEP {
         } else {
             payloadData = payload;
         }
-        globalLevelStr = <@untainted string> payloadData;
+        globalLevelStr = payloadData;
         checkpanic caller->respond(globalLevelStr);
     }
 
     resource function get getString(http:Caller caller, http:Request req) {
         http:Response res = new;
-        res.setTextPayload(<@untainted> globalLevelStr);
+        res.setTextPayload(globalLevelStr);
         checkpanic caller->respond(res);
     }
 
@@ -79,7 +79,7 @@ service /echo on serviceTestEP {
             string? name = params["firstName"];
             string? team = params["team"];
             json responseJson = {"Name":(name is string ? name : "") , "Team":(team is string ? team : "")};
-            res.setJsonPayload(<@untainted json> responseJson);
+            res.setJsonPayload(responseJson);
         } else {
             if (params is http:GenericClientError) {
                 error? cause = params.cause();
@@ -90,14 +90,14 @@ service /echo on serviceTestEP {
                     errorMsg = params.message();
                 }
                 if (errorMsg is string) {
-                    res.setPayload(<@untainted string> errorMsg);
+                    res.setPayload(errorMsg);
                 } else {
                     res.setPayload("Error occrred");
                 }
             } else {
                 error err = params;
                 string? errMsg = <string> err.message();
-                res.setPayload(errMsg is string ? <@untainted string> errMsg : "Error in parsing form params");
+                res.setPayload(errMsg is string ?  errMsg : "Error in parsing form params");
             }
         }
         checkpanic caller->respond(res);
@@ -122,10 +122,10 @@ service /echo on serviceTestEP {
         checkpanic caller->respond(res);
     }
 
-    resource function post parseJSON(http:Caller caller, http:Request req) returns @tainted error? {
+    resource function post parseJSON(http:Caller caller, http:Request req) returns error? {
         json payload = check req.getJsonPayload();
         http:Response res = new;
-        res.setPayload(<@untainted json> payload);
+        res.setPayload(payload);
         res.statusCode = 200;
         checkpanic caller->respond(res);
     }
@@ -142,7 +142,7 @@ service /hello on serviceTestEP {
     resource function 'default testFunctionCall(http:Caller caller, http:Request req) {
         string str;
         lock {
-            str = <@untainted> self.nonRemoteFunctionCall();
+            str = self.nonRemoteFunctionCall();
         }
         checkpanic caller->respond(str);
     }

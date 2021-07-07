@@ -25,9 +25,9 @@ service /passthrough on passthroughEP1 {
 
     resource function get .(http:Caller caller, http:Request clientRequest) {
         http:Client nyseEP1 = checkpanic new("http://localhost:9113");
-        http:Response|error response = nyseEP1->post("/nyseStock/stocks", <@untainted> clientRequest);
+        http:Response|error response = nyseEP1->post("/nyseStock/stocks", clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond({ "error": "error occurred while invoking the service" });
         }
@@ -37,13 +37,13 @@ service /passthrough on passthroughEP1 {
         http:Client nyseEP1 = checkpanic new("http://localhost:9113");
         http:Response|error response = nyseEP1->forward("/nyseStock/stocksAsMultiparts", clientRequest);
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond({ "error": "error occurred while invoking the service" });
         }
     }
 
-    resource function post forward(http:Request clientRequest) returns @tainted http:Ok|http:InternalServerError {
+    resource function post forward(http:Request clientRequest) returns http:Ok|http:InternalServerError {
         http:Client nyseEP1 = checkpanic new("http://localhost:9113");
         http:Response|error response = nyseEP1->forward("/nyseStock/entityCheck", clientRequest);
         if (response is http:Response) {
@@ -77,9 +77,9 @@ service /nyseStock on passthroughEP1 {
     resource function post stocksAsMultiparts(http:Caller caller, http:Request clientRequest) {
         var bodyParts = clientRequest.getBodyParts();
         if (bodyParts is mime:Entity[]) {
-            checkpanic caller->respond(<@untainted> bodyParts);
+            checkpanic caller->respond(bodyParts);
         } else {
-            checkpanic caller->respond(<@untainted> bodyParts.message());
+            checkpanic caller->respond(bodyParts.message());
         }
     }
 
@@ -90,7 +90,7 @@ service /nyseStock on passthroughEP1 {
             json|error textPayload = entity.getText();
             if (textPayload is string) {
                 mime:Entity ent = new;
-                ent.setText(<@untainted> ("payload :" + textPayload + ", header: " + checkpanic entity.getHeader("Content-type")));
+                ent.setText("payload :" + textPayload + ", header: " + checkpanic entity.getHeader("Content-type"));
                 ent.setHeader("X-check-header", "entity-check-header");
                 res.setEntity(ent);
                 checkpanic caller->respond(res);

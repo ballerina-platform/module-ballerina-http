@@ -33,11 +33,11 @@ service /cache on cachingListener1 {
         if (response is http:Response) {
             cachingProxyHitcount += 1;
             response.setHeader("x-proxy-hit-count", cachingProxyHitcount.toString());
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond( response);
         } else {
             http:Response res = new;
             res.statusCode = 500;
-            res.setPayload(<@untainted> response.message());
+            res.setPayload( response.message());
             checkpanic caller->respond(res);
         }
     }

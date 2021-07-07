@@ -67,14 +67,14 @@ service /loadBalancerDemoService on new http:Listener(9313) {
         json requestPayload = { "name": "Ballerina" };
         http:Response|error response = lbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
-            outResponse.setPayload(<@untainted> response.message());
+            outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -86,14 +86,14 @@ service /loadBalancerDemoService on new http:Listener(9313) {
         json requestPayload = { "name": "Ballerina" };
         http:Response|error response = lbFailoverBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
-            outResponse.setPayload(<@untainted> response.message());
+            outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -105,14 +105,14 @@ service /loadBalancerDemoService on new http:Listener(9313) {
         json requestPayload = { "name": "Ballerina" };
         http:Response|error response = delayedBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
-            outResponse.setPayload(<@untainted> response.message());
+            outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -124,14 +124,14 @@ service /loadBalancerDemoService on new http:Listener(9313) {
         json requestPayload = { "name": "Ballerina" };
         http:Response|error response = customLbBackendEP->post("/", requestPayload);
         if (response is http:Response) {
-            error? responseToCaller = caller->respond(<@untainted> response);
+            error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
             outResponse.statusCode = 500;
-            outResponse.setPayload(<@untainted> response.message());
+            outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);

@@ -83,7 +83,7 @@ isolated function getWarningAgent() returns string {
     return "ballerina-http-caching-client/" + ballerinaVersion;
 }
 
-isolated function getProperty(@untainted string name) returns string = @java:Method {
+isolated function getProperty(string name) returns string = @java:Method {
     name: "getProperty",
     'class: "org.ballerinalang.net.http.util.CacheUtils"
 } external;

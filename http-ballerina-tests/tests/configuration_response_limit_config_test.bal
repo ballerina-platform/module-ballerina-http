@@ -76,17 +76,17 @@ service /responseLimit on statusLineEP {
             clientEP = http2headerLimitClient;
         }
 
-        http:Response|error clientResponse = clientEP->forward("/", <@untainted>req);
+        http:Response|error clientResponse = clientEP->forward("/", req);
         if (clientResponse is http:Response) {
-            error? result = caller->respond(<@untainted>clientResponse);
+            error? result = caller->respond(clientResponse);
             if (result is error) {
                 log:printError("Error sending passthru response", 'error = result);
             }
         } else {
             http:Response res = new;
             res.statusCode = 500;
-            res.setPayload(<@untainted>clientResponse.toString());
-            error? result = caller->respond(<@untainted>res);
+            res.setPayload(clientResponse.toString());
+            error? result = caller->respond(res);
             if (result is error) {
                 log:printError("Error sending error response", 'error = result);
             }

@@ -105,7 +105,7 @@ public class Response {
     # + return - The first header value for the specified header name or the `HeaderNotFoundError` if the header is not
     #            found.
     public isolated function getHeader(string headerName, HeaderPosition position = LEADING)
-            returns @tainted string|HeaderNotFoundError {
+            returns string|HeaderNotFoundError {
         return externResponseGetHeader(self, headerName, position);
     }
 
@@ -127,7 +127,7 @@ public class Response {
     # + return - The header values the specified header key maps to or the `HeaderNotFoundError` if the header is not
     #            found.
     public isolated function getHeaders(string headerName, HeaderPosition position = LEADING)
-            returns @tainted string[]|HeaderNotFoundError {
+            returns string[]|HeaderNotFoundError {
         return externResponseGetHeaders(self, headerName, position);
     }
 
@@ -170,7 +170,7 @@ public class Response {
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
     # + return - An array of all the header names
-    public isolated function getHeaderNames(HeaderPosition position = LEADING) returns @tainted string[] {
+    public isolated function getHeaderNames(HeaderPosition position = LEADING) returns string[] {
         return externResponseGetHeaderNames(self, position);
     }
 
@@ -185,7 +185,7 @@ public class Response {
     # Gets the type of the payload of the response (i.e., the `content-type` header value).
     #
     # + return - The `content-type` header value as a string
-    public isolated function getContentType() returns @tainted string {
+    public isolated function getContentType() returns string {
         string contentTypeHeaderValue = "";
         var value = self.getHeader(mime:CONTENT_TYPE);
         if (value is string) {
@@ -197,7 +197,7 @@ public class Response {
     # Extract `json` payload from the response. If the content type is not JSON, an `http:ClientError` is returned.
     #
     # + return - The `json` payload or `http:ClientError` in case of errors
-    public isolated function getJsonPayload() returns @tainted json|ClientError {
+    public isolated function getJsonPayload() returns json|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -219,7 +219,7 @@ public class Response {
     # Extracts `xml` payload from the response.
     #
     # + return - The `xml` payload or `http:ClientError` in case of errors
-    public isolated function getXmlPayload() returns @tainted xml|ClientError {
+    public isolated function getXmlPayload() returns xml|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -241,7 +241,7 @@ public class Response {
     # Extracts `text` payload from the response.
     #
     # + return - The string representation of the message payload or `http:ClientError` in case of errors
-    public isolated function getTextPayload() returns @tainted string|ClientError {
+    public isolated function getTextPayload() returns string|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -264,7 +264,7 @@ public class Response {
     # `Response.getBodyParts()`.
     #
     # + return - A byte channel from which the message payload can be read or `http:ClientError` in case of errors
-    isolated function getByteChannel() returns @tainted io:ReadableByteChannel|ClientError {
+    isolated function getByteChannel() returns io:ReadableByteChannel|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -284,7 +284,7 @@ public class Response {
     #
     # + arraySize - A defaultable parameter to state the size of the byte array. Default size is 8KB
     # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
-    public isolated function getByteStream(int arraySize = 8196) returns @tainted stream<byte[], io:Error?>|ClientError {
+    public isolated function getByteStream(int arraySize = 8196) returns stream<byte[], io:Error?>|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -303,7 +303,7 @@ public class Response {
     # Gets the response payload as a `byte[]`.
     #
     # + return - The byte[] representation of the message payload or `http:ClientError` in case of errors
-    public isolated function getBinaryPayload() returns @tainted byte[]|ClientError {
+    public isolated function getBinaryPayload() returns byte[]|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
@@ -520,7 +520,7 @@ public class Response {
     # Gets cookies from the response.
     #
     # + return - An array of cookie objects, which are included in the response
-    public isolated function getCookies() returns @tainted Cookie[] {
+    public isolated function getCookies() returns Cookie[] {
         Cookie[] cookiesInResponse = [];
         string[]|error cookiesStringValues = self.getHeaders("Set-Cookie");
         if (cookiesStringValues is string[]) {
@@ -570,18 +570,18 @@ isolated function externGetResEntityWithBodyAndWithoutHeaders(Response response)
 
 // HTTP header related external functions
 isolated function externResponseGetHeader(Response response, string headerName, HeaderPosition position)
-                         returns @tainted string|HeaderNotFoundError = @java:Method {
+                         returns string|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeader"
 } external;
 
 isolated function externResponseGetHeaders(Response response, string headerName, HeaderPosition position)
-                          returns @tainted string[]|HeaderNotFoundError = @java:Method {
+                          returns string[]|HeaderNotFoundError = @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaders"
 } external;
 
-isolated function externResponseGetHeaderNames(Response response, HeaderPosition position) returns @tainted string[] =
+isolated function externResponseGetHeaderNames(Response response, HeaderPosition position) returns string[] =
 @java:Method {
     'class: "org.ballerinalang.net.http.nativeimpl.ExternHeaders",
     name: "getHeaderNames"

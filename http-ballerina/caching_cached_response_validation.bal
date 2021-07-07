@@ -19,7 +19,7 @@ import ballerina/time;
 
 isolated function getValidationResponse(HttpClient httpClient, Request req, Response cachedResponse, HttpCache cache,
                                time:Utc currentT, string path, string httpMethod, boolean isFreshResponse)
-                                                                                returns @tainted Response|ClientError {
+                                                                                returns Response|ClientError {
     // If the no-cache directive is set, always validate the response before serving
     if (isFreshResponse) {
         log:printDebug("Sending validation request for a fresh response");
@@ -36,7 +36,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
         // TODO: Verify that this behaviour is valid: returning a fresh response when 'no-cache' is present and
         // origin server couldn't be reached.
         updateResponseTimestamps(cachedResponse, currentT, time:utcNow());
-        setAgeHeader(<@untainted> cachedResponse);
+        setAgeHeader(cachedResponse);
 
         if (!isFreshResponse) {
             // If the origin server cannot be reached and a fresh response is unavailable, serve a stale
@@ -75,7 +75,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
 
 // Based https://tools.ietf.org/html/rfc7234#section-4.3.1
 isolated function sendValidationRequest(HttpClient httpClient, string path, Request originalRequest, Response cachedResponse)
-                                returns @tainted Response|ClientError {
+                                returns Response|ClientError {
     // Set the precondition headers only if the user hasn't explicitly set them.
     boolean userProvidedINMHeader = originalRequest.hasHeader(IF_NONE_MATCH);
     if (!userProvidedINMHeader && cachedResponse.hasHeader(ETAG)) {
@@ -104,7 +104,7 @@ isolated function sendValidationRequest(HttpClient httpClient, string path, Requ
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4
 isolated function handle304Response(Response validationResponse, Response cachedResponse, HttpCache cache, string path,
-                           string httpMethod) returns @tainted Response|ClientError {
+                           string httpMethod) returns Response|ClientError {
     string|error etag = validationResponse.getHeader(ETAG);
     if (etag is string) {
         if (isAStrongValidator(etag)) {
@@ -112,7 +112,7 @@ isolated function handle304Response(Response validationResponse, Response cached
             Response[] matchingCachedResponses = cache.getAllByETag(getCacheKey(httpMethod, path), etag);
 
             foreach var resp in matchingCachedResponses {
-                updateResponse(resp, <@untainted> validationResponse);
+                updateResponse(resp, validationResponse);
             }
             log:printDebug("304 response received, with a strong validator. Response(s) updated");
             return cachedResponse;
@@ -133,7 +133,7 @@ isolated function handle304Response(Response validationResponse, Response cached
     if (!cachedResponse.hasHeader(ETAG) && !cachedResponse.hasHeader(LAST_MODIFIED) &&
                                                         !validationResponse.hasHeader(LAST_MODIFIED)) {
         log:printDebug("304 response received and stored response do not have validators. Updating the stored response.");
-        updateResponse(<@untainted> cachedResponse, validationResponse);
+        updateResponse(cachedResponse, validationResponse);
     }
 
     log:printDebug("304 response received, but stored responses were not updated.");

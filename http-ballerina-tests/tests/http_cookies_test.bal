@@ -57,7 +57,7 @@ service /cookie on CookieTestserverEP {
             error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
-            res.setPayload(<@untainted> cookieHeader);
+            res.setPayload(cookieHeader);
             error? result = caller->respond(res);
         }
     }
@@ -83,7 +83,7 @@ service /cookie on CookieTestserverEP {
             error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
-            res.setPayload(<@untainted> cookieHeader);
+            res.setPayload(cookieHeader);
             error? result = caller->respond(res);
         }
     }
@@ -113,7 +113,7 @@ service /cookie on CookieTestserverEP {
             error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
-            res.setPayload(<@untainted> cookieHeader);
+            res.setPayload(cookieHeader);
             error? result = caller->respond(res);
         }
     }
@@ -142,7 +142,7 @@ service /cookie on CookieTestserverEP {
             error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
-            res.setPayload(<@untainted> cookieHeader);
+            res.setPayload(cookieHeader);
             error? result = caller->respond(res);
         }
     }
@@ -170,7 +170,7 @@ service /cookie on CookieTestserverEP {
             error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
-            res.setPayload(<@untainted> cookieHeader);
+            res.setPayload(cookieHeader);
             error? result = caller->respond(res);
         }
     }
@@ -198,7 +198,7 @@ service /cookie on CookieTestserverEP {
             error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
-            res.setPayload(<@untainted> cookieHeader);
+            res.setPayload(cookieHeader);
             error? result = caller->respond(res);
         }
     }
@@ -229,7 +229,7 @@ service /cookie on CookieTestserverEP {
             error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
-            res.setPayload(<@untainted> cookieHeader);
+            res.setPayload(cookieHeader);
             error? result = caller->respond(res);
         }
     }
@@ -241,7 +241,7 @@ service /cookie on CookieTestserverEP {
             message = message.concat(cookie.name, "=", cookie.value , ",");
         }
         http:Response res = new;
-        res.setPayload(<@untainted> message);
+        res.setPayload(message);
         error? result = caller->respond(res);
     }
 
@@ -278,7 +278,7 @@ service /cookie on CookieTestserverEP {
             error? result = caller->respond(res);
         } else {
             string cookieHeader = checkpanic req.getHeader("Cookie");
-            res.setPayload(<@untainted> cookieHeader);
+            res.setPayload(cookieHeader);
             error? result = caller->respond(res);
         }
     }
@@ -314,7 +314,7 @@ service /cookieDemo on CookieTestserverEP {
         if (usernameCookie.length() > 0) {
             string? user = usernameCookie[0].value;
             if (user is string) {
-                return "Welcome back " + <@untainted> user;
+                return "Welcome back " + user;
             } else {
                 return "Please login";
             }

@@ -52,13 +52,13 @@ service /'continue on expectContinueListenerEP1 {
         var result  = request.getTextPayload();
 
         if (result is string) {
-            var responseError = caller->respond(<@untainted> result);
+            var responseError = caller->respond(result);
             if (responseError is error) {
                 log:printError("Error sending response", 'error = responseError);
             }
         } else {
             res.statusCode = 500;
-            res.setPayload(<@untainted> result.message());
+            res.setPayload(result.message());
             log:printError("Failed to retrieve payload from request: " + result.message());
             var responseError = caller->respond(res);
             if (responseError is error) {
@@ -83,7 +83,7 @@ service /'continue on expectContinueListenerEP1 {
                 }
                 i += 1;
             }
-            var responseError = caller->respond(<@untainted> replyMsg);
+            var responseError = caller->respond(replyMsg);
             if (responseError is error) {
                 log:printError(responseError.message(), 'error = responseError);
             }
@@ -100,9 +100,9 @@ service /'continue on expectContinueListenerEP1 {
                 log:printError("Error sending response", 'error = responseError);
             }
         }
-        http:Response|error res = expectContinueClient->forward("/backend/hello", <@untainted> req);
+        http:Response|error res = expectContinueClient->forward("/backend/hello", req);
         if (res is http:Response) {
-            var responseError = caller->respond(<@untainted> res);
+            var responseError = caller->respond(res);
             if (responseError is error) {
                 log:printError("Error sending response", 'error = responseError);
             }
@@ -117,9 +117,9 @@ service /backend on expectContinueListenerEP2 {
         http:Response response = new;
         var payload = request.getTextPayload();
         if (payload is string) {
-            response.setTextPayload(<@untainted> payload);
+            response.setTextPayload(payload);
         } else {
-            response.setTextPayload(<@untainted> payload.message());
+            response.setTextPayload(payload.message());
         }
         var responseError = caller->respond(response);
         if (responseError is error) {

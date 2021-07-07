@@ -62,7 +62,7 @@ public client isolated class RetryClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function post(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_POST, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -77,7 +77,7 @@ public client isolated class RetryClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_HEAD, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -92,7 +92,7 @@ public client isolated class RetryClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_PUT, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -107,7 +107,7 @@ public client isolated class RetryClient {
     # + path - Resource path
     # + request - An HTTP inbound request message
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function forward(string path, Request request) returns @tainted Response|ClientError {
+    remote isolated function forward(string path, Request request) returns Response|ClientError {
         var result = performRetryAction(path, request, HTTP_FORWARD, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -124,7 +124,7 @@ public client isolated class RetryClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
         var result = performRetryClientExecuteAction(path, <Request>message, httpVerb, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -139,7 +139,7 @@ public client isolated class RetryClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_PATCH, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -154,7 +154,7 @@ public client isolated class RetryClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_DELETE, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -169,7 +169,7 @@ public client isolated class RetryClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_GET, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -184,7 +184,7 @@ public client isolated class RetryClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_OPTIONS, self);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -201,8 +201,7 @@ public client isolated class RetryClient {
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
-    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns
-            @tainted HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         var result = performRetryClientExecuteAction(path, <Request>message, HTTP_SUBMIT, self, verb = httpVerb);
         if (result is Response) {
             return getInvalidTypeError();
@@ -257,15 +256,15 @@ public client isolated class RetryClient {
 // Performs execute remote function of the retry client. extract the corresponding http integer value representation
 // of the http verb and invokes the perform action method.
 // verb is used for submit methods only.
-isolated function performRetryClientExecuteAction(@untainted string path, Request request, @untainted string httpVerb,
-                                         RetryClient retryClient, string verb = "") returns @tainted HttpResponse|ClientError {
+isolated function performRetryClientExecuteAction(string path, Request request, string httpVerb,
+                                         RetryClient retryClient, string verb = "") returns HttpResponse|ClientError {
     HttpOperation connectorAction = extractHttpOperation(httpVerb);
     return performRetryAction(path, request, connectorAction, retryClient, verb = verb);
 }
 
 // Handles all the actions exposed through the retry client.
-isolated function performRetryAction(@untainted string path, Request request, HttpOperation requestAction,
-                            RetryClient retryClient, string verb = "") returns @tainted HttpResponse|ClientError {
+isolated function performRetryAction(string path, Request request, HttpOperation requestAction,
+                            RetryClient retryClient, string verb = "") returns HttpResponse|ClientError {
     HttpClient httpClient = retryClient.httpClient;
     int currentRetryCount = 0;
     int retryCount = retryClient.retryInferredConfig.count;
