@@ -80,9 +80,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 }
             } catch (BallerinaConnectorException ex) {
                 HttpUtil.handleFailure(inboundMessage, ex.getMessage());
+                inboundMessage.waitAndReleaseAllEntities();
             }
         } catch (Exception ex) {
             HttpUtil.handleFailure(inboundMessage, ex.getMessage());
+            inboundMessage.waitAndReleaseAllEntities();
         }
     }
 
