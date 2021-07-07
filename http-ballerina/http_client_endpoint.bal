@@ -675,8 +675,11 @@ isolated function performDataBinding(Response response, TargetType targetType) r
     } else if (targetType is typedesc<byte[]>) {
         return response.getBinaryPayload();
     } else if (targetType is typedesc<byte[]?>) {
-        byte[] payload = check response.getBinaryPayload();
-        return payload.length() == 0 ? () : payload;
+        byte[]|ClientError payload = response.getBinaryPayload();
+        if payload is byte[] {
+            return payload.length() == 0 ? () : payload;
+        }
+        return;
     } else if (targetType is typedesc<record {| anydata...; |}>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
