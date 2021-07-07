@@ -38,7 +38,7 @@ service /serialize on serializeXmlListener {
         request.setBodyParts(bodyParts, contentType = mime:MULTIPART_FORM_DATA);
         http:Response|error returnResponse = xmlClientEP->post("/serialize/decode", request);
         if (returnResponse is http:Response) {
-            error? result = caller->respond(<@untainted> returnResponse);
+            error? result = caller->respond(returnResponse);
             if (result is error) {
                 log:printError("Error sending response", 'error = result);
             }
@@ -61,9 +61,9 @@ service /serialize on serializeXmlListener {
             foreach var part in bodyParts {
                 var payload = part.getXml();
                 if (payload is xml) {
-                    response.setPayload(<@untainted> payload);
+                    response.setPayload(payload);
                 } else {
-                    response.setPayload(<@untainted> payload.message());
+                    response.setPayload(payload.message());
                 }
                 break; //Accepts only one part
             }

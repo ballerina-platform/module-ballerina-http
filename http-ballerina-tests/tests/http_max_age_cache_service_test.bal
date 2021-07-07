@@ -28,14 +28,14 @@ service /maxAge on cachingProxyListener {
             json responsePayload;
             if (response.hasHeader("cache-control")) {
                 responsePayload = checkpanic response.getHeader("cache-control");
-                checkpanic caller->respond(<@untainted> responsePayload);
+                checkpanic caller->respond(responsePayload);
             } else {
-                checkpanic caller->respond(<@untainted> response);
+                checkpanic caller->respond(response);
             }
         } else {
             http:Response res = new;
             res.statusCode = 500;
-            res.setPayload(<@untainted> response.message());
+            res.setPayload(response.message());
             checkpanic caller->respond(res);
         }
     }

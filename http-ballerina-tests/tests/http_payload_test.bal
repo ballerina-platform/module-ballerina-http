@@ -35,15 +35,15 @@ service /testService16 on httpPayloadListenerEP1 {
                 var payload = res.getXmlPayload();
                 if (payload is xml) {
                     //xml descendants = payload.selectDescendants("title");
-                    checkpanic caller->respond(<@untainted> (payload/**/<title>/*).toString());
+                    checkpanic caller->respond((payload/**/<title>/*).toString());
                 } else {
-                    checkpanic caller->respond(<@untainted> payload.message());
+                    checkpanic caller->respond(payload.message());
                 }
             } else {
-                checkpanic caller->respond(<@untainted> binaryPayload.message());
+                checkpanic caller->respond(binaryPayload.message());
             }
         } else {
-            checkpanic caller->respond(<@untainted> res.message());
+            checkpanic caller->respond(res.message());
         }
     }
 
@@ -53,12 +53,12 @@ service /testService16 on httpPayloadListenerEP1 {
             var payload = res.getXmlPayload();
             if (payload is xml) {
                 //xml descendants = payload.selectDescendants("title");
-                checkpanic caller->respond(<@untainted> (payload/**/<title>/*).toString());
+                checkpanic caller->respond((payload/**/<title>/*).toString());
             } else {
                 if (payload is http:GenericClientError) {
                     var cause = payload.cause();
                     if (cause is mime:ParserError) {
-                        checkpanic caller->respond(<@untainted> cause.message());
+                        checkpanic caller->respond(cause.message());
                     }
                 }
             }
@@ -81,7 +81,7 @@ service /payloadTest on httpPayloadListenerEP2 {
                                       </item>
                                 </channel>
                               </xml>`;
-        checkpanic caller->respond(<@untainted> xmlPayload);
+        checkpanic caller->respond(xmlPayload);
     }
 
     resource function 'default getString(http:Caller caller, http:Request req) {
@@ -91,7 +91,7 @@ service /payloadTest on httpPayloadListenerEP2 {
             stringPayload = stringPayload + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
             i = i + 1;
         }
-        checkpanic caller->respond(<@untainted> stringPayload);
+        checkpanic caller->respond(stringPayload);
     }
 }
 

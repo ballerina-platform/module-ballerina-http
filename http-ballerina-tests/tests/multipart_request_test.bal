@@ -22,7 +22,7 @@ import ballerina/http;
 
 function setErrorResponse(http:Response response, error err) {
     response.statusCode = 500;
-    response.setPayload(<@untainted> err.message());
+    response.setPayload(err.message());
 }
 
 listener http:Listener multipartReqEP = new(multipartRequestTest);
@@ -38,14 +38,14 @@ service /test on multipartReqEP {
             var result = bodyParts[0].getText();
             if (result is string) {
                 mime:Entity entity = new;
-                entity.setText(<@untainted string> result);
+                entity.setText(result);
                 response.setEntity(entity);
             } else {
                 setErrorResponse(response, result);
             }
         }
 
-        checkpanic caller->respond(<@untainted http:Response> response);
+        checkpanic caller->respond(response);
     }
 
     resource function post jsonbodypart(http:Caller caller, http:Request request) {
@@ -55,12 +55,12 @@ service /test on multipartReqEP {
         if (bodyParts is mime:Entity[]) {
             var result = bodyParts[0].getJson();
             if (result is json) {
-                response.setJsonPayload(<@untainted json> result);
+                response.setJsonPayload(result);
             } else {
                 setErrorResponse(response, result);
             }
         }
-        checkpanic caller->respond(<@untainted http:Response> response);
+        checkpanic caller->respond(response);
     }
 
     resource function post xmlbodypart(http:Caller caller, http:Request request) {
@@ -70,12 +70,12 @@ service /test on multipartReqEP {
         if (bodyParts is mime:Entity[]) {
             var result = bodyParts[0].getXml();
             if (result is xml) {
-                response.setXmlPayload(<@untainted xml> result);
+                response.setXmlPayload(result);
             } else {
                 setErrorResponse(response, result);
             }
         }
-        checkpanic caller->respond(<@untainted http:Response> response);
+        checkpanic caller->respond(response);
     }
 
     resource function post binarybodypart(http:Caller caller, http:Request request) {
@@ -85,12 +85,12 @@ service /test on multipartReqEP {
         if (bodyParts is mime:Entity[]) {
             var result = bodyParts[0].getByteArray();
             if (result is byte[]) {
-                response.setBinaryPayload(<@untainted byte[]> result);
+                response.setBinaryPayload(result);
             } else {
                 setErrorResponse(response, result);
             }
         }
-        checkpanic caller->respond(<@untainted http:Response> response);
+        checkpanic caller->respond(response);
     }
 
     resource function post multipleparts(http:Caller caller, http:Request request) {
@@ -105,9 +105,9 @@ service /test on multipartReqEP {
                 content = content + " -- " + handleContent(part);
                 i = i + 1;
             }
-            response.setTextPayload(<@untainted string> content);
+            response.setTextPayload(content);
         }
-        checkpanic caller->respond(<@untainted http:Response> response);
+        checkpanic caller->respond(response);
     }
 
     resource function post emptyparts(http:Caller caller, http:Request request) {
@@ -117,7 +117,7 @@ service /test on multipartReqEP {
         if (bodyParts is mime:Entity[]) {
             response.setPayload("Body parts detected!");
         } else {
-            response.setPayload(<@untainted> bodyParts.message());
+            response.setPayload(bodyParts.message());
         }
         checkpanic caller->respond(response);
     }
@@ -134,13 +134,13 @@ service /test on multipartReqEP {
                 payload = handleNestedParts(part);
                 i = i + 1;
             }
-            response.setTextPayload(<@untainted string> payload);
+            response.setTextPayload(payload);
         }
-        checkpanic caller->respond(<@untainted http:Response> response);
+        checkpanic caller->respond(response);
     }
 }
 
-function handleContent(mime:Entity bodyPart) returns @tainted string {
+function handleContent(mime:Entity bodyPart) returns string {
     var mediaType = mime:getMediaType(bodyPart.getContentType());
     if (mediaType is mime:MediaType) {
         string baseType = mediaType.getBaseType();
@@ -407,7 +407,7 @@ function testXmlBodyPartAsFileUpload() {
 
 // TODO: Enable after the I/O revamp
 // @test:Config {}
-// function testBinaryBodyPartAsFileUpload() returns @tainted error? {
+// function testBinaryBodyPartAsFileUpload() returns  error? {
 //     io:ReadableByteChannel byteChannel = check io:openReadableFile
 //                                 ("tests/datafiles/test.tmp");
 //     mime:Entity binaryFilePart = new;
@@ -433,7 +433,7 @@ function testXmlBodyPartAsFileUpload() {
 // }
 
 @test:Config {}
-function testBinaryBodyPartAsFileUploadUsingStream() returns @tainted error? {
+function testBinaryBodyPartAsFileUploadUsingStream() returns error? {
     io:ReadableByteChannel byteChannel = check io:openReadableFile
                                 ("tests/datafiles/test.tmp");
     stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
@@ -465,7 +465,7 @@ function testBinaryBodyPartAsFileUploadUsingStream() returns @tainted error? {
 
 // TODO: Enable after the I/O revamp
 // @test:Config {}
-// function testMultiplePartsWithMultipleBodyTypes() returns @tainted error? {
+// function testMultiplePartsWithMultipleBodyTypes() returns  error? {
 //     mime:Entity xmlPart = new;
 //     xmlPart.setXml(xml `<name>Ballerina xml file part</name>`);
 
@@ -495,7 +495,7 @@ function testBinaryBodyPartAsFileUploadUsingStream() returns @tainted error? {
 // }
 
 @test:Config {}
-function testMultiplePartsWithMultipleBodyTypesIncludingStreams() returns @tainted error? {
+function testMultiplePartsWithMultipleBodyTypesIncludingStreams() returns error? {
     mime:Entity xmlPart = new;
     xmlPart.setXml(xml `<name>Ballerina xml file part</name>`);
 

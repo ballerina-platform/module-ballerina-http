@@ -41,12 +41,12 @@ service /failoverDemoService06 on failoverEP06 {
 
     resource function post index(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP06.getSucceededEndpointIndex().toString();
-        var backendRes = foBackendEP06->submit("GET", "/", <@untainted> request);
+        var backendRes = foBackendEP06->submit("GET", "/", request);
         if (backendRes is http:HttpFuture) {
             var response = foBackendEP06->getResponse(backendRes);
             if (response is http:Response) {
                 string responseMessage = "Failover start index is : " + startIndex;
-                error? responseToCaller = caller->respond(<@untainted> responseMessage);
+                error? responseToCaller = caller->respond(responseMessage);
                 handleResponseToCaller(responseToCaller);
             } else {
                 sendErrorResponse(caller, <error>response);
@@ -104,7 +104,7 @@ function handleResponseToCaller(error? responseToCaller) {
 function sendErrorResponse(http:Caller caller, error e) {
     http:Response response = new;
     response.statusCode = 500;
-    response.setPayload(<@untainted> e.message());
+    response.setPayload(e.message());
     var respondToCaller = caller->respond(response);
     handleResponseToCaller(respondToCaller);
 }

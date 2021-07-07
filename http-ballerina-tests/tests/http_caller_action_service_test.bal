@@ -27,7 +27,7 @@ service /'listener on callerActionListener {
 
     resource function get respond(http:Caller caller, http:Request req) {
         http:Response res = new;
-        res.setTextPayload(<@untainted> globalLvlStr);
+        res.setTextPayload( globalLvlStr);
         checkpanic caller->respond(res);
         globalLvlStr = "respond";
         io:println("Service Level Variable : " + globalLvlStr);

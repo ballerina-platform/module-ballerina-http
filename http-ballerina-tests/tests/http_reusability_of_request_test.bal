@@ -33,7 +33,7 @@ service /reuseObj on reuseRequestListenerEP {
 
         http:Response|error firstResponse = clientEP1 -> get("");
         if (firstResponse is http:Response) {
-            var result = <@untainted> firstResponse.getTextPayload();
+            var result = firstResponse.getTextPayload();
             if (result is string) {
                 firstVal = result;
             } else {
@@ -45,7 +45,7 @@ service /reuseObj on reuseRequestListenerEP {
 
         http:Response|error secondResponse = clientEP1 -> get("");
         if (secondResponse is http:Response) {
-            var result = <@untainted> secondResponse.getTextPayload();
+            var result = secondResponse.getTextPayload();
             if (result is string) {
                 secondVal = result;
             } else {
@@ -55,8 +55,8 @@ service /reuseObj on reuseRequestListenerEP {
             secondVal = secondResponse.message();
         }
         http:Response testResponse = new;
-        testResponse.setPayload(<@untainted> firstVal + <@untainted> secondVal);
-        checkpanic caller->respond(<@untainted> testResponse);
+        testResponse.setPayload(firstVal + secondVal);
+        checkpanic caller->respond(testResponse);
     }
 
     resource function get request_with_empty_entity(http:Caller caller, http:Request clientRequest) {
@@ -69,7 +69,7 @@ service /reuseObj on reuseRequestListenerEP {
 
         http:Response|error firstResponse = clientEP1 -> execute("GET", "", clientReq);
         if (firstResponse is http:Response) {
-            var result = <@untainted> firstResponse.getTextPayload();
+            var result = firstResponse.getTextPayload();
             if (result is string) {
                 firstVal = result;
             } else {
@@ -81,7 +81,7 @@ service /reuseObj on reuseRequestListenerEP {
 
         http:Response|error secondResponse = clientEP1 -> execute("GET", "", clientReq);
         if (secondResponse is http:Response) {
-            var result = <@untainted> secondResponse.getTextPayload();
+            var result = secondResponse.getTextPayload();
             if (result is string) {
                 secondVal = result;
             } else {
@@ -91,8 +91,8 @@ service /reuseObj on reuseRequestListenerEP {
             secondVal = secondResponse.message();
         }
         http:Response testResponse = new;
-        testResponse.setPayload(<@untainted> firstVal + <@untainted> secondVal);
-        checkpanic caller->respond(<@untainted> testResponse);
+        testResponse.setPayload(firstVal + secondVal);
+        checkpanic caller->respond(testResponse);
     }
 
     resource function get two_request_same_entity(http:Caller caller, http:Request clientRequest) {
@@ -111,14 +111,14 @@ service /reuseObj on reuseRequestListenerEP {
                 newRequest.setHeader("test2", "value2");
                 http:Response|error secondResponse = clientEP1 -> execute("GET", "", newRequest);
                 if (secondResponse is http:Response) {
-                    var result1 = <@untainted> firstResponse.getTextPayload();
+                    var result1 = firstResponse.getTextPayload();
                     if (result1 is string) {
                         firstVal = result1;
                     } else {
                         firstVal = result1.message();
                     }
 
-                    var result2 = <@untainted> secondResponse.getTextPayload();
+                    var result2 = secondResponse.getTextPayload();
                     if (result2 is string) {
                         secondVal = result2;
                     } else {
@@ -145,7 +145,7 @@ service /reuseObj on reuseRequestListenerEP {
         string secondVal = "";
         http:Response|error firstResponse = clientEP1 -> post("/datasource", clientReq);
         if (firstResponse is http:Response) {
-            var result = <@untainted> firstResponse.getTextPayload();
+            var result = firstResponse.getTextPayload();
             if (result is string) {
                 firstVal = result;
             } else {
@@ -157,7 +157,7 @@ service /reuseObj on reuseRequestListenerEP {
 
         http:Response|error secondResponse = clientEP1 -> post("/datasource", clientReq);
         if (secondResponse is http:Response) {
-            var result = <@untainted> secondResponse.getTextPayload();
+            var result = secondResponse.getTextPayload();
             if (result is string) {
                 secondVal = result;
             } else {
@@ -167,8 +167,8 @@ service /reuseObj on reuseRequestListenerEP {
             secondVal = secondResponse.message();
         }
         http:Response testResponse = new;
-        testResponse.setPayload(<@untainted> firstVal + <@untainted> secondVal);
-        checkpanic caller->respond(<@untainted> testResponse);
+        testResponse.setPayload(firstVal + secondVal);
+        checkpanic caller->respond(testResponse);
     }
 
     // TODO: Enable after the I/O revamp
@@ -201,7 +201,7 @@ service /reuseObj on reuseRequestListenerEP {
     //                 firstVal = result2.message();
     //             }
 
-    //             testResponse.setTextPayload(<@untainted> firstVal + <@untainted> secondVal);
+    //             testResponse.setTextPayload(firstVal + secondVal);
     //             checkpanic caller->respond(testResponse);
     //         } else {
     //             log:printError(firstResponse.message(), 'error = firstResponse);
@@ -240,7 +240,7 @@ service /reuseObj on reuseRequestListenerEP {
                     firstVal = result2.message();
                 }
 
-                testResponse.setTextPayload(<@untainted> firstVal + <@untainted> secondVal);
+                testResponse.setTextPayload(firstVal + secondVal);
                 checkpanic caller->respond(testResponse);
             } else {
                 log:printError(firstResponse.message(), 'error = firstResponse);
@@ -269,9 +269,9 @@ service /testService_2 on reuseRequestListenerEP {
         http:Response response = new;
         var stringPayload = clientRequest.getTextPayload();
         if (stringPayload is string) {
-            response.setPayload(<@untainted> stringPayload);
+            response.setPayload(stringPayload);
         } else  {
-            response.setPayload(<@untainted> stringPayload.message());
+            response.setPayload(stringPayload.message());
         }
         checkpanic caller->respond(response);
     }

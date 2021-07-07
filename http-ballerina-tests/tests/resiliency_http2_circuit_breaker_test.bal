@@ -48,7 +48,7 @@ service /cb on circuitBreakerEP07 {
         if (cbTrialRequestCount == 3) {
             runtime:sleep(3);
         }
-        var backendFuture = backendClientEP07->submit("GET", "/hello07", <@untainted> request);
+        var backendFuture = backendClientEP07->submit("GET", "/hello07", request);
         if (backendFuture is http:HttpFuture) {
             http:Response|error backendRes = backendClientEP07->getResponse(backendFuture);
             if (backendRes is http:Response) {
@@ -88,7 +88,7 @@ service /hello07 on new http:Listener(8095) {
 function sendCBErrorResponse(http:Caller caller, error e) {
     http:Response response = new;
     response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-    response.setPayload(<@untainted> e.message());
+    response.setPayload(e.message());
     error? responseToCaller = caller->respond(response);
     if (responseToCaller is error) {
         log:printError("Error sending response", 'error = responseToCaller);

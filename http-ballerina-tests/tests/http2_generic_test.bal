@@ -33,7 +33,7 @@ service /general on ep {
         http:Response|error result1 = priorOn->get("/bogusResource");
         http:Response|error result2 = priorOff->get("/bogusResource");
         string response = handleResponse(result1) + "--" + handleResponse(result2);
-        checkpanic caller->respond(<@untainted> response);
+        checkpanic caller->respond(response);
     }
 }
 

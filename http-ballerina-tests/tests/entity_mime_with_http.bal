@@ -60,7 +60,7 @@ service /test on mimeEP {
             json|error jsonPayload = entity.getJson();
             if (jsonPayload is json) {
                 mime:Entity ent = new;
-                ent.setJson(<@untainted>{"payload" : jsonPayload, "header" : checkpanic entity.getHeader("Content-type")});
+                ent.setJson({"payload" : jsonPayload, "header" : checkpanic entity.getHeader("Content-type")});
                 res.setEntity(ent);
                 checkpanic caller->respond(res);
             } else {

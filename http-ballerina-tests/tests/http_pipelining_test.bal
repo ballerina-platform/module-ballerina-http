@@ -49,7 +49,7 @@ service /pipeliningTest on pipeliningListenerEP1 {
             }
         }
 
-        error? result = caller->respond(<@untainted> response);
+        error? result = caller->respond(response);
         if (result is error) {
             error err = result;
             log:printError(err.message(), 'error = result);

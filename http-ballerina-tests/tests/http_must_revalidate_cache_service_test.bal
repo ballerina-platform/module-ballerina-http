@@ -28,11 +28,11 @@ service /mustRevalidate on cachingProxyListener {
         http:Response|error response = cachingEP3->forward("/mustRevalidateBE", req);
         if (response is http:Response) {
             response.setHeader("x-proxy-hit-count", numberOfProxyHits.toString());
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             http:Response res = new;
             res.statusCode = 500;
-            res.setPayload(<@untainted> response.message());
+            res.setPayload(response.message());
             checkpanic caller->respond(res);
         }
     }

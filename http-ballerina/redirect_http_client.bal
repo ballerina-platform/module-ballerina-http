@@ -95,7 +95,7 @@ public client isolated class RedirectClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_GET);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -111,7 +111,7 @@ public client isolated class RedirectClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function post(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         var result =  self.performRedirectIfEligible(path, <Request>message, HTTP_POST);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -126,8 +126,7 @@ public client isolated class RedirectClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted
-            Response|ClientError {
+    remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_HEAD);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -142,7 +141,7 @@ public client isolated class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_PUT);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -156,7 +155,7 @@ public client isolated class RedirectClient {
     # + path - Resource path
     # + request - An HTTP inbound request message
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function forward(string path, Request request) returns @tainted Response|ClientError {
+    remote isolated function forward(string path, Request request) returns Response|ClientError {
         return self.httpClient->forward(path, request);
     }
 
@@ -167,7 +166,7 @@ public client isolated class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function execute(string httpVerb, string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
         Request request = <Request>message;
         //Redirection is performed only for HTTP methods
         if (HTTP_NONE == extractHttpOperation(httpVerb)) {
@@ -188,7 +187,7 @@ public client isolated class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_PATCH);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -203,7 +202,7 @@ public client isolated class RedirectClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_DELETE);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -218,7 +217,7 @@ public client isolated class RedirectClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_OPTIONS);
         if (result is HttpFuture) {
             return getInvalidTypeError();
@@ -293,7 +292,7 @@ public client isolated class RedirectClient {
 
     //Invoke relevant HTTP client action and check the response for redirect eligibility.
     isolated function performRedirectIfEligible(string path, Request request,
-            HttpOperation httpOperation) returns @tainted HttpResponse|ClientError {
+            HttpOperation httpOperation) returns HttpResponse|ClientError {
         final string originalUrl = self.url + path;
         log:printDebug("Checking redirect eligibility for original request " + originalUrl);
 
@@ -311,7 +310,7 @@ public client isolated class RedirectClient {
 
     //Inspect the response for redirect eligibility.
     isolated function checkRedirectEligibility(HttpResponse|ClientError response, string resolvedRequestedURI,
-            HttpOperation httpVerb, Request request) returns @untainted HttpResponse|ClientError {
+            HttpOperation httpVerb, Request request) returns HttpResponse|ClientError {
         if (response is Response) {
             if (isRedirectResponse(response.statusCode)) {
                 return self.redirect(response, httpVerb, request, resolvedRequestedURI);
@@ -327,7 +326,7 @@ public client isolated class RedirectClient {
 
     //If max redirect count is not reached, perform redirection.
     isolated function redirect(Response response, HttpOperation httpVerb, Request request, string resolvedRequestedURI)
-            returns @untainted HttpResponse|ClientError {
+            returns HttpResponse|ClientError {
         int currentCount = self.getCurrentRedirectCount();
         int maxCount = self.redirectConfig.maxCount;
         if (currentCount >= maxCount) {
@@ -366,7 +365,7 @@ public client isolated class RedirectClient {
     }
 
     isolated function performRedirection(string location, HttpOperation redirectMethod, Request request,
-            Response response) returns @untainted HttpResponse|ClientError {
+            Response response) returns HttpResponse|ClientError {
         CookieStore? cookieStore = ();
         if (self.cookieEnabled) {
             cookieStore = new(self.persistentCookieHandler);

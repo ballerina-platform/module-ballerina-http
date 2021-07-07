@@ -35,7 +35,7 @@ service /ecommerceservice on utTestEP {
         io:println(responseJson.toString());
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -47,7 +47,7 @@ service /ecommerceservice on utTestEP {
         io:println(responseJson.toString());
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -59,7 +59,7 @@ service /ecommerceservice on utTestEP {
         io:println(responseJson.toString());
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -74,7 +74,7 @@ service /ecommerceservice on utTestEP {
         io:println(responseJson.toString());
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -91,7 +91,7 @@ service /ecommerceservice on utTestEP {
         io:println (responseJson.toString ());
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -106,7 +106,7 @@ service /ecommerceservice on utTestEP {
         io:println(responseJson.toString());
 
         http:Response res = new;
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 
@@ -185,7 +185,7 @@ service /ech\[o on utTestEP {
     resource function get ech\[o/[string foo] (http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo113": foo};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 }
@@ -195,7 +195,7 @@ service /ech\[o14 on utTestEP {
     resource function get ech\[o14/[string foo](http:Caller caller, http:Request req) {
         http:Response res = new;
         json responseJson = {"echo114": foo};
-        res.setJsonPayload(<@untainted json> responseJson);
+        res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
     }
 }

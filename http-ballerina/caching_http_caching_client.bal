@@ -70,7 +70,7 @@ public client isolated class HttpCachingClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
         return getCachedResponse(self.cache, self.httpClient, req, HTTP_HEAD, path, self.cacheConfig.isShared, false);
@@ -82,7 +82,7 @@ public client isolated class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function put(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -100,7 +100,7 @@ public client isolated class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function execute(string httpMethod, string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function execute(string httpMethod, string path, RequestMessage message) returns Response|ClientError {
         Request request = <Request>message;
         setRequestCacheControlHeader(request);
 
@@ -122,7 +122,7 @@ public client isolated class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function patch(string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -139,7 +139,7 @@ public client isolated class HttpCachingClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function delete(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -156,7 +156,7 @@ public client isolated class HttpCachingClient {
     # + path - Request path
     # + message - An optinal HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function get(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
         return getCachedResponse(self.cache, self.httpClient, req, HTTP_GET, path, self.cacheConfig.isShared, false);
@@ -168,7 +168,7 @@ public client isolated class HttpCachingClient {
     # + path - Request path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function options(string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
         Request req = <Request>message;
         setRequestCacheControlHeader(req);
 
@@ -185,7 +185,7 @@ public client isolated class HttpCachingClient {
     # + path - Request path
     # + request - The HTTP request to be forwarded
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function forward(string path, @tainted Request request) returns @tainted Response|ClientError {
+    remote isolated function forward(string path, Request request) returns Response|ClientError {
         if (request.method == HTTP_GET || request.method == HTTP_HEAD) {
             return getCachedResponse(self.cache, self.httpClient, request, request.method, path,
                                      self.cacheConfig.isShared, true);
@@ -263,8 +263,8 @@ public isolated function createHttpCachingClient(string url, ClientConfiguration
     return httpCachingClient;
 }
 
-isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, @tainted Request req, string httpMethod, string path,
-                           boolean isShared, boolean forwardRequest) returns @tainted Response|ClientError {
+isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Request req, string httpMethod, string path,
+                           boolean isShared, boolean forwardRequest) returns Response|ClientError {
     time:Utc currentT = time:utcNow();
     req.parseCacheControlHeader();
 
@@ -276,7 +276,7 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, @tai
         // Based on https://tools.ietf.org/html/rfc7234#section-4
 
         updateResponseTimestamps(cachedResponse, currentT, currentT);
-        setAgeHeader(<@untainted> cachedResponse);
+        setAgeHeader(cachedResponse);
 
         RequestCacheControl? reqCache = req.cacheControl;
         ResponseCacheControl? resCache = cachedResponse.cacheControl;
@@ -322,7 +322,7 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, @tai
         if (cache.isAllowedToCache(response)) {
             response.requestTime = currentT;
             response.receivedTime = time:utcNow();
-            cache.put(<@untainted> getCacheKey(httpMethod, path), <@untainted> req.cacheControl, <@untainted> response);
+            cache.put(getCacheKey(httpMethod, path), req.cacheControl, response);
         }
         return response;
     } else {
@@ -354,7 +354,7 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
 }
 
 isolated function sendNewRequest(HttpClient httpClient, Request request, string path, string httpMethod, boolean forwardRequest)
-                                                                returns @tainted Response|ClientError {
+                                                                returns Response|ClientError {
     if (forwardRequest) {
         return httpClient->forward(path, request);
     }

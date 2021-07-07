@@ -33,18 +33,18 @@ service /backEndService on new http:Listener(9122, { httpVersion: "2.0" }) {
     // resource function post http2SendByteChannel(http:Caller caller, http:Request req) {
     //     var byteChannel = req.getByteChannel();
     //     if (byteChannel is io:ReadableByteChannel) {
-    //         checkpanic caller->respond(<@untainted> byteChannel);
+    //         checkpanic caller->respond(byteChannel);
     //     } else {
-    //         checkpanic caller->respond(<@untainted> byteChannel.message());
+    //         checkpanic caller->respond(byteChannel.message());
     //     }
     // }
 
     resource function post http2SendByteStream(http:Caller caller, http:Request req) {
         var byteStream = req.getByteStream();
         if (byteStream is stream<byte[], io:Error?>) {
-            checkpanic caller->respond(<@untainted> byteStream);
+            checkpanic caller->respond(byteStream);
         } else {
-            checkpanic caller->respond(<@untainted> byteStream.message());
+            checkpanic caller->respond(byteStream.message());
         }
     }
 
@@ -56,30 +56,30 @@ service /backEndService on new http:Listener(9122, { httpVersion: "2.0" }) {
                 if (mime:TEXT_PLAIN == baseType) {
                     var textValue = req.getTextPayload();
                     if (textValue is string) {
-                        checkpanic caller->respond(<@untainted> textValue);
+                        checkpanic caller->respond(textValue);
                     } else {
-                        checkpanic caller->respond(<@untainted string> textValue.message());
+                        checkpanic caller->respond(textValue.message());
                     }
                 } else if (mime:APPLICATION_XML == baseType) {
                     var xmlValue = req.getXmlPayload();
                     if (xmlValue is xml) {
-                        checkpanic caller->respond(<@untainted> xmlValue);
+                        checkpanic caller->respond(xmlValue);
                     } else {
-                        checkpanic caller->respond(<@untainted string> xmlValue.message());
+                        checkpanic caller->respond(xmlValue.message());
                     }
                 } else if (mime:APPLICATION_JSON == baseType) {
                     var jsonValue = req.getJsonPayload();
                     if (jsonValue is json) {
-                        checkpanic caller->respond(<@untainted> jsonValue);
+                        checkpanic caller->respond(jsonValue);
                     } else {
-                        checkpanic caller->respond(<@untainted string> jsonValue.message());
+                        checkpanic caller->respond(jsonValue.message());
                     }
                 } else if (mime:APPLICATION_OCTET_STREAM == baseType) {
                     var blobValue = req.getBinaryPayload();
                     if (blobValue is byte[]) {
-                        checkpanic caller->respond(<@untainted> blobValue);
+                        checkpanic caller->respond(blobValue);
                     } else {
-                        checkpanic caller->respond(<@untainted string> blobValue.message());
+                        checkpanic caller->respond(blobValue.message());
                     }
                 }
             } else {
@@ -127,7 +127,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
                 value = value + result.message();
             }
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function get clientPostWithoutBody(http:Caller caller, http:Request req) {
@@ -145,7 +145,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
             value = <string>clientResponse.message();
         }
 
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function get clientPostWithBody(http:Caller caller, http:Request req) {
@@ -179,7 +179,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
                 value = value + result.message();
             }
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function get testHttp2PostWithBinaryData(http:Caller caller, http:Request req) {
@@ -195,7 +195,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
                 value = result.message();
             }
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     // TODO: Enable after the I/O revamp
@@ -224,7 +224,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         string value = "";
         var text = req.getTextPayload();
         if (text is string) {
-            http:Response|error res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> text);
+            http:Response|error res = http2Client->post("/backEndService/http2SendByteStream", text);
             if (res is http:Response) {
                 stream<byte[], io:Error?>|http:ClientError str = res.getByteStream();
                 if (str is stream<byte[], io:Error?>) {
@@ -243,14 +243,14 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         } else {
             value = text.message();
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function post testHttp2PostWithByteStream(http:Caller caller, http:Request req) {
         string value = "";
         stream<byte[], io:Error?>|http:ClientError byteStream = req.getByteStream();
         if (byteStream is stream<byte[], io:Error?>) {
-            http:Response|error res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> byteStream);
+            http:Response|error res = http2Client->post("/backEndService/http2SendByteStream", byteStream);
             if (res is http:Response) {
                 stream<byte[], io:Error?>|error str = res.getByteStream();
                 if (str is stream<byte[], io:Error?>) {
@@ -269,14 +269,14 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         } else {
             value = byteStream.message();
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 
     resource function post testHttp2PostWithByteStreamToText(http:Caller caller, http:Request req) {
         string value = "";
         stream<byte[], io:Error?>|http:ClientError byteStream = req.getByteStream();
         if (byteStream is stream<byte[], io:Error?>) {
-            http:Response|error res = http2Client->post("/backEndService/http2SendByteStream", <@untainted> byteStream);
+            http:Response|error res = http2Client->post("/backEndService/http2SendByteStream", byteStream);
             if (res is http:Response) {
                 var result = res.getTextPayload();
                 if (result is string) {
@@ -290,7 +290,7 @@ service /testHttp2Service on new http:Listener(9123, { httpVersion: "2.0" }) {
         } else {
             value = byteStream.message();
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 }
 

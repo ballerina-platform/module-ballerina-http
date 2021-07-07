@@ -41,17 +41,17 @@ http:FailoverClient foBackendEP05 = check new({
 service /failoverDemoService05 on failoverEP05 {
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP05.getSucceededEndpointIndex().toString();
-        http:Response|error backendRes = foBackendEP05->forward("/", <@untainted> request);
+        http:Response|error backendRes = foBackendEP05->forward("/", request);
         if (backendRes is http:Response) {
             string responseMessage = "Failover start index is : " + startIndex;
-            error? responseToCaller = caller->respond(<@untainted> responseMessage);
+            error? responseToCaller = caller->respond(responseMessage);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
             response.statusCode = 500;
-            response.setPayload(<@untainted> backendRes.message());
+            response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);

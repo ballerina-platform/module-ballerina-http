@@ -16,7 +16,7 @@
 
 import ballerina/time;
 
-isolated function isFreshResponse(Response cachedResponse, boolean isSharedCache) returns @tainted boolean {
+isolated function isFreshResponse(Response cachedResponse, boolean isSharedCache) returns boolean {
     time:Seconds currentAge = getResponseAge(cachedResponse);
     time:Seconds freshnessLifetime = getFreshnessLifetime(cachedResponse, isSharedCache);
     return freshnessLifetime > currentAge;

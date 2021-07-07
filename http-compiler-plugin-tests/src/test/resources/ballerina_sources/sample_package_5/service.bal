@@ -30,7 +30,7 @@ service http:Service on new http:Listener(9090) {
         return "done";
     }
 
-    resource function get headerStringArrNil(@untainted @http:Header {name: "x-type"} string[]? abc) returns string {
+    resource function get headerStringArrNil(@http:Header {name: "x-type"} string[]? abc) returns string {
         return "done";
     }
 

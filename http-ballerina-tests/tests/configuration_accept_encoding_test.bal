@@ -42,7 +42,7 @@ service /hello on acceptEncodingListenerEP {
         } else {
             payload = {acceptEncoding:"Accept-Encoding header not present."};
         }
-        res.setJsonPayload(<@untainted> payload);
+        res.setJsonPayload( payload);
         checkpanic caller->respond(res);
     }
 }

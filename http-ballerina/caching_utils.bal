@@ -35,7 +35,7 @@ isolated function updateResponseTimestamps(Response response, time:Utc requested
 }
 
 isolated function setAgeHeader(Response cachedResponse) {
-    cachedResponse.setHeader(AGE, <@untainted>calculateCurrentResponseAge(cachedResponse).toString());
+    cachedResponse.setHeader(AGE, calculateCurrentResponseAge(cachedResponse).toString());
 }
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4
@@ -48,7 +48,7 @@ isolated function updateResponse(Response cachedResponse, Response validationRes
 }
 
 isolated function retain2xxWarnings(Response cachedResponse) {
-    string[]|error warningHeaders = <@untainted>cachedResponse.getHeaders(WARNING);
+    string[]|error warningHeaders = cachedResponse.getHeaders(WARNING);
     if (warningHeaders is string[]) {
         cachedResponse.removeHeader(WARNING);
         // TODO: Need to handle this in a better way using regex when the required regex APIs are there
@@ -64,13 +64,13 @@ isolated function retain2xxWarnings(Response cachedResponse) {
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.3.4
 isolated function replaceHeaders(Response cachedResponse, Response validationResponse) {
-    string[] headerNames = <@untainted>validationResponse.getHeaderNames();
+    string[] headerNames = validationResponse.getHeaderNames();
 
     log:printDebug("Updating response headers using validation response.");
 
     foreach var headerName in headerNames {
         cachedResponse.removeHeader(headerName);
-        string[]|error headerValues = <@untainted> validationResponse.getHeaders(headerName);
+        string[]|error headerValues = validationResponse.getHeaders(headerName);
         if (headerValues is string[]) {
             foreach var value in headerValues {
                 cachedResponse.addHeader(headerName, value);

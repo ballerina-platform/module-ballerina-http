@@ -36,7 +36,7 @@ public client isolated class HttpClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function post(@untainted string path, RequestMessage message) returns Response|ClientError {
+    remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_POST);
     }
 
@@ -45,7 +45,7 @@ public client isolated class HttpClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function head(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_HEAD);
     }
 
@@ -54,7 +54,7 @@ public client isolated class HttpClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function put(@untainted string path, RequestMessage message) returns @tainted  Response|ClientError {
+    remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PUT);
     }
 
@@ -64,8 +64,8 @@ public client isolated class HttpClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function execute(@untainted string httpVerb, @untainted string path, RequestMessage message)
-             returns @tainted Response|ClientError {
+    remote isolated function execute(string httpVerb,  string path, RequestMessage message)
+             returns Response|ClientError {
         return externExecute(self, httpVerb, path, <Request>message);
     }
 
@@ -74,7 +74,7 @@ public client isolated class HttpClient {
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function patch(@untainted string path, RequestMessage message) returns @tainted Response|ClientError {
+    remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PATCH);
     }
 
@@ -83,7 +83,7 @@ public client isolated class HttpClient {
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function delete(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_DELETE);
     }
 
@@ -92,7 +92,7 @@ public client isolated class HttpClient {
     # + path - Request path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function get(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_GET);
     }
 
@@ -101,7 +101,7 @@ public client isolated class HttpClient {
     # + path - Request path
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function options(@untainted string path, RequestMessage message = ()) returns @tainted Response|ClientError {
+    remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
         return externExecuteClientAction(self, path, <Request>message, HTTP_OPTIONS);
     }
 
@@ -110,7 +110,7 @@ public client isolated class HttpClient {
     # + path - Request path
     # + request - An HTTP inbound request message
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    remote isolated function forward(@untainted string path, Request request) returns @tainted Response|ClientError {
+    remote isolated function forward(string path, Request request) returns Response|ClientError {
         return externForward(self, path, request);
     }
 
@@ -122,7 +122,7 @@ public client isolated class HttpClient {
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
-    remote isolated function submit(@untainted string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
+    remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         return externSubmit(self, httpVerb, path, <Request>message);
     }
 

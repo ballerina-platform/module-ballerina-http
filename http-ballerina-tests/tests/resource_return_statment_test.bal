@@ -98,7 +98,7 @@ service http:Service /mytest on resourceReturnTestEP {
         return error http:GenericListenerError("Don't panic. This is to test the error!");
     }
 
-    resource function get test12() returns @tainted @http:Payload {mediaType:["application/json+id"]} http:Accepted {
+    resource function get test12() returns @http:Payload {mediaType:["application/json+id"]} http:Accepted {
         http:Accepted acc = { body: {hello:"World"}, headers: { xtest: "Elle"} };
         return acc;
     }

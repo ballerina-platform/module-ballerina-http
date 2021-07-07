@@ -31,7 +31,7 @@ service /priorKnowledge on priorEp1 {
     resource function get 'on(http:Caller caller, http:Request req) {
         http:Response|error response = h2WithPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is enabled");
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error in client post with prior knowledge on");
         }
@@ -40,7 +40,7 @@ service /priorKnowledge on priorEp1 {
     resource function get off(http:Caller caller, http:Request req) {
         http:Response|error response = h2WithoutPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is disabled");
         if (response is http:Response) {
-            checkpanic caller->respond(<@untainted> response);
+            checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error in client post with prior knowledge off");
         }
@@ -60,7 +60,7 @@ service /priorKnowledgeTestBackEnd on priorEp2 {
         }
 
         outboundResponse = outboundResponse + "--" + checkpanic req.getTextPayload();
-        checkpanic caller->respond(<@untainted> outboundResponse);
+        checkpanic caller->respond(outboundResponse);
     }
 }
 

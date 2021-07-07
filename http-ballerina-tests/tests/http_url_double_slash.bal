@@ -43,7 +43,7 @@ service "//url" on httpUrlListenerEP1  {
                 value = result.message();
             }
         }
-        checkpanic caller->respond(<@untainted> value);
+        checkpanic caller->respond(value);
     }
 }
 

@@ -52,7 +52,7 @@ service /keepAliveTest on keepAliveListenerEP {
 
         http:Response[] resArr = [res1, res2, res3, res4];
         string result = processResponse("http_1_1", resArr);
-        checkpanic caller->respond(<@untainted> result);
+        checkpanic caller->respond(result);
     }
 
     resource function 'default h1_0(http:Caller caller, http:Request req) returns error? {
@@ -63,7 +63,7 @@ service /keepAliveTest on keepAliveListenerEP {
 
         http:Response[] resArr = [res1, res2, res3, res4];
         string result = processResponse("http_1_0", resArr);
-        checkpanic caller->respond(<@untainted> result);
+        checkpanic caller->respond(result);
     }
 }
 
@@ -83,7 +83,7 @@ service /keepAliveTest2 on keepAliveListenerEP {
     }
 }
 
-function processResponse(string protocol, http:Response[] responseArr) returns @tainted string {
+function processResponse(string protocol, http:Response[] responseArr) returns string {
     string returnValue = protocol;
     foreach var response in responseArr {
        string payload = checkpanic response.getTextPayload();

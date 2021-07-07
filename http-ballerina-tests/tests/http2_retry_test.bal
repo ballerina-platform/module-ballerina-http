@@ -53,7 +53,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
         if (backendFuture is http:HttpFuture) {
             http:Response|error backendResponse = http2RetryBackendClientEP->getResponse(backendFuture);
             if (backendResponse is http:Response) {
-                error? responseToCaller = caller->respond(<@untainted> backendResponse);
+                error? responseToCaller = caller->respond(backendResponse);
                 if (responseToCaller is error) {
                     log:printError("Error sending response", 'error = responseToCaller);
                 }
@@ -165,7 +165,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
 isolated function respondWithError(http:Caller caller, error currentError) {
     http:Response response = new;
     response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-    response.setPayload(<@untainted> currentError.message());
+    response.setPayload(currentError.message());
     error? responseToCaller = caller->respond(response);
     if (responseToCaller is error) {
         log:printError("Error sending response", 'error = responseToCaller);
