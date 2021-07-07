@@ -662,29 +662,49 @@ isolated function processResponse(Response|ClientError result, TargetType target
 isolated function performDataBinding(Response response, TargetType targetType) returns PayloadType|ClientError {
     if (targetType is typedesc<string>) {
         return response.getTextPayload();
+    } else if (targetType is typedesc<string?>) {
+        string|ClientError payload = response.getTextPayload();
+        return payload is ClientError ? () : payload;
     } else if (targetType is typedesc<xml>) {
         return response.getXmlPayload();
+    } else if (targetType is typedesc<xml?>) {
+        xml|ClientError payload = response.getXmlPayload();
+        return payload is ClientError ? () : payload;
     } else if (targetType is typedesc<byte[]>) {
         return response.getBinaryPayload();
+    } else if (targetType is typedesc<byte[]?>) {
+        byte[] payload = check response.getBinaryPayload();
+        return payload.length() == 0 ? () : payload;
     } else if (targetType is typedesc<record {| anydata...; |}>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
-        if (result is error) {
-            return createPayloadBindingError(result);
+        return result is error ? createPayloadBindingError(result) : result;
+    } else if (targetType is typedesc<record {| anydata...; |}?>) {
+        json|ClientError payload = response.getJsonPayload();
+        if payload is json {
+            var result = payload.cloneWithType(targetType);
+            return result is error ? () : result;
         }
-        return <record {| anydata...; |}> checkpanic result;
+        return;
     } else if (targetType is typedesc<record {| anydata...; |}[]>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
-        if (result is error) {
-            return createPayloadBindingError(result);
+        return result is error ? createPayloadBindingError(result) : result;
+    } else if (targetType is typedesc<record {| anydata...; |}[]?>) {
+        json|ClientError payload = response.getJsonPayload();
+        if payload is json {
+            var result = payload.cloneWithType(targetType);
+            return result is error ? () : result;
         }
-        return <record {| anydata...; |}[]> checkpanic result;
+        return;
     } else if (targetType is typedesc<map<json>>) {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
     } else if (targetType is typedesc<json>) {
-        return response.getJsonPayload();
+        json|ClientError result = response.getJsonPayload();
+        return result is NoContentError ? (): result;
+    } else {
+        return error ClientError("invalid target type, expected: http:Response, string, xml, json, map<json>, byte[], record, record[] or a union of such a type with nil");
     }
 }
 
