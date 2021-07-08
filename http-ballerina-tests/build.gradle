@@ -26,6 +26,7 @@ description = 'Ballerina - HTTP/WS Ballerina Tests'
 
 def packageName = "http"
 def packageOrg = "ballerina"
+def moduleName = "tests"
 def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
@@ -189,6 +190,9 @@ task ballerinaTest {
     dependsOn(updateTomlVerions)
     dependsOn(copyHttpStdlib)
     dependsOn(initializeVariables)
+    dependsOn(":${packageName}-${packageOrg}-${moduleName}:compileJava")
+    dependsOn(":${packageName}-${packageOrg}-${moduleName}:jar")
+    dependsOn(":${packageName}-${packageOrg}-${moduleName}:processResources")
     finalizedBy(revertTomlFile)
 
     def privateKey = "tests/certsandkeys/private.key"
