@@ -34,33 +34,33 @@ dependencies {
     checkstyle project(':build-config:checkstyle')
     checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
 
-    compile group: 'org.ballerinalang', name: 'ballerina-lang', version: "${ballerinaLangVersion}"
-    compile group: 'org.ballerinalang', name: 'ballerina-tools-api', version: "${ballerinaLangVersion}"
-    compile group: 'org.ballerinalang', name: 'ballerina-core', version: "${ballerinaLangVersion}"
-    compile group: 'org.ballerinalang', name: 'ballerina-runtime', version: "${ballerinaLangVersion}"
-    compile group: 'org.ballerinalang', name: 'ballerina-config', version: "${ballerinaLangVersion}"
-    compile group: 'org.ballerinalang', name: 'value', version: "${ballerinaLangVersion}"
+    implementation group: 'org.ballerinalang', name: 'ballerina-lang', version: "${ballerinaLangVersion}"
+    implementation group: 'org.ballerinalang', name: 'ballerina-tools-api', version: "${ballerinaLangVersion}"
+    implementation group: 'org.ballerinalang', name: 'ballerina-core', version: "${ballerinaLangVersion}"
+    implementation group: 'org.ballerinalang', name: 'ballerina-runtime', version: "${ballerinaLangVersion}"
+    implementation group: 'org.ballerinalang', name: 'ballerina-config', version: "${ballerinaLangVersion}"
+    implementation group: 'org.ballerinalang', name: 'value', version: "${ballerinaLangVersion}"
 
-    compile group: 'org.ballerinalang', name: 'io-native', version: "${stdlibIoVersion}"
-    compile group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}"
+    implementation group: 'org.ballerinalang', name: 'io-native', version: "${stdlibIoVersion}"
+    implementation group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}"
 
-    compile group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: "${commonsLang3Version}"
-    compile group: 'org.testng', name: 'testng', version: "${testngVersion}"
+    implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: "${commonsLang3Version}"
+    implementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
 
     // Transport related dependencies
-    compile group: 'io.netty', name: 'netty-codec-http2', version:"${nettyVersion}"
-    compile group: 'io.netty', name: 'netty-handler-proxy', version:"${nettyVersion}"
-    compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:"${nettyTcnativeVersion}"
+    implementation group: 'io.netty', name: 'netty-codec-http2', version:"${nettyVersion}"
+    implementation group: 'io.netty', name: 'netty-handler-proxy', version:"${nettyVersion}"
+    implementation group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:"${nettyTcnativeVersion}"
 
-    compile group: 'org.wso2.eclipse.osgi', name: 'org.eclipse.osgi', version:"${wso2EclipseOsgiVersion}"
-    compile group: 'commons-pool.wso2', name: 'commons-pool', version:"${wso2CommonsPoolVersion}"
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}"
-    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}"
-    compile group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: "${jakartaXmlBindVersion}"
+    implementation group: 'org.wso2.eclipse.osgi', name: 'org.eclipse.osgi', version:"${wso2EclipseOsgiVersion}"
+    implementation group: 'commons-pool.wso2', name: 'commons-pool', version:"${wso2CommonsPoolVersion}"
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}"
+    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}"
+    implementation group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: "${jakartaXmlBindVersion}"
 
-    testCompile group: 'org.mock-server', name: 'mockserver-netty', version:"${mockserverNettyVersion}"
-    testCompile group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
+    testImplementation group: 'org.mock-server', name: 'mockserver-netty', version:"${mockserverNettyVersion}"
+    testImplementation group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
 
     testImplementation group: 'org.mockito', name:'mockito-inline', version: "${mockitoVersion}"
     testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: "${mockitoVersion}"
@@ -104,6 +104,7 @@ tasks.withType(Checkstyle) {
 }
 
 checkstyleMain.dependsOn(":build-config:checkstyle:downloadMultipleFiles")
+checkstyleTest.dependsOn(":build-config:checkstyle:downloadMultipleFiles")
 
 spotbugsMain {
     effort "max"
