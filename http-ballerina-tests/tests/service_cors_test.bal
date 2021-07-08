@@ -295,7 +295,7 @@ function testPreFlightReqServiceResourceCorsOverride() {
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
     if (response is http:Response) {
-        assertEqualsCorsResponse(response, 200, "http://www.wso2.com", "true", "X-PINGOTHER", HTTP_METHOD_POST, "-1");
+        assertEqualsCorsResponse(response, 204, "http://www.wso2.com", "true", "X-PINGOTHER", HTTP_METHOD_POST, "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -310,7 +310,7 @@ function testPreFlightReqwithNoOrigin() {
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -326,7 +326,7 @@ function testPreFlightReqwithNoMethod() {
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -343,7 +343,7 @@ function testPreFlightReqwithUnavailableMethod() {
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -360,7 +360,7 @@ function testPreFlightReqwithHeadMethod() {
     };
     http:Response|error response = corsClient->options("/hello1/test2", headers);
     if (response is http:Response) {
-        assertEqualsCorsResponse(response, 200, "http://www.m3.com", "true", "CORELATION_ID", HTTP_METHOD_HEAD, "1");
+        assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "CORELATION_ID", HTTP_METHOD_HEAD, "1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -376,7 +376,7 @@ function testPreFlightReqwithInvalidHeaders() {
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -392,7 +392,7 @@ function testPreFlightReqwithNoHeaders() {
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200);
+        test:assertEquals(response.statusCode, 204);
         test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2.com");
         test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_HEADERS));
@@ -413,7 +413,7 @@ function testPreFlightReqwithRestrictedMethodsServiceLevel() {
     };
     http:Response|error response = corsClient->options("/hello3/info1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(checkpanic response.getHeader(ALLOW), "PUT, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -430,7 +430,7 @@ function testPreFlightReqwithRestrictedMethodsResourceLevel() {
     };
     http:Response|error response = corsClient->options("/hello2/test2", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(checkpanic response.getHeader(ALLOW), "PUT, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -447,7 +447,7 @@ function testPreFlightReqwithAllowedMethod() {
     };
     http:Response|error response = corsClient->options("/hello3/info1", headers);
     if (response is http:Response) {
-        assertEqualsCorsResponse(response, 200, "http://www.m3.com", "true", "X-PINGOTHER", HTTP_METHOD_PUT, "1");
+        assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", HTTP_METHOD_PUT, "1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -463,7 +463,7 @@ function testPreFlightReqwithMissingHeadersAtResourceLevel() {
     };
     http:Response|error response = corsClient->options("/hello2/test2", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200);
+        test:assertEquals(response.statusCode, 204);
         test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.bbc.com");
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS));
         test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_HEADERS), "X-PINGOTHER");
@@ -483,7 +483,7 @@ function testPreFlightReqNoCorsResource() {
     };
     http:Response|error response = corsClient->options("/echo4/info1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -510,7 +510,7 @@ function testPreFlightReqwithCaseInsensitiveOrigin() {
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -527,7 +527,7 @@ function testPreFlightReqwithCaseInsensitiveHeader() {
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
     if (response is http:Response) {
-        assertEqualsCorsResponse(response, 200, "http://www.wso2.com", "true", "X-pingOTHER", HTTP_METHOD_POST, "-1");
+        assertEqualsCorsResponse(response, 204, "http://www.wso2.com", "true", "X-pingOTHER", HTTP_METHOD_POST, "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -543,7 +543,7 @@ function testPreFlightReqwithWildCardServiceConfigs() {
     };
     http:Response|error response = corsClient->options("/hello5/info1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200);
+        test:assertEquals(response.statusCode, 204);
         test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2Ballerina.com");
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS));
         test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_HEADERS), "X-PINGOTHER");
@@ -564,7 +564,7 @@ function testPreFlightReqwithWildCardResourceConfigs() {
     };
     http:Response|error response = corsClient->options("/echo4/info3", headers);
     if (response is http:Response) {
-        assertEqualsCorsResponse(response, 200, "http://www.wso2Ballerina456.com", "true", "X-PINGOTHER", "POST", "-1");
+        assertEqualsCorsResponse(response, 204, "http://www.wso2Ballerina456.com", "true", "X-PINGOTHER", "POST", "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -580,7 +580,7 @@ function testPreFlightReqwithWildCardResourceConfigsOverride() {
     };
     http:Response|error response = corsClient->options("/hello1/test4", headers);
     if (response is http:Response) {
-        assertEqualsCorsResponse(response, 200, "http://www.wso2Ballerina123.com", "true", "X-PONGOTHER", 
+        assertEqualsCorsResponse(response, 204, "http://www.wso2Ballerina123.com", "true", "X-PONGOTHER",
             HTTP_METHOD_PUT, "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

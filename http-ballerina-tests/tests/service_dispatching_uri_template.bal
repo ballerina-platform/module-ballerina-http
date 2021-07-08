@@ -356,7 +356,7 @@ function testOPTIONSMethods() {
 function testOPTIONSWithGETMethods() {
     http:Response|error response = utClient1->options("/options/getme");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -368,7 +368,7 @@ function testOPTIONSWithGETMethods() {
 function testOPTIONSWithPOSTMethods() {
     http:Response|error response = utClient1->options("/options/post");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -380,7 +380,7 @@ function testOPTIONSWithPOSTMethods() {
 function testOPTIONSWithPUTMethods() {
     http:Response|error response = utClient1->options("/options/put/add");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "PUT, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -392,7 +392,7 @@ function testOPTIONSWithPUTMethods() {
 function testOPTIONSWithPathParams() {
     http:Response|error response = utClient1->options("/options/put/xyz");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "DELETE, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -404,7 +404,7 @@ function testOPTIONSWithPathParams() {
 function testOPTIONSWithMultiResources() {
     http:Response|error response = utClient1->options("/options/test");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -416,7 +416,7 @@ function testOPTIONSWithMultiResources() {
 function testOPTIONSAtRootPath() {
     http:Response|error response = utClient1->options("/options");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
         test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

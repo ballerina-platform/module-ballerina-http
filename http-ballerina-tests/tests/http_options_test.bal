@@ -40,8 +40,7 @@ service /echoDummy on httpOptionsListenerEP {
 function testOptionsContentLengthHeader() {
     http:Response|error response = httpOptionsClient->options("/echoDummy", {[CONTENT_TYPE]:[APPLICATION_JSON]});
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "0");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(ALLOW), "POST, OPTIONS");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
