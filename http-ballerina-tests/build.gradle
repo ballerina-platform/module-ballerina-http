@@ -57,7 +57,7 @@ dependencies {
     jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
     }
-    compile group: 'org.ballerinalang', name: 'toml-parser', version: "${ballerinaTomlParserVersion}"
+    implementation group: 'org.ballerinalang', name: 'toml-parser', version: "${ballerinaTomlParserVersion}"
 }
 
 clean {
