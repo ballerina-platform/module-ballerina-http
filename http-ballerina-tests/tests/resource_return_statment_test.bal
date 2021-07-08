@@ -363,6 +363,15 @@ service http:Service /mytest on resourceReturnTestEP {
     resource function get test32(http:Caller caller) {
         checkpanic caller->respond("Hello"); // log error
     }
+
+    resource function get test33() returns http:Ok {
+        return {
+            headers: {
+                "Content-Type": "text/html; charset=UTF-8"
+            },
+            body: "<h1>HI</h1>"
+        };
+    }
 }
 
 @test:Config {}
@@ -1060,6 +1069,18 @@ public function testCheckPanicErrorAfterResponse() {
     if (resp is http:Response) {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(resp.getTextPayload(), "Hello");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testContentTypeHeaderInHeaderField() {
+    http:Response|error resp = resourceReturnTestClient->get("/mytest/test33");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), "text/html;charset=UTF-8");
+        assertTextPayload(resp.getTextPayload(), "<h1>HI</h1>");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }

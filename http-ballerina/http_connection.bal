@@ -187,7 +187,8 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
     // 2. Payload annotation mediaType value
-    // 3. Default content type related to payload
+    // 3. The content type header included in headers field
+    // 4. Default content type related to payload
     string? mediaType = message?.mediaType;
     if (mediaType is string) {
         response.setHeader(CONTENT_TYPE, mediaType);
