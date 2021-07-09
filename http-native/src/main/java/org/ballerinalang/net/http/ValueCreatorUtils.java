@@ -22,7 +22,7 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import org.ballerinalang.mime.util.MimeUtil;
+import io.ballerina.stdlib.mime.util.MimeUtil;
 import org.ballerinalang.net.http.nativeimpl.ModuleUtils;
 
 import static org.ballerinalang.net.http.HttpConstants.CALLER;

@@ -71,7 +71,7 @@ configurations {
 
 dependencies {
 
-    externalJars(group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}") {
+    externalJars(group: 'io.ballerina.stdlib', name: 'mime-native', version: "${stdlibMimeVersion}") {
         transitive = false
     }
     externalJars(group: 'io.netty', name: 'netty-common', version: "${nettyVersion}") {
