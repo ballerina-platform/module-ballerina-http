@@ -22,7 +22,7 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
-import org.ballerinalang.mime.util.EntityBodyHandler;
+import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.transport.contract.HttpConnectorListener;

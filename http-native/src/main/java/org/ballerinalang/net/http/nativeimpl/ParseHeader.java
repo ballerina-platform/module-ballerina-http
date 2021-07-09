@@ -25,14 +25,14 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BString;
-import org.ballerinalang.mime.util.HeaderUtil;
+import io.ballerina.stdlib.mime.util.HeaderUtil;
 import org.ballerinalang.net.http.HttpUtil;
 
 import java.util.Arrays;
 
-import static org.ballerinalang.mime.util.MimeConstants.COMMA;
-import static org.ballerinalang.mime.util.MimeConstants.FAILED_TO_PARSE;
-import static org.ballerinalang.mime.util.MimeConstants.SEMICOLON;
+import static io.ballerina.stdlib.mime.util.MimeConstants.COMMA;
+import static io.ballerina.stdlib.mime.util.MimeConstants.FAILED_TO_PARSE;
+import static io.ballerina.stdlib.mime.util.MimeConstants.SEMICOLON;
 import static org.ballerinalang.net.http.HttpErrorType.GENERIC_CLIENT_ERROR;
 
 /**

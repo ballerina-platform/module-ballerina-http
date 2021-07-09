@@ -22,12 +22,12 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import org.ballerinalang.mime.nativeimpl.MimeDataSourceBuilder;
-import org.ballerinalang.mime.nativeimpl.MimeEntityBody;
-import org.ballerinalang.mime.util.EntityBodyChannel;
-import org.ballerinalang.mime.util.EntityBodyHandler;
-import org.ballerinalang.mime.util.EntityWrapper;
-import org.ballerinalang.mime.util.MimeUtil;
+import io.ballerina.stdlib.mime.nativeimpl.MimeDataSourceBuilder;
+import io.ballerina.stdlib.mime.nativeimpl.MimeEntityBody;
+import io.ballerina.stdlib.mime.util.EntityBodyChannel;
+import io.ballerina.stdlib.mime.util.EntityBodyHandler;
+import io.ballerina.stdlib.mime.util.EntityWrapper;
+import io.ballerina.stdlib.mime.util.MimeUtil;
 import org.ballerinalang.net.http.HttpUtil;
 import org.ballerinalang.net.transport.message.FullHttpMessageListener;
 import org.ballerinalang.net.transport.message.HttpCarbonMessage;
@@ -40,16 +40,16 @@ import java.io.InputStream;
 import java.util.Locale;
 import java.util.Objects;
 
-import static org.ballerinalang.mime.util.EntityBodyHandler.constructBlobDataSource;
-import static org.ballerinalang.mime.util.EntityBodyHandler.constructJsonDataSource;
-import static org.ballerinalang.mime.util.EntityBodyHandler.constructStringDataSource;
-import static org.ballerinalang.mime.util.EntityBodyHandler.constructXmlDataSource;
-import static org.ballerinalang.mime.util.EntityBodyHandler.isStreamingRequired;
-import static org.ballerinalang.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
-import static org.ballerinalang.mime.util.MimeConstants.MESSAGE_DATA_SOURCE;
-import static org.ballerinalang.mime.util.MimeConstants.NO_CONTENT_ERROR;
-import static org.ballerinalang.mime.util.MimeConstants.PARSER_ERROR;
-import static org.ballerinalang.mime.util.MimeConstants.TRANSPORT_MESSAGE;
+import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructBlobDataSource;
+import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructJsonDataSource;
+import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructStringDataSource;
+import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructXmlDataSource;
+import static io.ballerina.stdlib.mime.util.EntityBodyHandler.isStreamingRequired;
+import static io.ballerina.stdlib.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
+import static io.ballerina.stdlib.mime.util.MimeConstants.MESSAGE_DATA_SOURCE;
+import static io.ballerina.stdlib.mime.util.MimeConstants.NO_CONTENT_ERROR;
+import static io.ballerina.stdlib.mime.util.MimeConstants.PARSER_ERROR;
+import static io.ballerina.stdlib.mime.util.MimeConstants.TRANSPORT_MESSAGE;
 
 /**
  * A wrapper class to handle http protocol related functionality before the data source build.

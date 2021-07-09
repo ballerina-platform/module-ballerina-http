@@ -24,9 +24,9 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import org.ballerinalang.mime.util.EntityBodyHandler;
-import org.ballerinalang.mime.util.HeaderUtil;
-import org.ballerinalang.mime.util.MultipartDataSource;
+import io.ballerina.stdlib.mime.util.EntityBodyHandler;
+import io.ballerina.stdlib.mime.util.HeaderUtil;
+import io.ballerina.stdlib.mime.util.MultipartDataSource;
 import org.ballerinalang.net.http.DataContext;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static org.ballerinalang.mime.util.MimeConstants.SERIALIZATION_ERROR;
+import static io.ballerina.stdlib.mime.util.MimeConstants.SERIALIZATION_ERROR;
 import static org.ballerinalang.net.http.HttpUtil.extractEntity;
 
 /**
