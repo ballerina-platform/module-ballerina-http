@@ -36,19 +36,5 @@ jobs:
           publishPAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           ./gradlew publish --scan --no-daemon
-      - name: Archive Module Compilation Error Log
-        uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: Ballerina Internal Log
-          path: http-ballerina/ballerina-internal.log
-          if-no-files-found: ignore
-      - name: Archive Test Error Log
-        uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: Ballerina Internal Log
-          path: http-ballerina-tests/ballerina-internal.log
-          if-no-files-found: ignore
       - name: Generate CodeCov Report
         uses: codecov/codecov-action@v1
