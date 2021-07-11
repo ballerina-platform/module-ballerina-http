@@ -25,15 +25,15 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BString;
-import org.ballerinalang.mime.util.HeaderUtil;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.mime.util.HeaderUtil;
 
 import java.util.Arrays;
 
-import static org.ballerinalang.mime.util.MimeConstants.COMMA;
-import static org.ballerinalang.mime.util.MimeConstants.FAILED_TO_PARSE;
-import static org.ballerinalang.mime.util.MimeConstants.SEMICOLON;
 import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_CLIENT_ERROR;
+import static io.ballerina.stdlib.mime.util.MimeConstants.COMMA;
+import static io.ballerina.stdlib.mime.util.MimeConstants.FAILED_TO_PARSE;
+import static io.ballerina.stdlib.mime.util.MimeConstants.SEMICOLON;
 
 /**
  * Extern function to parse header value and get value with parameter map.

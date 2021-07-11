@@ -14,11 +14,19 @@
  */
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientTimeoutHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2TargetHandler;
+import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
+import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
+import io.ballerina.stdlib.http.transport.message.ClientRemoteFlowControlListener;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.ChannelInputShutdownReadComplete;
@@ -30,14 +38,6 @@ import io.netty.handler.codec.http2.Http2ConnectionPrefaceAndSettingsFrameWritte
 import io.netty.handler.ssl.SslCloseCompletionEvent;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
-import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
-import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
-import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
-import io.ballerina.stdlib.http.transport.message.ClientRemoteFlowControlListener;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -18,8 +18,8 @@
 
 package io.ballerina.stdlib.http.testutils;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.ballerina.stdlib.http.testutils.client.HttpUrlClient;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;

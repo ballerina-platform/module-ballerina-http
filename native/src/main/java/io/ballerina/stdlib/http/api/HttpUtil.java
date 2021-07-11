@@ -42,26 +42,6 @@ import io.ballerina.stdlib.http.api.client.caching.ResponseCacheControlObj;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
 import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.util.CharsetUtil;
-import org.ballerinalang.config.ConfigRegistry;
-import org.ballerinalang.mime.util.EntityBodyChannel;
-import org.ballerinalang.mime.util.EntityBodyHandler;
-import org.ballerinalang.mime.util.EntityHeaderHandler;
-import org.ballerinalang.mime.util.EntityWrapper;
-import org.ballerinalang.mime.util.HeaderUtil;
-import org.ballerinalang.mime.util.MimeUtil;
-import org.ballerinalang.mime.util.MultipartDataSource;
-import org.ballerinalang.mime.util.MultipartDecoder;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
@@ -84,8 +64,28 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolC
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
-import org.ballerinalang.stdlib.io.utils.IOConstants;
-import org.ballerinalang.stdlib.io.utils.IOUtils;
+import io.ballerina.stdlib.io.utils.IOConstants;
+import io.ballerina.stdlib.io.utils.IOUtils;
+import io.ballerina.stdlib.mime.util.EntityBodyChannel;
+import io.ballerina.stdlib.mime.util.EntityBodyHandler;
+import io.ballerina.stdlib.mime.util.EntityHeaderHandler;
+import io.ballerina.stdlib.mime.util.EntityWrapper;
+import io.ballerina.stdlib.mime.util.HeaderUtil;
+import io.ballerina.stdlib.mime.util.MimeUtil;
+import io.ballerina.stdlib.mime.util.MultipartDataSource;
+import io.ballerina.stdlib.mime.util.MultipartDecoder;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.CharsetUtil;
+import org.ballerinalang.config.ConfigRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,18 +116,21 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
-import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
-import static org.ballerinalang.mime.util.EntityBodyHandler.checkEntityBodyAvailability;
-import static org.ballerinalang.mime.util.MimeConstants.BOUNDARY;
-import static org.ballerinalang.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
-import static org.ballerinalang.mime.util.MimeConstants.HEADERS_MAP_FIELD;
-import static org.ballerinalang.mime.util.MimeConstants.HEADER_NAMES_ARRAY_FIELD;
-import static org.ballerinalang.mime.util.MimeConstants.INVALID_CONTENT_LENGTH_ERROR;
-import static org.ballerinalang.mime.util.MimeConstants.IS_BODY_BYTE_CHANNEL_ALREADY_SET;
-import static org.ballerinalang.mime.util.MimeConstants.MULTIPART_AS_PRIMARY_TYPE;
-import static org.ballerinalang.mime.util.MimeConstants.OCTET_STREAM;
-import static org.ballerinalang.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
-import static org.ballerinalang.mime.util.MimeConstants.RESPONSE_ENTITY_FIELD;
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES;
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
+import static io.ballerina.stdlib.http.api.HttpConstants.RESOLVED_REQUESTED_URI;
+import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL;
+import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION;
+import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_HANDSHAKE_TIMEOUT;
+import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_KEYSTORE_PASSWORD;
+import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_MUTUAL_SSL;
+import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_PROTOCOL;
+import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT;
+import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
+import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternRequest.checkEntityBodyAvailability;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
@@ -147,6 +150,17 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVE
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
+import static io.ballerina.stdlib.mime.util.MimeConstants.BOUNDARY;
+import static io.ballerina.stdlib.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
+import static io.ballerina.stdlib.mime.util.MimeConstants.HEADERS_MAP_FIELD;
+import static io.ballerina.stdlib.mime.util.MimeConstants.HEADER_NAMES_ARRAY_FIELD;
+import static io.ballerina.stdlib.mime.util.MimeConstants.INVALID_CONTENT_LENGTH_ERROR;
+import static io.ballerina.stdlib.mime.util.MimeConstants.IS_BODY_BYTE_CHANNEL_ALREADY_SET;
+import static io.ballerina.stdlib.mime.util.MimeConstants.MULTIPART_AS_PRIMARY_TYPE;
+import static io.ballerina.stdlib.mime.util.MimeConstants.OCTET_STREAM;
+import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
+import static io.ballerina.stdlib.mime.util.MimeConstants.RESPONSE_ENTITY_FIELD;
+import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
 
 /**
  * Utility class providing utility methods.
@@ -175,7 +189,7 @@ public class HttpUtil {
                 HttpUtil.createHttpCarbonMessage(isRequest(httpMessageStruct)));
         entity.addNativeData(ENTITY_BYTE_CHANNEL, null);
 
-        httpMessageStruct.addNativeData(HttpConstants.HTTP_HEADERS, httpCarbonMessage.getHeaders());
+        httpMessageStruct.addNativeData(HTTP_HEADERS, httpCarbonMessage.getHeaders());
         httpMessageStruct.addNativeData(HttpConstants.HTTP_TRAILER_HEADERS, httpCarbonMessage.getTrailerHeaders());
         httpMessageStruct.set(isRequest(httpMessageStruct) ? REQUEST_ENTITY_FIELD : RESPONSE_ENTITY_FIELD , entity);
         httpMessageStruct.addNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET, false);
@@ -200,14 +214,14 @@ public class HttpUtil {
             if (contentType == null) {
                 contentType = OCTET_STREAM;
             }
-            ((HttpHeaders) messageObj.getNativeData(HttpConstants.HTTP_HEADERS)).set(HttpHeaderNames.CONTENT_TYPE.toString(),
+            ((HttpHeaders) messageObj.getNativeData(HTTP_HEADERS)).set(HttpHeaderNames.CONTENT_TYPE.toString(),
                                                                                      contentType);
         }
         messageObj.set(isRequest ? REQUEST_ENTITY_FIELD : RESPONSE_ENTITY_FIELD, entityObj);
         messageObj.addNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET, checkEntityBodyAvailability(entityObj));
         if (updateAllHeaders) {
             HttpUtil.setEntityHeaderToTransportHeader(entityObj, (HttpHeaders) messageObj.getNativeData(
-                    HttpConstants.HTTP_HEADERS));
+                    HTTP_HEADERS));
         }
     }
 
@@ -513,7 +527,8 @@ public class HttpUtil {
 
     public static BError createHttpError(HttpErrorType errorType, String message, BError cause,
                                          BMap<BString, Object> detail) {
-        return ErrorCreator.createError(ModuleUtils.getHttpPackage(), errorType.getErrorName(), fromString(message), cause, detail);
+        return ErrorCreator.createError(ModuleUtils.getHttpPackage(), errorType.getErrorName(), fromString(message),
+                                        cause, detail);
     }
 
     // TODO: Find a better way to get the error type than String matching.
@@ -560,8 +575,7 @@ public class HttpUtil {
     }
 
     private static BError createErrorCause(String message, String errorTypeId, Module packageName) {
-        return ErrorCreator.createDistinctError(errorTypeId, packageName,
-                                                fromString(message));
+        return ErrorCreator.createDistinctError(errorTypeId, packageName, fromString(message));
     }
 
     public static HttpCarbonMessage getCarbonMsg(BObject objectValue, HttpCarbonMessage defaultMsg) {
@@ -751,15 +765,15 @@ public class HttpUtil {
                                 fromString(inboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString())));
         }
 
-        if (inboundResponseMsg.getProperty(HttpConstants.RESOLVED_REQUESTED_URI) != null) {
+        if (inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI) != null) {
             inboundResponse.set(HttpConstants.RESOLVED_REQUESTED_URI_FIELD,
-                                fromString(inboundResponseMsg.getProperty(HttpConstants.RESOLVED_REQUESTED_URI).toString()));
+                                fromString(inboundResponseMsg.getProperty(RESOLVED_REQUESTED_URI).toString()));
         }
 
         String cacheControlHeader = inboundResponseMsg.getHeader(CACHE_CONTROL.toString());
         if (cacheControlHeader != null) {
             ResponseCacheControlObj responseCacheControl = new ResponseCacheControlObj(ModuleUtils.getHttpPackage(),
-                                                                                       HttpConstants.RESPONSE_CACHE_CONTROL);
+                                                                                       RESPONSE_CACHE_CONTROL);
             responseCacheControl.populateStruct(cacheControlHeader);
             inboundResponse.set(HttpConstants.RESPONSE_CACHE_CONTROL_FIELD, responseCacheControl.getObj());
         }
@@ -785,7 +799,7 @@ public class HttpUtil {
         } catch (NumberFormatException e) {
             throw createHttpError("Invalid content length", HttpErrorType.INVALID_CONTENT_LENGTH);
         }
-        requestObj.addNativeData(HttpConstants.HTTP_HEADERS, cMsg.getHeaders());
+        requestObj.addNativeData(HTTP_HEADERS, cMsg.getHeaders());
         requestObj.addNativeData(HttpConstants.HTTP_TRAILER_HEADERS, cMsg.getTrailerHeaders());
     }
 
@@ -811,7 +825,7 @@ public class HttpUtil {
             // TODO: refactor this logic properly.
             // return;
         }
-        HttpHeaders httpHeaders = (HttpHeaders) messageObj.getNativeData(HttpConstants.HTTP_HEADERS);
+        HttpHeaders httpHeaders = (HttpHeaders) messageObj.getNativeData(HTTP_HEADERS);
         if (httpHeaders != transportHeaders) {
             //This is done only when the entity map and transport message do not refer to the same header map
             if (httpHeaders != null) {
@@ -931,7 +945,7 @@ public class HttpUtil {
 
         String acceptEncodingValue = requestMsg.getHeaders().get(HttpHeaderNames.ACCEPT_ENCODING);
         List<String> contentTypesAnnotationValues = getAsStringList(
-                compressionConfig.getArrayValue(HttpConstants.ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES).getStringArray());
+                compressionConfig.getArrayValue(ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES).getStringArray());
         String contentType = outboundResponseMsg.getHeader(HttpHeaderNames.CONTENT_TYPE.toString());
 
         if (contentTypesAnnotationValues.isEmpty() || isContentTypeMatched(contentTypesAnnotationValues, contentType)) {
@@ -1280,11 +1294,11 @@ public class HttpUtil {
         if (key != null) {
             evaluateKeyField(key, senderConfiguration);
         }
-        BMap<BString, Object> protocol = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_PROTOCOL);
+        BMap<BString, Object> protocol = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_PROTOCOL);
         if (protocol != null) {
             evaluateProtocolField(protocol, senderConfiguration, clientParamList);
         }
-        BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION);
+        BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_CERT_VALIDATION);
         if (certValidation != null) {
             evaluateCertValidationField(certValidation, senderConfiguration);
         }
@@ -1482,18 +1496,18 @@ public class HttpUtil {
         BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_KEY);
         assert key != null; // This validation happens at Ballerina level
         evaluateKeyField(key, listenerConfiguration);
-        BMap<BString, Object> mutualSsl = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_MUTUAL_SSL);
+        BMap<BString, Object> mutualSsl = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_MUTUAL_SSL);
         if (mutualSsl != null) {
             String verifyClient = mutualSsl.getStringValue(HttpConstants.SECURESOCKET_CONFIG_VERIFY_CLIENT).getValue();
             listenerConfiguration.setVerifyClient(verifyClient);
             Object cert = mutualSsl.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
             evaluateCertField(cert, listenerConfiguration);
         }
-        BMap<BString, Object> protocol = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_PROTOCOL);
+        BMap<BString, Object> protocol = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_PROTOCOL);
         if (protocol != null) {
             evaluateProtocolField(protocol, listenerConfiguration, serverParamList);
         }
-        BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION);
+        BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_CERT_VALIDATION);
         if (certValidation != null) {
             evaluateCertValidationField(certValidation, listenerConfiguration);
         }
@@ -1520,7 +1534,7 @@ public class HttpUtil {
                 throw createHttpError("KeyStore file location must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
             }
-            String keyStorePassword = key.getStringValue(HttpConstants.SECURESOCKET_CONFIG_KEYSTORE_PASSWORD).getValue();
+            String keyStorePassword = key.getStringValue(SECURESOCKET_CONFIG_KEYSTORE_PASSWORD).getValue();
             if (keyStorePassword.isBlank()) {
                 throw createHttpError("KeyStore password must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
@@ -1559,8 +1573,8 @@ public class HttpUtil {
     private static void evaluateCertField(Object cert, SslConfiguration sslConfiguration) {
         if (cert instanceof BMap) {
             BMap<BString, BString> trustStore = (BMap<BString, BString>) cert;
-            String trustStoreFile = trustStore.getStringValue(HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH).getValue();
-            String trustStorePassword = trustStore.getStringValue(HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD).getValue();
+            String trustStoreFile = trustStore.getStringValue(SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH).getValue();
+            String trustStorePassword = trustStore.getStringValue(SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD).getValue();
             if (trustStoreFile.isBlank()) {
                 throw createHttpError("TrustStore file location must be provided for secure connection",
                                       HttpErrorType.SSL_ERROR);
@@ -1592,7 +1606,7 @@ public class HttpUtil {
                 protocol.getArrayValue(HttpConstants.SECURESOCKET_CONFIG_PROTOCOL_VERSIONS).getStringArray());
         if (!sslEnabledProtocolsValueList.isEmpty()) {
             String sslEnabledProtocols = sslEnabledProtocolsValueList.stream().collect(Collectors.joining(",", "", ""));
-            Parameter serverProtocols = new Parameter(HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS, sslEnabledProtocols);
+            Parameter serverProtocols = new Parameter(ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS, sslEnabledProtocols);
             paramList.add(serverProtocols);
         }
         String sslProtocol = protocol.getStringValue(HttpConstants.SECURESOCKET_CONFIG_PROTOCOL_NAME).getValue();
@@ -1609,7 +1623,7 @@ public class HttpUtil {
         } else {
             sslConfiguration.setValidateCertEnabled(true);
         }
-        long cacheSize = certValidation.getIntValue(HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE).intValue();
+        long cacheSize = certValidation.getIntValue(SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE).intValue();
         long cacheValidityPeriod = ((BDecimal) certValidation.get(
                 HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD)).intValue();
         if (cacheValidityPeriod != 0) {
@@ -1638,9 +1652,9 @@ public class HttpUtil {
             sslConfiguration.setHostNameVerificationEnabled(hostNameVerificationEnabled);
         }
         sslConfiguration.setSslSessionTimeOut((int) getLongValueOrDefault(secureSocket,
-                                                                          HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT));
+                                                                          SECURESOCKET_CONFIG_SESSION_TIMEOUT));
         sslConfiguration.setSslHandshakeTimeOut(getLongValueOrDefault(secureSocket,
-                                                                      HttpConstants.SECURESOCKET_CONFIG_HANDSHAKE_TIMEOUT));
+                                                                      SECURESOCKET_CONFIG_HANDSHAKE_TIMEOUT));
         String enableSessionCreation = String.valueOf(secureSocket.getBooleanValue(
                 HttpConstants.SECURESOCKET_CONFIG_SHARE_SESSION));
         Parameter enableSessionCreationParam = new Parameter(HttpConstants.SECURESOCKET_CONFIG_SHARE_SESSION.getValue(),

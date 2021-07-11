@@ -41,8 +41,8 @@ dependencies {
     implementation group: 'org.ballerinalang', name: 'ballerina-config', version: "${ballerinaLangVersion}"
     implementation group: 'org.ballerinalang', name: 'value', version: "${ballerinaLangVersion}"
 
-    implementation group: 'org.ballerinalang', name: 'io-native', version: "${stdlibIoVersion}"
-    implementation group: 'org.ballerinalang', name: 'mime-native', version: "${stdlibMimeVersion}"
+    implementation group: 'io.ballerina.stdlib', name: 'io-native', version: "${stdlibIoVersion}"
+    implementation group: 'io.ballerina.stdlib', name: 'mime-native', version: "${stdlibMimeVersion}"
 
     implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: "${commonsLang3Version}"

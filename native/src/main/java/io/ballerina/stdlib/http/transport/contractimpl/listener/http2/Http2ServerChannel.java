@@ -18,8 +18,8 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http2;
 
-import io.netty.util.internal.PlatformDependent;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
+import io.netty.util.internal.PlatformDependent;
 
 import java.util.ArrayList;
 import java.util.HashMap;

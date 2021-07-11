@@ -18,9 +18,9 @@
 
 package io.ballerina.stdlib.http.transport.util.server.initializers.http2.channelidsender;
 
+import io.ballerina.stdlib.http.transport.util.server.initializers.http2.Http2ServerInitializer;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http2.Http2ConnectionHandler;
-import io.ballerina.stdlib.http.transport.util.server.initializers.http2.Http2ServerInitializer;
 
 /**
  * Handler responsible for sending out the channel ID.

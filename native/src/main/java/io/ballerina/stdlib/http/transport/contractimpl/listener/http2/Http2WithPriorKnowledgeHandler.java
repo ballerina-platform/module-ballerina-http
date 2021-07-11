@@ -18,18 +18,18 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http2;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http2.Http2CodecUtil;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
 
-import static java.lang.Math.min;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
+import static java.lang.Math.min;
 
 /**
  * {@code Http2WithPriorKnowledgeHandler} handles the requests received directly in HTTP/2 without

@@ -19,8 +19,17 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
+import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientClosedConnectionException;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.states.ListenerReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.states.ReceivingHeaders;
+import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
+import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -34,15 +43,6 @@ import io.netty.handler.ssl.SslCloseCompletionEvent;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.concurrent.EventExecutorGroup;
 import org.apache.commons.pool.impl.GenericObjectPool;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
-import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ClientClosedConnectionException;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
-import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
-import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

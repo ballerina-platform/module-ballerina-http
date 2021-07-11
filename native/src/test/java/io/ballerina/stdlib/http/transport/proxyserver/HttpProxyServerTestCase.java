@@ -18,16 +18,16 @@
 
 package io.ballerina.stdlib.http.transport.proxyserver;
 
+import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
-import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import io.ballerina.stdlib.http.transport.util.TestUtil;
 import org.mockserver.integration.ClientAndProxy;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;

@@ -19,6 +19,15 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
+import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
+import io.ballerina.stdlib.http.transport.contract.ServerConnector;
+import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
+import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
+import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnector;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.ServerConnectorBootstrap;
@@ -33,15 +42,6 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
-import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
-import io.ballerina.stdlib.http.transport.contract.ServerConnector;
-import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
-import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
-import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnector;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfig;
 
 import java.util.Map;
 

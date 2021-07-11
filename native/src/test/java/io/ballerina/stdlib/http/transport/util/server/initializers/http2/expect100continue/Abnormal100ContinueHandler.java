@@ -34,10 +34,10 @@ import io.netty.handler.codec.http2.Http2Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.ballerina.stdlib.http.transport.util.Http2Util.HTTP2_RESPONSE_PAYLOAD;
 import static io.ballerina.stdlib.http.transport.util.Http2Util.http1HeadersToHttp2Headers;
+import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 /**
  * Handler that respond with a 100-continue response along with a final response, when the expect header is not present

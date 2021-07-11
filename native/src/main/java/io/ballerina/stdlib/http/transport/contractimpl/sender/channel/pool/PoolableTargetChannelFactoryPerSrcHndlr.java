@@ -16,10 +16,10 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool;
 
 
+import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.netty.channel.EventLoopGroup;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

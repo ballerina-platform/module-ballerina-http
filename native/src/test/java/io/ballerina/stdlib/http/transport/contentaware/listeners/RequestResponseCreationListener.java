@@ -19,9 +19,6 @@
 
 package io.ballerina.stdlib.http.transport.contentaware.listeners;
 
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
@@ -33,6 +30,9 @@ import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFac
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

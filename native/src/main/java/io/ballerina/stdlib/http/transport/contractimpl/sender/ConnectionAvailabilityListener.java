@@ -19,8 +19,8 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
-import io.netty.channel.ChannelFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
+import io.netty.channel.ChannelFuture;
 
 /**
  * Listener for connection availability future.

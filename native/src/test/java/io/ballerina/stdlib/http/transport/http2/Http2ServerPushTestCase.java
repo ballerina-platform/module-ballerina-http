@@ -18,8 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.http2;
 
-import io.ballerina.stdlib.http.transport.http2.listeners.Http2ServerConnectorListener;
-import io.netty.handler.codec.http.HttpMethod;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
@@ -29,6 +27,7 @@ import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
+import io.ballerina.stdlib.http.transport.http2.listeners.Http2ServerConnectorListener;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
@@ -37,6 +36,7 @@ import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageSender;
+import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;

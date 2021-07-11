@@ -17,9 +17,9 @@ package io.ballerina.stdlib.http.transport.contract;
 
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpClientConnector;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutorGroup;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Queue;
 

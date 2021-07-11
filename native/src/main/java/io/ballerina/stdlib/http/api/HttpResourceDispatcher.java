@@ -19,11 +19,11 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.URITemplateException;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 
 /**
  * Resource level dispatchers handler for HTTP protocol.

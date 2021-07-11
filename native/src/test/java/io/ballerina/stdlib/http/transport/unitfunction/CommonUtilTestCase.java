@@ -18,6 +18,12 @@
 
 package io.ballerina.stdlib.http.transport.unitfunction;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ConfigurationException;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
@@ -31,12 +37,6 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.Attribute;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ConfigurationException;
-import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

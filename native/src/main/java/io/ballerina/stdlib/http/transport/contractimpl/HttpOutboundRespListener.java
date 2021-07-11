@@ -19,19 +19,19 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl;
 
+import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
+import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
+import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.RequestDataHolder;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.states.ListenerReqRespStateManager;
-import io.netty.channel.ChannelHandlerContext;
-import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
-import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
-import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
 import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
 import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

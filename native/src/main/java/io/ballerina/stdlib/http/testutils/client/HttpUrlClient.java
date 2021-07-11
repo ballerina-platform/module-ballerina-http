@@ -18,10 +18,10 @@
 
 package io.ballerina.stdlib.http.testutils.client;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.ballerina.stdlib.http.testutils.HttpResponse;
 import io.ballerina.stdlib.http.testutils.TestConstant;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

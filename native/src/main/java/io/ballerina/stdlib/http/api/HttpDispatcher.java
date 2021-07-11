@@ -38,12 +38,12 @@ import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
 import io.ballerina.stdlib.http.api.service.signature.Parameter;
 import io.ballerina.stdlib.http.api.service.signature.PayloadParam;
 import io.ballerina.stdlib.http.api.service.signature.QueryParam;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.uri.URIUtil;
+import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ballerinalang.langlib.value.CloneWithType;
-import org.ballerinalang.mime.util.EntityBodyHandler;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import io.ballerina.stdlib.http.uri.URIUtil;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -61,9 +61,9 @@ import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
 import static io.ballerina.runtime.api.TypeTags.FLOAT_TAG;
 import static io.ballerina.runtime.api.TypeTags.INT_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
-import static org.ballerinalang.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
+import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 
 /**
  * {@code HttpDispatcher} is responsible for dispatching incoming http requests to the correct resource.

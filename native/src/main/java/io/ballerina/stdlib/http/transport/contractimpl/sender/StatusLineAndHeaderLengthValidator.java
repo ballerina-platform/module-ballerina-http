@@ -18,11 +18,11 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.HttpResponse;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 
 /**
  * Responsible for validating the inbound response's status line and total header size before sending it to the

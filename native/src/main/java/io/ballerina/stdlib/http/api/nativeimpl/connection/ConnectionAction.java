@@ -47,7 +47,8 @@ public abstract class ConnectionAction {
 
     static void serializeMsgDataSource(DataContext dataContext, Object outboundMessageSource, BObject entityStruct,
                                        OutputStream messageOutputStream) {
-        ResponseWriter.serializeDataSource(dataContext.getEnvironment(), outboundMessageSource, entityStruct, messageOutputStream);
+        ResponseWriter.serializeDataSource(dataContext.getEnvironment(), outboundMessageSource, entityStruct,
+                                           messageOutputStream);
     }
 
     static HttpMessageDataStreamer getMessageDataStreamer(HttpCarbonMessage outboundResponse) {

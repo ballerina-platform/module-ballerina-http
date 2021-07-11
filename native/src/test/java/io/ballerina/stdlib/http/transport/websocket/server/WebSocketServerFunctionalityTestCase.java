@@ -18,14 +18,14 @@
 
 package io.ballerina.stdlib.http.transport.websocket.server;
 
-import io.netty.handler.codec.CorruptedFrameException;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.client.websocket.WebSocketTestClient;
+import io.netty.handler.codec.CorruptedFrameException;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -35,8 +35,8 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.WEBSOCKET_TEST_IDLE_TIMEOUT;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Test class for WebSocket protocol.

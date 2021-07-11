@@ -18,10 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.http2.trailer;
 
-import io.ballerina.stdlib.http.transport.trailer.TrailerHeaderTestTemplate;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http2.DefaultHttp2Headers;
-import io.netty.handler.codec.http2.Http2Headers;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
@@ -31,10 +27,14 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorExc
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
+import io.ballerina.stdlib.http.transport.trailer.TrailerHeaderTestTemplate;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageSender;
 import io.ballerina.stdlib.http.transport.util.server.HttpServer;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http2.DefaultHttp2Headers;
+import io.netty.handler.codec.http2.Http2Headers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;

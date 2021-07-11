@@ -18,10 +18,10 @@
 
 package io.ballerina.stdlib.http.transport.chunkdisable;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

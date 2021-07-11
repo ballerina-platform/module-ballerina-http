@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,7 +32,6 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

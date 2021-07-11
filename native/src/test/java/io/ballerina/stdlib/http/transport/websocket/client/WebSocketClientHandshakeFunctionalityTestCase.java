@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.websocket.client;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contract.websocket.ClientHandshakeFuture;
 import io.ballerina.stdlib.http.transport.contract.websocket.ClientHandshakeListener;
@@ -30,6 +29,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFac
 import io.ballerina.stdlib.http.transport.message.HttpCarbonResponse;
 import io.ballerina.stdlib.http.transport.util.server.websocket.WebSocketHandshakeTimeoutServer;
 import io.ballerina.stdlib.http.transport.util.server.websocket.WebSocketRemoteServer;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;

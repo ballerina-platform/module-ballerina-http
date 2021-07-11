@@ -20,7 +20,6 @@
 package io.ballerina.stdlib.http.transport.trailer;
 
 import io.ballerina.stdlib.http.transport.contentaware.listeners.TrailerHeaderListener;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
@@ -28,6 +27,7 @@ import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.netty.handler.codec.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

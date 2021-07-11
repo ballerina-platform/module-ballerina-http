@@ -24,9 +24,6 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import org.ballerinalang.mime.util.EntityBodyHandler;
-import org.ballerinalang.mime.util.HeaderUtil;
-import org.ballerinalang.mime.util.MultipartDataSource;
 import io.ballerina.stdlib.http.api.DataContext;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
@@ -36,14 +33,17 @@ import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
 import io.ballerina.stdlib.http.transport.message.PooledDataStreamerFactory;
+import io.ballerina.stdlib.mime.util.EntityBodyHandler;
+import io.ballerina.stdlib.mime.util.HeaderUtil;
+import io.ballerina.stdlib.mime.util.MultipartDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static org.ballerinalang.mime.util.MimeConstants.SERIALIZATION_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.extractEntity;
+import static io.ballerina.stdlib.mime.util.MimeConstants.SERIALIZATION_ERROR;
 
 /**
  * Response writer contains utility methods to serialize response data.

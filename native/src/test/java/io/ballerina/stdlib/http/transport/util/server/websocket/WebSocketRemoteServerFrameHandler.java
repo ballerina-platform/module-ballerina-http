@@ -19,6 +19,7 @@
 
 package io.ballerina.stdlib.http.transport.util.server.websocket;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -28,7 +29,6 @@ import io.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

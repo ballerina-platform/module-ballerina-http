@@ -15,6 +15,18 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.config.InboundMsgSizeValidationConfig;
+import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfiguration;
+import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
+import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
+import io.ballerina.stdlib.http.transport.contractimpl.common.FrameLogger;
+import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.ballerina.stdlib.http.transport.contractimpl.common.http2.Http2ExceptionHandler;
+import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpExceptionHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpTraceLoggingHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
@@ -45,28 +57,16 @@ import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
 import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.config.InboundMsgSizeValidationConfig;
-import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
-import io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfiguration;
-import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
-import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
-import io.ballerina.stdlib.http.transport.contractimpl.common.FrameLogger;
-import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
-import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
-import io.ballerina.stdlib.http.transport.contractimpl.common.http2.Http2ExceptionHandler;
-import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
-import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 
-import static io.netty.handler.logging.LogLevel.TRACE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SECURITY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SSL;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setHostNameVerfication;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setSslHandshakeTimeOut;
+import static io.netty.handler.logging.LogLevel.TRACE;
 
 /**
  * A class that responsible for initialize target server pipeline.
@@ -91,7 +91,8 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
     private final InboundMsgSizeValidationConfig responseSizeValidationConfig;
 
     public HttpClientChannelInitializer(SenderConfiguration senderConfiguration, HttpRoute httpRoute,
-                                        ConnectionManager connectionManager, ConnectionAvailabilityFuture connectionAvailabilityFuture) {
+                                        ConnectionManager connectionManager,
+                                        ConnectionAvailabilityFuture connectionAvailabilityFuture) {
         this.httpTraceLogEnabled = senderConfiguration.isHttpTraceLogEnabled();
         this.keepAliveConfig = senderConfiguration.getKeepAliveConfig();
         this.proxyServerConfiguration = senderConfiguration.getProxyServerConfiguration();

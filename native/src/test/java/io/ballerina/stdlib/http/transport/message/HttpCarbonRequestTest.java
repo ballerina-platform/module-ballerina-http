@@ -18,10 +18,10 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.mock;

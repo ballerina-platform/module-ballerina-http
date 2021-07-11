@@ -19,6 +19,7 @@
 
 package io.ballerina.stdlib.http.transport.util.server.websocket;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -27,7 +28,6 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.ssl.SslContext;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 
 /**
  * Initializer for WebSocket server for Testing.

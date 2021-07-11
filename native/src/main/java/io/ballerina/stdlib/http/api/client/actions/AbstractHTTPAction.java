@@ -35,20 +35,13 @@ import io.ballerina.runtime.observability.ObserverContext;
 import io.ballerina.runtime.transactions.TransactionConstants;
 import io.ballerina.runtime.transactions.TransactionLocalContext;
 import io.ballerina.runtime.transactions.TransactionResourceManager;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
-import io.netty.handler.codec.EncoderException;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
-import org.ballerinalang.mime.util.EntityBodyHandler;
-import org.ballerinalang.mime.util.HeaderUtil;
-import org.ballerinalang.mime.util.MultipartDataSource;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.CompressionConfigState;
 import io.ballerina.stdlib.http.api.DataContext;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
@@ -58,6 +51,13 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
 import io.ballerina.stdlib.http.transport.message.PooledDataStreamerFactory;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
+import io.ballerina.stdlib.mime.util.EntityBodyHandler;
+import io.ballerina.stdlib.mime.util.HeaderUtil;
+import io.ballerina.stdlib.mime.util.MultipartDataSource;
+import io.netty.handler.codec.EncoderException;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,12 +68,12 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
-import static io.netty.handler.codec.http.HttpHeaderNames.ACCEPT_ENCODING;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION;
 import static io.ballerina.stdlib.http.api.HttpUtil.extractEntity;
 import static io.ballerina.stdlib.http.api.HttpUtil.getCompressionState;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_DEFLATE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
+import static io.netty.handler.codec.http.HttpHeaderNames.ACCEPT_ENCODING;
 
 /**
  * {@code AbstractHTTPAction} is the base class for all HTTP Connector Actions.

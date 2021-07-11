@@ -311,7 +311,7 @@ isolated function addObservabilityInformation(string path, string method, int st
 
 //Resolve a given path against a given URI.
 isolated function resolve(string baseUrl, string path) returns string|ClientError = @java:Method {
-    'class: "org.ballerinalang.net.uri.nativeimpl.Resolve",
+    'class: "io.ballerina.stdlib.http.uri.nativeimpl.Resolve",
     name: "resolve"
 } external;
 

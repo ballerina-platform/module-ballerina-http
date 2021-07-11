@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.websocket.server;
 
-import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.ballerina.stdlib.http.transport.contract.websocket.ServerHandshakeFuture;
 import io.ballerina.stdlib.http.transport.contract.websocket.ServerHandshakeListener;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketBinaryMessage;
@@ -28,6 +27,7 @@ import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorL
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketControlMessage;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketHandshaker;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketTextMessage;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

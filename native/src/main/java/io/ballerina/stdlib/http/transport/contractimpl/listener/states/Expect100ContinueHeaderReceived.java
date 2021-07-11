@@ -18,6 +18,13 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
+import io.ballerina.stdlib.http.transport.contractimpl.HttpOutboundRespListener;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -30,21 +37,14 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
-import io.ballerina.stdlib.http.transport.contractimpl.HttpOutboundRespListener;
-import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.netty.buffer.Unpooled.copiedBuffer;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.CONNECTOR_NOTIFYING_ERROR;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
+import static io.netty.buffer.Unpooled.copiedBuffer;
 
 /**
  * Special state of receiving request with expect:100-continue header.

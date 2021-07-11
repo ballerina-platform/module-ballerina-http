@@ -15,8 +15,8 @@
 
 package io.ballerina.stdlib.http.transport.contract.config;
 
-import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 
 import java.util.Map;
 

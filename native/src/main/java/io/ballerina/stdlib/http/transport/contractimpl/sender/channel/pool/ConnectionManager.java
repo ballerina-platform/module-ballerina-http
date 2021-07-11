@@ -15,18 +15,18 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool;
 
+import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
+import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.BootstrapConfiguration;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ConnectionManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.commons.pool.impl.GenericObjectPool;
-import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
-import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.BootstrapConfiguration;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

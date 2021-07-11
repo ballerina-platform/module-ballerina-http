@@ -18,6 +18,8 @@
 
 package io.ballerina.stdlib.http.testutils;
 
+import io.ballerina.stdlib.http.testutils.client.HttpClient;
+import io.ballerina.stdlib.http.testutils.client.HttpUrlClient;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
@@ -28,8 +30,6 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
-import io.ballerina.stdlib.http.testutils.client.HttpClient;
-import io.ballerina.stdlib.http.testutils.client.HttpUrlClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;

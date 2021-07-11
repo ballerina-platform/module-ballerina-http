@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.http2.trailer;
 
+import io.ballerina.stdlib.http.transport.util.server.initializers.http2.Http2ServerInitializer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
@@ -28,7 +29,6 @@ import io.netty.handler.codec.http2.Http2ConnectionHandler;
 import io.netty.handler.codec.http2.Http2DataFrame;
 import io.netty.handler.codec.http2.Http2FrameStream;
 import io.netty.handler.codec.http2.Http2Headers;
-import io.ballerina.stdlib.http.transport.util.server.initializers.http2.Http2ServerInitializer;
 
 /**
  * An initializer class for HTTP Server. The responsibility of this class is to simulate an abnormal backend response

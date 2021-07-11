@@ -19,7 +19,12 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorException;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.message.DefaultWebSocketHandshaker;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
@@ -35,11 +40,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.websocketx.Utf8FrameValidator;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorException;
-import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

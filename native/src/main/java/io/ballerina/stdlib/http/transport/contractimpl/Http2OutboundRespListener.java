@@ -19,22 +19,15 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl;
 
+import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
+import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2ServerChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.states.http2.EntityBodyReceived;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.states.http2.SendingHeaders;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http2.Http2Connection;
-import io.netty.handler.codec.http2.Http2ConnectionEncoder;
-import io.netty.handler.codec.http2.Http2Error;
-import io.netty.handler.codec.http2.Http2Exception;
-import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.DefaultBackPressureListener;
 import io.ballerina.stdlib.http.transport.message.DefaultBackPressureObservable;
@@ -46,6 +39,13 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.Listener;
 import io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListener;
 import io.ballerina.stdlib.http.transport.message.ServerRemoteFlowControlListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http2.Http2Connection;
+import io.netty.handler.codec.http2.Http2ConnectionEncoder;
+import io.netty.handler.codec.http2.Http2Error;
+import io.netty.handler.codec.http2.Http2Exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

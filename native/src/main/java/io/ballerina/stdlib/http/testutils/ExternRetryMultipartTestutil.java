@@ -19,10 +19,10 @@
 package io.ballerina.stdlib.http.testutils;
 
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.testutils.client.HttpUrlClient;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.internal.PlatformDependent;
 import io.netty.util.internal.StringUtil;
-import io.ballerina.stdlib.http.testutils.client.HttpUrlClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;

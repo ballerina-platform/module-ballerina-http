@@ -25,17 +25,17 @@ import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import org.ballerinalang.mime.util.EntityBodyHandler;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.URIUtil;
+import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
-import static org.ballerinalang.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM_MAP;
 import static io.ballerina.stdlib.http.api.HttpConstants.TRANSPORT_MESSAGE;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkRequestBodySizeHeadersAvailability;
+import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 
 /**
  * Utilities related to HTTP request.

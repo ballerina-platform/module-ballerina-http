@@ -19,6 +19,12 @@
 package io.ballerina.stdlib.http.transport;
 
 import io.ballerina.stdlib.http.transport.contentaware.listeners.DumbMessageListener;
+import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
+import io.ballerina.stdlib.http.transport.contract.ServerConnector;
+import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
+import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
+import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.client.http.HttpClient;
 import io.netty.buffer.Unpooled;
@@ -27,12 +33,6 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
-import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
-import io.ballerina.stdlib.http.transport.contract.ServerConnector;
-import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
-import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
-import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -41,8 +41,8 @@ import org.testng.annotations.Test;
 
 import java.util.HashMap;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.REQUEST_TIMEOUT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
+import static io.netty.handler.codec.http.HttpResponseStatus.REQUEST_TIMEOUT;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 

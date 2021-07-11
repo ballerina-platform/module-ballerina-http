@@ -19,9 +19,6 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ConnectionTimedOutException;
@@ -29,6 +26,9 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.InvalidProtocolExc
 import io.ballerina.stdlib.http.transport.contract.exceptions.RequestCancelledException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.SslException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.UnresolvedHostException;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.net.UnknownHostException;
 import java.nio.channels.ClosedChannelException;

@@ -18,10 +18,10 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 import io.netty.channel.EventLoop;
-import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

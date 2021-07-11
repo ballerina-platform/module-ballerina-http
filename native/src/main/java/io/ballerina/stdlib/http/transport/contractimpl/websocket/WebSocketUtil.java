@@ -18,14 +18,14 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.websocket;
 
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketControlMessage;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketControlSignal;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.message.DefaultWebSocketBinaryMessage;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.message.DefaultWebSocketControlMessage;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.message.DefaultWebSocketTextMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketControlMessage;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketControlSignal;
 
 import java.nio.ByteBuffer;
 

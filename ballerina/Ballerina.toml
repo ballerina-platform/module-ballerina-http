@@ -4,10 +4,7 @@ name = "http"
 version = "@toml.version@"
 
 [[platform.java11.dependency]]
-path = "../http-native/build/libs/http-native-@project.version@.jar"
-groupId = "ballerina"
-artifactId = "http"
-version = "@project.version@"
+path = "../native/build/libs/http-native-@project.version@.jar"
 
 
 [[platform.java11.dependency]]

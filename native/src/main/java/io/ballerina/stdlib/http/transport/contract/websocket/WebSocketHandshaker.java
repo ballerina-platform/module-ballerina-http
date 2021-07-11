@@ -19,9 +19,9 @@
 
 package io.ballerina.stdlib.http.transport.contract.websocket;
 
+import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 
 /**
  * This Message is used to handle WebSocket handshake.

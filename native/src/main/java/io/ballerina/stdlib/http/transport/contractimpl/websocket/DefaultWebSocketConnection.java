@@ -1,5 +1,9 @@
 package io.ballerina.stdlib.http.transport.contractimpl.websocket;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnection;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketFrameType;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.WebSocketMessageQueueHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -14,10 +18,6 @@ import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnection;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketFrameType;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.WebSocketMessageQueueHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

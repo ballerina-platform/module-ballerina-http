@@ -18,11 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
@@ -30,6 +25,11 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorExc
 import io.ballerina.stdlib.http.transport.contractimpl.HttpOutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

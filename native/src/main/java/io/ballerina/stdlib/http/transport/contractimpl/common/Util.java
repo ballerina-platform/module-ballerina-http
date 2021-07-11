@@ -15,6 +15,15 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.common;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
+import io.ballerina.stdlib.http.transport.contract.config.ForwardedExtensionConfig;
+import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfiguration;
+import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ConfigurationException;
+import io.ballerina.stdlib.http.transport.contractimpl.Http2OutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpTraceLoggingHandler;
@@ -23,6 +32,16 @@ import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2Sourc
 import io.ballerina.stdlib.http.transport.contractimpl.sender.CertificateValidationHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.ForwardedHeaderUpdater;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.OCSPStaplingHandler;
+import io.ballerina.stdlib.http.transport.message.DefaultBackPressureListener;
+import io.ballerina.stdlib.http.transport.message.DefaultListener;
+import io.ballerina.stdlib.http.transport.message.Http2InboundContentListener;
+import io.ballerina.stdlib.http.transport.message.Http2PassthroughBackPressureListener;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonResponse;
+import io.ballerina.stdlib.http.transport.message.Listener;
+import io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListener;
+import io.ballerina.stdlib.http.transport.message.PooledDataStreamerFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -59,25 +78,6 @@ import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
-import io.ballerina.stdlib.http.transport.contract.config.ForwardedExtensionConfig;
-import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
-import io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfiguration;
-import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ConfigurationException;
-import io.ballerina.stdlib.http.transport.contractimpl.Http2OutboundRespListener;
-import io.ballerina.stdlib.http.transport.message.DefaultBackPressureListener;
-import io.ballerina.stdlib.http.transport.message.DefaultListener;
-import io.ballerina.stdlib.http.transport.message.Http2InboundContentListener;
-import io.ballerina.stdlib.http.transport.message.Http2PassthroughBackPressureListener;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonResponse;
-import io.ballerina.stdlib.http.transport.message.Listener;
-import io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListener;
-import io.ballerina.stdlib.http.transport.message.PooledDataStreamerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +103,6 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.TRAILER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.BASE_64_ENCODED_CERT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.COLON;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HEADER_VAL_100_CONTINUE;
@@ -122,6 +121,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
 import static io.ballerina.stdlib.http.transport.contract.Constants.URL_AUTHORITY;
 import static io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig.ALWAYS;
 import static io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig.AUTO;
+import static io.netty.handler.codec.http.HttpHeaderNames.TRAILER;
 
 /**
  * Includes utility methods for creating http requests and responses and their related properties.

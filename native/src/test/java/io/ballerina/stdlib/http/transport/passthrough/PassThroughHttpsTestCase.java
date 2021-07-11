@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.passthrough;
 
-import io.netty.handler.codec.http.HttpMethod;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
@@ -30,6 +29,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFac
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.server.HttpsServer;
 import io.ballerina.stdlib.http.transport.util.server.initializers.MockServerInitializer;
+import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;

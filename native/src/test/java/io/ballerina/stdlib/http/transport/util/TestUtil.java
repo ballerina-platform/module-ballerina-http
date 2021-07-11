@@ -19,6 +19,15 @@
 package io.ballerina.stdlib.http.transport.util;
 
 import com.google.common.io.ByteStreams;
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
+import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
+import io.ballerina.stdlib.http.transport.contract.ServerConnector;
+import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
+import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
 import io.ballerina.stdlib.http.transport.util.server.HttpServer;
 import io.ballerina.stdlib.http.transport.util.server.HttpsServer;
 import io.ballerina.stdlib.http.transport.util.server.ServerThread;
@@ -30,15 +39,6 @@ import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
-import io.ballerina.stdlib.http.transport.contract.ServerConnector;
-import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
-import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

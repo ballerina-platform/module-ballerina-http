@@ -18,8 +18,8 @@
 
 package io.ballerina.stdlib.http.api.nativeimpl.pipelining;
 
-import io.netty.channel.ChannelHandlerContext;
 import io.ballerina.stdlib.http.transport.contractimpl.HttpPipeliningListener;
+import io.netty.channel.ChannelHandlerContext;
 
 import static io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler.executePipeliningLogic;
 

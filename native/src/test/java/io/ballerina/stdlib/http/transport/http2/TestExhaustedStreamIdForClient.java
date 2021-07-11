@@ -20,8 +20,6 @@
 package io.ballerina.stdlib.http.transport.http2;
 
 import io.ballerina.stdlib.http.transport.contentaware.listeners.EchoMessageListener;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http2.Http2Exception;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
@@ -40,6 +38,8 @@ import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageSender;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http2.Http2Exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;

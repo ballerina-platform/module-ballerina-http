@@ -23,24 +23,24 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.api.HttpConstants;
+import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.mime.util.MimeUtil;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
-import org.ballerinalang.mime.util.MimeUtil;
-import io.ballerina.stdlib.http.api.HttpConstants;
-import io.ballerina.stdlib.http.api.HttpUtil;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.ballerinalang.mime.util.MimeConstants.INVALID_HEADER_OPERATION_ERROR;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRAILER_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.LEADING_HEADER;
 import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_NOT_FOUND_ERROR;
+import static io.ballerina.stdlib.mime.util.MimeConstants.INVALID_HEADER_OPERATION_ERROR;
 
 /**
  * Utilities related to HTTP request/response headers.

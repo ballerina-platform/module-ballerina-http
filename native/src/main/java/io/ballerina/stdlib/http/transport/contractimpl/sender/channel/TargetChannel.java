@@ -15,10 +15,6 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.channel;
 
-import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
@@ -27,10 +23,14 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRe
 import io.ballerina.stdlib.http.transport.contractimpl.sender.ConnectionAvailabilityFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.HttpClientChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
 import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

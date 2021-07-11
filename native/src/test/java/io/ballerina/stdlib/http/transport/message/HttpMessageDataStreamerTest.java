@@ -18,8 +18,8 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.junit.Assert;
 import org.testng.annotations.Test;
 

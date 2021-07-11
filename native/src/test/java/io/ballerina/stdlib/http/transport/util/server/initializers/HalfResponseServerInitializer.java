@@ -36,12 +36,12 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static io.ballerina.stdlib.http.transport.contract.Constants.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-import static io.ballerina.stdlib.http.transport.contract.Constants.TEXT_PLAIN;
 
 /**
  * An initializer class for HTTP Server.

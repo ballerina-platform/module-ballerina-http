@@ -19,7 +19,6 @@
 package io.ballerina.stdlib.http.transport.http2.http2forwardedextension;
 
 import io.ballerina.stdlib.http.transport.contentaware.listeners.EchoMessageListener;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
@@ -33,6 +32,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFac
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.netty.handler.codec.http.HttpHeaders;
 import org.testng.annotations.AfterClass;
 
 import java.util.HashMap;

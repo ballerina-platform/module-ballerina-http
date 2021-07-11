@@ -17,6 +17,13 @@
  */
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http2;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contractimpl.common.http2.Http2ExceptionHandler;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
+import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
+import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
+import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.Http2ConnectionDecoder;
@@ -27,13 +34,6 @@ import io.netty.handler.codec.http2.Http2FrameListener;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.codec.http2.Http2Stream;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contractimpl.common.http2.Http2ExceptionHandler;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
-import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
-import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
-import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

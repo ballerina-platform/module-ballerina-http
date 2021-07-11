@@ -18,14 +18,14 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
+import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2EventAdapter;
 import io.netty.handler.codec.http2.Http2Stream;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
-import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -18,12 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states.http2;
 
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http2.Http2Exception;
-import io.netty.handler.codec.http2.Http2Headers;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.Http2OutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
@@ -35,16 +29,22 @@ import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
 import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http2.Http2Exception;
+import io.netty.handler.codec.http2.Http2Headers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.REQUEST_TIMEOUT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP2_METHOD;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_HEADERS;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.is100ContinueRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.notifyRequestListener;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.setupCarbonRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
+import static io.netty.handler.codec.http.HttpResponseStatus.REQUEST_TIMEOUT;
 
 /**
  * State between start and end of inbound request headers read.

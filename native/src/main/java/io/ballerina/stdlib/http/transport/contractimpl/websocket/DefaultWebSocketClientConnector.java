@@ -19,11 +19,11 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.websocket;
 
-import io.netty.channel.EventLoopGroup;
 import io.ballerina.stdlib.http.transport.contract.websocket.ClientHandshakeFuture;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnector;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.websocket.WebSocketClient;
+import io.netty.channel.EventLoopGroup;
 
 /**
  * Implementation of WebSocket client connector.

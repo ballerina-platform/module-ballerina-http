@@ -19,10 +19,10 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.ssl.SslHandshakeCompletionEvent;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.X509Certificate;

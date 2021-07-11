@@ -18,14 +18,14 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.common.states;
 
+import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.SenderState;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 /**
  * Context class to manipulate current state of the message.

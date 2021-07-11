@@ -18,10 +18,10 @@
 
 package io.ballerina.stdlib.http.transport.forwardedextension;
 
-import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

@@ -18,6 +18,15 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
+import io.ballerina.stdlib.http.transport.contractimpl.HttpOutboundRespListener;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
+import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
+import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -29,15 +38,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.concurrent.EventExecutorGroup;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
-import io.ballerina.stdlib.http.transport.contractimpl.HttpOutboundRespListener;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
-import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
-import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

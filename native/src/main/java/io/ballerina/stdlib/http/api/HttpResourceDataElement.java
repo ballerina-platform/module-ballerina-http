@@ -18,11 +18,11 @@
 
 package io.ballerina.stdlib.http.api;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.parser.DataElement;
 import io.ballerina.stdlib.http.uri.parser.DataReturnAgent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 
 import java.util.ArrayList;
 import java.util.Arrays;

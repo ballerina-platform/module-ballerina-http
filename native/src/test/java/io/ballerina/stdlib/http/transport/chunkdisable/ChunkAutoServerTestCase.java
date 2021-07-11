@@ -18,6 +18,9 @@
 
 package io.ballerina.stdlib.http.transport.chunkdisable;
 
+import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
+import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.ballerina.stdlib.http.transport.util.client.http.HttpClient;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -25,9 +28,6 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
-import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
-import io.ballerina.stdlib.http.transport.util.TestUtil;
-import io.ballerina.stdlib.http.transport.util.client.http.HttpClient;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

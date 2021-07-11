@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.websocket.ssl;
 
-import io.ballerina.stdlib.http.transport.websocket.server.WebSocketTestServerConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
@@ -32,6 +31,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFac
 import io.ballerina.stdlib.http.transport.message.HttpCarbonResponse;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.websocket.client.WebSocketTestClientConnectorListener;
+import io.ballerina.stdlib.http.transport.websocket.server.WebSocketTestServerConnectorListener;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -42,10 +42,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLException;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.WEBSOCKET_REMOTE_SERVER_PORT;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.WEBSOCKET_SECURE_REMOTE_SERVER_URL;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.WEBSOCKET_TEST_IDLE_TIMEOUT;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Tests the failure scenario of SSL handshake in WebSocket.

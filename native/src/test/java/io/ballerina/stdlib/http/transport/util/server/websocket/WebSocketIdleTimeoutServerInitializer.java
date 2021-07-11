@@ -18,13 +18,13 @@
  */
 package io.ballerina.stdlib.http.transport.util.server.websocket;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 
 /**
  * Initializer for WebSocket handshake timeout server for testing.

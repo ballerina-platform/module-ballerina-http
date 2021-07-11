@@ -18,8 +18,8 @@
  */
 package io.ballerina.stdlib.http.transport.internal;
 
-import io.netty.channel.EventLoopGroup;
 import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
+import io.netty.channel.EventLoopGroup;
 import org.osgi.framework.BundleContext;
 
 import java.util.HashMap;

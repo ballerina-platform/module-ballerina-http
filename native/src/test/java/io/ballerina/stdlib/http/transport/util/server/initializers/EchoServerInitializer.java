@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.util.server.initializers;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -30,7 +31,6 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

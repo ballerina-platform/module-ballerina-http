@@ -31,10 +31,10 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.uri.URIUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -73,7 +73,8 @@ public class ParamHandler {
     private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
     private static final String REQ_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST;
     private static final String HEADERS_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.HEADERS;
-    private static final String CALLER_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_CALLER_INFO;
+    private static final String CALLER_ANNOTATION =
+            ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_CALLER_INFO;
     public static final String PAYLOAD_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_PAYLOAD;
     public static final String HEADER_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_HEADER;
 

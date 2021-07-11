@@ -20,12 +20,12 @@
 package io.ballerina.stdlib.http.transport.encoding;
 
 import com.google.common.io.ByteStreams;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

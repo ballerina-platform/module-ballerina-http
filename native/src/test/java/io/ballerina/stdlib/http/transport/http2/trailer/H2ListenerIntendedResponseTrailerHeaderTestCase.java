@@ -20,10 +20,6 @@
 package io.ballerina.stdlib.http.transport.http2.trailer;
 
 import io.ballerina.stdlib.http.transport.contentaware.listeners.TrailerHeaderListener;
-import io.ballerina.stdlib.http.transport.trailer.TrailerHeaderTestTemplate;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
@@ -33,10 +29,14 @@ import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFac
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
+import io.ballerina.stdlib.http.transport.trailer.TrailerHeaderTestTemplate;
 import io.ballerina.stdlib.http.transport.util.Http2Util;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageSender;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

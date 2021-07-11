@@ -18,10 +18,10 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.common;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.Http2FrameLogger;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 import org.junit.Assert;
 import org.testng.annotations.Test;
 

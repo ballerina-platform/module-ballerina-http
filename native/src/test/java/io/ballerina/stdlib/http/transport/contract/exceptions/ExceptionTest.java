@@ -18,9 +18,9 @@
 
 package io.ballerina.stdlib.http.transport.contract.exceptions;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

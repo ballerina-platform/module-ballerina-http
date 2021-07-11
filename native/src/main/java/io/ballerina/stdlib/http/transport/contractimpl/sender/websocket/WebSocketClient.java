@@ -19,6 +19,12 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.websocket;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.websocket.ClientHandshakeFuture;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.WebSocketMessageQueueHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.DefaultClientHandshakeFuture;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelHandlerContext;
@@ -36,12 +42,6 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.websocket.ClientHandshakeFuture;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfig;
-import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
-import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.WebSocketMessageQueueHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

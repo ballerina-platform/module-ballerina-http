@@ -33,8 +33,8 @@ import io.netty.handler.codec.http2.Http2Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.ballerina.stdlib.http.transport.util.Http2Util.http1HeadersToHttp2Headers;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 /**
  * A simple handler that responds with the connection id.

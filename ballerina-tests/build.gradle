@@ -114,7 +114,7 @@ task copyHttpStdlib {
     doLast {
         /* Copy HTTP module */
         copy {
-            from "$project.rootDir/http-ballerina/build/cache_parent/bala"
+            from "$project.rootDir/ballerina/build/cache_parent/bala"
             into "${ballerinaDist}/repo/bala"
         }
     }

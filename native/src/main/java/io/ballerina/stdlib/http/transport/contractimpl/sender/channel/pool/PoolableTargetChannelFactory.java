@@ -15,6 +15,11 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool;
 
+import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
+import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.ConnectionAvailabilityFuture;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.HttpClientChannelInitializer;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.BootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -22,11 +27,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import org.apache.commons.pool.PoolableObjectFactory;
-import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
-import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.ConnectionAvailabilityFuture;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.HttpClientChannelInitializer;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.BootstrapConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

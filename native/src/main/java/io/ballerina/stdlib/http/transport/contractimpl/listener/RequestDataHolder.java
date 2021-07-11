@@ -18,8 +18,8 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.netty.handler.codec.http.HttpHeaderNames;
 
 /**
  * {@code RequestDataHolder} holds data fields of the request which might be useful later in the message flow.

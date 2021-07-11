@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
 /**
@@ -145,7 +146,7 @@ public class HttpService {
     public void setBasePath(String basePath) {
         if (basePath == null || basePath.trim().isEmpty()) {
             String serviceName = this.getName();
-            this.basePath = HttpConstants.DEFAULT_BASE_PATH.concat(serviceName.startsWith(HttpConstants.DOLLAR) ? "" : serviceName);
+            this.basePath = DEFAULT_BASE_PATH.concat(serviceName.startsWith(HttpConstants.DOLLAR) ? "" : serviceName);
         } else {
             this.basePath = HttpUtil.sanitizeBasePath(basePath);
         }

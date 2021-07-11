@@ -23,7 +23,7 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
-import org.ballerinalang.mime.util.MimeUtil;
+import io.ballerina.stdlib.mime.util.MimeUtil;
 
 /**
  * Utility functions to create JVM values.

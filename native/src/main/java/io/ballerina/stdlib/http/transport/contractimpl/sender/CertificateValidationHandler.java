@@ -19,10 +19,10 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
+import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.RevocationVerificationManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.ssl.SslHandshakeCompletionEvent;
-import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.RevocationVerificationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

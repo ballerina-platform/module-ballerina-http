@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.util.server;
 
+import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.server.initializers.HttpServerInitializer;
 import io.ballerina.stdlib.http.transport.util.server.initializers.http2.Http2ServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
@@ -33,7 +34,6 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
-import io.ballerina.stdlib.http.transport.util.TestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

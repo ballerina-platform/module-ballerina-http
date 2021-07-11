@@ -18,13 +18,13 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http2;
 
+import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
-import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -18,10 +18,10 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
+import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.RevocationVerificationManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
 import io.netty.handler.ssl.ocsp.OcspClientHandler;
-import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.RevocationVerificationManager;
 import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.CertificateStatus;

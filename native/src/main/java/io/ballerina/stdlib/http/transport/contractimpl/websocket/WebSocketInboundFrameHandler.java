@@ -18,6 +18,16 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.websocket;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketBinaryMessage;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketCloseMessage;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorException;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketControlMessage;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketControlSignal;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketFrameType;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketTextMessage;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.WebSocketMessageQueueHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.message.DefaultWebSocketCloseMessage;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.message.DefaultWebSocketControlMessage;
 import io.netty.buffer.ByteBuf;
@@ -35,16 +45,6 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
-import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketBinaryMessage;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketCloseMessage;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorException;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorFuture;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketControlMessage;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketControlSignal;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketFrameType;
-import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketTextMessage;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.WebSocketMessageQueueHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

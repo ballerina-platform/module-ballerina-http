@@ -18,14 +18,14 @@
 
 package io.ballerina.stdlib.http.api.nativeimpl.pipelining;
 
-import io.ballerina.stdlib.http.api.nativeimpl.connection.ResponseWriter;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
-import io.netty.channel.ChannelHandlerContext;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
+import io.ballerina.stdlib.http.api.nativeimpl.connection.ResponseWriter;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpPipeliningFuture;
+import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

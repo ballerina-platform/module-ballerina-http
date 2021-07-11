@@ -18,6 +18,11 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
+import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
+import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
+import io.ballerina.stdlib.http.transport.message.Http2Reset;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.Http2Error;
@@ -25,11 +30,6 @@ import io.netty.handler.codec.http2.Http2EventAdapter;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Settings;
-import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
-import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
-import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
-import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
-import io.ballerina.stdlib.http.transport.message.Http2Reset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

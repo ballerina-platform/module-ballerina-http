@@ -36,8 +36,8 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.WEBSOCKET_TEST_IDLE_TIMEOUT;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Test cases for WebSocket pass-through scenarios.

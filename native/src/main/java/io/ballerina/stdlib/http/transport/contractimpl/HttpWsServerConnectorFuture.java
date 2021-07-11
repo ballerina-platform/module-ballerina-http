@@ -19,15 +19,15 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl;
 
-import io.ballerina.stdlib.http.transport.contractimpl.websocket.DefaultWebSocketConnectorFuture;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.group.ChannelGroup;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.PortBindingEventListener;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
+import io.ballerina.stdlib.http.transport.contractimpl.websocket.DefaultWebSocketConnectorFuture;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.group.ChannelGroup;
 
 /**
  * Server connector future implementation.

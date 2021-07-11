@@ -18,6 +18,7 @@
  */
 package io.ballerina.stdlib.http.transport.contractimpl.common.ssl;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
@@ -27,7 +28,6 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 
 import java.io.File;
 import java.io.FileInputStream;
