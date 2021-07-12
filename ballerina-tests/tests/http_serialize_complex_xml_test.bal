@@ -85,5 +85,5 @@ function testXmlSerialization() {
 }
 
 function externTestXmlSerialization(int servicePort) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternSerializeComplexXmlTestUtil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternSerializeComplexXmlTestUtil"
 } external;

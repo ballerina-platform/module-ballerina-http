@@ -69,5 +69,5 @@ function test408Response() {
 }
 
 function externTest408Response(int servicePort) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternIdleTimeoutResponseTestUtil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternIdleTimeoutResponseTestUtil"
 } external;

@@ -34,7 +34,7 @@ def originalConfig = ballerinaConfigFile.text
 def originalDependency = ballerinaDependencyFile.text
 def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
 def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
-def testCoverageParam = "--code-coverage --coverage-format=xml --includes=org.ballerinalang.net.*:ballerina.http*"
+def testCoverageParam = "--code-coverage --coverage-format=xml --includes=io.ballerina.stdlib.http.*:ballerina.http*"
 
 def stripBallerinaExtensionVersion(String extVersion) {
     if (extVersion.matches(project.ext.timestampedVersionRegex)) {

@@ -130,7 +130,6 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_PRO
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
-import static io.ballerina.stdlib.http.api.nativeimpl.ExternRequest.checkEntityBodyAvailability;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
@@ -150,6 +149,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVE
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
+import static io.ballerina.stdlib.mime.util.EntityBodyHandler.checkEntityBodyAvailability;
 import static io.ballerina.stdlib.mime.util.MimeConstants.BOUNDARY;
 import static io.ballerina.stdlib.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
 import static io.ballerina.stdlib.mime.util.MimeConstants.HEADERS_MAP_FIELD;

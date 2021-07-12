@@ -40,16 +40,16 @@ public class ExternResponse {
         return HttpUtil.getEntity(responseObj, false, false, false);
     }
 
-    public static BObject getEntityWithBodyAndWithoutHeaders(BObject requestObj) {
-        return HttpUtil.getEntity(requestObj, false, true, false);
+    public static BObject getEntityWithBodyAndWithoutHeaders(BObject responseObj) {
+        return HttpUtil.getEntity(responseObj, false, true, false);
     }
 
-    public static void setEntity(BObject requestObj, BObject entityObj) {
-        HttpUtil.setEntity(requestObj, entityObj, false, true);
+    public static void setEntity(BObject responseObj, BObject entityObj) {
+        HttpUtil.setEntity(responseObj, entityObj, false, true);
     }
 
-    public static void setEntityAndUpdateContentTypeHeader(BObject requestObj, BObject entityObj) {
-        HttpUtil.setEntity(requestObj, entityObj, false, false);
+    public static void setEntityAndUpdateContentTypeHeader(BObject responseObj, BObject entityObj) {
+        HttpUtil.setEntity(responseObj, entityObj, false, false);
     }
 
     private ExternResponse() {}

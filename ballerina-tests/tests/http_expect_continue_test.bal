@@ -152,17 +152,17 @@ function test100ContinuePassthrough() {
 }
 
 function externTest100Continue(int servicePort) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternExpectContinueTestUtil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternExpectContinueTestUtil"
 } external;
 
 function externTest100ContinueNegative(int servicePort) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternExpectContinueTestUtil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternExpectContinueTestUtil"
 } external;
 
 function externTestMultipartWith100ContinueHeader(int servicePort) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternExpectContinueTestUtil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternExpectContinueTestUtil"
 } external;
 
 function externTest100ContinuePassthrough(int servicePort) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternExpectContinueTestUtil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternExpectContinueTestUtil"
 } external;

@@ -123,13 +123,13 @@ function testPipeliningLimit() {
 }
 
 function externTestPipelinedResponseOrder(int servicePort) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternPipeliningTestUtil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternPipeliningTestUtil"
 } external;
 
 function externTestPipeliningWithTimeout(int servicePort) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternPipeliningTestUtil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternPipeliningTestUtil"
 } external;
 
 function externTestPipeliningLimit(int servicePort) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternPipeliningTestUtil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternPipeliningTestUtil"
 } external;

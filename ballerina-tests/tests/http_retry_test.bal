@@ -551,10 +551,10 @@ function testRetryBasedOnHttpStatusCodesContinuousFailure() {
 }
 
 function externTestMultiPart(int servicePort, string path) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternRetryMultipartTestutil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternRetryMultipartTestutil"
 } external;
 
 function externTestNestedMultiPart(int servicePort, string path) returns boolean = @java:Method {
-    'class: "org.ballerinalang.net.testutils.ExternRetryMultipartTestutil"
+    'class: "io.ballerina.stdlib.http.testutils.ExternRetryMultipartTestutil"
 } external;
 
