@@ -16,11 +16,25 @@
 
 import ballerina/jballerina.java;
 
-function init() {
-    setModule();
-    initializeHttpLogs();
+public type TraceLogConfiguration record {|
+    boolean consoleEnabled = false;
+    string path = "";
+    string host = "";
+    int port = 0;
+|};
+
+public type AccessLogConfiguration record {|
+    boolean consoleEnabled = false;
+    string path = "";
+|};
+
+isolated function initializeHttpLogs() {
+    TraceLogConfiguration & readonly traceLogConfig = {};
+    AccessLogConfiguration & readonly accessLogConfig = {};
+    handle httpLogManager = newHttpLogManager(traceLogConfig, accessLogConfig);
 }
 
-function setModule() = @java:Method {
-    'class: "io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils"
+isolated function newHttpLogManager(TraceLogConfiguration traceLogConfig, AccessLogConfiguration accessLogConfig)
+returns handle = @java:Constructor {
+    'class: "io.ballerina.stdlib.http.api.logging.HttpLogManager"
 } external;

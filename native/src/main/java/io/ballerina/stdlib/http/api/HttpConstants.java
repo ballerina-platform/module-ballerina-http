@@ -292,9 +292,17 @@ public class HttpConstants {
     public static final String RETRY_COUNT_FIELD = "count";
     public static final String RETRY_INTERVAL_FIELD = "intervalInMillis";
 
-    //Logging related runtime parameter names
-    public static final String HTTP_ACCESS_LOG_ENABLED = "http.accesslog.enabled";
+    // Logging related runtime parameter names
+    public static final String HTTP_TRACE_LOG = "http.tracelog";
     public static final String HTTP_TRACE_LOG_ENABLED = "http.tracelog.enabled";
+    public static final String HTTP_ACCESS_LOG = "http.accesslog";
+    public static final String HTTP_ACCESS_LOG_ENABLED = "http.accesslog.enabled";
+
+    // TraceLog and AccessLog configs
+    public static final BString HTTP_LOG_CONSOLE = StringUtils.fromString("consoleEnabled");
+    public static final BString HTTP_LOG_FILE_PATH = StringUtils.fromString("path");
+    public static final BString HTTP_TRACE_LOG_HOST = StringUtils.fromString("host");
+    public static final BString HTTP_TRACE_LOG_PORT = StringUtils.fromString("port");
 
     // ResponseCacheControl struct field names
     public static final BString RES_CACHE_CONTROL_MUST_REVALIDATE_FIELD = StringUtils.fromString("mustRevalidate");

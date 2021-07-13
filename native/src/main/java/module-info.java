@@ -29,6 +29,8 @@ module io.ballerina.stdlib.http {
     requires java.xml.bind;
     requires java.management;
     requires org.slf4j;
+    requires java.logging;
+    requires gson;
     exports io.ballerina.stdlib.http.api;
     exports io.ballerina.stdlib.http.transport.contract.websocket;
     exports io.ballerina.stdlib.http.transport.contract;
