@@ -213,6 +213,7 @@
             <class name="io.ballerina.stdlib.http.api.ExceptionTest"/>
             <class name="io.ballerina.stdlib.http.api.HttpServiceTest"/>
             <class name="io.ballerina.stdlib.http.api.logging.HttpLogManagerTest"/>
+            <class name="io.ballerina.stdlib.http.api.logging.util.LogUtilTest"/>
         </classes>
     </test>
 </suite>
