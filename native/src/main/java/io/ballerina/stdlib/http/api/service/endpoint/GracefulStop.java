@@ -24,7 +24,7 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
 /**
- * Stop the listener immediately and close the connection.
+ * Unbind the the listening port immediately and stop accepting new connection.
  *
  * @since 0.966
  */

@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/log;
-import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
@@ -51,8 +50,9 @@ http:Service listenerMethodMock1 = service object {
 
 http:Service listenerMethodMock2 = service object {
     resource function get .(http:Caller caller, http:Request req) {
+        // gracefulStop will unbind the listener port and stop accepting new connections.
+        // But already connection created clients can communicate until client close.
         checkpanic listenerMethodbackendEP.gracefulStop();
-        runtime:sleep(2);
         error? responseToCaller = caller->respond("Mock2 invoked!");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -96,16 +96,25 @@ function testGracefulStopMethod() {
     }
 }
 
-// Disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25675
-@test:Config {dependsOn:[testGracefulStopMethod], enable:false}
-function testInvokingStoppedService() {
-    runtime:sleep(10);
+@test:Config {dependsOn:[testGracefulStopMethod]}
+function testInvokingStoppedService() returns error? {
+    // Create new client with keepAlive never config. First call uses already existing connection, so it will not fail
+    // Subsequent call will try creating new connection with listener and it will fail
+    http:Client backendTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(),
+                                                http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
     http:Response|error response = backendTestClient->get("/mock1");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Mock2 invoked!");
+        assertTextPayload(response.getTextPayload(), "Mock1 invoked!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = backendTestClient->get("/mock1");
+    if (response is error) {
+        test:assertEquals(response.message(), "Something wrong with the connection", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: http:Response");
     }
 }
