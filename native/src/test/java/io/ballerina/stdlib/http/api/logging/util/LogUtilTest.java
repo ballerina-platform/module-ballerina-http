@@ -63,4 +63,45 @@ public class LogUtilTest {
         Assert.assertEquals(LogLevelMapper.getLoggerLevel(LogLevel.ALL), Level.ALL);
     }
 
+    @Test
+    public void testLogLevelGetValue() {
+        LogLevel logLevel = LogLevel.ALL;
+        Assert.assertEquals(logLevel.value(), Integer.MIN_VALUE);
+        logLevel = LogLevel.TRACE;
+        Assert.assertEquals(logLevel.value(), 600);
+        logLevel = LogLevel.DEBUG;
+        Assert.assertEquals(logLevel.value(), 700);
+        logLevel = LogLevel.INFO;
+        Assert.assertEquals(logLevel.value(), 800);
+        logLevel = LogLevel.WARN;
+        Assert.assertEquals(logLevel.value(), 900);
+        logLevel = LogLevel.ERROR;
+        Assert.assertEquals(logLevel.value(), 1000);
+        logLevel = LogLevel.OFF;
+        Assert.assertEquals(logLevel.value(), Integer.MAX_VALUE);
+    }
+
+    @Test
+    public void testToLogLevel() {
+        LogLevel logLevel = LogLevel.toLogLevel("ALL");
+        Assert.assertEquals(logLevel.value(), Integer.MIN_VALUE);
+        logLevel = LogLevel.toLogLevel("TRACE");
+        Assert.assertEquals(logLevel.value(), 600);
+        logLevel = LogLevel.toLogLevel("DEBUG");
+        Assert.assertEquals(logLevel.value(), 700);
+        logLevel = LogLevel.toLogLevel("INFO");
+        Assert.assertEquals(logLevel.value(), 800);
+        logLevel = LogLevel.toLogLevel("WARN");
+        Assert.assertEquals(logLevel.value(), 900);
+        logLevel = LogLevel.toLogLevel("ERROR");
+        Assert.assertEquals(logLevel.value(), 1000);
+        logLevel = LogLevel.toLogLevel("OFF");
+        Assert.assertEquals(logLevel.value(), Integer.MAX_VALUE);
+    }
+
+    @Test (expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "invalid log level: TEST")
+    public void testToLogLevelWithInvalidLogLevel() {
+        LogLevel level = LogLevel.toLogLevel("TEST");
+    }
+
 }
