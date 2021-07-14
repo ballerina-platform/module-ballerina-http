@@ -85,6 +85,7 @@ public class HttpResourceDispatcher {
         response.setHttpStatusCode(200);
         response.addHttpContent(new DefaultLastHttpContent());
         PipeliningHandler.sendPipelinedResponse(cMsg, response);
+        cMsg.waitAndReleaseAllEntities();
     }
 
     private HttpResourceDispatcher() {
