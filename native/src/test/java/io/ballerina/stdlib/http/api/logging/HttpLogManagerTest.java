@@ -23,10 +23,13 @@ import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpAccessLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpTraceLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.JsonLogFormatter;
-import io.ballerina.stdlib.http.transport.util.TestUtil;
 import org.junit.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -44,6 +47,14 @@ import static org.mockito.Mockito.when;
  * A unit test class for Http module HttpLogManager class functions.
  */
 public class HttpLogManagerTest {
+
+    File tempLogTestFile;
+
+    @BeforeClass
+    public void setup() throws IOException {
+        tempLogTestFile = File.createTempFile("logTestFile", ".txt");
+    }
+
 
     @Test
     public void testHttpLogManagerWithTraceLogConsole() {
@@ -80,9 +91,9 @@ public class HttpLogManagerTest {
         BString traceFilePath = mock(BString.class);
         BString host = mock(BString.class);
         BString accessFilePath = mock(BString.class);
-        String path = "/simple-test-config/logTestFile.txt";
+        String path = tempLogTestFile.getPath();
         long port = 80;
-        when(traceFilePath.getValue()).thenReturn(TestUtil.getAbsolutePath(path));
+        when(traceFilePath.getValue()).thenReturn(path);
         when(accessFilePath.getValue()).thenReturn("");
         when(host.getValue()).thenReturn("");
         when(traceLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(traceFilePath);
@@ -166,10 +177,10 @@ public class HttpLogManagerTest {
         BString traceFilePath = mock(BString.class);
         BString host = mock(BString.class);
         BString accessFilePath = mock(BString.class);
-        String path = "/simple-test-config/logTestFile.txt";
+        String path = tempLogTestFile.getPath();
         long port = 0;
         when(traceFilePath.getValue()).thenReturn("");
-        when(accessFilePath.getValue()).thenReturn(TestUtil.getAbsolutePath(path));
+        when(accessFilePath.getValue()).thenReturn(path);
         when(host.getValue()).thenReturn("");
         when(traceLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(traceFilePath);
         when(traceLogConfig.getStringValue(HTTP_TRACE_LOG_HOST)).thenReturn(host);
@@ -258,6 +269,11 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
         HttpLogManager httpLogManager = new HttpLogManager(traceLogConfig, accessLogConfig);
+    }
+
+    @AfterClass
+    public void cleanUp() throws IOException {
+        tempLogTestFile.deleteOnExit();
     }
 
 }
