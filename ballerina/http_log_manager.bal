@@ -43,11 +43,7 @@ public type AccessLogConfiguration record {|
 configurable TraceLogConfiguration & readonly traceLogConfig = {};
 configurable AccessLogConfiguration & readonly accessLogConfig = {};
 
-isolated function initializeHttpLogs() {
-    _ = initializeHttpLogManager(traceLogConfig, accessLogConfig);
-}
-
-isolated function initializeHttpLogManager(TraceLogConfiguration traceLogConfig, AccessLogConfiguration accessLogConfig)
+isolated function initializeHttpLogs(TraceLogConfiguration traceLogConfig, AccessLogConfiguration accessLogConfig)
 returns handle = @java:Constructor {
     'class: "io.ballerina.stdlib.http.api.logging.HttpLogManager"
 } external;
