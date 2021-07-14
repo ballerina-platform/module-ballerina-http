@@ -38,9 +38,10 @@ public type AccessLogConfiguration record {|
     string path = "";
 |};
 
+configurable TraceLogConfiguration & readonly traceLogConfig = {};
+configurable AccessLogConfiguration & readonly accessLogConfig = {};
+
 isolated function initializeHttpLogs() {
-    TraceLogConfiguration & readonly traceLogConfig = {};
-    AccessLogConfiguration & readonly accessLogConfig = {};
     handle httpLogManager = newHttpLogManager(traceLogConfig, accessLogConfig);
 }
 
