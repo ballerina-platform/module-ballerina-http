@@ -16,6 +16,12 @@
 
 import ballerina/jballerina.java;
 
+# Represents HTTP trace log configuration.
+#
+# + consoleEnabled - Boolean value to enable or disable console trace logs
+# + path - File path to store trace logs
+# + host - Socket hostname to publish the trace logs
+# + port - Socket port to publish the trace logs
 public type TraceLogConfiguration record {|
     boolean consoleEnabled = false;
     string path = "";
@@ -23,6 +29,10 @@ public type TraceLogConfiguration record {|
     int port = 0;
 |};
 
+# Represents HTTP access log configuration.
+#
+# + consoleEnabled - Boolean value to enable or disable console access logs
+# + path - File path to store access logs
 public type AccessLogConfiguration record {|
     boolean consoleEnabled = false;
     string path = "";
