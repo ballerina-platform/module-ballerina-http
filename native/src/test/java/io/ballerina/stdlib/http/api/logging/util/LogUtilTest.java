@@ -22,9 +22,13 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.logging.Level;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * A unit test class for Http module LogLevelMapper class functions.
+ */
 public class LogUtilTest {
 
     @Test
