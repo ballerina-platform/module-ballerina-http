@@ -16,25 +16,27 @@
 
 import ballerina/jballerina.java;
 
+// TODO: Make the fields optional once configurable records support union members
 # Represents HTTP trace log configuration.
 #
-# + consoleEnabled - Boolean value to enable or disable console trace logs
+# + console - Boolean value to enable or disable console trace logs
 # + path - File path to store trace logs
 # + host - Socket hostname to publish the trace logs
 # + port - Socket port to publish the trace logs
 public type TraceLogConfiguration record {|
-    boolean consoleEnabled = false;
+    boolean console = false;
     string path = "";
     string host = "";
     int port = 0;
 |};
 
+// TODO: Make the fields optional once configurable records support union members
 # Represents HTTP access log configuration.
 #
-# + consoleEnabled - Boolean value to enable or disable console access logs
+# + console - Boolean value to enable or disable console access logs
 # + path - File path to store access logs
 public type AccessLogConfiguration record {|
-    boolean consoleEnabled = false;
+    boolean console = false;
     string path = "";
 |};
 
@@ -42,10 +44,10 @@ configurable TraceLogConfiguration & readonly traceLogConfig = {};
 configurable AccessLogConfiguration & readonly accessLogConfig = {};
 
 isolated function initializeHttpLogs() {
-    handle httpLogManager = newHttpLogManager(traceLogConfig, accessLogConfig);
+    _ = initializeHttpLogManager(traceLogConfig, accessLogConfig);
 }
 
-isolated function newHttpLogManager(TraceLogConfiguration traceLogConfig, AccessLogConfiguration accessLogConfig)
+isolated function initializeHttpLogManager(TraceLogConfiguration traceLogConfig, AccessLogConfiguration accessLogConfig)
 returns handle = @java:Constructor {
     'class: "io.ballerina.stdlib.http.api.logging.HttpLogManager"
 } external;

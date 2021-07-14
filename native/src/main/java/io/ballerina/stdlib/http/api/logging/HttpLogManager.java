@@ -53,7 +53,6 @@ public class HttpLogManager extends LogManager {
     protected Logger httpAccessLogger;
 
     public HttpLogManager(BMap traceLogConfig, BMap accessLogConfig) {
-        super();
         this.setHttpTraceLogHandler(traceLogConfig);
         this.setHttpAccessLogHandler(accessLogConfig);
     }

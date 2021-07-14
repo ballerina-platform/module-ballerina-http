@@ -299,7 +299,7 @@ public class HttpConstants {
     public static final String HTTP_ACCESS_LOG_ENABLED = "http.accesslog.enabled";
 
     // TraceLog and AccessLog configs
-    public static final BString HTTP_LOG_CONSOLE = StringUtils.fromString("consoleEnabled");
+    public static final BString HTTP_LOG_CONSOLE = StringUtils.fromString("console");
     public static final BString HTTP_LOG_FILE_PATH = StringUtils.fromString("path");
     public static final BString HTTP_TRACE_LOG_HOST = StringUtils.fromString("host");
     public static final BString HTTP_TRACE_LOG_PORT = StringUtils.fromString("port");
