@@ -78,9 +78,9 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
+        cleanupRequestAndContext();
         // This check is added to release the failure path since there is an authn/authz failure and responded
         // with 401/403 internally.
-        cleanupRequestAndContext();
         if (error.getMessage().equals("Already responded by auth desugar.")) {
             return;
         }
