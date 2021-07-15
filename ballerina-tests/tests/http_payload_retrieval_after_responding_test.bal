@@ -15,17 +15,16 @@
 // under the License.
 
 import ballerina/test;
-import ballerina/lang.runtime as runtime;
 import ballerina/http;
 
 listener http:Listener payloadRetrievalListener = new(payloadRetrievalAfterRespondingTestPort);
 http:Client payloadRetrievalBackendClient = check new("http://localhost:" + payloadRetrievalAfterRespondingTestPort.toString());
 http:Client payloadRetrievalTestClient = check new("http://localhost:" + payloadRetrievalAfterRespondingTestPort.toString());
 
-json? jsonPaylod = ();
-xml? xmlPayload = ();
-string? textPayload = ();
-byte[]? binaryPayload = ();
+json? requestJsonPaylod = ();
+xml? requestXmlPayload = ();
+string? requestTextPayload = ();
+byte[]? requestBinaryPayload = ();
 
 service /passthrough on payloadRetrievalListener {
     resource function 'default . () returns string|error {
@@ -36,7 +35,6 @@ service /passthrough on payloadRetrievalListener {
         xml xmlPayload = check payloadRetrievalBackendClient->post("/backend/getXml", xmlStr);
 
         string stringPayload = check payloadRetrievalBackendClient->post("/backend/getString", "want string");
-
         byte[] binaryPaylod = check payloadRetrievalBackendClient->post("/backend/getByteArray", "BinaryPayload is textVal".toBytes());
 
         return "Request Processed successfully";
@@ -48,7 +46,7 @@ service /backend on payloadRetrievalListener {
         http:Response response = new;
         response.setJsonPayload({id: "chamil", values: {a: 2, b: 45, c: {x: "mnb", y: "uio"}}});
         check caller->respond(response);
-        jsonPaylod = check req.getJsonPayload();
+        requestJsonPaylod = check req.getJsonPayload();
     }
 
     resource function 'default getXml(http:Caller caller, http:Request req) returns error? {
@@ -56,36 +54,21 @@ service /backend on payloadRetrievalListener {
         xml xmlStr = xml `<name>Ballerina</name>`;
         response.setXmlPayload(xmlStr);
         check caller->respond(response);
-        xmlPayload = check req.getXmlPayload(); 
+        requestXmlPayload = check req.getXmlPayload(); 
     }
 
     resource function 'default getString(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setTextPayload("This is my @4491*&&#$^($@");
         check caller->respond(response);
-        textPayload = check req.getTextPayload();
+        requestTextPayload = check req.getTextPayload();
     }
 
     resource function 'default getByteArray(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setBinaryPayload("BinaryPayload is textVal".toBytes());
         check caller->respond(response);
-        binaryPayload = check req.getBinaryPayload();
-    }
-
-    resource function post get5XX(http:Caller caller, http:Request req) returns error? {
-        http:Response response = new;
-        response.statusCode = 501;
-        response.setTextPayload("data-binding-failed-with-501");
-        response.setHeader("X-Type", "test");
-        check caller->respond(response);
-    }
-
-    resource function get get4XX(http:Caller caller, http:Request req) returns error? {
-        http:Response response = new;
-        response.statusCode = 400;
-        response.setTextPayload("data-binding-failed-due-to-bad-request");
-        check caller->respond(response);
+        requestBinaryPayload = check req.getBinaryPayload();
     }
 }
 
@@ -98,11 +81,10 @@ function testPayloadRetrievalAfterRespondTest() returns error? {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Request Processed successfully");
-        runtime:sleep(5);
-        test:assertTrue(jsonPaylod is json);
-        test:assertTrue(xmlPayload is xml);
-        test:assertTrue(textPayload is string);
-        test:assertTrue(binaryPayload is byte[]);
+        test:assertTrue(requestJsonPaylod is json);
+        test:assertTrue(requestXmlPayload is xml);
+        test:assertTrue(requestTextPayload is string);
+        test:assertTrue(requestBinaryPayload is byte[]);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
