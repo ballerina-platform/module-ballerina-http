@@ -101,3 +101,23 @@ public type CommonClientConfiguration record {|
     CookieConfig? cookieConfig = ();
     ResponseLimitConfigs responseLimits = {};
 |};
+
+# Represents a server-provided hyperlink
+#
+# + rel - Link relation type which describes how the current context (source) is related to the target resource
+# + href - Target URI
+# + mediaTypes - Expected resource media types
+# + actions - Expected resource actions
+public type Link record {
+    string rel;
+    string href;
+    string[] mediaTypes?;
+    Action[] actions?;
+};
+
+# Represents available server-provided links
+#
+# + links - Array of available links
+public type Links record {|
+    Link[] links;
+|};
