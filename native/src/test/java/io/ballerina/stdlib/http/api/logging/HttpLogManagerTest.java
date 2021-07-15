@@ -55,7 +55,6 @@ public class HttpLogManagerTest {
         tempLogTestFile = File.createTempFile("logTestFile", ".txt");
     }
 
-
     @Test
     public void testHttpLogManagerWithTraceLogConsole() {
         BMap traceLogConfig = mock(BMap.class);
