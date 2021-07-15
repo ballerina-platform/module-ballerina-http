@@ -49,6 +49,7 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifySuccess(Object result) {
+        cleanupRequestAndContext();
         if (alreadyResponded(result)) {
             return;
         }
@@ -63,7 +64,6 @@ public class HttpCallableUnitCallback implements Callback {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
-                cleanupRequestAndContext();
                 printStacktraceIfError(result);
             }
 
@@ -80,8 +80,8 @@ public class HttpCallableUnitCallback implements Callback {
     public void notifyFailure(BError error) { // handles panic and check_panic
         // This check is added to release the failure path since there is an authn/authz failure and responded
         // with 401/403 internally.
+        cleanupRequestAndContext();
         if (error.getMessage().equals("Already responded by auth desugar.")) {
-            requestMessage.waitAndReleaseAllEntities();
             return;
         }
         if (alreadyResponded(error)) {
@@ -92,7 +92,6 @@ public class HttpCallableUnitCallback implements Callback {
 
     private void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error);
-        cleanupRequestAndContext();
     }
 
     private void cleanupRequestAndContext() {
@@ -118,7 +117,6 @@ public class HttpCallableUnitCallback implements Callback {
                 printStacktraceIfError(result);
                 err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + e.getMessage());
             }
-            cleanupRequestAndContext();
             return true;
         }
         return false;
