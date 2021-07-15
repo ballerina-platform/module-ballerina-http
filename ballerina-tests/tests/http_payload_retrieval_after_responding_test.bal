@@ -20,7 +20,7 @@ import ballerina/http;
 
 listener http:Listener payloadRetrievalListener = new(payloadRetrievalAfterRespondingTestPort);
 http:Client payloadRetrievalBackendClient = check new("http://localhost:" + payloadRetrievalAfterRespondingTestPort.toString());
-http:Client payloadRetrievalTestClient = check new("http://localhost:" + payloadRetrievalAfterRespondingTestPort.toString())
+http:Client payloadRetrievalTestClient = check new("http://localhost:" + payloadRetrievalAfterRespondingTestPort.toString());
 
 json? jsonPaylod = ();
 xml? xmlPayload = ();
