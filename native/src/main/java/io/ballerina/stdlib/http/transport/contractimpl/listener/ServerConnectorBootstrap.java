@@ -280,6 +280,7 @@ public class ServerConnectorBootstrap {
             //Remove cached channels and close them.
             ChannelFuture future = getChannelFuture();
             if (future != null) {
+                //Close will stop accepting new connections.
                 future.channel().close().sync();
                 log.info("HttpConnectorListener stopped listening on host {} and port {}", getHost(), getPort());
                 return true;
