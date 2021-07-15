@@ -28,7 +28,7 @@ string? textPayload = ();
 byte[]? binaryPayload = ();
 
 service /passthrough on payloadRetrievalListener {
-    resource function 'default . () returns string {
+    resource function 'default . () returns string|error {
         json jsonStr = {a: "a", b: "b"};
         json jsonPayload = check payloadRetrievalBackendClient->post("/backend/getJson", jsonStr);
 
