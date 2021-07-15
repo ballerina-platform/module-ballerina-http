@@ -776,3 +776,14 @@ isolated function createPayloadBindingError(error result) returns PayloadBinding
     }
     return error PayloadBindingError(errPrefix + result.message(), result);
 }
+
+# Represents HTTP actions.
+public enum Action {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    PATCH,
+    HEAD,
+    OPTIONS
+}
