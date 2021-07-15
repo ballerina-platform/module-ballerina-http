@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.api.logging;
 
 import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpAccessLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpTraceLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.JsonLogFormatter;
@@ -77,30 +78,30 @@ public class HttpLogManager extends LogManager {
             traceLogsEnabled = true;
         }
 
-        String logFilePath = traceLogConfig.getStringValue(HTTP_LOG_FILE_PATH).getValue();
-        if (!logFilePath.trim().isEmpty()) {
+        BString logFilePath = traceLogConfig.getStringValue(HTTP_LOG_FILE_PATH);
+        if (logFilePath != null && !logFilePath.getValue().trim().isEmpty()) {
             try {
-                FileHandler fileHandler = new FileHandler(logFilePath, true);
+                FileHandler fileHandler = new FileHandler(logFilePath.getValue(), true);
                 fileHandler.setFormatter(new HttpTraceLogFormatter());
                 fileHandler.setLevel(Level.FINEST);
                 httpTraceLogger.addHandler(fileHandler);
                 traceLogsEnabled = true;
             } catch (IOException e) {
-                throw new RuntimeException("failed to setup HTTP trace log file: " + logFilePath, e);
+                throw new RuntimeException("failed to setup HTTP trace log file: " + logFilePath.getValue(), e);
             }
         }
 
-        String host = traceLogConfig.getStringValue(HTTP_TRACE_LOG_HOST).getValue();
-        int port = traceLogConfig.getIntValue(HTTP_TRACE_LOG_PORT).intValue();
-        if (!host.trim().isEmpty() && port != 0) {
+        BString host = traceLogConfig.getStringValue(HTTP_TRACE_LOG_HOST);
+        Long port = traceLogConfig.getIntValue(HTTP_TRACE_LOG_PORT);
+        if ((host != null && !host.getValue().trim().isEmpty()) && (port != null && port != 0)) {
             try {
-                SocketHandler socketHandler = new SocketHandler(host, port);
+                SocketHandler socketHandler = new SocketHandler(host.getValue(), port.intValue());
                 socketHandler.setFormatter(new JsonLogFormatter());
                 socketHandler.setLevel(Level.FINEST);
                 httpTraceLogger.addHandler(socketHandler);
                 traceLogsEnabled = true;
             } catch (IOException e) {
-                throw new RuntimeException("failed to connect to " + host + ":" + port, e);
+                throw new RuntimeException("failed to connect to " + host.getValue() + ":" + port.intValue(), e);
             }
         }
 
@@ -132,17 +133,17 @@ public class HttpLogManager extends LogManager {
             accessLogsEnabled = true;
         }
 
-        String filePath = accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH).getValue();
-        if (!filePath.trim().isEmpty()) {
+        BString filePath = accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH);
+        if (filePath != null && !filePath.getValue().trim().isEmpty()) {
             try {
-                FileHandler fileHandler = new FileHandler(filePath, true);
+                FileHandler fileHandler = new FileHandler(filePath.getValue(), true);
                 fileHandler.setFormatter(new HttpAccessLogFormatter());
                 fileHandler.setLevel(Level.INFO);
                 httpAccessLogger.addHandler(fileHandler);
                 httpAccessLogger.setLevel(Level.INFO);
                 accessLogsEnabled = true;
             } catch (IOException e) {
-                throw new RuntimeException("failed to setup HTTP access log file: " + filePath, e);
+                throw new RuntimeException("failed to setup HTTP access log file: " + filePath.getValue(), e);
             }
         }
 

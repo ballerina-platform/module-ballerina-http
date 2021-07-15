@@ -16,28 +16,26 @@
 
 import ballerina/jballerina.java;
 
-// TODO: Make the fields optional once configurable records support union members
 # Represents HTTP trace log configuration.
 #
 # + console - Boolean value to enable or disable console trace logs
-# + path - File path to store trace logs
-# + host - Socket hostname to publish the trace logs
-# + port - Socket port to publish the trace logs
+# + path - Optional file path to store trace logs
+# + host - Optional socket hostname to publish the trace logs
+# + port - Optional socket port to publish the trace logs
 public type TraceLogConfiguration record {|
     boolean console = false;
-    string path = "";
-    string host = "";
-    int port = 0;
+    string path?;
+    string host?;
+    int port?;
 |};
 
-// TODO: Make the fields optional once configurable records support union members
 # Represents HTTP access log configuration.
 #
 # + console - Boolean value to enable or disable console access logs
-# + path - File path to store access logs
+# + path - Optional file path to store access logs
 public type AccessLogConfiguration record {|
     boolean console = false;
-    string path = "";
+    string path?;
 |};
 
 configurable TraceLogConfiguration & readonly traceLogConfig = {};
