@@ -91,7 +91,9 @@ service /'continue on httpClientContinueListenerEP2  {
         }
     }
 }
-@test:Config {}
+@test:Config {
+    groups: ["continueAction"]
+}
 function testContinueActionWithMain() {
     http:Client clientEP = checkpanic new("http://localhost:" + httpClientContinueTestPort1.toString());
     http:Request req = new();
@@ -113,7 +115,10 @@ function testContinueActionWithMain() {
 }
 
 //Test 100 continue for http client
-@test:Config {dependsOn:[testContinueActionWithMain]}
+@test:Config {
+    groups: ["continueAction"]
+    // dependsOn:[testContinueActionWithMain]
+}
 function testContinueAction() {
     http:Response|error response = httpClientContinueClient->get("/continue");
     if (response is http:Response) {
@@ -126,7 +131,10 @@ function testContinueAction() {
 }
 
 //Negative test case for 100 continue of http client
-@test:Config {dependsOn:[testContinueAction]}
+@test:Config {
+    groups: ["continueAction"]
+    // dependsOn:[testContinueAction]
+}
 function testNegativeContinueAction() {
     http:Response|error response = httpClientContinueClient->get("/continue/failure");
     if (response is http:Response) {
