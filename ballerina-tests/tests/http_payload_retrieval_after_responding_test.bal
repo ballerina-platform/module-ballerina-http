@@ -82,7 +82,7 @@ function testPayloadRetrievalAfterRespondTest() returns error? {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Request Processed successfully");
-        runtime:sleep(2);
+        runtime:sleep(5);
         test:assertTrue(requestJsonPaylod is json);
         test:assertTrue(requestXmlPayload is xml);
         test:assertTrue(requestTextPayload is string);
