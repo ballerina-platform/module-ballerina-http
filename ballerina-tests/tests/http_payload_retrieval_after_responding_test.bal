@@ -16,6 +16,7 @@
 
 import ballerina/test;
 import ballerina/http;
+import ballerina/lang.runtime as runtime;
 
 listener http:Listener payloadRetrievalListener = new(payloadRetrievalAfterRespondingTestPort);
 http:Client payloadRetrievalBackendClient = check new("http://localhost:" + payloadRetrievalAfterRespondingTestPort.toString());
@@ -81,6 +82,7 @@ function testPayloadRetrievalAfterRespondTest() returns error? {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Request Processed successfully");
+        runtime:sleep(2);
         test:assertTrue(requestJsonPaylod is json);
         test:assertTrue(requestXmlPayload is xml);
         test:assertTrue(requestTextPayload is string);
