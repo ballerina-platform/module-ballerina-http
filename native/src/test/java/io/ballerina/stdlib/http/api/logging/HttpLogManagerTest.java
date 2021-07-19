@@ -112,7 +112,8 @@ public class HttpLogManagerTest {
         Assert.assertEquals(Level.FINEST, handler.getLevel());
     }
 
-    @Test
+    // TODO enable after https://github.com/ballerina-platform/ballerina-standard-library/issues/1675 is fixed
+    @Test(enabled = false)
     public void testHttpLogManagerWithTraceLogSocket() {
         BMap traceLogConfig = mock(BMap.class);
         when(traceLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
