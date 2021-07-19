@@ -47,6 +47,7 @@ dependencies {
     implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: "${commonsLang3Version}"
     implementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
+    implementation group: 'com.google.code.gson', name: 'gson', version: "${gsonVersion}"
 
     // Transport related dependencies
     implementation group: 'io.netty', name: 'netty-codec-http2', version:"${nettyVersion}"

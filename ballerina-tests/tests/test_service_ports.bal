@@ -120,6 +120,8 @@ const int foClientWithoutStatusCodeTestPort1 = 9571;
 const int foClientWithoutStatusCodeTestPort2 = 9572;
 const int inResponseCachedPayloadTestPort = 9573;
 const int inResponseCachedPayloadTestBEPort = 9574;
+const int httpEnumActionsTestPort = 9575;
+const int payloadRetrievalAfterRespondingTestPort = 9576;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
