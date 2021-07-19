@@ -191,9 +191,10 @@ public abstract class AbstractHTTPAction {
         byte[] globalTransactionId = ((BArray) infoMap.get(TransactionConstants.GLOBAL_TRX_ID)).getByteArray();
         int retryNumber = ((Number) infoMap.get(TransactionConstants.RETRY_NUMBER)).intValue();
         int startTime = getStartTime((BObject) infoMap.get(TransactionConstants.START_TIME));
-        subMap.put(TransactionConstants.GLOBAL_TRX_ID, new String(globalTransactionId, StandardCharsets.UTF_8));
-        subMap.put(TransactionConstants.RETRY_NUMBER, String.valueOf(retryNumber));
-        subMap.put(TransactionConstants.START_TIME, String.valueOf(startTime));
+        subMap.put(TransactionConstants.GLOBAL_TRX_ID, StringUtils
+                .fromString(new String(globalTransactionId, StandardCharsets.UTF_8)));
+        subMap.put(TransactionConstants.RETRY_NUMBER, StringUtils.fromString(String.valueOf(retryNumber)));
+        subMap.put(TransactionConstants.START_TIME, StringUtils.fromString(String.valueOf(startTime)));
         jsonArray.add(i++, subMap);
         if (retryNumber > 0) {
             Object prevInfoRecord = infoMap.get(TransactionConstants.PREVIOUS_ATTEMPT);
