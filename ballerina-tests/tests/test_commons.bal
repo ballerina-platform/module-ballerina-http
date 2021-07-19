@@ -17,8 +17,6 @@
 import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
-//Import the following until the issue https://github.com/ballerina-platform/ballerina-lang/issues/31724 is fixed.
-import ballerina/observe as _;
 
 const string CONTENT_TYPE = "content-type";
 const string CONTENT_ENCODING = "content-encoding";
