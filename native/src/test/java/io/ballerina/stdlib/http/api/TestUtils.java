@@ -37,6 +37,8 @@ import java.util.Map;
  */
 public class TestUtils {
 
+    public static final int SOCKET_SERVER_PORT = 9001;
+
     static BObject getNewServiceObject(String name) {
         return new BObject() {
             @Override
