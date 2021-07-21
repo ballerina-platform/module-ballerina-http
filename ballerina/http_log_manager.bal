@@ -16,13 +16,16 @@
 
 import ballerina/jballerina.java;
 
+// TODO: Remove this once the command line argument support is given for configurable record
+configurable boolean traceLogConsole = false;
+
 # Represents HTTP trace log configuration.
 #
 # + console - Boolean value to enable or disable console trace logs
 # + path - Optional file path to store trace logs
 # + host - Optional socket hostname to publish the trace logs
 # + port - Optional socket port to publish the trace logs
-public type TraceLogConfiguration record {|
+public type TraceLogConfigurationAdvanced record {|
     boolean console = false;
     string path?;
     string host?;
@@ -38,10 +41,10 @@ public type AccessLogConfiguration record {|
     string path?;
 |};
 
-configurable TraceLogConfiguration & readonly traceLogConfig = {};
+configurable TraceLogConfigurationAdvanced & readonly traceLogConfigAdvanced = {};
 configurable AccessLogConfiguration & readonly accessLogConfig = {};
 
-isolated function initializeHttpLogs(TraceLogConfiguration traceLogConfig, AccessLogConfiguration accessLogConfig)
+isolated function initializeHttpLogs(boolean traceLogConsole, TraceLogConfigurationAdvanced traceLogConfigAdvanced, AccessLogConfiguration accessLogConfig)
 returns handle = @java:Constructor {
     'class: "io.ballerina.stdlib.http.api.logging.HttpLogManager"
 } external;
