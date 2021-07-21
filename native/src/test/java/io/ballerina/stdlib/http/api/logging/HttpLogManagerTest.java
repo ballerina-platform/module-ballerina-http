@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.api.logging;
 
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.api.TestUtils;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpAccessLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpTraceLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.JsonLogFormatter;
@@ -30,6 +31,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -91,7 +93,7 @@ public class HttpLogManagerTest {
         BString host = mock(BString.class);
         BString accessFilePath = mock(BString.class);
         String path = tempLogTestFile.getPath();
-        long port = 80;
+        long port = TestUtils.SOCKET_SERVER_PORT;
         when(traceFilePath.getValue()).thenReturn(path);
         when(accessFilePath.getValue()).thenReturn("");
         when(host.getValue()).thenReturn("");
@@ -113,16 +115,17 @@ public class HttpLogManagerTest {
     }
 
     @Test
-    public void testHttpLogManagerWithTraceLogSocket() {
+    public void testHttpLogManagerWithTraceLogSocket() throws IOException {
         BMap traceLogConfig = mock(BMap.class);
         when(traceLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         BString traceFilePath = mock(BString.class);
         BString host = mock(BString.class);
         BString accessFilePath = mock(BString.class);
-        long port = 80;
+        long port = TestUtils.SOCKET_SERVER_PORT;
+        ServerSocket serverSocket = new ServerSocket(TestUtils.SOCKET_SERVER_PORT);
         when(traceFilePath.getValue()).thenReturn("");
         when(accessFilePath.getValue()).thenReturn("");
-        when(host.getValue()).thenReturn("echo.websocket.org");
+        when(host.getValue()).thenReturn("localhost");
         when(traceLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(traceFilePath);
         when(traceLogConfig.getStringValue(HTTP_TRACE_LOG_HOST)).thenReturn(host);
         when(traceLogConfig.getIntValue(HTTP_TRACE_LOG_PORT)).thenReturn(port);
@@ -138,6 +141,7 @@ public class HttpLogManagerTest {
         Assert.assertTrue(handler instanceof SocketHandler);
         Assert.assertTrue(handler.getFormatter() instanceof JsonLogFormatter);
         Assert.assertEquals(Level.FINEST, handler.getLevel());
+        serverSocket.close();
     }
 
     @Test
