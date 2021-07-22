@@ -212,7 +212,9 @@ public class ServerConnectorBootstrap {
             serverConnectorFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
             channelFuture.addListener(future -> {
                 if (future.isSuccess()) {
-                    log.info("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
+                    if (log.isDebugEnabled()) {
+                        log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
+                    }
                     serverConnectorFuture.notifyPortBindingEvent(this.connectorID, isHttps);
                 } else {
                     serverConnectorFuture.notifyPortBindingError(future.cause());
@@ -282,7 +284,9 @@ public class ServerConnectorBootstrap {
             if (future != null) {
                 //Close will stop accepting new connections.
                 future.channel().close().sync();
-                log.info("HttpConnectorListener stopped listening on host {} and port {}", getHost(), getPort());
+                if (log.isDebugEnabled()) {
+                    log.debug("HttpConnectorListener stopped listening on host {} and port {}", getHost(), getPort());
+                }
                 return true;
             }
             return false;
