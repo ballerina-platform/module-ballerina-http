@@ -116,9 +116,9 @@ public class HTTPServicesRegistry {
                                                    "have the same basePath : '" + basePath + errorMessage));
         }
         servicesByBasePath.put(basePath, httpService);
-        String errLog = String.format("Service deployed : %s with context %s", service.getType().getName(),
-                                      basePath);
-        logger.info(errLog);
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format("Service deployed : %s with context %s", service.getType().getName(), basePath));
+        }
 
         //basePath will get cached after registering service
         sortedServiceURIs.add(basePath);
@@ -174,21 +174,21 @@ public class HTTPServicesRegistry {
     public void unRegisterService(BObject service) {
         String basePath = (String) service.getNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH);
         if (basePath == null) {
-            logger.info("service is not attached to the listener");
+            logger.error("service is not attached to the listener");
             return;
         }
         HttpService httpService = HttpService.buildHttpService(service, basePath);
         String hostName = httpService.getHostName();
         ServicesMapHolder servicesMapHolder = servicesMapByHost.get(hostName);
         if (servicesMapHolder == null) {
-            logger.info(basePath + " service is not attached to the listener");
+            logger.error(basePath + " service is not attached to the listener");
             return;
         }
         servicesByBasePath = getServicesByHost(hostName);
         sortedServiceURIs = getSortedServiceURIsByHost(hostName);
 
         if (!servicesByBasePath.containsKey(basePath)) {
-            logger.info(basePath + " service is not attached to the listener");
+            logger.error(basePath + " service is not attached to the listener");
             return;
         }
         servicesByBasePath.remove(basePath);
