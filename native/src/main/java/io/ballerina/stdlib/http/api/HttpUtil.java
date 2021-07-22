@@ -85,7 +85,6 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
-import org.ballerinalang.config.ConfigRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1414,8 +1413,7 @@ public class HttpUtil {
                                           listenerConfiguration.getMsgSizeValidationConfig());
 
         if (host == null || host.trim().isEmpty()) {
-            listenerConfiguration.setHost(ConfigRegistry.getInstance().getConfigOrDefault("b7a.http.host",
-                    HttpConstants.HTTP_DEFAULT_HOST));
+            listenerConfiguration.setHost(HttpConstants.HTTP_DEFAULT_HOST);
         } else {
             listenerConfiguration.setHost(host);
         }
