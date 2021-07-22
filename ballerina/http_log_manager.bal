@@ -41,8 +41,8 @@ public type AccessLogConfiguration record {|
     string path?;
 |};
 
-configurable TraceLogAdvancedConfiguration & readonly traceLogAdvancedConfig = {};
-configurable AccessLogConfiguration & readonly accessLogConfig = {};
+configurable TraceLogAdvancedConfiguration traceLogAdvancedConfig = {};
+configurable AccessLogConfiguration accessLogConfig = {};
 
 isolated function initializeHttpLogs(boolean traceLogConsole, TraceLogAdvancedConfiguration traceLogAdvancedConfig,
 AccessLogConfiguration accessLogConfig) returns handle = @java:Constructor {
