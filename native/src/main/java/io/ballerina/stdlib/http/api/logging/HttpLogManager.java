@@ -53,15 +53,15 @@ public class HttpLogManager extends LogManager {
     protected Logger httpTraceLogger;
     protected Logger httpAccessLogger;
 
-    public HttpLogManager(boolean traceLogConsole, BMap traceLogConfigAdvanced, BMap accessLogConfig) {
-        this.setHttpTraceLogHandler(traceLogConsole, traceLogConfigAdvanced);
+    public HttpLogManager(boolean traceLogConsole, BMap traceLogAdvancedConfig, BMap accessLogConfig) {
+        this.setHttpTraceLogHandler(traceLogConsole, traceLogAdvancedConfig);
         this.setHttpAccessLogHandler(accessLogConfig);
     }
 
     /**
      * Initializes the HTTP trace logger.
      */
-    public void setHttpTraceLogHandler(boolean traceLogConsole, BMap traceLogConfigAdvanced) {
+    public void setHttpTraceLogHandler(boolean traceLogConsole, BMap traceLogAdvancedConfig) {
         if (httpTraceLogger == null) {
             // keep a reference to prevent this logger from being garbage collected
             httpTraceLogger = Logger.getLogger(HTTP_TRACE_LOG);
@@ -69,7 +69,7 @@ public class HttpLogManager extends LogManager {
         PrintStream stdErr = System.err;
         boolean traceLogsEnabled = false;
 
-        Boolean consoleLogEnabled = traceLogConfigAdvanced.getBooleanValue(HTTP_LOG_CONSOLE);
+        Boolean consoleLogEnabled = traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE);
         if (traceLogConsole || consoleLogEnabled) {
             ConsoleHandler consoleHandler = new ConsoleHandler();
             consoleHandler.setFormatter(new HttpTraceLogFormatter());
@@ -78,7 +78,7 @@ public class HttpLogManager extends LogManager {
             traceLogsEnabled = true;
         }
 
-        BString logFilePath = traceLogConfigAdvanced.getStringValue(HTTP_LOG_FILE_PATH);
+        BString logFilePath = traceLogAdvancedConfig.getStringValue(HTTP_LOG_FILE_PATH);
         if (logFilePath != null && !logFilePath.getValue().trim().isEmpty()) {
             try {
                 FileHandler fileHandler = new FileHandler(logFilePath.getValue(), true);
@@ -91,8 +91,8 @@ public class HttpLogManager extends LogManager {
             }
         }
 
-        BString host = traceLogConfigAdvanced.getStringValue(HTTP_TRACE_LOG_HOST);
-        Long port = traceLogConfigAdvanced.getIntValue(HTTP_TRACE_LOG_PORT);
+        BString host = traceLogAdvancedConfig.getStringValue(HTTP_TRACE_LOG_HOST);
+        Long port = traceLogAdvancedConfig.getIntValue(HTTP_TRACE_LOG_PORT);
         if ((host != null && !host.getValue().trim().isEmpty()) && (port != null && port != 0)) {
             try {
                 SocketHandler socketHandler = new SocketHandler(host.getValue(), port.intValue());

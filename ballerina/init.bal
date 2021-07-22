@@ -18,7 +18,7 @@ import ballerina/jballerina.java;
 
 function init() {
     setModule();
-    _ = initializeHttpLogs(traceLogConsole, traceLogConfigAdvanced, accessLogConfig);
+    _ = initializeHttpLogs(traceLogConsole, traceLogAdvancedConfig, accessLogConfig);
 }
 
 function setModule() = @java:Method {

@@ -25,7 +25,7 @@ configurable boolean traceLogConsole = false;
 # + path - Optional file path to store trace logs
 # + host - Optional socket hostname to publish the trace logs
 # + port - Optional socket port to publish the trace logs
-public type TraceLogConfigurationAdvanced record {|
+public type TraceLogAdvancedConfiguration record {|
     boolean console = false;
     string path?;
     string host?;
@@ -41,10 +41,10 @@ public type AccessLogConfiguration record {|
     string path?;
 |};
 
-configurable TraceLogConfigurationAdvanced & readonly traceLogConfigAdvanced = {};
+configurable TraceLogAdvancedConfiguration & readonly traceLogAdvancedConfig = {};
 configurable AccessLogConfiguration & readonly accessLogConfig = {};
 
-isolated function initializeHttpLogs(boolean traceLogConsole, TraceLogConfigurationAdvanced traceLogConfigAdvanced, AccessLogConfiguration accessLogConfig)
-returns handle = @java:Constructor {
+isolated function initializeHttpLogs(boolean traceLogConsole, TraceLogAdvancedConfiguration traceLogAdvancedConfig,
+AccessLogConfiguration accessLogConfig) returns handle = @java:Constructor {
     'class: "io.ballerina.stdlib.http.api.logging.HttpLogManager"
 } external;
