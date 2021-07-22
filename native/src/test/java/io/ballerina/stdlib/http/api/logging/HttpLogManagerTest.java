@@ -58,7 +58,7 @@ public class HttpLogManagerTest {
     }
 
     @Test
-    public void testHttpLogManagerWithTraceLogConsole() {
+    public void testHttpLogManagerWithTraceLogConsole1() {
         BMap traceLogConfig = mock(BMap.class);
         when(traceLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(true);
         BString traceFilePath = mock(BString.class);
@@ -77,6 +77,62 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
         HttpLogManager httpLogManager = new HttpLogManager(false, traceLogConfig, accessLogConfig);
+        Handler[] handlers = httpLogManager.httpTraceLogger.getHandlers();
+        Assert.assertTrue(handlers.length > 0);
+        Handler handler = handlers[handlers.length - 1];
+        Assert.assertTrue(handler instanceof ConsoleHandler);
+        Assert.assertTrue(handler.getFormatter() instanceof HttpTraceLogFormatter);
+        Assert.assertEquals(Level.FINEST, handler.getLevel());
+    }
+
+    @Test
+    public void testHttpLogManagerWithTraceLogConsole2() {
+        BMap traceLogConfig = mock(BMap.class);
+        when(traceLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
+        BString traceFilePath = mock(BString.class);
+        BString host = mock(BString.class);
+        BString accessFilePath = mock(BString.class);
+        long port = 0;
+        when(traceFilePath.getValue()).thenReturn("");
+        when(accessFilePath.getValue()).thenReturn("");
+        when(host.getValue()).thenReturn("testHost");
+        when(traceLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(traceFilePath);
+        when(traceLogConfig.getStringValue(HTTP_TRACE_LOG_HOST)).thenReturn(host);
+        when(traceLogConfig.getIntValue(HTTP_TRACE_LOG_PORT)).thenReturn(port);
+
+        BMap accessLogConfig = mock(BMap.class);
+        when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
+        when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
+
+        HttpLogManager httpLogManager = new HttpLogManager(true, traceLogConfig, accessLogConfig);
+        Handler[] handlers = httpLogManager.httpTraceLogger.getHandlers();
+        Assert.assertTrue(handlers.length > 0);
+        Handler handler = handlers[handlers.length - 1];
+        Assert.assertTrue(handler instanceof ConsoleHandler);
+        Assert.assertTrue(handler.getFormatter() instanceof HttpTraceLogFormatter);
+        Assert.assertEquals(Level.FINEST, handler.getLevel());
+    }
+
+    @Test
+    public void testHttpLogManagerWithTraceLogConsole3() {
+        BMap traceLogConfig = mock(BMap.class);
+        when(traceLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(true);
+        BString traceFilePath = mock(BString.class);
+        BString host = mock(BString.class);
+        BString accessFilePath = mock(BString.class);
+        long port = 0;
+        when(traceFilePath.getValue()).thenReturn("");
+        when(accessFilePath.getValue()).thenReturn("");
+        when(host.getValue()).thenReturn("testHost");
+        when(traceLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(traceFilePath);
+        when(traceLogConfig.getStringValue(HTTP_TRACE_LOG_HOST)).thenReturn(host);
+        when(traceLogConfig.getIntValue(HTTP_TRACE_LOG_PORT)).thenReturn(port);
+
+        BMap accessLogConfig = mock(BMap.class);
+        when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
+        when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
+
+        HttpLogManager httpLogManager = new HttpLogManager(true, traceLogConfig, accessLogConfig);
         Handler[] handlers = httpLogManager.httpTraceLogger.getHandlers();
         Assert.assertTrue(handlers.length > 0);
         Handler handler = handlers[handlers.length - 1];
