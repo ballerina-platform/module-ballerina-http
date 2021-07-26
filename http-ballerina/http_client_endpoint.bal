@@ -415,7 +415,8 @@ public type ResponseLimitConfigs record {|
     int maxEntityBodySize = -1;
 |};
 
-isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig) = @java:Method {
+isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig)
+returns ClientError? = @java:Method {
    'class: "org.ballerinalang.net.http.clientendpoint.CreateSimpleHttpClient",
    name: "createSimpleHttpClient"
 } external;
