@@ -41,6 +41,19 @@ public class ResponseCacheControl {
     public string[] noCacheFields = [];
     public string[] privateFields = [];
 
+    public isolated function populateFields(HttpCacheConfig cacheConfig) {
+        self.mustRevalidate = cacheConfig.mustRevalidate;
+        self.noCache = cacheConfig.noCache;
+        self.noStore = cacheConfig.noStore;
+        self.noTransform = cacheConfig.noTransform;
+        self.isPrivate = cacheConfig.isPrivate;
+        self.proxyRevalidate = cacheConfig.proxyRevalidate;
+        self.maxAge = cacheConfig.maxAge;
+        self.sMaxAge = cacheConfig.sMaxAge;
+        self.noCacheFields = cacheConfig.noCacheFields;
+        self.privateFields = cacheConfig.privateFields;
+    }
+
     # Builds the cache control directives string from the current `http:ResponseCacheControl` configurations.
     #
     # + return - The cache control directives string to be used in the `cache-control` header

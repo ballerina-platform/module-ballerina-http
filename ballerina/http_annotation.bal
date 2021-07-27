@@ -96,3 +96,37 @@ public type HttpHeader record {|
 
 # The annotation which is used to define the Header resource signature parameter.
 public annotation HttpHeader Header on parameter;
+
+# Defines the HTTP response cache configuration.
+#
+# + mustRevalidate - Sets the `must-revalidate` directive
+# + noCache - Sets the `no-cache` directive
+# + noStore - Sets the `no-store` directive
+# + noTransform - Sets the `no-transform` directive
+# + isPrivate - Sets the `private` and `public` directives
+# + proxyRevalidate - Sets the `proxy-revalidate` directive
+# + maxAge - Sets the `max-age` directive
+# + sMaxAge - Sets the `s-maxage` directive
+# + noCacheFields - Optional fields for the `no-cache` directive. Before sending a listed field in a response, it
+#                   must be validated with the origin server
+# + privateFields - Optional fields for the `private` directive. A cache can omit the fields specified and store
+#                   the rest of the response
+# + setETag - Sets the `etag` header for the given payload
+# + setLastModified - Sets the current time as the `last-modified` header
+public type HttpCacheConfig record {|
+    boolean mustRevalidate = false;
+    boolean noCache = false;
+    boolean noStore = false;
+    boolean noTransform = false;
+    boolean isPrivate = false;
+    boolean proxyRevalidate = false;
+    decimal maxAge = -1;
+    decimal sMaxAge = -1;
+    string[] noCacheFields = [];
+    string[] privateFields = [];
+    boolean setETag = false;
+    boolean setLastModified = false;
+|};
+
+# The annotation which is used to define the response cache configuration.
+public annotation HttpCacheConfig CacheConfig on return;

@@ -113,8 +113,8 @@ public client class Caller {
         return nativeGetRemoteHostName(self);
     }
 
-    private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType)
-            returns ListenerError? {
+    private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType,
+        HttpCacheConfig? cacheConfig) returns ListenerError? {
         Response response = new;
         if (message is ()) {
             if (self.present) {
@@ -149,6 +149,20 @@ public client class Caller {
             setPayload(message, response);
             if (returnMediaType is string) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
+            }
+        }
+        if (!(message is error) && !(message is ()) && (cacheConfig is HttpCacheConfig)) {
+            ResponseCacheControl responseCacheControl = new;
+            responseCacheControl.populateFields(cacheConfig);
+            response.cacheControl = responseCacheControl;
+            if (cacheConfig.setLastModified) {
+                response.setLastModified();
+            }
+            if (cacheConfig.setETag) {
+                string|error payloadString = response.getTextPayload();
+                if (payloadString is string) {
+                    response.setETag(payloadString);
+                }
             }
         }
         return nativeRespond(self, response);

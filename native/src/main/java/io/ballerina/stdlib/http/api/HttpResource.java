@@ -73,6 +73,7 @@ public class HttpResource {
     private String wildcardToken;
     private int pathParamCount;
     private String returnMediaType;
+    private BMap cacheConfig;
 
     protected HttpResource(MethodType resource, HttpService parentService) {
         this.balResource = resource;
@@ -82,6 +83,7 @@ public class HttpResource {
             this.populateResourcePath();
             this.populateMethod();
             this.populateReturnMediaType();
+            this.populateResponseCacheConfig();
         }
     }
 
@@ -295,6 +297,26 @@ public class HttpResource {
 
     String getReturnMediaType() {
         return returnMediaType;
+    }
+
+    private void populateResponseCacheConfig() {
+        BMap annotations = (BMap) getBalResource().getAnnotation(StringUtils.fromString(RETURN_ANNOT_PREFIX));
+        if (annotations == null) {
+            return;
+        }
+        Object[] annotationsKeys = annotations.getKeys();
+        for (Object objKey : annotationsKeys) {
+            BString key = ((BString) objKey);
+            if (!ParamHandler.CACHE_CONFIG_ANNOTATION.equals(key.getValue())) {
+                continue;
+            }
+            this.cacheConfig = annotations.getMapValue(key);
+            return;
+        }
+    }
+
+    BMap getResponseCacheConfig() {
+        return cacheConfig;
     }
 
     // Followings added due to WebSub requirement
