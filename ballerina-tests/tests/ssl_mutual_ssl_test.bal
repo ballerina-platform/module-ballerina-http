@@ -86,7 +86,7 @@ service /echoDummyService15 on echoDummy15 {
     }
 }
 
-http:ClientConfiguration mutualSslClientConf = {
+http:ClientConfiguration mutualSslClientConf1 = {
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -107,8 +107,73 @@ http:ClientConfiguration mutualSslClientConf = {
 };
 
 @test:Config {}
-public function testMutualSsl() {
-    http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf );
+public function testMutualSsl1() {
+    http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf1);
+    http:Response|error resp = httpClient->get("/helloWorld15/");
+    if (resp is http:Response) {
+        var payload = resp.getTextPayload();
+        if (payload is string) {
+            test:assertEquals(payload, "hello world");
+        } else {
+            test:assertFail(msg = "Found unexpected output: " +  payload.message());
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+http:ClientConfiguration mutualSslClientConf2 = {
+    secureSocket: {
+        key: {
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
+            password: "ballerina"
+        },
+        protocol: {
+            name: http:SSL,
+            versions: ["TLSv1.2"]
+        },
+        ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"],
+        handshakeTimeout: 20,
+        sessionTimeout: 30
+    }
+};
+
+@test:Config {}
+public function testMutualSsl2() {
+    http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf2);
+    http:Response|error resp = httpClient->get("/helloWorld15/");
+    if (resp is http:Response) {
+        var payload = resp.getTextPayload();
+        if (payload is string) {
+            test:assertEquals(payload, "hello world");
+        } else {
+            test:assertFail(msg = "Found unexpected output: " +  payload.message());
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+http:ClientConfiguration mutualSslClientConf3 = {
+    secureSocket: {
+        enable: false,
+        key: {
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
+            password: "ballerina"
+        },
+        protocol: {
+            name: http:SSL,
+            versions: ["TLSv1.2"]
+        },
+        ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"],
+        handshakeTimeout: 20,
+        sessionTimeout: 30
+    }
+};
+
+@test:Config {}
+public function testMutualSsl3() {
+    http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf3);
     http:Response|error resp = httpClient->get("/helloWorld15/");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();

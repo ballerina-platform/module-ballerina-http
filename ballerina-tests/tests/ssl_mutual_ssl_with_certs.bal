@@ -66,7 +66,7 @@ service /mutualSSLService on mutualSSLListener {
     }
 }
 
-http:ClientConfiguration mutualSslCertClientConf = {
+http:ClientConfiguration mutualSslCertClientConf1 = {
     secureSocket: {
         cert: "tests/certsandkeys/public.crt",
         key: {
@@ -77,8 +77,61 @@ http:ClientConfiguration mutualSslCertClientConf = {
 };
 
 @test:Config {}
-public function testMutualSslWithCerts() {
-    http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf );
+public function testMutualSslWithCerts1() {
+    http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf1);
+    http:Request req = new;
+    http:Response|error resp = clientEP->get("/mutualSSLService/");
+    if (resp is http:Response) {
+        var payload = resp.getTextPayload();
+        if (payload is string) {
+            test:assertEquals(payload, "Response received");
+        } else {
+            test:assertFail(msg = "Found unexpected output: " +  payload.message());
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+http:ClientConfiguration mutualSslCertClientConf2 = {
+    secureSocket: {
+        key: {
+            keyFile: "tests/certsandkeys/private.key",
+            certFile: "tests/certsandkeys/public.crt"
+        }
+    }
+};
+
+@test:Config {}
+public function testMutualSslWithCerts2() {
+    http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf2);
+    http:Request req = new;
+    http:Response|error resp = clientEP->get("/mutualSSLService/");
+    if (resp is http:Response) {
+        var payload = resp.getTextPayload();
+        if (payload is string) {
+            test:assertEquals(payload, "Response received");
+        } else {
+            test:assertFail(msg = "Found unexpected output: " +  payload.message());
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+http:ClientConfiguration mutualSslCertClientConf3 = {
+    secureSocket: {
+        enable: false,
+        key: {
+            keyFile: "tests/certsandkeys/private.key",
+            certFile: "tests/certsandkeys/public.crt"
+        }
+    }
+};
+
+@test:Config {}
+public function testMutualSslWithCerts3() {
+    http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf3);
     http:Request req = new;
     http:Response|error resp = clientEP->get("/mutualSSLService/");
     if (resp is http:Response) {

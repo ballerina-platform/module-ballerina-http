@@ -67,7 +67,7 @@ service /mutualSslService on mutualSslistener {
     }
 }
 
-http:ClientConfiguration certsClientConf = {
+http:ClientConfiguration certsClientConf1 = {
     secureSocket: {
         cert: "tests/certsandkeys/public.crt",
         key: {
@@ -78,8 +78,49 @@ http:ClientConfiguration certsClientConf = {
 };
 
 @test:Config {}
-public function mutualSslWithCerts() {
-    http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf);
+public function mutualSslWithCerts1() {
+    http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf1);
+    http:Response|error resp = clientEP->get("/mutualSslService/");
+    if (resp is http:Response) {
+        assertTextPayload(resp.getTextPayload(), "Response received");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+http:ClientConfiguration certsClientConf2 = {
+    secureSocket: {
+        key: {
+            keyFile: "tests/certsandkeys/private.key",
+            certFile: "tests/certsandkeys/public.crt"
+        }
+    }
+};
+
+@test:Config {}
+public function mutualSslWithCerts2() {
+    http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf2);
+    http:Response|error resp = clientEP->get("/mutualSslService/");
+    if (resp is http:Response) {
+        assertTextPayload(resp.getTextPayload(), "Response received");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+http:ClientConfiguration certsClientConf3 = {
+    secureSocket: {
+        enable: false,
+        key: {
+            keyFile: "tests/certsandkeys/private.key",
+            certFile: "tests/certsandkeys/public.crt"
+        }
+    }
+};
+
+@test:Config {}
+public function mutualSslWithCerts3() {
+    http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf3);
     http:Response|error resp = clientEP->get("/mutualSslService/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Response received");

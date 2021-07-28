@@ -1281,14 +1281,24 @@ public class HttpUtil {
         boolean enable = secureSocket.getBooleanValue(HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL);
         if (!enable) {
             senderConfiguration.disableSsl();
+            BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_KEY);
+            if (key != null) {
+                evaluateKeyField(key, senderConfiguration);
+            }
             return;
         }
         Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
         if (cert == null) {
-            throw createHttpError("Need to configure 'crypto:TrustStore' or 'cert' with client SSL certificates file.",
-                                  HttpErrorType.SSL_ERROR);
+            BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_KEY);
+            if (key != null) {
+                senderConfiguration.useJavaDefaults();
+            } else {
+                throw createHttpError("Need to configure 'crypto:TrustStore' or 'cert' with client SSL " +
+                                "certificates file.", HttpErrorType.SSL_ERROR);
+            }
+        } else {
+            evaluateCertField(cert, senderConfiguration);
         }
-        evaluateCertField(cert, senderConfiguration);
         BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_KEY);
         if (key != null) {
             evaluateKeyField(key, senderConfiguration);
