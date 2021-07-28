@@ -614,3 +614,24 @@ function testClientPathWithWhitespaces() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
+
+@test:Config {}
+function testClientInitWithMalformedURL() {
+    http:Client|error httpEndpoint = new ("invalid URL here");
+    if (httpEndpoint is error) {
+        test:assertEquals(httpEndpoint.message(), "malformed URL: invalid URL here", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+public function testProxyClientError() {
+    http:Client|error clientEP = new("http://localhost:9218",
+        { http1Settings: { proxy: { host:"ballerina", port:9219 }}});
+    if (clientEP is error) {
+        test:assertEquals(clientEP.message(), "Failed to resolve host: ballerina", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}

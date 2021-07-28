@@ -389,7 +389,7 @@ public type ResponseLimitConfigs record {|
 |};
 
 isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig, string clientUrl,
-ClientConfiguration clientEndpointConfig) = @java:Method {
+ClientConfiguration clientEndpointConfig) returns ClientError? = @java:Method {
    'class: "io.ballerina.stdlib.http.api.client.endpoint.CreateSimpleHttpClient",
    name: "createSimpleHttpClient"
 } external;

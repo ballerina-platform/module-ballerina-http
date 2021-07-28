@@ -1199,7 +1199,7 @@ public class HttpUtil {
                 try {
                     proxyServerConfiguration = new ProxyServerConfiguration(proxyHost, proxyPort);
                 } catch (UnknownHostException e) {
-                    throw new BallerinaConnectorException("Failed to resolve host" + proxyHost, e);
+                    throw new BallerinaConnectorException("Failed to resolve host: " + proxyHost, e);
                 }
                 if (!proxyUserName.isEmpty()) {
                     proxyServerConfiguration.setProxyUsername(proxyUserName);
