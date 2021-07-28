@@ -146,22 +146,17 @@ public client class Caller {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
         } else {
-            setPayload(message, response);
+            boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
+            setPayload(message, response, setETag);
             if (returnMediaType is string) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-        }
-        if (!(message is error) && !(message is ()) && (cacheConfig is HttpCacheConfig)) {
-            ResponseCacheControl responseCacheControl = new;
-            responseCacheControl.populateFields(cacheConfig);
-            response.cacheControl = responseCacheControl;
-            if (cacheConfig.setLastModified) {
-                response.setLastModified();
-            }
-            if (cacheConfig.setETag) {
-                string|error payloadString = response.getTextPayload();
-                if (payloadString is string) {
-                    response.setETag(payloadString);
+            if (cacheConfig is HttpCacheConfig) {
+                ResponseCacheControl responseCacheControl = new;
+                responseCacheControl.populateFields(cacheConfig);
+                response.cacheControl = responseCacheControl;
+                if (cacheConfig.setLastModified) {
+                    response.setLastModified();
                 }
             }
         }
@@ -214,26 +209,38 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     return response;
 }
 
-isolated function setPayload(anydata payload, Response response) {
+isolated function setPayload(anydata payload, Response response, boolean setETag = false) {
     if (payload is ()) {
         return;
     } else if (payload is xml) {
         response.setXmlPayload(payload);
+        if (setETag) {
+            response.setETag(payload);
+        }
     } else if (payload is string) {
         response.setTextPayload(payload);
+        if (setETag) {
+            response.setETag(payload);
+        }
     } else if (payload is byte[]) {
         response.setBinaryPayload(payload);
+        if (setETag) {
+            response.setETag(payload);
+        }
     } else {
-        castToJsonAndSetPayload(response, payload, "anydata to json conversion error: " );
+        castToJsonAndSetPayload(response, payload, "anydata to json conversion error: ", setETag);
     }
 }
 
-isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg) {
+isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg, boolean setETag = false) {
     var result = trap val:toJson(payload);
     if (result is error) {
         panic error InitializingOutboundResponseError(errMsg + result.message(), result);
     } else {
         response.setJsonPayload(result);
+        if (setETag) {
+            response.setETag(result);
+        }
     }
 }
 
