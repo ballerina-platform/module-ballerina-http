@@ -97,7 +97,8 @@ public type HttpHeader record {|
 # The annotation which is used to define the Header resource signature parameter.
 public annotation HttpHeader Header on parameter;
 
-# Defines the HTTP response cache configuration.
+# Defines the HTTP response cache configuration. By default the `no-cache` directive is setted to the `cache-control`
+# header. In addition to that `etag` and `last-modified` headers are also added for cache validation.
 #
 # + mustRevalidate - Sets the `must-revalidate` directive
 # + noCache - Sets the `no-cache` directive
@@ -115,7 +116,7 @@ public annotation HttpHeader Header on parameter;
 # + setLastModified - Sets the current time as the `last-modified` header
 public type HttpCacheConfig record {|
     boolean mustRevalidate = false;
-    boolean noCache = false;
+    boolean noCache = true;
     boolean noStore = false;
     boolean noTransform = false;
     boolean isPrivate = false;
@@ -124,9 +125,10 @@ public type HttpCacheConfig record {|
     decimal sMaxAge = -1;
     string[] noCacheFields = [];
     string[] privateFields = [];
-    boolean setETag = false;
-    boolean setLastModified = false;
+    boolean setETag = true;
+    boolean setLastModified = true;
 |};
 
-# The annotation which is used to define the response cache configuration.
+# The annotation which is used to define the response cache configuration. This annotation only supports `anydata` and
+# `SuccessStatusCodeResponse` return types.
 public annotation HttpCacheConfig CacheConfig on return;

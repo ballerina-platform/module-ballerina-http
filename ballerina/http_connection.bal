@@ -116,6 +116,8 @@ public client class Caller {
     private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType,
         HttpCacheConfig? cacheConfig) returns ListenerError? {
         Response response = new;
+        boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
+        boolean enableCache = false;
         if (message is ()) {
             if (self.present) {
                 InternalServerError errResponse = {};
@@ -137,7 +139,12 @@ public client class Caller {
                 response.setTextPayload(message.message());
             }
         } else if (message is StatusCodeResponse) {
-            response = createStatusCodeResponse(message, returnMediaType);
+            if (message is SuccessStatusCodeResponse) {
+                response = createStatusCodeResponse(message, returnMediaType, setETag);
+                enableCache = true;
+            } else {
+                response = createStatusCodeResponse(message, returnMediaType);
+            }
         } else if (message is Response) {
             response = message;
             // Update content-type header with mediaType annotation value only if the response does not already 
@@ -146,25 +153,26 @@ public client class Caller {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
         } else {
-            boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
             setPayload(message, response, setETag);
             if (returnMediaType is string) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-            if (cacheConfig is HttpCacheConfig) {
-                ResponseCacheControl responseCacheControl = new;
-                responseCacheControl.populateFields(cacheConfig);
-                response.cacheControl = responseCacheControl;
-                if (cacheConfig.setLastModified) {
-                    response.setLastModified();
-                }
+            enableCache = true;
+        }
+        if (enableCache && (cacheConfig is HttpCacheConfig)) {
+            ResponseCacheControl responseCacheControl = new;
+            responseCacheControl.populateFields(cacheConfig);
+            response.cacheControl = responseCacheControl;
+            if (cacheConfig.setLastModified) {
+                response.setLastModified();
             }
         }
         return nativeRespond(self, response);
     }
 }
 
-isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = ()) returns Response {
+isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false)
+    returns Response {
     Response response = new;
     response.statusCode = message.status.code;
 
@@ -191,7 +199,7 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
         }
     }
 
-    setPayload(message?.body, response);
+    setPayload(message?.body, response, setETag);
 
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record

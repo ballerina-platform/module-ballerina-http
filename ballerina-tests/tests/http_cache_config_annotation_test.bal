@@ -28,12 +28,16 @@ int numberOfProxyHitsNew = 0;
 int noCacheHitCountNew = 0;
 int maxAgeHitCountNew = 0;
 int numberOfHitsNew = 0;
+int statusHits = 0;
 xml maxAgePayload1 = xml `<message>before cache expiration</message>`;
 xml maxAgePayload2 = xml `<message>after cache expiration</message>`;
+string errorBody = "Error";
 string mustRevalidatePayload1 = "Hello, World!";
 byte[] mustRevalidatePayload2 = "Hello, New World!".toBytes();
 json nocachePayload1 = { "message": "1st response" };
 json nocachePayload2 = { "message": "2nd response" };
+http:Ok ok = {body : mustRevalidatePayload1};
+http:InternalServerError err = {body : errorBody};
 
 service / on new http:Listener(cacheAnnotationTestPort1) {
 
@@ -76,11 +80,23 @@ service / on new http:Listener(cacheAnnotationTestPort1) {
             checkpanic caller->respond(res);
         }
     }
+
+    resource function get statusResponse(http:Caller caller, http:Request req) {
+        http:Response|error response = cacheBackendEP->forward("/statusResponseBE", req);
+        if (response is http:Response) {
+            checkpanic caller->respond(response);
+        } else {
+            http:Response res = new;
+            res.statusCode = 500;
+            res.setPayload(response.message());
+            checkpanic caller->respond(res);
+        }
+    }
 }
 
 service / on new http:Listener(cacheAnnotationTestPort2) {
 
-    resource function default nocacheBE(http:Request req) returns @http:CacheConfig{noCache : true, setETag : true} json {
+    resource function default nocacheBE(http:Request req) returns @http:CacheConfig{} json {
         noCacheHitCountNew += 1;
         if (noCacheHitCountNew == 1) {
             return nocachePayload1;
@@ -89,7 +105,7 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
         }
     }
 
-    resource function default maxAgeBE(http:Request req) returns @http:CacheConfig{maxAge : 5, setETag : true} xml {
+    resource function default maxAgeBE(http:Request req) returns @http:CacheConfig{noCache : false, maxAge : 5} xml {
         maxAgeHitCountNew += 1;
         if (maxAgeHitCountNew == 1) {
             return maxAgePayload1;
@@ -98,13 +114,22 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
         }
     }
 
-    resource function get mustRevalidateBE(http:Caller caller, http:Request req) returns
-            @http:CacheConfig{mustRevalidate : true, maxAge : 5, setETag : true} string|byte[] {
+    resource function get mustRevalidateBE(http:Request req) returns @http:CacheConfig{noCache : false, mustRevalidate : true,
+        maxAge : 5} string|byte[] {
         numberOfHitsNew += 1;
         if (numberOfHitsNew < 2) {
             return mustRevalidatePayload1;
         } else {
             return mustRevalidatePayload2;
+        }
+    }
+
+    resource function get statusResponseBE(http:Request req) returns @http:CacheConfig{} http:Ok|http:InternalServerError {
+        statusHits += 1;
+        if (statusHits < 3) {
+            return ok;
+        } else {
+            return err;
         }
     }
 }
@@ -221,6 +246,43 @@ function testMustRevalidateCacheControlWithAnnotation() {
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "3");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_BINARY);
         assertBinaryPayload(response.getBinaryPayload(), mustRevalidatePayload2);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testReturnStatusCodeResponsesWithAnnotation() {
+    http:Response|error response = cacheClientEP->get("/statusResponse");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(statusHits, 1);
+        assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = cacheClientEP->get("/statusResponse");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(statusHits, 2);
+        assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = cacheClientEP->get("/statusResponse");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        test:assertEquals(statusHits, 3);
+        test:assertFalse(response.hasHeader(ETAG));
+        test:assertFalse(response.hasHeader(CACHE_CONTROL));
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), errorBody);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
