@@ -273,8 +273,6 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
         if (ctx.pipeline().get(IDLE_STATE_HANDLER) == null && readTimeOut > 0) {
             ctx.pipeline().addBefore(MESSAGE_QUEUE_HANDLER, IDLE_STATE_HANDLER,
                     new IdleStateHandler(readTimeOut, 0, 0, TimeUnit.SECONDS));
-        } else {
-            LOG.warn("Idle state handler already added to the sync client");
         }
     }
 
