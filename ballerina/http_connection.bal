@@ -113,19 +113,21 @@ public client class Caller {
         return nativeGetRemoteHostName(self);
     }
 
-    private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType)
-            returns ListenerError? {
+    private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType,
+        HttpCacheConfig? cacheConfig) returns ListenerError? {
         Response response = new;
-        if (message is ()) {
-            if (self.present) {
+        boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
+        boolean cacheCompatibleType = false;
+        if message is () {
+            if self.present {
                 InternalServerError errResponse = {};
                 response = createStatusCodeResponse(errResponse);
             } else {
                 Accepted AcceptedResponse = {};
                 response = createStatusCodeResponse(AcceptedResponse);
             }
-        } else if (message is error) {
-            if (message is ApplicationResponseError) {
+        } else if message is error {
+            if message is ApplicationResponseError {
                 InternalServerError err = {
                     headers: message.detail().headers,
                     body: message.detail().body
@@ -136,9 +138,14 @@ public client class Caller {
                 response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
                 response.setTextPayload(message.message());
             }
-        } else if (message is StatusCodeResponse) {
-            response = createStatusCodeResponse(message, returnMediaType);
-        } else if (message is Response) {
+        } else if message is StatusCodeResponse {
+            if message is SuccessStatusCodeResponse {
+                response = createStatusCodeResponse(message, returnMediaType, setETag);
+                cacheCompatibleType = true;
+            } else {
+                response = createStatusCodeResponse(message, returnMediaType);
+            }
+        } else if message is Response {
             response = message;
             // Update content-type header with mediaType annotation value only if the response does not already 
             // have a similar header
@@ -146,16 +153,26 @@ public client class Caller {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
         } else {
-            setPayload(message, response);
-            if (returnMediaType is string) {
+            setPayload(message, response, setETag);
+            if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
+            }
+            cacheCompatibleType = true;
+        }
+        if (cacheCompatibleType && (cacheConfig is HttpCacheConfig)) {
+            ResponseCacheControl responseCacheControl = new;
+            responseCacheControl.populateFields(cacheConfig);
+            response.cacheControl = responseCacheControl;
+            if (cacheConfig.setLastModified) {
+                response.setLastModified();
             }
         }
         return nativeRespond(self, response);
     }
 }
 
-isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = ()) returns Response {
+isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false)
+    returns Response {
     Response response = new;
     response.statusCode = message.status.code;
 
@@ -182,7 +199,7 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
         }
     }
 
-    setPayload(message?.body, response);
+    setPayload(message?.body, response, setETag);
 
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
@@ -200,26 +217,38 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     return response;
 }
 
-isolated function setPayload(anydata payload, Response response) {
-    if (payload is ()) {
+isolated function setPayload(anydata payload, Response response, boolean setETag = false) {
+    if payload is () {
         return;
-    } else if (payload is xml) {
+    } else if payload is xml {
         response.setXmlPayload(payload);
-    } else if (payload is string) {
+        if setETag {
+            response.setETag(payload);
+        }
+    } else if payload is string {
         response.setTextPayload(payload);
-    } else if (payload is byte[]) {
+        if setETag {
+            response.setETag(payload);
+        }
+    } else if payload is byte[] {
         response.setBinaryPayload(payload);
+        if setETag {
+            response.setETag(payload);
+        }
     } else {
-        castToJsonAndSetPayload(response, payload, "anydata to json conversion error: " );
+        castToJsonAndSetPayload(response, payload, "anydata to json conversion error: ", setETag);
     }
 }
 
-isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg) {
+isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg, boolean setETag = false) {
     var result = trap val:toJson(payload);
-    if (result is error) {
+    if result is error {
         panic error InitializingOutboundResponseError(errMsg + result.message(), result);
     } else {
         response.setJsonPayload(result);
+        if setETag {
+            response.setETag(result);
+        }
     }
 }
 

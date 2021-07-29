@@ -23,6 +23,10 @@ public type StatusCodeResponse Continue|SwitchingProtocols|Ok|Created|Accepted|N
     UriTooLong|UnsupportedMediaType|RangeNotSatisfiable|ExpectationFailed|UpgradeRequired|RequestHeaderFieldsTooLarge|
     InternalServerError|NotImplemented|BadGateway|ServiceUnavailable|GatewayTimeout|HttpVersionNotSupported;
 
+# Defines the possible success status code response record types.
+type SuccessStatusCodeResponse Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|ResetContent|
+    PartialContent;
+
 # The `Status` object creates the distinction for the different response status code types.
 #
 # + code - The response status code

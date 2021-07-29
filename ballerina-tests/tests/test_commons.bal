@@ -19,6 +19,9 @@ import ballerina/mime;
 import ballerina/test;
 
 const string CONTENT_TYPE = "content-type";
+const string ETAG = "etag";
+const string CACHE_CONTROL = "cache-control";
+const string LAST_MODIFIED = "last-modified";
 const string CONTENT_ENCODING = "content-encoding";
 const string ACCEPT_ENCODING = "accept-encoding";
 const string CONTENT_LENGTH = "content-length";
@@ -54,6 +57,7 @@ const string TEXT_PLAIN = "text/plain";
 const string APPLICATION_XML = "application/xml";
 const string APPLICATION_JSON = "application/json";
 const string APPLICATION_FORM = "application/x-www-form-urlencoded";
+const string APPLICATION_BINARY = "application/octet-stream";
 
 const string errorMessage = "Found an unexpected output:";
 
@@ -85,6 +89,22 @@ isolated function assertJsonPayload(json|error payload, json expectValue) {
 isolated function assertJsonPayloadtoJsonString(json|error payload, json expectValue) {
     if payload is json {
         test:assertEquals(payload.toJsonString(), expectValue.toJsonString(), msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + payload.message());
+    }
+}
+
+isolated function assertXmlPayload(xml|error payload, xml expectValue) {
+    if payload is xml {
+        test:assertEquals(payload, expectValue, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + payload.message());
+    }
+}
+
+isolated function assertBinaryPayload(byte[]|error payload, byte[] expectValue) {
+    if payload is byte[] {
+        test:assertEquals(payload, expectValue, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + payload.message());
     }

@@ -342,7 +342,7 @@ public class Response {
     #
     # + payload - The payload for which the ETag should be set
     public isolated function setETag(json|xml|string|byte[] payload) {
-        string etag = crypto:crc32b(payload.toString().toBytes());
+        string etag = payload is byte[] ? crypto:crc32b(payload) : crypto:crc32b(payload.toString().toBytes());
         self.setHeader(ETAG, etag);
     }
 

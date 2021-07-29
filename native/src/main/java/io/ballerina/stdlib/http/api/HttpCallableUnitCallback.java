@@ -20,6 +20,7 @@ import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
@@ -37,14 +38,17 @@ public class HttpCallableUnitCallback implements Callback {
     private final BObject caller;
     private final Runtime runtime;
     private final String returnMediaType;
+    private final BMap cacheConfig;
     private HttpCarbonMessage requestMessage;
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType) {
+    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType,
+                             BMap cacheConfig) {
         this.requestMessage = requestMessage;
         this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
         this.runtime = runtime;
         this.returnMediaType = returnMediaType;
+        this.cacheConfig = cacheConfig;
     }
 
     @Override
@@ -55,11 +59,13 @@ public class HttpCallableUnitCallback implements Callback {
         }
         printStacktraceIfError(result);
 
-        Object[] paramFeed = new Object[4];
+        Object[] paramFeed = new Object[6];
         paramFeed[0] = result;
         paramFeed[1] = true;
         paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[3] = true;
+        paramFeed[4] = cacheConfig;
+        paramFeed[5] = true;
 
         Callback returnCallback = new Callback() {
             @Override
