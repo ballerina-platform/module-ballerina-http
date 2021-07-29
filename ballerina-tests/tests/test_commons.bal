@@ -21,6 +21,7 @@ import ballerina/test;
 const string CONTENT_TYPE = "content-type";
 const string ETAG = "etag";
 const string CACHE_CONTROL = "cache-control";
+const string LAST_MODIFIED = "last-modified";
 const string CONTENT_ENCODING = "content-encoding";
 const string ACCEPT_ENCODING = "accept-encoding";
 const string CONTENT_LENGTH = "content-length";

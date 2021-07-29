@@ -96,7 +96,7 @@ service / on new http:Listener(cacheAnnotationTestPort1) {
 
 service / on new http:Listener(cacheAnnotationTestPort2) {
 
-    resource function default nocacheBE(http:Request req) returns @http:CacheConfig{} json {
+    resource function default nocacheBE(http:Request req) returns @http:CacheConfig json {
         noCacheHitCountNew += 1;
         if (noCacheHitCountNew == 1) {
             return nocachePayload1;
@@ -124,7 +124,7 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
         }
     }
 
-    resource function get statusResponseBE(http:Request req) returns @http:CacheConfig{} http:Ok|http:InternalServerError {
+    resource function get statusResponseBE(http:Request req) returns @http:CacheConfig http:Ok|http:InternalServerError {
         statusHits += 1;
         if (statusHits < 3) {
             return ok;
@@ -140,6 +140,8 @@ function testNoCacheCacheControlWithAnnotation() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(noCacheHitCountNew, 1);
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "no-cache,public");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(nocachePayload1.toString().toBytes()));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), nocachePayload1);
@@ -151,6 +153,8 @@ function testNoCacheCacheControlWithAnnotation() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(noCacheHitCountNew, 2);
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "no-cache,public");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(nocachePayload2.toString().toBytes()));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), nocachePayload2);
@@ -162,6 +166,8 @@ function testNoCacheCacheControlWithAnnotation() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(noCacheHitCountNew, 3);
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "no-cache,public");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(nocachePayload2.toString().toBytes()));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), nocachePayload2);
@@ -176,6 +182,8 @@ function testMaxAgeCacheControlWithAnnotation() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(maxAgeHitCountNew, 1);
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "public,max-age=5");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(maxAgePayload1.toString().toBytes()));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         assertXmlPayload(response.getXmlPayload(), maxAgePayload1);
@@ -187,6 +195,8 @@ function testMaxAgeCacheControlWithAnnotation() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(maxAgeHitCountNew, 1);
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "public,max-age=5");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(maxAgePayload1.toString().toBytes()));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         assertXmlPayload(response.getXmlPayload(), maxAgePayload1);
@@ -201,6 +211,8 @@ function testMaxAgeCacheControlWithAnnotation() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(maxAgeHitCountNew, 2);
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "public,max-age=5");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(maxAgePayload2.toString().toBytes()));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         assertXmlPayload(response.getXmlPayload(), maxAgePayload2);
@@ -214,6 +226,8 @@ function testMustRevalidateCacheControlWithAnnotation() {
     http:Response|error response = cacheClientEP->get("/mustRevalidate");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "1");
@@ -226,6 +240,8 @@ function testMustRevalidateCacheControlWithAnnotation() {
     response = cacheClientEP->get("/mustRevalidate");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "2");
@@ -241,6 +257,8 @@ function testMustRevalidateCacheControlWithAnnotation() {
     response = cacheClientEP->get("/mustRevalidate");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload2));
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "2");
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "3");
@@ -257,6 +275,8 @@ function testReturnStatusCodeResponsesWithAnnotation() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(statusHits, 1);
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "no-cache,public");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
@@ -268,6 +288,8 @@ function testReturnStatusCodeResponsesWithAnnotation() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(statusHits, 2);
+        test:assertTrue(response.hasHeader(LAST_MODIFIED));
+        assertHeaderValue(checkpanic response.getHeader(CACHE_CONTROL), "no-cache,public");
         assertHeaderValue(checkpanic response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
@@ -281,6 +303,7 @@ function testReturnStatusCodeResponsesWithAnnotation() {
         test:assertEquals(statusHits, 3);
         test:assertFalse(response.hasHeader(ETAG));
         test:assertFalse(response.hasHeader(CACHE_CONTROL));
+        test:assertFalse(response.hasHeader(LAST_MODIFIED));
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), errorBody);
     } else {

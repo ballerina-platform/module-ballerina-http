@@ -24,7 +24,7 @@ public type StatusCodeResponse Continue|SwitchingProtocols|Ok|Created|Accepted|N
     InternalServerError|NotImplemented|BadGateway|ServiceUnavailable|GatewayTimeout|HttpVersionNotSupported;
 
 # Defines the possible success status code response record types.
-public type SuccessStatusCodeResponse Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|ResetContent|
+type SuccessStatusCodeResponse Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|ResetContent|
     PartialContent;
 
 # The `Status` object creates the distinction for the different response status code types.

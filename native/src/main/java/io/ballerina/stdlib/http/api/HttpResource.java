@@ -82,8 +82,7 @@ public class HttpResource {
         if (balResource instanceof ResourceMethodType) {
             this.populateResourcePath();
             this.populateMethod();
-            this.populateReturnMediaType();
-            this.populateResponseCacheConfig();
+            this.populateReturnAnnotationData();
         }
     }
 
@@ -269,7 +268,7 @@ public class HttpResource {
         return wildcardToken;
     }
 
-    private void populateReturnMediaType() {
+    private void populateReturnAnnotationData() {
         BMap annotations = (BMap) getBalResource().getAnnotation(StringUtils.fromString(RETURN_ANNOT_PREFIX));
         if (annotations == null) {
             return;
@@ -277,42 +276,27 @@ public class HttpResource {
         Object[] annotationsKeys = annotations.getKeys();
         for (Object objKey : annotationsKeys) {
             BString key = ((BString) objKey);
-            if (!ParamHandler.PAYLOAD_ANNOTATION.equals(key.getValue())) {
-                continue;
-            }
-            Object mediaType = annotations.getMapValue(key).get(HttpConstants.ANN_FIELD_MEDIA_TYPE);
-            if (mediaType instanceof BString) {
-                this.returnMediaType = ((BString) mediaType).getValue();
-            } else if (mediaType instanceof BArray) {
-                BArray mediaTypeArr = (BArray) mediaType;
-                if (mediaTypeArr.getLength() != 0) {
-                    // When user provides an array of mediaTypes, the first element is considered for `Content-Type`
-                    // of the response assuming the priority order.
-                    this.returnMediaType = ((BArray) mediaType).get(0).toString();
+            if (ParamHandler.PAYLOAD_ANNOTATION.equals(key.getValue())) {
+                Object mediaType = annotations.getMapValue(key).get(HttpConstants.ANN_FIELD_MEDIA_TYPE);
+                if (mediaType instanceof BString) {
+                    this.returnMediaType = ((BString) mediaType).getValue();
+                } else if (mediaType instanceof BArray) {
+                    BArray mediaTypeArr = (BArray) mediaType;
+                    if (mediaTypeArr.getLength() != 0) {
+                        // When user provides an array of mediaTypes, the first element is considered for `Content-Type`
+                        // of the response assuming the priority order.
+                        this.returnMediaType = ((BArray) mediaType).get(0).toString();
+                    }
                 }
             }
-            return;
+            if (ParamHandler.CACHE_CONFIG_ANNOTATION.equals(key.getValue())) {
+                this.cacheConfig = annotations.getMapValue(key);
+            }
         }
     }
 
     String getReturnMediaType() {
         return returnMediaType;
-    }
-
-    private void populateResponseCacheConfig() {
-        BMap annotations = (BMap) getBalResource().getAnnotation(StringUtils.fromString(RETURN_ANNOT_PREFIX));
-        if (annotations == null) {
-            return;
-        }
-        Object[] annotationsKeys = annotations.getKeys();
-        for (Object objKey : annotationsKeys) {
-            BString key = ((BString) objKey);
-            if (!ParamHandler.CACHE_CONFIG_ANNOTATION.equals(key.getValue())) {
-                continue;
-            }
-            this.cacheConfig = annotations.getMapValue(key);
-            return;
-        }
     }
 
     BMap getResponseCacheConfig() {
