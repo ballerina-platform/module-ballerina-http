@@ -127,177 +127,129 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
 
 @test:Config {}
 function testNoCacheCacheControlWithAnnotation() returns error? {
-    http:Response|error response = cacheClientEP->get("/noCache");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(noCacheHitCountNew, 1);
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(nocachePayload1.toString().toBytes()));
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
-        assertJsonPayload(response.getJsonPayload(), nocachePayload1);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check cacheClientEP->get("/noCache");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertEquals(noCacheHitCountNew, 1);
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(nocachePayload1.toString().toBytes()));
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+    assertJsonPayload(response.getJsonPayload(), nocachePayload1);
 
-    response = cacheClientEP->get("/noCache");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(noCacheHitCountNew, 2);
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(nocachePayload2.toString().toBytes()));
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
-        assertJsonPayload(response.getJsonPayload(), nocachePayload2);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check cacheClientEP->get("/noCache");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertEquals(noCacheHitCountNew, 2);
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(nocachePayload2.toString().toBytes()));
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+    assertJsonPayload(response.getJsonPayload(), nocachePayload2);
 
-    response = cacheClientEP->get("/noCache");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(noCacheHitCountNew, 3);
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(nocachePayload2.toString().toBytes()));
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
-        assertJsonPayload(response.getJsonPayload(), nocachePayload2);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check cacheClientEP->get("/noCache");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertEquals(noCacheHitCountNew, 3);
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(nocachePayload2.toString().toBytes()));
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+    assertJsonPayload(response.getJsonPayload(), nocachePayload2);
 }
 
 @test:Config {}
 function testMaxAgeCacheControlWithAnnotation() returns error? {
-    http:Response|error response = cacheClientEP->get("/maxAge");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(maxAgeHitCountNew, 1);
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "public,max-age=5");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(maxAgePayload1.toString().toBytes()));
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
-        assertXmlPayload(response.getXmlPayload(), maxAgePayload1);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check cacheClientEP->get("/maxAge");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertEquals(maxAgeHitCountNew, 1);
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "public,max-age=5");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(maxAgePayload1.toString().toBytes()));
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+    assertXmlPayload(response.getXmlPayload(), maxAgePayload1);
 
-    response = cacheClientEP->get("/maxAge");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(maxAgeHitCountNew, 1);
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "public,max-age=5");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(maxAgePayload1.toString().toBytes()));
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
-        assertXmlPayload(response.getXmlPayload(), maxAgePayload1);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check cacheClientEP->get("/maxAge");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertEquals(maxAgeHitCountNew, 1);
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "public,max-age=5");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(maxAgePayload1.toString().toBytes()));
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+    assertXmlPayload(response.getXmlPayload(), maxAgePayload1);
 
     // Wait for a while before sending the next request
     runtime:sleep(5);
 
-    response = cacheClientEP->get("/maxAge");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(maxAgeHitCountNew, 2);
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "public,max-age=5");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(maxAgePayload2.toString().toBytes()));
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
-        assertXmlPayload(response.getXmlPayload(), maxAgePayload2);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check cacheClientEP->get("/maxAge");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertEquals(maxAgeHitCountNew, 2);
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "public,max-age=5");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(maxAgePayload2.toString().toBytes()));
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+    assertXmlPayload(response.getXmlPayload(), maxAgePayload2);
 }
 
 @test:Config {}
 function testMustRevalidateCacheControlWithAnnotation() returns error? {
-    http:Response|error response = cacheClientEP->get("/mustRevalidate");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
-        assertHeaderValue(check response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(check response.getHeader(proxyHitCount), "1");
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check cacheClientEP->get("/mustRevalidate");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
+    assertHeaderValue(check response.getHeader(serviceHitCount), "1");
+    assertHeaderValue(check response.getHeader(proxyHitCount), "1");
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+    assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
 
-    response = cacheClientEP->get("/mustRevalidate");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
-        assertHeaderValue(check response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(check response.getHeader(proxyHitCount), "2");
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check cacheClientEP->get("/mustRevalidate");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
+    assertHeaderValue(check response.getHeader(serviceHitCount), "1");
+    assertHeaderValue(check response.getHeader(proxyHitCount), "2");
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+    assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
 
     // Wait for a while before sending the next request
     runtime:sleep(5);
 
-    response = cacheClientEP->get("/mustRevalidate");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload2));
-        assertHeaderValue(check response.getHeader(serviceHitCount), "2");
-        assertHeaderValue(check response.getHeader(proxyHitCount), "3");
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_BINARY);
-        assertBinaryPayload(response.getBinaryPayload(), mustRevalidatePayload2);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check cacheClientEP->get("/mustRevalidate");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload2));
+    assertHeaderValue(check response.getHeader(serviceHitCount), "2");
+    assertHeaderValue(check response.getHeader(proxyHitCount), "3");
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_BINARY);
+    assertBinaryPayload(response.getBinaryPayload(), mustRevalidatePayload2);
 }
 
 @test:Config {}
 function testReturnStatusCodeResponsesWithAnnotation() returns error? {
-    http:Response|error response = cacheClientEP->get("/statusResponse");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(statusHits, 1);
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check cacheClientEP->get("/statusResponse");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertEquals(statusHits, 1);
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+    assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
 
-    response = cacheClientEP->get("/statusResponse");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(statusHits, 2);
-        test:assertTrue(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
-        assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check cacheClientEP->get("/statusResponse");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    test:assertEquals(statusHits, 2);
+    test:assertTrue(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+    assertTextPayload(response.getTextPayload(), mustRevalidatePayload1);
 
-    response = cacheClientEP->get("/statusResponse");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        test:assertEquals(statusHits, 3);
-        test:assertFalse(response.hasHeader(ETAG));
-        test:assertFalse(response.hasHeader(CACHE_CONTROL));
-        test:assertFalse(response.hasHeader(LAST_MODIFIED));
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), errorBody);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check cacheClientEP->get("/statusResponse");
+    test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+    test:assertEquals(statusHits, 3);
+    test:assertFalse(response.hasHeader(ETAG));
+    test:assertFalse(response.hasHeader(CACHE_CONTROL));
+    test:assertFalse(response.hasHeader(LAST_MODIFIED));
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+    assertTextPayload(response.getTextPayload(), errorBody);
 }

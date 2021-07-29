@@ -106,7 +106,7 @@ public annotation HttpHeader Header on parameter;
 # + noTransform - Sets the `no-transform` directive
 # + isPrivate - Sets the `private` and `public` directives
 # + proxyRevalidate - Sets the `proxy-revalidate` directive
-# + maxAge - Sets the `max-age` directive. Default value is 600 seconds
+# + maxAge - Sets the `max-age` directive. Default value is 3600 seconds
 # + sMaxAge - Sets the `s-maxage` directive
 # + noCacheFields - Optional fields for the `no-cache` directive. Before sending a listed field in a response, it
 #                   must be validated with the origin server
@@ -121,7 +121,7 @@ public type HttpCacheConfig record {|
     boolean noTransform = false;
     boolean isPrivate = false;
     boolean proxyRevalidate = false;
-    decimal maxAge = 600;
+    decimal maxAge = 3600;
     decimal sMaxAge = -1;
     string[] noCacheFields = [];
     string[] privateFields = [];
@@ -130,6 +130,6 @@ public type HttpCacheConfig record {|
 |};
 
 # The annotation which is used to define the response cache configuration. This annotation only supports `anydata` and
-# Success(2XX) `StatusCodeResponses` return types. Default annotation adds `must-revalidate,public,max-age=600` as
+# Success(2XX) `StatusCodeResponses` return types. Default annotation adds `must-revalidate,public,max-age=3600` as
 # `cache-control` header in addition to `etag` and `last-modified` headers.
 public annotation HttpCacheConfig CacheConfig on return;
