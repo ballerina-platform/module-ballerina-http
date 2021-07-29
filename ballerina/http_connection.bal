@@ -117,7 +117,7 @@ public client class Caller {
         HttpCacheConfig? cacheConfig) returns ListenerError? {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
-        boolean enableCache = false;
+        boolean cacheCompatibleType = false;
         if (message is ()) {
             if (self.present) {
                 InternalServerError errResponse = {};
@@ -141,7 +141,7 @@ public client class Caller {
         } else if (message is StatusCodeResponse) {
             if (message is SuccessStatusCodeResponse) {
                 response = createStatusCodeResponse(message, returnMediaType, setETag);
-                enableCache = true;
+                cacheCompatibleType = true;
             } else {
                 response = createStatusCodeResponse(message, returnMediaType);
             }
@@ -157,9 +157,9 @@ public client class Caller {
             if (returnMediaType is string) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-            enableCache = true;
+            cacheCompatibleType = true;
         }
-        if (enableCache && (cacheConfig is HttpCacheConfig)) {
+        if (cacheCompatibleType && (cacheConfig is HttpCacheConfig)) {
             ResponseCacheControl responseCacheControl = new;
             responseCacheControl.populateFields(cacheConfig);
             response.cacheControl = responseCacheControl;

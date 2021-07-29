@@ -17,7 +17,6 @@
 import ballerina/test;
 import ballerina/lang.runtime as runtime;
 import ballerina/http;
-import ballerina/log;
 import ballerina/crypto;
 
 http:Client cacheClientEP = check new("http://localhost:" + cacheAnnotationTestPort1.toString(), { cache: { enabled: false }});
@@ -41,62 +40,54 @@ http:InternalServerError err = {body : errorBody};
 
 service / on new http:Listener(cacheAnnotationTestPort1) {
 
-    resource function get noCache(http:Caller caller, http:Request req) {
+    resource function get noCache(http:Request req) returns http:Response|http:InternalServerError {
         http:Response|error response = cacheBackendEP->forward("/nocacheBE", req);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
+            return response;
         } else {
-            log:printError(response.message());
-            http:Response res = new;
-            res.statusCode = 500;
-            res.setPayload(response.message());
-            checkpanic caller->respond(res);
+            http:InternalServerError errorRes = {body : response.message()};
+            return errorRes;
         }
     }
 
-    resource function get maxAge(http:Caller caller, http:Request req) {
+    resource function get maxAge(http:Request req) returns http:Response|http:InternalServerError {
         http:Response|error response = cacheBackendEP->forward("/maxAgeBE", req);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
+            return response;
         } else {
-            http:Response res = new;
-            res.statusCode = 500;
-            res.setPayload(response.message());
-            checkpanic caller->respond(res);
+            http:InternalServerError errorRes = {body : response.message()};
+            return errorRes;
         }
     }
 
-    resource function get mustRevalidate(http:Caller caller, http:Request req) {
+    resource function get mustRevalidate(http:Request req) returns http:Response|http:InternalServerError {
         numberOfProxyHitsNew += 1;
         http:Response|error response = cacheBackendEP->forward("/mustRevalidateBE", req);
         if (response is http:Response) {
             response.setHeader(serviceHitCount, numberOfHitsNew.toString());
             response.setHeader(proxyHitCount, numberOfProxyHitsNew.toString());
-            checkpanic caller->respond(response);
+            return response;
         } else {
-            http:Response res = new;
-            res.statusCode = 500;
-            res.setPayload(response.message());
-            checkpanic caller->respond(res);
+            http:InternalServerError errorRes = {body : response.message()};
+            return errorRes;
         }
     }
 
-    resource function get statusResponse(http:Caller caller, http:Request req) {
+    resource function get statusResponse(http:Request req) returns http:Response|http:InternalServerError {
         http:Response|error response = cacheBackendEP->forward("/statusResponseBE", req);
         if (response is http:Response) {
-            checkpanic caller->respond(response);
+            return response;
         } else {
-            http:Response res = new;
-            res.statusCode = 500;
-            res.setPayload(response.message());
-            checkpanic caller->respond(res);
+            http:InternalServerError errorRes = {body : response.message()};
+            return errorRes;
         }
     }
 }
 
 service / on new http:Listener(cacheAnnotationTestPort2) {
 
-    resource function default nocacheBE(http:Request req) returns @http:CacheConfig json {
+    resource function default nocacheBE(http:Request req) returns @http:CacheConfig{noCache : true, maxAge : -1,
+    mustRevalidate : false} json {
         noCacheHitCountNew += 1;
         if (noCacheHitCountNew == 1) {
             return nocachePayload1;
@@ -105,7 +96,7 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
         }
     }
 
-    resource function default maxAgeBE(http:Request req) returns @http:CacheConfig{noCache : false, maxAge : 5} xml {
+    resource function default maxAgeBE(http:Request req) returns @http:CacheConfig{maxAge : 5, mustRevalidate : false} xml {
         maxAgeHitCountNew += 1;
         if (maxAgeHitCountNew == 1) {
             return maxAgePayload1;
@@ -114,8 +105,7 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
         }
     }
 
-    resource function get mustRevalidateBE(http:Request req) returns @http:CacheConfig{noCache : false, mustRevalidate : true,
-        maxAge : 5} string|byte[] {
+    resource function get mustRevalidateBE(http:Request req) returns @http:CacheConfig{maxAge : 5} string|byte[] {
         numberOfHitsNew += 1;
         if (numberOfHitsNew < 2) {
             return mustRevalidatePayload1;
@@ -124,7 +114,8 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
         }
     }
 
-    resource function get statusResponseBE(http:Request req) returns @http:CacheConfig http:Ok|http:InternalServerError {
+    resource function get statusResponseBE(http:Request req) returns @http:CacheConfig{noCache : true, maxAge : -1,
+    mustRevalidate : false} http:Ok|http:InternalServerError {
         statusHits += 1;
         if (statusHits < 3) {
             return ok;
