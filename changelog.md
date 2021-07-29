@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Added
 - [Enable HTTP trace and access log support](https://github.com/ballerina-platform/ballerina-standard-library/issues/1073)
 - [Add HATEOS link support](https://github.com/ballerina-platform/ballerina-standard-library/issues/1637)
+- [Introduce http:CacheConfig annotation to the resource signature](https://github.com/ballerina-platform/ballerina-standard-library/issues/1533)
 
 ## [1.1.0-beta.2] - 2021-07-07
 
