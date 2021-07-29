@@ -118,16 +118,16 @@ public client class Caller {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
         boolean cacheCompatibleType = false;
-        if (message is ()) {
-            if (self.present) {
+        if message is () {
+            if self.present {
                 InternalServerError errResponse = {};
                 response = createStatusCodeResponse(errResponse);
             } else {
                 Accepted AcceptedResponse = {};
                 response = createStatusCodeResponse(AcceptedResponse);
             }
-        } else if (message is error) {
-            if (message is ApplicationResponseError) {
+        } else if message is error {
+            if message is ApplicationResponseError {
                 InternalServerError err = {
                     headers: message.detail().headers,
                     body: message.detail().body
@@ -138,14 +138,14 @@ public client class Caller {
                 response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
                 response.setTextPayload(message.message());
             }
-        } else if (message is StatusCodeResponse) {
-            if (message is SuccessStatusCodeResponse) {
+        } else if message is StatusCodeResponse {
+            if message is SuccessStatusCodeResponse {
                 response = createStatusCodeResponse(message, returnMediaType, setETag);
                 cacheCompatibleType = true;
             } else {
                 response = createStatusCodeResponse(message, returnMediaType);
             }
-        } else if (message is Response) {
+        } else if message is Response {
             response = message;
             // Update content-type header with mediaType annotation value only if the response does not already 
             // have a similar header
@@ -154,7 +154,7 @@ public client class Caller {
             }
         } else {
             setPayload(message, response, setETag);
-            if (returnMediaType is string) {
+            if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
             cacheCompatibleType = true;
@@ -218,21 +218,21 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
 }
 
 isolated function setPayload(anydata payload, Response response, boolean setETag = false) {
-    if (payload is ()) {
+    if payload is () {
         return;
-    } else if (payload is xml) {
+    } else if payload is xml {
         response.setXmlPayload(payload);
-        if (setETag) {
+        if setETag {
             response.setETag(payload);
         }
-    } else if (payload is string) {
+    } else if payload is string {
         response.setTextPayload(payload);
-        if (setETag) {
+        if setETag {
             response.setETag(payload);
         }
-    } else if (payload is byte[]) {
+    } else if payload is byte[] {
         response.setBinaryPayload(payload);
-        if (setETag) {
+        if setETag {
             response.setETag(payload);
         }
     } else {
@@ -242,11 +242,11 @@ isolated function setPayload(anydata payload, Response response, boolean setETag
 
 isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg, boolean setETag = false) {
     var result = trap val:toJson(payload);
-    if (result is error) {
+    if result is error {
         panic error InitializingOutboundResponseError(errMsg + result.message(), result);
     } else {
         response.setJsonPayload(result);
-        if (setETag) {
+        if setETag {
             response.setETag(result);
         }
     }
