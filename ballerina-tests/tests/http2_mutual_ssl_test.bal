@@ -76,7 +76,7 @@ service /http2Service on http2Listener {
     }
 }
 
-http:ClientConfiguration http2MutualSslClientConf = {
+http:ClientConfiguration http2MutualSslClientConf1 = {
     secureSocket: {
         key:{
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -97,8 +97,63 @@ http:ClientConfiguration http2MutualSslClientConf = {
 };
 
 @test:Config {}
-public function testHttp2MutualSsl() {
-    http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf);
+public function testHttp2MutualSsl1() {
+    http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf1);
+    http:Response|error resp = httpClient->get("/http2Service/");
+    if (resp is http:Response) {
+        assertTextPayload(resp.getTextPayload(), "Passed");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+http:ClientConfiguration http2MutualSslClientConf2 = {
+    secureSocket: {
+        key:{
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
+            password: "ballerina"
+        },
+        protocol:{
+            name: http:TLS,
+            versions: ["TLSv1.2", "TLSv1.1"]
+        },
+        ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
+    },
+    httpVersion: "2.0",
+    http2Settings: { http2PriorKnowledge: true }
+};
+
+@test:Config {}
+public function testHttp2MutualSsl2() {
+    http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf2);
+    http:Response|error resp = httpClient->get("/http2Service/");
+    if (resp is http:Response) {
+        assertTextPayload(resp.getTextPayload(), "Passed");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+http:ClientConfiguration http2MutualSslClientConf3 = {
+    secureSocket: {
+        enable: false,
+        key:{
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
+            password: "ballerina"
+        },
+        protocol:{
+            name: http:TLS,
+            versions: ["TLSv1.2", "TLSv1.1"]
+        },
+        ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
+    },
+    httpVersion: "2.0",
+    http2Settings: { http2PriorKnowledge: true }
+};
+
+@test:Config {}
+public function testHttp2MutualSsl3() {
+    http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf3);
     http:Response|error resp = httpClient->get("/http2Service/");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Passed");
