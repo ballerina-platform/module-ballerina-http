@@ -19,11 +19,13 @@ import ballerina/mime;
 
 # The types of messages that are accepted by HTTP `client` when sending out the outbound request.
 public type RequestMessage Request|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
-                           (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
+                           (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|()|
+                           record {| anydata...; |}|record {| anydata...; |}[];
 
 # The types of messages that are accepted by HTTP `listener` when sending out the outbound response.
 public type ResponseMessage Response|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
-                            (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
+                            (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|()|
+                            record {| anydata...; |}|record {| anydata...; |}[];
 
 # The HTTP service type.
 public type Service service object {

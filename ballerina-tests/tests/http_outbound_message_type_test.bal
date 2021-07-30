@@ -37,7 +37,7 @@ public function testSendingNil() {
 
 @test:Config {}
 public function testSendingInt() {
-    int val = 139; 
+    int val = 139;
     http:Response|error resp = outRequestClient->post("/mytest/json", val);
     if (resp is http:Response) {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -124,7 +124,7 @@ public function testSendingTable() {
     if (resp is http:Response) {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
-        assertJsonPayload(resp.getJsonPayload(), [{id: 13 , fname: "Dan", lname: "Bing"}, 
+        assertJsonPayload(resp.getJsonPayload(), [{id: 13 , fname: "Dan", lname: "Bing"},
             {id: 23 , fname: "Hay" , lname: "Kelsey"}]);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -141,8 +141,76 @@ public function testSendingTableArray() {
     if (resp is http:Response) {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
-        assertJsonPayload(resp.getJsonPayload(), [[{id: 13 , fname: "Dan", lname: "Bing"}], 
+        assertJsonPayload(resp.getJsonPayload(), [[{id: 13 , fname: "Dan", lname: "Bing"}],
             [{id: 13 , fname: "Dan", lname: "Bing"}]]);
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+type OpenCustomer record {
+    string name;
+    xml aa;
+    byte[] bb;
+};
+
+@test:Config {}
+public function testSendingOpenRecord() returns error? {
+    OpenCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
+    http:Response|error resp = outRequestClient->post("/mytest/json", customer);
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayload(resp.getJsonPayload(), {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]});
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testSendingOpenRecordArray() returns error? {
+    OpenCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
+    OpenCustomer[] custArr = [customer, customer];
+    http:Response|error resp = outRequestClient->post("/mytest/json", custArr);
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayload(resp.getJsonPayload(), [{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},
+            {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]}]);
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+type ClosedCustomer record {|
+    string name;
+    xml aa;
+    byte[] bb;
+|};
+
+@test:Config {}
+public function testSendingClosedRecord() returns error? {
+    ClosedCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
+    http:Response|error resp = outRequestClient->post("/mytest/json", customer);
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayload(resp.getJsonPayload(), {name: "ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]});
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testSendingClosedRecordArray() returns error? {
+    ClosedCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
+    ClosedCustomer[] custArr = [customer, customer];
+    http:Response|error resp = outRequestClient->post("/mytest/json", custArr);
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayload(resp.getJsonPayload(), [{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},
+            {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]}]);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
@@ -163,17 +231,17 @@ service /mytest on outRequestTypeTestEP {
     }
 
     resource function get 'int(http:Caller caller) {
-        int val = 1395767; 
+        int val = 1395767;
         checkpanic caller->respond(val);
     }
 
     resource function get 'float(http:Caller caller) {
-        float val = 13.95767; 
+        float val = 13.95767;
         checkpanic caller->respond(val);
     }
 
     resource function get 'decimal(http:Caller caller) {
-        decimal val = 6.7; 
+        decimal val = 6.7;
         checkpanic caller->respond(val);
     }
 
@@ -184,12 +252,12 @@ service /mytest on outRequestTypeTestEP {
 
     resource function get 'map(http:Caller caller) {
         map<string> val = {line1: "a", line2: "b"};
-        checkpanic caller->respond(val);    
+        checkpanic caller->respond(val);
     }
 
     resource function get mapArr(http:Caller caller) {
         map<string>[] val = [{line1: "a", line2: "b"}, {line3: "c", line4: "d"}];
-        checkpanic caller->respond(val);    
+        checkpanic caller->respond(val);
     }
 
     resource function get 'table(http:Caller caller) {
@@ -197,14 +265,36 @@ service /mytest on outRequestTypeTestEP {
             {fname: "John", lname: "Wick"},
             {fname: "Robert", lname: "Downey"}
         ];
-        checkpanic caller->respond(val);    
+        checkpanic caller->respond(val);
     }
 
     resource function get tableArr(http:Caller caller) {
         table<map<string>> val1 = table [{fname: "John", lname: "Wick"}];
         table<map<json>> val2 = table [{name: 23, lname: {a:"go"}}];
         table<map<json>>[] val = [val1, val2];
-        checkpanic caller->respond(val);    
+        checkpanic caller->respond(val);
+    }
+
+    resource function get openRecord(http:Caller caller) {
+        OpenCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
+        checkpanic caller->respond(customer);
+    }
+
+    resource function get openRecordArr(http:Caller caller) {
+        OpenCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
+        OpenCustomer[] custArr = [customer, customer];
+        checkpanic caller->respond(custArr);
+    }
+
+    resource function get closedRecord(http:Caller caller) {
+        ClosedCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
+        checkpanic caller->respond(customer);
+    }
+
+    resource function get closedRecordArr(http:Caller caller) {
+        ClosedCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
+        ClosedCustomer[] custArr = [customer, customer];
+        checkpanic caller->respond(custArr);
     }
 }
 
@@ -310,8 +400,58 @@ public function testGettingTableArray() {
     if (resp is http:Response) {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
-        assertJsonPayload(resp.getJsonPayload(), [[{fname: "John", lname: "Wick"}], 
+        assertJsonPayload(resp.getJsonPayload(), [[{fname: "John", lname: "Wick"}],
             [{name: 23, lname: {a:"go"}}]]);
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testGettingOpenRecord() returns error? {
+    http:Response|error resp = outRequestClient->get("/mytest/openRecord");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayload(resp.getJsonPayload(), {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]});
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testGettingOpenRecordArray() returns error? {
+    http:Response|error resp = outRequestClient->get("/mytest/openRecordArr");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayload(resp.getJsonPayload(), [{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},
+            {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]}]);
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testGettingClosedRecord() returns error? {
+    http:Response|error resp = outRequestClient->get("/mytest/closedRecord");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayload(resp.getJsonPayload(), {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]});
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testGettingClosedRecordArray() returns error? {
+    http:Response|error resp = outRequestClient->get("/mytest/closedRecordArr");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayload(resp.getJsonPayload(), [{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},
+            {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]}]);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
