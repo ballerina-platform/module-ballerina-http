@@ -299,7 +299,7 @@ public function testDeleteWithOverrideMediaType() {
 
 @test:Config {}
 public function testInlineReq() {
-    var resp = outReqHeadClient->post("/mytest/inline", 
+    var resp = outReqHeadClient->post("/mytest/inline",
         { 
             name: "foo", 
             age: 30, 
