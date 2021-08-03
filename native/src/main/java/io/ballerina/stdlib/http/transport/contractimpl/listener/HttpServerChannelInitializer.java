@@ -427,9 +427,14 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         }
 
         @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            if (ctx != null && ctx.channel().isActive()) {
-                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+
+            if (ctx != null) {
+                if (ctx.channel().isActive()) {
+                    ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+                } else {
+                    super.exceptionCaught(ctx, cause);
+                }
             }
         }
 

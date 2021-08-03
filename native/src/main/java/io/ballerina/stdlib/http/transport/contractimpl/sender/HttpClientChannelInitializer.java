@@ -358,8 +358,14 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            if (ctx != null && ctx.channel().isActive()) {
-                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+
+            if (ctx != null) {
+                if (ctx.channel().isActive()) {
+                    ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+                } else {
+                    connectionAvailabilityFuture.notifyFailure(cause);
+                    ctx.close();
+                }
             }
         }
     }
