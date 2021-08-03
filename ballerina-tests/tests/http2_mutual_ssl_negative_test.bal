@@ -43,36 +43,8 @@ listener http:Listener http2MutualSslNegativeListener = new(9205, http2MutualSsl
 
 service /http2Service on http2MutualSslNegativeListener {
 
-    resource function get .(http:Caller caller, http:Request req) {
-        string expectedCert = "MIIDdzCCAl+gAwIBAgIEfP3e8zANBgkqhkiG9w0BAQsFADBkMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExF"
-                      + "jAUBgNVBAcTDU1vdW50YWluIFZpZXcxDTALBgNVBAoTBFdTTzIxDTALBgNVBAsTBFdTTzIxEjAQBgNVBAMTCWxvY2Fsa"
-                      + "G9zdDAeFw0xNzEwMjQwNTQ3NThaFw0zNzEwMTkwNTQ3NThaMGQxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA"
-                      + "1UEBxMNTW91bnRhaW4gVmlldzENMAsGA1UEChMEV1NPMjENMAsGA1UECxMEV1NPMjESMBAGA1UEAxMJbG9jYWxob3N0M"
-                      + "IIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgVyi6fViVLiZKEnw59xzNi1lcYh6z9dZnug+F9gKqFIgmdcPe"
-                      + "+qtS7gZc1jYTjWMCbx13sFLkZqNHeDUadpmtKo3TDduOl1sqM6cz3yXb6L34k/leh50mzIPNmaaXxd3vOQoK4OpkgO1n"
-                      + "32mh6+tkp3sbHmfYqDQrkVK1tmYNtPJffSCLT+CuIhnJUJco7N0unax+ySZN67/AX++sJpqAhAIZJzrRi6ueN3RFCIxY"
-                      + "DXSMvxrEmOdn4gOC0o1Ar9u5Bp9N52sqqGbN1x6jNKi3bfUj122Hu5e+Y9KOmfbchhQil2P81cIi30VKgyDn5DeWEuDo"
-                      + "Yredk4+6qAZrxMw+wIDAQABozEwLzAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0OBBYEFNmtrQ36j6tUGhKrfW9qWWE7KFzMM"
-                      + "A0GCSqGSIb3DQEBCwUAA4IBAQAv3yOwgbtOu76eJMl1BCcgTFgaMUBZoUjK9Un6HGjKEgYz/YWSZFlY/qH5rT01DWQev"
-                      + "UZB626d5ZNdzSBZRlpsxbf9IE/ursNHwHx9ua6fB7yHUCzC1ZMp1lvBHABi7wcA+5nbV6zQ7HDmBXFhJfbgH1iVmA1Kc"
-                      + "vDeBPSJ/scRGasZ5q2W3IenDNrfPIUhD74tFiCiqNJO91qD/LO+++3XeZzfPh8NRKkiPX7dB8WJ3YNBuQAvgRWTISpSS"
-                      + "XLmqMb+7MPQVgecsepZdk8CwkRLxh3RKPJMjigmCgyvkSaoDMKAYC3iYjfUTiJ57UeqoSl0IaOFJ0wfZRFh+UytlDZa";
-        http:Response res = new;
-        if (req.mutualSslHandshake["status"] == "passed") {
-            string? cert = req.mutualSslHandshake["base64EncodedCert"];
-            if (cert is string) {
-                if (cert == expectedCert) {
-                    res.setTextPayload("Passed");
-                } else {
-                    res.setTextPayload("Expected cert not found");
-                }
-            } else {
-                res.setTextPayload("Cert not found");
-            }
-        } else {
-            res.setTextPayload("Failed");
-        }
-        checkpanic caller->respond(res);
+    resource function get .() returns string {
+        return "Hello, World!";
     }
 }
 
@@ -84,9 +56,9 @@ http:ClientConfiguration http2MutualSslNegativeClientConf1 = {
 };
 
 @test:Config {}
-public function testHttp2MutualSslNegativeTest1() {
+public function testHttp2MutualSslNegativeTest1() returns error? {
     // Without keys - negative test
-    http:Client httpClient = checkpanic new("https://localhost:9205", http2MutualSslNegativeClientConf1);
+    http:Client httpClient = check new("https://localhost:9205", http2MutualSslNegativeClientConf1);
     http:Response|error resp = httpClient->get("/http2Service/");
     string expectedErrMsg = "SSL connection failed:javax.net.ssl.SSLHandshakeException: error:10000410:SSL routines:OPENSSL_internal:SSLV3_ALERT_HANDSHAKE_FAILURE null";
     if (resp is error) {
