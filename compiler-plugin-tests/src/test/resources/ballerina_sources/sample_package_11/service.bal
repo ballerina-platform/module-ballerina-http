@@ -26,11 +26,13 @@ type RetEmployee record {|
 type PersonTable table<RetEmployee> key(id);
 type Xml xml;
 type ByteArr byte[];
+type IntArr int[];
 type MapJson map<json>;
 type MapJsonArr map<json>[];
 type EntityArr mime:Entity[];
 type PersonTableArr PersonTable[];
 type ByteStream stream<byte[], io:Error?>;
+type MapAnydata map<anydata>;
 
 service http:Service on new http:Listener(9090) {
     resource function get callerInfo17(int xyz, @http:CallerInfo {respondType: http:Response} http:Caller abc) {
@@ -57,7 +59,11 @@ service http:Service on new http:Listener(9090) {
     }
 
     resource function get callerInfo22(int xyz, @http:CallerInfo {respondType: json} http:Caller abc) {
-        checkpanic abc->respond({hello: "world"}); // this is also fails and a limitation for inline json
+        checkpanic abc->respond({hello: "world"}); // this is also fails as inline json is considered as map<anydata>
+    }
+
+    resource function get callerInfo22A(int xyz, @http:CallerInfo {respondType: MapAnydata} http:Caller abc) {
+        checkpanic abc->respond({hello: "world"}); // this should not fail
     }
 
     resource function get callerInfo23(int xyz, @http:CallerInfo {respondType: json} http:Caller abc) {
@@ -140,5 +146,10 @@ service http:Service on new http:Listener(9090) {
 
     resource function get callerInfo37(@http:CallerInfo {respondType: ByteStream} http:Caller abc) {
         checkpanic abc->respond("res"); // error
+    }
+
+    resource function get callerInfo38(@http:CallerInfo {respondType: IntArr} http:Caller abc) {
+        int[] arr = [23,343];
+        checkpanic abc->respond(arr);
     }
 }
