@@ -105,7 +105,6 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
         checkpanic caller->respond(checkpanic request.getTextPayload());
     }
 
-    // withWhitespacedExpression
     resource function 'default [string id](http:Caller caller, http:Request request) {
         error? res = caller->respond(id);
     }
@@ -197,8 +196,8 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
                 value = value + result.message();
             }
         }
-
-        http:Response|error jsonResponse = clientEP2->post("/httpClientActionBE/directPayload", { name: "apple", color: "red" });
+        json j = { name: "apple", color: "red" };
+        http:Response|error jsonResponse = clientEP2->post("/httpClientActionBE/directPayload", j);
         if (jsonResponse is http:Response) {
             var result = jsonResponse.getJsonPayload();
             if (result is json) {
@@ -226,46 +225,46 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         checkpanic caller->respond(value);
     }
 
-    resource function get handleStringJson(http:Caller caller, http:Request request) {
-      http:Request req = new;
-      string payload = "a" + "\n" + "b" + "\n";
-      req.setJsonPayload(payload);
-      string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-      checkpanic caller->respond(backendPayload);
+    resource function get handleStringJson(http:Caller caller) returns error? {
+        http:Request req = new;
+        string payload = "a" + "\n" + "b" + "\n";
+        req.setJsonPayload(payload);
+        string backendPayload = check clientEP2->post("/httpClientActionBE/_bulk", req);
+        check caller->respond(backendPayload);
     }
 
-    resource function get handleTextAndJsonContent(http:Caller caller, http:Request request) {
+    resource function get handleTextAndJsonContent(http:Caller caller) returns error? {
         http:Request req = new;
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "application/json");
-        string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-        checkpanic caller->respond(backendPayload);
+        string backendPayload = check clientEP2->post("/httpClientActionBE/_bulk", req);
+        check caller->respond(backendPayload);
     }
 
-    resource function get handleTextAndXmlContent(http:Caller caller, http:Request request) {
+    resource function get handleTextAndXmlContent(http:Caller caller) returns error? {
         http:Request req = new;
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "text/xml");
-        string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-        checkpanic caller->respond(backendPayload);
+        string backendPayload = check clientEP2->post("/httpClientActionBE/_bulk", req);
+        check caller->respond(backendPayload);
     }
 
-    resource function get handleTextAndJsonAlternateContent(http:Caller caller, http:Request request) {
+    resource function get handleTextAndJsonAlternateContent(http:Caller caller) returns error? {
         http:Request req = new;
         string payload = "a" + "\n" + "b" + "\n";
         req.setTextPayload(payload, contentType = "application/json");
         req.setJsonPayload(payload);
-        string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-        checkpanic caller->respond(backendPayload);
+        string backendPayload = check clientEP2->post("/httpClientActionBE/_bulk", req);
+        check caller->respond(backendPayload);
     }
 
-    resource function get handleStringJsonAlternate(http:Caller caller, http:Request request) {
-      http:Request req = new;
-      string payload = "a" + "\n" + "b" + "\n";
-      req.setJsonPayload(payload);
-      req.setTextPayload(payload, contentType = "application/json");
-      string backendPayload = checkpanic clientEP2->post("/httpClientActionBE/_bulk", req, targetType = string);
-      checkpanic caller->respond(backendPayload);
+    resource function get handleStringJsonAlternate(http:Caller caller) returns error? {
+        http:Request req = new;
+        string payload = "a" + "\n" + "b" + "\n";
+        req.setJsonPayload(payload);
+        req.setTextPayload(payload, contentType = "application/json");
+        string backendPayload = check clientEP2->post("/httpClientActionBE/_bulk", req);
+        check caller->respond(backendPayload);
     }
 
     // TODO: Enable after the I/O revamp
