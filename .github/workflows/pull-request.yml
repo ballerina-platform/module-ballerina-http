@@ -1,15 +1,10 @@
 name: Ballerina HTTP module build
 
-on:
-  pull_request:
-  push:
-    branches-ignore:
-      - master
-      - "automated/dependency_version_update"
-      - "automated/dependency_version_update_tmp"
+on: [pull_request]
 
 jobs:
   ubuntu-build:
+    name: Build on Ubuntu
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -24,18 +19,12 @@ jobs:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            ./gradlew build 
-      - name: Archive Error Log
-        uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-            name: Ballerina Internal Log
-            path: http-ballerina-tests/ballerina-internal.log
-            if-no-files-found: ignore
+            ./gradlew build
       - name: Generate Codecov Report
         uses: codecov/codecov-action@v1
 
   windows-build:
+    name: Build on Windows
     runs-on: windows-latest
     steps:
       - name: Checkout Repository
@@ -53,6 +42,7 @@ jobs:
         run: ./gradlew.bat test -Pdisable=ldap
 
   ubuntu-build-without-native-tests:
+      name: Build on Ubuntu without native tests
       runs-on: ubuntu-latest
       steps:
           - name: Checkout Repository
@@ -67,17 +57,3 @@ jobs:
                 packageUser: ${{ github.actor }}
                 packagePAT: ${{ secrets.GITHUB_TOKEN }}
             run: ./gradlew build -x http-native:test
-          - name: Archive Module Compilation Error Log
-            uses: actions/upload-artifact@v2
-            if: failure()
-            with:
-                name: Ballerina Internal Log
-                path: http-ballerina/ballerina-internal.log
-                if-no-files-found: ignore
-          - name: Archive Test Error Log
-            uses: actions/upload-artifact@v2
-            if: failure()
-            with:
-                name: Ballerina Internal Log
-                path: http-ballerina-tests/ballerina-internal.log
-                if-no-files-found: ignore

@@ -13,9 +13,20 @@ plugins {
 }
 
 rootProject.name = 'http'
-include(':build-config:checkstyle')
-include ':http-native', ':http-compiler-plugin', ':http-ballerina', ':http-compiler-plugin-tests',
-        ':http-ballerina-tests'
+
+include ':checkstyle'
+include ':http-native'
+include ':http-ballerina'
+include ':http-compiler-plugin'
+include ':http-ballerina-tests'
+include ':http-compiler-plugin-tests'
+
+project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
+project(':http-native').projectDir = file('native')
+project(':http-ballerina').projectDir = file('ballerina')
+project(':http-compiler-plugin').projectDir = file('compiler-plugin')
+project(':http-ballerina-tests').projectDir = file('ballerina-tests')
+project(':http-compiler-plugin-tests').projectDir = file('compiler-plugin-tests')
 
 gradleEnterprise {
     buildScan {
