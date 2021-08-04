@@ -109,8 +109,8 @@ service /service2 on domainSpecificListener {
 
 service /service3 on domainSpecificListener {
 
-    resource function default test(http:Request req) returns json {
-        return {message : "test"};
+    resource function default test(http:Request req, http:Caller caller) returns error? {
+        check caller->respond({message : "test"});
     }
 }
 

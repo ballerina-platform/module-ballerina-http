@@ -227,7 +227,6 @@ public class HttpService {
             } catch (URITemplateException | UnsupportedEncodingException e) {
                 throw new BallerinaConnectorException(e.getMessage());
             }
-            httpResource.setMediaTypePrefix(httpService.getMediaTypePrefix());
             httpResources.add(httpResource);
         }
         httpService.setResources(httpResources);
