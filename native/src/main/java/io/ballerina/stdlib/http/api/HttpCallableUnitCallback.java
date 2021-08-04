@@ -39,16 +39,18 @@ public class HttpCallableUnitCallback implements Callback {
     private final Runtime runtime;
     private final String returnMediaType;
     private final BMap cacheConfig;
+    private final String mediaTypePrefix;
     private HttpCarbonMessage requestMessage;
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType,
-                             BMap cacheConfig) {
+                             BMap cacheConfig, String mediaTypePrefix) {
         this.requestMessage = requestMessage;
         this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
         this.runtime = runtime;
         this.returnMediaType = returnMediaType;
         this.cacheConfig = cacheConfig;
+        this.mediaTypePrefix = mediaTypePrefix;
     }
 
     @Override
@@ -59,13 +61,15 @@ public class HttpCallableUnitCallback implements Callback {
         }
         printStacktraceIfError(result);
 
-        Object[] paramFeed = new Object[6];
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = result;
         paramFeed[1] = true;
         paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[3] = true;
         paramFeed[4] = cacheConfig;
         paramFeed[5] = true;
+        paramFeed[6] = mediaTypePrefix != null ? StringUtils.fromString(mediaTypePrefix) : null;
+        paramFeed[7] = true;
 
         Callback returnCallback = new Callback() {
             @Override

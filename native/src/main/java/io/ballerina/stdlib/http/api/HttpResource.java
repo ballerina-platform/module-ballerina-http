@@ -74,6 +74,7 @@ public class HttpResource {
     private int pathParamCount;
     private String returnMediaType;
     private BMap cacheConfig;
+    private String mediaTypePrefix;
 
     protected HttpResource(MethodType resource, HttpService parentService) {
         this.balResource = resource;
@@ -301,6 +302,14 @@ public class HttpResource {
 
     BMap getResponseCacheConfig() {
         return cacheConfig;
+    }
+
+    public void setMediaTypePrefix(String mediaTypePrefix) {
+        this.mediaTypePrefix = mediaTypePrefix;
+    }
+
+    public String getMediaTypePrefix() {
+        return mediaTypePrefix;
     }
 
     // Followings added due to WebSub requirement

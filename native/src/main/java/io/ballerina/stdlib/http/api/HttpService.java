@@ -55,6 +55,7 @@ public class HttpService {
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
     private static final BString VERSIONING_FIELD = StringUtils.fromString("versioning");
     private static final BString HOST_FIELD = StringUtils.fromString("host");
+    private static final BString MEDIA_TYPE_PREFIX = StringUtils.fromString("mediaTypePrefix");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -67,10 +68,14 @@ public class HttpService {
     private BMap<BString, Object> compression;
     private String hostName;
     private String chunkingConfig;
+    private String mediaTypePrefix;
 
-    protected HttpService(BObject service, String basePath) {
+    protected HttpService(BObject service, String basePath, BString domainMediaTypePrefix) {
         this.balService = service;
         this.basePath = basePath;
+        if (domainMediaTypePrefix != null) {
+            this.mediaTypePrefix = domainMediaTypePrefix.getValue();
+        }
     }
 
     // Added due to WebSub requirement
@@ -138,6 +143,14 @@ public class HttpService {
         return hostName;
     }
 
+    public void setMediaTypePrefix(String mediaTypePrefix) {
+        this.mediaTypePrefix = mediaTypePrefix;
+    }
+
+    public String getMediaTypePrefix() {
+        return mediaTypePrefix;
+    }
+
     public String getBasePath() {
         return basePath;
     }
@@ -176,8 +189,8 @@ public class HttpService {
         return uriTemplate;
     }
 
-    public static HttpService buildHttpService(BObject service, String basePath) {
-        HttpService httpService = new HttpService(service, basePath);
+    public static HttpService buildHttpService(BObject service, String basePath, BString domainMediaTypePrefix) {
+        HttpService httpService = new HttpService(service, basePath, domainMediaTypePrefix);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
         if (checkConfigAnnotationAvailability(serviceConfig)) {
             httpService.setCompressionConfig(
@@ -185,6 +198,13 @@ public class HttpService {
             httpService.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());
             httpService.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
             httpService.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
+            if (serviceConfig.containsKey(MEDIA_TYPE_PREFIX)) {
+                String serviceMediaTypePrefix = serviceConfig.getStringValue(MEDIA_TYPE_PREFIX).getValue().trim();
+                if (domainMediaTypePrefix != null) {
+                    serviceMediaTypePrefix = domainMediaTypePrefix.getValue().trim() + "." + serviceMediaTypePrefix;
+                }
+                httpService.setMediaTypePrefix(serviceMediaTypePrefix);
+            }
         } else {
             httpService.setHostName(HttpConstants.DEFAULT_HOST);
         }
@@ -207,6 +227,7 @@ public class HttpService {
             } catch (URITemplateException | UnsupportedEncodingException e) {
                 throw new BallerinaConnectorException(e.getMessage());
             }
+            httpResource.setMediaTypePrefix(httpService.getMediaTypePrefix());
             httpResources.add(httpResource);
         }
         httpService.setResources(httpResources);

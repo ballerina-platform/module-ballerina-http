@@ -343,6 +343,7 @@ public class HttpConstants {
     public static final String HTTP_SERVICE_REGISTRY = "HTTP_SERVICE_REGISTRY";
     public static final String CONNECTOR_STARTED = "CONNECTOR_STARTED";
     public static final String ABSOLUTE_RESOURCE_PATH = "ABSOLUTE_RESOURCE_PATH";
+    public static final String MEDIA_TYPE_PREFIX = "MEDIA_TYPE_PREFIX";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;
@@ -358,6 +359,7 @@ public class HttpConstants {
     public static final String ENDPOINT_CONFIG_CHUNKING = "chunking";
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
+    public static final BString ENDPOINT_MEDIA_TYPE_PREFIX = StringUtils.fromString("mediaTypePrefix");
 
     public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
     public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");

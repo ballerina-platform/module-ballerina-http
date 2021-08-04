@@ -114,7 +114,7 @@ public client class Caller {
     }
 
     private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType,
-        HttpCacheConfig? cacheConfig) returns ListenerError? {
+        HttpCacheConfig? cacheConfig, string? mediaTypePrefix) returns ListenerError? {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
         boolean cacheCompatibleType = false;
@@ -165,6 +165,16 @@ public client class Caller {
             response.cacheControl = responseCacheControl;
             if (cacheConfig.setLastModified) {
                 response.setLastModified();
+            }
+        }
+        if (response.hasHeader(CONTENT_TYPE) && (mediaTypePrefix is string)) {
+            string existingMediaType = response.getContentType();
+            int? index = existingMediaType.indexOf("/");
+            if index is int {
+                string primaryType = existingMediaType.substring(0, index);
+                string subType = existingMediaType.substring(index + 1);
+                string specificMediaType = primaryType + "/" + mediaTypePrefix + "+" + subType;
+                response.setHeader(CONTENT_TYPE, specificMediaType);
             }
         }
         return nativeRespond(self, response);

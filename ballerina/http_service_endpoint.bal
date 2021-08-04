@@ -144,6 +144,7 @@ public type Local record {|
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
+# + mediaTypePrefix - Domain specific media-type prefix
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
@@ -152,6 +153,7 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
+    string mediaTypePrefix?;
 |};
 
 # Provides settings related to HTTP/1.x protocol.
