@@ -80,7 +80,7 @@ public client isolated class FailoverClient {
 
     private isolated function processPost(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_POST);
         if (result is HttpFuture) {
@@ -108,7 +108,7 @@ public client isolated class FailoverClient {
     
     private isolated function processPut(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_PUT);
         if (result is HttpFuture) {
@@ -136,7 +136,7 @@ public client isolated class FailoverClient {
     
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_PATCH);
         if (result is HttpFuture) {
@@ -164,7 +164,7 @@ public client isolated class FailoverClient {
     
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_DELETE);
         if (result is HttpFuture) {
@@ -257,7 +257,7 @@ public client isolated class FailoverClient {
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers) 
             returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performExecuteAction(path, req, httpVerb);
         if (result is HttpFuture) {
@@ -300,7 +300,7 @@ public client isolated class FailoverClient {
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
     remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         var result = self.performExecuteAction(path, req, "SUBMIT", verb = httpVerb);
         if (result is Response) {
             return getInvalidTypeError();
