@@ -18,9 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 http:Client serviceSpecificClientEP = check new("http://localhost:" + serviceMediaTypePrefixPort.toString());
-http:Client domainSpecificClientEP = check new("http://localhost:" + domainMediaTypePrefixPort.toString());
 listener http:Listener serviceSpecificListener = new(serviceMediaTypePrefixPort);
-listener http:Listener domainSpecificListener = new(domainMediaTypePrefixPort, {mediaTypePrefix : "testDomainPrefix"});
 
  @http:ServiceConfig {
          mediaTypePrefix : "testServicePrefix1"
@@ -66,54 +64,6 @@ service /service2 on serviceSpecificListener {
     }
 }
 
-service /service1 on domainSpecificListener {
-
-    resource function default test1(http:Request req) returns string {
-        return "test1";
-    }
-
-    resource function default test2(http:Request req) returns @http:Payload{mediaType : "type2/subtype2"} string {
-            return "test2";
-    }
-
-    resource function default test3(http:Request req) returns http:Response {
-        http:Response res = new;
-        res.setPayload("test3");
-        checkpanic res.setContentType("type3/subtype3");
-        return res;
-    }
-
-    resource function default test4(http:Request req) returns http:Response {
-        http:Response res = new;
-        res.setPayload("test4", "type4/subtype4");
-        return res;
-    }
-
-    resource function default test5(http:Request req) returns http:Response {
-        http:Response res = new;
-        res.setPayload("test5");
-        res.setHeader("content-type", "type5/subtype5");
-        return res;
-    }
-}
-
- @http:ServiceConfig {
-         mediaTypePrefix : "testServicePrefix"
- }
-service /service2 on domainSpecificListener {
-
-    resource function default test(http:Request req) returns json {
-        return {message : "test"};
-    }
-}
-
-service /service3 on domainSpecificListener {
-
-    resource function default test(http:Request req, http:Caller caller) returns error? {
-        check caller->respond({message : "test"});
-    }
-}
-
 @test:Config {}
 function testServiceWithSpecificMediaTypePrefix() returns error? {
     http:Response response = check serviceSpecificClientEP->get("/service1/test1");
@@ -139,35 +89,4 @@ function testServiceWithSpecificMediaTypePrefix() returns error? {
     response = check serviceSpecificClientEP->get("/service2/test");
     assertJsonPayload(response.getJsonPayload(), {message : "test"});
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), "application/testServicePrefix2+json");
-}
-
-@test:Config {}
-function testListenerWithDomainMediaTypePrefix() returns error? {
-    http:Response response = check domainSpecificClientEP->get("/service1/test1");
-    assertTextPayload(response.getTextPayload(), "test1");
-    assertHeaderValue(check response.getHeader(CONTENT_TYPE), "text/testDomainPrefix+plain");
-
-    response = check domainSpecificClientEP->get("/service1/test2");
-    assertTextPayload(response.getTextPayload(), "test2");
-    assertHeaderValue(check response.getHeader(CONTENT_TYPE), "type2/testDomainPrefix+subtype2");
-
-    response = check domainSpecificClientEP->get("/service1/test3");
-    assertTextPayload(response.getTextPayload(), "test3");
-    assertHeaderValue(check response.getHeader(CONTENT_TYPE), "type3/testDomainPrefix+subtype3");
-
-    response = check domainSpecificClientEP->get("/service1/test4");
-    assertTextPayload(response.getTextPayload(), "test4");
-    assertHeaderValue(check response.getHeader(CONTENT_TYPE), "type4/testDomainPrefix+subtype4");
-
-    response = check domainSpecificClientEP->get("/service1/test5");
-    assertTextPayload(response.getTextPayload(), "test5");
-    assertHeaderValue(check response.getHeader(CONTENT_TYPE), "type5/testDomainPrefix+subtype5");
-
-    response = check domainSpecificClientEP->get("/service2/test");
-    assertJsonPayload(response.getJsonPayload(), {message : "test"});
-    assertHeaderValue(check response.getHeader(CONTENT_TYPE), "application/testDomainPrefix.testServicePrefix+json");
-
-    response = check domainSpecificClientEP->get("/service3/test");
-    assertJsonPayload(response.getJsonPayload(), {message : "test"});
-    assertHeaderValue(check response.getHeader(CONTENT_TYPE), "application/testDomainPrefix+json");
 }

@@ -125,7 +125,6 @@ const int payloadRetrievalAfterRespondingTestPort = 9576;
 const int cacheAnnotationTestPort1 = 9577;
 const int cacheAnnotationTestPort2 = 9578;
 const int serviceMediaTypePrefixPort = 9579;
-const int domainMediaTypePrefixPort = 9580;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;

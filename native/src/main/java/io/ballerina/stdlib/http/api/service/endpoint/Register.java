@@ -22,7 +22,6 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
-import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HTTPServicesRegistry;
@@ -45,9 +44,7 @@ public class Register extends AbstractHttpNativeFunction {
             Runtime runtime = env.getRuntime();
             httpServicesRegistry.setRuntime(runtime);
             String basePath = getBasePath(serviceName);
-            BMap serviceEndpointConfig = serviceEndpoint.getMapValue(HttpConstants.SERVICE_ENDPOINT_CONFIG);
-            BString mediaTypePrefix = serviceEndpointConfig.getStringValue(HttpConstants.ENDPOINT_MEDIA_TYPE_PREFIX);
-            httpServicesRegistry.registerService(runtime, service, basePath, mediaTypePrefix);
+            httpServicesRegistry.registerService(runtime, service, basePath);
         } catch (BError ex) {
             return ex;
         }

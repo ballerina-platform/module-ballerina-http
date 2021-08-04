@@ -70,12 +70,9 @@ public class HttpService {
     private String chunkingConfig;
     private String mediaTypePrefix;
 
-    protected HttpService(BObject service, String basePath, BString domainMediaTypePrefix) {
+    protected HttpService(BObject service, String basePath) {
         this.balService = service;
         this.basePath = basePath;
-        if (domainMediaTypePrefix != null) {
-            this.mediaTypePrefix = domainMediaTypePrefix.getValue();
-        }
     }
 
     // Added due to WebSub requirement
@@ -189,8 +186,8 @@ public class HttpService {
         return uriTemplate;
     }
 
-    public static HttpService buildHttpService(BObject service, String basePath, BString domainMediaTypePrefix) {
-        HttpService httpService = new HttpService(service, basePath, domainMediaTypePrefix);
+    public static HttpService buildHttpService(BObject service, String basePath) {
+        HttpService httpService = new HttpService(service, basePath);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
         if (checkConfigAnnotationAvailability(serviceConfig)) {
             httpService.setCompressionConfig(
@@ -199,11 +196,7 @@ public class HttpService {
             httpService.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
             httpService.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
             if (serviceConfig.containsKey(MEDIA_TYPE_PREFIX)) {
-                String serviceMediaTypePrefix = serviceConfig.getStringValue(MEDIA_TYPE_PREFIX).getValue().trim();
-                if (domainMediaTypePrefix != null) {
-                    serviceMediaTypePrefix = domainMediaTypePrefix.getValue().trim() + "." + serviceMediaTypePrefix;
-                }
-                httpService.setMediaTypePrefix(serviceMediaTypePrefix);
+                httpService.setMediaTypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_PREFIX).getValue().trim());
             }
         } else {
             httpService.setHostName(HttpConstants.DEFAULT_HOST);

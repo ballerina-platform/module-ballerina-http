@@ -23,7 +23,6 @@ import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.api.values.BString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,12 +95,10 @@ public class HTTPServicesRegistry {
      * @param runtime  ballerina runtime instance.
      * @param service  requested serviceInfo to be registered.
      * @param basePath absolute resource path of the service
-     * @param mediaTypePrefix domain specific media-type prefix
      */
-    public void registerService(Runtime runtime, BObject service, String basePath, BString mediaTypePrefix) {
-        HttpService httpService = HttpService.buildHttpService(service, basePath, mediaTypePrefix);
+    public void registerService(Runtime runtime, BObject service, String basePath) {
+        HttpService httpService = HttpService.buildHttpService(service, basePath);
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
-        service.addNativeData(HttpConstants.MEDIA_TYPE_PREFIX, mediaTypePrefix);
         String hostName = httpService.getHostName();
         if (servicesMapByHost.get(hostName) == null) {
             servicesByBasePath = new ConcurrentHashMap<>();
@@ -176,12 +173,11 @@ public class HTTPServicesRegistry {
      */
     public void unRegisterService(BObject service) {
         String basePath = (String) service.getNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH);
-        BString mediaTypePrefix = (BString) service.getNativeData(HttpConstants.MEDIA_TYPE_PREFIX);
         if (basePath == null) {
             logger.error("service is not attached to the listener");
             return;
         }
-        HttpService httpService = HttpService.buildHttpService(service, basePath, mediaTypePrefix);
+        HttpService httpService = HttpService.buildHttpService(service, basePath);
         String hostName = httpService.getHostName();
         ServicesMapHolder servicesMapHolder = servicesMapByHost.get(hostName);
         if (servicesMapHolder == null) {
