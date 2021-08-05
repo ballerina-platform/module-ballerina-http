@@ -106,7 +106,7 @@ public type CommonClientConfiguration record {|
 #
 # + rel - Link relation type which describes how the current context (source) is related to the target resource
 # + href - Target URI
-# + mediaTypes - Expected resource media types
+# + types - Expected resource media types
 # + methods - Expected resource methods
 public type Link record {
     string rel;
