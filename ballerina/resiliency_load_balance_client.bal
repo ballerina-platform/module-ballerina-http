@@ -72,7 +72,7 @@ public client isolated class LoadBalanceClient {
     
     private isolated function processPost(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_POST);
         return processResponse(result, targetType);
@@ -96,7 +96,7 @@ public client isolated class LoadBalanceClient {
     
     private isolated function processPut(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PUT);
         return processResponse(result, targetType);
@@ -120,7 +120,7 @@ public client isolated class LoadBalanceClient {
     
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PATCH);
         return processResponse(result, targetType);
@@ -144,7 +144,7 @@ public client isolated class LoadBalanceClient {
     
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_DELETE);
         return processResponse(result, targetType);
@@ -220,7 +220,7 @@ public client isolated class LoadBalanceClient {
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers) 
             returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceExecuteAction(path, req, httpVerb);
         return processResponse(result, targetType);

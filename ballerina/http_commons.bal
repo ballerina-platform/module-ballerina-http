@@ -33,7 +33,7 @@ public isolated function parseHeader(string headerValue) returns [string, map<an
     name: "parseHeader"
 } external;
 
-isolated function buildRequest(RequestMessage message) returns Request {
+isolated function buildRequest(RequestMessage message) returns Request|ClientError {
     Request request = new;
     if (message is ()) {
         request.noEntityBody = true;
@@ -51,12 +51,10 @@ isolated function buildRequest(RequestMessage message) returns Request {
         request.setByteStream(message);
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
-    } else if (message is json) {
-        request.setJsonPayload(message);
     } else {
         var result = trap val:toJson(message);
         if (result is error) {
-            panic error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
+            return error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
         } else {
             request.setJsonPayload(result);
         }
@@ -64,7 +62,7 @@ isolated function buildRequest(RequestMessage message) returns Request {
     return request;
 }
 
-isolated function buildResponse(ResponseMessage message) returns Response {
+isolated function buildResponse(ResponseMessage message) returns Response|ListenerError {
     Response response = new;
     if (message is ()) {
         return response;
@@ -80,12 +78,10 @@ isolated function buildResponse(ResponseMessage message) returns Response {
         response.setByteStream(message);
     } else if (message is mime:Entity[]) {
         response.setBodyParts(message);
-    } else if (message is json) {
-        response.setJsonPayload(message);
     } else {
         var result = trap val:toJson(message);
         if (result is error) {
-            panic error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
+            return error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
         } else {
             response.setJsonPayload(result);
         }
@@ -94,7 +90,7 @@ isolated function buildResponse(ResponseMessage message) returns Response {
 }
 
 isolated function populateOptions(Request request, string? mediaType, map<string|string[]>? headers) {
-    // This method is called after setting the payload. Hence default content type header will be overriden.
+    // This method is called after setting the payload. Hence default content type header will be overridden.
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType arg in client method
     // 2. Headers arg in client method

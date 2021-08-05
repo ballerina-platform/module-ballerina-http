@@ -71,7 +71,7 @@ public client isolated class Client {
 
     private isolated function processPost(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
         if (observabilityEnabled && response is Response) {
@@ -98,7 +98,7 @@ public client isolated class Client {
 
     private isolated function processPut(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
         if (observabilityEnabled && response is Response) {
@@ -125,7 +125,7 @@ public client isolated class Client {
 
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
         if (observabilityEnabled && response is Response) {
@@ -152,7 +152,7 @@ public client isolated class Client {
 
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
         if (observabilityEnabled && response is Response) {
@@ -241,7 +241,7 @@ public client isolated class Client {
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers)
             returns Response|PayloadType|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
         if (observabilityEnabled && response is Response) {
@@ -281,7 +281,7 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
-        Request req = buildRequest(message);
+        Request req = check buildRequest(message);
         return self.httpClient->submit(httpVerb, path, req);
 
     }
