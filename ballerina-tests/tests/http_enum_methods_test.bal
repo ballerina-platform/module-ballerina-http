@@ -17,9 +17,9 @@
 import ballerina/http;
 import ballerina/test;
 
-http:Client clientEPTest = check new ("http://localhost:" + httpEnumActionsTestPort.toString());
+http:Client clientEPTest = check new ("http://localhost:" + httpEnumMethodsTestPort.toString());
 
-service / on new http:Listener(httpEnumActionsTestPort) {
+service / on new http:Listener(httpEnumMethodsTestPort) {
 
     resource function get test() returns string {
         return "GetTest";
@@ -52,7 +52,7 @@ service / on new http:Listener(httpEnumActionsTestPort) {
 }
 
 @test:Config{}
-public function testHttpEnumActions() {
+public function testHttpEnumMethods() {
     http:Response|error response = clientEPTest->execute(http:GET, "/test", "testMsg");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200);
