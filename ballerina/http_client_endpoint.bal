@@ -777,8 +777,8 @@ isolated function createPayloadBindingError(error result) returns PayloadBinding
     return error PayloadBindingError(errPrefix + result.message(), result);
 }
 
-# Represents HTTP actions.
-public enum Action {
+# Represents HTTP methods.
+public enum Method {
     GET,
     POST,
     PUT,

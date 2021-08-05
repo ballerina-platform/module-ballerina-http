@@ -20,15 +20,15 @@ import ballerina/test;
 http:Link link1 = {
     rel : "/testLink1",
     href : "/source/test/testLink1",
-    mediaTypes : ["testMediaType1"],
-    actions : [http:GET, http:POST]
+    types : ["testMediaType1"],
+    methods : [http:GET, http:POST]
 };
 
 http:Link link2 = {
     rel : "/testLink2",
     href : "/source/test/testLink2",
-    mediaTypes : ["testMediaType2"],
-    actions : [http:OPTIONS, http:HEAD]
+    types : ["testMediaType2"],
+    methods : [http:OPTIONS, http:HEAD]
 };
 
 http:Links links = {
@@ -39,11 +39,11 @@ http:Links links = {
 public function testLinkRecords() {
     test:assertEquals(links.links[0].rel, "/testLink1");
     test:assertEquals(links.links[0].href, "/source/test/testLink1");
-    test:assertEquals(links.links[0]?.actions, [http:GET, http:POST]);
-    test:assertEquals(links.links[0]?.mediaTypes, ["testMediaType1"]);
+    test:assertEquals(links.links[0]?.methods, [http:GET, http:POST]);
+    test:assertEquals(links.links[0]?.types, ["testMediaType1"]);
 
     test:assertEquals(links.links[1].rel, "/testLink2");
     test:assertEquals(links.links[1].href, "/source/test/testLink2");
-    test:assertEquals(links.links[1]?.actions, [http:OPTIONS, http:HEAD]);
-    test:assertEquals(links.links[1]?.mediaTypes, ["testMediaType2"]);
+    test:assertEquals(links.links[1]?.methods, [http:OPTIONS, http:HEAD]);
+    test:assertEquals(links.links[1]?.types, ["testMediaType2"]);
 }
