@@ -198,7 +198,7 @@ public interface WebSocketConnection {
     /**
      * Add a custom write idle state handler to the pipeline. This will be applied when writing
      * frames using the client.
-     * @param timeOut Read time out
+     * @param timeOut Write time out
      */
     void addWriteIdleStateHandler(WebSocketWriteTimeOutListener timeOutListener, long timeOut);
 

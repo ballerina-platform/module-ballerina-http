@@ -18,7 +18,7 @@
 package io.ballerina.stdlib.http.transport.contract.websocket;
 
 /**
- * This interface for notifying the WebSocket write idle timeout.
+ * This interface is for notifying the WebSocket write idle timeout.
  */
 public interface WebSocketWriteTimeOutListener {
     void notifyTimeOut(Throwable error);

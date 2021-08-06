@@ -25,7 +25,7 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
 /**
- * Handler to handle Client write timeout.
+ * Handler to capture and handle Client write timeout event.
  */
 public class ClientWriteTimeoutHandler extends ChannelDuplexHandler {
     WebSocketWriteTimeOutListener timeOutListener;

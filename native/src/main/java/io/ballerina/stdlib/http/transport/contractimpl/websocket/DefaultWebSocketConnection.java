@@ -291,6 +291,8 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
     public void removeWriteIdleStateHandler() {
         if (ctx.pipeline().get(WRITE_IDLE_STATE_HANDLER) != null) {
             ctx.pipeline().remove(WRITE_IDLE_STATE_HANDLER);
+        }
+        if (ctx.pipeline().get(CLIENT_WRITE_TIMEOUT_HANDLER) != null) {
             ctx.pipeline().remove(CLIENT_WRITE_TIMEOUT_HANDLER);
         }
     }
