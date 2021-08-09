@@ -47,31 +47,35 @@ service http:Service on new http:Listener(9090) {
         return "done";
     }
 
-    resource function get callerErr1(json a) returns string {
+    resource function get callerInfo7(json a) returns string {
         return "done";
     }
 
-    resource function get callerErr2(mime:Entity abc) returns string {
+    resource function get callerInfo8(json[] a) returns string {
         return "done";
     }
 
-    resource function get callerErr3(int|string a) returns string {
+    resource function get callerInfo9(json? a) returns string {
         return "done";
     }
 
-    resource function get callerErr4(int|string[]|float a) returns string {
+    resource function get callerErr1(mime:Entity abc) returns string {
         return "done";
     }
 
-    resource function get callerErr5(int[]|json a) returns string {
+    resource function get callerErr2(int|string a) returns string {
         return "done";
     }
 
-    resource function get callerErr6(json[] a) returns string {
+    resource function get callerErr3(int|string[]|float a) returns string {
         return "done";
     }
 
-    resource function get callerErr7(json? a) returns string {
+    resource function get callerErr4(int[]|json a) returns string {
+        return "done";
+    }
+
+    resource function get callerErr5(xml? a) returns string {
         return "done";
     }
 }

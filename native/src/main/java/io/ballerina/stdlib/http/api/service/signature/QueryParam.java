@@ -57,7 +57,7 @@ public class QueryParam {
 
     private boolean isValidBasicType(int typeTag) {
         return typeTag == TypeTags.STRING_TAG || typeTag == TypeTags.INT_TAG || typeTag == TypeTags.FLOAT_TAG ||
-                typeTag == TypeTags.BOOLEAN_TAG || typeTag == TypeTags.DECIMAL_TAG;
+                typeTag == TypeTags.BOOLEAN_TAG || typeTag == TypeTags.DECIMAL_TAG || typeTag == TypeTags.JSON_TAG;
     }
 
     public String getToken() {

@@ -16,6 +16,7 @@
 
 import ballerina/http;
 import ballerina/test;
+import ballerina/url;
 
 listener http:Listener QueryBindingEP = new(queryParamBindingTest);
 http:Client queryBindingClient = check new("http://localhost:" + queryParamBindingTest.toString());
@@ -48,6 +49,23 @@ service /queryparamservice on QueryBindingEP {
             http:Caller caller, decimal[]? dc) {
         json responseJson = { iValue: id, sValue: PersoN, fValue: val, bValue: isPresent, dValue: dc };
         checkpanic caller->respond(responseJson);
+    }
+
+    resource function get q5(json obj) returns json {
+        return obj;
+    }
+
+    resource function get q6(json[] objs) returns json {
+        json responseJson = { objects : objs };
+        return responseJson;
+    }
+
+    resource function get q7(json? obj) returns json {
+        if obj is () {
+            return { name : "empty", value : "empty" };
+        } else {
+            return obj;
+        }
     }
 }
 
@@ -166,4 +184,36 @@ function testNilableAllTypeQueryArrBinding() {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+}
+
+@test:Config {}
+function testJsonQueryBinding() returns error?{
+    json jsonObj = {name : "test", value : "json"};
+    string jsonEncoded = check url:encode(jsonObj.toJsonString(), "UTF-8");
+    http:Response response = check queryBindingClient->get("/queryparamservice/q5?obj=" + jsonEncoded);
+    assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonObj);
+}
+
+@test:Config {}
+function testJsonArrayQueryBinding() returns error?{
+    json jsonObj1 = {name : "test1", value : "json1"};
+    json jsonObj2 = {name : "test2", value : "json2"};
+    json expected = {objects : [jsonObj1, jsonObj2]};
+    string jsonEncoded1 = check url:encode(jsonObj1.toJsonString(), "UTF-8");
+    string jsonEncoded2 = check url:encode(jsonObj2.toJsonString(), "UTF-8");
+    http:Response response = check queryBindingClient->get("/queryparamservice/q6?objs=" + jsonEncoded1 + "," +
+                                jsonEncoded2);
+    assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
+}
+
+@test:Config {}
+function testNilableJsonQueryBinding() returns error?{
+    json jsonObj = { name : "test", value : "json"};
+    json emptyObj = { name : "empty", value : "empty" };
+    string jsonEncoded = check url:encode(jsonObj.toJsonString(), "UTF-8");
+    http:Response response = check queryBindingClient->get("/queryparamservice/q7?obj=" + jsonEncoded);
+    assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonObj);
+
+    response = check queryBindingClient->get("/queryparamservice/q7");
+    assertJsonPayloadtoJsonString(response.getJsonPayload(), emptyObj);
 }

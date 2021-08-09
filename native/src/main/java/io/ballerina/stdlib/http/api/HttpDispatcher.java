@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
@@ -60,6 +61,7 @@ import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
 import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
 import static io.ballerina.runtime.api.TypeTags.FLOAT_TAG;
 import static io.ballerina.runtime.api.TypeTags.INT_TAG;
+import static io.ballerina.runtime.api.TypeTags.JSON_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
@@ -76,6 +78,7 @@ public class HttpDispatcher {
     private static final ArrayType FLOAT_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
     private static final ArrayType BOOLEAN_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
     private static final ArrayType DECIMAL_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
+    private static final ArrayType JSON_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
 
     public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg) {
         try {
@@ -300,6 +303,8 @@ public class HttpDispatcher {
                 return Boolean.parseBoolean(argValue);
             case DECIMAL_TAG:
                 return ValueCreator.createDecimalValue(argValue);
+            case JSON_TAG:
+                return JsonUtils.parse(argValue);
             default:
                 return StringUtils.fromString(argValue);
         }
@@ -314,6 +319,8 @@ public class HttpDispatcher {
             return getBArray(argValueArr, BOOLEAN_ARR, targetElementTypeTag);
         } else if (targetElementTypeTag == DECIMAL_TAG) {
             return getBArray(argValueArr, DECIMAL_ARR, targetElementTypeTag);
+        } else if (targetElementTypeTag == JSON_TAG) {
+            return getBArray(argValueArr, JSON_ARR, targetElementTypeTag);
         } else {
             return StringUtils.fromStringArray(argValueArr);
         }
@@ -335,6 +342,9 @@ public class HttpDispatcher {
                     break;
                 case DECIMAL_TAG:
                     arrayValue.add(index++, ValueCreator.createDecimalValue(element));
+                    break;
+                case JSON_TAG:
+                    arrayValue.add(index++, JsonUtils.parse(element));
                     break;
                 default:
                     throw new BallerinaConnectorException("Illegal state error: unexpected param type");
