@@ -39,7 +39,7 @@ public class ClientWriteTimeoutHandler extends ChannelDuplexHandler {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.WRITER_IDLE) {
-                timeOutListener.notifyTimeOut(new WebSocketConnectorException("Write timed out"));
+                timeOutListener.onTimeout(new WebSocketConnectorException("Write timed out"));
             } else {
                 ctx.fireUserEventTriggered(evt);
             }

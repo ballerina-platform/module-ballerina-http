@@ -26,7 +26,7 @@ public class WriteTimeOutTestListener implements WebSocketWriteTimeOutListener {
     private boolean timedOut = false;
 
     @Override
-    public void notifyTimeOut(Throwable error) {
+    public void onTimeout(Throwable error) {
         this.timedOut = true;
     }
 
