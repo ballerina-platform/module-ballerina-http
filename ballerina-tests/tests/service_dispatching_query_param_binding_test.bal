@@ -208,8 +208,8 @@ function testJsonArrayQueryBinding() returns error?{
 
 @test:Config {}
 function testNilableJsonQueryBinding() returns error?{
-    json jsonObj = { name : "test", value : "json"};
-    json emptyObj = { name : "empty", value : "empty" };
+    json jsonObj = {name : "test", value : "json"};
+    json emptyObj = {name : "empty", value : "empty"};
     string jsonEncoded = check url:encode(jsonObj.toJsonString(), "UTF-8");
     http:Response response = check queryBindingClient->get("/queryparamservice/q7?obj=" + jsonEncoded);
     assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonObj);
