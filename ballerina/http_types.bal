@@ -103,21 +103,19 @@ public type CommonClientConfiguration record {|
 |};
 
 # Represents a server-provided hyperlink
-#
-# + rel - Link relation type which describes how the current context (source) is related to the target resource
-# + href - Target URI
-# + types - Expected resource media types
-# + methods - Expected resource methods
 public type Link record {
+    # Link relation type which describes how the current context (source) is related to the target resource
     string rel;
+    # Target URI
     string href;
+    # Expected resource media types
     string[] types?;
+    # Expected resource methods
     Method[] methods?;
 };
 
 # Represents available server-provided links
-#
-# + links - Array of available links
 public type Links record {|
+    # Array of available links
     Link[] links;
 |};
