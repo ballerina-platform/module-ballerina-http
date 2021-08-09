@@ -22,7 +22,7 @@ import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketWriteTimeO
 /**
  * A test listener for write idle timeout.
  */
-public class WriteTimeTestOutListener implements WebSocketWriteTimeOutListener {
+public class WriteTimeOutTestListener implements WebSocketWriteTimeOutListener {
     private boolean timedOut = false;
 
     @Override

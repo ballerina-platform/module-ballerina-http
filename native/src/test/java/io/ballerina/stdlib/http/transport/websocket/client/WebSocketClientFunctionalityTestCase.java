@@ -119,7 +119,7 @@ public class WebSocketClientFunctionalityTestCase {
     public void testFrameContinuationTimeoutForText() throws Throwable {
         WebSocketTestClientConnectorListener connectorListener = new WebSocketTestClientConnectorListener();
         WebSocketConnection webSocketConnection = getWebSocketConnection(connectorListener);
-        WriteTimeTestOutListener timeoutHandler = new WriteTimeTestOutListener();
+        WriteTimeOutTestListener timeoutHandler = new WriteTimeOutTestListener();
         // set the timeout as 1 sec.
         webSocketConnection.addWriteIdleStateHandler(timeoutHandler, 1);
         // Wait till idle timeout occurs and then send the frame.
