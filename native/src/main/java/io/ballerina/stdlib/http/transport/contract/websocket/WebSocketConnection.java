@@ -196,6 +196,19 @@ public interface WebSocketConnection {
     void addReadIdleStateHandler(long timeOut);
 
     /**
+     * Add a custom write idle state handler to the pipeline. This will be applied when writing
+     * frames using the client.
+     * @param timeOut Write time out
+     */
+    void addWriteIdleStateHandler(WebSocketWriteTimeOutListener timeOutListener, long timeOut);
+
+    /**
+     * Remove the custom write idle state handler from the pipeline. This will be applied
+     * after the write operation is completed.
+     */
+    void removeWriteIdleStateHandler();
+
+    /**
      * Get the channel from the ctx.
      */
     Channel getChannel();

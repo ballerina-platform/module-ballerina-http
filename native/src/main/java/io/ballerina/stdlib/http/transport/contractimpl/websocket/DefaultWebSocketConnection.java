@@ -3,6 +3,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.websocket;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnection;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketFrameType;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketWriteTimeOutListener;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.WebSocketMessageQueueHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -33,6 +34,8 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.MESSAGE_QUEU
  */
 public class DefaultWebSocketConnection implements WebSocketConnection {
 
+    public static final String CLIENT_WRITE_TIMEOUT_HANDLER = "ClientWriteTimeoutHandler";
+    public static final String WRITE_IDLE_STATE_HANDLER = "WriteIdleStateHandler";
     private final ChannelHandlerContext ctx;
     private final WebSocketInboundFrameHandler frameHandler;
     private final boolean secure;
@@ -273,6 +276,24 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
         if (ctx.pipeline().get(IDLE_STATE_HANDLER) == null && readTimeOut > 0) {
             ctx.pipeline().addBefore(MESSAGE_QUEUE_HANDLER, IDLE_STATE_HANDLER,
                     new IdleStateHandler(readTimeOut, 0, 0, TimeUnit.SECONDS));
+        }
+    }
+
+    public void addWriteIdleStateHandler(WebSocketWriteTimeOutListener timeOutListener, long writeTimeout) {
+        if (ctx.pipeline().get(CLIENT_WRITE_TIMEOUT_HANDLER) == null && writeTimeout > 0) {
+            ctx.pipeline().addFirst(WRITE_IDLE_STATE_HANDLER,
+                    new IdleStateHandler(0, writeTimeout, 0, TimeUnit.SECONDS));
+            ctx.pipeline().addAfter(WRITE_IDLE_STATE_HANDLER, CLIENT_WRITE_TIMEOUT_HANDLER,
+                    new ClientWriteTimeoutHandler(timeOutListener));
+        }
+    }
+
+    public void removeWriteIdleStateHandler() {
+        if (ctx.pipeline().get(WRITE_IDLE_STATE_HANDLER) != null) {
+            ctx.pipeline().remove(WRITE_IDLE_STATE_HANDLER);
+        }
+        if (ctx.pipeline().get(CLIENT_WRITE_TIMEOUT_HANDLER) != null) {
+            ctx.pipeline().remove(CLIENT_WRITE_TIMEOUT_HANDLER);
         }
     }
 
