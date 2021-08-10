@@ -208,15 +208,12 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.diagnosticCount(), 5);
         assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
-        assertError(diagnosticResult, 1, "invalid union type of query param 'a': 'string', 'int', 'float', " +
-                "'boolean', 'decimal', 'json' type or the array types of them can only be union with '()'. Eg: " +
-                "string? or int[]?", HTTP_113);
-        assertError(diagnosticResult, 2, "invalid union type of query param 'a': 'string', 'int', 'float', " +
-                "'boolean', 'decimal', 'json' type or the array types of them can only be union with '()'. Eg: " +
-                "string? or int[]?", HTTP_113);
-        assertError(diagnosticResult, 3, "invalid union type of query param 'a': 'string', 'int', 'float', " +
-                "'boolean', 'decimal', 'json' type or the array types of them can only be union with '()'. Eg: " +
-                "string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 1, "invalid union type of query param 'a': 'json' type or union " +
+                "of a 'json' subtype and nil is allowed. Eg: string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 2, "invalid union type of query param 'a': 'json' type or union " +
+                "of a 'json' subtype and nil is allowed. Eg: string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 3, "invalid union type of query param 'a': 'json' type or union " +
+                "of a 'json' subtype and nil is allowed. Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 4, "invalid type of query param 'a': expected one of the 'string', " +
                 "'int', 'float', 'boolean', 'decimal', 'json' types or the array types of them", HTTP_112);
     }

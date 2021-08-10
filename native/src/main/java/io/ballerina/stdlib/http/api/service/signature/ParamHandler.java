@@ -223,7 +223,10 @@ public class ParamHandler {
     }
 
     private void validateQueryParam(int index, ResourceMethodType balResource, Type parameterType) {
-        if (parameterType instanceof UnionType && !(parameterType instanceof JsonType)) {
+        if (parameterType instanceof JsonType) {
+            QueryParam queryParam = new QueryParam(parameterType, balResource.getParamNames()[index], index, true);
+            this.queryParams.add(queryParam);
+        } else if (parameterType instanceof UnionType) {
             List<Type> memberTypes = ((UnionType) parameterType).getMemberTypes();
             int size = memberTypes.size();
             if (size > 2 || !parameterType.isNilable()) {

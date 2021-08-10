@@ -52,20 +52,15 @@ service /queryparamservice on QueryBindingEP {
     }
 
     resource function get q5(json obj) returns json {
+        if obj is () {
+            return { name : "empty", value : "empty" };
+        }
         return obj;
     }
 
     resource function get q6(json[] objs) returns json {
         json responseJson = { objects : objs };
         return responseJson;
-    }
-
-    resource function get q7(json? obj) returns json {
-        if obj is () {
-            return { name : "empty", value : "empty" };
-        } else {
-            return obj;
-        }
     }
 }
 
@@ -192,6 +187,10 @@ function testJsonQueryBinding() returns error?{
     string jsonEncoded = check url:encode(jsonObj.toJsonString(), "UTF-8");
     http:Response response = check queryBindingClient->get("/queryparamservice/q5?obj=" + jsonEncoded);
     assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonObj);
+
+    json emptyObj = {name : "empty", value : "empty"};
+    response = check queryBindingClient->get("/queryparamservice/q5");
+    assertJsonPayloadtoJsonString(response.getJsonPayload(), emptyObj);
 }
 
 @test:Config {}
@@ -207,13 +206,13 @@ function testJsonArrayQueryBinding() returns error?{
 }
 
 @test:Config {}
-function testNilableJsonQueryBinding() returns error?{
-    json jsonObj = {name : "test", value : "json"};
-    json emptyObj = {name : "empty", value : "empty"};
-    string jsonEncoded = check url:encode(jsonObj.toJsonString(), "UTF-8");
-    http:Response response = check queryBindingClient->get("/queryparamservice/q7?obj=" + jsonEncoded);
-    assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonObj);
-
-    response = check queryBindingClient->get("/queryparamservice/q7");
-    assertJsonPayloadtoJsonString(response.getJsonPayload(), emptyObj);
+function testMapJsonQueryBinding() returns error?{
+    map<json> jsonMap = {
+        name : "test",
+        value : 8,
+        objs : [{name : "test1", value: "json1"}, {name : "test2", value: "json2"}]
+        };
+    string jsonEncoded = check url:encode(jsonMap.toJsonString(), "UTF-8");
+    http:Response response = check queryBindingClient->get("/queryparamservice/q5?obj=" + jsonEncoded);
+    assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonMap);
 }
