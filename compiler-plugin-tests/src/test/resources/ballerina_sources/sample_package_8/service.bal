@@ -47,31 +47,59 @@ service http:Service on new http:Listener(9090) {
         return "done";
     }
 
-    resource function get callerErr1(json a) returns string {
+    resource function get callerInfo7(map<json> aa, string? ab, boolean[] ac) returns string {
         return "done";
     }
 
-    resource function get callerErr2(mime:Entity abc) returns string {
+    resource function get callerInfo8(map<json>[] ba, int bb, decimal[]? bc) returns string {
         return "done";
     }
 
-    resource function get callerErr3(int|string a) returns string {
+    resource function get callerInfo9(float[] cb, int[]? cc, map<json>? ca) returns string {
         return "done";
     }
 
-    resource function get callerErr4(int|string[]|float a) returns string {
+    resource function get callerInfo10(string[] db, boolean dc, map<json>[]? da) returns string {
         return "done";
     }
 
-    resource function get callerErr5(int[]|json a) returns string {
+    resource function get callerErr1(mime:Entity abc) returns string {
         return "done";
     }
 
-    resource function get callerErr6(json[] a) returns string {
+    resource function get callerErr2(int|string a) returns string {
         return "done";
     }
 
-    resource function get callerErr7(json? a) returns string {
+    resource function get callerErr3(int|string[]|float b) returns string {
         return "done";
+    }
+
+    resource function get callerErr4(int[]|json c) returns string {
+        return "done";
+    }
+
+    resource function get callerErr5(xml? d, string e) returns string {
+        return "done";
+    }
+
+    resource function get callerErr6(int[]? b, json a, json[] aa) returns string {
+        return "done";
+    }
+
+    resource function get callerErr7(string? b, map<int> a) returns string {
+        return "done";
+    }
+
+    resource function get callerErr8(map<int>[] b, int[] c) returns string {
+        return "done";
+    }
+
+    resource function get callerErr9(map<string>? c, map<json> d) returns string {
+        return "done";
+    }
+
+    resource function get callerErr10(json[] d, xml e) returns string {
+            return "done";
     }
 }

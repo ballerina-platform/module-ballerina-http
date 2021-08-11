@@ -171,11 +171,27 @@ class HttpResourceValidator {
                     }
                 } else if (isAllowedQueryParamType(kind)) {
                     // Allowed query param types
+                } else if (kind == TypeDescKind.MAP) {
+                    TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) typeSymbol).typeParam();
+                    TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
+                    if (constrainedType != TypeDescKind.JSON) {
+                        reportInvalidQueryParameterType(ctx, member, paramName);
+                        continue;
+                    }
                 } else if (kind == TypeDescKind.ARRAY) {
                     // Allowed query param array types
                     TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
                     TypeDescKind elementKind = arrTypeSymbol.typeKind();
-                    if (isAllowedQueryParamType(elementKind)) {
+                    if (elementKind == TypeDescKind.MAP) {
+                        TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
+                        TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
+                        if (constrainedType != TypeDescKind.JSON) {
+                            reportInvalidQueryParameterType(ctx, member, paramName);
+                        }
+                        continue;
+                    }
+                    if (!isAllowedQueryParamType(elementKind)) {
+                        reportInvalidQueryParameterType(ctx, member, paramName);
                         continue;
                     }
                 } else if (kind == TypeDescKind.UNION) {
@@ -195,7 +211,20 @@ class HttpResourceValidator {
                         if (elementKind == TypeDescKind.ARRAY) {
                             TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) type).memberTypeDescriptor();
                             TypeDescKind arrElementKind = arrTypeSymbol.typeKind();
+                            if (arrElementKind == TypeDescKind.MAP) {
+                                TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
+                                TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
+                                if (constrainedType == TypeDescKind.JSON) {
+                                    continue;
+                                }
+                            }
                             if (isAllowedQueryParamType(arrElementKind)) {
+                                continue;
+                            }
+                        } else if (elementKind == TypeDescKind.MAP) {
+                            TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) type).typeParam();
+                            TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
+                            if (constrainedType == TypeDescKind.JSON) {
                                 continue;
                             }
                         } else {

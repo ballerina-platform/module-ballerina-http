@@ -206,20 +206,38 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_8");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
-        assertError(diagnosticResult, 0, "invalid resource parameter type: 'json'", HTTP_106);
-        assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
-        assertError(diagnosticResult, 2, "invalid union type of query param 'a': 'string', 'int', 'float', " +
-                "'boolean', 'decimal' type or the array types of them can only be union with '()'. Eg: string? or " +
-                "int[]?", HTTP_113);
-        assertError(diagnosticResult, 3, "invalid union type of query param 'a': 'string', 'int', 'float', " +
-                "'boolean', 'decimal' type or the array types of them can only be union with '()'. Eg: string? or " +
-                "int[]?", HTTP_113);
-        assertError(diagnosticResult, 4, "invalid union type of query param 'a': 'string', 'int', 'float', " +
-                "'boolean', 'decimal' type or the array types of them can only be union with '()'. Eg: string? or " +
-                "int[]?", HTTP_113);
-        assertError(diagnosticResult, 5, "invalid type of query param 'a': expected one of the 'string', " +
-                "'int', 'float', 'boolean', 'decimal' types or the array types of them", HTTP_112);
+        diagnosticResult.diagnostics().forEach(System.out::println);
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 12);
+        assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
+        assertError(diagnosticResult, 1, "invalid union type of query param 'a': 'string', 'int', " +
+                "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
+                "'()'. Eg: string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 2, "invalid union type of query param 'b': 'string', 'int', " +
+                "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
+                "'()'. Eg: string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 3, "invalid union type of query param 'c': 'string', 'int', " +
+                "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
+                "'()'. Eg: string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 4, "invalid type of query param 'd': expected one of the " +
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                HTTP_112);
+        assertTrue(diagnosticResult, 5, "invalid resource parameter type: 'json'", HTTP_106);
+        assertError(diagnosticResult, 6, "invalid type of query param 'aa': expected one of the " +
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                HTTP_112);
+        assertError(diagnosticResult, 7, "invalid type of query param 'a': expected one of the " +
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                HTTP_112);
+        assertError(diagnosticResult, 8, "invalid type of query param 'b': expected one of the " +
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                HTTP_112);
+        assertError(diagnosticResult, 9, "invalid type of query param 'c': expected one of the " +
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                HTTP_112);
+        assertError(diagnosticResult, 10, "invalid type of query param 'd': expected one of the " +
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                HTTP_112);
+        assertTrue(diagnosticResult, 11, "invalid resource parameter type: 'xml'", HTTP_106);
     }
 
     @Test
