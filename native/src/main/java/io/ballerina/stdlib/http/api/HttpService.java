@@ -55,7 +55,7 @@ public class HttpService {
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
     private static final BString VERSIONING_FIELD = StringUtils.fromString("versioning");
     private static final BString HOST_FIELD = StringUtils.fromString("host");
-    private static final BString MEDIA_TYPE_PREFIX = StringUtils.fromString("mediaTypePrefix");
+    private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = StringUtils.fromString("mediaTypeSubtypePrefix");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -68,7 +68,7 @@ public class HttpService {
     private BMap<BString, Object> compression;
     private String hostName;
     private String chunkingConfig;
-    private String mediaTypePrefix;
+    private String mediaTypeSubtypePrefix;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -140,12 +140,12 @@ public class HttpService {
         return hostName;
     }
 
-    public void setMediaTypePrefix(String mediaTypePrefix) {
-        this.mediaTypePrefix = mediaTypePrefix;
+    public void setmediaTypeSubtypePrefix(String mediaTypeSubtypePrefix) {
+        this.mediaTypeSubtypePrefix = mediaTypeSubtypePrefix;
     }
 
-    public String getMediaTypePrefix() {
-        return mediaTypePrefix;
+    public String getmediaTypeSubtypePrefix() {
+        return mediaTypeSubtypePrefix;
     }
 
     public String getBasePath() {
@@ -195,8 +195,9 @@ public class HttpService {
             httpService.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());
             httpService.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
             httpService.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
-            if (serviceConfig.containsKey(MEDIA_TYPE_PREFIX)) {
-                httpService.setMediaTypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_PREFIX).getValue().trim());
+            if (serviceConfig.containsKey(MEDIA_TYPE_SUBTYPE_PREFIX)) {
+                httpService.setmediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
+                        .getValue().trim());
             }
         } else {
             httpService.setHostName(HttpConstants.DEFAULT_HOST);

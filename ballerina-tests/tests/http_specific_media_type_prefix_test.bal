@@ -17,11 +17,11 @@
 import ballerina/test;
 import ballerina/http;
 
-http:Client serviceSpecificClientEP = check new("http://localhost:" + serviceMediaTypePrefixPort.toString());
-listener http:Listener serviceSpecificListener = new(serviceMediaTypePrefixPort);
+http:Client serviceSpecificClientEP = check new("http://localhost:" + servicemediaTypeSubtypePrefixPort.toString());
+listener http:Listener serviceSpecificListener = new(servicemediaTypeSubtypePrefixPort);
 
  @http:ServiceConfig {
-         mediaTypePrefix : "testServicePrefix1"
+         mediaTypeSubtypePrefix : "testServicePrefix1"
  }
 service /service1 on serviceSpecificListener {
 
@@ -55,7 +55,7 @@ service /service1 on serviceSpecificListener {
 }
 
  @http:ServiceConfig {
-         mediaTypePrefix : "testServicePrefix2"
+         mediaTypeSubtypePrefix : "testServicePrefix2"
  }
 service /service2 on serviceSpecificListener {
 
@@ -65,7 +65,7 @@ service /service2 on serviceSpecificListener {
 }
 
 @test:Config {}
-function testServiceWithSpecificMediaTypePrefix() returns error? {
+function testServiceWithSpecificmediaTypeSubtypePrefix() returns error? {
     http:Response response = check serviceSpecificClientEP->get("/service1/test1");
     assertTextPayload(response.getTextPayload(), "test1");
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), "text/testServicePrefix1+plain");
