@@ -18,12 +18,7 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.types.ArrayType;
-import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.stdlib.http.api.HttpErrorType;
-import io.ballerina.stdlib.http.api.HttpUtil;
 
 /**
  * {@code {@link QueryParam }} represents a query parameter details.
@@ -44,33 +39,6 @@ public class QueryParam {
         this.token = token;
         this.index = index;
         this.nilable = nilable;
-        validateQueryParamType();
-    }
-
-    private void validateQueryParamType() {
-        if (isValidBasicType(typeTag) || isValidJsonMap() || (typeTag == TypeTags.ARRAY_TAG && (isValidBasicType(
-                ((ArrayType) type).getElementType().getTag()) || isValidJsonMap()))) {
-            return;
-        }
-        throw HttpUtil.createHttpError("incompatible query parameter type: '" + type.getName() + "'",
-                                       HttpErrorType.GENERIC_LISTENER_ERROR);
-    }
-
-    private boolean isValidJsonMap() {
-        if (typeTag == TypeTags.MAP_TAG) {
-            return ((MapType) type).getConstrainedType().getTag() == TypeTags.JSON_TAG;
-        } else if (typeTag == TypeTags.ARRAY_TAG) {
-            Type elementType = ((ArrayType) type).getElementType();
-            if (elementType.getTag() == TypeTags.MAP_TAG) {
-                return ((MapType) elementType).getConstrainedType().getTag() == TypeTags.JSON_TAG;
-            }
-        }
-        return false;
-    }
-
-    private boolean isValidBasicType(int typeTag) {
-        return typeTag == TypeTags.STRING_TAG || typeTag == TypeTags.INT_TAG || typeTag == TypeTags.FLOAT_TAG ||
-                typeTag == TypeTags.BOOLEAN_TAG || typeTag == TypeTags.DECIMAL_TAG;
     }
 
     public String getToken() {
