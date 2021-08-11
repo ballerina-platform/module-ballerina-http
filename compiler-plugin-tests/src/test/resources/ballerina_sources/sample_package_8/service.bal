@@ -101,5 +101,5 @@ service http:Service on new http:Listener(9090) {
 
     resource function get callerErr10(json[] d, xml e) returns string {
             return "done";
-        }
+    }
 }
