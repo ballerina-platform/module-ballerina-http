@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -61,7 +62,7 @@ import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
 import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
 import static io.ballerina.runtime.api.TypeTags.FLOAT_TAG;
 import static io.ballerina.runtime.api.TypeTags.INT_TAG;
-import static io.ballerina.runtime.api.TypeTags.JSON_TAG;
+import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
@@ -74,11 +75,14 @@ import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
  */
 public class HttpDispatcher {
 
+    private static final MapType MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
+
     private static final ArrayType INT_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
     private static final ArrayType FLOAT_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
     private static final ArrayType BOOLEAN_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
     private static final ArrayType DECIMAL_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
-    private static final ArrayType JSON_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
+    private static final ArrayType MAP_ARR = TypeCreator.createArrayType(TypeCreator.createMapType(
+            PredefinedTypes.TYPE_JSON));
 
     public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg) {
         try {
@@ -303,8 +307,9 @@ public class HttpDispatcher {
                 return Boolean.parseBoolean(argValue);
             case DECIMAL_TAG:
                 return ValueCreator.createDecimalValue(argValue);
-            case JSON_TAG:
-                return JsonUtils.parse(argValue);
+            case MAP_TAG:
+                Object json = JsonUtils.parse(argValue);
+                return JsonUtils.convertJSONToMap(json, MAP_TYPE);
             default:
                 return StringUtils.fromString(argValue);
         }
@@ -319,8 +324,8 @@ public class HttpDispatcher {
             return getBArray(argValueArr, BOOLEAN_ARR, targetElementTypeTag);
         } else if (targetElementTypeTag == DECIMAL_TAG) {
             return getBArray(argValueArr, DECIMAL_ARR, targetElementTypeTag);
-        } else if (targetElementTypeTag == JSON_TAG) {
-            return getBArray(argValueArr, JSON_ARR, targetElementTypeTag);
+        } else if (targetElementTypeTag == MAP_TAG) {
+            return getBArray(argValueArr, MAP_ARR, targetElementTypeTag);
         } else {
             return StringUtils.fromStringArray(argValueArr);
         }
@@ -343,8 +348,9 @@ public class HttpDispatcher {
                 case DECIMAL_TAG:
                     arrayValue.add(index++, ValueCreator.createDecimalValue(element));
                     break;
-                case JSON_TAG:
-                    arrayValue.add(index++, JsonUtils.parse(element));
+                case MAP_TAG:
+                    Object json = JsonUtils.parse(element);
+                    arrayValue.add(index++, JsonUtils.convertJSONToMap(json, MAP_TYPE));
                     break;
                 default:
                     throw new BallerinaConnectorException("Illegal state error: unexpected param type");

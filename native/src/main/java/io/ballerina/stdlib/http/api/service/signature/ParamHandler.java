@@ -23,7 +23,6 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
-import io.ballerina.runtime.api.types.JsonType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
@@ -223,10 +222,7 @@ public class ParamHandler {
     }
 
     private void validateQueryParam(int index, ResourceMethodType balResource, Type parameterType) {
-        if (parameterType instanceof JsonType) {
-            QueryParam queryParam = new QueryParam(parameterType, balResource.getParamNames()[index], index, true);
-            this.queryParams.add(queryParam);
-        } else if (parameterType instanceof UnionType) {
+        if (parameterType instanceof UnionType) {
             List<Type> memberTypes = ((UnionType) parameterType).getMemberTypes();
             int size = memberTypes.size();
             if (size > 2 || !parameterType.isNilable()) {
