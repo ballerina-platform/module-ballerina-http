@@ -51,14 +51,23 @@ service /queryparamservice on QueryBindingEP {
         checkpanic caller->respond(responseJson);
     }
 
-    resource function get q5(map<json>? obj) returns json {
+    resource function get q5(map<json> obj) returns json {
+        return obj;
+    }
+
+    resource function get q6(map<json>? obj) returns json {
         if obj is () {
             return { name : "empty", value : "empty" };
         }
         return obj;
     }
 
-    resource function get q6(map<json>[]? objs) returns json {
+    resource function get q7(map<json>[] objs) returns json {
+        json responseJson = { objects : objs };
+        return responseJson;
+    }
+
+    resource function get q8(map<json>[]? objs) returns json {
         if objs is () {
             return { name : "empty", value : "empty" };
         }
@@ -199,7 +208,7 @@ function testMapJsonArrayQueryBinding() returns error? {
     json expected = { objects : [jsonObj1, jsonObj2] };
     string jsonEncoded1 = check url:encode(jsonObj1.toJsonString(), "UTF-8");
     string jsonEncoded2 = check url:encode(jsonObj2.toJsonString(), "UTF-8");
-    http:Response response = check queryBindingClient->get("/queryparamservice/q6?objs=" + jsonEncoded1 + "," +
+    http:Response response = check queryBindingClient->get("/queryparamservice/q7?objs=" + jsonEncoded1 + "," +
                                 jsonEncoded2);
     assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
 }
@@ -207,13 +216,27 @@ function testMapJsonArrayQueryBinding() returns error? {
 @test:Config {}
 function testNillableMapJsonQueryBinding() returns error? {
     json emptyObj = { name : "empty", value : "empty" };
-    http:Response response = check queryBindingClient->get("/queryparamservice/q5");
+    map<json> jsonObj = { name : "test", value : "json" };
+    string jsonEncoded = check url:encode(jsonObj.toJsonString(), "UTF-8");
+    http:Response response = check queryBindingClient->get("/queryparamservice/q6?obj=" + jsonEncoded);
+    assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonObj);
+
+    response = check queryBindingClient->get("/queryparamservice/q6");
     assertJsonPayloadtoJsonString(response.getJsonPayload(), emptyObj);
 }
 
 @test:Config {}
 function testNillableMapJsonArrayQueryBinding() returns error? {
     json emptyObj = { name : "empty", value : "empty" };
-    http:Response response = check queryBindingClient->get("/queryparamservice/q6");
+    map<json> jsonObj1 = { name : "test1", value : "json1" };
+    map<json> jsonObj2 = { name : "test2", value : "json2" };
+    json expected = { objects : [jsonObj1, jsonObj2] };
+    string jsonEncoded1 = check url:encode(jsonObj1.toJsonString(), "UTF-8");
+    string jsonEncoded2 = check url:encode(jsonObj2.toJsonString(), "UTF-8");
+    http:Response response = check queryBindingClient->get("/queryparamservice/q8?objs=" + jsonEncoded1 + "," +
+                                jsonEncoded2);
+    assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
+
+    response = check queryBindingClient->get("/queryparamservice/q8");
     assertJsonPayloadtoJsonString(response.getJsonPayload(), emptyObj);
 }
