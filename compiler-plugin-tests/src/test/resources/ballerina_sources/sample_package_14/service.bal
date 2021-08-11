@@ -36,7 +36,7 @@ service /test2 on new http:Listener(9998) {
 
 @http:ServiceConfig {
     host : "b7a.default",
-    mediaTypeSubtypePrefix : "test/prefix.subType"
+    mediaTypeSubtypePrefix : "prefix.subType"
 }
 service /test3 on new http:Listener(9997) {
 
@@ -47,7 +47,7 @@ service /test3 on new http:Listener(9997) {
 
 @http:ServiceConfig {
     host : "b7a.default",
-    mediaTypeSubtypePrefix : "test/prefix.subType+suffix"
+    mediaTypeSubtypePrefix : "prefix.subType+suffix"
 }
 service /test4 on new http:Listener(9996) {
 
@@ -58,20 +58,9 @@ service /test4 on new http:Listener(9996) {
 
 @http:ServiceConfig {
     host : "b7a.default",
-    mediaTypeSubtypePrefix : "test/prefix.subType+suffix1+suffix2"
+    mediaTypeSubtypePrefix : "vnd.prefix.subType+suffix1+suffix2"
 }
 service /test4 on new http:Listener(9996) {
-
-    resource function get test (http:Request req) returns string {
-        return "test";
-    }
-}
-
-@http:ServiceConfig {
-    host : "b7a.default",
-    mediaTypeSubtypePrefix : "test/+suffix"
-}
-service /test5 on new http:Listener(9995) {
 
     resource function get test (http:Request req) returns string {
         return "test";

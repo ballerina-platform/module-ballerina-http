@@ -111,9 +111,8 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                             if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
                                 String[] strings = fieldName.split(":", 2);
                                 if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0].trim())) {
-                                    if (strings[1].trim().matches("^\\W.*")) {
-                                        char invalidChar = strings[1].trim().charAt(0);
-                                        reportInvalidMediaType(ctx, invalidChar, field);
+                                    if (!(strings[1].trim().matches("^\\w+(\\.\\w+)*(\\+\\w+)*"))) {
+                                        reportInvalidMediaTypeSubtype(ctx, strings[1].trim(), field);
                                         break;
                                     }
                                     if (strings[1].trim().contains("+")) {
@@ -154,7 +153,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
     }
 
-    private static void reportInvalidMediaType(SyntaxNodeAnalysisContext ctx, char arg,
+    private static void reportInvalidMediaTypeSubtype(SyntaxNodeAnalysisContext ctx, String arg,
                                                             MappingFieldNode node) {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_120.getCode(), String.format(HTTP_120.getMessage(),
                 arg), HTTP_120.getSeverity());

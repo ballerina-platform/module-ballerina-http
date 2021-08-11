@@ -314,14 +314,12 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_14");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 4);
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 3);
         assertError(diagnosticResult, 0, "invalid media-type subtype prefix: subtype prefix should not" +
                 " have suffix 'suffix'", HTTP_119);
         assertError(diagnosticResult, 1, "invalid media-type subtype prefix: subtype prefix should not" +
                 " have suffix 'suffix1+suffix2'", HTTP_119);
-        assertError(diagnosticResult, 2, "invalid media-type subtype prefix: subtype prefix should not" +
-                " have suffix 'suffix'", HTTP_119);
-        assertError(diagnosticResult, 3, "invalid media-type: media-type should not starts with '+'",
+        assertError(diagnosticResult, 2, "invalid media-type subtype '+suffix'",
                 HTTP_120);
     }
 }
