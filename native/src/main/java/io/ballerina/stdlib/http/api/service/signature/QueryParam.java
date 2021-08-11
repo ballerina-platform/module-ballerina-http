@@ -18,11 +18,7 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.stdlib.http.api.HttpErrorType;
-import io.ballerina.stdlib.http.api.HttpUtil;
 
 /**
  * {@code {@link QueryParam }} represents a query parameter details.
@@ -43,21 +39,6 @@ public class QueryParam {
         this.token = token;
         this.index = index;
         this.nilable = nilable;
-        validateQueryParamType();
-    }
-
-    private void validateQueryParamType() {
-        if (isValidBasicType(typeTag) || (typeTag == TypeTags.ARRAY_TAG && isValidBasicType(
-                ((ArrayType) type).getElementType().getTag()))) {
-            return;
-        }
-        throw HttpUtil.createHttpError("incompatible query parameter type: '" + type.getName() + "'",
-                                       HttpErrorType.GENERIC_LISTENER_ERROR);
-    }
-
-    private boolean isValidBasicType(int typeTag) {
-        return typeTag == TypeTags.STRING_TAG || typeTag == TypeTags.INT_TAG || typeTag == TypeTags.FLOAT_TAG ||
-                typeTag == TypeTags.BOOLEAN_TAG || typeTag == TypeTags.DECIMAL_TAG;
     }
 
     public String getToken() {

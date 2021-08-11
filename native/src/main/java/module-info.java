@@ -30,6 +30,15 @@ module io.ballerina.stdlib.http {
     requires org.slf4j;
     requires java.logging;
     requires gson;
+    requires io.netty.codec.http;
+    requires io.netty.buffer;
+    requires io.netty.common;
+    requires io.netty.transport;
+    requires io.netty.codec.http2;
+    requires org.eclipse.osgi;
+    requires io.netty.codec;
+    requires io.netty.handler;
+    requires commons.pool;
     exports io.ballerina.stdlib.http.api;
     exports io.ballerina.stdlib.http.transport.contract.websocket;
     exports io.ballerina.stdlib.http.transport.contract;

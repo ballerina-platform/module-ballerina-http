@@ -37,7 +37,7 @@ public client class Caller {
     # + message - The outbound response or any allowed payload
     # + return - An `http:ListenerError` if failed to respond or else `()`
     remote isolated function respond(ResponseMessage message = ()) returns ListenerError? {
-        Response response = buildResponse(message);
+        Response response = check buildResponse(message);
         return nativeRespond(self, response);
     }
 

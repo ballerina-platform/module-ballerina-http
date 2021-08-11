@@ -115,6 +115,20 @@ public class WebSocketClientFunctionalityTestCase {
         }
     }
 
+    @Test(description = "This is to test whether timeout occurs when write timeout handler is added.")
+    public void testFrameContinuationTimeoutForText() throws Throwable {
+        WebSocketTestClientConnectorListener connectorListener = new WebSocketTestClientConnectorListener();
+        WebSocketConnection webSocketConnection = getWebSocketConnection(connectorListener);
+        WriteTimeOutTestListener timeoutHandler = new WriteTimeOutTestListener();
+        // set the timeout as 1 sec.
+        webSocketConnection.addWriteIdleStateHandler(timeoutHandler, 1);
+        // Wait till idle timeout occurs and then send the frame.
+        Thread.sleep(2000);
+        sendTextMessageAndReceiveResponse("Hello", true, connectorListener, webSocketConnection);
+        Assert.assertTrue(timeoutHandler.getTimedOut());
+        webSocketConnection.removeWriteIdleStateHandler();
+    }
+
     @Test(description = "Test binary message sending and receiving.")
     public void testBinarySendAndReceive() throws Throwable {
         WebSocketTestClientConnectorListener connectorListener = new WebSocketTestClientConnectorListener();
