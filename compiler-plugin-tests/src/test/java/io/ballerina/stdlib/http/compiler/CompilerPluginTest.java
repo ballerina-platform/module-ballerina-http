@@ -61,6 +61,8 @@ public class CompilerPluginTest {
     private static final String HTTP_116 = "HTTP_116";
     private static final String HTTP_117 = "HTTP_117";
     private static final String HTTP_118 = "HTTP_118";
+    private static final String HTTP_119 = "HTTP_119";
+    private static final String HTTP_120 = "HTTP_120";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -305,5 +307,21 @@ public class CompilerPluginTest {
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
                 "and return 'http:BadRequest?' from a resource : expected 'error' or nil";
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
+    }
+
+    @Test
+    public void testInvalidMediaTypeSubtypePrefix() {
+        Package currentPackage = loadPackage("sample_package_14");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.diagnosticCount(), 4);
+        assertError(diagnosticResult, 0, "invalid media-type subtype prefix: subtype prefix should not" +
+                " have suffix 'suffix'", HTTP_119);
+        assertError(diagnosticResult, 1, "invalid media-type subtype prefix: subtype prefix should not" +
+                " have suffix 'suffix1+suffix2'", HTTP_119);
+        assertError(diagnosticResult, 2, "invalid media-type subtype prefix: subtype prefix should not" +
+                " have suffix 'suffix'", HTTP_119);
+        assertError(diagnosticResult, 3, "invalid media-type: media-type should not starts with '+'",
+                HTTP_120);
     }
 }

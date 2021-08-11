@@ -25,7 +25,11 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -41,8 +45,12 @@ import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_PREFIX;
 import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_KEYWORD;
+import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_101;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_119;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_120;
 
 /**
  * Validates a Ballerina Http Service.
@@ -52,6 +60,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
     @Override
     public void perform(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
         ServiceDeclarationNode serviceDeclarationNode = (ServiceDeclarationNode) syntaxNodeAnalysisContext.node();
+        extractServiceAnnotationAndValidate(syntaxNodeAnalysisContext, serviceDeclarationNode);
 
         Optional<Symbol> serviceSymOptional = syntaxNodeAnalysisContext.semanticModel().symbol(serviceDeclarationNode);
         if (serviceSymOptional.isPresent()) {
@@ -79,6 +88,48 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
     }
 
+    private static void extractServiceAnnotationAndValidate(SyntaxNodeAnalysisContext ctx,
+                                                            ServiceDeclarationNode serviceDeclarationNode) {
+        Optional<MetadataNode> metadataNodeOptional = serviceDeclarationNode.metadata();
+
+        if (metadataNodeOptional.isEmpty()) {
+            return;
+        } else {
+            NodeList<AnnotationNode> annotations = metadataNodeOptional.get().annotations();
+            for (AnnotationNode annotation : annotations) {
+                Node annotReference = annotation.annotReference();
+                String annotName = annotReference.toString();
+                Optional<MappingConstructorExpressionNode> annotValue = annotation.annotValue();
+                if (annotReference.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
+                    String[] annotStrings = annotName.split(":");
+                    if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
+                            && (annotValue.isPresent())) {
+                        MappingConstructorExpressionNode mapping = annotValue.get();
+                        for (MappingFieldNode field : mapping.fields()) {
+                            String fieldName = field.toString();
+                            fieldName = fieldName.trim().replaceAll("\"|\\n", "");
+                            if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                                String[] strings = fieldName.split(":", 2);
+                                if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0].trim())) {
+                                    if (strings[1].trim().matches("^\\W.*")) {
+                                        char invalidChar = strings[1].trim().charAt(0);
+                                        reportInvalidMediaType(ctx, invalidChar, field);
+                                        break;
+                                    }
+                                    if (strings[1].trim().contains("+")) {
+                                        String suffix = strings[1].trim().split("\\+", 2)[1];
+                                        reportErrorMediaTypeSuffix(ctx, suffix, field);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private boolean isListenerBelongsToHttpModule(TypeSymbol listenerType) {
         if (listenerType.typeKind() == TypeDescKind.UNION) {
             return ((UnionTypeSymbol) listenerType).memberTypeDescriptors().stream()
@@ -100,6 +151,20 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
     private void reportInvalidFunctionType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node) {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_101.getCode(), HTTP_101.getMessage(),
                                                            HTTP_101.getSeverity());
+        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
+    }
+
+    private static void reportInvalidMediaType(SyntaxNodeAnalysisContext ctx, char arg,
+                                                            MappingFieldNode node) {
+        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_120.getCode(), String.format(HTTP_120.getMessage(),
+                arg), HTTP_120.getSeverity());
+        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
+    }
+
+    private static void reportErrorMediaTypeSuffix(SyntaxNodeAnalysisContext ctx, String suffix,
+                                                            MappingFieldNode node) {
+        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_119.getCode(), String.format(HTTP_119.getMessage(),
+                suffix), HTTP_119.getSeverity());
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
     }
 }

@@ -29,6 +29,8 @@ public class Constants {
     public static final String CALLER_OBJ_NAME = "Caller";
     public static final String REQUEST_OBJ_NAME = "Request";
     public static final String HEADER_OBJ_NAME = "Headers";
+    public static final String SERVICE_CONFIG_ANNOTATION = "ServiceConfig";
+    public static final String MEDIA_TYPE_SUBTYPE_PREFIX = "mediaTypeSubtypePrefix";
     public static final String RESOURCE_CONFIG_ANNOTATION = "ResourceConfig";
     public static final String PAYLOAD_ANNOTATION_TYPE = "HttpPayload";
     public static final String CALLER_ANNOTATION_TYPE = "HttpCallerInfo";
