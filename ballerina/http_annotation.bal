@@ -21,7 +21,7 @@
 # + chunking - Configures the chunking behaviour for the service
 # + cors - The cross origin resource sharing configurations for the service
 # + auth - Listener authenticaton configurations
-# + mediaTypeSubtypePrefix - Service specific media-type prefix
+# + mediaTypeSubtypePrefix - Service specific media-type subtype prefix
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
