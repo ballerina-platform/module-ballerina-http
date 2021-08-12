@@ -84,12 +84,6 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
     }
 
-    private void assertErrorDiagnostic(Collection<Diagnostic> errorDiagnostics, int index, String message, String code) {
-        Diagnostic diagnostic = (Diagnostic) errorDiagnostics.toArray()[index];
-        Assert.assertEquals(diagnostic.diagnosticInfo().messageFormat(), message);
-        Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
-    }
-
     private void assertTrue(DiagnosticResult diagnosticResult, int index, String message, String code) {
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[index];
         Assert.assertTrue(diagnostic.diagnosticInfo().messageFormat().contains(message));
