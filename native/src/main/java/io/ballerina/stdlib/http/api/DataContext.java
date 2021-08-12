@@ -20,15 +20,10 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
-import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.values.BError;
-import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-
-import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_BUILTIN_PKG_ID;
 
 /**
  * {@code DataContext} is the wrapper to hold {@code Context} and {@code Callback}.
@@ -64,8 +59,7 @@ public class DataContext {
         } else if (httpConnectorError != null) {
             getFuture().complete(httpConnectorError);
         } else {
-            BMap<BString, Object> err = ValueCreator.createRecordValue(BALLERINA_BUILTIN_PKG_ID,
-                                                                       HttpConstants.STRUCT_GENERIC_ERROR);
+            BError err = HttpUtil.createHttpError("inbound response retrieval error", HttpErrorType.CLIENT_ERROR);
             getFuture().complete(err);
         }
     }
