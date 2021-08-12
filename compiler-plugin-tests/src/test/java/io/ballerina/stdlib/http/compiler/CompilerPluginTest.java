@@ -32,7 +32,6 @@ import org.testng.annotations.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 
 /**
  * This class includes tests for Ballerina Http compiler plugin.
