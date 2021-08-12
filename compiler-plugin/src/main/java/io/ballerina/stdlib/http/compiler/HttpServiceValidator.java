@@ -46,8 +46,13 @@ import java.util.Optional;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_PREFIX;
+import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_REGEX;
+import static io.ballerina.stdlib.http.compiler.Constants.PLUS;
 import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_KEYWORD;
+import static io.ballerina.stdlib.http.compiler.Constants.SEMICOLON;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
+import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX;
+import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_101;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_119;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_120;
@@ -101,22 +106,22 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                 String annotName = annotReference.toString();
                 Optional<MappingConstructorExpressionNode> annotValue = annotation.annotValue();
                 if (annotReference.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
-                    String[] annotStrings = annotName.split(":");
+                    String[] annotStrings = annotName.split(SEMICOLON);
                     if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
                             && (annotValue.isPresent())) {
                         MappingConstructorExpressionNode mapping = annotValue.get();
                         for (MappingFieldNode field : mapping.fields()) {
                             String fieldName = field.toString();
-                            fieldName = fieldName.trim().replaceAll("\"|\\n", "");
+                            fieldName = fieldName.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
                             if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
-                                String[] strings = fieldName.split(":", 2);
-                                if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0].trim())) {
-                                    if (!(strings[1].trim().matches("^\\w+(\\.\\w+)*(\\+\\w+)*"))) {
-                                        reportInvalidMediaTypeSubtype(ctx, strings[1].trim(), field);
+                                String[] strings = fieldName.split(SEMICOLON, 2);
+                                if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0])) {
+                                    if (!(strings[1].matches(MEDIA_TYPE_SUBTYPE_REGEX))) {
+                                        reportInvalidMediaTypeSubtype(ctx, strings[1], field);
                                         break;
                                     }
-                                    if (strings[1].trim().contains("+")) {
-                                        String suffix = strings[1].trim().split("\\+", 2)[1];
+                                    if (strings[1].contains(PLUS)) {
+                                        String suffix = strings[1].split(SUFFIX_SEPARATOR_REGEX, 2)[1];
                                         reportErrorMediaTypeSuffix(ctx, suffix, field);
                                         break;
                                     }
