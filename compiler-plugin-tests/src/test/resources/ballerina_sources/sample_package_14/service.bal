@@ -58,7 +58,7 @@ service /test4 on new http:Listener(9996) {
 
 @http:ServiceConfig {
     host : "b7a.default",
-    mediaTypeSubtypePrefix : "vnd.prefix.subType+ suffix1+ suffix2"
+    mediaTypeSubtypePrefix : "vnd.prefix.subType + suffix1 + suffix2"
 }
 service /test4 on new http:Listener(9996) {
 

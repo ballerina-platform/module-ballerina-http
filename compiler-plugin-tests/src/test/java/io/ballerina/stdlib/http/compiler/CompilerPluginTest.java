@@ -336,7 +336,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 0, "invalid media-type subtype prefix: subtype prefix should not " +
                 "have suffix 'suffix'", HTTP_119);
         assertError(diagnosticResult, 1, "invalid media-type subtype prefix: subtype prefix should not " +
-                "have suffix 'suffix1+suffix2'", HTTP_119);
+                "have suffix 'suffix1 + suffix2'", HTTP_119);
         assertError(diagnosticResult, 2, "invalid media-type subtype '+suffix'", HTTP_120);
         assertError(diagnosticResult, 3, "invalid media-type subtype 'vnd.prefix.subtype+'", HTTP_120);
     }

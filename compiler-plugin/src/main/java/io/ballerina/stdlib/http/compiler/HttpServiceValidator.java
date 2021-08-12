@@ -115,14 +115,14 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                             fieldName = fieldName.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
                             if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
                                 String[] strings = fieldName.split(SEMICOLON, 2);
-                                if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0])) {
-                                    if (!(strings[1].matches(MEDIA_TYPE_SUBTYPE_REGEX))) {
-                                        reportInvalidMediaTypeSubtype(ctx, strings[1], field);
+                                if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0].trim())) {
+                                    if (!(strings[1].trim().matches(MEDIA_TYPE_SUBTYPE_REGEX))) {
+                                        reportInvalidMediaTypeSubtype(ctx, strings[1].trim(), field);
                                         break;
                                     }
-                                    if (strings[1].contains(PLUS)) {
-                                        String suffix = strings[1].split(SUFFIX_SEPARATOR_REGEX, 2)[1];
-                                        reportErrorMediaTypeSuffix(ctx, suffix, field);
+                                    if (strings[1].trim().contains(PLUS)) {
+                                        String suffix = strings[1].trim().split(SUFFIX_SEPARATOR_REGEX, 2)[1];
+                                        reportErrorMediaTypeSuffix(ctx, suffix.trim(), field);
                                         break;
                                     }
                                 }
