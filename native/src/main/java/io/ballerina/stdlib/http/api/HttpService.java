@@ -140,11 +140,11 @@ public class HttpService {
         return hostName;
     }
 
-    public void setmediaTypeSubtypePrefix(String mediaTypeSubtypePrefix) {
+    public void setMediaTypeSubtypePrefix(String mediaTypeSubtypePrefix) {
         this.mediaTypeSubtypePrefix = mediaTypeSubtypePrefix;
     }
 
-    public String getmediaTypeSubtypePrefix() {
+    public String getMediaTypeSubtypePrefix() {
         return mediaTypeSubtypePrefix;
     }
 
@@ -196,7 +196,7 @@ public class HttpService {
             httpService.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
             httpService.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
             if (serviceConfig.containsKey(MEDIA_TYPE_SUBTYPE_PREFIX)) {
-                httpService.setmediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
+                httpService.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
                         .getValue().trim());
             }
         } else {

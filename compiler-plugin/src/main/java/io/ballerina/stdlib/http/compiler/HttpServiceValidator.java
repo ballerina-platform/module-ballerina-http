@@ -44,12 +44,12 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
+import static io.ballerina.stdlib.http.compiler.Constants.COLON;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_PREFIX;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.PLUS;
 import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_KEYWORD;
-import static io.ballerina.stdlib.http.compiler.Constants.SEMICOLON;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
@@ -65,8 +65,6 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
     @Override
     public void perform(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
         ServiceDeclarationNode serviceDeclarationNode = (ServiceDeclarationNode) syntaxNodeAnalysisContext.node();
-        extractServiceAnnotationAndValidate(syntaxNodeAnalysisContext, serviceDeclarationNode);
-
         Optional<Symbol> serviceSymOptional = syntaxNodeAnalysisContext.semanticModel().symbol(serviceDeclarationNode);
         if (serviceSymOptional.isPresent()) {
             List<TypeSymbol> listenerTypes = ((ServiceDeclarationSymbol) serviceSymOptional.get()).listenerTypes();
@@ -74,6 +72,8 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                 return;
             }
         }
+
+        extractServiceAnnotationAndValidate(syntaxNodeAnalysisContext, serviceDeclarationNode);
 
         NodeList<Node> members = serviceDeclarationNode.members();
         for (Node member : members) {
@@ -105,26 +105,27 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                 Node annotReference = annotation.annotReference();
                 String annotName = annotReference.toString();
                 Optional<MappingConstructorExpressionNode> annotValue = annotation.annotValue();
-                if (annotReference.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
-                    String[] annotStrings = annotName.split(SEMICOLON);
-                    if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
-                            && (annotValue.isPresent())) {
-                        MappingConstructorExpressionNode mapping = annotValue.get();
-                        for (MappingFieldNode field : mapping.fields()) {
-                            String fieldName = field.toString();
-                            fieldName = fieldName.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
-                            if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
-                                String[] strings = fieldName.split(SEMICOLON, 2);
-                                if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0].trim())) {
-                                    if (!(strings[1].trim().matches(MEDIA_TYPE_SUBTYPE_REGEX))) {
-                                        reportInvalidMediaTypeSubtype(ctx, strings[1].trim(), field);
-                                        break;
-                                    }
-                                    if (strings[1].trim().contains(PLUS)) {
-                                        String suffix = strings[1].trim().split(SUFFIX_SEPARATOR_REGEX, 2)[1];
-                                        reportErrorMediaTypeSuffix(ctx, suffix.trim(), field);
-                                        break;
-                                    }
+                if (annotReference.kind() != SyntaxKind.QUALIFIED_NAME_REFERENCE) {
+                    continue;
+                }
+                String[] annotStrings = annotName.split(COLON);
+                if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
+                        && (annotValue.isPresent())) {
+                    MappingConstructorExpressionNode mapping = annotValue.get();
+                    for (MappingFieldNode field : mapping.fields()) {
+                        String fieldName = field.toString();
+                        fieldName = fieldName.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
+                        if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                            String[] strings = fieldName.split(COLON, 2);
+                            if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0].trim())) {
+                                if (!(strings[1].trim().matches(MEDIA_TYPE_SUBTYPE_REGEX))) {
+                                    reportInvalidMediaTypeSubtype(ctx, strings[1].trim(), field);
+                                    break;
+                                }
+                                if (strings[1].trim().contains(PLUS)) {
+                                    String suffix = strings[1].trim().split(SUFFIX_SEPARATOR_REGEX, 2)[1];
+                                    reportErrorMediaTypeSuffix(ctx, suffix.trim(), field);
+                                    break;
                                 }
                             }
                         }

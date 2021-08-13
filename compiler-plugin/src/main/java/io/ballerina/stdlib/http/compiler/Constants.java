@@ -41,7 +41,7 @@ public class Constants {
     public static final String ERROR = "annotations:error";
     public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|error";
 
-    public static final String SEMICOLON = ":";
+    public static final String COLON = ":";
     public static final String PLUS = "+";
     public static final String SUFFIX_SEPARATOR_REGEX = "\\+";
     public static final String MEDIA_TYPE_SUBTYPE_REGEX = "^(\\w)+(\\s*\\.\\s*(\\w)+)*(\\s*\\+\\s*(\\w)+)*";

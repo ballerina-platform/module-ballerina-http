@@ -356,12 +356,12 @@ public class HttpUtil {
         HttpService httpService = (HttpService) connectionObj.getNativeData(HttpConstants.HTTP_SERVICE);
         HttpUtil.setCompressionHeaders(httpService.getCompressionConfig(), inboundRequestMsg, outboundResponseMsg);
         HttpUtil.setChunkingHeader(httpService.getChunkingConfig(), outboundResponseMsg);
-        if (httpService.getmediaTypeSubtypePrefix() != null) {
-            HttpUtil.setmediaTypeSubtypePrefix(httpService.getmediaTypeSubtypePrefix(), outboundResponseMsg);
+        if (httpService.getMediaTypeSubtypePrefix() != null) {
+            HttpUtil.setMediaTypeSubtypePrefix(httpService.getMediaTypeSubtypePrefix(), outboundResponseMsg);
         }
     }
 
-    private static void setmediaTypeSubtypePrefix(String mediaTypeSubtypePrefix, HttpCarbonMessage responseMsg) {
+    private static void setMediaTypeSubtypePrefix(String mediaTypeSubtypePrefix, HttpCarbonMessage responseMsg) {
         String existingMediaType = responseMsg.getHeader(HttpHeaderNames.CONTENT_TYPE.toString());
         if (existingMediaType != null) {
             int index = existingMediaType.indexOf("/");
