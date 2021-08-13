@@ -14,11 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/jballerina.java;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
+import ballerina/io;
 
 listener http:Listener serializeXmlListener = new(serializeXmlTestPort);
 http:Client xmlClientEP = check new("http://localhost:" + serializeXmlTestPort.toString());
@@ -80,10 +80,11 @@ service /serialize on serializeXmlListener {
 }
 
 @test:Config {}
-function testXmlSerialization() {
-    test:assertTrue(externTestXmlSerialization(serializeXmlTestPort));
+function testXmlSerialization() returns error? {
+    http:Client serializeClient = check new("http://localhost:" + serializeXmlTestPort.toString());
+    http:Response response = check serializeClient->get("/serialize/xml");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+    xml content = check io:fileReadXml("tests/datafiles/ComplexTestXmlSample.xml");
+    assertXmlPayload(response.getXmlPayload(), content);
 }
-
-function externTestXmlSerialization(int servicePort) returns boolean = @java:Method {
-    'class: "io.ballerina.stdlib.http.testutils.ExternSerializeComplexXmlTestUtil"
-} external;
