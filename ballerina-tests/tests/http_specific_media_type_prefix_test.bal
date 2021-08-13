@@ -46,11 +46,17 @@ service /service1 on serviceSpecificListener {
         return res;
     }
 
-    resource function default test5(http:Request req) returns http:Response {
+    resource function default test5(http:Request req, http:Caller caller) returns error? {
         http:Response res = new;
         res.setPayload("test5");
         res.setHeader("content-type", "type5/subtype5");
-        return res;
+        check caller->respond(res);
+    }
+
+    resource function default test6(http:Request req, http:Caller caller) returns error? {
+        http:Response res = new;
+        res.setPayload("test6");
+        check caller->respond(res);
     }
 }
 
@@ -85,6 +91,10 @@ function testServiceWithSpecificmediaTypeSubtypePrefix() returns error? {
     response = check serviceSpecificClientEP->get("/service1/test5");
     assertTextPayload(response.getTextPayload(), "test5");
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), "type5/testServicePrefix1+subtype5");
+
+    response = check serviceSpecificClientEP->get("/service1/test6");
+    assertTextPayload(response.getTextPayload(), "test6");
+    assertHeaderValue(check response.getHeader(CONTENT_TYPE), "text/testServicePrefix1+plain");
 
     response = check serviceSpecificClientEP->get("/service2/test");
     assertJsonPayload(response.getJsonPayload(), {message : "test"});

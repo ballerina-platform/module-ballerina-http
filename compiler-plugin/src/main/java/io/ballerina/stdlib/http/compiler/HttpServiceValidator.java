@@ -99,36 +99,40 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
 
         if (metadataNodeOptional.isEmpty()) {
             return;
-        } else {
-            NodeList<AnnotationNode> annotations = metadataNodeOptional.get().annotations();
-            for (AnnotationNode annotation : annotations) {
-                Node annotReference = annotation.annotReference();
-                String annotName = annotReference.toString();
-                Optional<MappingConstructorExpressionNode> annotValue = annotation.annotValue();
-                if (annotReference.kind() != SyntaxKind.QUALIFIED_NAME_REFERENCE) {
-                    continue;
-                }
-                String[] annotStrings = annotName.split(COLON);
-                if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
-                        && (annotValue.isPresent())) {
-                    MappingConstructorExpressionNode mapping = annotValue.get();
-                    for (MappingFieldNode field : mapping.fields()) {
-                        String fieldName = field.toString();
-                        fieldName = fieldName.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
-                        if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
-                            String[] strings = fieldName.split(COLON, 2);
-                            if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0].trim())) {
-                                if (!(strings[1].trim().matches(MEDIA_TYPE_SUBTYPE_REGEX))) {
-                                    reportInvalidMediaTypeSubtype(ctx, strings[1].trim(), field);
-                                    break;
-                                }
-                                if (strings[1].trim().contains(PLUS)) {
-                                    String suffix = strings[1].trim().split(SUFFIX_SEPARATOR_REGEX, 2)[1];
-                                    reportErrorMediaTypeSuffix(ctx, suffix.trim(), field);
-                                    break;
-                                }
-                            }
-                        }
+        }
+        NodeList<AnnotationNode> annotations = metadataNodeOptional.get().annotations();
+        for (AnnotationNode annotation : annotations) {
+            Node annotReference = annotation.annotReference();
+            String annotName = annotReference.toString();
+            Optional<MappingConstructorExpressionNode> annotValue = annotation.annotValue();
+            if (annotReference.kind() != SyntaxKind.QUALIFIED_NAME_REFERENCE) {
+                continue;
+            }
+            String[] annotStrings = annotName.split(COLON);
+            if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
+                    && (annotValue.isPresent())) {
+                validateServiceConfigAnnotation(ctx, annotValue);
+            }
+        }
+    }
+
+    private static void validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,
+                                                            Optional<MappingConstructorExpressionNode> maps) {
+        MappingConstructorExpressionNode mapping = maps.get();
+        for (MappingFieldNode field : mapping.fields()) {
+            String fieldName = field.toString();
+            fieldName = fieldName.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
+            if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                String[] strings = fieldName.split(COLON, 2);
+                if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0].trim())) {
+                    if (!(strings[1].trim().matches(MEDIA_TYPE_SUBTYPE_REGEX))) {
+                        reportInvalidMediaTypeSubtype(ctx, strings[1].trim(), field);
+                        break;
+                    }
+                    if (strings[1].trim().contains(PLUS)) {
+                        String suffix = strings[1].trim().split(SUFFIX_SEPARATOR_REGEX, 2)[1];
+                        reportErrorMediaTypeSuffix(ctx, suffix.trim(), field);
+                        break;
                     }
                 }
             }
