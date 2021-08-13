@@ -26,7 +26,6 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.URITemplate;
 import io.ballerina.stdlib.http.uri.URITemplateException;
 import io.ballerina.stdlib.http.uri.parser.Literal;
@@ -58,7 +57,6 @@ public class HttpService {
 
     private BObject balService;
     private List<HttpResource> resources;
-    private List<HttpResource> upgradeToWebSocketResources;
     private List<String> allAllowedMethods;
     private String basePath;
     private CorsHeaders corsHeaders;
@@ -67,6 +65,7 @@ public class HttpService {
     private BMap<BString, Object> compression;
     private String hostName;
     private String chunkingConfig;
+    private String introspectionResourcePath;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -120,14 +119,6 @@ public class HttpService {
 
     public void setResources(List<HttpResource> resources) {
         this.resources = resources;
-    }
-
-    public List<String> getAllAllowedMethods() {
-        return allAllowedMethods;
-    }
-
-    public void setAllAllowedMethods(List<String> allAllowMethods) {
-        this.allAllowedMethods = allAllowMethods;
     }
 
     public void setHostName(String hostName) {
@@ -189,27 +180,29 @@ public class HttpService {
             httpService.setHostName(HttpConstants.DEFAULT_HOST);
         }
         processResources(httpService);
-        httpService.setAllAllowedMethods(DispatcherUtil.getAllResourceMethods(httpService));
         return httpService;
     }
 
     private static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
-        for (MethodType resource :
-                ((ServiceType) httpService.getBalService().getType()).getResourceMethods()) {
+        for (MethodType resource : ((ServiceType) httpService.getBalService().getType()).getResourceMethods()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
-            HttpResource httpResource = HttpResource.buildHttpResource(resource, httpService);
-            try {
-                httpService.getUriTemplate().parse(httpResource.getPath(), httpResource,
-                                                   new HttpResourceElementFactory());
-            } catch (URITemplateException | UnsupportedEncodingException e) {
-                throw new BallerinaConnectorException(e.getMessage());
-            }
-            httpResources.add(httpResource);
+            updateResourceTree(httpService, httpResources, HttpResource.buildHttpResource(resource, httpService));
         }
+        updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService));
         httpService.setResources(httpResources);
+    }
+
+    private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,
+                                           HttpResource httpResource) {
+        try {
+            httpService.getUriTemplate().parse(httpResource.getPath(), httpResource, new HttpResourceElementFactory());
+        } catch (URITemplateException | UnsupportedEncodingException e) {
+            throw new BallerinaConnectorException(e.getMessage());
+        }
+        httpResources.add(httpResource);
     }
 
     private static BMap getHttpServiceConfigAnnotation(BObject service) {
@@ -221,5 +214,13 @@ public class HttpService {
                                                      String annotationName) {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
         return (BMap) (service.getType()).getAnnotation(StringUtils.fromString(key + ":" + annotationName));
+    }
+
+    public String getIntrospectionResourcePathHeaderValue() {
+        return this.introspectionResourcePath;
+    }
+
+    public void setIntrospectionResourcePathHeaderValue(String introspectionResourcePath) {
+        this.introspectionResourcePath = introspectionResourcePath;
     }
 }

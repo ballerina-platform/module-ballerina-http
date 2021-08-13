@@ -39,6 +39,7 @@ module io.ballerina.stdlib.http {
     requires io.netty.codec;
     requires io.netty.handler;
     requires commons.pool;
+    requires io.netty.handler.proxy;
     exports io.ballerina.stdlib.http.api;
     exports io.ballerina.stdlib.http.transport.contract.websocket;
     exports io.ballerina.stdlib.http.transport.contract;

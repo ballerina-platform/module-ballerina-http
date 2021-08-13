@@ -20,9 +20,7 @@ package io.ballerina.stdlib.http.uri;
 
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpResource;
-import io.ballerina.stdlib.http.api.HttpService;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,17 +65,5 @@ public class DispatcherUtil {
 
     public static List<String> addAllMethods() {
         return Arrays.stream(allMethods).collect(Collectors.toList());
-    }
-
-    public static List<String> getAllResourceMethods(HttpService service) {
-        List<String> cachedMethods = new ArrayList<>();
-        for (HttpResource resource : service.getResources()) {
-            if (resource.getMethods() == null) {
-                cachedMethods.addAll(DispatcherUtil.addAllMethods());
-                break;
-            }
-            cachedMethods.addAll(resource.getMethods());
-        }
-        return validateAllowMethods(cachedMethods);
     }
 }
