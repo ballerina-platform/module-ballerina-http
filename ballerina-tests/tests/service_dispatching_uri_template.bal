@@ -416,8 +416,8 @@ function testOPTIONSWithMultiResources() {
 function testOPTIONSAtRootPath() {
     http:Response|error response = utClient1->options("/options");
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "no matching resource found for path : /options , method : OPTIONS");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
