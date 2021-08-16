@@ -61,6 +61,8 @@ public class CompilerPluginTest {
     private static final String HTTP_116 = "HTTP_116";
     private static final String HTTP_117 = "HTTP_117";
     private static final String HTTP_118 = "HTTP_118";
+    private static final String HTTP_119 = "HTTP_119";
+    private static final String HTTP_120 = "HTTP_120";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -76,13 +78,13 @@ public class CompilerPluginTest {
     }
 
     private void assertError(DiagnosticResult diagnosticResult, int index, String message, String code) {
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.diagnostics().toArray()[index];
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[index];
         Assert.assertEquals(diagnostic.diagnosticInfo().messageFormat(), message);
         Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
     }
 
     private void assertTrue(DiagnosticResult diagnosticResult, int index, String message, String code) {
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.diagnostics().toArray()[index];
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[index];
         Assert.assertTrue(diagnostic.diagnosticInfo().messageFormat().contains(message));
         Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
     }
@@ -108,7 +110,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_2");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 3);
+        Assert.assertEquals(diagnosticResult.errorCount(), 3);
         assertError(diagnosticResult, 0, "invalid resource method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeRecord|error', but found 'http:Client'", HTTP_102);
         assertError(diagnosticResult, 1, "invalid resource method return type: expected " +
@@ -122,7 +124,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_3");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         assertError(diagnosticResult, 1, "invalid resource method annotation type: expected 'http:ResourceConfig', " +
                 "but found 'test:Config '", HTTP_103);
     }
@@ -132,7 +134,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 4);
+        Assert.assertEquals(diagnosticResult.errorCount(), 4);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid payload parameter type: 'json[]'", HTTP_107);
@@ -147,7 +149,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 7);
+        Assert.assertEquals(diagnosticResult.errorCount(), 7);
         assertError(diagnosticResult, 0, "invalid type of header param 'abc': expected 'string' or 'string[]'",
                     HTTP_109);
         assertError(diagnosticResult, 1, "invalid multiple resource parameter annotations for 'abc': expected one of " +
@@ -175,7 +177,7 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         diagnosticResult.diagnostics().forEach(System.out::println);
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 5);
+        Assert.assertEquals(diagnosticResult.errorCount(), 5);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
                 "and return 'string' from a resource : expected 'error' or nil";
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
@@ -191,7 +193,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_7");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 5);
+        Assert.assertEquals(diagnosticResult.errorCount(), 5);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
                 "and return 'string' from a resource : expected 'error' or nil";
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
@@ -207,7 +209,7 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         diagnosticResult.diagnostics().forEach(System.out::println);
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 12);
+        Assert.assertEquals(diagnosticResult.errorCount(), 12);
         assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
         assertError(diagnosticResult, 1, "invalid union type of query param 'a': 'string', 'int', " +
                 "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
@@ -245,7 +247,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_9");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
+        Assert.assertEquals(diagnosticResult.errorCount(), 6);
         diagnosticResult.diagnostics().stream().filter(err -> err.diagnosticInfo().code().contains(HTTP_106)).map(
                 err -> err.diagnosticInfo().messageFormat().contains(
                         "invalid resource parameter type: 'ballerina/http")).forEach(Assert::assertTrue);
@@ -256,7 +258,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_10");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 7);
+        Assert.assertEquals(diagnosticResult.errorCount(), 7);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
                 "'int' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
@@ -277,7 +279,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_11");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 10);
+        Assert.assertEquals(diagnosticResult.errorCount(), 10);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
                 "'http:Response' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
@@ -305,7 +307,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_12");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 6);
+        Assert.assertEquals(diagnosticResult.errorCount(), 6);
         assertTrue(diagnosticResult, 0, "invalid multiple 'http:Caller' parameter: 'xyz'", HTTP_115);
         assertTrue(diagnosticResult, 1, "invalid multiple 'http:Headers' parameter: 'noo'", HTTP_117);
         assertTrue(diagnosticResult, 2, "invalid multiple 'http:Request' parameter: 'aaa'", HTTP_116);
@@ -319,9 +321,23 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_13");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.diagnosticCount(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
                 "and return 'http:BadRequest?' from a resource : expected 'error' or nil";
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
+    }
+
+    @Test
+    public void testInvalidMediaTypeSubtypePrefix() {
+        Package currentPackage = loadPackage("sample_package_14");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 4);
+        assertError(diagnosticResult, 0, "invalid media-type subtype prefix: subtype prefix should not " +
+                "have suffix 'suffix'", HTTP_119);
+        assertError(diagnosticResult, 1, "invalid media-type subtype prefix: subtype prefix should not " +
+                "have suffix 'suffix1 + suffix2'", HTTP_119);
+        assertError(diagnosticResult, 2, "invalid media-type subtype '+suffix'", HTTP_120);
+        assertError(diagnosticResult, 3, "invalid media-type subtype 'vnd.prefix.subtype+'", HTTP_120);
     }
 }

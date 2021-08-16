@@ -356,6 +356,22 @@ public class HttpUtil {
         HttpService httpService = (HttpService) connectionObj.getNativeData(HttpConstants.HTTP_SERVICE);
         HttpUtil.setCompressionHeaders(httpService.getCompressionConfig(), inboundRequestMsg, outboundResponseMsg);
         HttpUtil.setChunkingHeader(httpService.getChunkingConfig(), outboundResponseMsg);
+        if (httpService.getMediaTypeSubtypePrefix() != null) {
+            HttpUtil.setMediaTypeSubtypePrefix(httpService.getMediaTypeSubtypePrefix(), outboundResponseMsg);
+        }
+    }
+
+    private static void setMediaTypeSubtypePrefix(String mediaTypeSubtypePrefix, HttpCarbonMessage responseMsg) {
+        String existingMediaType = responseMsg.getHeader(HttpHeaderNames.CONTENT_TYPE.toString());
+        if (existingMediaType != null) {
+            int index = existingMediaType.indexOf(HttpConstants.SINGLE_SLASH);
+            if (index > 0) {
+                String[] mediaType = existingMediaType.split(HttpConstants.SINGLE_SLASH);
+                String specificMediaType = mediaType[0] + HttpConstants.SINGLE_SLASH + mediaTypeSubtypePrefix +
+                        HttpConstants.PLUS + mediaType[1];
+                responseMsg.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), specificMediaType);
+            }
+        }
     }
 
     private static void addCorsHeaders(HttpCarbonMessage requestMsg, HttpCarbonMessage responseMsg) {

@@ -56,6 +56,10 @@ public enum HttpDiagnosticCodes {
     HTTP_117("HTTP_117", "invalid multiple 'http:Headers' parameter: '%s'", ERROR),
     HTTP_118("HTTP_118", "invalid resource method return type: can not use 'http:Caller' " +
             "and return '%s' from a resource : expected 'error' or nil",
+            ERROR),
+    HTTP_119("HTTP_119", "invalid media-type subtype prefix: subtype prefix should not have suffix '%s'",
+            ERROR),
+    HTTP_120("HTTP_120", "invalid media-type subtype '%s'",
             ERROR);
 
     private final String code;

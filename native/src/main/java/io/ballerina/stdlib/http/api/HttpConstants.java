@@ -486,6 +486,7 @@ public class HttpConstants {
     public static final String MOCK_LISTENER_ENDPOINT = "MockListener";
     public static final String HTTP_LISTENER_ENDPOINT = "Listener";
 
+    public static final String PLUS = "+";
     public static final String COLON = ":";
     public static final String DOLLAR = "$";
     public static final String SINGLE_SLASH = "/";
