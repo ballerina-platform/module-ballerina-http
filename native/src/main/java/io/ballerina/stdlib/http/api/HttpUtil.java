@@ -364,10 +364,11 @@ public class HttpUtil {
     private static void setMediaTypeSubtypePrefix(String mediaTypeSubtypePrefix, HttpCarbonMessage responseMsg) {
         String existingMediaType = responseMsg.getHeader(HttpHeaderNames.CONTENT_TYPE.toString());
         if (existingMediaType != null) {
-            int index = existingMediaType.indexOf("/");
+            int index = existingMediaType.indexOf(HttpConstants.SINGLE_SLASH);
             if (index > 0) {
-                String[] mediaType = existingMediaType.split("/", 2);
-                String specificMediaType = mediaType[0] + "/" + mediaTypeSubtypePrefix + "+" + mediaType[1];
+                String[] mediaType = existingMediaType.split(HttpConstants.SINGLE_SLASH);
+                String specificMediaType = mediaType[0] + HttpConstants.SINGLE_SLASH + mediaTypeSubtypePrefix +
+                        HttpConstants.PLUS + mediaType[1];
                 responseMsg.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), specificMediaType);
             }
         }

@@ -20,9 +20,9 @@ import ballerina/http;
 http:Client serviceSpecificClientEP = check new("http://localhost:" + serviceMediaTypeSubtypePrefixPort.toString());
 listener http:Listener serviceSpecificListener = new(serviceMediaTypeSubtypePrefixPort);
 
- @http:ServiceConfig {
-         mediaTypeSubtypePrefix : "testServicePrefix1"
- }
+@http:ServiceConfig {
+    mediaTypeSubtypePrefix : "testServicePrefix1"
+}
 service /service1 on serviceSpecificListener {
 
     resource function default test1(http:Request req) returns string {
@@ -60,9 +60,9 @@ service /service1 on serviceSpecificListener {
     }
 }
 
- @http:ServiceConfig {
-         mediaTypeSubtypePrefix : "testServicePrefix2"
- }
+@http:ServiceConfig {
+    mediaTypeSubtypePrefix : "testServicePrefix2"
+}
 service /service2 on serviceSpecificListener {
 
     resource function default test(http:Request req) returns json {
