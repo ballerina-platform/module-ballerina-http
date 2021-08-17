@@ -367,7 +367,7 @@ isolated function testClientOAuth2HandlerForJwtBearerGrant() {
     };
 
     http:Request request = createDummyRequest();
-    http:ClientOAuth2Handler handler = new(config3);
+    http:ClientOAuth2Handler handler = new(config);
     http:Request|http:ClientAuthError result1 = handler->enrich(request);
     if (result1 is http:Request) {
         string header = checkpanic result1.getHeader(http:AUTH_HEADER);
