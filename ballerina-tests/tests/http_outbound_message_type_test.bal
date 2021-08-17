@@ -262,8 +262,7 @@ public function testRequestAnydataNegative() returns error? {
     json|error payload = outRequestClient->post("/mytest/json", x);
     if payload is error {
         if payload is http:InitializingOutboundRequestError {
-            //Change error after https://github.com/ballerina-platform/ballerina-lang/issues/32001 is fixed
-            test:assertEquals(payload.message(), "json conversion error: java.lang.ClassCastException");
+            test:assertEquals(payload.message(), "json conversion error: {ballerina/lang.value}CyclicValueReferenceError");
             return;
         }
     }
@@ -523,6 +522,5 @@ public function testResponseAnydataNegative() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/anydataNegative");
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
     assertHeaderValue(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-    //Change error after https://github.com/ballerina-platform/ballerina-lang/issues/32001 is fixed
-    test:assertEquals(check resp.getTextPayload(), "json conversion error: java.lang.ClassCastException");
+    test:assertEquals(check resp.getTextPayload(), "json conversion error: {ballerina/lang.value}CyclicValueReferenceError");
 }
