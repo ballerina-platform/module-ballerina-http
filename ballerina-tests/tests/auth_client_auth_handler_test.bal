@@ -347,3 +347,49 @@ isolated function testClientOAuth2HandlerForRefreshTokenGrant() {
         test:assertFail(msg = "Test Failed! " + result3.message());
     }
 }
+
+@test:Config {}
+isolated function testClientOAuth2HandlerForJwtBearerGrant() {
+    http:OAuth2JwtBearerGrantConfig config = {
+        tokenUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
+        assertion: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
+        clientSecret: "9205371918321623741",
+        scopes: ["token-scope1", "token-scope2"],
+        clientConfig: {
+            secureSocket: {
+               cert: {
+                   path: TRUSTSTORE_PATH,
+                   password: "ballerina"
+               }
+            }
+        }
+    };
+
+    http:Request request = createDummyRequest();
+    http:ClientOAuth2Handler handler = new(config);
+    http:Request|http:ClientAuthError result1 = handler->enrich(request);
+    if (result1 is http:Request) {
+        string header = checkpanic result1.getHeader(http:AUTH_HEADER);
+        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
+    } else {
+        test:assertFail(msg = "Test Failed! " + result1.message());
+    }
+
+    map<string|string[]> headers = {};
+    map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
+    if (result2 is map<string|string[]>) {
+        string header = <string>result2.get(http:AUTH_HEADER);
+        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
+    } else {
+        test:assertFail(msg = "Test Failed! " + result2.message());
+    }
+
+    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
+    if (result3 is map<string|string[]>) {
+        string header = <string>result3.get(http:AUTH_HEADER);
+        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
+    } else {
+        test:assertFail(msg = "Test Failed! " + result3.message());
+    }
+}
