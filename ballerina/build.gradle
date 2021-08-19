@@ -35,11 +35,9 @@ def packageName = "http"
 def packageOrg = "ballerina"
 
 def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
-def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
-def ballerinaDependencyFile = new File("$project.projectDir/Dependencies.toml")
+def ballerinaTomlFile = new File("$project.projectDir/Ballerina.toml")
 def compilerPluginTomlFile = new File("$project.projectDir/CompilerPlugin.toml")
-def originalConfig = ballerinaConfigFile.text
-def originalDependency = ballerinaDependencyFile.text
+def originalBallerinaToml = ballerinaTomlFile.text
 def originalCompilerPluginToml = compilerPluginTomlFile.text
 
 def stripBallerinaExtensionVersion(String extVersion) {
@@ -123,18 +121,6 @@ dependencies {
 task updateTomlFiles {
     doLast {
         def stdlibDependentMimeNativeVersion = project.stdlibMimeVersion
-        def stdlibDependentIoVersion = stripBallerinaExtensionVersion(project.stdlibIoVersion)
-        def stdlibDependentLogVersion = stripBallerinaExtensionVersion(project.stdlibLogVersion)
-        def stdlibDependentRegexVersion = stripBallerinaExtensionVersion(project.stdlibRegexVersion)
-        def stdlibDependentMimeVersion = stripBallerinaExtensionVersion(project.stdlibMimeVersion)
-        def stdlibDependentAuthVersion = stripBallerinaExtensionVersion(project.stdlibAuthVersion)
-        def stdlibDependentJwtVersion = stripBallerinaExtensionVersion(project.stdlibJwtVersion)
-        def stdlibDependentOAuth2Version = stripBallerinaExtensionVersion(project.stdlibOAuth2Version)
-        def stdlibDependentCacheVersion = stripBallerinaExtensionVersion(project.stdlibCacheVersion)
-        def stdlibDependentTimeVersion = stripBallerinaExtensionVersion(project.stdlibTimeVersion)
-        def stdlibDependentUrlVersion = stripBallerinaExtensionVersion(project.stdlibUrlVersion)
-        def stdlibDependentCryptoVersion = stripBallerinaExtensionVersion(project.stdlibCryptoVersion)
-        def stdlibDependentFileVersion = stripBallerinaExtensionVersion(project.stdlibFileVersion)
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
         def stdlibDependentBouncycastleVersion = project.bouncycastleVersion
@@ -142,30 +128,16 @@ task updateTomlFiles {
         def stdlibDependentMimepullVersion = project.mimepullVersion
         def stdlibDependentTestngVersion = project.testngVersion
 
-        def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
-        newConfig = newConfig.replace("@toml.version@", tomlVersion)
-        newConfig = newConfig.replace("@stdlib.mimenative.version@", stdlibDependentMimeNativeVersion)
-        newConfig = newConfig.replace("@netty.version@", stdlibDependentNettyVersion)
-        newConfig = newConfig.replace("@commmon.pool.version@", stdlibDependentWso2CommonsPoolVersion)
-        newConfig = newConfig.replace("@bouncycastle.version@", stdlibDependentBouncycastleVersion)
-        newConfig = newConfig.replace("@tcnative.version@", stdlibDependentNettyTcnativeVersion)
-        newConfig = newConfig.replace("@mimepull.version@", stdlibDependentMimepullVersion)
-        newConfig = newConfig.replace("@testng.version@", stdlibDependentTestngVersion)
-        ballerinaConfigFile.text = newConfig
-
-        def newDependencyConfig = ballerinaDependencyFile.text.replace("@stdlib.io.version@", stdlibDependentIoVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.log.version@", stdlibDependentLogVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.regex.version@", stdlibDependentRegexVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.mime.version@", stdlibDependentMimeVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.auth.version@", stdlibDependentAuthVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.jwt.version@", stdlibDependentJwtVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.oauth2.version@", stdlibDependentOAuth2Version)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.cache.version@", stdlibDependentCacheVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.time.version@", stdlibDependentTimeVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.url.version@", stdlibDependentUrlVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.crypto.version@", stdlibDependentCryptoVersion)
-        newDependencyConfig = newDependencyConfig.replace("@stdlib.file.version@", stdlibDependentFileVersion)
-        ballerinaDependencyFile.text = newDependencyConfig
+        def newBallerinaToml = ballerinaTomlFile.text.replace("@project.version@", project.version)
+        newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
+        newBallerinaToml = newBallerinaToml.replace("@stdlib.mimenative.version@", stdlibDependentMimeNativeVersion)
+        newBallerinaToml = newBallerinaToml.replace("@netty.version@", stdlibDependentNettyVersion)
+        newBallerinaToml = newBallerinaToml.replace("@commmon.pool.version@", stdlibDependentWso2CommonsPoolVersion)
+        newBallerinaToml = newBallerinaToml.replace("@bouncycastle.version@", stdlibDependentBouncycastleVersion)
+        newBallerinaToml = newBallerinaToml.replace("@tcnative.version@", stdlibDependentNettyTcnativeVersion)
+        newBallerinaToml = newBallerinaToml.replace("@mimepull.version@", stdlibDependentMimepullVersion)
+        newBallerinaToml = newBallerinaToml.replace("@testng.version@", stdlibDependentTestngVersion)
+        ballerinaTomlFile.text = newBallerinaToml
 
         def newCompilerPluginToml = compilerPluginTomlFile.text.replace("@project.version@", project.version)
         compilerPluginTomlFile.text = newCompilerPluginToml
@@ -174,8 +146,7 @@ task updateTomlFiles {
 
 task revertTomlFiles {
     doLast {
-        ballerinaConfigFile.text = originalConfig
-        ballerinaDependencyFile.text = originalDependency
+        ballerinaTomlFile.text = originalBallerinaToml
         compilerPluginTomlFile.text = originalCompilerPluginToml
     }
 }
