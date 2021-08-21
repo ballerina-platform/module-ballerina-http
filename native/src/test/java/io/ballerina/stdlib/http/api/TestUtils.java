@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.values.BLink;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.internal.scheduling.Strand;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 
@@ -133,6 +134,11 @@ public class TestUtils {
 
             @Override
             public String expressionStringValue(BLink bLink) {
+                return null;
+            }
+
+            @Override
+            public BTypedesc getTypedesc() {
                 return null;
             }
         };
