@@ -67,90 +67,90 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
         }
     }
 
-    resource function get crossDomain(http:Caller caller, http:Request req) {
+    resource function get crossDomain(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = http2RedirectEndPoint2->get("/redirect1/round1");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(value);
+                check caller->respond(check value);
             } else {
-                panic <error>value;
+                return value;
             }
         } else {
             io:println("Connector error!");
         }
     }
 
-    resource function get noRedirect(http:Caller caller, http:Request req) {
+    resource function get noRedirect(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = http2RedirectEndPoint3->get("/redirect2");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(value);
+                check caller->respond(check value);
             } else {
-                panic <error>value;
+                return value;
             }
         } else {
             io:println("Connector error!");
         }
     }
 
-    resource function get qpWithRelativePath(http:Caller caller, http:Request req) {
+    resource function get qpWithRelativePath(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = http2RedirectEndPoint2->get("/redirect1/qpWithRelativePath");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(value);
+                check caller->respond(check value);
             } else {
-                panic <error>value;
+                return value;
             }
         } else {
             io:println("Connector error!");
         }
     }
 
-    resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) {
+    resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = http2RedirectEndPoint2->get("/redirect1/qpWithAbsolutePath");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(value);
+                check caller->respond(check value);
             } else {
-                panic <error>value;
+                return value;
             }
         } else {
             io:println("Connector error!");
         }
     }
 
-    resource function get originalRequestWithQP(http:Caller caller, http:Request req) {
+    resource function get originalRequestWithQP(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = http2RedirectEndPoint2->get("/redirect1/round4?key=value&lang=ballerina");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(value);
+                check caller->respond(check value);
             } else {
-                panic <error>value;
+                return value;
             }
         } else {
             io:println("Connector error!");
         }
     }
 
-    resource function get test303(http:Caller caller, http:Request req) {
+    resource function get test303(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = http2RedirectEndPoint3->post("/redirect2/test303", "Test value!");
         if (response is http:Response) {
             var value = response.getTextPayload();
             if (value is string) {
                 value = value + ":" + response.resolvedRequestedURI;
-                checkpanic caller->respond(value);
+                check caller->respond(check value);
             } else {
-                panic <error>value;
+                return value;
             }
         } else {
             io:println("Connector error!");

@@ -381,7 +381,7 @@ public class Request {
             } else {
                 if (formData != "") {
                     formData = check decode(formData);
-                    string[] entries = regex:split(formData, "&");
+                    string[] entries = regex:split(checkpanic formData, "&");
                     int entryIndex = 0;
                     while (entryIndex < entries.length()) {
                         int? index = entries[entryIndex].indexOf("=");
