@@ -1197,8 +1197,8 @@ public class HttpUtil {
             HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
         } else if (scheme.equals(HttpConstants.PROTOCOL_HTTPS)) {
             if (httpVersion.equals(HTTP_2_0_VERSION)) {
-                throw createHttpError("To enable https you need to configure secureSocket record",
-                        HttpErrorType.SSL_ERROR);
+                throw createHttpError("The secureSocket configuration should be provided to establish an " +
+                                "HTTPS connection", HttpErrorType.SSL_ERROR);
             } else {
                 senderConfiguration.useJavaDefaults();
             }
