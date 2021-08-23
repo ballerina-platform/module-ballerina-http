@@ -52,6 +52,62 @@ const string JWT1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXh
 //  "kid": "NTAxZmMxNDMyZDg3MTU1ZGM0MzEzODJhZWI4NDNlZDU1OGFkNjFiMQ"
 //}
 //{
+//  "iss": "wso2",
+//  "sub": "admin",
+//  "aud": [
+//    "ballerina"
+//  ],
+//  "exp": 1945063251,
+//  "nbf": 1629703251,
+//  "iat": 1629703251,
+//  "jti": "100078234ba23",
+//  "scp": "read write update"
+//}
+const string JWT1_1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV" +
+                      "0k0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJpc3MiOiJ3c28yIiwgInN1YiI6ImFkbWluIiwgImF1ZCI6WyJiYWxsZXJpbm" +
+                      "EiXSwgImV4cCI6MTk0NTA2MzI1MSwgIm5iZiI6MTYyOTcwMzI1MSwgImlhdCI6MTYyOTcwMzI1MSwgImp0aSI6IjEwMDA" +
+                      "3ODIzNGJhMjMiLCAic2NwIjoicmVhZCB3cml0ZSB1cGRhdGUifQ.OVM6SsDKmD18neeQgCu5t3q91_wNqo9moJcP55hG7" +
+                      "WpRfpNLuuhjwuzxWvphoKHUzegfRTXM5r56has9so6wIfMk2xG01QAt0XZSdS6WuhoB5PiKp5TIZ0y-i1zQ-sdPjaW7-r" +
+                      "PP60AlkUNPYHaGgL56tgmqSSoQ9DmGYq3hA38IVGO80hdPEVCjcuE9gXBxaIcdz2IHokYxKrXCYUFAmjhRrfJia2Iv0eJ" +
+                      "AzwZFvivGBbgdTQQeNzSlXFCbh-zvYAWaGtN1byzRoseVNA4peGL3hjfCC4L8X21gXfly5zXGojFkpRzK3dZw0kb0hfmX" +
+                      "RZqU95xJkubBma567RqRHg";
+
+//{
+//  "alg": "RS256",
+//  "typ": "JWT",
+//  "kid": "NTAxZmMxNDMyZDg3MTU1ZGM0MzEzODJhZWI4NDNlZDU1OGFkNjFiMQ"
+//}
+//{
+//  "iss": "wso2",
+//  "sub": "admin",
+//  "aud": [
+//    "ballerina"
+//  ],
+//  "exp": 1945063475,
+//  "nbf": 1629703475,
+//  "iat": 1629703475,
+//  "jti": "100078234ba23",
+//  "scp": [
+//    "read",
+//    "write",
+//    "update"
+//  ]
+//}
+const string JWT1_2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV" +
+                      "0k0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJpc3MiOiJ3c28yIiwgInN1YiI6ImFkbWluIiwgImF1ZCI6WyJiYWxsZXJpbm" +
+                      "EiXSwgImV4cCI6MTk0NTA2MzQ3NSwgIm5iZiI6MTYyOTcwMzQ3NSwgImlhdCI6MTYyOTcwMzQ3NSwgImp0aSI6IjEwMDA" +
+                      "3ODIzNGJhMjMiLCAic2NwIjpbInJlYWQiLCAid3JpdGUiLCAidXBkYXRlIl19.fSSB4RLBWoqui00EfSywO8DdmDzddyG" +
+                      "0hgjjLdbH9cTjCbOvhBsIPZqM4anrxavSKLvtDJFU9qJfKZd_ZKG6McKB681GB2P0xOaNtA1hHSotKbR0byUkXWIB2HEe" +
+                      "Dw17uyLYC5XqJH0WUGQiSN6Tvi5ed6Pme2xcVfwdh_8La7zY110d2_doncgYL2MqjVKV2mmithNgFiHeWMrUpuchKH7rX" +
+                      "8UO-yF3038ByI52ii3CcUgYPv26Pp4f1HfPKS9CBcpIjJUicoVWsyDrXB8MqCi4ik2w9hVDQPX7_rI_U9-BnmVSHC9Uui" +
+                      "qEnVreHdsYlkn33dkM_clQcQ6O1Ftp8A";
+
+//{
+//  "alg": "RS256",
+//  "typ": "JWT",
+//  "kid": "NTAxZmMxNDMyZDg3MTU1ZGM0MzEzODJhZWI4NDNlZDU1OGFkNjFiMQ"
+//}
+//{
 //  "sub": "admin",
 //  "iss": "wso2",
 //  "exp": 1925955876,
@@ -69,6 +125,60 @@ const string JWT2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXh
                     "5oEM6-Chrn6KFLXo3GFTwLQELgYkIGjgnMQfbyLLaw5oyJUyOCCsdMZ4oeVLO2rdKZs1L8ZDnolUfcdm5mTxxP9A4mTOTd-" +
                     "xC404MKwxkRhkgI4EJkcEwMHce2iCInZer10Q";
 
+//{
+//  "alg": "RS256",
+//  "typ": "JWT",
+//  "kid": "NTAxZmMxNDMyZDg3MTU1ZGM0MzEzODJhZWI4NDNlZDU1OGFkNjFiMQ"
+//}
+//{
+//  "iss": "wso2",
+//  "sub": "admin",
+//  "aud": [
+//    "ballerina"
+//  ],
+//  "exp": 1945071465,
+//  "nbf": 1629711465,
+//  "iat": 1629711465,
+//  "jti": "100078234ba23",
+//  "scp": "read delete"
+//}
+const string JWT2_1 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV" +
+                      "0k0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJpc3MiOiJ3c28yIiwgInN1YiI6ImFkbWluIiwgImF1ZCI6WyJiYWxsZXJpbm" +
+                      "EiXSwgImV4cCI6MTk0NTA3MTQ2NSwgIm5iZiI6MTYyOTcxMTQ2NSwgImlhdCI6MTYyOTcxMTQ2NSwgImp0aSI6IjEwMDA" +
+                      "3ODIzNGJhMjMiLCAic2NwIjoicmVhZCBkZWxldGUifQ.bSdUIzHgRzbAtuP_3uvDrX7hwdCK58b8k_tvfaW5vl1k06QM6" +
+                      "tP97P_7h7zoyovBFzGwcgvkW_UhyiTtgF61I28xqidnn9b2reUlq9Rt8LCgs5D0nUp8x-axJ9ug6HcF10vKZ7O0BLbUmX" +
+                      "QeBUvjv3MehjFVQJcZ6PhGTGVrw6m6xh8ghx2j-qu8v9I6dyZ0rKplR-5xsw04daGTyi3walOu5uXv3NVp74SfR1rkb1E" +
+                      "_A-sQZOqoFpy3Ta9mo9rjFJ8bPQT1fioFHKxESuGit6zeZiwk3fugFuSjeqIAGzWr_gJdjGts08flYWgy7zIXbJTqn5Cv" +
+                      "4AwXNt0AfdddYg";
+
+//{
+//  "alg": "RS256",
+//  "typ": "JWT",
+//  "kid": "NTAxZmMxNDMyZDg3MTU1ZGM0MzEzODJhZWI4NDNlZDU1OGFkNjFiMQ"
+//}
+//{
+//  "iss": "wso2",
+//  "sub": "admin",
+//  "aud": [
+//    "ballerina"
+//  ],
+//  "exp": 1945071431,
+//  "nbf": 1629711431,
+//  "iat": 1629711431,
+//  "jti": "100078234ba23",
+//  "scp": [
+//    "read",
+//    "delete"
+//  ]
+//}
+const string JWT2_2 = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QiLCAia2lkIjoiTlRBeFptTXhORE15WkRnM01UVTFaR00wTXpFek9ESmhaV" +
+                      "0k0TkRObFpEVTFPR0ZrTmpGaU1RIn0.eyJpc3MiOiJ3c28yIiwgInN1YiI6ImFkbWluIiwgImF1ZCI6WyJiYWxsZXJpbm" +
+                      "EiXSwgImV4cCI6MTk0NTA3MTQzMSwgIm5iZiI6MTYyOTcxMTQzMSwgImlhdCI6MTYyOTcxMTQzMSwgImp0aSI6IjEwMDA" +
+                      "3ODIzNGJhMjMiLCAic2NwIjpbInJlYWQiLCAiZGVsZXRlIl19.R8ddL_Iv1cBq2KtTEWdeIY_WiVkvsxFY9V8Ld08ZpHn" +
+                      "CiC9BktQ9KQfX7DO81fv49J8A5vRybCeheDk4bd7_0YJsk-qQHkf_VQ6dLahwLJE8eJEOug91OLK8EsqsHcj36Mnnr7mT" +
+                      "u0jAbIhOoPsoofbMr8HJ2NtIXtEGLZI8UgWdP8Do9IU-tRQ1JJMtjl5a1Mb42UaHNSIK09bs87lbf8_C_r2V0NoIyojSO" +
+                      "58IwYNhrVegJDHIH2UCJz9MyE01_L_p7LOiCJQL88p0s-P7aYX3VgKm5rd2romP-R4E6dYiiTLHoaLFSxL5OhHwgRNVo3" +
+                      "jm3iyc18Pq_mtNmLnaVQ";
 //{
 //  "alg": "HS256",
 //  "typ": "JWT"
