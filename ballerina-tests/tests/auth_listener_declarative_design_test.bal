@@ -59,12 +59,16 @@ service /baz on authListener {
 @test:Config {}
 isolated function testNoAuthServiceResourceSuccess() {
     assertSuccess(sendBearerTokenRequest("/baz/foo", JWT1));
+    assertSuccess(sendBearerTokenRequest("/baz/foo", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/baz/foo", JWT1_2));
     assertSuccess(sendJwtRequest("/baz/foo"));
 }
 
 @test:Config {}
 isolated function testNoAuthServiceResourceWithRequestSuccess() {
     assertSuccess(sendBearerTokenRequest("/baz/bar", JWT2));
+    assertSuccess(sendBearerTokenRequest("/baz/bar", JWT2_1));
+    assertSuccess(sendBearerTokenRequest("/baz/bar", JWT2_2));
 }
 
 @test:Config {}
@@ -194,12 +198,16 @@ service /jwtAuth on authListener {
 @test:Config {}
 function testJwtAuthServiceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/jwtAuth", JWT1));
+    assertSuccess(sendBearerTokenRequest("/jwtAuth", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/jwtAuth", JWT1_2));
     assertSuccess(sendJwtRequest("/jwtAuth"));
 }
 
 @test:Config {}
 function testJwtAuthServiceAuthzFailure() {
     assertForbidden(sendBearerTokenRequest("/jwtAuth", JWT2));
+    assertForbidden(sendBearerTokenRequest("/jwtAuth", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/jwtAuth", JWT2_2));
 }
 
 @test:Config {}
@@ -338,12 +346,16 @@ function testBasicAuthResourceAuthnFailure() {
 @test:Config {}
 function testJwtAuthResourceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/foo/jwtAuth", JWT1));
+    assertSuccess(sendBearerTokenRequest("/foo/jwtAuth", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/foo/jwtAuth", JWT1_2));
     assertSuccess(sendJwtRequest("/foo/jwtAuth"));
 }
 
 @test:Config {}
 function testJwtAuthResourceAuthzFailure() {
     assertForbidden(sendBearerTokenRequest("/foo/jwtAuth", JWT2));
+    assertForbidden(sendBearerTokenRequest("/foo/jwtAuth", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/foo/jwtAuth", JWT2_2));
 }
 
 @test:Config {}
@@ -423,12 +435,16 @@ service /ignoreOAuth2 on authListener {
 @test:Config {}
 function testServiceResourceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT1));
+    assertSuccess(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT1_2));
     assertSuccess(sendJwtRequest("/ignoreOAuth2/jwtAuth"));
 }
 
 @test:Config {}
 function testServiceResourceAuthzFailure() {
     assertForbidden(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT2));
+    assertForbidden(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/ignoreOAuth2/jwtAuth", JWT2_2));
 }
 
 @test:Config {}
@@ -490,12 +506,16 @@ service /multipleAuth on authListener {
 @test:Config {}
 function testMultipleAuthServiceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/multipleAuth", JWT1));
+    assertSuccess(sendBearerTokenRequest("/multipleAuth", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/multipleAuth", JWT1_2));
     assertSuccess(sendJwtRequest("/multipleAuth"));
 }
 
 @test:Config {}
 function testMultipleAuthServiceAuthzFailure() {
     assertForbidden(sendBearerTokenRequest("/multipleAuth", JWT2));
+    assertForbidden(sendBearerTokenRequest("/multipleAuth", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/multipleAuth", JWT2_2));
 }
 
 @test:Config {}
@@ -558,12 +578,16 @@ service /bar on authListener {
 @test:Config {}
 function testMultipleAuthResourceAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/bar/multipleAuth", JWT1));
+    assertSuccess(sendBearerTokenRequest("/bar/multipleAuth", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/bar/multipleAuth", JWT1_2));
     assertSuccess(sendJwtRequest("/bar/multipleAuth"));
 }
 
 @test:Config {}
 function testMultipleAuthResourceAuthzFailure() {
     assertForbidden(sendBearerTokenRequest("/bar/multipleAuth", JWT2));
+    assertForbidden(sendBearerTokenRequest("/bar/multipleAuth", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/bar/multipleAuth", JWT2_2));
 }
 
 @test:Config {}
@@ -602,7 +626,11 @@ service /noScopes on authListener {
 @test:Config {}
 function testServiceAuthWithoutScopesAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/noScopes", JWT1));
+    assertSuccess(sendBearerTokenRequest("/noScopes", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/noScopes", JWT1_2));
     assertSuccess(sendBearerTokenRequest("/noScopes", JWT2));
+    assertSuccess(sendBearerTokenRequest("/noScopes", JWT2_1));
+    assertSuccess(sendBearerTokenRequest("/noScopes", JWT2_2));
     assertSuccess(sendJwtRequest("/noScopes"));
 }
 
