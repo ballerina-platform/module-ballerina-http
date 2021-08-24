@@ -138,7 +138,7 @@ http:ClientConfiguration mutualSslClientConf2 = {
     }
 };
 
-@test:Config {}
+//@test:Config {}
 public function testMutualSsl2() {
     http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf2);
     http:Response|error resp = httpClient->get("/helloWorld15/");
@@ -171,7 +171,7 @@ http:ClientConfiguration mutualSslClientConf3 = {
     }
 };
 
-@test:Config {}
+//@test:Config {}
 public function testMutualSsl3() {
     http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf3);
     http:Response|error resp = httpClient->get("/helloWorld15/");

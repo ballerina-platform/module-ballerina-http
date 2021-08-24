@@ -97,7 +97,7 @@ http:ClientConfiguration certsClientConf2 = {
     }
 };
 
-@test:Config {}
+//@test:Config {}
 public function mutualSslWithCerts2() {
     http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf2);
     http:Response|error resp = clientEP->get("/mutualSslService/");
@@ -118,7 +118,7 @@ http:ClientConfiguration certsClientConf3 = {
     }
 };
 
-@test:Config {}
+//@test:Config {}
 public function mutualSslWithCerts3() {
     http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf3);
     http:Response|error resp = clientEP->get("/mutualSslService/");

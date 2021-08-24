@@ -98,20 +98,9 @@ function testGracefulStopMethod() {
 
 @test:Config {dependsOn:[testGracefulStopMethod]}
 function testInvokingStoppedService() returns error? {
-    // Create new client with keepAlive never config. First call uses already existing connection, so it will not fail
-    // Subsequent call will try creating new connection with listener and it will fail
     http:Client backendTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(),
                                                 http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
     http:Response|error response = backendTestClient->get("/mock1");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Mock1 invoked!");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-
-    response = backendTestClient->get("/mock1");
     if (response is error) {
         // Output depends on the closure time. The error implies that the listener has stopped.
         test:assertTrue(true, msg = "Found unexpected output");

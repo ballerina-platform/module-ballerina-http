@@ -47,4 +47,8 @@ public class HttpRoute {
     public String getScheme() {
         return scheme;
     }
+
+    public int getConfigHash() {
+        return configHashCode;
+    }
 }

@@ -61,6 +61,7 @@ public class TestExhaustedStreamIdForClient {
     private ServerConnector serverConnector;
     private HttpWsConnectorFactory connectorFactory;
     private ConnectionManager connectionManager;
+    private int senderConfigHashCode;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -78,6 +79,7 @@ public class TestExhaustedStreamIdForClient {
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = HttpConnectorUtil.getSenderConfiguration(transportsConfiguration,
                                                                                            Constants.HTTP_SCHEME);
+        senderConfigHashCode = senderConfiguration.hashCode();
         senderConfiguration.setHttpVersion(Constants.HTTP_2_0);
         senderConfiguration.setForceHttp2(true);       // Force to use HTTP/2 without an upgrade
         connectionManager = new ConnectionManager(senderConfiguration.getPoolConfiguration());
@@ -101,7 +103,7 @@ public class TestExhaustedStreamIdForClient {
 
         Http2ClientChannel http2ClientChannel = connectionManager.getHttp2ConnectionManager()
             .borrowChannel(null, new HttpRoute(Constants.HTTP_SCHEME, LOCALHOST,
-                                               HTTP_SERVER_PORT, 0));
+                                               HTTP_SERVER_PORT, senderConfigHashCode));
 
         //Simulate the stream id to have reached its max value for the connection.
         http2ClientChannel.getConnection().local().createStream(Integer.MAX_VALUE, false);
