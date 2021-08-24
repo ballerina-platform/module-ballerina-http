@@ -101,7 +101,7 @@ public class TestExhaustedStreamIdForClient {
 
         Http2ClientChannel http2ClientChannel = connectionManager.getHttp2ConnectionManager()
             .borrowChannel(null, new HttpRoute(Constants.HTTP_SCHEME, LOCALHOST,
-                                               HTTP_SERVER_PORT));
+                                               HTTP_SERVER_PORT, 0));
 
         //Simulate the stream id to have reached its max value for the connection.
         http2ClientChannel.getConnection().local().createStream(Integer.MAX_VALUE, false);
