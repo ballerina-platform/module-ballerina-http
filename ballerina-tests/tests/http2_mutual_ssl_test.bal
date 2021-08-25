@@ -162,3 +162,23 @@ public function testHttp2MutualSsl3() {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
+
+http:ClientConfiguration http2MutualSslNegativeClientConf1 = {
+    secureSocket: {
+        enable: false
+    },
+    httpVersion: "2.0"
+};
+
+@test:Config {}
+public function testHttp2MutualSslNegativeTest1() returns error? {
+    // Without keys - negative test
+    http:Client httpClient = check new("https://localhost:9204", http2MutualSslNegativeClientConf1);
+    http:Response|error resp = httpClient->get("/http2Service/");
+    string expectedErrMsg = "SSL connection failed:javax.net.ssl.SSLHandshakeException: error:10000410:SSL routines:OPENSSL_internal:SSLV3_ALERT_HANDSHAKE_FAILURE null";
+    if (resp is error) {
+        test:assertEquals(resp.message(), expectedErrMsg);
+    } else {
+        test:assertFail(msg = "Expected mutual SSL error not found");
+    }
+}

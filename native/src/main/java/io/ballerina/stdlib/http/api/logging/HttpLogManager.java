@@ -25,6 +25,7 @@ import io.ballerina.stdlib.http.api.logging.formatters.HttpTraceLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.JsonLogFormatter;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
@@ -49,6 +50,16 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_PORT;
  * @since 0.8.0
  */
 public class HttpLogManager extends LogManager {
+
+    static {
+        // loads logging.properties from the classpath
+        try (InputStream is = HttpLogManager.class.getClassLoader().
+                getResourceAsStream("logging.properties")) {
+            LogManager.getLogManager().readConfiguration(is);
+        } catch (IOException e) {
+            throw new RuntimeException("failed to read logging.properties file from the classpath", e);
+        }
+    }
 
     protected Logger httpTraceLogger;
     protected Logger httpAccessLogger;

@@ -49,20 +49,17 @@ http:ClientConfiguration http2headerLimitConfig = {
 };
 
 listener http:Listener statusLineEP = new(responseLimitsTestPort1);
-listener http:Listener statusBackendEP = new(responseLimitsTestPort2);
-listener http:Listener headertBackendEP = new(responseLimitsTestPort3);
-listener http:Listener entitybodyBackendEP = new(responseLimitsTestPort4);
-listener http:Listener headerTestEP = new(responseLimitsTestPort5);
+listener http:Listener responseLimitBackendEP = new(responseLimitsTestPort2);
 
 http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString());
 http:Client statusLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
         + "/backend/statustest", statusLineLimitConfig);
-http:Client headerLimitClient = check new("http://localhost:" + responseLimitsTestPort3.toString()
+http:Client headerLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
         + "/backend/headertest", headerLimitConfig);
-http:Client entityBodyLimitClient = check new("http://localhost:" + responseLimitsTestPort4.toString()
+http:Client entityBodyLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
         + "/backend/entitybodytest", entityBodyLimitConfig);
-http:Client http2headerLimitClient = check new("http://localhost:" + responseLimitsTestPort5.toString()
-        + "/backend/headertest", http2headerLimitConfig);
+http:Client http2headerLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
+        + "/backend/headertest2", http2headerLimitConfig);
 
 service /responseLimit on statusLineEP {
 
@@ -94,7 +91,7 @@ service /responseLimit on statusLineEP {
     }
 }
 
-service /backend on statusBackendEP {
+service /backend on responseLimitBackendEP {
     resource function get statustest(http:Caller caller, http:Request req) {
         http:Response res = new;
         string testType = checkpanic req.getHeader("x-test-type");
@@ -106,9 +103,7 @@ service /backend on statusBackendEP {
         res.setTextPayload("Hello World!!!");
         sendResponse(caller, res);
     }
-}
 
-service /backend on headertBackendEP {
     resource function get headertest(http:Caller caller, http:Request req) {
         http:Response res = new;
         string testType = checkpanic req.getHeader("x-test-type");
@@ -120,9 +115,7 @@ service /backend on headertBackendEP {
         res.setTextPayload("Hello World!!!");
         sendResponse(caller, res);
     }
-}
 
-service /backend on entitybodyBackendEP {
     resource function get entitybodytest(http:Caller caller, http:Request req) {
         http:Response res = new;
         string testType = checkpanic req.getHeader("x-test-type");
@@ -133,10 +126,8 @@ service /backend on entitybodyBackendEP {
         }
         sendResponse(caller, res);
     }
-}
 
-service /backend on headerTestEP {
-    resource function get headertest(http:Caller caller, http:Request req) {
+    resource function get headertest2(http:Caller caller, http:Request req) {
         http:Response res = new;
         string testType = checkpanic req.getHeader("x-test-type");
         if (testType == "error") {

@@ -169,6 +169,7 @@ public class Http2ConnectionManager {
     }
 
     private String generateKey(HttpRoute httpRoute) {
-        return httpRoute.getScheme() + ":" + httpRoute.getHost() + ":" + httpRoute.getPort();
+        return httpRoute.getScheme() + ":" + httpRoute.getHost() + ":" + httpRoute.getPort() + ":" +
+                httpRoute.getConfigHash();
     }
 }
