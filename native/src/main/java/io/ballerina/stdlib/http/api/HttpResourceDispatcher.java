@@ -79,10 +79,10 @@ public class HttpResourceDispatcher {
         if (cMsg.getHeader(HttpHeaderNames.ALLOW.toString()) != null) {
             response.setHeader(HttpHeaderNames.ALLOW.toString(), cMsg.getHeader(HttpHeaderNames.ALLOW.toString()));
         } else if (service.getBasePath().equals(cMsg.getProperty(HttpConstants.TO))
-            && !service.getAllAllowedMethods().isEmpty()) {
-        response.setHeader(HttpHeaderNames.ALLOW.toString(),
-                           DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
-        }  else {
+                && !service.getAllAllowedMethods().isEmpty()) {
+            response.setHeader(HttpHeaderNames.ALLOW.toString(),
+                               DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
+        } else {
             cMsg.setHttpStatusCode(404);
             throw new BallerinaConnectorException("no matching resource found for path : "
                     + cMsg.getProperty(HttpConstants.TO) + " , method : " + "OPTIONS");
@@ -102,6 +102,7 @@ public class HttpResourceDispatcher {
         response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString());
         response.setHttpStatusCode(200);
         PipeliningHandler.sendPipelinedResponse(cMsg, response);
+        cMsg.waitAndReleaseAllEntities();
     }
 
     private HttpResourceDispatcher() {

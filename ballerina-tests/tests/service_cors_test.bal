@@ -328,7 +328,7 @@ function testPreFlightReqwithNoMethod() {
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
     if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
         assertHeaderValue(checkpanic response.getHeader("Link"), "</hello1/openapi-doc-dygixywsw>;rel=\"service-desc\"");
     } else {
