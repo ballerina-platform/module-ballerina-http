@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Add support for Map Json as query parameter](https://github.com/ballerina-platform/ballerina-standard-library/issues/1670)
 - [Add OAuth2 JWT bearer grant type support](https://github.com/ballerina-platform/ballerina-standard-library/issues/1788)
 - [Add authorization with JWTs with multiple scopes](https://github.com/ballerina-platform/ballerina-standard-library/issues/1801)
+- [Add support to overwrite the scopes config by resource annotation](https://github.com/ballerina-platform/ballerina-standard-library/issues/973)
 
 ## Fixed
 - [Fix incorrect behaviour of client with mtls](https://github.com/ballerina-platform/ballerina-standard-library/issues/1708)
