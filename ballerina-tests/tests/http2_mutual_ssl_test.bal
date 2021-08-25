@@ -123,7 +123,8 @@ http:ClientConfiguration http2MutualSslClientConf2 = {
     http2Settings: { http2PriorKnowledge: true }
 };
 
-@test:Config {}
+// https://github.com/ballerina-platform/ballerina-standard-library/issues/483
+@test:Config { enable: false }
 public function testHttp2MutualSsl2() {
     http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf2);
     http:Response|error resp = httpClient->get("/http2Service/");

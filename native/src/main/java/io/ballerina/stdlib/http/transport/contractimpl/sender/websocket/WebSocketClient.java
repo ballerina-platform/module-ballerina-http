@@ -135,7 +135,7 @@ public class WebSocketClient {
         clientBootstrap.group(wsClientEventLoopGroup).channel(NioSocketChannel.class).handler(
                 new ChannelInitializer<SocketChannel>() {
                     @Override
-                    protected void initChannel(SocketChannel socketChannel) throws SSLException {
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
                         if (sslConfig != null) {
                             SSLEngine sslEngine = Util
                                     .configureHttpPipelineForSSL(socketChannel, host, port, sslConfig);
