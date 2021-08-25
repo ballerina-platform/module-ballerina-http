@@ -72,7 +72,9 @@ public class HttpIntrospectionResource extends HttpResource {
         int length;
         while (true) {
             try {
-                if ((length = inputStream.read(buffer)) == -1) break;
+                if ((length = inputStream.read(buffer)) == -1) {
+                    break;
+                }
             } catch (IOException e) {
                 throw HttpUtil.createHttpError(ERROR_PREFIX + e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
             }
