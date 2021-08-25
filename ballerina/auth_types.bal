@@ -135,6 +135,13 @@ public type OAuth2IntrospectionConfigWithScopes record {|
    string|string[] scopes?;
 |};
 
+# Represents the annotation used for authorization.
+#
+# + scopes - Scopes allowed for authorization
+public type Scopes record {|
+    string|string[] scopes;
+|};
+
 # Defines the authentication configurations for the HTTP listener.
 public type ListenerAuthConfig FileUserStoreConfigWithScopes|
                                LdapUserStoreConfigWithScopes|

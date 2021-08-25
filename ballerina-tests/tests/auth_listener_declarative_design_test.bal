@@ -453,6 +453,119 @@ function testServiceResourceAuthnFailure() {
     assertUnauthorized(sendNoTokenRequest("/ignoreOAuth2/jwtAuth"));
 }
 
+// Testing scopes configurations overwritten support.
+// JWT auth secured service - scopes overwritten at resource
+
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {
+                    trustStoreConfig: {
+                        trustStore: {
+                            path: TRUSTSTORE_PATH,
+                            password: "ballerina"
+                        },
+                        certAlias: "ballerina"
+                    }
+                },
+                scopeKey: "scp"
+            },
+            scopes: ["read"]
+        }
+    ]
+}
+service /ignoreScopes on authListener {
+
+    @http:ResourceConfig {
+        auth: {
+            scopes: ["write", "update"]
+        }
+    }
+    resource function get jwtAuth() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {}
+function testScopesOverwrittenResourceAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/ignoreScopes/jwtAuth", JWT1));
+    assertSuccess(sendBearerTokenRequest("/ignoreScopes/jwtAuth", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/ignoreScopes/jwtAuth", JWT1_2));
+    assertSuccess(sendJwtRequest("/ignoreScopes/jwtAuth"));
+}
+
+@test:Config {}
+function testScopesOverwrittenResourceAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/ignoreScopes/jwtAuth", JWT2));
+    assertForbidden(sendBearerTokenRequest("/ignoreScopes/jwtAuth", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/ignoreScopes/jwtAuth", JWT2_2));
+}
+
+@test:Config {}
+function testScopesOverwrittenResourceAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/ignoreScopes/jwtAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/ignoreScopes/jwtAuth"));
+}
+
+// Testing scopes configurations appending support.
+// JWT auth secured service - scopes appended at resource
+
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {
+                    trustStoreConfig: {
+                        trustStore: {
+                            path: TRUSTSTORE_PATH,
+                            password: "ballerina"
+                        },
+                        certAlias: "ballerina"
+                    }
+                },
+                scopeKey: "scp"
+            }
+        }
+    ]
+}
+service /appendScopes on authListener {
+
+    @http:ResourceConfig {
+        auth: {
+            scopes: ["write", "update"]
+        }
+    }
+    resource function get jwtAuth() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {}
+function testScopesAppendingResourceAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/appendScopes/jwtAuth", JWT1));
+    assertSuccess(sendBearerTokenRequest("/appendScopes/jwtAuth", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/appendScopes/jwtAuth", JWT1_2));
+    assertSuccess(sendJwtRequest("/appendScopes/jwtAuth"));
+}
+
+@test:Config {}
+function testScopesAppendingResourceAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/appendScopes/jwtAuth", JWT2));
+    assertForbidden(sendBearerTokenRequest("/appendScopes/jwtAuth", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/appendScopes/jwtAuth", JWT2_2));
+}
+
+@test:Config {}
+function testScopesAppendingResourceAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/appendScopes/jwtAuth", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/appendScopes/jwtAuth"));
+}
+
 // Testing multiple auth configurations support.
 // OAuth2, Basic auth & JWT auth secured service - Unsecured resource
 
