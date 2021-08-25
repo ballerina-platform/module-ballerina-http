@@ -79,9 +79,11 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
     private ForwardedExtensionConfig forwardedExtensionConfig;
     private EventLoopGroup clientEventGroup;
     private BootstrapConfiguration bootstrapConfig;
+    private int configHashCode;
 
     public DefaultHttpClientConnector(ConnectionManager connectionManager, SenderConfiguration senderConfiguration,
-        BootstrapConfiguration bootstrapConfig, EventLoopGroup clientEventGroup) {
+                                      BootstrapConfiguration bootstrapConfig, EventLoopGroup clientEventGroup,
+                                      int configHashCode) {
         this.connectionManager = connectionManager;
         this.http2ConnectionManager = connectionManager.getHttp2ConnectionManager();
         this.senderConfiguration = senderConfiguration;
@@ -91,6 +93,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
         }
         this.clientEventGroup = clientEventGroup;
         this.bootstrapConfig = bootstrapConfig;
+        this.configHashCode = configHashCode;
     }
 
     @Override
@@ -177,7 +180,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
              * in case of the connection get upgraded to a HTTP/2 connection.
              */
             final HttpRoute route = getTargetRoute(senderConfiguration.getScheme(), httpOutboundRequest,
-                                                   senderConfiguration.hashCode());
+                                                   this.configHashCode);
             if (isHttp2) {
                 // See whether an already upgraded HTTP/2 connection is available
                 Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.borrowChannel(http2SourceHandler,

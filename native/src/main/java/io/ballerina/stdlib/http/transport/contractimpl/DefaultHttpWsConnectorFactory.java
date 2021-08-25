@@ -19,6 +19,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl;
 
+import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
@@ -28,6 +29,7 @@ import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnector;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.ServerConnectorBootstrap;
@@ -144,7 +146,9 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
             Map<String, Object> transportProperties, SenderConfiguration senderConfiguration) {
         BootstrapConfiguration bootstrapConfig = new BootstrapConfiguration(transportProperties);
         ConnectionManager connectionManager = new ConnectionManager(senderConfiguration.getPoolConfiguration());
-        return new DefaultHttpClientConnector(connectionManager, senderConfiguration, bootstrapConfig, clientGroup);
+        int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASHCODE, 0);
+        return new DefaultHttpClientConnector(connectionManager, senderConfiguration, bootstrapConfig, clientGroup,
+                                              configHashCode);
     }
 
     @Override
@@ -152,7 +156,9 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         Map<String, Object> transportProperties, SenderConfiguration senderConfiguration,
         ConnectionManager connectionManager) {
         BootstrapConfiguration bootstrapConfig = new BootstrapConfiguration(transportProperties);
-        return new DefaultHttpClientConnector(connectionManager, senderConfiguration, bootstrapConfig, clientGroup);
+        int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASHCODE, 0);
+        return new DefaultHttpClientConnector(connectionManager, senderConfiguration, bootstrapConfig, clientGroup,
+                                              configHashCode);
     }
 
     @Override

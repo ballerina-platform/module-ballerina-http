@@ -47,7 +47,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VER
 public class CreateSimpleHttpClient {
     @SuppressWarnings("unchecked")
     public static Object createSimpleHttpClient(BObject httpClient, BMap globalPoolConfig, BString clientUrl,
-                                                BMap<BString, Object> clientEndpointConfig) {
+                                                BMap<BString, Object> clientEndpointConfig, BString optionsString) {
         try {
             HttpConnectionManager connectionManager = HttpConnectionManager.getInstance();
             String scheme;
@@ -61,6 +61,7 @@ public class CreateSimpleHttpClient {
             scheme = url.getProtocol();
             Map<String, Object> properties =
                     HttpConnectorUtil.getTransportProperties(connectionManager.getTransportConfig());
+            properties.put(HttpConstants.CLIENT_CONFIG_HASHCODE, optionsString.hashCode());
             SenderConfiguration senderConfiguration = new SenderConfiguration();
             senderConfiguration.setScheme(scheme);
 
