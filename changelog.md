@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Enable HTTP trace and access log support](https://github.com/ballerina-platform/ballerina-standard-library/issues/1073)
 - [Add HATEOS link support](https://github.com/ballerina-platform/ballerina-standard-library/issues/1637)
 - [Introduce http:CacheConfig annotation to the resource signature](https://github.com/ballerina-platform/ballerina-standard-library/issues/1533)
+- [Introduce introspection resource method to get generated OpenAPI document of the service](https://github.com/ballerina-platform/ballerina-standard-library/issues/1616)
 
 ## Fixed
 - [Fix incorrect behaviour of client with mtls](https://github.com/ballerina-platform/ballerina-standard-library/issues/1708)
