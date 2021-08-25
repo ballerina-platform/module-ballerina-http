@@ -61,7 +61,7 @@ public class CreateSimpleHttpClient {
             scheme = url.getProtocol();
             Map<String, Object> properties =
                     HttpConnectorUtil.getTransportProperties(connectionManager.getTransportConfig());
-            properties.put(HttpConstants.CLIENT_CONFIG_HASHCODE, optionsString.hashCode());
+            properties.put(HttpConstants.CLIENT_CONFIG_HASH_CODE, optionsString.hashCode());
             SenderConfiguration senderConfiguration = new SenderConfiguration();
             senderConfiguration.setScheme(scheme);
 

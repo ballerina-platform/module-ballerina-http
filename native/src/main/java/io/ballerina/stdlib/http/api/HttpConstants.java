@@ -172,7 +172,7 @@ public class HttpConstants {
 
     public static final String CLIENT = "Client";
     public static final String HTTP_CLIENT = "HttpClient";
-    public static final String CLIENT_CONFIG_HASHCODE = "ClientConfigHashCode";
+    public static final String CLIENT_CONFIG_HASH_CODE = "ClientConfigHashCode";
 
     public static final String SRC_HANDLER = "SRC_HANDLER";
     public static final String REMOTE_ADDRESS = "REMOTE_ADDRESS";

@@ -146,7 +146,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
             Map<String, Object> transportProperties, SenderConfiguration senderConfiguration) {
         BootstrapConfiguration bootstrapConfig = new BootstrapConfiguration(transportProperties);
         ConnectionManager connectionManager = new ConnectionManager(senderConfiguration.getPoolConfiguration());
-        int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASHCODE, 0);
+        int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASH_CODE, 0);
         return new DefaultHttpClientConnector(connectionManager, senderConfiguration, bootstrapConfig, clientGroup,
                                               configHashCode);
     }
@@ -156,7 +156,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         Map<String, Object> transportProperties, SenderConfiguration senderConfiguration,
         ConnectionManager connectionManager) {
         BootstrapConfiguration bootstrapConfig = new BootstrapConfiguration(transportProperties);
-        int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASHCODE, 0);
+        int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASH_CODE, 0);
         return new DefaultHttpClientConnector(connectionManager, senderConfiguration, bootstrapConfig, clientGroup,
                                               configHashCode);
     }
