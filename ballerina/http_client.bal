@@ -28,7 +28,7 @@ public client isolated class HttpClient {
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration? config = ()) returns ClientError? {
         ClientConfiguration options = config ?: {};
-        return createSimpleHttpClient(self, globalHttpClientConnPool, url, options);
+        return createSimpleHttpClient(self, globalHttpClientConnPool, url, options, options.toString());
     }
 
     # The `HttpClient.post()` function can be used to send HTTP POST requests to HTTP endpoints.
@@ -166,6 +166,12 @@ public client isolated class HttpClient {
         return externRejectPromise(self, promise);
     }
 }
+
+isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig, string clientUrl,
+ClientConfiguration clientEndpointConfig, string optionsString) returns ClientError? = @java:Method {
+   'class: "io.ballerina.stdlib.http.api.client.endpoint.CreateSimpleHttpClient",
+   name: "createSimpleHttpClient"
+} external;
 
 isolated function externGetResponse(HttpClient httpClient, HttpFuture httpFuture) returns Response|ClientError =
 @java:Method {

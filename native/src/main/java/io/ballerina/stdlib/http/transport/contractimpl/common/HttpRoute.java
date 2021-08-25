@@ -22,16 +22,18 @@ public class HttpRoute {
     private String scheme;
     private String host;
     private int port;
+    private int configHashCode;
 
-    public HttpRoute(String scheme, String host, int port) {
+    public HttpRoute(String scheme, String host, int port, int configHashCode) {
         this.scheme = scheme;
         this.host = host;
         this.port = port;
+        this.configHashCode = configHashCode;
     }
 
     @Override
     public String toString() {
-        return scheme + "-" + host + "-" + port;
+        return scheme + "-" + host + "-" + port + "-" + configHashCode;
     }
 
     public String getHost() {
@@ -44,5 +46,9 @@ public class HttpRoute {
 
     public String getScheme() {
         return scheme;
+    }
+
+    public int getConfigHash() {
+        return configHashCode;
     }
 }

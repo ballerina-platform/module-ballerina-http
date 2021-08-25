@@ -388,12 +388,6 @@ public type ResponseLimitConfigs record {|
     int maxEntityBodySize = -1;
 |};
 
-isolated function createSimpleHttpClient(HttpClient caller, PoolConfiguration globalPoolConfig, string clientUrl,
-ClientConfiguration clientEndpointConfig) returns ClientError? = @java:Method {
-   'class: "io.ballerina.stdlib.http.api.client.endpoint.CreateSimpleHttpClient",
-   name: "createSimpleHttpClient"
-} external;
-
 # Provides settings related to HTTP/2 protocol.
 #
 # + http2PriorKnowledge - Configuration to enable HTTP/2 prior knowledge

@@ -102,7 +102,7 @@ http:ClientConfiguration mutualSslCertClientConf2 = {
     }
 };
 
-@test:Config {}
+//@test:Config {}
 public function testMutualSslWithCerts2() {
     http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf2);
     http:Request req = new;
@@ -129,7 +129,7 @@ http:ClientConfiguration mutualSslCertClientConf3 = {
     }
 };
 
-@test:Config {}
+//@test:Config {}
 public function testMutualSslWithCerts3() {
     http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf3);
     http:Request req = new;
