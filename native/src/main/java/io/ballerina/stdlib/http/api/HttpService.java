@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.URITemplate;
 import io.ballerina.stdlib.http.uri.URITemplateException;
 import io.ballerina.stdlib.http.uri.parser.Literal;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
@@ -121,6 +123,14 @@ public class HttpService {
         this.resources = resources;
     }
 
+    public List<String> getAllAllowedMethods() {
+        return allAllowedMethods;
+    }
+
+    public void setAllAllowedMethods(List<String> allAllowMethods) {
+        this.allAllowedMethods = allAllowMethods;
+    }
+
     public void setHostName(String hostName) {
         this.hostName = hostName;
     }
@@ -180,6 +190,7 @@ public class HttpService {
             httpService.setHostName(HttpConstants.DEFAULT_HOST);
         }
         processResources(httpService);
+        httpService.setAllAllowedMethods(DispatcherUtil.getAllResourceMethods(httpService));
         return httpService;
     }
 
@@ -222,5 +233,16 @@ public class HttpService {
 
     public void setIntrospectionResourcePathHeaderValue(String introspectionResourcePath) {
         this.introspectionResourcePath = introspectionResourcePath;
+    }
+
+    public String getIntrospectionDocName() {
+        var docConfigAnnotation = getServiceConfigAnnotation(this.balService, ModuleUtils.getHttpPackageIdentifier(),
+                                                             ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG);
+        if (docConfigAnnotation != null) {
+            return docConfigAnnotation.getStringValue(HttpConstants.ANN_FIELD_DOC_NAME).getValue().trim();
+        }
+//        throw createHttpError("missing mandatory annotation: " + ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG,
+//                              HttpErrorType.GENERIC_LISTENER_ERROR);
+        return null;
     }
 }

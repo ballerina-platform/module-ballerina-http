@@ -20,13 +20,12 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.URITemplateException;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * Resource level dispatchers handler for HTTP protocol.
@@ -79,7 +78,11 @@ public class HttpResourceDispatcher {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         if (cMsg.getHeader(HttpHeaderNames.ALLOW.toString()) != null) {
             response.setHeader(HttpHeaderNames.ALLOW.toString(), cMsg.getHeader(HttpHeaderNames.ALLOW.toString()));
-        } else {
+        } else if (service.getBasePath().equals(cMsg.getProperty(HttpConstants.TO))
+            && !service.getAllAllowedMethods().isEmpty()) {
+        response.setHeader(HttpHeaderNames.ALLOW.toString(),
+                           DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
+        }  else {
             cMsg.setHttpStatusCode(404);
             throw new BallerinaConnectorException("no matching resource found for path : "
                     + cMsg.getProperty(HttpConstants.TO) + " , method : " + "OPTIONS");
@@ -95,14 +98,9 @@ public class HttpResourceDispatcher {
     private static void handleIntrospectionRequest(HttpCarbonMessage cMsg, HttpIntrospectionResource resource) {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         response.waitAndReleaseAllEntities();
-        if (resource.getPayload() == null) {
-            cMsg.setHttpStatusCode(500);
-            throw new BallerinaConnectorException("Error retrieving OpenAPI doc: " + resource.getError());
-        }
-        response.setHttpStatusCode(200);
-        byte[] byteArray = resource.getPayload().getBytes(StandardCharsets.UTF_8);
-        response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(byteArray)));
+        response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(resource.getPayload())));
         response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString());
+        response.setHttpStatusCode(200);
         PipeliningHandler.sendPipelinedResponse(cMsg, response);
     }
 

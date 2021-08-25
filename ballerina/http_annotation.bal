@@ -49,6 +49,16 @@ public type CorsConfig record {|
 # The annotation which is used to configure an HTTP service.
 public annotation HttpServiceConfig ServiceConfig on service;
 
+# Contains the configurations for an HTTP service.
+#
+# + name - The generated Open API spec document name
+public type HttpIntrospectionDocConfig record {|
+    string name;
+|};
+
+# The annotation which is used to configure an HTTP service.
+public annotation HttpIntrospectionDocConfig IntrospectionDocConfig on service;
+
 # Configuration for an HTTP resource.
 #
 # + consumes - The media types which are accepted by resource

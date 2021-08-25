@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -21,12 +21,10 @@ package io.ballerina.stdlib.http.api;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 
 /**
@@ -37,52 +35,54 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 public class HttpIntrospectionResource extends HttpResource {
 
     private static final String RESOURCE_NAME = "openapi-doc-dygixywsw";
+    private static final String RESOURCE_METHOD = "$get$";
     private static final String REL_PARAM = "rel=\"service-desc\"";
+    private static final String ERROR_PREFIX = "Error retrieving OpenAPI spec: ";
+    private String filePath;
+    private String errorMessage;
 
     protected HttpIntrospectionResource(HttpService httpService) {
         String path = (httpService.getBasePath() + SINGLE_SLASH + RESOURCE_NAME).replaceAll("/+", SINGLE_SLASH);
         httpService.setIntrospectionResourcePathHeaderValue("<" + path + ">;" + REL_PARAM);
+        String docName = httpService.getIntrospectionDocName();
+        if (docName == null) {
+            errorMessage = ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG + " not found";
+        } else {
+            filePath = "resources/ballerina/http/" + httpService.getIntrospectionDocName();
+        }
     }
 
     public String getName() {
-        return "$default$" + RESOURCE_NAME;
+        return RESOURCE_METHOD + RESOURCE_NAME;
     }
 
     public String getPath() {
         return SINGLE_SLASH + RESOURCE_NAME;
     }
 
-    public String getPayload() {
-        String USER_DIR = System.getProperty("user.dir");
-        Paths.get(USER_DIR, "src", "test", "resources", "config_files");
-        InputStream resourceAsStream = HttpIntrospectionResource.class.getResourceAsStream("/META-INF/doc.yaml");
-        Objects.requireNonNull(resourceAsStream, "Properties file open failed.");
+    public byte[] getPayload() {
+        if (errorMessage != null) {
+            throw HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
+        }
+        InputStream inputStream = HttpIntrospectionResource.class.getClassLoader().getResourceAsStream(filePath);
+        Objects.requireNonNull(inputStream, ERROR_PREFIX + "generated doc does not exist");
+
         ByteArrayOutputStream result = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
-        int length = 0;
+        int length;
         while (true) {
             try {
-                if (!((length = resourceAsStream.read(buffer)) != -1)) break;
+                if ((length = inputStream.read(buffer)) == -1) break;
             } catch (IOException e) {
-                e.printStackTrace();
+                throw HttpUtil.createHttpError(ERROR_PREFIX + e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
             }
             result.write(buffer, 0, length);
         }
-        try {
-            System.out.println(result.toString(StandardCharsets.UTF_8.name()));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
-        return "{\"name\": \"chamil\"}";
-    }
-
-    public String getError() {
-        return null;
+        return result.toByteArray();
     }
 
     public List<String> getMethods() {
-        return null;
+        return List.of(HttpConstants.HTTP_METHOD_GET);
     }
 
     public List<String> getConsumes() {
@@ -95,5 +95,9 @@ public class HttpIntrospectionResource extends HttpResource {
 
     public List<String> getProducesSubTypes() {
         return null;
+    }
+
+    public static  String getIntrospectionResourceName() {
+        return RESOURCE_METHOD + RESOURCE_NAME;
     }
 }

@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HTTPServicesRegistry;
 import io.ballerina.stdlib.http.api.HttpConstants;
+import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.Arrays;
@@ -47,6 +48,9 @@ public class Register extends AbstractHttpNativeFunction {
             httpServicesRegistry.registerService(runtime, service, basePath);
         } catch (BError ex) {
             return ex;
+        } catch (Exception e) {
+            return HttpUtil.createHttpError("service registration failed: " + e.getMessage(),
+                                            HttpErrorType.GENERIC_LISTENER_ERROR);
         }
         return null;
     }
