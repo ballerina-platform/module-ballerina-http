@@ -19,11 +19,15 @@
 package io.ballerina.stdlib.http.transport.util.client.http2;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ResetContent;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonResponse;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.netty.buffer.EmptyByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
@@ -79,6 +83,20 @@ public class MessageGenerator {
                 httpCarbonMessage.addHttpContent(new DefaultLastHttpContent());
             }
         }
+        return httpCarbonMessage;
+    }
+
+    public static HttpCarbonMessage getHttp2CarbonMessageWithResetContent(HttpMethod httpMethod) {
+        HttpCarbonMessage httpCarbonMessage = new HttpCarbonRequest(new DefaultHttpRequest(
+                new HttpVersion(Constants.DEFAULT_VERSION_HTTP_1_1, true), httpMethod,
+                HTTP_SCHEME + TestUtil.TEST_HOST + ":" + TestUtil.HTTP_SERVER_PORT));
+        httpCarbonMessage.setHttpMethod(httpMethod.toString());
+        httpCarbonMessage.setProperty(Constants.HTTP_HOST, TestUtil.TEST_HOST);
+        httpCarbonMessage.setProperty(Constants.HTTP_PORT, TestUtil.HTTP_SERVER_PORT);
+        httpCarbonMessage.setHeader("Host", TestUtil.TEST_HOST + ":" + TestUtil.HTTP_SERVER_PORT);
+        Http2ResetContent resetContent = new Http2ResetContent(
+                new EmptyByteBuf(UnpooledByteBufAllocator.DEFAULT), new DefaultHttpHeaders());
+        httpCarbonMessage.addHttpContent(resetContent);
         return httpCarbonMessage;
     }
 
