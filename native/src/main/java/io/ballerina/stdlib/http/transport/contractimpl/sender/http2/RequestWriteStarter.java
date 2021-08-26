@@ -55,8 +55,9 @@ public class RequestWriteStarter {
             http2ClientChannel.getChannel().eventLoop().execute(() -> {
                 if (httpContent instanceof Http2ResetContent) {
                     if (http2ClientChannel.getConnection().numActiveStreams() == 0) {
+                        Http2ResetContent resetContent = (Http2ResetContent) httpContent;
                         Http2Content emptyHttp2Content = new Http2Content(new DefaultLastHttpContent(
-                                new EmptyByteBuf(ByteBufAllocator.DEFAULT)), outboundMsgHolder);
+                                resetContent.content()), outboundMsgHolder);
                         http2ClientChannel.getChannel().write(emptyHttp2Content);
                     }
                     int streamId = http2ClientChannel.getConnection().local().lastStreamCreated();
