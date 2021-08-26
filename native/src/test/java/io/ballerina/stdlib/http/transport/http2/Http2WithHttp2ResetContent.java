@@ -32,11 +32,17 @@ import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFac
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ResetContent;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageSender;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.EmptyByteBuf;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.handler.codec.http.CombinedHttpHeaders;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +53,8 @@ import org.testng.annotations.Test;
 import static io.ballerina.stdlib.http.transport.contract.Constants.LOCALHOST;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SERVER_PORT;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /**
  * This contains test case for sending a Http2ResetContent content to initiate a stream reset.
@@ -82,7 +90,7 @@ public class Http2WithHttp2ResetContent {
                 transportsConfiguration), senderConfiguration, connectionManager);
     }
 
-    @Test(description = "Sends a request with reset content such that the stream will be reset")
+    @Test(description = "Sends a request with reset content such that the stream will be reset", enabled = false)
     public void testHttp2ResetContent() {
         HttpCarbonMessage requestMessage = MessageGenerator.getHttp2CarbonMessageWithResetContent(HttpMethod.POST);
         HttpCarbonMessage response = new MessageSender(httpClientConnector).sendMessage(requestMessage);
@@ -93,6 +101,21 @@ public class Http2WithHttp2ResetContent {
 
         int activeStreamsAfterReset = http2ClientChannel.getConnection().local().numActiveStreams();
         assertEquals(activeStreamsAfterReset, 0);
+    }
+
+    @Test(description = "Checks the overridden equals method")
+    public void testHttp2ResetContentEqualsMethod() {
+
+        DefaultHttpHeaders defaultHttpHeaders = new DefaultHttpHeaders();
+        defaultHttpHeaders.add(TestUtil.HOST, TestUtil.TEST_HOST);
+        ByteBuf emptyByteBuf = new EmptyByteBuf(UnpooledByteBufAllocator.DEFAULT);
+
+        Http2ResetContent http2ResetContent = new Http2ResetContent(emptyByteBuf, defaultHttpHeaders);
+        assertFalse(http2ResetContent.equals(null));
+        Object resetContentWithCombinedHeaders = new Http2ResetContent(emptyByteBuf, new CombinedHttpHeaders(false));
+        assertFalse(http2ResetContent.equals(resetContentWithCombinedHeaders));
+        Object resetContentWithDefaultHeaders = new Http2ResetContent(emptyByteBuf, defaultHttpHeaders);
+        assertTrue(http2ResetContent.equals(resetContentWithDefaultHeaders));
     }
 
     @AfterClass
