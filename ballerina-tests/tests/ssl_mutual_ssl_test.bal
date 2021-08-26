@@ -138,19 +138,15 @@ http:ClientConfiguration mutualSslClientConf2 = {
     }
 };
 
-//@test:Config {}
+@test:Config {}
 public function testMutualSsl2() {
     http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf2);
     http:Response|error resp = httpClient->get("/helloWorld15/");
-    if (resp is http:Response) {
-        var payload = resp.getTextPayload();
-        if (payload is string) {
-            test:assertEquals(payload, "hello world");
-        } else {
-            test:assertFail(msg = "Found unexpected output: " +  payload.message());
-        }
+    string expectedErrMsg = "SSL connection failed:unable to find valid certification path to requested target localhost/127.0.0.1:9116";
+    if (resp is error) {
+        test:assertEquals(resp.message(), expectedErrMsg);
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Expected mutual SSL error not found");
     }
 }
 
@@ -171,7 +167,7 @@ http:ClientConfiguration mutualSslClientConf3 = {
     }
 };
 
-//@test:Config {}
+@test:Config {}
 public function testMutualSsl3() {
     http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf3);
     http:Response|error resp = httpClient->get("/helloWorld15/");

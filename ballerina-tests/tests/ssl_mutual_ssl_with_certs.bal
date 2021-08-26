@@ -33,7 +33,7 @@ http:ListenerConfiguration mutualSslCertServiceConf = {
 listener http:Listener mutualSSLListener = new(9217, mutualSslCertServiceConf);
 
 service /mutualSSLService on mutualSSLListener {
-    
+
     resource function get .(http:Caller caller, http:Request req) {
         http:Response res = new;
         string expectedCert = "MIIDsTCCApmgAwIBAgIUAcBP5M4LISxVgyGsnJohqmsCN/kwDQYJKoZIhvcNAQELBQAwaDELMAkGA1UEBhMCTEsx"
@@ -102,20 +102,16 @@ http:ClientConfiguration mutualSslCertClientConf2 = {
     }
 };
 
-//@test:Config {}
+@test:Config {}
 public function testMutualSslWithCerts2() {
     http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf2);
     http:Request req = new;
     http:Response|error resp = clientEP->get("/mutualSSLService/");
-    if (resp is http:Response) {
-        var payload = resp.getTextPayload();
-        if (payload is string) {
-            test:assertEquals(payload, "Response received");
-        } else {
-            test:assertFail(msg = "Found unexpected output: " +  payload.message());
-        }
+    string expectedErrMsg = "SSL connection failed:unable to find valid certification path to requested target localhost/127.0.0.1:9217";
+    if (resp is error) {
+        test:assertEquals(resp.message(), expectedErrMsg);
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Expected mutual SSL error not found");
     }
 }
 
@@ -129,7 +125,7 @@ http:ClientConfiguration mutualSslCertClientConf3 = {
     }
 };
 
-//@test:Config {}
+@test:Config {}
 public function testMutualSslWithCerts3() {
     http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf3);
     http:Request req = new;
