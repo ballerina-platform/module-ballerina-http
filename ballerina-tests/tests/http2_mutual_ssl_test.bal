@@ -123,14 +123,15 @@ http:ClientConfiguration http2MutualSslClientConf2 = {
     http2Settings: { http2PriorKnowledge: true }
 };
 
-//@test:Config {}
+// https://github.com/ballerina-platform/ballerina-standard-library/issues/483
+@test:Config {}
 public function testHttp2MutualSsl2() {
-    http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf2);
-    http:Response|error resp = httpClient->get("/http2Service/");
-    if (resp is http:Response) {
-        assertTextPayload(resp.getTextPayload(), "Passed");
+    http:Client|error httpClient = new("https://localhost:9204", http2MutualSslClientConf2);
+    string expectedErrMsg = "Need to configure cert with client SSL certificates file for HTTP 2.0";
+    if (httpClient is error) {
+        test:assertEquals(httpClient.message(), expectedErrMsg);
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Expected mutual SSL error not found");
     }
 }
 
@@ -151,7 +152,7 @@ http:ClientConfiguration http2MutualSslClientConf3 = {
     http2Settings: { http2PriorKnowledge: true }
 };
 
-//@test:Config {}
+@test:Config {}
 public function testHttp2MutualSsl3() {
     http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf3);
     http:Response|error resp = httpClient->get("/http2Service/");
@@ -162,7 +163,7 @@ public function testHttp2MutualSsl3() {
     }
 }
 
-http:ClientConfiguration http2MutualSslNegativeClientConf1 = {
+http:ClientConfiguration http2MutualSslClientConf4 = {
     secureSocket: {
         enable: false
     },
@@ -170,9 +171,9 @@ http:ClientConfiguration http2MutualSslNegativeClientConf1 = {
 };
 
 @test:Config {}
-public function testHttp2MutualSslNegativeTest1() returns error? {
+public function testHttp2MutualSsl4() returns error? {
     // Without keys - negative test
-    http:Client httpClient = check new("https://localhost:9204", http2MutualSslNegativeClientConf1);
+    http:Client httpClient = check new("https://localhost:9204", http2MutualSslClientConf4);
     http:Response|error resp = httpClient->get("/http2Service/");
     string expectedErrMsg = "SSL connection failed:javax.net.ssl.SSLHandshakeException: error:10000410:SSL routines:OPENSSL_internal:SSLV3_ALERT_HANDSHAKE_FAILURE null";
     if (resp is error) {
