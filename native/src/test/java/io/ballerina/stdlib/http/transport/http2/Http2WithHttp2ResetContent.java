@@ -90,7 +90,7 @@ public class Http2WithHttp2ResetContent {
                 transportsConfiguration), senderConfiguration, connectionManager);
     }
 
-    @Test(description = "Sends a request with reset content such that the stream will be reset", enabled = false)
+    @Test(description = "Sends a request with reset content such that the stream will be reset")
     public void testHttp2ResetContent() {
         HttpCarbonMessage requestMessage = MessageGenerator.getHttp2CarbonMessageWithResetContent(HttpMethod.POST);
         HttpCarbonMessage response = new MessageSender(httpClientConnector).sendMessage(requestMessage);
