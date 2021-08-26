@@ -22,6 +22,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 
+import java.util.Objects;
+
 /**
  * {@code Http2ResetContent} represents a HTTP/2 reset content.
  */
@@ -34,9 +36,32 @@ public class Http2ResetContent extends DefaultHttpContent {
      *
      * @param content
      */
-    public Http2ResetContent(ByteBuf content) {
+    public Http2ResetContent(ByteBuf content, HttpHeaders errorHeaders) {
 
         super(content);
+        this.errorHeaders = errorHeaders;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        Http2ResetContent that = (Http2ResetContent) o;
+        return errorHeaders.equals(that.errorHeaders);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(super.hashCode(), errorHeaders);
     }
 
     public void setErrorHeaders(HttpHeaders errorHeaders) {
