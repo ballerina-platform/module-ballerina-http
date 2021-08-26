@@ -107,9 +107,9 @@ public function testMutualSslWithCerts2() {
     http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf2);
     http:Request req = new;
     http:Response|error resp = clientEP->get("/mutualSSLService/");
-    string expectedErrMsg = "SSL connection failed:unable to find valid certification path to requested target localhost/127.0.0.1:9217";
+    string expectedErrMsg = "SSL connection failed:unable to find valid certification path to requested target";
     if (resp is error) {
-        test:assertEquals(resp.message(), expectedErrMsg);
+        test:assertTrue(resp.message().includes(expectedErrMsg));
     } else {
         test:assertFail(msg = "Expected mutual SSL error not found");
     }
