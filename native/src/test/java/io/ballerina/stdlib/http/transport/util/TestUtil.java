@@ -87,6 +87,7 @@ public class TestUtil {
     public static final int SSL_SESSION_TIMEOUT = 30;
     public static final String HTTP_SCHEME = "http://";
     public static final String TEST_HOST = "localhost";
+    public static final String HOST = "host";
     public static final String BOGUS_HOST = "bogus_hostname";
     public static final String TEST_SERVER = "test-server";
     public static final String KEY_STORE_FILE_PATH = "/simple-test-config/wso2carbon.jks";

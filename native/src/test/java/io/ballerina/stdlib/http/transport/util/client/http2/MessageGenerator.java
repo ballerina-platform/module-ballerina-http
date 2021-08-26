@@ -74,7 +74,7 @@ public class MessageGenerator {
         httpCarbonMessage.setHttpMethod(httpMethod.toString());
         httpCarbonMessage.setProperty(Constants.HTTP_HOST, TestUtil.TEST_HOST);
         httpCarbonMessage.setProperty(Constants.HTTP_PORT, port);
-        httpCarbonMessage.setHeader("Host", TestUtil.TEST_HOST + ":" + port);
+        httpCarbonMessage.setHeader(TestUtil.HOST, TestUtil.TEST_HOST + ":" + port);
         if (payload != null) {
             ByteBuffer byteBuffer = ByteBuffer.wrap(payload.getBytes(Charset.forName("UTF-8")));
             httpCarbonMessage.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(byteBuffer)));
@@ -87,13 +87,13 @@ public class MessageGenerator {
     }
 
     public static HttpCarbonMessage getHttp2CarbonMessageWithResetContent(HttpMethod httpMethod) {
+        String uri = String.format("%s%s:%d", HTTP_SCHEME, TestUtil.TEST_HOST, TestUtil.HTTP_SERVER_PORT);
         HttpCarbonMessage httpCarbonMessage = new HttpCarbonRequest(new DefaultHttpRequest(
-                new HttpVersion(Constants.DEFAULT_VERSION_HTTP_1_1, true), httpMethod,
-                HTTP_SCHEME + TestUtil.TEST_HOST + ":" + TestUtil.HTTP_SERVER_PORT));
+                new HttpVersion(Constants.DEFAULT_VERSION_HTTP_1_1, true), httpMethod, uri));
         httpCarbonMessage.setHttpMethod(httpMethod.toString());
         httpCarbonMessage.setProperty(Constants.HTTP_HOST, TestUtil.TEST_HOST);
         httpCarbonMessage.setProperty(Constants.HTTP_PORT, TestUtil.HTTP_SERVER_PORT);
-        httpCarbonMessage.setHeader("Host", TestUtil.TEST_HOST + ":" + TestUtil.HTTP_SERVER_PORT);
+        httpCarbonMessage.setHeader(TestUtil.HOST, TestUtil.TEST_HOST + ":" + TestUtil.HTTP_SERVER_PORT);
         Http2ResetContent resetContent = new Http2ResetContent(
                 new EmptyByteBuf(UnpooledByteBufAllocator.DEFAULT), new DefaultHttpHeaders());
         httpCarbonMessage.addHttpContent(resetContent);
