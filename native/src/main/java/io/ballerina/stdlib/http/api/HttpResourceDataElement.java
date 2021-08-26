@@ -71,8 +71,8 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         this.resource.forEach(r -> {
             for (String newMethod : newMethods) {
                 if (DispatcherUtil.isMatchingMethodExist(r, newMethod)) {
-                    if (r.getName().equals(HttpIntrospectionResource.getIntrospectionResourceName())) {
-                        String message = "Resource cannot have the accessor and name as same as the auto generated " +
+                    if (r.getName().equals(HttpIntrospectionResource.getIntrospectionResourceId())) {
+                        String message = "Resources cannot have the accessor and name as same as the auto generated " +
                                 "Open API spec retrieval resource: '" + r.getName() + "'";
                         throw HttpUtil.createHttpError(message, GENERIC_LISTENER_ERROR);
                     }

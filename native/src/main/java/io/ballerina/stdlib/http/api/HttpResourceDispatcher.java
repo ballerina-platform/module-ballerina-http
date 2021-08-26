@@ -88,7 +88,10 @@ public class HttpResourceDispatcher {
                     + cMsg.getProperty(HttpConstants.TO) + " , method : " + "OPTIONS");
         }
         CorsHeaderGenerator.process(cMsg, response, false);
-        response.setHeader(HttpConstants.LINK_HEADER, service.getIntrospectionResourcePathHeaderValue());
+        String introspectionResourcePathHeaderValue = service.getIntrospectionResourcePathHeaderValue();
+        if (introspectionResourcePathHeaderValue != null) {
+            response.setHeader(HttpConstants.LINK_HEADER, introspectionResourcePathHeaderValue);
+        }
         response.setHttpStatusCode(204);
         response.addHttpContent(new DefaultLastHttpContent());
         PipeliningHandler.sendPipelinedResponse(cMsg, response);

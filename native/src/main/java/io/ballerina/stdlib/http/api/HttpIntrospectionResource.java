@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 
-import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 
 /**
@@ -39,17 +38,11 @@ public class HttpIntrospectionResource extends HttpResource {
     private static final String REL_PARAM = "rel=\"service-desc\"";
     private static final String ERROR_PREFIX = "Error retrieving OpenAPI spec: ";
     private String filePath;
-    private String errorMessage;
 
-    protected HttpIntrospectionResource(HttpService httpService) {
+    protected HttpIntrospectionResource(HttpService httpService, String openApiDocName) {
         String path = (httpService.getBasePath() + SINGLE_SLASH + RESOURCE_NAME).replaceAll("/+", SINGLE_SLASH);
         httpService.setIntrospectionResourcePathHeaderValue("<" + path + ">;" + REL_PARAM);
-        String docName = httpService.getIntrospectionDocName();
-        if (docName == null) {
-            errorMessage = ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG + " not found";
-        } else {
-            filePath = "resources/ballerina/http/" + httpService.getIntrospectionDocName();
-        }
+        filePath = "resources/ballerina/http/" + openApiDocName + ".json";
     }
 
     public String getName() {
@@ -61,9 +54,6 @@ public class HttpIntrospectionResource extends HttpResource {
     }
 
     public byte[] getPayload() {
-        if (errorMessage != null) {
-            throw HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
-        }
         InputStream inputStream = HttpIntrospectionResource.class.getClassLoader().getResourceAsStream(filePath);
         Objects.requireNonNull(inputStream, ERROR_PREFIX + "generated doc does not exist");
 
@@ -95,7 +85,7 @@ public class HttpIntrospectionResource extends HttpResource {
         return null;
     }
 
-    public static  String getIntrospectionResourceName() {
+    public static String getIntrospectionResourceId() {
         return RESOURCE_METHOD + RESOURCE_NAME;
     }
 }

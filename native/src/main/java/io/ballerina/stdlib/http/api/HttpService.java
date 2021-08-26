@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
@@ -216,7 +215,10 @@ public class HttpService {
             }
             updateResourceTree(httpService, httpResources, HttpResource.buildHttpResource(resource, httpService));
         }
-        updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService));
+        String openApiDocName = getIntrospectionDocName(httpService);
+        if (openApiDocName != null) {
+            updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, openApiDocName));
+        }
         httpService.setResources(httpResources);
     }
 
@@ -249,14 +251,13 @@ public class HttpService {
         this.introspectionResourcePath = introspectionResourcePath;
     }
 
-    public String getIntrospectionDocName() {
-        var docConfigAnnotation = getServiceConfigAnnotation(this.balService, ModuleUtils.getHttpPackageIdentifier(),
-                                                             ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG);
-        if (docConfigAnnotation != null) {
-            return docConfigAnnotation.getStringValue(HttpConstants.ANN_FIELD_DOC_NAME).getValue().trim();
+    public static String getIntrospectionDocName(HttpService httpService) {
+        //TODO change the hard coded value once `getAnnotations()` API is available in AnnotatableType
+        var docConfigAnnotation = (BMap) (httpService.balService.getType()).getAnnotation(
+                        StringUtils.fromString("ballerina/lang.annotations:1:IntrospectionDocConfig"));
+        if (docConfigAnnotation == null) {
+            return null;
         }
-//        throw createHttpError("missing mandatory annotation: " + ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG,
-//                              HttpErrorType.GENERIC_LISTENER_ERROR);
-        return null;
+        return docConfigAnnotation.getStringValue(HttpConstants.ANN_FIELD_DOC_NAME).getValue().trim();
     }
 }
