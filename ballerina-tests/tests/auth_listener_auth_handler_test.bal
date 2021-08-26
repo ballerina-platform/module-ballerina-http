@@ -270,7 +270,7 @@ isolated function testListenerLdapUserStoreBasicAuthHandlerAuthnFailure() {
 }
 
 @test:Config {}
-isolated function testListenerJwtAuthHandlerAuthSuccess() {
+isolated function testListenerJwtAuthHandlerAuthSuccess1() {
     http:JwtValidatorConfig config = {
         issuer: "wso2",
         audience: "ballerina",
@@ -286,13 +286,7 @@ isolated function testListenerJwtAuthHandlerAuthSuccess() {
         scopeKey: "scp"
     };
     http:ListenerJwtAuthHandler handler = new(config);
-    string jwt = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTI5MzU" +
-                 "2MSwgImp0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.Xcqmj0qxM_zKIE" +
-                 "uNzZJ1kfI_Ba0mTqHfYmwnqrArRx7jA-HrKENAqTSYDlQbpCTF-3sUPCaV2uHoPPNnFaAxKlzuZtIIjfkPhKm5PfHfmnGoAN7n" +
-                 "YthtkBV8lwCFy0vyCQwiN4SYDXQT0gbfJ2VH08hYzaI3gY5jtCMlqhiouds4glbbC-9_o9uURBnGiF5dfnPMEvRHpkgD8Ge-Rf" +
-                 "LoppEcb69pPSMvXX65Ookal3_mEiJRZHzyqsJnli8m5_13SsnpppXt0xme_KrvJmdm7-er5cbKHjvF8Ve7OO6V7VSs6pwsRVfe" +
-                 "TaFgNpEXC8RCDcaFykiBQW6uT5jYH3W3Eg";
-    string headerValue = http:AUTH_SCHEME_BEARER + " " + jwt;
+    string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT1;
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
     if (authn1 is jwt:Payload) {
@@ -330,6 +324,114 @@ isolated function testListenerJwtAuthHandlerAuthSuccess() {
 }
 
 @test:Config {}
+isolated function testListenerJwtAuthHandlerAuthSuccess2() {
+    http:JwtValidatorConfig config = {
+        issuer: "wso2",
+        audience: "ballerina",
+        signatureConfig: {
+            trustStoreConfig: {
+                trustStore: {
+                    path: TRUSTSTORE_PATH,
+                    password: "ballerina"
+                },
+                certAlias: "ballerina"
+            }
+        },
+        scopeKey: "scp"
+    };
+    http:ListenerJwtAuthHandler handler = new(config);
+    string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT1_1;
+    http:Request request = createSecureRequest(headerValue);
+    jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
+    if (authn1 is jwt:Payload) {
+        test:assertEquals(authn1?.sub, "admin");
+        test:assertEquals(authn1?.iss, "wso2");
+        test:assertEquals(authn1?.aud, ["ballerina"]);
+        test:assertEquals(authn1["scp"], "read write update");
+        test:assertTrue(authn1?.exp is int);
+        test:assertTrue(authn1?.jti is string);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
+    if (authn2 is jwt:Payload) {
+        test:assertEquals(authn2?.sub, "admin");
+        test:assertEquals(authn2?.iss, "wso2");
+        test:assertEquals(authn2?.aud, ["ballerina"]);
+        test:assertEquals(authn2["scp"], "read write update");
+        test:assertTrue(authn2?.exp is int);
+        test:assertTrue(authn2?.jti is string);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    http:Forbidden? authz1 = handler.authorize(<jwt:Payload>authn1, "write");
+    if (authz1 is http:Forbidden) {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    http:Forbidden? authz2 = handler.authorize(<jwt:Payload>authn2, "write");
+    if (authz2 is http:Forbidden) {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+@test:Config {}
+isolated function testListenerJwtAuthHandlerAuthSuccess3() {
+    http:JwtValidatorConfig config = {
+        issuer: "wso2",
+        audience: "ballerina",
+        signatureConfig: {
+            trustStoreConfig: {
+                trustStore: {
+                    path: TRUSTSTORE_PATH,
+                    password: "ballerina"
+                },
+                certAlias: "ballerina"
+            }
+        },
+        scopeKey: "scp"
+    };
+    http:ListenerJwtAuthHandler handler = new(config);
+    string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT1_2;
+    http:Request request = createSecureRequest(headerValue);
+    jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
+    if (authn1 is jwt:Payload) {
+        test:assertEquals(authn1?.sub, "admin");
+        test:assertEquals(authn1?.iss, "wso2");
+        test:assertEquals(authn1?.aud, ["ballerina"]);
+        test:assertEquals(authn1["scp"], ["read", "write", "update"]);
+        test:assertTrue(authn1?.exp is int);
+        test:assertTrue(authn1?.jti is string);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
+    if (authn2 is jwt:Payload) {
+        test:assertEquals(authn2?.sub, "admin");
+        test:assertEquals(authn2?.iss, "wso2");
+        test:assertEquals(authn2?.aud, ["ballerina"]);
+        test:assertEquals(authn2["scp"], ["read", "write", "update"]);
+        test:assertTrue(authn2?.exp is int);
+        test:assertTrue(authn2?.jti is string);
+    } else {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    http:Forbidden? authz1 = handler.authorize(<jwt:Payload>authn1, "write");
+    if (authz1 is http:Forbidden) {
+        test:assertFail(msg = "Test Failed!");
+    }
+
+    http:Forbidden? authz2 = handler.authorize(<jwt:Payload>authn2, "write");
+    if (authz2 is http:Forbidden) {
+        test:assertFail(msg = "Test Failed!");
+    }
+}
+
+@test:Config {}
 isolated function testListenerJwtAuthHandlerAuthzFailure() {
     http:JwtValidatorConfig config = {
         issuer: "wso2",
@@ -345,13 +447,7 @@ isolated function testListenerJwtAuthHandlerAuthzFailure() {
         }
     };
     http:ListenerJwtAuthHandler handler = new(config);
-    string jwt = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTI5MzU" +
-                 "2MSwgImp0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.Xcqmj0qxM_zKIE" +
-                 "uNzZJ1kfI_Ba0mTqHfYmwnqrArRx7jA-HrKENAqTSYDlQbpCTF-3sUPCaV2uHoPPNnFaAxKlzuZtIIjfkPhKm5PfHfmnGoAN7n" +
-                 "YthtkBV8lwCFy0vyCQwiN4SYDXQT0gbfJ2VH08hYzaI3gY5jtCMlqhiouds4glbbC-9_o9uURBnGiF5dfnPMEvRHpkgD8Ge-Rf" +
-                 "LoppEcb69pPSMvXX65Ookal3_mEiJRZHzyqsJnli8m5_13SsnpppXt0xme_KrvJmdm7-er5cbKHjvF8Ve7OO6V7VSs6pwsRVfe" +
-                 "TaFgNpEXC8RCDcaFykiBQW6uT5jYH3W3Eg";
-    string headerValue = http:AUTH_SCHEME_BEARER + " " + jwt;
+    string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT2;
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
     if (authn1 is jwt:Payload) {
@@ -389,7 +485,7 @@ isolated function testListenerJwtAuthHandlerAuthzFailure() {
 @test:Config {}
 isolated function testListenerJwtAuthHandlerAuthnFailure() {
     http:JwtValidatorConfig config = {
-        issuer: "invalid",
+        issuer: "wso2",
         audience: "ballerina",
         signatureConfig: {
             trustStoreConfig: {
@@ -402,22 +498,16 @@ isolated function testListenerJwtAuthHandlerAuthnFailure() {
         }
     };
     http:ListenerJwtAuthHandler handler = new(config);
-    string jwt = "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ.eyJzdWIiOiJhZG1pbiIsICJpc3MiOiJ3c28yIiwgImV4cCI6MTkyNTI5MzU" +
-                 "2MSwgImp0aSI6IjEwMDA3ODIzNGJhMjMiLCAiYXVkIjpbImJhbGxlcmluYSJdLCAic2NwIjoid3JpdGUifQ.Xcqmj0qxM_zKIE" +
-                 "uNzZJ1kfI_Ba0mTqHfYmwnqrArRx7jA-HrKENAqTSYDlQbpCTF-3sUPCaV2uHoPPNnFaAxKlzuZtIIjfkPhKm5PfHfmnGoAN7n" +
-                 "YthtkBV8lwCFy0vyCQwiN4SYDXQT0gbfJ2VH08hYzaI3gY5jtCMlqhiouds4glbbC-9_o9uURBnGiF5dfnPMEvRHpkgD8Ge-Rf" +
-                 "LoppEcb69pPSMvXX65Ookal3_mEiJRZHzyqsJnli8m5_13SsnpppXt0xme_KrvJmdm7-er5cbKHjvF8Ve7OO6V7VSs6pwsRVfe" +
-                 "TaFgNpEXC8RCDcaFykiBQW6uT5jYH3W3Eg";
-    string headerValue = http:AUTH_SCHEME_BEARER + " " + jwt;
+    string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT3;
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
     if (authn1 is http:Unauthorized) {
-        test:assertEquals(authn1?.body, "JWT validation failed. JWT contained invalid issuer name 'wso2'");
+        test:assertEquals(authn1?.body, "JWT validation failed. JWT must contain a valid issuer name.");
     }
 
     jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
     if (authn2 is http:Unauthorized) {
-        test:assertEquals(authn2?.body, "JWT validation failed. JWT contained invalid issuer name 'wso2'");
+        test:assertEquals(authn2?.body, "JWT validation failed. JWT must contain a valid issuer name.");
     }
 
     request = createDummyRequest();

@@ -20,13 +20,15 @@
 # + compression - The status of compression
 # + chunking - Configures the chunking behaviour for the service
 # + cors - The cross origin resource sharing configurations for the service
-# + auth - Listener authenticaton configurations
+# + auth - Service auth configurations
+# + mediaTypeSubtypePrefix - Service specific media-type subtype prefix
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
     Chunking chunking = CHUNKING_AUTO;
     CorsConfig cors = {};
     ListenerAuthConfig[] auth?;
+    string mediaTypeSubtypePrefix?;
 |};
 
 # Configurations for CORS support.
@@ -65,13 +67,13 @@ public annotation HttpIntrospectionDocConfig IntrospectionDocConfig on service;
 # + produces - The media types which are produced by resource
 # + cors - The cross origin resource sharing configurations for the resource. If not set, the resource will inherit the CORS behaviour of the enclosing service.
 # + transactionInfectable - Allow to participate in the distributed transactions if value is true
-# + auth - Listener authenticaton configurations
+# + auth - Resource auth configurations
 public type HttpResourceConfig record {|
     string[] consumes = [];
     string[] produces = [];
     CorsConfig cors = {};
     boolean transactionInfectable = true;
-    ListenerAuthConfig[] auth?;
+    ListenerAuthConfig[]|Scopes auth?;
 |};
 
 # The annotation which is used to configure an HTTP resource.

@@ -59,8 +59,13 @@ public type OAuth2RefreshTokenGrantConfig record {|
     *oauth2:RefreshTokenGrantConfig;
 |};
 
+# Represents OAuth2 JWT bearer grant configurations for OAuth2 authentication.
+public type OAuth2JwtBearerGrantConfig record {|
+    *oauth2:JwtBearerGrantConfig;
+|};
+
 # Represents OAuth2 grant configurations for OAuth2 authentication.
-public type OAuth2GrantConfig OAuth2ClientCredentialsGrantConfig|OAuth2PasswordGrantConfig|OAuth2RefreshTokenGrantConfig;
+public type OAuth2GrantConfig OAuth2ClientCredentialsGrantConfig|OAuth2PasswordGrantConfig|OAuth2RefreshTokenGrantConfig|OAuth2JwtBearerGrantConfig;
 
 # Represents file user store configurations for Basic Auth authentication.
 public type FileUserStoreConfig record {|
@@ -128,6 +133,13 @@ public type JwtValidatorConfigWithScopes record {|
 public type OAuth2IntrospectionConfigWithScopes record {|
    OAuth2IntrospectionConfig oauth2IntrospectionConfig;
    string|string[] scopes?;
+|};
+
+# Represents the annotation used for authorization.
+#
+# + scopes - Scopes allowed for authorization
+public type Scopes record {|
+    string|string[] scopes;
 |};
 
 # Defines the authentication configurations for the HTTP listener.

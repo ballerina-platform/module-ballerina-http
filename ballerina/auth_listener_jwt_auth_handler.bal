@@ -16,6 +16,8 @@
 
 import ballerina/jwt;
 
+type stringArray string[];
+
 # Defines the JWT auth handler for listener authentication.
 public isolated class ListenerJwtAuthHandler {
 
@@ -63,9 +65,17 @@ public isolated class ListenerJwtAuthHandler {
         string scopeKey = self.scopeKey;
         var actualScope = jwtPayload[scopeKey];
         if (actualScope is string) {
-            boolean matched = matchScopes(actualScope, expectedScopes);
+            boolean matched = matchScopes(convertToArray(actualScope), expectedScopes);
             if (matched) {
                 return;
+            }
+        } else if (actualScope is json[]) {
+            string[]|error scopes = actualScope.cloneWithType(stringArray);
+            if (scopes is string[]) {
+                boolean matched = matchScopes(scopes, expectedScopes);
+                if (matched) {
+                    return;
+                }
             }
         }
         return {};

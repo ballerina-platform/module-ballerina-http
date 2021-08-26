@@ -356,6 +356,22 @@ public class HttpUtil {
         HttpService httpService = (HttpService) connectionObj.getNativeData(HttpConstants.HTTP_SERVICE);
         HttpUtil.setCompressionHeaders(httpService.getCompressionConfig(), inboundRequestMsg, outboundResponseMsg);
         HttpUtil.setChunkingHeader(httpService.getChunkingConfig(), outboundResponseMsg);
+        if (httpService.getMediaTypeSubtypePrefix() != null) {
+            HttpUtil.setMediaTypeSubtypePrefix(httpService.getMediaTypeSubtypePrefix(), outboundResponseMsg);
+        }
+    }
+
+    private static void setMediaTypeSubtypePrefix(String mediaTypeSubtypePrefix, HttpCarbonMessage responseMsg) {
+        String existingMediaType = responseMsg.getHeader(HttpHeaderNames.CONTENT_TYPE.toString());
+        if (existingMediaType != null) {
+            int index = existingMediaType.indexOf(HttpConstants.SINGLE_SLASH);
+            if (index > 0) {
+                String[] mediaType = existingMediaType.split(HttpConstants.SINGLE_SLASH);
+                String specificMediaType = mediaType[0] + HttpConstants.SINGLE_SLASH + mediaTypeSubtypePrefix +
+                        HttpConstants.PLUS + mediaType[1];
+                responseMsg.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), specificMediaType);
+            }
+        }
     }
 
     private static void addCorsHeaders(HttpCarbonMessage requestMsg, HttpCarbonMessage responseMsg) {
@@ -1177,12 +1193,23 @@ public class HttpUtil {
         BMap<BString, Object> secureSocket = (BMap<BString, Object>) clientEndpointConfig
                 .getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();
-        if (secureSocket != null) {
-            HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
-        } else if (scheme.equals(HttpConstants.PROTOCOL_HTTPS)) {
+        if (scheme.equals(HttpConstants.PROTOCOL_HTTPS)) {
             if (httpVersion.equals(HTTP_2_0_VERSION)) {
-                throw createHttpError("To enable https you need to configure secureSocket record",
-                        HttpErrorType.SSL_ERROR);
+                if (secureSocket == null) {
+                    throw createHttpError("The secureSocket configuration should be provided to establish " +
+                            "an HTTPS connection", HttpErrorType.SSL_ERROR);
+                } else {
+                    boolean enable = secureSocket.getBooleanValue(HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL);
+                    Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
+                    if (enable && cert == null) {
+                        // https://github.com/ballerina-platform/ballerina-standard-library/issues/483
+                        throw createHttpError("Need to configure cert with client SSL certificates file for " +
+                                        "HTTP 2.0", HttpErrorType.SSL_ERROR);
+                    }
+                }
+            }
+            if (secureSocket != null) {
+                HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
             } else {
                 senderConfiguration.useJavaDefaults();
             }
@@ -1293,8 +1320,8 @@ public class HttpUtil {
             if (key != null) {
                 senderConfiguration.useJavaDefaults();
             } else {
-                throw createHttpError("Need to configure 'crypto:TrustStore' or 'cert' with client SSL " +
-                                "certificates file.", HttpErrorType.SSL_ERROR);
+                throw createHttpError("Need to configure cert with client SSL certificates file",
+                        HttpErrorType.SSL_ERROR);
             }
         } else {
             evaluateCertField(cert, senderConfiguration);

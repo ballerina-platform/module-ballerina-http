@@ -81,11 +81,17 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
@@ -98,6 +104,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
@@ -358,7 +365,7 @@ public class Util {
      * @throws SSLException if any error occurs in the SSL connection
      */
     public static SSLEngine configureHttpPipelineForSSL(SocketChannel socketChannel, String host, int port,
-                                                        SSLConfig sslConfig) throws SSLException {
+                                                        SSLConfig sslConfig) throws Exception {
         LOG.debug("adding ssl handler");
         SSLEngine sslEngine = null;
         SslHandler sslHandler;
@@ -378,7 +385,7 @@ public class Util {
             }
         } else {
             if (sslConfig.isDisableSsl()) {
-                sslEngine = createInsecureSslEngine(socketChannel, host, port);
+                sslEngine = createInsecureSslEngine(socketChannel, sslConfig, host, port);
             } else {
                 if (sslConfig.getTrustStore() != null) {
                     sslHandlerFactory.createSSLContextFromKeystores(false);
@@ -412,10 +419,28 @@ public class Util {
         return sslEngine;
     }
 
-    private static SSLEngine createInsecureSslEngine(SocketChannel socketChannel, String host, int port)
-            throws SSLException {
-        SslContext sslContext = SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
-                .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+    private static SSLEngine createInsecureSslEngine(SocketChannel socketChannel, SSLConfig sslConfig, String host,
+                                                     int port) throws Exception {
+        SslContext sslContext;
+        if (sslConfig.getKeyStore() != null && sslConfig.getKeyStorePass() != null) {
+            KeyStore ks = getKeyStore(sslConfig);
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(ks, sslConfig.getCertPass() != null ?
+                    sslConfig.getCertPass().toCharArray() :
+                    sslConfig.getKeyStorePass().toCharArray());
+            sslContext = SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                    .keyManager(kmf)
+                    .build();
+        } else if (sslConfig.getClientKeyFile() != null && sslConfig.getClientCertificates() != null) {
+            String keyPassword = sslConfig.getClientKeyPassword();
+            sslContext = SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
+                    .keyManager(sslConfig.getClientCertificates(), sslConfig.getClientKeyFile(), keyPassword)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+        } else {
+            sslContext = SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+        }
         SslHandler sslHandler = sslContext.newHandler(socketChannel.alloc(), host, port);
         return sslHandler.engine();
     }
@@ -426,15 +451,43 @@ public class Util {
      * @return insecure ssl context
      * @throws SSLException if any error occurs in the SSL connection
      */
-    public static SslContext createInsecureSslEngineForHttp2() throws SSLException {
-        SslContextBuilder sslContextBuilder = SslContextBuilder.forClient().sslProvider(SslProvider.OPENSSL)
-                .trustManager(InsecureTrustManagerFactory.INSTANCE);
+    public static SslContext createInsecureSslEngineForHttp2(SSLConfig sslConfig) throws Exception {
+        SslContextBuilder sslContextBuilder;
+        if (sslConfig.getKeyStore() != null && sslConfig.getKeyStorePass() != null) {
+            KeyStore ks = getKeyStore(sslConfig);
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(ks, sslConfig.getCertPass() != null ?
+                    sslConfig.getCertPass().toCharArray() :
+                    sslConfig.getKeyStorePass().toCharArray());
+            sslContextBuilder = SslContextBuilder.forClient().sslProvider(SslProvider.OPENSSL)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                    .keyManager(kmf);
+        } else if (sslConfig.getClientKeyFile() != null && sslConfig.getClientCertificates() != null) {
+            String keyPassword = sslConfig.getClientKeyPassword();
+            sslContextBuilder = SslContextBuilder.forClient().sslProvider(SslProvider.OPENSSL)
+                    .keyManager(sslConfig.getClientCertificates(), sslConfig.getClientKeyFile(), keyPassword)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE);
+        } else {
+            sslContextBuilder = SslContextBuilder.forClient().sslProvider(SslProvider.OPENSSL)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE);
+        }
         sslContextBuilder.applicationProtocolConfig(
                 new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
                         ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
                         ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
                         ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1));
         return sslContextBuilder.build();
+    }
+
+    private static KeyStore getKeyStore(SSLConfig sslConfig) throws IOException {
+        String tlsStoreType = sslConfig.getTLSStoreType();
+        try (InputStream is = new FileInputStream(sslConfig.getKeyStore())) {
+            KeyStore ks = KeyStore.getInstance(tlsStoreType);
+            ks.load(is, sslConfig.getKeyStorePass().toCharArray());
+            return ks;
+        } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
+            throw new IOException(e);
+        }
     }
 
     /**

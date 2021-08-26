@@ -78,11 +78,11 @@ public readonly class Cookie {
         var domain = options?.domain;
         if (domain is string) {
             domain = domain.trim().toLowerAscii();
-            if (domain.startsWith(".")) {
-                domain = domain.substring(1, domain.length());
+            if ((<string> domain).startsWith(".")) {
+                domain = (<string> domain).substring(1, (<string> domain).length());
             }
-            if (domain.endsWith(".")) {
-                domain = domain.substring(0, domain.length() - 1);
+            if ((<string> domain).endsWith(".")) {
+                domain = (<string> domain).substring(0, (<string> domain).length() - 1);
             }
             self.domain = domain;
         } else {
@@ -97,7 +97,7 @@ public readonly class Cookie {
         var expires = options?.expires;
         if (expires is string) {
             expires = expires.trim();
-            time:Utc|error t1 = utcFromString(expires, "yyyy-MM-dd HH:mm:ss");
+            time:Utc|error t1 = utcFromString(<string> expires, "yyyy-MM-dd HH:mm:ss");
             if (t1 is time:Utc) {
                 string|error timeString = utcToString(t1, "E, dd MMM yyyy HH:mm:ss");
                 if (timeString is string) {

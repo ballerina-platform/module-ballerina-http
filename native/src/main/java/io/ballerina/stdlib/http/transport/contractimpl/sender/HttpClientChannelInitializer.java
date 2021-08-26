@@ -59,7 +59,6 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLException;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SECURITY;
@@ -172,7 +171,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
     }
 
     private void configureSslForHttp2(SocketChannel ch, ChannelPipeline clientPipeline, SSLConfig sslConfig)
-            throws SSLException {
+            throws Exception {
         connectionAvailabilityFuture.setSSLEnabled(true);
         if (sslConfig.isOcspStaplingEnabled()) {
             ReferenceCountedOpenSslContext referenceCountedOpenSslContext =
@@ -186,7 +185,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
                 ch.pipeline().addLast(new OCSPStaplingHandler(engine));
             }
         } else if (sslConfig.isDisableSsl()) {
-            SslContext sslCtx = Util.createInsecureSslEngineForHttp2();
+            SslContext sslCtx = Util.createInsecureSslEngineForHttp2(sslConfig);
             SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), httpRoute.getHost(), httpRoute.getPort());
             clientPipeline.addLast(sslHandler);
         } else {

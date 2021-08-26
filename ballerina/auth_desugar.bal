@@ -103,9 +103,20 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
 
 isolated function getListenerAuthConfig(Service serviceRef, string methodName, string[] resourcePath)
                                         returns ListenerAuthConfig[]? {
-    ListenerAuthConfig[]? resourceAuthConfig = getResourceAuthConfig(serviceRef, methodName, resourcePath);
+    ListenerAuthConfig[]|Scopes? resourceAuthConfig = getResourceAuthConfig(serviceRef, methodName, resourcePath);
     if (resourceAuthConfig is ListenerAuthConfig[]) {
         return resourceAuthConfig;
+    } else if (resourceAuthConfig is Scopes) {
+        ListenerAuthConfig[]? serviceAuthConfig = getServiceAuthConfig(serviceRef);
+        if (serviceAuthConfig is ListenerAuthConfig[]) {
+            ListenerAuthConfig[]|error authConfig = serviceAuthConfig.cloneWithType();
+            if (authConfig is ListenerAuthConfig[]) {
+                foreach ListenerAuthConfig config in authConfig {
+                    config.scopes = resourceAuthConfig.scopes;
+                }
+                return authConfig;
+            }
+        }
     }
     ListenerAuthConfig[]? serviceAuthConfig = getServiceAuthConfig(serviceRef);
     if (serviceAuthConfig is ListenerAuthConfig[]) {
@@ -124,7 +135,7 @@ isolated function getServiceAuthConfig(Service serviceRef) returns ListenerAuthC
 }
 
 isolated function getResourceAuthConfig(Service serviceRef, string methodName, string[] resourcePath)
-                                        returns ListenerAuthConfig[]? {
+                                        returns ListenerAuthConfig[]|Scopes? {
     string resourceName = "$" + methodName;
     foreach string path in resourcePath {
         resourceName += "$" + path;

@@ -174,6 +174,7 @@ public class HttpConstants {
 
     public static final String CLIENT = "Client";
     public static final String HTTP_CLIENT = "HttpClient";
+    public static final String CLIENT_CONFIG_HASH_CODE = "ClientConfigHashCode";
 
     public static final String SRC_HANDLER = "SRC_HANDLER";
     public static final String REMOTE_ADDRESS = "REMOTE_ADDRESS";
@@ -489,6 +490,7 @@ public class HttpConstants {
     public static final String MOCK_LISTENER_ENDPOINT = "MockListener";
     public static final String HTTP_LISTENER_ENDPOINT = "Listener";
 
+    public static final String PLUS = "+";
     public static final String COLON = ":";
     public static final String DOLLAR = "$";
     public static final String SINGLE_SLASH = "/";

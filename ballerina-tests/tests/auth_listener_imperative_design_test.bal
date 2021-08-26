@@ -78,6 +78,12 @@ function testImperativeAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/imperative/foo", JWT1));
     assertSuccess(sendBearerTokenRequest("/imperative/bar", JWT1));
     assertSuccess(sendBearerTokenRequest("/imperative/baz", JWT1));
+    assertSuccess(sendBearerTokenRequest("/imperative/foo", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/imperative/bar", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/imperative/baz", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/imperative/foo", JWT1_2));
+    assertSuccess(sendBearerTokenRequest("/imperative/bar", JWT1_2));
+    assertSuccess(sendBearerTokenRequest("/imperative/baz", JWT1_2));
 }
 
 @test:Config {}
@@ -85,6 +91,12 @@ function testImperativeAuthzFailure() {
     assertForbidden(sendBearerTokenRequest("/imperative/foo", JWT2));
     assertForbidden(sendBearerTokenRequest("/imperative/bar", JWT2));
     assertForbidden(sendBearerTokenRequest("/imperative/baz", JWT2));
+    assertForbidden(sendBearerTokenRequest("/imperative/foo", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/imperative/bar", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/imperative/baz", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/imperative/foo", JWT2_2));
+    assertForbidden(sendBearerTokenRequest("/imperative/bar", JWT2_2));
+    assertForbidden(sendBearerTokenRequest("/imperative/baz", JWT2_2));
 }
 
 @test:Config {}
