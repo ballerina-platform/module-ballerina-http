@@ -1193,12 +1193,23 @@ public class HttpUtil {
         BMap<BString, Object> secureSocket = (BMap<BString, Object>) clientEndpointConfig
                 .getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();
-        if (secureSocket != null) {
-            HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
-        } else if (scheme.equals(HttpConstants.PROTOCOL_HTTPS)) {
+        if (scheme.equals(HttpConstants.PROTOCOL_HTTPS)) {
             if (httpVersion.equals(HTTP_2_0_VERSION)) {
-                throw createHttpError("The secureSocket configuration should be provided to establish an " +
-                                "HTTPS connection", HttpErrorType.SSL_ERROR);
+                if (secureSocket == null) {
+                    throw createHttpError("The secureSocket configuration should be provided to establish " +
+                            "an HTTPS connection", HttpErrorType.SSL_ERROR);
+                } else {
+                    boolean enable = secureSocket.getBooleanValue(HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL);
+                    Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
+                    if (enable && cert == null) {
+                        // https://github.com/ballerina-platform/ballerina-standard-library/issues/483
+                        throw createHttpError("Need to configure cert with client SSL certificates file for " +
+                                        "HTTP 2.0", HttpErrorType.SSL_ERROR);
+                    }
+                }
+            }
+            if (secureSocket != null) {
+                HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
             } else {
                 senderConfiguration.useJavaDefaults();
             }
@@ -1309,8 +1320,8 @@ public class HttpUtil {
             if (key != null) {
                 senderConfiguration.useJavaDefaults();
             } else {
-                throw createHttpError("Need to configure 'crypto:TrustStore' or 'cert' with client SSL " +
-                                "certificates file.", HttpErrorType.SSL_ERROR);
+                throw createHttpError("Need to configure cert with client SSL certificates file",
+                        HttpErrorType.SSL_ERROR);
             }
         } else {
             evaluateCertField(cert, senderConfiguration);
