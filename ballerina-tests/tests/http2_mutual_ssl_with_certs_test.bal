@@ -74,7 +74,8 @@ http:ClientConfiguration certsClientConf1 = {
             keyFile: "tests/certsandkeys/private.key",
             certFile: "tests/certsandkeys/public.crt"
         }
-    }
+    },
+    httpVersion: "2.0"
 };
 
 @test:Config {}
@@ -94,18 +95,19 @@ http:ClientConfiguration certsClientConf2 = {
             keyFile: "tests/certsandkeys/private.key",
             certFile: "tests/certsandkeys/public.crt"
         }
-    }
+    },
+    httpVersion: "2.0"
 };
 
 // https://github.com/ballerina-platform/ballerina-standard-library/issues/483
-@test:Config { enable: false }
+@test:Config {}
 public function mutualSslWithCerts2() {
-    http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf2);
-    http:Response|error resp = clientEP->get("/mutualSslService/");
-    if (resp is http:Response) {
-        assertTextPayload(resp.getTextPayload(), "Response received");
+    http:Client|error clientEP = new("https://localhost:9110", certsClientConf2);
+    string expectedErrMsg = "Need to configure cert with client SSL certificates file for HTTP 2.0";
+    if (clientEP is error) {
+        test:assertEquals(clientEP.message(), expectedErrMsg);
     } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+        test:assertFail(msg = "Expected mutual SSL error not found");
     }
 }
 
@@ -116,7 +118,8 @@ http:ClientConfiguration certsClientConf3 = {
             keyFile: "tests/certsandkeys/private.key",
             certFile: "tests/certsandkeys/public.crt"
         }
-    }
+    },
+    httpVersion: "2.0"
 };
 
 @test:Config {}
