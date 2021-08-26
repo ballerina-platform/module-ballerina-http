@@ -37,15 +37,15 @@ service /httpsService on httpsListener {
     }
 }
 
-http:ClientConfiguration disableSslClientConf = {
+http:ClientConfiguration disableSslClientConf1 = {
     secureSocket: {
         enable: false
     }
 };
 
 @test:Config {}
-public function testSslDisabledClient() {
-    http:Client httpClient = checkpanic new("https://localhost:9238", disableSslClientConf);
+public function testSslDisabledClient1() {
+    http:Client httpClient = checkpanic new("https://localhost:9238", disableSslClientConf1);
     http:Response|error resp = httpClient->get("/httpsService");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();
@@ -56,5 +56,21 @@ public function testSslDisabledClient() {
         }
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+}
+
+http:ClientConfiguration disableSslClientConf2 = {
+    secureSocket: {
+    }
+};
+
+@test:Config {}
+public function testSslDisabledClient2() {
+    http:Client|error httpClient = new("https://localhost:9238", disableSslClientConf2);
+    string expectedErrMsg = "Need to configure cert with client SSL certificates file";
+    if (httpClient is error) {
+        test:assertEquals(httpClient.message(), expectedErrMsg);
+    } else {
+        test:assertFail(msg = "Expected mutual SSL error not found");
     }
 }
