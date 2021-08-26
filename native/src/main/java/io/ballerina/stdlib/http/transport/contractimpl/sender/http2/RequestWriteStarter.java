@@ -26,8 +26,6 @@ import io.ballerina.stdlib.http.transport.message.Http2PassthroughBackPressureLi
 import io.ballerina.stdlib.http.transport.message.Http2Reset;
 import io.ballerina.stdlib.http.transport.message.Listener;
 import io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListener;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.EmptyByteBuf;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http2.Http2Error;
 import org.slf4j.Logger;
