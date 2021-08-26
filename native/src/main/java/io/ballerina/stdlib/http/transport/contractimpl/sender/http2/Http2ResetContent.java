@@ -34,17 +34,16 @@ public class Http2ResetContent extends DefaultHttpContent {
     /**
      * Creates a new instance with the specified chunk content.
      *
-     * @param content
+     * @param content content to be added to the instance
+     * @param errorHeaders relevant error details that caused the reset
      */
     public Http2ResetContent(ByteBuf content, HttpHeaders errorHeaders) {
-
         super(content);
         this.errorHeaders = errorHeaders;
     }
 
     @Override
     public boolean equals(Object o) {
-
         if (!(o instanceof Http2ResetContent)) {
             return false;
         }
@@ -54,7 +53,6 @@ public class Http2ResetContent extends DefaultHttpContent {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(super.hashCode(), errorHeaders);
     }
 
