@@ -95,10 +95,6 @@ public class HttpIntrospectionResource extends HttpResource {
         return null;
     }
 
-    public List<String> getProducesSubTypes() {
-        return null;
-    }
-
     public static  String getIntrospectionResourceName() {
         return RESOURCE_METHOD + RESOURCE_NAME;
     }

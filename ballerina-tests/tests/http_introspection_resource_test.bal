@@ -81,6 +81,17 @@ function testOptionsCallForIntrospectionResource() {
 }
 
 @test:Config {}
+function testPOSTCallForIntrospectionResource() {
+    http:Response|error response = httpIntroResTestClient->post("/lake/openapi-doc-dygixywsw", "hi");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 405, msg = "Found unexpected statusCode");
+        assertTextPayload(response.getTextPayload(), "Method not allowed");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
 function testOpenApiSpectRetrievalWithNoAnnotation() {
     http:Response|error response = httpIntroResTestClient->get("/openapi-doc-dygixywsw");
     if (response is http:Response) {
