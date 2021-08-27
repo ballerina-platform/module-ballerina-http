@@ -43,12 +43,12 @@ public class Http2ResetContent extends DefaultHttpContent {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Http2ResetContent)) {
-            return false;
+    public boolean equals(Object obj) {
+        if (obj instanceof Http2ResetContent) {
+            Http2ResetContent that = (Http2ResetContent) obj;
+            return errorHeaders.equals(that.errorHeaders);
         }
-        Http2ResetContent that = (Http2ResetContent) o;
-        return errorHeaders.equals(that.errorHeaders);
+        return false;
     }
 
     @Override
