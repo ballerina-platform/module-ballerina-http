@@ -23,8 +23,11 @@ import io.ballerina.stdlib.http.transport.message.DefaultBackPressureListener;
 import io.ballerina.stdlib.http.transport.message.DefaultListener;
 import io.ballerina.stdlib.http.transport.message.Http2InboundContentListener;
 import io.ballerina.stdlib.http.transport.message.Http2PassthroughBackPressureListener;
+import io.ballerina.stdlib.http.transport.message.Http2Reset;
 import io.ballerina.stdlib.http.transport.message.Listener;
 import io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListener;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http2.Http2Error;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +51,21 @@ public class RequestWriteStarter {
         outboundMsgHolder.getRequest().getHttpContentAsync().setMessageListener(httpContent -> {
             checkStreamUnwritability();
             http2ClientChannel.getChannel().eventLoop().execute(() -> {
-                Http2Content http2Content = new Http2Content(httpContent, outboundMsgHolder);
-                http2ClientChannel.getChannel().write(http2Content);
+                if (httpContent instanceof Http2ResetContent) {
+                    if (http2ClientChannel.getConnection().numActiveStreams() == 0) {
+                        Http2ResetContent resetContent = (Http2ResetContent) httpContent;
+                        Http2Content emptyHttp2Content = new Http2Content(new DefaultLastHttpContent(
+                                resetContent.content()), outboundMsgHolder);
+                        http2ClientChannel.getChannel().write(emptyHttp2Content);
+                    }
+                    int streamId = http2ClientChannel.getConnection().local().lastStreamCreated();
+                    Http2Reset http2Reset = new Http2Reset(streamId, Http2Error.CANCEL);
+                    http2Reset.setEndOfStream(true);
+                    http2ClientChannel.getChannel().write(http2Reset);
+                } else {
+                    Http2Content http2Content = new Http2Content(httpContent, outboundMsgHolder);
+                    http2ClientChannel.getChannel().write(http2Content);
+                }
             });
         });
     }
