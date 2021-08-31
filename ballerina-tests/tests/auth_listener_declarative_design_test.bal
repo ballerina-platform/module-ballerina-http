@@ -752,3 +752,100 @@ function testServiceAuthWithoutScopesAuthnFailure() {
     assertUnauthorized(sendBearerTokenRequest("/noScopes", JWT3));
     assertUnauthorized(sendNoTokenRequest("/noScopes"));
 }
+
+// Unsecured service - JWT auth secured resource with special resource paths
+
+service /resourcepath on authListener {
+
+    @http:ResourceConfig {
+        auth: [
+            {
+                jwtValidatorConfig: {
+                    issuer: "wso2",
+                    audience: "ballerina",
+                    signatureConfig: {
+                        trustStoreConfig: {
+                            trustStore: {
+                                path: TRUSTSTORE_PATH,
+                                password: "ballerina"
+                            },
+                            certAlias: "ballerina"
+                        }
+                    },
+                    scopeKey: "scp"
+                 },
+                 scopes: ["write", "update"]
+            }
+        ]
+    }
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+
+    @http:ResourceConfig {
+        auth: [
+            {
+                jwtValidatorConfig: {
+                    issuer: "wso2",
+                    audience: "ballerina",
+                    signatureConfig: {
+                        trustStoreConfig: {
+                            trustStore: {
+                                path: TRUSTSTORE_PATH,
+                                password: "ballerina"
+                            },
+                            certAlias: "ballerina"
+                        }
+                    },
+                    scopeKey: "scp"
+                 },
+                 scopes: ["write", "update"]
+            }
+        ]
+    }
+    resource function get foo\$bar\@() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {}
+function testResourceWithNoPathAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/resourcepath", JWT1));
+    assertSuccess(sendBearerTokenRequest("/resourcepath", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/resourcepath", JWT1_2));
+    assertSuccess(sendJwtRequest("/resourcepath"));
+}
+
+@test:Config {}
+function testResourceWithNoPathAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/resourcepath", JWT2));
+    assertForbidden(sendBearerTokenRequest("/resourcepath", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/resourcepath", JWT2_2));
+}
+
+@test:Config {}
+function testResourceWithNoPathAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/resourcepath", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/resourcepath"));
+}
+
+@test:Config {}
+function testResourceWithSpecialPathAuthSuccess() {
+    assertSuccess(sendBearerTokenRequest("/resourcepath/foo%24bar%40", JWT1));
+    assertSuccess(sendBearerTokenRequest("/resourcepath/foo%24bar%40", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/resourcepath/foo%24bar%40", JWT1_2));
+    assertSuccess(sendJwtRequest("/resourcepath/foo%24bar%40"));
+}
+
+@test:Config {}
+function testResourceWithSpecialPathAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/resourcepath/foo%24bar%40", JWT2));
+    assertForbidden(sendBearerTokenRequest("/resourcepath/foo%24bar%40", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/resourcepath/foo%24bar%40", JWT2_2));
+}
+
+@test:Config {}
+function testResourceWithSpecialPathAuthnFailure() {
+    assertUnauthorized(sendBearerTokenRequest("/resourcepath/foo%24bar%40", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/resourcepath/foo%24bar%40"));
+}
