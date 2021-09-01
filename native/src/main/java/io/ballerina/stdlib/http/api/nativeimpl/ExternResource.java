@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.ServiceType;
+import io.ballerina.runtime.api.utils.IdentifierUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -42,7 +43,8 @@ public class ExternResource {
         ServiceType serviceType = (ServiceType) service.getType();
         ResourceMethodType[] functions = serviceType.getResourceMethods();
         for (ResourceMethodType function : functions) {
-            if (function.getName().equals(resourceName.getValue().strip())) {
+            if (IdentifierUtils.decodeIdentifier(function.getName()).equals(
+                    resourceName.getValue().strip().replace("\\", ""))) {
                 BString identifier = StringUtils.fromString(ModuleUtils.getHttpPackage().toString() +
                                                                     ":ResourceConfig");
                 return function.getAnnotation(identifier);
