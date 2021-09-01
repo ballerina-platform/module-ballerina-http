@@ -206,6 +206,22 @@ service /passthrough on clientDBProxyListener {
         return string:'join("|", ...payload);
     }
 
+    resource function get runtimeErrorsNillable() returns string {
+        string[] payload = [];
+
+        xml?|http:ClientError unionPayload = clientDBBackendClient->post("/backend/getJson", "want json");
+        if unionPayload is http:ClientError {
+            payload.push(unionPayload.message());
+        }
+
+        int?|http:ClientError basicTypeUnionPayload = clientDBBackendClient->post("/backend/getString", "want string");
+        if basicTypeUnionPayload is http:ClientError {
+            payload.push(basicTypeUnionPayload.message());
+        }
+
+        return string:'join("|", ...payload);
+    }
+
     resource function get allMethods(http:Caller caller, http:Request request) returns error? {
         string payload = "";
 
@@ -490,6 +506,21 @@ function testAllBindingErrorReturns() returns error? {
 }
 function testAllBindingErrors() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/runtimeErrors");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "invalid target type, expected: http:Response, string, xml, json, map<json>, " +
+        "byte[], record, record[] or a union of such a type with nil|Error occurred while retrieving the json payload from the response");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {
+    groups: ["dataBinding"]
+}
+function testAllBindingErrorsWithNillableTypes() returns error? {
+    http:Response|error response = clientDBTestClient->get("/passthrough/runtimeErrorsNillable");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
