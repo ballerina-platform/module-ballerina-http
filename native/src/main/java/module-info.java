@@ -47,6 +47,7 @@ module io.ballerina.stdlib.http {
     exports io.ballerina.stdlib.http.transport.contract.config;
     exports io.ballerina.stdlib.http.transport.contractimpl;
     exports io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool;
+    exports io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
     exports io.ballerina.stdlib.http.transport.internal;
     exports io.ballerina.stdlib.http.transport.message;
     exports io.ballerina.stdlib.http.uri;
