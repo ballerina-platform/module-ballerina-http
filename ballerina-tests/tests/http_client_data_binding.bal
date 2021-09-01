@@ -524,8 +524,7 @@ function testAllBindingErrorsWithNillableTypes() returns error? {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "invalid target type, expected: http:Response, string, xml, json, map<json>, " +
-        "byte[], record, record[] or a union of such a type with nil|Error occurred while retrieving the json payload from the response");
+        assertTextPayload(response.getTextPayload(), "Error occurred while retrieving the xml payload from the response|Error occurred while retrieving the json payload from the response");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
