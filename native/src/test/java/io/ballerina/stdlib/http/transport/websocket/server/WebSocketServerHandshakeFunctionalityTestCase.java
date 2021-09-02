@@ -152,6 +152,7 @@ public class WebSocketServerHandshakeFunctionalityTestCase {
         Assert.assertEquals(closeFrame.statusCode(), 1002);
 
         testClient.closeChannel();
+        closeFrame.release();
     }
 
 
@@ -235,6 +236,7 @@ public class WebSocketServerHandshakeFunctionalityTestCase {
 
         testClient.sendCloseFrame(closeFrame.statusCode(), null).closeChannel();
         testClient.closeChannel();
+        closeFrame.release();
     }
 
 
@@ -279,6 +281,7 @@ public class WebSocketServerHandshakeFunctionalityTestCase {
         Assert.assertEquals(closeWebSocketFrame.reasonText(), "Encountered an unexpected condition");
 
         testClient.closeChannel();
+        closeWebSocketFrame.release();
     }
 
     @Test(priority = 2,
