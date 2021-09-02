@@ -59,7 +59,6 @@ public class HttpService {
 
     private BObject balService;
     private List<HttpResource> resources;
-    private List<HttpResource> upgradeToWebSocketResources;
     private List<String> allAllowedMethods;
     private String basePath;
     private CorsHeaders corsHeaders;
@@ -69,6 +68,7 @@ public class HttpService {
     private String hostName;
     private String chunkingConfig;
     private String mediaTypeSubtypePrefix;
+    private String introspectionResourcePath;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -209,21 +209,27 @@ public class HttpService {
 
     private static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
-        for (MethodType resource :
-                ((ServiceType) httpService.getBalService().getType()).getResourceMethods()) {
+        for (MethodType resource : ((ServiceType) httpService.getBalService().getType()).getResourceMethods()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
-            HttpResource httpResource = HttpResource.buildHttpResource(resource, httpService);
-            try {
-                httpService.getUriTemplate().parse(httpResource.getPath(), httpResource,
-                                                   new HttpResourceElementFactory());
-            } catch (URITemplateException | UnsupportedEncodingException e) {
-                throw new BallerinaConnectorException(e.getMessage());
-            }
-            httpResources.add(httpResource);
+            updateResourceTree(httpService, httpResources, HttpResource.buildHttpResource(resource, httpService));
+        }
+        String openApiDocName = getIntrospectionDocName(httpService);
+        if (openApiDocName != null) {
+            updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, openApiDocName));
         }
         httpService.setResources(httpResources);
+    }
+
+    private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,
+                                           HttpResource httpResource) {
+        try {
+            httpService.getUriTemplate().parse(httpResource.getPath(), httpResource, new HttpResourceElementFactory());
+        } catch (URITemplateException | UnsupportedEncodingException e) {
+            throw new BallerinaConnectorException(e.getMessage());
+        }
+        httpResources.add(httpResource);
     }
 
     private static BMap getHttpServiceConfigAnnotation(BObject service) {
@@ -235,5 +241,23 @@ public class HttpService {
                                                      String annotationName) {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
         return (BMap) (service.getType()).getAnnotation(StringUtils.fromString(key + ":" + annotationName));
+    }
+
+    public String getIntrospectionResourcePathHeaderValue() {
+        return this.introspectionResourcePath;
+    }
+
+    public void setIntrospectionResourcePathHeaderValue(String introspectionResourcePath) {
+        this.introspectionResourcePath = introspectionResourcePath;
+    }
+
+    public static String getIntrospectionDocName(HttpService httpService) {
+        //TODO change the hard coded value once `getAnnotations()` API is available in AnnotatableType
+        var docConfigAnnotation = (BMap) (httpService.balService.getType()).getAnnotation(
+                        StringUtils.fromString("ballerina/lang.annotations:1:IntrospectionDocConfig"));
+        if (docConfigAnnotation == null) {
+            return null;
+        }
+        return docConfigAnnotation.getStringValue(HttpConstants.ANN_FIELD_DOC_NAME).getValue().trim();
     }
 }

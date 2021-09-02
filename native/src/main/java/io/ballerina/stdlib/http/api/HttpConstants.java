@@ -138,6 +138,8 @@ public class HttpConstants {
     public static final String ANNOTATION_METHOD_PATCH = HTTP_METHOD_PATCH;
     public static final String ANNOTATION_METHOD_DELETE = HTTP_METHOD_DELETE;
     public static final String ANNOTATION_METHOD_OPTIONS = HTTP_METHOD_OPTIONS;
+    public static final String ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG = "IntrospectionDocConfig";
+    public static final BString ANN_FIELD_DOC_NAME = StringUtils.fromString("name");
     public static final String ANN_NAME_PARAM_ORDER_CONFIG = "ParamOrderConfig";
     public static final BString ANN_FIELD_PATH_PARAM_ORDER = StringUtils.fromString("pathParamOrder");
     public static final BString ANN_FIELD_ALL_PARAM_ORDER = StringUtils.fromString("allParamOrder");
@@ -330,6 +332,7 @@ public class HttpConstants {
     public static final String CONNECTION_HEADER = "Connection";
     public static final String HEADER_VAL_CONNECTION_CLOSE = "Close";
     public static final String HEADER_VAL_CONNECTION_KEEP_ALIVE = "Keep-Alive";
+    public static final String LINK_HEADER = "Link";
 
     //Response codes
     public static final int INVALID_STATUS_CODE = 000;
