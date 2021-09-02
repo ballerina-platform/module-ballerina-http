@@ -658,12 +658,12 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         return response.getTextPayload();
     } else if (targetType is typedesc<string?>) {
         string|ClientError payload = response.getTextPayload();
-        return payload is ClientError ? () : payload;
+        return payload is NoContentError ? () : payload;
     } else if (targetType is typedesc<xml>) {
         return response.getXmlPayload();
     } else if (targetType is typedesc<xml?>) {
         xml|ClientError payload = response.getXmlPayload();
-        return payload is ClientError ? () : payload;
+        return payload is NoContentError ? () : payload;
     } else if (targetType is typedesc<byte[]>) {
         return response.getBinaryPayload();
     } else if (targetType is typedesc<byte[]?>) {
@@ -671,7 +671,7 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         if payload is byte[] {
             return payload.length() == 0 ? () : payload;
         }
-        return;
+        return payload;
     } else if (targetType is typedesc<record {| anydata...; |}>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
@@ -680,9 +680,10 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         json|ClientError payload = response.getJsonPayload();
         if payload is json {
             var result = payload.cloneWithType(targetType);
-            return result is error ? () : result;
+            return result is error ? createPayloadBindingError(result) : result;
+        } else {
+            return payload is NoContentError ? () : payload;
         }
-        return;
     } else if (targetType is typedesc<record {| anydata...; |}[]>) {
         json payload = check response.getJsonPayload();
         var result = payload.cloneWithType(targetType);
@@ -691,9 +692,10 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         json|ClientError payload = response.getJsonPayload();
         if payload is json {
             var result = payload.cloneWithType(targetType);
-            return result is error ? () : result;
+            return result is error ? createPayloadBindingError(result) : result;
+        } else {
+            return payload is NoContentError ? () : payload;
         }
-        return;
     } else if (targetType is typedesc<map<json>>) {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
