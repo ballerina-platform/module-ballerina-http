@@ -209,6 +209,11 @@ public class ConnectionManager {
                     throw new Exception("Cannot invalidate channel from pool", e);
                 }
             }
+        } else {
+            GenericObjectPool genericObjectPool = globalConnPool.get(targetChannel.getHttpRoute().toString());
+            if (genericObjectPool != null) {
+                genericObjectPool.invalidateObject(targetChannel);
+            }
         }
     }
 
