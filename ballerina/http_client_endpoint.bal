@@ -703,6 +703,8 @@ isolated function performDataBinding(Response response, TargetType targetType) r
         json|ClientError result = response.getJsonPayload();
         return result is NoContentError ? (): result;
     } else {
+        // Consume payload to avoid memory leaks
+        byte[]|ClientError payload = response.getBinaryPayload();
         return error ClientError("invalid target type, expected: http:Response, string, xml, json, map<json>, byte[], record, record[] or a union of such a type with nil");
     }
 }
