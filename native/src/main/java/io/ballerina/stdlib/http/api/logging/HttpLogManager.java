@@ -63,8 +63,11 @@ public class HttpLogManager extends LogManager {
 
     protected Logger httpTraceLogger;
     protected Logger httpAccessLogger;
+    private String protocol;
 
-    public HttpLogManager(boolean traceLogConsole, BMap traceLogAdvancedConfig, BMap accessLogConfig) {
+    public HttpLogManager(boolean traceLogConsole, BMap traceLogAdvancedConfig, BMap accessLogConfig,
+                          BString protocol) {
+        this.protocol = protocol.getValue();
         this.setHttpTraceLogHandler(traceLogConsole, traceLogAdvancedConfig);
         this.setHttpAccessLogHandler(accessLogConfig);
     }
@@ -119,7 +122,7 @@ public class HttpLogManager extends LogManager {
         if (traceLogsEnabled) {
             httpTraceLogger.setLevel(Level.FINEST);
             System.setProperty(HTTP_TRACE_LOG_ENABLED, "true");
-            stdErr.println("ballerina: HTTP trace log enabled");
+            stdErr.println("ballerina: " + protocol + " trace log enabled");
         }
     }
 
@@ -160,7 +163,7 @@ public class HttpLogManager extends LogManager {
 
         if (accessLogsEnabled) {
             System.setProperty(HTTP_ACCESS_LOG_ENABLED, "true");
-            stdErr.println("ballerina: HTTP access log enabled");
+            stdErr.println("ballerina: " + protocol + " access log enabled");
         }
     }
 

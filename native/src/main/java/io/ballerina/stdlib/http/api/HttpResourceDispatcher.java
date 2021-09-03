@@ -22,8 +22,10 @@ import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.URITemplateException;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 
 /**
  * Resource level dispatchers handler for HTTP protocol.
@@ -38,6 +40,10 @@ public class HttpResourceDispatcher {
         HttpResourceArguments resourceArgumentValues = new HttpResourceArguments();
         try {
             HttpResource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
+            if (resource instanceof HttpIntrospectionResource) {
+                handleIntrospectionRequest(inboundRequest, (HttpIntrospectionResource) resource);
+                return null;
+            }
             if (resource != null) {
                 inboundRequest.setProperty(HttpConstants.RESOURCE_ARGS, resourceArgumentValues);
                 inboundRequest.setProperty(HttpConstants.RESOURCES_CORS, resource.getCorsHeaders());
@@ -75,15 +81,29 @@ public class HttpResourceDispatcher {
         } else if (service.getBasePath().equals(cMsg.getProperty(HttpConstants.TO))
                 && !service.getAllAllowedMethods().isEmpty()) {
             response.setHeader(HttpHeaderNames.ALLOW.toString(),
-                    DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
+                               DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
         } else {
             cMsg.setHttpStatusCode(404);
             throw new BallerinaConnectorException("no matching resource found for path : "
                     + cMsg.getProperty(HttpConstants.TO) + " , method : " + "OPTIONS");
         }
         CorsHeaderGenerator.process(cMsg, response, false);
+        String introspectionResourcePathHeaderValue = service.getIntrospectionResourcePathHeaderValue();
+        if (introspectionResourcePathHeaderValue != null) {
+            response.setHeader(HttpConstants.LINK_HEADER, introspectionResourcePathHeaderValue);
+        }
         response.setHttpStatusCode(204);
         response.addHttpContent(new DefaultLastHttpContent());
+        PipeliningHandler.sendPipelinedResponse(cMsg, response);
+        cMsg.waitAndReleaseAllEntities();
+    }
+
+    private static void handleIntrospectionRequest(HttpCarbonMessage cMsg, HttpIntrospectionResource resource) {
+        HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
+        response.waitAndReleaseAllEntities();
+        response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(resource.getPayload())));
+        response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString());
+        response.setHttpStatusCode(200);
         PipeliningHandler.sendPipelinedResponse(cMsg, response);
         cMsg.waitAndReleaseAllEntities();
     }

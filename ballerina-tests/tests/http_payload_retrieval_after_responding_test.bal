@@ -73,8 +73,10 @@ service /backend on payloadRetrievalListener {
     }
 }
 
+// disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/1731 fix
 @test:Config {
-    groups: ["payloadRetrieveAfterRespond"]
+    groups: ["payloadRetrieveAfterRespond"],
+    enable: false
 }
 function testPayloadRetrievalAfterRespondTest() returns error? {
     http:Response|error response = payloadRetrievalTestClient->get("/passthrough");

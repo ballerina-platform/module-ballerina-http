@@ -85,5 +85,6 @@ public class ResponseCompleted implements ListenerState {
 
     private void cleanupSourceHandler(HttpCarbonMessage inboundRequestMsg) {
         sourceHandler.removeRequestEntry(inboundRequestMsg);
+        inboundRequestMsg.waitAndReleaseAllEntities();
     }
 }

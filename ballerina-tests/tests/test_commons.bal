@@ -29,6 +29,7 @@ const string TRANSFER_ENCODING = "transfer-encoding";
 const string LOCATION = "location";
 const string ORIGIN = "origin";
 const string ALLOW = "Allow";
+const string LINK = "Link";
 const string ACCESS_CONTROL_ALLOW_ORIGIN = "access-control-allow-origin";
 const string ACCESS_CONTROL_ALLOW_CREDENTIALS = "access-control-allow-credentials";
 const string ACCESS_CONTROL_ALLOW_HEADERS = "access-control-allow-headers";

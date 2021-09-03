@@ -86,6 +86,10 @@ public class HttpResource {
         }
     }
 
+    protected HttpResource() {
+
+    }
+
     public String getName() {
         return balResource.getName();
     }
