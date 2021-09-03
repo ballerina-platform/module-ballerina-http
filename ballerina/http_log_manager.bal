@@ -45,6 +45,6 @@ configurable TraceLogAdvancedConfiguration traceLogAdvancedConfig = {};
 configurable AccessLogConfiguration accessLogConfig = {};
 
 isolated function initializeHttpLogs(boolean traceLogConsole, TraceLogAdvancedConfiguration traceLogAdvancedConfig,
-AccessLogConfiguration accessLogConfig) returns handle = @java:Constructor {
+AccessLogConfiguration accessLogConfig, string protocol = "HTTP") returns handle = @java:Constructor {
     'class: "io.ballerina.stdlib.http.api.logging.HttpLogManager"
 } external;
