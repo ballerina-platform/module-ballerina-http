@@ -192,7 +192,6 @@ service /passthrough on clientDBProxyListener {
 
     resource function get runtimeErrors() returns string {
         string[] payload = [];
-
         xml|json|http:ClientError unionPayload = clientDBBackendClient->post("/backend/getJson", "want json");
         if unionPayload is http:ClientError {
             payload.push(unionPayload.message());
@@ -208,7 +207,6 @@ service /passthrough on clientDBProxyListener {
 
     resource function get runtimeErrorsNillable() returns string {
         string[] payload = [];
-
         xml?|http:ClientError unionPayload = clientDBBackendClient->post("/backend/getJson", "want json");
         if unionPayload is http:ClientError {
             payload.push(unionPayload.message());
