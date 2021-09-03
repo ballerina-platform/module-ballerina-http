@@ -39,7 +39,7 @@ jobs:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-        run: ./gradlew.bat test -Pdisable=ldap
+        run: ./gradlew.bat build -Pdisable=ldap
 
   ubuntu-build-without-native-tests:
       name: Build on Ubuntu without native tests
