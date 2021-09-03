@@ -307,6 +307,7 @@ public class HttpConstants {
     public static final BString HTTP_LOG_FILE_PATH = StringUtils.fromString("path");
     public static final BString HTTP_TRACE_LOG_HOST = StringUtils.fromString("host");
     public static final BString HTTP_TRACE_LOG_PORT = StringUtils.fromString("port");
+    public static final BString HTTP_LOGGING_PROTOCOL = StringUtils.fromString("HTTP");
 
     // ResponseCacheControl struct field names
     public static final BString RES_CACHE_CONTROL_MUST_REVALIDATE_FIELD = StringUtils.fromString("mustRevalidate");
