@@ -40,8 +40,8 @@ jobs:
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
         run: |
-            ./gradlew.bat test -Pdisable=ldap
             ./gradlew.bat build -x test
+            ./gradlew.bat test -Pdisable=ldap
 
   ubuntu-build-without-native-tests:
       name: Build on Ubuntu without native tests
