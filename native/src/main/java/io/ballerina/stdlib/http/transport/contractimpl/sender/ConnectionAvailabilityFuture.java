@@ -52,9 +52,11 @@ public class ConnectionAvailabilityFuture {
     private boolean isFailure;
     private Throwable throwable;
     private boolean forceHttp2 = false;
+    private String remoteAddress;
 
-    public void setSocketAvailabilityFuture(ChannelFuture socketAvailabilityFuture) {
+    public void setSocketAvailabilityFuture(ChannelFuture socketAvailabilityFuture, String remoteAddress) {
         this.socketAvailabilityFuture = socketAvailabilityFuture;
+        this.remoteAddress = remoteAddress;
         socketAvailabilityFuture.addListener(new ChannelFutureListener() {
 
             @Override
@@ -126,12 +128,8 @@ public class ConnectionAvailabilityFuture {
     }
 
     private void notifyErrorState(ChannelFuture channelFuture, Throwable cause) {
-        String socketAddress = null;
-        if (channelFuture.channel().remoteAddress() != null) {
-            socketAddress = channelFuture.channel().remoteAddress().toString();
-        }
         ClientConnectorException connectorException =
-                createSpecificExceptionFromGeneric(channelFuture, cause, socketAddress);
+                createSpecificExceptionFromGeneric(channelFuture, cause, remoteAddress);
 
         listener.onFailure(connectorException);
     }
