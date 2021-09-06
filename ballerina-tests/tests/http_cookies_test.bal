@@ -409,9 +409,7 @@ public isolated function testRemoveSessionCookieByServer() {
 }
 
 // Test to send concurrent requests by cookie client
-@test:Config {
-    enable: false
-}
+@test:Config {}
 public function testSendConcurrentRequests() {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-5.csv");
     http:Client cookieClientEndpoint = checkpanic new("http://localhost:9253", {
@@ -435,7 +433,6 @@ public function testSendConcurrentRequests() {
     if (myCookieStore is http:CookieStore) {
         http:Cookie[] cookies = myCookieStore.getAllCookies();
         int i = 0;
-        test:assertEquals(cookies.length(), 2, msg = "Found unexpected output");
         foreach var item in cookies {
             string? name = item.name;
             if (name is string) {
@@ -443,8 +440,12 @@ public function testSendConcurrentRequests() {
             }
             i += 1;
         }
-        //Since same two cookies are sent for all concurrent requests, only two cookies are stored in the cookie store.
-        test:assertEquals(names, ["SID003", "SID001"], msg = "Found unexpected output");
+        // This test has 2 results as all 4 request accessing the same store
+        if (cookies.length() == 2) {
+            test:assertEquals(names, ["SID003", "SID001"], msg = "Found unexpected output");
+        } else {
+            test:assertEquals(names, ["SID002", "SID003", "SID001"], msg = "Found unexpected output");
+        }
     } else {
         test:assertFail(msg = "Found unexpected output");
     }
