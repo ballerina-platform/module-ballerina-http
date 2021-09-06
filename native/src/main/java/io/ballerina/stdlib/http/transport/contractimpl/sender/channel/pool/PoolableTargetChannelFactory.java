@@ -47,6 +47,7 @@ public class PoolableTargetChannelFactory implements PoolableObjectFactory {
     private final SenderConfiguration senderConfiguration;
     private final BootstrapConfiguration bootstrapConfiguration;
     private final ConnectionManager connectionManager;
+    private String remoteAddress;
 
     PoolableTargetChannelFactory(EventLoopGroup eventLoopGroup, Class eventLoopClass, HttpRoute httpRoute,
                                         SenderConfiguration senderConfiguration,
@@ -83,7 +84,7 @@ public class PoolableTargetChannelFactory implements PoolableObjectFactory {
                                                  HttpClientChannelInitializer httpClientChannelInitializer) {
 
         ChannelFuture channelFuture = connectToRemoteEndpoint(clientBootstrap);
-        connectionAvailabilityFuture.setSocketAvailabilityFuture(channelFuture);
+        connectionAvailabilityFuture.setSocketAvailabilityFuture(channelFuture, remoteAddress);
         connectionAvailabilityFuture.setForceHttp2(senderConfiguration.isForceHttp2());
 
         TargetChannel targetChannel =
@@ -95,15 +96,18 @@ public class PoolableTargetChannelFactory implements PoolableObjectFactory {
     private ChannelFuture connectToRemoteEndpoint(Bootstrap clientBootstrap) {
         // Connect to proxy server if proxy is enabled
         ChannelFuture channelFuture;
+        InetSocketAddress socketAddress;
         if (senderConfiguration.getProxyServerConfiguration() != null && senderConfiguration.getScheme()
                 .equals(HTTP_SCHEME)) {
-            channelFuture = clientBootstrap.connect(new InetSocketAddress(
+            socketAddress = new InetSocketAddress(
                     senderConfiguration.getProxyServerConfiguration().getProxyHost(),
                     senderConfiguration.getProxyServerConfiguration().getProxyPort()
-            ));
+            );
         } else {
-            channelFuture = clientBootstrap.connect(new InetSocketAddress(httpRoute.getHost(), httpRoute.getPort()));
+            socketAddress = new InetSocketAddress(httpRoute.getHost(), httpRoute.getPort());
         }
+        remoteAddress = socketAddress.toString();
+        channelFuture = clientBootstrap.connect(socketAddress);
         return channelFuture;
     }
 

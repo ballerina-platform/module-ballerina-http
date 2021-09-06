@@ -41,6 +41,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTPS_SCHEME;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -88,10 +89,7 @@ public class ServerCloseConnectionDuringSslTest {
         assertTrue(response instanceof ClientConnectorException,
                 "Exception is not an instance of ClientConnectorException");
         String result = response.getMessage();
-        // TODO revert the assertion once the issue is fixed
-        // https://github.com/ballerina-platform/module-ballerina-http/issues/88
-        // assertEquals("Remote host: localhost/127.0.0.1:9000 closed the connection while SSL handshake", result);
-        assertTrue(result.contains("closed the connection while SSL handshake"));
+        assertEquals("Remote host: localhost/127.0.0.1:9000 closed the connection while SSL handshake", result);
     }
 
     private void whenANormalHttpsRequestSent() throws InterruptedException {
