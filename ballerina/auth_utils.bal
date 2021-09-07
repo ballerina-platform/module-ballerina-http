@@ -92,6 +92,8 @@ isolated function matchScopes(string|string[] actualScopes, string|string[] expe
             }
         }
     }
+    log:printDebug("Failed to match the scopes. Expected '" + expectedScopes.toString() + "', but found '" +
+                   actualScopes.toString());
     return false;
 }
 
