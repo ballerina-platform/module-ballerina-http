@@ -149,7 +149,7 @@ public class HttpConstants {
     public static final String DIRTY_RESPONSE = "dirtyResponse";
     public static final BString ANN_FIELD_MEDIA_TYPE = StringUtils.fromString("mediaType");
     public static final BString ANN_FIELD_NAME = StringUtils.fromString("name");
-    public static final String ANN_NAME_CACHE_CONFIG = "CacheConfig";
+    public static final String ANN_NAME_CACHE = "Cache";
 
     public static final String VALUE_ATTRIBUTE = "value";
 

@@ -293,7 +293,7 @@ public class HttpResource {
                     }
                 }
             }
-            if (ParamHandler.CACHE_CONFIG_ANNOTATION.equals(key.getValue())) {
+            if (ParamHandler.CACHE_ANNOTATION.equals(key.getValue())) {
                 this.cacheConfig = annotations.getMapValue(key);
             }
         }

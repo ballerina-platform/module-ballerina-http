@@ -134,4 +134,4 @@ public type HttpCacheConfig record {|
 # The annotation which is used to define the response cache configuration. This annotation only supports `anydata` and
 # Success(2XX) `StatusCodeResponses` return types. Default annotation adds `must-revalidate,public,max-age=3600` as
 # `cache-control` header in addition to `etag` and `last-modified` headers.
-public annotation HttpCacheConfig CacheConfig on return;
+public annotation HttpCacheConfig Cache on return;
