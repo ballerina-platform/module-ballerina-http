@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_CACHE_CONFIG;
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_CACHE;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_CALLER_INFO;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_PAYLOAD;
@@ -78,8 +78,8 @@ public class ParamHandler {
             ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_CALLER_INFO;
     public static final String PAYLOAD_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_PAYLOAD;
     public static final String HEADER_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_HEADER;
-    public static final String CACHE_CONFIG_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON
-            + ANN_NAME_CACHE_CONFIG;
+    public static final String CACHE_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON
+            + ANN_NAME_CACHE;
 
     public ParamHandler(ResourceMethodType resource, int pathParamCount) {
         this.resource = resource;

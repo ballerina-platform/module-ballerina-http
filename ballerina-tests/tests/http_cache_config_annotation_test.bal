@@ -86,7 +86,7 @@ service / on new http:Listener(cacheAnnotationTestPort1) {
 
 service / on new http:Listener(cacheAnnotationTestPort2) {
 
-    resource function default nocacheBE(http:Request req) returns @http:CacheConfig{noCache : true, maxAge : -1,
+    resource function default nocacheBE(http:Request req) returns @http:Cache{noCache : true, maxAge : -1,
     mustRevalidate : false} json {
         noCacheHitCountNew += 1;
         if noCacheHitCountNew == 1 {
@@ -96,7 +96,7 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
         }
     }
 
-    resource function default maxAgeBE(http:Request req) returns @http:CacheConfig{maxAge : 5, mustRevalidate : false} xml {
+    resource function default maxAgeBE(http:Request req) returns @http:Cache{maxAge : 5, mustRevalidate : false} xml {
         maxAgeHitCountNew += 1;
         if maxAgeHitCountNew == 1 {
             return maxAgePayload1;
@@ -105,7 +105,7 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
         }
     }
 
-    resource function get mustRevalidateBE(http:Request req) returns @http:CacheConfig{maxAge : 5} string|byte[] {
+    resource function get mustRevalidateBE(http:Request req) returns @http:Cache{maxAge : 5} string|byte[] {
         numberOfHitsNew += 1;
         if numberOfHitsNew < 2 {
             return mustRevalidatePayload1;
@@ -114,7 +114,7 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
         }
     }
 
-    resource function get statusResponseBE(http:Request req) returns @http:CacheConfig{noCache : true, maxAge : -1,
+    resource function get statusResponseBE(http:Request req) returns @http:Cache{noCache : true, maxAge : -1,
     mustRevalidate : false} http:Ok|http:InternalServerError {
         statusHits += 1;
         if statusHits < 3 {
