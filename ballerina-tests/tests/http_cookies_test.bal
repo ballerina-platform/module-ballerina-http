@@ -444,7 +444,9 @@ public function testSendConcurrentRequests() {
         if (cookies.length() == 2) {
             test:assertEquals(names, ["SID003", "SID001"], msg = "Found unexpected output");
         } else {
-            test:assertEquals(names, ["SID002", "SID003", "SID001"], msg = "Found unexpected output");
+            test:assertTrue(names.indexOf("SID001") is int, msg = "Found unexpected output");
+            test:assertTrue(names.indexOf("SID002") is int, msg = "Found unexpected output");
+            test:assertTrue(names.indexOf("SID003") is int, msg = "Found unexpected output");
         }
     } else {
         test:assertFail(msg = "Found unexpected output");
