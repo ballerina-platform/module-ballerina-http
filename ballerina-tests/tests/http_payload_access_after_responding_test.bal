@@ -18,31 +18,31 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/lang.runtime as runtime;
 
-listener http:Listener payloadRetrievalListener = new(payloadRetrievalAfterRespondingTestPort);
-http:Client payloadRetrievalBackendClient = check new("http://localhost:" + payloadRetrievalAfterRespondingTestPort.toString());
-http:Client payloadRetrievalTestClient = check new("http://localhost:" + payloadRetrievalAfterRespondingTestPort.toString());
+listener http:Listener payloadAccessAfterRespondListener = new(payloadAccessAfterRespondingTestPort);
+http:Client payloadAccessAfterRespondBackendClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString());
+http:Client payloadAccessAfterRespondTestClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString());
 
 error? requestJsonPayloadError = ();
 error? requestXmlPayloadError = ();
 error? requestTextPayloadError = ();
 error? requestBinaryPayloadError = ();
 
-service /passthrough on payloadRetrievalListener {
+service /passthrough on payloadAccessAfterRespondListener {
     resource function 'default . () returns string|error {
         json jsonStr = {a: "a", b: "b"};
-        json jsonPayload = check payloadRetrievalBackendClient->post("/backend/getJson", jsonStr);
+        json jsonPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getJson", jsonStr);
 
         xml xmlStr = xml `<name>Ballerina</name>`;
-        xml xmlPayload = check payloadRetrievalBackendClient->post("/backend/getXml", xmlStr);
+        xml xmlPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getXml", xmlStr);
 
-        string stringPayload = check payloadRetrievalBackendClient->post("/backend/getString", "want string");
-        byte[] binaryPayload = check payloadRetrievalBackendClient->post("/backend/getByteArray", "BinaryPayload is textVal".toBytes());
+        string stringPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getString", "want string");
+        byte[] binaryPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getByteArray", "BinaryPayload is textVal".toBytes());
 
         return "Request Processed successfully";
     }
 }
 
-service /backend on payloadRetrievalListener {
+service /backend on payloadAccessAfterRespondListener {
     resource function 'default getJson(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setJsonPayload({id: "chamil", values: {a: 2, b: 45, c: {x: "mnb", y: "uio"}}});
@@ -86,10 +86,10 @@ service /backend on payloadRetrievalListener {
 }
 
 @test:Config {
-    groups: ["payloadRetrieveAfterRespond"]
+    groups: ["payloadAccessAfterRespond"]
 }
-function testPayloadRetrievalAfterRespondTest() returns error? {
-    http:Response|error response = payloadRetrievalTestClient->get("/passthrough");
+function testPayloadAccessAfterRespondTest() returns error? {
+    http:Response|error response = payloadAccessAfterRespondTestClient->get("/passthrough");
     string errorMessage = "Error occurred while extracting data from entity: Content is already released";
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
