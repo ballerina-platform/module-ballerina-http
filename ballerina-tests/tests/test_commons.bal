@@ -139,6 +139,27 @@ isolated function assertErrorHeaderValue(string[]? headerKey, string expectValue
     }
 }
 
+isolated function assertErrorMessage(any|error err, string expectValue) {
+    if err is error {
+        test:assertEquals(err.message(), expectValue, msg = "Found unexpected error message");
+    } else {
+        test:assertFail(msg = "Found unexpected output");
+    }
+}
+
+isolated function assertErrorCauseMessage(any|error err, string expectValue) {
+    if err is error {
+        error? errorCause = err.cause();
+        if errorCause is error {
+            test:assertEquals(errorCause.message(), expectValue, msg = "Found unexpected error cause message");
+        } else {
+            test:assertFail(msg = "Found unexpected error cause");
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output");
+    }
+}
+
 const string LARGE_ENTITY = "Lorem ipsum dolor sit amet, libris quaerendum sea ei, in nec fugit " +
             "prodesset. Pro te quas mundi, mel viderer inimicus urbanitas an. No dolor essent timeam mei, exerci " +
             "virtute nostrum pri ad. Graeco doctus ea eam.\n" +
