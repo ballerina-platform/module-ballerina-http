@@ -90,7 +90,7 @@ service /backend on payloadAccessAfterRespondListener {
 }
 function testPayloadAccessAfterRespondTest() returns error? {
     http:Response|error response = payloadAccessAfterRespondTestClient->get("/passthrough");
-    string errorMessage = "Error occurred while extracting data from entity: Content is already released";
+    string errorMessage = "Entity body content is already released";
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

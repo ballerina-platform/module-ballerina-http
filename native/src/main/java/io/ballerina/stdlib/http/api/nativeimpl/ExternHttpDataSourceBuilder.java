@@ -168,8 +168,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
                                                       SourceType sourceType) {
         HttpCarbonMessage inboundMessage = extractTransportMessageFromEntity(entity);
         if (inboundMessage.isContentReleased()) {
-            createErrorAndNotify(balFuture, "Error occurred while extracting data from entity: Content " +
-                    "is already released");
+            createErrorAndNotify(balFuture, "Entity body content is already released");
             return;
         }
         inboundMessage.getFullHttpCarbonMessage().addListener(new FullHttpMessageListener() {
