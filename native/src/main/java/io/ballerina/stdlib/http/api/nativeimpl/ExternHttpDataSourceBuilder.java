@@ -167,13 +167,13 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
     public static void constructNonBlockingDataSource(Future balFuture, BObject entity,
                                                       SourceType sourceType) {
         HttpCarbonMessage inboundMessage = extractTransportMessageFromEntity(entity);
-        if (inboundMessage.isContentReleased()) {
-            createErrorAndNotify(balFuture, "Entity body content is already released");
-            return;
-        }
         inboundMessage.getFullHttpCarbonMessage().addListener(new FullHttpMessageListener() {
             @Override
             public void onComplete(HttpCarbonMessage inboundMessage) {
+                if (inboundMessage.isContentReleased()) {
+                    createErrorAndNotify(balFuture, "Entity body content is already released");
+                    return;
+                }
                 Object dataSource = null;
                 HttpMessageDataStreamer dataStreamer = new HttpMessageDataStreamer(inboundMessage);
                 InputStream inputStream = dataStreamer.getInputStream();
