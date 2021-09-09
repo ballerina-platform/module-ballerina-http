@@ -78,6 +78,7 @@ public class HttpCarbonMessage {
     private String httpMethod;
     private String requestUrl;
     private Integer httpStatusCode;
+    private boolean contentReleased = false;
 
     public HttpCarbonMessage(HttpMessage httpMessage, Listener contentListener) {
         this.httpMessage = httpMessage;
@@ -473,6 +474,7 @@ public class HttpCarbonMessage {
      */
     public void waitAndReleaseAllEntities() {
         blockingEntityCollector.waitAndReleaseAllEntities();
+        setContentReleased(true);
     }
 
     public EntityCollector getBlockingEntityCollector() {
@@ -542,6 +544,14 @@ public class HttpCarbonMessage {
 
     public boolean isPipeliningEnabled() {
         return pipeliningEnabled;
+    }
+
+    public void setContentReleased(boolean contentReleased) {
+        this.contentReleased = contentReleased;
+    }
+
+    public boolean isContentReleased() {
+        return contentReleased;
     }
 
     /**
