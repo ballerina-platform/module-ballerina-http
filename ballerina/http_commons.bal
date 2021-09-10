@@ -299,7 +299,6 @@ isolated function addObservabilityInformation(string path, string method, int st
     _ = checkpanic observe:addTagToSpan(HTTP_STATUS_CODE, statusCodeConverted);
     _ = checkpanic observe:addTagToSpan(HTTP_BASE_URL, url);
 
-    _ = checkpanic observe:addTagToMetrics(HTTP_URL, path);
     _ = checkpanic observe:addTagToMetrics(HTTP_METHOD, method);
     _ = checkpanic observe:addTagToMetrics(HTTP_BASE_URL, url);
     _ = checkpanic observe:addTagToMetrics(HTTP_STATUS_CODE_GROUP, getStatusCodeRange(statusCodeConverted));
