@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
+import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
 /**
@@ -150,7 +151,7 @@ public class HttpResource {
                 resourcePath.append(HttpUtil.unescapeAndEncodeValue(segment));
             }
         }
-        this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
+        this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, SINGLE_SLASH);
         this.pathParamCount = count;
     }
 
@@ -305,6 +306,10 @@ public class HttpResource {
 
     BMap getResponseCacheConfig() {
         return cacheConfig;
+    }
+
+    protected String getAbsoluteResourcePath() {
+        return (parentService.getBasePath() + SINGLE_SLASH + getPath()).replaceAll("/+", SINGLE_SLASH);
     }
 
     // Followings added due to WebSub requirement
