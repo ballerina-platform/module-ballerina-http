@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * A unit test class for http module {@link HttpService} class functions.
@@ -106,5 +107,15 @@ public class HttpServiceTest {
         HttpService httpService = new HttpService(service);
         HttpIntrospectionResource introspectionResource = new HttpIntrospectionResource(httpService, "abc");
         Assert.assertEquals(introspectionResource.getName(), "$get$openapi-doc-dygixywsw");
+    }
+
+    @Test
+    public void testGetAbsoluteResourcePath() {
+        HttpService httpService = new HttpService(TestUtils.getNewServiceObject("hello"));
+        httpService.setBasePath("/basePath/");
+        HttpResource resource = new HttpResource(TestUtils.getNewMethodType(), httpService);
+        resource.setPath("/abc/{xyz}");
+        httpService.setResources(Collections.singletonList(resource));
+        Assert.assertEquals(resource.getAbsoluteResourcePath(), "/basePath/abc/{xyz}");
     }
 }

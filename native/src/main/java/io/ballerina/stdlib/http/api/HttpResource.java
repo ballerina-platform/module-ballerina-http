@@ -309,7 +309,7 @@ public class HttpResource {
     }
 
     protected String getAbsoluteResourcePath() {
-        return (parentService.getBasePath() + SINGLE_SLASH + getPath()).replaceAll("/+", SINGLE_SLASH);
+        return (parentService.getBasePath() + getPath()).replaceAll("/+", SINGLE_SLASH);
     }
 
     // Followings added due to WebSub requirement
