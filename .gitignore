@@ -35,6 +35,8 @@ target
 *.iml
 *.ipr
 *.iws
+.project
+.settings
 
 # MacOS
 *.DS_Store
