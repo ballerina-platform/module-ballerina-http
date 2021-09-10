@@ -89,6 +89,11 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
     }
 
+    private void assertErrorPosition(DiagnosticResult diagnosticResult, int index, String lineRange) {
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[index];
+        Assert.assertEquals(diagnostic.location().lineRange().toString(), lineRange);
+    }
+
     @Test
     public void testInvalidMethodTypes() {
         Package currentPackage = loadPackage("sample_package_1");
@@ -176,7 +181,6 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_6");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        diagnosticResult.diagnostics().forEach(System.out::println);
         Assert.assertEquals(diagnosticResult.errorCount(), 5);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
                 "and return 'string' from a resource : expected 'error' or nil";
@@ -208,7 +212,6 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_8");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        diagnosticResult.diagnostics().forEach(System.out::println);
         Assert.assertEquals(diagnosticResult.errorCount(), 12);
         assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
         assertError(diagnosticResult, 1, "invalid union type of query param 'a': 'string', 'int', " +
@@ -339,5 +342,30 @@ public class CompilerPluginTest {
                 "have suffix 'suffix1 + suffix2'", HTTP_119);
         assertError(diagnosticResult, 2, "invalid media-type subtype '+suffix'", HTTP_120);
         assertError(diagnosticResult, 3, "invalid media-type subtype 'vnd.prefix.subtype+'", HTTP_120);
+    }
+
+    @Test
+    public void testResourceErrorPositions() {
+        Package currentPackage = loadPackage("sample_package_15");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 16);
+        // only testing the error locations
+        assertErrorPosition(diagnosticResult, 0, "(64:51,64:57)");
+        assertErrorPosition(diagnosticResult, 1, "(30:44,30:60)");
+        assertErrorPosition(diagnosticResult, 2, "(35:5,35:16)");
+        assertErrorPosition(diagnosticResult, 3, "(40:85,40:86)");
+        assertErrorPosition(diagnosticResult, 4, "(44:57,44:60)");
+        assertErrorPosition(diagnosticResult, 5, "(48:55,48:58)");
+        assertErrorPosition(diagnosticResult, 6, "(52:65,52:68)");
+        assertErrorPosition(diagnosticResult, 7, "(56:77,56:80)");
+        assertErrorPosition(diagnosticResult, 8, "(60:76,60:79)");
+        assertErrorPosition(diagnosticResult, 9, "(64:58,64:61)");
+        assertErrorPosition(diagnosticResult, 10, "(68:47,68:48)");
+        assertErrorPosition(diagnosticResult, 11, "(71:45,71:46)");
+        assertErrorPosition(diagnosticResult, 12, "(79:43,79:46)");
+        assertErrorPosition(diagnosticResult, 13, "(79:61,79:64)");
+        assertErrorPosition(diagnosticResult, 14, "(79:79,79:82)");
+        assertErrorPosition(diagnosticResult, 15, "(83:77,83:93)");
     }
 }

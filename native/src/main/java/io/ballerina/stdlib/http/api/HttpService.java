@@ -254,7 +254,7 @@ public class HttpService {
     public static String getIntrospectionDocName(HttpService httpService) {
         //TODO change the hard coded value once `getAnnotations()` API is available in AnnotatableType
         var docConfigAnnotation = (BMap) (httpService.balService.getType()).getAnnotation(
-                        StringUtils.fromString("ballerina/lang.annotations:1:IntrospectionDocConfig"));
+                        StringUtils.fromString("ballerina/lang.annotations:0:IntrospectionDocConfig"));
         if (docConfigAnnotation == null) {
             return null;
         }
