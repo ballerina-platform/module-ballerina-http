@@ -20,12 +20,12 @@ import ballerina/test;
 http:ClientConfiguration conf1 = {
     circuitBreaker: {
         rollingWindow: {
-            timeWindow: 10,
-            bucketSize: 2,
+            timeWindow: 60,
+            bucketSize: 5,
             requestVolumeThreshold: 0
         },
         failureThreshold: 0.2,
-        resetTime: 10
+        resetTime: 60
     },
     timeout: 2
 };
@@ -75,9 +75,7 @@ function responseDataProvider1() returns DataFeed[][] {
     ];
 }
 
-// Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
 @test:Config {
-    enable: false,
     dataProvider: responseDataProvider2
 }
 function testCircuitBreakerWithoutStatusCodes2(DataFeed dataFeed) {
