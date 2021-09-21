@@ -88,7 +88,6 @@ service /unhealthy on new http:Listener(8088) {
 http:Client testForceCloseClient = check new("http://localhost:9308");
 
 @test:Config{
-    enable:false,
     dataProvider:forceCloseResponseDataProvider
 }
 function testForceClose(DataFeed dataFeed) {
