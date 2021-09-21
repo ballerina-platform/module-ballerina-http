@@ -393,7 +393,11 @@ public client isolated class CircuitBreakerClient {
     # Force the circuit into a closed state in which it will allow requests regardless of the error percentage
     # until the failure threshold exceeds.
     public isolated function forceClose() {
+        log:printInfo("Circuit forcefully switched to CLOSE state.");
         self.setCurrentState(CB_CLOSED_STATE);
+        lock {
+            self.reInitializeBuckets(self.circuitHealth);
+        }
     }
 
     # Force the circuit into a open state in which it will suspend all requests
@@ -635,7 +639,7 @@ public client isolated class CircuitBreakerClient {
                     index -= 1;
                 }
                 int lastIndex = (circuitHealth.totalBuckets.length()) - 1;
-                while (lastIndex > currentBucketId) {
+                while (lastIndex > lastUsedBucketId) {
                     self.resetBucketStats(circuitHealth, lastIndex);
                     lastIndex -= 1;
                 }

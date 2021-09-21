@@ -46,7 +46,7 @@ service /cb on circuitBreakerEP02 {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>unhealthyClientEP.httpClient;
         forceCloseStateCount += 1;
         runtime:sleep(1);
-        if (forceCloseStateCount == 3) {
+        if (forceCloseStateCount == 4) {
             runtime:sleep(5);
             cbClient.forceClose();
         }
