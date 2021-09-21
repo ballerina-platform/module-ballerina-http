@@ -169,6 +169,11 @@ public class TestUtils {
             }
 
             @Override
+            public BMap<BString, Object> getAnnotations() {
+                return null;
+            };
+
+            @Override
             public Type[] getParameterTypes() {
                 return new Type[0];
             }
