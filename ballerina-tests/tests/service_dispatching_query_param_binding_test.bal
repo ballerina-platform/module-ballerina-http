@@ -80,11 +80,7 @@ service /queryparamservice on QueryBindingEP {
     }
 
     resource function get q10(string? x\-Type) returns string {
-        if x\-Type is () {
-            return "empty";
-        } else {
-            return x\-Type;
-        }
+        return x\-Type ?: "default";
     }
 }
 
@@ -264,7 +260,7 @@ function testQueryParamTokenWithEscapeChar() {
 
     response = queryBindingClient->get("/queryparamservice/q10");
     if response is http:Response {
-        assertTextPayload(response.getTextPayload(), "empty");
+        assertTextPayload(response.getTextPayload(), "default");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -272,6 +268,27 @@ function testQueryParamTokenWithEscapeChar() {
     response = queryBindingClient->get("/queryparamservice/q10?x-Type=test");
     if response is http:Response {
         assertTextPayload(response.getTextPayload(), "test");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testEmptyQueryParamBinding() {
+    http:Response|error response = queryBindingClient->get("/queryparamservice/q9?x-Type");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 400);
+        assertTextPayload(response.getTextPayload(), "no query param value found for 'x-Type'");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testEmptyOptionalQueryParamBinding() {
+    http:Response|error response = queryBindingClient->get("/queryparamservice/q10?x-Type");
+    if response is http:Response {
+        assertTextPayload(response.getTextPayload(), "default");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
