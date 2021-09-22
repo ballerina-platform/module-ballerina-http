@@ -1,0 +1,56 @@
+[package]
+org = "ballerina"
+name = "http"
+version = "@toml.version@"
+distribution = "slbeta3"
+
+[[platform.java11.dependency]]
+path = "../native/build/libs/http-native-@project.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/mime-native-@stdlib.mimenative.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-common-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-buffer-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-transport-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-resolver-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-handler-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-codec-http-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-codec-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-handler-proxy-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-codec-http2-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/commons-pool-@commmon.pool.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/bcprov-jdk15on-@bouncycastle.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/bcpkix-jdk15on-@bouncycastle.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-tcnative-boringssl-static-@tcnative.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/mimepull-@mimepull.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/testng-@testng.version@.jar"

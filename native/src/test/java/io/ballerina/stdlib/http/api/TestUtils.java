@@ -18,8 +18,14 @@
 
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.creators.TypeCreator;
+import io.ballerina.runtime.api.types.FunctionType;
+import io.ballerina.runtime.api.types.IntersectionType;
+import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.Parameter;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BFuture;
 import io.ballerina.runtime.api.values.BLink;
@@ -140,6 +146,151 @@ public class TestUtils {
             @Override
             public BTypedesc getTypedesc() {
                 return null;
+            }
+        };
+    }
+
+    static MethodType getNewMethodType() {
+        return new MethodType() {
+
+            @Override
+            public String getAnnotationKey() {
+                return null;
+            }
+
+            @Override
+            public Object getAnnotation(BString bString) {
+                return null;
+            }
+
+            @Override
+            public Object getAnnotation(BString bString, BString bString1) {
+                return null;
+            }
+
+            @Override
+            public BMap<BString, Object> getAnnotations() {
+                return null;
+            };
+
+            @Override
+            public Type[] getParameterTypes() {
+                return new Type[0];
+            }
+
+            @Override
+            public Type getReturnType() {
+                return null;
+            }
+
+            @Override
+            public <V> V getZeroValue() {
+                return null;
+            }
+
+            @Override
+            public <V> V getEmptyValue() {
+                return null;
+            }
+
+            @Override
+            public int getTag() {
+                return 0;
+            }
+
+            @Override
+            public boolean isNilable() {
+                return false;
+            }
+
+            @Override
+            public String getName() {
+                return null;
+            }
+
+            @Override
+            public String getQualifiedName() {
+                return null;
+            }
+
+            @Override
+            public Module getPackage() {
+                return null;
+            }
+
+            @Override
+            public boolean isPublic() {
+                return false;
+            }
+
+            @Override
+            public boolean isNative() {
+                return false;
+            }
+
+            @Override
+            public boolean isAnydata() {
+                return false;
+            }
+
+            @Override
+            public boolean isPureType() {
+                return false;
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+
+            @Override
+            public long getFlags() {
+                return 0;
+            }
+
+            @Override
+            public Type getImmutableType() {
+                return null;
+            }
+
+            @Override
+            public void setImmutableType(IntersectionType intersectionType) {
+
+            }
+
+            @Override
+            public Module getPkg() {
+                return null;
+            }
+
+            @Override
+            public Type getReturnParameterType() {
+                return null;
+            }
+
+            @Override
+            public Type getRestType() {
+                return null;
+            }
+
+            @Override
+            public Parameter[] getParameters() {
+                return new Parameter[0];
+            }
+
+            @Override
+            public ObjectType getParentObjectType() {
+                return null;
+            }
+
+            @Override
+            public FunctionType getType() {
+                return null;
+            }
+
+            @Override
+            public boolean isIsolated() {
+                return false;
             }
         };
     }
