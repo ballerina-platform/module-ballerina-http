@@ -19,6 +19,7 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
@@ -36,6 +37,9 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -215,10 +219,10 @@ public class HttpService {
             }
             updateResourceTree(httpService, httpResources, HttpResource.buildHttpResource(resource, httpService));
         }
-        String openApiDocName = getIntrospectionDocName(httpService);
-        if (openApiDocName != null) {
-            updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, openApiDocName));
-        }
+
+        getIntrospectionDocName(httpService).ifPresent(openApiDocName ->
+            updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, openApiDocName))
+        );
         httpService.setResources(httpResources);
     }
 
@@ -251,13 +255,16 @@ public class HttpService {
         this.introspectionResourcePath = introspectionResourcePath;
     }
 
-    public static String getIntrospectionDocName(HttpService httpService) {
-        //TODO change the hard coded value once `getAnnotations()` API is available in AnnotatableType
-        var docConfigAnnotation = (BMap) (httpService.balService.getType()).getAnnotation(
-                        StringUtils.fromString("ballerina/lang.annotations:0:IntrospectionDocConfig"));
-        if (docConfigAnnotation == null) {
-            return null;
+    public static Optional<String> getIntrospectionDocName(HttpService httpService) {
+        ObjectType objType = httpService.balService.getType();
+        if (Objects.nonNull(objType)) {
+            return objType.getAnnotations().entrySet().stream()
+                    .filter(e -> e.getKey().toString().contains(HttpConstants.ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG))
+                    .findFirst()
+                    .map(Map.Entry::getValue)
+                    .filter(e -> e instanceof BMap)
+                    .map(e -> ((BMap) e).getStringValue(HttpConstants.ANN_FIELD_DOC_NAME).getValue().trim());
         }
-        return docConfigAnnotation.getStringValue(HttpConstants.ANN_FIELD_DOC_NAME).getValue().trim();
+        return Optional.empty();
     }
 }
