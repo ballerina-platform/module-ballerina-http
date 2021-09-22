@@ -716,8 +716,10 @@ function testDetailBodyCreationFailure() {
 function testDBRecordErrorNegative() {
     ClientDBErrorPerson|error response =  clientDBBackendClient->post("/backend/getRecord", "want record");
     if (response is error) {
-        test:assertEquals(response.message(),
+        assertTrueTextPayload(response.message(),
             "Payload binding failed: 'map<json>' value cannot be converted to 'http_tests:ClientDBErrorPerson'");
+        assertTrueTextPayload(response.message(),
+            "missing required field 'weight' of type 'float' in record 'http_tests:ClientDBErrorPerson'");
     } else {
         test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson");
     }

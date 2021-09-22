@@ -320,8 +320,11 @@ function testDataBindingStructWithNoMatchingContent() {
     http:Response|error response = dataBindingClient->post("/echo/body6", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
-            "ConversionError\",message=\"'map<json>' value cannot be converted to 'http_tests:Person'\")");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang");
+        assertTrueTextPayload(response.getTextPayload(), ".value}ConversionError\",message=\"'map<json>' ");
+        assertTrueTextPayload(response.getTextPayload(), "value cannot be converted to 'http_tests:Person':");
+        assertTrueTextPayload(response.getTextPayload(), "missing required field 'age' of type 'int' in record 'http_tests:Person'");
+        assertTrueTextPayload(response.getTextPayload(), "field 'team' cannot be added to the closed record 'http_tests:Person'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -334,8 +337,12 @@ function testDataBindingStructWithInvalidTypes() {
     http:Response|error response = dataBindingClient->post("/echo/body7", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
-            "ConversionError\",message=\"'map<json>' value cannot be converted to 'http_tests:Stock'\")");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}");
+        assertTrueTextPayload(response.getTextPayload(), "'map<json>' value cannot be converted to 'http_tests:Stock'");
+        assertTrueTextPayload(response.getTextPayload(), "missing required field 'price' of type 'float' in record 'http_tests:Stock'");
+        assertTrueTextPayload(response.getTextPayload(), "missing required field 'id' of type 'int' in record 'http_tests:Stock'");
+        assertTrueTextPayload(response.getTextPayload(), "field 'name' cannot be added to the closed record 'http_tests:Stock'");
+        assertTrueTextPayload(response.getTextPayload(), "field 'team' cannot be added to the closed record 'http_tests:Stock'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -348,7 +355,7 @@ function testDataBindingWithRecordArrayNegative() {
     http:Response|error response = dataBindingClient->post("/echo/body8", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.typedesc}" +
+        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}" +
             "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -366,7 +373,7 @@ function testMultipleAnnotsInASingleParam() {
     }
 }
 
-//Test init error for multiple Payload annotationed params
+//Test init error for multiple Payload annotated params
 @test:Config {}
 function testMultiplePayloadAnnots() {
     http:Response|error response = dataBindingClient->get("/echo/negative2");
