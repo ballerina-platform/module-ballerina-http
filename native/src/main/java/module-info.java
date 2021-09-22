@@ -52,4 +52,5 @@ module io.ballerina.stdlib.http {
     exports io.ballerina.stdlib.http.transport.message;
     exports io.ballerina.stdlib.http.uri;
     exports io.ballerina.stdlib.http.uri.parser;
+    exports io.ballerina.stdlib.http.api.nativeimpl;
 }
