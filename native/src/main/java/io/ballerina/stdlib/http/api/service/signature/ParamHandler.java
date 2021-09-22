@@ -216,7 +216,7 @@ public class ParamHandler {
             headerParam.setHeaderName(value);
         } else {
             // if the name field is not stated, use the param token as header key
-            headerParam.setHeaderName(paramName);
+            headerParam.setHeaderName(HttpUtil.unescapeAndEncodeValue(paramName));
         }
         this.headerParams.add(headerParam);
     }
@@ -234,12 +234,14 @@ public class ParamHandler {
                 if (type.getTag() == TypeTags.NULL_TAG) {
                     continue;
                 }
-                QueryParam queryParam = new QueryParam(type, balResource.getParamNames()[index], index, true);
+                QueryParam queryParam = new QueryParam(type, HttpUtil.unescapeAndEncodeValue(
+                        balResource.getParamNames()[index]), index, true);
                 this.queryParams.add(queryParam);
                 break;
             }
         } else {
-            QueryParam queryParam = new QueryParam(parameterType, balResource.getParamNames()[index], index, false);
+            QueryParam queryParam = new QueryParam(parameterType, HttpUtil.unescapeAndEncodeValue(
+                    balResource.getParamNames()[index]), index, false);
             this.queryParams.add(queryParam);
         }
     }

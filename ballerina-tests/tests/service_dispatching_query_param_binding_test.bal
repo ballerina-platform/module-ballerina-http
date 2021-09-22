@@ -74,6 +74,18 @@ service /queryparamservice on QueryBindingEP {
         json responseJson = { objects : objs };
         return responseJson;
     }
+
+    resource function get q9(string x\-Type) returns string {
+        return x\-Type;
+    }
+
+    resource function get q10(string? x\-Type) returns string {
+        if x\-Type is () {
+            return "empty";
+        } else {
+            return x\-Type;
+        }
+    }
 }
 
 @test:Config {}
@@ -239,4 +251,28 @@ function testNillableMapJsonArrayQueryBinding() returns error? {
 
     response = check queryBindingClient->get("/queryparamservice/q8");
     assertJsonPayloadtoJsonString(response.getJsonPayload(), emptyObj);
+}
+
+@test:Config {}
+function testQueryParamTokenWithEscapeChar() {
+    http:Response|error response = queryBindingClient->get("/queryparamservice/q9?x-Type=test");
+    if response is http:Response {
+        assertTextPayload(response.getTextPayload(), "test");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = queryBindingClient->get("/queryparamservice/q10");
+    if response is http:Response {
+        assertTextPayload(response.getTextPayload(), "empty");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = queryBindingClient->get("/queryparamservice/q10?x-Type=test");
+    if response is http:Response {
+        assertTextPayload(response.getTextPayload(), "test");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
 }
