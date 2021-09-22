@@ -46,7 +46,7 @@ service /cb on circuitBreakerEP02 {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>unhealthyClientEP.httpClient;
         forceCloseStateCount += 1;
         runtime:sleep(1);
-        if (forceCloseStateCount == 3) {
+        if (forceCloseStateCount == 4) {
             runtime:sleep(5);
             cbClient.forceClose();
         }
@@ -88,7 +88,6 @@ service /unhealthy on new http:Listener(8088) {
 http:Client testForceCloseClient = check new("http://localhost:9308");
 
 @test:Config{
-    enable:false,
     dataProvider:forceCloseResponseDataProvider
 }
 function testForceClose(DataFeed dataFeed) {
