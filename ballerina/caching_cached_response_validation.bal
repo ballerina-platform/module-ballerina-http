@@ -27,7 +27,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
         log:printDebug("Sending validation request for a stale response");
     }
 
-    var response = sendValidationRequest(httpClient, path, req, cachedResponse);
+    var response = sendValidationRequest(httpClient, httpMethod, path, req, cachedResponse);
 
     if (response is ClientError) {
         // Based on https://tools.ietf.org/html/rfc7234#section-4.2.4
@@ -74,8 +74,8 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
 }
 
 // Based https://tools.ietf.org/html/rfc7234#section-4.3.1
-isolated function sendValidationRequest(HttpClient httpClient, string path, Request originalRequest, Response cachedResponse)
-                                returns Response|ClientError {
+isolated function sendValidationRequest(HttpClient httpClient, string httpMethod, string path, Request originalRequest,
+        Response cachedResponse) returns Response|ClientError {
     // Set the precondition headers only if the user hasn't explicitly set them.
     boolean userProvidedINMHeader = originalRequest.hasHeader(IF_NONE_MATCH);
     if (!userProvidedINMHeader && cachedResponse.hasHeader(ETAG)) {
@@ -89,7 +89,7 @@ isolated function sendValidationRequest(HttpClient httpClient, string path, Requ
 
     // TODO: handle cases where neither of the above 2 headers are present
 
-    var resp = httpClient->execute(originalRequest.method, path, originalRequest);
+    var resp = httpClient->execute(httpMethod, path, originalRequest);
 
     // Have to remove the precondition headers from the request if they weren't user provided.
     if (!userProvidedINMHeader) {
