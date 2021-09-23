@@ -140,7 +140,7 @@ However, if the user wants to write a interceptor which is not bound to any path
 service class RequestInterceptor {
    *http:RequestInterceptor;
  
-   remote function 'default [string… path](http:FilterContext ctx, http:Caller caller,
+   remote function 'default [string… path](http:RequestContext ctx, http:Caller caller,
                        http:Request req) returns RequestInterceptor|error? {
        // do some work
        return ctx.next();
