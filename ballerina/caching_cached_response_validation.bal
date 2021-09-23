@@ -89,7 +89,7 @@ isolated function sendValidationRequest(HttpClient httpClient, string path, Requ
 
     // TODO: handle cases where neither of the above 2 headers are present
 
-    var resp = httpClient->forward(path, originalRequest);
+    var resp = httpClient->execute(originalRequest.method, path, originalRequest);
 
     // Have to remove the precondition headers from the request if they weren't user provided.
     if (!userProvidedINMHeader) {
