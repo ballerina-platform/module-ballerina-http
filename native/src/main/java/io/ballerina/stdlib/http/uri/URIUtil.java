@@ -59,6 +59,9 @@ public class URIUtil {
         for (String queryParam : queryParamVals) {
             int index = queryParam.indexOf('=');
             if (index == -1) {
+                if (!tempParamMap.containsKey(queryParam)) {
+                    tempParamMap.put(queryParam, null);
+                }
                 continue;
             }
             String queryParamName = queryParam.substring(0, index).trim();
@@ -72,7 +75,7 @@ public class URIUtil {
                 }
             }
 
-            if (tempParamMap.containsKey(queryParamName)) {
+            if (tempParamMap.containsKey(queryParamName) && tempParamMap.get(queryParamName) != null) {
                 tempParamMap.get(queryParamName).addAll(values);
             } else {
                 tempParamMap.put(queryParamName, values);
@@ -81,8 +84,12 @@ public class URIUtil {
 
         for (Map.Entry<String, List<String>> entry : tempParamMap.entrySet()) {
             List<String> entryValue = entry.getValue();
-            queryParamsMap.put(StringUtils.fromString(entry.getKey()),
-                               StringUtils.fromStringArray(entryValue.toArray(new String[0])));
+            if (entryValue != null) {
+                queryParamsMap.put(StringUtils.fromString(entry.getKey()),
+                        StringUtils.fromStringArray(entryValue.toArray(new String[0])));
+            } else {
+                queryParamsMap.put(StringUtils.fromString(entry.getKey()), null);
+            }
         }
     }
 
