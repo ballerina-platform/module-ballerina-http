@@ -74,7 +74,6 @@ public class HttpService {
     private String chunkingConfig;
     private String mediaTypeSubtypePrefix;
     private String introspectionResourcePath;
-    private boolean treatNilableAsOptional = true;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -154,14 +153,6 @@ public class HttpService {
         return mediaTypeSubtypePrefix;
     }
 
-    public void setTreatNilableAsOptional(boolean treatNilableAsOptional) {
-        this.treatNilableAsOptional = treatNilableAsOptional;
-    }
-
-    public boolean isTreatNilableAsOptional() {
-        return treatNilableAsOptional;
-    }
-
     public String getBasePath() {
         return basePath;
     }
@@ -203,6 +194,7 @@ public class HttpService {
     public static HttpService buildHttpService(BObject service, String basePath) {
         HttpService httpService = new HttpService(service, basePath);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
+        boolean treatNilableAsOptional = true;
         if (checkConfigAnnotationAvailability(serviceConfig)) {
             httpService.setCompressionConfig(
                     (BMap<BString, Object>) serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_COMPRESSION));
@@ -213,38 +205,40 @@ public class HttpService {
                 httpService.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
                         .getValue().trim());
             }
-            httpService.setTreatNilableAsOptional(serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL));
+            treatNilableAsOptional = serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL);
         } else {
             httpService.setHostName(HttpConstants.DEFAULT_HOST);
         }
-        processResources(httpService);
+        processResources(httpService, treatNilableAsOptional);
         httpService.setAllAllowedMethods(DispatcherUtil.getAllResourceMethods(httpService));
         return httpService;
     }
 
-    private static void processResources(HttpService httpService) {
+    private static void processResources(HttpService httpService, boolean treatNilableAsOptional) {
         List<HttpResource> httpResources = new ArrayList<>();
         for (MethodType resource : ((ServiceType) httpService.getBalService().getType()).getResourceMethods()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
-            updateResourceTree(httpService, httpResources, HttpResource.buildHttpResource(resource, httpService));
+            updateResourceTree(httpService, httpResources, HttpResource.buildHttpResource(resource, httpService),
+                    treatNilableAsOptional);
         }
 
         getIntrospectionDocName(httpService).ifPresent(openApiDocName ->
-            updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, openApiDocName))
+            updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, openApiDocName),
+                    treatNilableAsOptional)
         );
         httpService.setResources(httpResources);
     }
 
     private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,
-                                           HttpResource httpResource) {
+                                           HttpResource httpResource, boolean treatNilableAsOptional) {
         try {
             httpService.getUriTemplate().parse(httpResource.getPath(), httpResource, new HttpResourceElementFactory());
         } catch (URITemplateException | UnsupportedEncodingException e) {
             throw new BallerinaConnectorException(e.getMessage());
         }
-        httpResource.setTreatNilableAsOptional(httpService.isTreatNilableAsOptional());
+        httpResource.setTreatNilableAsOptional(treatNilableAsOptional);
         httpResources.add(httpResource);
     }
 
