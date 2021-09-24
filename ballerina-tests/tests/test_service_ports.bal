@@ -126,6 +126,7 @@ const int payloadAccessAfterRespondingTestPort = 9576;
 const int cacheAnnotationTestPort1 = 9577;
 const int cacheAnnotationTestPort2 = 9578;
 const int serviceMediaTypeSubtypePrefixPort = 9579;
+const int queryParamBindingIdealTestPort = 9580;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
