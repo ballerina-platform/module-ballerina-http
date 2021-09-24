@@ -183,6 +183,7 @@ public class HttpDispatcher {
         int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
         int pathParamCount = paramHandler.getPathParamTokenLength();
+        boolean treatNilableAsOptional = httpResource.getTreatNilableAsOptional();
         // Path params are located initially in the signature before the other user provided signature params
         if (pathParamCount != 0) {
             // populate path params
@@ -218,7 +219,8 @@ public class HttpDispatcher {
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.QUERY_PARAM:
-                    populateQueryParams(httpCarbonMessage, paramHandler, paramFeed, (AllQueryParams) param);
+                    populateQueryParams(httpCarbonMessage, paramHandler, paramFeed, (AllQueryParams) param,
+                            treatNilableAsOptional);
                     break;
                 case HttpConstants.HEADER_PARAM:
                     populateHeaderParams(httpCarbonMessage, paramFeed, (AllHeaderParams) param);
@@ -237,15 +239,16 @@ public class HttpDispatcher {
     }
 
     private static void populateQueryParams(HttpCarbonMessage httpCarbonMessage, ParamHandler paramHandler,
-                                            Object[] paramFeed, AllQueryParams queryParams) {
+                                    Object[] paramFeed, AllQueryParams queryParams, boolean treatNilableAsOptional) {
         BMap<BString, Object> urlQueryParams = paramHandler
                 .getQueryParams(httpCarbonMessage.getProperty(HttpConstants.RAW_QUERY_STR));
         for (QueryParam queryParam : queryParams.getAllQueryParams()) {
             String token = queryParam.getToken();
             int index = queryParam.getIndex();
+            boolean queryExist = urlQueryParams.containsKey(StringUtils.fromString(token));
             Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
             if (queryValue == null) {
-                if (queryParam.isNilable()) {
+                if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
                     paramFeed[index++] = null;
                     paramFeed[index] = true;
                     continue;

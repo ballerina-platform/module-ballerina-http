@@ -22,6 +22,7 @@
 # + cors - The cross origin resource sharing configurations for the service
 # + auth - Service auth configurations
 # + mediaTypeSubtypePrefix - Service specific media-type subtype prefix
+# + treatNilableAsOptional - Treat Nilable parameters as optional
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
@@ -29,6 +30,7 @@ public type HttpServiceConfig record {|
     CorsConfig cors = {};
     ListenerAuthConfig[] auth?;
     string mediaTypeSubtypePrefix?;
+    boolean treatNilableAsOptional = true;
 |};
 
 # Configurations for CORS support.
