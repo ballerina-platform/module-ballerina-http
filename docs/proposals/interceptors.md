@@ -1,16 +1,16 @@
 # Proposal: HTTP Interceptors 
 
-_Ownes_: Shafreen, Chamil, Ayesh, Tharmi
-_Reviewers_: Chanaka
-_Created_: 2021/09/23
-_Updated_: 2021/09/23
+_Ownes_: Shafreen, Chamil, Ayesh, Tharmi  
+_Reviewers_: Chanaka  
+_Created_: 2021/09/23  
+_Updated_: 2021/09/23  
 _Issue_: [#692](https://github.com/ballerina-platform/ballerina-standard-library/issues/692)
 
 ## Summary 
 Enhance the HTTP package with Interceptors. Interceptors typically do small units of work such as logging, header manipulation, state publishing, etc, before resources are invoked. 
 
 ## History 
-> **Note**: 1.2.x versions used the filters for interceptors.
+> **Note**: 1.2.x versions used the name filters for interceptors.
 
 The 1.2.x version of HTTP packages did include filters support. Filters could be engaged both in the form of RequestFilter and ResponseFilter. As the names suggest RequestFilter are engaged for inbound requests whereas ResponseFilters are engaged for outbound responses. 
 
@@ -23,7 +23,7 @@ public type RequestFilter object {
    *http:RequestFilter;
 
    public function filterRequest(http:Caller caller, http:Request req, http:FilterContext context) returns boolean {
-       req.setHeader("name_header", "header_value");
+       // do some work
        return true;
    }
 };
@@ -41,13 +41,14 @@ public type ResponseFilter object {
    *http:ResponseFilter;
 
    public function filterResponse(http:Response res, http:FilterContext context) returns boolean {
-       res.setHeader("header_name", "header_value");
+       // do some work
        return true;
    }
 };
 ```
  
-`filterResponse` function is invoked when there is an outbound response. It has only two arguments: Response and FilterContext. Because the response is already written using the Caller by the user there is no point in having a Caller in the argument list. Response argument allows users to modify the outbound response. To continue the filter chain filterResponse function must return `true`.
+`filterResponse` function is invoked when there is an outbound response. It has only two arguments: Response and FilterContext. Because the response is already written using the Caller by the user there is no point in having a Caller in the argument list. Response argument allows users to modify the outbound response. To continue the filter chain `filterResponse` function must return `true`.
+
 ### Engaging Filters
 
 Following code snippet shows how the Listener is configured with both Request and Response filters. 
@@ -61,9 +62,9 @@ Listeners can be configured with an array of filters. Suppose http:Listener is c
 
 ![Filters (2)](https://user-images.githubusercontent.com/6178058/132833551-8df6feef-d537-4077-9dbc-7baf5e81abd1.png)
 
-In this the order of execution RequestFilters and ResponseFilters are as follows assuming that the request goes all the way to the resource.
+In this the order of execution of RequestFilters and ResponseFilters are as follows, assuming that the request goes all the way to the final service.
 
-RequestFilters: 0, 1, 3
+RequestFilters: 0, 1, 3  
 ResponseFilters: 4, 2
 
 Basically ResponseFilters are executed in the opposite direction of RequestFilters. In other words, RequestFilters are executed head to tail whereas ResponseFilters are executed tail to head.
@@ -91,7 +92,7 @@ Without interceptors such logic will have to be duplicated in each resource lead
 Therefore, including interceptors support to HTTP services would definitely improve usability of the library. 
 
 ## Description  
-As mentioned in the Goals and None-Goals section, the primary goal of this proposal is to adapt the 1.2.x version of the Filters into the swan-lake version as interceptors. Therefore, the most of the things discussed in the `History` section is applicable directly to the swan-lake design as well. 
+As mentioned in the `Goals` and `None-Goals` section, the primary goal of this proposal is to adapt the 1.2.x version of the Filters into the swan-lake version as interceptors. Therefore, the most of the things discussed in the `History` section is applicable directly to the swan-lake design as well. 
 
 The key attributes of the interceptors are as follows,
 - Can execute any code
@@ -103,7 +104,7 @@ The key attributes of the interceptors are as follows,
 These attributes are similar to 1.2.x and there is no change. However, there are some syntax and semantics changes as described below.
 
 ### RequestInterceptor 
-Following is an example of RequestInterceptor written in Ballerina swan-lake. RequestInterceptor can only have one resource function. 
+Following is an example of RequestInterceptor written in Ballerina Swan-Lake. RequestInterceptor can only have one resource function. 
 
 ```ballerina
 service class RequestInterceptor {
@@ -152,8 +153,8 @@ Basically the rules are the same as what is there for the HTTP service dispatche
 #### Arguments 
 The list of arguments are the same as the 1.2.x version. 
 
-##### RequestContext 
-Following is the rough definition of the RequestContext. 
+#### RequestContext 
+Following is the definition of the RequestContext. Here the name ReqeustContext is used insted FilterContext because Because the Context is instigated and scoped by the request.
 
 ```ballerina
 public isolated class RequestContext {
@@ -184,24 +185,24 @@ public isolated class RequestContext {
         }
     }
 
-    public isolated function next() returns RequestInterceptor|ResponseInterceptor|error? = external;
+    public isolated function next() returns RequestInterceptor|ResponseInterceptor|HttpService|error? = external;
 }
 ```
 
 #### `next()` Method
-However, there is an addition when it comes to RequestContext. A new method namely, `next()` is introduced to control the execution flow. Users must invoke `next()` method in order to get the next interceptor in the pipeline. Then the reference of the retrieved interceptor must be returned from resource function. Pipeline use this reference to execute the next interceptor.
+However, there is an addition when it comes to RequestContext. A new method namely, `next()` is introduced to control the execution flow. Users must invoke `next()` method in order to get the next interceptor in the pipeline. Then the reference of the retrieved interceptor must be returned from the resource function. Pipeline use this reference to execute the next interceptor.
 
 > **Note**: Even if there is one RequestInterceptor in the pipeline, users must call `next()` in oder to dispatch to the final service which makes the final service also part of the pipeline.
 
 Previously, this was controlled by returning a boolean value which is quite cryptic and confusing. 
 
 #### Returning `error?`
-Resource functions can return only `error?`. In the case of an error, intercetpor chain execution jumps to the nearest RequestErrorInterceptor in the chain. It is a special kind of interceptor which could be used to handle errors. More on this can be found under section `RequestErrorInterceptor and ResponseErrorInterceptor`.
+Resource functions can return only `error?` when using the Caller. In the case of an error, intercetpor pipeline execution jumps to the nearest RequestErrorInterceptor in the pipeline. It is a special kind of interceptor which could be used to handle errors. More on this can be found under section `RequestErrorInterceptor and ResponseErrorInterceptor`.
 
-However, in the case of there is no RequestErrorInterceptor in the pipeline, framework returns 500 internal server error response to the client.
+However, in the case of there is no RequestErrorInterceptor in the pipeline, pipeline returns 500 internal server error response to the client similar to any HTTP service resource.
 
 ### ResponseInterceptor
-Following is an example of ResponseFilter written in Ballerina swan-lake. 
+Following is an example of ResponseFilter written in Ballerina Swan-Lake. 
 
 ```ballerina
 service class ResponseInterceptor {
@@ -217,9 +218,9 @@ service class ResponseInterceptor {
 ResponseInterceptor is different from RequestInterceptor. Since it has nothing to do with HTTP methods and paths, remote functions are used instead of resource functions. Also, in the ResponseInterceptor there is no Caller argument for the same reasons explained in the `History` section.
 
 #### Returning `error?`
-`interceptResponse` function could return only `error?`. In the case of an error, interceptor execution jumps to the nearest ResponseErrorInterceptor. It is a special kind of interceptor which could be used to handle errors. More on this can be found under section `RequestErrorFilter and ResponseErrorFilter`.
+`interceptResponse` function could only return `error?`. In the case of an error, interceptor execution jumps to the nearest ResponseErrorInterceptor. It is a special kind of interceptor which could be used to handle errors. More on this can be found under section `RequestErrorFilter and ResponseErrorFilter`.
 
-However, in the case of there is no ResponseErrorInterceptor in the pipeline, framework returns 500 internal server error response to the client.
+However, in the case of there is no ResponseErrorInterceptor in the pipeline, pipeline returns 500 internal server error response to the client.
 
 ### RequestErrorInterceptor and ResponseErrorInterceptor
 
@@ -253,12 +254,12 @@ service class ResponseErrorInterceptor {
 }
 ```
 
-In the case of an error returned within the ErrorInterceptor, again execution will jump to the nearest ErrorInterceptor. However, if there is no ErrorInterceptor to jump to, it resutls in 500 internal server error just like in interceptors. Besides, ErrorInterceptor is another interceptor.
+In the case of an error returned within the ErrorInterceptor, again execution jumps to the nearest ErrorInterceptor. However, if there is no ErrorInterceptor to jump to, it resutls in 500 internal server error just like in normal interceptors. After all, ErrorInterceptor is just another interceptor.
 
 ### Engaging Interceptors
 
 #### Service Level
-Unlike in 1.2.x, swan-lake could engage interceptors at service level as well. One reason for this is that users may want to engage two different interceptor pipelines for each service even though it is attached to the same listener. At the service level resource function paths are relative to the service base path.
+Unlike in 1.2.x, Swan-Lake could engage interceptors at service level as well. One reason for this is that users may want to engage two different interceptor pipelines for each service even though it is attached to the same listener. At the service level resource function paths are relative to the service base path.
 
 ```ballerina
 @http:ServiceConfig{
@@ -267,7 +268,7 @@ Unlike in 1.2.x, swan-lake could engage interceptors at service level as well. O
 ```
 
 #### Listener Level
-There is no difference between 1.2.x and swan-lake when it comes to engaging the interceptors at the listener level. At the listener level resource function paths are relative to the `/`. 
+There is no difference between 1.2.x and Swan-Lake when it comes to engaging the interceptors at the listener level. At the listener level resource function paths are relative to the `/`. 
 
 ```ballerina
 listener http:Listener echoListener = new http:Listener(9090, config = {filters: [requestFilter, responseFilter]});
@@ -276,31 +277,31 @@ listener http:Listener echoListener = new http:Listener(9090, config = {filters:
 > **Note**: Since HTTP Service configuration record includes a field of type Object, it no longer falls under `anydata`. This means you no longer can make the entire HTTP service configuration as a `configurable` variable. However, in reality you don’t need to make the entire configuration record configurable but rather a selective set which you can still do. The same applies for the HTTP Listener configuration.
 
 ### Execution Order of Filters
-There is no difference between 1.2.x and swan-lake when it comes to the execution order of interceptors. However, with the exception of RequestErrorInterceptors and ResponseErrorInterceptors.
+There is no difference between 1.2.x and Swan-Lake when it comes to the execution order of interceptors with the exception of RequestErrorInterceptors and ResponseErrorInterceptors.
 
 ![NewFilters](https://user-images.githubusercontent.com/6178058/133388424-e22e36d4-e9ec-4264-ab3f-43c0e81e4073.jpg)
 
 In the above example blue dashed box represents the RequestErrorInterceptor and blue boxes simply represent the RequestInterceptors whereas green dashed box represents the ResponseErrorInterceptor and green boxes simply represent the ResponseInterceptor. The new execution orders is as follows,
  
-RequestInterceptor: 1, 2, 4
+RequestInterceptor: 1, 2, 4  
 ResponseFilter: 5, 3, 0
 
-However, consider the scenario where RequestInterceptor at two returns an error, in the case execution jumps from 2 to 5 as the nearest ErrorInterceptor is at 5. The same goes to the response path.
+However, consider the scenario where RequestInterceptor at two returns an error, in that case execution jumps from 2 to 5 as the nearest ErrorInterceptor is at 5. The same goes to the response path.
  
 For more information on this read the section `Execution Order of Filters` under `History` section.
 
 #### Service Annotations
-Service annotations could include security validations related to the service. These security validations are only executed after executing all the request interceptors.  In other words security validations are implemented as the last interceptor in the pipeline. The same applies for other service level or resource level annotations. 
+Service annotations could include security validations related to the service. These security validations are only executed after executing all the request interceptors. In other words security validations are implemented as the last interceptor in the pipeline. The same applies for other service level or resource level annotations. 
 
 If the user wants to execute security as the first interceptor in the pipeline, the user could use imperative approach instead of declarative approach (which is annotation based). 
 
 ### Accessing RequestContext from the Resource
-RequestContext can be accessed at the resource level as well. In that case users need to specify the RequestContext as part of the resource argument. Example,
+RequestContext can be accessed at the final service as well. In that case users need to specify the RequestContext as part of the resource argument. Example,
 ```ballerina
-resource function post foo(@http:Payload json accQuery, http:RequestContext ctx) returns json {}
+resource function post foo(http:RequestContext ctx, @http:Payload json accQuery) returns json {}
 ```
 
-> **Note**: Calling `ctx.next()` inside the resource function returns an error as there is no next RequestInterceptor to return.
+> **Note**: Calling `ctx.next()` inside the resource function returns an error as there is no next RequestInterceptor to return. Likewise, calling `ctx.next()` at the last ResponseInterceptor results in an error as there is no next ResponseInterceptor to return.
 
 ### Concurrency 
 Interceptors are instantiated only once. Therefore the state is preserved among multiple requests. However, this also means the same interceptor can and will execute concurrently. Since interceptor is a service object the Ballerina service concurrency rules apply here as well. Therefore, users must take special care when they write the logic.
@@ -310,4 +311,4 @@ Interceptors are instantiated only once. Therefore the state is preserved among 
 Both RequestInterceptor and ResponseInterceptor methods support data binding. Which means users can directly access the payload, headers and query parameters. In order to get hold of the headers and the payload, users must use `@http:Payload` and `@http:Headers`. 
 
 #### Return to Respond 
-There is a key difference between interceptors and final service. Resources in the final service allow returning values which in turn results in HTTP responses. The same can be done inside the RequestInterceptors. However, as mentioned earlier RequestInterceptors additionally could return the next RequestInterceptor to continue the pipeline which doesn't translate into a HTTP response.
+There is a key difference between interceptors and the final service. Resources in the final service allow returning values which in turn results in HTTP responses. The same can be done inside the RequestInterceptors. However, as mentioned earlier RequestInterceptors additionally could return the next RequestInterceptor to continue the pipeline which doesn't translate into a HTTP response.
