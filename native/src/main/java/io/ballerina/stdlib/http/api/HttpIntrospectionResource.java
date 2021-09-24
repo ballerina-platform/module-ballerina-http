@@ -37,12 +37,12 @@ public class HttpIntrospectionResource extends HttpResource {
     private static final String RESOURCE_METHOD = "$get$";
     private static final String REL_PARAM = "rel=\"service-desc\"";
     private static final String ERROR_PREFIX = "Error retrieving OpenAPI spec: ";
-    private String filePath;
+    private final String filePath;
 
-    protected HttpIntrospectionResource(HttpService httpService, String openApiDocName) {
+    protected HttpIntrospectionResource(HttpService httpService, String filePath) {
         String path = (httpService.getBasePath() + SINGLE_SLASH + RESOURCE_NAME).replaceAll("/+", SINGLE_SLASH);
         httpService.setIntrospectionResourcePathHeaderValue("<" + path + ">;" + REL_PARAM);
-        filePath = "resources/ballerina/http/" + openApiDocName + ".json";
+        this.filePath = filePath;
     }
 
     public String getName() {
@@ -54,21 +54,18 @@ public class HttpIntrospectionResource extends HttpResource {
     }
 
     public byte[] getPayload() {
-        InputStream inputStream = HttpIntrospectionResource.class.getClassLoader().getResourceAsStream(filePath);
-        Objects.requireNonNull(inputStream, ERROR_PREFIX + "generated doc does not exist");
+        ByteArrayOutputStream result;
+        try (InputStream inputStream = HttpIntrospectionResource.class.getClassLoader().getResourceAsStream(filePath)) {
+            Objects.requireNonNull(inputStream, ERROR_PREFIX + "generated doc does not exist");
 
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int length;
-        while (true) {
-            try {
-                if ((length = inputStream.read(buffer)) == -1) {
-                    break;
-                }
-            } catch (IOException e) {
-                throw HttpUtil.createHttpError(ERROR_PREFIX + e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
+            result = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) != -1) {
+                result.write(buffer, 0, length);
             }
-            result.write(buffer, 0, length);
+        } catch (IOException e) {
+            throw HttpUtil.createHttpError(ERROR_PREFIX + e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
         }
         return result.toByteArray();
     }
