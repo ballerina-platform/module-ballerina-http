@@ -71,6 +71,10 @@ service /headerparamservice on HeaderBindingEP {
     resource function get q5(@http:Header string x\-Type) returns string {
         return x\-Type;
     }
+
+    resource function get q6(@http:Header string? foo) returns string {
+        return foo ?: "empty";
+    }
 }
 
 @test:Config {}
@@ -211,6 +215,16 @@ function testHeaderParamTokenWithEscapeChar() {
     http:Response|error response = headerBindingClient->get("/headerparamservice/q5", {"x-Type" : "test"});
     if response is http:Response {
         assertTextPayload(response.getTextPayload(), "test");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testHeaderBindingWithNoHeaderValue() {
+    http:Response|error response = headerBindingClient->get("/headerparamservice/q6", {"foo" : ""});
+    if response is http:Response {
+        assertTextPayload(response.getTextPayload(), "empty");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
