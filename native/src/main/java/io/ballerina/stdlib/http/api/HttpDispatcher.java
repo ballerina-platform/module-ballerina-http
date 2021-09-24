@@ -183,7 +183,7 @@ public class HttpDispatcher {
         int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
         int pathParamCount = paramHandler.getPathParamTokenLength();
-        boolean treatNilableAsOptional = httpResource.getTreatNilableAsOptional();
+        boolean treatNilableAsOptional = httpResource.isTreatNilableAsOptional();
         // Path params are located initially in the signature before the other user provided signature params
         if (pathParamCount != 0) {
             // populate path params

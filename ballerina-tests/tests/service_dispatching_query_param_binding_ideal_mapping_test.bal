@@ -73,7 +73,7 @@ function testIdealQueryParamBindingWithoutQueryParam() {
 }
 
 @test:Config {}
-function testIdealQueryParamBindingWithEmptyQueryParam() {
+function testIdealQueryParamBindingWithNoQueryParamValue() {
     http:Response|error response = queryBindingIdealClient->get("/queryparamservice/test1?foo&bar=56");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);

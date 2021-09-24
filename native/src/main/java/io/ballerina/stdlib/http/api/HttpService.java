@@ -158,7 +158,7 @@ public class HttpService {
         this.treatNilableAsOptional = treatNilableAsOptional;
     }
 
-    public boolean getTreatNilableAsOptional() {
+    public boolean isTreatNilableAsOptional() {
         return treatNilableAsOptional;
     }
 
@@ -244,7 +244,7 @@ public class HttpService {
         } catch (URITemplateException | UnsupportedEncodingException e) {
             throw new BallerinaConnectorException(e.getMessage());
         }
-        httpResource.setTreatNilableAsOptional(httpService.getTreatNilableAsOptional());
+        httpResource.setTreatNilableAsOptional(httpService.isTreatNilableAsOptional());
         httpResources.add(httpResource);
     }
 

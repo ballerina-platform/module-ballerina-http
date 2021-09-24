@@ -208,7 +208,7 @@ public class HttpResource {
         this.treatNilableAsOptional = treatNilableAsOptional;
     }
 
-    public boolean getTreatNilableAsOptional() {
+    public boolean isTreatNilableAsOptional() {
         return treatNilableAsOptional;
     }
 
