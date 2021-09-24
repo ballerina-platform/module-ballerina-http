@@ -223,7 +223,7 @@ public class HttpDispatcher {
                             treatNilableAsOptional);
                     break;
                 case HttpConstants.HEADER_PARAM:
-                    populateHeaderParams(httpCarbonMessage, paramFeed, (AllHeaderParams) param);
+                    populateHeaderParams(httpCarbonMessage, paramFeed, (AllHeaderParams) param, treatNilableAsOptional);
                     break;
                 case HttpConstants.PAYLOAD_PARAM:
                     if (inRequest == null) {
@@ -273,13 +273,23 @@ public class HttpDispatcher {
     }
 
     private static void populateHeaderParams(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed,
-                                             AllHeaderParams headerParams) {
+                                             AllHeaderParams headerParams, boolean treatNilableAsOptional) {
         HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
         for (HeaderParam headerParam : headerParams.getAllHeaderParams()) {
             String token = headerParam.getHeaderName();
             int index = headerParam.getIndex();
             List<String> headerValues = httpHeaders.getAll(token);
             if (headerValues.isEmpty()) {
+                if (headerParam.isNilable() && treatNilableAsOptional) {
+                    paramFeed[index++] = null;
+                    paramFeed[index] = true;
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no header value found for '" + token + "'");
+                }
+            }
+            if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
                 if (headerParam.isNilable()) {
                     paramFeed[index++] = null;
                     paramFeed[index] = true;
