@@ -28,6 +28,9 @@ build/
 target/
 .gradle/
 
+# MacOS
+*.DS_Store
+
 # IDE-related files
 .idea
 .code
