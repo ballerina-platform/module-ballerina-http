@@ -75,6 +75,7 @@ public class HttpResource {
     private int pathParamCount;
     private String returnMediaType;
     private BMap cacheConfig;
+    private boolean treatNilableAsOptional;
 
     protected HttpResource(MethodType resource, HttpService parentService) {
         this.balResource = resource;
@@ -201,6 +202,14 @@ public class HttpResource {
 
     public void setTransactionInfectable(boolean transactionInfectable) {
         this.transactionInfectable = transactionInfectable;
+    }
+
+    public void setTreatNilableAsOptional(boolean treatNilableAsOptional) {
+        this.treatNilableAsOptional = treatNilableAsOptional;
+    }
+
+    public boolean isTreatNilableAsOptional() {
+        return treatNilableAsOptional;
     }
 
     public static HttpResource buildHttpResource(MethodType resource, HttpService httpService) {
