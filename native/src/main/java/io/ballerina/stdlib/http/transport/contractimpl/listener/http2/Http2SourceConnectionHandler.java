@@ -29,7 +29,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.Http2ConnectionDecoder;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
 import io.netty.handler.codec.http2.Http2ConnectionHandler;
+import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2EventAdapter;
+import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2FrameListener;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Settings;
@@ -152,6 +154,7 @@ public class Http2SourceConnectionHandler extends Http2ConnectionHandler {
                 LOG.debug("RstStreamRead event in server frame listener. Stream id : {} Error code : {}", streamId,
                           errorCode);
             }
+            ctx.fireExceptionCaught(new Http2Exception(Http2Error.valueOf(errorCode), "Stream Closed"));
         }
     }
 }
