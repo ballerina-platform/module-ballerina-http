@@ -84,6 +84,12 @@ public class SendingEntityBody implements SenderState {
     }
 
     @Override
+    public void writeRstStream(ChannelHandlerContext ctx) {
+        http2MessageStateContext.setSenderState(new SendingRstFrame(http2TargetHandler, http2RequestWriter));
+        http2MessageStateContext.getSenderState().writeRstStream(ctx);
+    }
+
+    @Override
     public void readInboundResponseHeaders(ChannelHandlerContext ctx, Http2HeadersFrame http2HeadersFrame,
                                            OutboundMsgHolder outboundMsgHolder, boolean serverPush,
                                            Http2MessageStateContext http2MessageStateContext) throws Http2Exception {

@@ -55,6 +55,13 @@ public interface SenderState {
                                   Http2MessageStateContext http2MessageStateContext) throws Http2Exception;
 
     /**
+     * Writes a reset frame to reset the stream.
+     *
+     * @param ctx                      the channel handler context
+     */
+    void writeRstStream(ChannelHandlerContext ctx);
+
+    /**
      * Reads headers of inbound response.
      *
      * @param ctx                      the channel handler context
