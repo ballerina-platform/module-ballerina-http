@@ -1,7 +1,7 @@
 # Proposal: HTTP Interceptors 
 
 _Ownes_: Shafreen, Chamil, Ayesh, Tharmi  
-_Reviewers_: Chanaka  
+_Reviewers_: Chanaka, Chamil  
 _Created_: 2021/09/23  
 _Updated_: 2021/09/23  
 _Issue_: [#692](https://github.com/ballerina-platform/ballerina-standard-library/issues/692)
