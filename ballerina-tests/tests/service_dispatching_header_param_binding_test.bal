@@ -222,9 +222,9 @@ function testHeaderParamTokenWithEscapeChar() {
 
 @test:Config {}
 function testHeaderBindingWithNoHeaderValue() {
-    http:Response|error response = headerBindingClient->get("/headerparamservice/q6", {"foo" : ""});
-    if response is http:Response {
-        assertTextPayload(response.getTextPayload(), "empty");
+    string|error response = headerBindingClient->get("/headerparamservice/q6", {"foo" : ""});
+    if response is string {
+        test:assertEquals(response, "empty", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

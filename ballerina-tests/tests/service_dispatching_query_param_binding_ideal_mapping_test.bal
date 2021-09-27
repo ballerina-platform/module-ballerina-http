@@ -38,16 +38,16 @@ service /queryparamservice on QueryBindingIdealEP {
 
 @test:Config {}
 function testIdealQueryParamBindingWithQueryParamValue() {
-    http:Response|error response = queryBindingIdealClient->get("/queryparamservice/test1?foo=WSO2&bar=56");
-    if response is http:Response {
-        assertJsonPayload(response.getJsonPayload(), {value1:"WSO2", value2:56});
+    json|error response = queryBindingIdealClient->get("/queryparamservice/test1?foo=WSO2&bar=56");
+    if response is json {
+        test:assertEquals(response, {value1:"WSO2", value2:56}, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = queryBindingIdealClient->get("/queryparamservice/test2?foo=WSO2&bar=56");
-    if response is http:Response {
-        assertJsonPayload(response.getJsonPayload(), {value1:"WSO2", value2:56});
+    if response is json {
+        test:assertEquals(response, {value1:"WSO2", value2:56}, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

@@ -296,16 +296,16 @@ function testEmptyOptionalQueryParamBinding() {
 
 @test:Config {}
 function testOptionalRepeatingQueryParamBinding() {
-    http:Response|error response = queryBindingClient->get("/queryparamservice/q10?x-Type=test&x-Type");
-    if response is http:Response {
-        assertTextPayload(response.getTextPayload(), "test");
+    string|error response = queryBindingClient->get("/queryparamservice/q10?x-Type=test&x-Type");
+    if response is string {
+        test:assertEquals(response, "test", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = queryBindingClient->get("/queryparamservice/q10?x-Type&x-Type=test");
-    if response is http:Response {
-        assertTextPayload(response.getTextPayload(), "test");
+    if response is string {
+        test:assertEquals(response, "test", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

@@ -38,16 +38,16 @@ service /headerparamservice on HeaderBindingIdealEP {
 
 @test:Config {}
 function testIdealHeaderParamBindingWithHeaderValue() {
-    http:Response|error response = headerBindingIdealClient->get("/headerparamservice/test1?foo=WSO2&bar=56", {"foo":"Ballerina"});
-    if response is http:Response {
-        assertJsonPayload(response.getJsonPayload(), {value1:"Ballerina", value2:56});
+    json|error response = headerBindingIdealClient->get("/headerparamservice/test1?foo=WSO2&bar=56", {"foo":"Ballerina"});
+    if response is json {
+        test:assertEquals(response, {value1:"Ballerina", value2:56}, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = headerBindingIdealClient->get("/headerparamservice/test2?foo=WSO2&bar=56", {"foo":"Ballerina"});
-    if response is http:Response {
-        assertJsonPayload(response.getJsonPayload(), {value1:"Ballerina", value2:56});
+    if response is json {
+        test:assertEquals(response, {value1:"Ballerina", value2:56}, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
