@@ -33,6 +33,9 @@ target/
 
 # IDE-related files
 .idea
+*.iml
+*.ipr
+*.iws
 .code
 .project
 .settings
@@ -40,3 +43,4 @@ target/
 
 # Ballerina related ignores
 Ballerina.lock
+velocity.log*
