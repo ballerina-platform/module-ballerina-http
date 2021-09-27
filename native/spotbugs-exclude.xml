@@ -48,4 +48,8 @@
     <Match>
         <Class name="io.ballerina.stdlib.http.api.HttpDispatcher" />
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.HttpIntrospectionResource" />
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE" />
+    </Match>
 </FindBugsFilter>

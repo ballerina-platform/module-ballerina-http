@@ -27,12 +27,6 @@ service / on httpIntroResTestListener {
     }
 }
 
-service /lake on httpIntroResTestListener {
-    resource function post greeting() returns string {
-        return "Hello Lake";
-    }
-}
-
 http:Service openApiMock = service object {
     resource function get mockResource() returns string {
         return "Hello ballerina";
@@ -40,70 +34,34 @@ http:Service openApiMock = service object {
 };
 
 @test:Config {}
-function testIntrospectionResourceLink() returns error? {
+function testIntrospectionResourceLinkWhenFileDoesNotExist() returns error? {
     http:Response|error response = httpIntroResTestClient->options("/greeting");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-        assertHeaderValue(check response.getHeader(LINK), "</openapi-doc-dygixywsw>;rel=\"service-desc\"");
+        string|error header = response.getHeader(LINK);
+        if header is error {
+            test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected Error");
+        } else {
+            test:assertFail(msg = "Found unexpected output type: " + header);
+        }
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testIntrospectionResourceLinkForBasePath() returns error? {
+function testIntrospectionResourceLinkForBasePathWhenFileDoesNotExist() returns error? {
     http:Response|error response = httpIntroResTestClient->options("/");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-        assertHeaderValue(check response.getHeader(LINK), "</openapi-doc-dygixywsw>;rel=\"service-desc\"");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testIntrospectionResourceLinkLakeResource() returns error? {
-    http:Response|error response = httpIntroResTestClient->options("/lake/greeting");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(check response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
-        assertHeaderValue(check response.getHeader(LINK), "</lake/openapi-doc-dygixywsw>;rel=\"service-desc\"");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testOptionsCallForIntrospectionResource() returns error? {
-    http:Response|error response = httpIntroResTestClient->options("/lake/openapi-doc-dygixywsw");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-        assertHeaderValue(check response.getHeader(LINK), "</lake/openapi-doc-dygixywsw>;rel=\"service-desc\"");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testPOSTCallForIntrospectionResource() {
-    http:Response|error response = httpIntroResTestClient->post("/lake/openapi-doc-dygixywsw", "hi");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 405, msg = "Found unexpected statusCode");
-        assertTextPayload(response.getTextPayload(), "Method not allowed");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testOpenApiSpecRetrievalWithNoFile() {
-    http:Response|error response = httpIntroResTestClient->get("/openapi-doc-dygixywsw");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "Error retrieving OpenAPI spec: generated doc does not exist");
+        string|error header = response.getHeader(LINK);
+        if header is error {
+            test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected Error");
+        } else {
+            test:assertFail(msg = "Found unexpected output type: " + header);
+        }
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

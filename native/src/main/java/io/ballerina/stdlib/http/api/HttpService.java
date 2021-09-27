@@ -34,6 +34,7 @@ import io.ballerina.stdlib.http.uri.parser.Literal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -224,10 +225,16 @@ public class HttpService {
                     treatNilableAsOptional);
         }
 
-        getIntrospectionDocName(httpService).ifPresent(openApiDocName ->
-            updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, openApiDocName),
-                    treatNilableAsOptional)
-        );
+        httpService.getIntrospectionDocName().ifPresent(openApiDocName -> {
+            String filePath = "resources/ballerina/http/" + openApiDocName + ".json";
+            File tempFile = new File(filePath);
+            if (tempFile.exists()) {
+                updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, filePath),
+                        treatNilableAsOptional);
+            } else {
+                log.debug("OpenAPI specification document does not exist in path: '" + filePath + "'");
+            }
+        });
         httpService.setResources(httpResources);
     }
 
@@ -253,16 +260,16 @@ public class HttpService {
         return (BMap) (service.getType()).getAnnotation(StringUtils.fromString(key + ":" + annotationName));
     }
 
-    public String getIntrospectionResourcePathHeaderValue() {
+    protected String getIntrospectionResourcePathHeaderValue() {
         return this.introspectionResourcePath;
     }
 
-    public void setIntrospectionResourcePathHeaderValue(String introspectionResourcePath) {
+    protected void setIntrospectionResourcePathHeaderValue(String introspectionResourcePath) {
         this.introspectionResourcePath = introspectionResourcePath;
     }
 
-    public static Optional<String> getIntrospectionDocName(HttpService httpService) {
-        ObjectType objType = httpService.balService.getType();
+    protected Optional<String> getIntrospectionDocName() {
+        ObjectType objType = this.balService.getType();
         if (Objects.nonNull(objType)) {
             return objType.getAnnotations().entrySet().stream()
                     .filter(e -> e.getKey().toString().contains(HttpConstants.ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG))

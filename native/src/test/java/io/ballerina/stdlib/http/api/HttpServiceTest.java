@@ -82,7 +82,8 @@ public class HttpServiceTest {
     public void testGetPayloadFunctionOfIntrospectionResource() {
         BObject service = TestUtils.getNewServiceObject("hello");
         HttpService httpService = new HttpService(service);
-        HttpIntrospectionResource introspectionResource = new HttpIntrospectionResource(httpService, "testopenapidoc");
+        String filePath = "resources/ballerina/http/testopenapidoc.json";
+        HttpIntrospectionResource introspectionResource = new HttpIntrospectionResource(httpService, filePath);
         byte[] payload = introspectionResource.getPayload();
         byte[] fileContent = new byte[0];
         try {
