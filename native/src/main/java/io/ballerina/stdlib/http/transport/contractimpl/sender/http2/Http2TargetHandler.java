@@ -161,7 +161,15 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
                         .setSenderState(new SendingHeaders(Http2TargetHandler.this, this));
                     outboundMsgHolder.setFirstContentWritten(true);
                 }
-                http2MessageStateContext.getSenderState().writeOutboundRequestBody(ctx, msg, http2MessageStateContext);
+                if (msg instanceof Http2ResetContent) {
+                    if (http2MessageStateContext.getSenderState() instanceof SendingHeaders) {
+                        http2MessageStateContext.getSenderState().writeOutboundRequestHeaders(ctx, msg);
+                    }
+                    http2MessageStateContext.getSenderState().writeRstStream(ctx);
+                } else {
+                    http2MessageStateContext.getSenderState()
+                            .writeOutboundRequestBody(ctx, msg, http2MessageStateContext);
+                }
             } catch (RuntimeException ex) {
                 httpOutboundRequest.getHttp2MessageStateContext()
                     .setSenderState(new SendingEntityBody(Http2TargetHandler.this, this));
