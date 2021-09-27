@@ -42,7 +42,6 @@ function testOptionsContentLengthHeader() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(ALLOW), "POST, OPTIONS");
-        assertHeaderValue(checkpanic response.getHeader(LINK), "</echoDummy/openapi-doc-dygixywsw>;rel=\"service-desc\"");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
