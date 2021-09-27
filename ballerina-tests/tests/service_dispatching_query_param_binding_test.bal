@@ -150,7 +150,7 @@ function testAllTypeQueryBinding() {
 function testAllTypeArrQueryBinding() {
     http:Response|error response = queryBindingClient->get(
         "/queryparamservice/q2?id=324441,5652&isPresent=true,false&PersoN=hello,gool&val=1.11,53.9&dc=4.78,5.67");
-    json expected = {iValue:[324441, 5652], sValue:["hello", "gool"], fValue:[1.11, 53.9], 
+    json expected = {iValue:[324441, 5652], sValue:["hello", "gool"], fValue:[1.11, 53.9],
             bValue:[true, false], dValue:[4.78, 5.67]};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -192,7 +192,7 @@ function testNilableAllTypeQueryArrBinding() {
 
     response = queryBindingClient->get(
         "/queryparamservice/q4?id=324441,5652&isPresent=true,false&PersoN=hello,gool&val=1.11,53.9&dc=4.78,5.67");
-    expected = {iValue:[324441, 5652], sValue:["hello", "gool"], fValue:[1.11, 53.9], 
+    expected = {iValue:[324441, 5652], sValue:["hello", "gool"], fValue:[1.11, 53.9],
             bValue:[true, false], dValue:[4.78, 5.67]};
     if (response is http:Response) {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
@@ -289,6 +289,23 @@ function testEmptyOptionalQueryParamBinding() {
     http:Response|error response = queryBindingClient->get("/queryparamservice/q10?x-Type");
     if response is http:Response {
         assertTextPayload(response.getTextPayload(), "default");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testOptionalRepeatingQueryParamBinding() {
+    string|error response = queryBindingClient->get("/queryparamservice/q10?x-Type=test&x-Type");
+    if response is string {
+        test:assertEquals(response, "test", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = queryBindingClient->get("/queryparamservice/q10?x-Type&x-Type=test");
+    if response is string {
+        test:assertEquals(response, "test", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
