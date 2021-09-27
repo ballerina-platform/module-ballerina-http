@@ -183,6 +183,7 @@ public class HttpDispatcher {
         int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
         int pathParamCount = paramHandler.getPathParamTokenLength();
+        boolean treatNilableAsOptional = httpResource.isTreatNilableAsOptional();
         // Path params are located initially in the signature before the other user provided signature params
         if (pathParamCount != 0) {
             // populate path params
@@ -218,10 +219,11 @@ public class HttpDispatcher {
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.QUERY_PARAM:
-                    populateQueryParams(httpCarbonMessage, paramHandler, paramFeed, (AllQueryParams) param);
+                    populateQueryParams(httpCarbonMessage, paramHandler, paramFeed, (AllQueryParams) param,
+                            treatNilableAsOptional);
                     break;
                 case HttpConstants.HEADER_PARAM:
-                    populateHeaderParams(httpCarbonMessage, paramFeed, (AllHeaderParams) param);
+                    populateHeaderParams(httpCarbonMessage, paramFeed, (AllHeaderParams) param, treatNilableAsOptional);
                     break;
                 case HttpConstants.PAYLOAD_PARAM:
                     if (inRequest == null) {
@@ -237,15 +239,16 @@ public class HttpDispatcher {
     }
 
     private static void populateQueryParams(HttpCarbonMessage httpCarbonMessage, ParamHandler paramHandler,
-                                            Object[] paramFeed, AllQueryParams queryParams) {
+                                    Object[] paramFeed, AllQueryParams queryParams, boolean treatNilableAsOptional) {
         BMap<BString, Object> urlQueryParams = paramHandler
                 .getQueryParams(httpCarbonMessage.getProperty(HttpConstants.RAW_QUERY_STR));
         for (QueryParam queryParam : queryParams.getAllQueryParams()) {
             String token = queryParam.getToken();
             int index = queryParam.getIndex();
+            boolean queryExist = urlQueryParams.containsKey(StringUtils.fromString(token));
             Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
             if (queryValue == null) {
-                if (queryParam.isNilable()) {
+                if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
                     paramFeed[index++] = null;
                     paramFeed[index] = true;
                     continue;
@@ -270,13 +273,23 @@ public class HttpDispatcher {
     }
 
     private static void populateHeaderParams(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed,
-                                             AllHeaderParams headerParams) {
+                                             AllHeaderParams headerParams, boolean treatNilableAsOptional) {
         HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
         for (HeaderParam headerParam : headerParams.getAllHeaderParams()) {
             String token = headerParam.getHeaderName();
             int index = headerParam.getIndex();
             List<String> headerValues = httpHeaders.getAll(token);
             if (headerValues.isEmpty()) {
+                if (headerParam.isNilable() && treatNilableAsOptional) {
+                    paramFeed[index++] = null;
+                    paramFeed[index] = true;
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no header value found for '" + token + "'");
+                }
+            }
+            if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
                 if (headerParam.isNilable()) {
                     paramFeed[index++] = null;
                     paramFeed[index] = true;

@@ -61,6 +61,7 @@ public class HttpService {
     private static final BString VERSIONING_FIELD = StringUtils.fromString("versioning");
     private static final BString HOST_FIELD = StringUtils.fromString("host");
     private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = StringUtils.fromString("mediaTypeSubtypePrefix");
+    private static final BString TREAT_NILABLE_AS_OPTIONAL = StringUtils.fromString("treatNilableAsOptional");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -74,6 +75,7 @@ public class HttpService {
     private String chunkingConfig;
     private String mediaTypeSubtypePrefix;
     private String introspectionResourcePath;
+    private boolean treatNilableAsOptional = true;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -153,6 +155,14 @@ public class HttpService {
         return mediaTypeSubtypePrefix;
     }
 
+    public void setTreatNilableAsOptional(boolean treatNilableAsOptional) {
+        this.treatNilableAsOptional = treatNilableAsOptional;
+    }
+
+    public boolean isTreatNilableAsOptional() {
+        return treatNilableAsOptional;
+    }
+
     public String getBasePath() {
         return basePath;
     }
@@ -204,6 +214,7 @@ public class HttpService {
                 httpService.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
                         .getValue().trim());
             }
+            httpService.setTreatNilableAsOptional(serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL));
         } else {
             httpService.setHostName(HttpConstants.DEFAULT_HOST);
         }
@@ -240,6 +251,7 @@ public class HttpService {
         } catch (URITemplateException | UnsupportedEncodingException e) {
             throw new BallerinaConnectorException(e.getMessage());
         }
+        httpResource.setTreatNilableAsOptional(httpService.isTreatNilableAsOptional());
         httpResources.add(httpResource);
     }
 
