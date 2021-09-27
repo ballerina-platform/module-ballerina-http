@@ -54,7 +54,7 @@ public type ResponseFilter object {
 Following code snippet shows how the Listener is configured with both Request and Response filters. 
 
 ```ballerina
-listener http:Listener echoListener = new http:Listener(9090, config = {filters: [new RequestFilter(), new ResponseFilter()]});
+listener http:Listener echoListener = new http:Listener(9090, config = {filters: [new http:RequestFilter(), new http:ResponseFilter()]});
 ```
 
 ### Execution Order of Filters
@@ -111,7 +111,7 @@ service class RequestInterceptor {
    *http:RequestInterceptor;
  
    resource function 'default [string… path](http:RequestContext ctx, http:Caller caller,
-                       http:Request req) returns RequestInterceptor|error? {
+                       http:Request req) returns http:RequestInterceptor|error? {
        // do some work
        return ctx.next();
    }
@@ -129,7 +129,7 @@ service class RequestInterceptor {
    *http:RequestInterceptor;
  
    resource function 'default foo(http:RequestContext ctx, http:Caller caller,
-                       http:Request req) returns RequestInterceptor|error? {
+                       http:Request req) returns http:RequestInterceptor|error? {
        // do some work
        return ctx.next();
    }
@@ -141,8 +141,8 @@ However, if the user wants to write a interceptor which is not bound to any path
 service class RequestInterceptor {
    *http:RequestInterceptor;
  
-   remote function 'default [string… path](http:RequestContext ctx, http:Caller caller,
-                       http:Request req) returns RequestInterceptor|error? {
+   resource function 'default [string… path](http:RequestContext ctx, http:Caller caller,
+                       http:Request req) returns http:RequestInterceptor|error? {
        // do some work
        return ctx.next();
    }
@@ -208,7 +208,7 @@ Following is an example of ResponseFilter written in Ballerina Swan-Lake.
 service class ResponseInterceptor {
    *http:ResponseInterceptor;
  
-   remote function interceptResponse(http:RequestContext ctx, http:Response res) returns ResponseInterceptor|error? {
+   remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:ResponseInterceptor|error? {
        // do some work
        return ctx.next();
    }
@@ -230,8 +230,8 @@ As mentioned above this is a special kind of interceptor designed to handle erro
 service class RequestErrorInterceptor {
    *http:RequestErrorInterceptor;
  
-   remote function 'default [string… path](http:RequestContext ctx, http:Caller caller,
-                       http:Request req, error err) returns RequestInterceptor|error? {
+   resouce function 'default [string… path](http:RequestContext ctx, http:Caller caller,
+                       http:Request req, error err) returns http:RequestInterceptor|error? {
        // deal with the error
        return ctx.next();
    }
@@ -247,7 +247,7 @@ service class ResponseErrorInterceptor {
    *http:ResponseErrorInterceptor;
  
    remote function interceptResponseError(http:RequestContext ctx,
-                       http:Response res, error err) returns ResponseInterceptor|error? {
+                       http:Response res, error err) returns http:ResponseInterceptor|error? {
        // deal with the error
        return ctx.next();
    }
