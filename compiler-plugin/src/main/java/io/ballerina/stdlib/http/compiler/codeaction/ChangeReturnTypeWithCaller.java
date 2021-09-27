@@ -1,7 +1,6 @@
 package io.ballerina.stdlib.http.compiler.codeaction;
 
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
@@ -22,6 +21,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Codeaction to change the return type to <pre>error?</pre> if the resource function has <pre>http:Caller</pre> as a
+ * parameter.
+ */
 public class ChangeReturnTypeWithCaller implements CodeAction {
 
     @Override

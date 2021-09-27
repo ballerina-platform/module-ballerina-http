@@ -18,10 +18,16 @@
 
 package io.ballerina.stdlib.http.compiler.codeaction;
 
+import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
+import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
+import io.ballerina.tools.text.LinePosition;
+import io.ballerina.tools.text.LineRange;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Tests the change return type to 'error?' when http:Caller is a function parameter.
@@ -29,18 +35,44 @@ import java.io.IOException;
 public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
 
     @Test(dataProvider = "testDataProvider")
-    public void testCodeActions(String configName) throws IOException {
-        performTest(configName);
+    public void testCodeActions(String srcFile, int line, int offset, CodeActionInfo expected, String resultFile)
+            throws IOException {
+        Path filePath = RESOURCE_PATH.resolve("ballerina_sources")
+                .resolve("sample_codeaction_package_1")
+                .resolve(srcFile);
+        Path resultPath = RESOURCE_PATH.resolve("codeaction")
+                .resolve(getConfigDir())
+                .resolve(resultFile);
+
+        performTest(filePath, LinePosition.from(line, offset), expected, resultPath);
     }
 
     @DataProvider
     private Object[][] testDataProvider() {
-        return new String[][]{
-                {"config1.json"}
+        return new Object[][]{
+                {"service.bal", 20, 49, getChangeHeaderParamToStringCodeAction(), "result1.bal"},
+                {"service.bal", 20, 49, getChangeHeaderParamToStringArrayCodeAction(), "result2.bal"}
         };
     }
 
-    @Override
+    private CodeActionInfo getChangeHeaderParamToStringCodeAction() {
+        LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
+                LinePosition.from(20, 52));
+        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
+        CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string'", List.of(locationArg));
+        codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING");
+        return codeAction;
+    }
+
+    private CodeActionInfo getChangeHeaderParamToStringArrayCodeAction() {
+        LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
+                LinePosition.from(20, 52));
+        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
+        CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string[]'", List.of(locationArg));
+        codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING_ARRAY");
+        return codeAction;
+    }
+
     protected String getConfigDir() {
         return "change_header_param_type";
     }

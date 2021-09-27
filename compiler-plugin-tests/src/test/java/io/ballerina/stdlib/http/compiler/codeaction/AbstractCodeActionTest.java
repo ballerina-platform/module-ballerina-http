@@ -19,9 +19,7 @@
 package io.ballerina.stdlib.http.compiler.codeaction;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.ballerina.projects.CodeActionManager;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
@@ -54,10 +52,8 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractCodeActionTest {
 
-    private static final Path RESOURCE_PATH = Paths.get("src", "test", "resources");
-    private static final Path CONFIG_ROOT = RESOURCE_PATH.resolve("codeaction");
-    private static final Path SOURCE_PATH = RESOURCE_PATH.resolve("ballerina_sources");
-    private static final Path DISTRIBUTION_PATH = Paths.get("build", "target", "ballerina-distribution");
+    protected static final Path RESOURCE_PATH = Paths.get("src", "test", "resources");
+    protected static final Path DISTRIBUTION_PATH = Paths.get("build", "target", "ballerina-distribution");
 
     private static final Gson GSON = new Gson();
 
@@ -69,16 +65,53 @@ public abstract class AbstractCodeActionTest {
     /**
      * Performs the actual test. This will verify both the code action title/args and the edits made once executed.
      *
-     * @param configName Config file name with expected results.
-     * @throws IOException File not found, etc.
+     * @param filePath    Source file path
+     * @param cursorPos   Cursor position
+     * @param expected    Expected codeaction
+     * @param expectedSrc File with expected content once the expected codeaction is executed
+     * @throws IOException File not found, etc
      */
-    protected void performTest(String configName) throws IOException {
-        Path configPath = CONFIG_ROOT.resolve(getConfigDir()).resolve(configName);
-        JsonObject configJson = new JsonParser().parse(Files.readString(configPath)).getAsJsonObject();
-
-        Path filePath = SOURCE_PATH.resolve(configJson.get("source").getAsString());
+    protected void performTest(Path filePath, LinePosition cursorPos, CodeActionInfo expected, Path expectedSrc)
+            throws IOException {
         Project project = ProjectLoader.loadProject(filePath, getEnvironmentBuilder());
+        List<CodeActionInfo> codeActions = getCodeActions(filePath, cursorPos, project);
+        Assert.assertTrue(codeActions.size() > 0, "Expect atleast 1 code action");
 
+        JsonObject expectedCodeAction = GSON.toJsonTree(expected).getAsJsonObject();
+        Optional<CodeActionInfo> found = codeActions.stream()
+                .filter(codeActionInfo -> {
+                    JsonObject actualCodeAction = GSON.toJsonTree(codeActionInfo).getAsJsonObject();
+                    return actualCodeAction.equals(expectedCodeAction);
+                })
+                .findFirst();
+        Assert.assertTrue(found.isPresent(), "Codeaction not found:" + expectedCodeAction.toString());
+
+        List<DocumentEdit> actualEdits = executeCodeAction(project, filePath, found.get());
+        // Changes to 1 file expected
+        Assert.assertEquals(actualEdits.size(), 1, "Expected changes to 1 file");
+
+        String expectedFileUri = filePath.toUri().toString();
+        Optional<DocumentEdit> actualEdit = actualEdits.stream()
+                .filter(docEdit -> docEdit.getFileUri().equals(expectedFileUri))
+                .findFirst();
+
+        Assert.assertTrue(actualEdit.isPresent(), "Edits not found for fileUri: " + expectedFileUri);
+
+        String modifiedSourceCode = actualEdit.get().getModifiedSyntaxTree().toSourceCode();
+        String expectedSourceCode = Files.readString(expectedSrc);
+        Assert.assertEquals(modifiedSourceCode, expectedSourceCode,
+                "Actual source code didn't match expected source code");
+    }
+
+    /**
+     * Get codeactions for the provided cursor position in the provided source file.
+     *
+     * @param filePath  Source file path
+     * @param cursorPos Cursor position
+     * @param project   Project
+     * @return List of codeactions for the cursor position
+     */
+    private List<CodeActionInfo> getCodeActions(Path filePath, LinePosition cursorPos, Project project) {
         Package currentPackage = project.currentPackage();
         PackageCompilation compilation = currentPackage.getCompilation();
         CodeActionManager codeActionManager = compilation.getCodeActionManager();
@@ -86,8 +119,7 @@ public abstract class AbstractCodeActionTest {
         DocumentId documentId = project.documentId(filePath);
         Document document = currentPackage.getDefaultModule().document(documentId);
 
-        LinePosition cursorPos = GSON.fromJson(configJson.get("position").getAsJsonObject(), LinePosition.class);
-        List<CodeActionInfo> codeActions = compilation.diagnosticResult().diagnostics().stream()
+        return compilation.diagnosticResult().diagnostics().stream()
                 .filter(diagnostic -> CodeActionUtil.isWithinRange(diagnostic.location().lineRange(), cursorPos) &&
                         filePath.endsWith(diagnostic.location().lineRange().filePath()))
                 .flatMap(diagnostic -> {
@@ -101,65 +133,36 @@ public abstract class AbstractCodeActionTest {
                     return codeActionManager.codeActions(context).stream();
                 })
                 .collect(Collectors.toList());
-
-        Assert.assertTrue(codeActions.size() > 0, "Expect atleast 1 code action");
-        JsonArray expected = configJson.get("expected").getAsJsonArray();
-        compareResults(expected, codeActions, filePath, compilation, document);
     }
 
-    protected void compareResults(JsonArray expected, List<CodeActionInfo> codeActions, Path filePath,
-                                  PackageCompilation compilation, Document document) {
-        expected.forEach(item -> {
-            JsonObject expectedCodeAction = item.getAsJsonObject().get("codeaction").getAsJsonObject();
+    /**
+     * Get the document edits returned when the provided codeaction is executed.
+     *
+     * @param project    Project
+     * @param filePath   Source file path
+     * @param codeAction Codeaction to be executed
+     * @return List of edits returned by the codeaction execution
+     */
+    private List<DocumentEdit> executeCodeAction(Project project, Path filePath, CodeActionInfo codeAction) {
+        Package currentPackage = project.currentPackage();
+        PackageCompilation compilation = currentPackage.getCompilation();
 
-            Optional<CodeActionInfo> found = codeActions.stream()
-                    .filter(codeActionInfo -> {
-                        JsonObject actualCodeAction = GSON.toJsonTree(codeActionInfo).getAsJsonObject();
-                        return actualCodeAction.equals(expectedCodeAction);
-                    })
-                    .findFirst();
-            Assert.assertTrue(found.isPresent(), "Codeaction not found:" + expectedCodeAction.toString());
+        DocumentId documentId = project.documentId(filePath);
+        Document document = currentPackage.getDefaultModule().document(documentId);
 
-            List<CodeActionArgument> codeActionArguments = found.get().getArguments().stream()
-                    .map(arg -> CodeActionArgument.from(GSON.toJsonTree(arg)))
-                    .collect(Collectors.toList());
+        List<CodeActionArgument> codeActionArguments = codeAction.getArguments().stream()
+                .map(arg -> CodeActionArgument.from(GSON.toJsonTree(arg)))
+                .collect(Collectors.toList());
 
-            CodeActionExecutionContext executionContext = CodeActionExecutionContextImpl.from(
-                    filePath.toUri().toString(),
-                    filePath,
-                    null,
-                    document,
-                    compilation.getSemanticModel(document.documentId().moduleId()),
-                    codeActionArguments);
+        CodeActionExecutionContext executionContext = CodeActionExecutionContextImpl.from(
+                filePath.toUri().toString(),
+                filePath,
+                null,
+                document,
+                compilation.getSemanticModel(document.documentId().moduleId()),
+                codeActionArguments);
 
-            List<DocumentEdit> actualEdits = compilation.getCodeActionManager()
-                    .executeCodeAction(found.get().getProviderName(), executionContext);
-
-            JsonArray expectedEdits = item.getAsJsonObject().get("edits").getAsJsonArray();
-            Assert.assertEquals(actualEdits.size(), expectedEdits.size());
-
-            expectedEdits.forEach(edit -> {
-                String expectedFileUri = SOURCE_PATH.resolve(
-                        edit.getAsJsonObject().get("fileUri").getAsString()).toUri().toString();
-                Optional<DocumentEdit> actualEdit = actualEdits.stream()
-                        .filter(docEdit -> docEdit.getFileUri().equals(expectedFileUri))
-                        .findFirst();
-
-                Assert.assertTrue(actualEdit.isPresent(), "Edits not found for fileUri: " + expectedFileUri);
-
-                JsonArray validations = edit.getAsJsonObject().get("validations").getAsJsonArray();
-                validations.forEach(validation -> {
-                    int line = validation.getAsJsonObject().get("line").getAsInt();
-                    String text = validation.getAsJsonObject().get("text").getAsString();
-
-                    String actualText = actualEdit.get().getModifiedSyntaxTree().textDocument().line(line).text();
-                    Assert.assertEquals(text, actualText,
-                            String.format("Text for line %s of file: %s didn't match. (expected: %s, actual: %s)",
-                                    line, expectedFileUri, text, actualText));
-                });
-            });
-        });
+        return compilation.getCodeActionManager()
+                .executeCodeAction(codeAction.getProviderName(), executionContext);
     }
-
-    protected abstract String getConfigDir();
 }
