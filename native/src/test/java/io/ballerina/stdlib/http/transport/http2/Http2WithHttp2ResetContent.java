@@ -33,6 +33,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ResetContent;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.RequestCompleted;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
@@ -54,13 +55,14 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.LOCALHOST;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SERVER_PORT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 /**
  * This contains test case for sending a Http2ResetContent content to initiate a stream reset.
  */
 public class Http2WithHttp2ResetContent {
-    private static final Logger LOG = LoggerFactory.getLogger(TestExhaustedStreamIdForClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Http2WithHttp2ResetContent.class);
 
     private HttpClientConnector httpClientConnector;
     private ServerConnector serverConnector;
@@ -92,15 +94,22 @@ public class Http2WithHttp2ResetContent {
 
     @Test(description = "Sends a request with reset content such that the stream will be reset")
     public void testHttp2ResetContent() {
-        HttpCarbonMessage requestMessage = MessageGenerator.getHttp2CarbonMessageWithResetContent(HttpMethod.POST);
+        String testValue = "Test Message";
+        HttpCarbonMessage requestMessage = MessageGenerator.generateRequest(HttpMethod.POST, testValue);
         HttpCarbonMessage response = new MessageSender(httpClientConnector).sendMessage(requestMessage);
 
         Http2ClientChannel http2ClientChannel = connectionManager.getHttp2ConnectionManager()
                 .borrowChannel(null, new HttpRoute(Constants.HTTP_SCHEME, LOCALHOST,
                         HTTP_SERVER_PORT, 0));
 
-        int activeStreamsAfterReset = http2ClientChannel.getConnection().local().numActiveStreams();
-        assertEquals(activeStreamsAfterReset, 0);
+        assertNotNull(http2ClientChannel);
+        assertEquals(http2ClientChannel.getConnection().local().numActiveStreams(), 1);
+
+        HttpCarbonMessage resetMessage = MessageGenerator.getHttp2CarbonMessageWithResetContent(HttpMethod.POST);
+        HttpCarbonMessage resetResponse = new MessageSender(httpClientConnector).sendMessage(resetMessage);
+
+        assertTrue(resetMessage.getHttp2MessageStateContext().getSenderState() instanceof RequestCompleted);
+        assertEquals(http2ClientChannel.getConnection().local().numActiveStreams(), 0);
     }
 
     @Test(description = "Checks the overridden equals method")
