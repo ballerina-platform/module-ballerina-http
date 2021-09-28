@@ -22,6 +22,7 @@ import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.FrameLogger;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
+import io.netty.handler.codec.compression.StandardCompressionOptions;
 import io.netty.handler.codec.http2.AbstractHttp2ConnectionHandlerBuilder;
 import io.netty.handler.codec.http2.CompressorHttp2ConnectionEncoder;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
@@ -37,7 +38,7 @@ import static io.netty.handler.logging.LogLevel.TRACE;
  */
 public final class Http2SourceConnectionHandlerBuilder
         extends AbstractHttp2ConnectionHandlerBuilder
-        <Http2SourceConnectionHandler, Http2SourceConnectionHandlerBuilder> {
+                        <Http2SourceConnectionHandler, Http2SourceConnectionHandlerBuilder> {
 
     private String interfaceId;
     private ServerConnectorFuture serverConnectorFuture;
@@ -70,7 +71,8 @@ public final class Http2SourceConnectionHandlerBuilder
     @Override
     public Http2SourceConnectionHandler build(Http2ConnectionDecoder decoder, Http2ConnectionEncoder encoder,
                                               Http2Settings initialSettings) {
-        Http2ConnectionEncoder compressEncoder = new CompressorHttp2ConnectionEncoder(encoder);
+        Http2ConnectionEncoder compressEncoder = new CompressorHttp2ConnectionEncoder(
+                encoder, StandardCompressionOptions.gzip(), StandardCompressionOptions.deflate());
         Http2SourceConnectionHandler sourceConnectionHandler = new Http2SourceConnectionHandler(
                 serverChannelInitializer, decoder, compressEncoder, initialSettings, interfaceId,
                 serverConnectorFuture, serverName);
