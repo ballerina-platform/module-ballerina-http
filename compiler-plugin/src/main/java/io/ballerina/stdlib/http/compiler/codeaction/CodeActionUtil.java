@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2021, WSO2 Inc. (http://wso2.com) All Rights Reserved.
- *  
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,6 +37,13 @@ public class CodeActionUtil {
     private CodeActionUtil() {
     }
 
+    /**
+     * Find the node from syntax tree given a symbol.
+     *
+     * @param syntaxTree Syntax tree
+     * @param symbol     Symbol for which node is to be found
+     * @return Node for the symbol
+     */
     public static NonTerminalNode findNode(SyntaxTree syntaxTree, Symbol symbol) {
         if (symbol.getLocation().isEmpty()) {
             return null;
@@ -49,6 +56,13 @@ public class CodeActionUtil {
         return ((ModulePartNode) syntaxTree.rootNode()).findNode(TextRange.from(start, end - start), true);
     }
 
+    /**
+     * Find a node in syntax tree by line range.
+     *
+     * @param syntaxTree Syntax tree
+     * @param lineRange  line range
+     * @return Node
+     */
     public static NonTerminalNode findNode(SyntaxTree syntaxTree, LineRange lineRange) {
         if (lineRange == null) {
             return null;
@@ -60,6 +74,13 @@ public class CodeActionUtil {
         return ((ModulePartNode) syntaxTree.rootNode()).findNode(TextRange.from(start, end - start), true);
     }
 
+    /**
+     * Check if provided position is within the provided line range.
+     *
+     * @param lineRange Line range
+     * @param pos       Position
+     * @return True if position is within the provided line range
+     */
     public static boolean isWithinRange(LineRange lineRange, LinePosition pos) {
         int sLine = lineRange.startLine().line();
         int sCol = lineRange.startLine().offset();
