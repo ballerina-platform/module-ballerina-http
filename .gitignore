@@ -11,8 +11,8 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
 !gradle/wrapper/gradle-wrapper.jar
+*.jar
 *.war
 *.nar
 *.ear
@@ -23,22 +23,24 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-# Ignore Gradle project-specific cache directory
-.gradle
-
-# Ignore Gradle build output directory
-build
-
-target
-# IDEA Files
-.idea/
-*.iml
-*.ipr
-*.iws
+# Java related ignores
+build/
+target/
+.gradle/
 
 # MacOS
 *.DS_Store
 
-# Ballerina
+# IDE-related files
+.idea
+*.iml
+*.ipr
+*.iws
+.code
+.project
+.settings
+.vscode
+
+# Ballerina related ignores
+Ballerina.lock
 velocity.log*
-*Ballerina.lock
