@@ -1,11 +1,11 @@
 [package]
 org = "ballerina"
 name = "http"
-version = "2.0.0"
+version = "3.0.3"
 distribution = "slbeta3"
 
 [[platform.java11.dependency]]
-path = "../native/build/libs/http-native-2.0.0-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-3.0.3-SNAPSHOT.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/mime-native-2.0.0-20210925-192100-b7cafe3.jar"
