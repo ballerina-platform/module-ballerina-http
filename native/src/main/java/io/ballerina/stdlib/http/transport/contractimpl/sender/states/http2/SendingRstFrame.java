@@ -3,7 +3,6 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2;
 import io.ballerina.stdlib.http.transport.contract.exceptions.EndpointTimeOutException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
@@ -101,11 +100,6 @@ public class SendingRstFrame implements SenderState {
     }
 
     public void resetStream(ChannelHandlerContext ctx) {
-        for (Http2DataEventListener dataEventListener : http2ClientChannel.getDataEventListeners()) {
-            if (!dataEventListener.onDataWrite(ctx, streamId, null, true)) {
-                return;
-            }
-        }
         encoder.writeRstStream(ctx, streamId, Http2Error.STREAM_CLOSED.code(), ctx.newPromise());
         try {
             encoder.flowController().writePendingBytes();
