@@ -42,6 +42,7 @@ public class EchoStreamingMessageListener implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(EchoStreamingMessageListener.class);
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private Exception receivedException;
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
@@ -61,6 +62,7 @@ public class EchoStreamingMessageListener implements HttpConnectorListener {
                 httpMessageDataStreamer.getOutputStream().close();
             } catch (Exception e) {
                 LOG.error("Error occurred during message notification: " + e.getMessage());
+                receivedException = e;
             }
         });
     }
@@ -68,5 +70,9 @@ public class EchoStreamingMessageListener implements HttpConnectorListener {
     @Override
     public void onError(Throwable throwable) {
 
+    }
+
+    public Exception getReceivedException() {
+        return receivedException;
     }
 }
