@@ -54,11 +54,6 @@ public class SendingRstFrame implements SenderState {
     @Override
     public void writeOutboundRequestBody(ChannelHandlerContext ctx, HttpContent httpContent,
                                          Http2MessageStateContext http2MessageStateContext) throws Http2Exception {
-        writeRstStream(ctx);
-    }
-
-    @Override
-    public void writeRstStream(ChannelHandlerContext ctx) {
         resetStream(ctx);
     }
 

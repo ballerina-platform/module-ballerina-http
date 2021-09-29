@@ -22,6 +22,7 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.EndpointTimeOutExc
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ResetContent;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2TargetHandler.Http2RequestWriter;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
@@ -80,13 +81,13 @@ public class SendingEntityBody implements SenderState {
     @Override
     public void writeOutboundRequestBody(ChannelHandlerContext ctx, HttpContent httpContent,
                                          Http2MessageStateContext http2MessageStateContext) throws Http2Exception {
-        writeContent(ctx, httpContent);
-    }
-
-    @Override
-    public void writeRstStream(ChannelHandlerContext ctx) {
-        http2MessageStateContext.setSenderState(new SendingRstFrame(http2TargetHandler, http2RequestWriter));
-        http2MessageStateContext.getSenderState().writeRstStream(ctx);
+        if (httpContent instanceof Http2ResetContent) {
+            http2MessageStateContext.setSenderState(new SendingRstFrame(http2TargetHandler, http2RequestWriter));
+            http2MessageStateContext.getSenderState()
+                    .writeOutboundRequestBody(ctx, httpContent, http2MessageStateContext);
+        } else {
+            writeContent(ctx, httpContent);
+        }
     }
 
     @Override

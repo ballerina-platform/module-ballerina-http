@@ -70,11 +70,6 @@ public class RequestCompleted implements SenderState {
     }
 
     @Override
-    public void writeRstStream(ChannelHandlerContext ctx) {
-        LOG.warn("writeRstStream is not a dependant action of this state");
-    }
-
-    @Override
     public void readInboundResponseHeaders(ChannelHandlerContext ctx, Http2HeadersFrame http2HeadersFrame,
                                            OutboundMsgHolder outboundMsgHolder, boolean serverPush,
                                            Http2MessageStateContext http2MessageStateContext) throws Http2Exception {
