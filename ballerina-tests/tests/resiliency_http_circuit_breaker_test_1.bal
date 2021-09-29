@@ -32,7 +32,7 @@ http:ClientConfiguration conf = {
             requestVolumeThreshold: 0
         },
         failureThreshold: 0.3,
-        resetTime: 3,
+        resetTime: 5,
         statusCodes: [501, 502, 503]
     },
     timeout: 2
@@ -45,10 +45,11 @@ service /cb on circuitBreakerEP00 {
     resource function 'default typical(http:Caller caller, http:Request request) {
         http:Response|error backendRes = backendClientEP00->forward("/hello/typical", request);
         if (cbCounter % 5 == 0) {
-            runtime:sleep(3);
+            runtime:sleep(5);
         } else {
             runtime:sleep(1);
         }
+        cbCounter += 1;
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(backendRes);
             if (responseToCaller is error) {
@@ -73,10 +74,7 @@ service /hello on new http:Listener(8086) {
 
     resource function 'default typical(http:Caller caller, http:Request req) {
         if (cbCounter % 5 == 3) {
-            cbCounter += 1;
             runtime:sleep(3);
-        } else {
-            cbCounter += 1;
         }
         error? responseToCaller = caller->respond("Hello World!!!");
         if (responseToCaller is error) {
@@ -88,9 +86,7 @@ service /hello on new http:Listener(8086) {
 //Test basic circuit breaker functionality
 http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306");
 
-// Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/305
 @test:Config {
-    enable:false,
     dataProvider:responseDataProvider
 }
 function testTypicalBackendTimeout(DataFeed dataFeed) {

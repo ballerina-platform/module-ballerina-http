@@ -17,6 +17,7 @@
 import ballerina/io;
 import ballerina/test;
 import ballerina/http;
+import ballerina/lang.runtime;
 
 listener http:Listener dirtyResponseListener = new(dirtyResponseTestPort);
 http:Client dirtyResponseTestClient = check new("http://localhost:" + dirtyResponseTestPort.toString());
@@ -40,8 +41,7 @@ function getSingletonResponse() returns http:Response {
     return res;
 }
 
-// Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/305#issuecomment-824047016
-@test:Config {enable:false}
+@test:Config {}
 function testDirtyResponse() {
     http:Response|error response = dirtyResponseTestClient->get("/hello");
     if (response is http:Response) {
@@ -56,6 +56,7 @@ function testDirtyResponse() {
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Couldn't complete the respond operation as the response has" +
                         " been already used.");
+        runtime:sleep(5);
         test:assertEquals(dirtyErrorLog, "Couldn't complete the respond operation as the response has" +
                         " been already used.");
     } else {
