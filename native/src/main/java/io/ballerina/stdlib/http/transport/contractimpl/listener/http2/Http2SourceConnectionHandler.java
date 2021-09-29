@@ -154,7 +154,7 @@ public class Http2SourceConnectionHandler extends Http2ConnectionHandler {
                 LOG.debug("RstStreamRead event in server frame listener. Stream id : {} Error code : {}", streamId,
                           errorCode);
             }
-            ctx.fireExceptionCaught(new Http2Exception(Http2Error.valueOf(errorCode), "Stream Closed"));
+            ctx.fireExceptionCaught(new Http2Exception(Http2Error.valueOf(errorCode), "Stream closed"));
         }
     }
 }
