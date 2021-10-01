@@ -99,7 +99,6 @@ function sendCBErrorResponse(http:Caller caller, error e) {
 http:Client h2CBTestClient = check new("http://localhost:9315");
 
 @test:Config{
-    enable:false,
     dataProvider:http2CircuitBreakerDataProvider
 }
 function testBasicHttp2CircuitBreaker(DataFeed dataFeed) {
