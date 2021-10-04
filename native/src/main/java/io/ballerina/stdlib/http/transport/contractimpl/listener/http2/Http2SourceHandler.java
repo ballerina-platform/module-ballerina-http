@@ -163,8 +163,11 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
         } else if (msg instanceof Http2DataFrame) {
             Http2DataFrame dataFrame = (Http2DataFrame) msg;
             int streamId = dataFrame.getStreamId();
-            HttpCarbonMessage sourceReqCMsg = http2ServerChannel.getInboundMessage(streamId)
-                    .getInboundMsg();
+            InboundMessageHolder inboundMessageHolder = http2ServerChannel.getInboundMessage(streamId);
+            HttpCarbonMessage sourceReqCMsg = null;
+            if (inboundMessageHolder != null) {
+                sourceReqCMsg = inboundMessageHolder.getInboundMsg();
+            }
             // CarbonMessage can be already removed from the map once the LastHttpContent is added because of receiving
             // a data frame when the outbound response is started to send. So, the data frames received after that
             // should be released.
