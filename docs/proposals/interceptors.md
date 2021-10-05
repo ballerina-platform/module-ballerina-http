@@ -1,9 +1,9 @@
 # Proposal: HTTP Interceptors 
 
-_Ownes_: Shafreen, Chamil, Ayesh, Tharmi  
-_Reviewers_: Chanaka, Chamil  
+_Ownes_: @shafreenAnfar @chamil321 @ayeshLK @TharmiganK  
+_Reviewers_: @chamil321 @ldclakmal    
 _Created_: 2021/09/23  
-_Updated_: 2021/09/23  
+_Updated_: 2021/10/05  
 _Issue_: [#692](https://github.com/ballerina-platform/ballerina-standard-library/issues/692)
 
 ## Summary 
@@ -262,8 +262,8 @@ In the case of an error returned within the ErrorInterceptor, again execution ju
 Unlike in 1.2.x, Swan-Lake could engage interceptors at service level as well. One reason for this is that users may want to engage two different interceptor pipelines for each service even though it is attached to the same listener. At the service level resource function paths are relative to the service base path.
 
 ```ballerina
-@http:ServiceConfig{
-   filters: [requestFilter, responseFilter]
+@http:ServiceConfig {
+   interceptors: [requestFilter, responseFilter]
 }
 ```
 
@@ -271,7 +271,7 @@ Unlike in 1.2.x, Swan-Lake could engage interceptors at service level as well. O
 There is no difference between 1.2.x and Swan-Lake when it comes to engaging the interceptors at the listener level. At the listener level resource function paths are relative to the `/`. 
 
 ```ballerina
-listener http:Listener echoListener = new http:Listener(9090, config = {filters: [requestFilter, responseFilter]});
+listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: [requestFilter, responseFilter]});
 ```
 
 > **Note**: Since HTTP Service configuration record includes a field of type Object, it no longer falls under `anydata`. This means you no longer can make the entire HTTP service configuration as a `configurable` variable. However, in reality you don’t need to make the entire configuration record configurable but rather a selective set which you can still do. The same applies for the HTTP Listener configuration.
