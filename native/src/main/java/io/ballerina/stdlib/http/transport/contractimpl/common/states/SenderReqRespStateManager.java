@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.common.states;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.SenderState;
@@ -26,6 +27,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
+
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
 
 /**
  * Context class to manipulate current state of the message.
@@ -60,6 +63,7 @@ public class SenderReqRespStateManager {
     }
 
     public void handleAbruptChannelClosure(TargetHandler targetHandler, HttpResponseFuture httpResponseFuture) {
+        safelyRemoveHandlers(nettyTargetChannel.pipeline(), Constants.IDLE_STATE_HANDLER);
         nettyTargetChannel.close();
         state.handleAbruptChannelClosure(targetHandler, httpResponseFuture);
     }
