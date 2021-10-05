@@ -234,7 +234,7 @@ public class HttpService {
 
         httpService.getIntrospectionDocName().ifPresent(openApiDocName -> {
             String filePath = "resources/ballerina/http/" + openApiDocName + ".json";
-            URL resourceUrl = HttpIntrospectionResource.class.getResource(filePath);
+            URL resourceUrl = HttpIntrospectionResource.class.getClassLoader().getResource(filePath);
             if (Objects.nonNull(resourceUrl)) {
                 updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, filePath));
             } else {
