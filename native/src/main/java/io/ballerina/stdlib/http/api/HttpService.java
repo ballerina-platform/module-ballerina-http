@@ -34,8 +34,8 @@ import io.ballerina.stdlib.http.uri.parser.Literal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -234,8 +234,8 @@ public class HttpService {
 
         httpService.getIntrospectionDocName().ifPresent(openApiDocName -> {
             String filePath = "resources/ballerina/http/" + openApiDocName + ".json";
-            File tempFile = new File(filePath);
-            if (tempFile.exists()) {
+            URL resourceUrl = HttpIntrospectionResource.class.getResource(filePath);
+            if (Objects.nonNull(resourceUrl)) {
                 updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, filePath));
             } else {
                 log.debug("OpenAPI specification document does not exist in path: '" + filePath + "'");
