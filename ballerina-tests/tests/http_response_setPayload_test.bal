@@ -72,7 +72,7 @@ function testResponseSetPayloadWithByteArray() returns error? {
 function testResponseSetPayloadWithByteStream() returns error? {
     http:Response res = new;
     io:ReadableByteChannel byteChannel = check io:openReadableFile("tests/datafiles/test.tmp");
-    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
+    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8192);
     res.setPayload(blockStream);
     test:assertEquals(res.getContentType(), "application/octet-stream", msg = "Found unexpected headerValue");
     res.setPayload(blockStream, "stream/test1");
@@ -86,7 +86,7 @@ function testResponseSetPayloadWithByteStream() returns error? {
 function testResponseSetPayloadWithEntityArray() returns error? {
     http:Response res = new;
     io:ReadableByteChannel byteChannel = check io:openReadableFile ("tests/datafiles/test.tmp");
-    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
+    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8192);
     mime:Entity binaryFilePart = new;
     binaryFilePart.setByteStream(blockStream);
     mime:Entity[] bodyParts = [binaryFilePart];
@@ -164,7 +164,7 @@ function testResponseSetJsonPayload() returns error? {
 function testResponseSetByteStream() returns error? {
     http:Response res = new;
     io:ReadableByteChannel byteChannel = check io:openReadableFile("tests/datafiles/test.tmp");
-    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
+    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8192);
     res.setByteStream(blockStream);
     test:assertEquals(res.getContentType(), "application/octet-stream", msg = "Found unexpected headerValue");
     res.setByteStream(blockStream, "stream/test1");
