@@ -52,10 +52,12 @@ public class CreateSimpleHttpClient {
             HttpConnectionManager connectionManager = HttpConnectionManager.getInstance();
             String scheme;
             String urlString = clientUrl.getValue();
-            if (!urlString.matches(HttpConstants.SCHEME_REGEX)) {
-                urlString = HttpConstants.HTTP_SCHEME + urlString;
+            String[] urlStrings = urlString.split(HttpConstants.SCHEME_SEPARATOR, 2);
+            if (urlStrings.length == 1) {
+                urlStrings = new String[]{HttpConstants.HTTP_SCHEME, urlStrings[0]};
             }
-            urlString = urlString.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
+            urlStrings[1] = urlStrings[1].replaceAll(HttpConstants.DOUBLE_SLASH, HttpConstants.SINGLE_SLASH);
+            urlString = urlStrings[0] + HttpConstants.SCHEME_SEPARATOR + urlStrings[1];
             URL url;
             try {
                 url = new URL(urlString);
