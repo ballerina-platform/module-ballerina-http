@@ -51,7 +51,11 @@ public class CreateSimpleHttpClient {
         try {
             HttpConnectionManager connectionManager = HttpConnectionManager.getInstance();
             String scheme;
-            String urlString = clientUrl.getValue().replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
+            String urlString = clientUrl.getValue();
+            if (!urlString.matches(HttpConstants.SCHEME_REGEX)) {
+                urlString = HttpConstants.HTTP_SCHEME + urlString;
+            }
+            urlString = urlString.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
             URL url;
             try {
                 url = new URL(urlString);

@@ -497,6 +497,8 @@ public class HttpConstants {
     public static final String SINGLE_SLASH = "/";
     public static final String DOUBLE_SLASH = "//";
     public static final String REGEX = "(?<!(http:|https:))//";
+    public static final String SCHEME_REGEX = "^([a-z][a-z0-9+\\-.]*)://[a-z]+.*";
+    public static final String HTTP_SCHEME = "http://";
 
     public static final String SERVER_CONNECTOR_FUTURE = "ServerConnectorFuture";
 

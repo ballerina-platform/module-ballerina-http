@@ -635,3 +635,11 @@ public function testProxyClientError() {
         test:assertFail(msg = "Found unexpected output type");
     }
 }
+
+@test:Config {}
+function testClientInitWithoutScheme() {
+    http:Client|error httpEndpoint = new ("bar.com/foo");
+    if httpEndpoint is error {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
