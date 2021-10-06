@@ -643,3 +643,13 @@ function testClientInitWithoutScheme() {
         test:assertFail(msg = "Found unexpected output type");
     }
 }
+
+@test:Config {}
+function testClientInitWithEmptyUrl() {
+    http:Client|error httpEndpoint = new ("");
+    if (httpEndpoint is error) {
+        test:assertEquals(httpEndpoint.message(), "malformed URL: ", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
