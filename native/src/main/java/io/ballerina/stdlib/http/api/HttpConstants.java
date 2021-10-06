@@ -498,7 +498,7 @@ public class HttpConstants {
     public static final String DOUBLE_SLASH = "//";
     public static final String REGEX = "(?<!(http:|https:))//";
     public static final String SCHEME_SEPARATOR = "://";
-    public static final String HTTP_SCHEME = "http://";
+    public static final String HTTP_SCHEME = "http";
 
     public static final String SERVER_CONNECTOR_FUTURE = "ServerConnectorFuture";
 
