@@ -195,22 +195,17 @@ task ballerinaTest {
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:processResources")
     finalizedBy(revertTomlFile)
 
-    def privateKey = "tests/certsandkeys/private.key"
-    def publicCert = "tests/certsandkeys/public.crt"
-    def certsAndKeys = "--certificate.key=${privateKey} --public.cert=${publicCert}"
-
-
     doLast {
         exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test " +
-                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys} && " +
+                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} && " +
                         "exit %%ERRORLEVEL%%"
             } else {
                 commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test " +
-                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} ${certsAndKeys}"
+                        "${testParams} ${groupParams} ${disableGroups} ${debugParams}"
             }
         }
     }
