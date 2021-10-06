@@ -313,7 +313,7 @@ public class Request {
     #
     # + arraySize - A defaultable parameter to state the size of the byte array. Default size is 8KB
     # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
-    public isolated function getByteStream(int arraySize = 8196) returns stream<byte[], io:Error?>|ClientError {
+    public isolated function getByteStream(int arraySize = 8192) returns stream<byte[], io:Error?>|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if (result is error) {
             return result;
