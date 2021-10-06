@@ -29,7 +29,7 @@ service / on new http:Listener(clientWithoutSchemeTestPort) {
 @test:Config {}
 function testHttpClientInitWithoutScheme() {
     http:Response|error response = clientWithoutScheme->get("/test");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.getTextPayload(), "HelloWorld");
     } else {
         test:assertFail("Unexpected output");
