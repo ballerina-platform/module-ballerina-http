@@ -619,7 +619,7 @@ function testClientPathWithWhitespaces() {
 function testClientInitWithMalformedURL() {
     http:Client|error httpEndpoint = new ("httpeds://bar.com/foo");
     if (httpEndpoint is error) {
-        test:assertEquals(httpEndpoint.message(), "malformed URL: "httpeds:/bar.com/foo"", msg = "Found unexpected output");
+        test:assertEquals(httpEndpoint.message(), "malformed URL: httpeds://bar.com/foo", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
