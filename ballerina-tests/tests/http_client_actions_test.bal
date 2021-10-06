@@ -617,9 +617,9 @@ function testClientPathWithWhitespaces() {
 
 @test:Config {}
 function testClientInitWithMalformedURL() {
-    http:Client|error httpEndpoint = new ("invalid URL here");
+    http:Client|error httpEndpoint = new ("httpeds://bar.com/foo");
     if (httpEndpoint is error) {
-        test:assertEquals(httpEndpoint.message(), "malformed URL: invalid URL here", msg = "Found unexpected output");
+        test:assertEquals(httpEndpoint.message(), "malformed URL: httpeds://bar.com/foo", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -631,6 +631,24 @@ public function testProxyClientError() {
         { http1Settings: { proxy: { host:"ballerina", port:9219 }}});
     if (clientEP is error) {
         test:assertEquals(clientEP.message(), "Failed to resolve host: ballerina", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testClientInitWithoutScheme() {
+    http:Client|error httpEndpoint = new ("bar.com/foo");
+    if httpEndpoint is error {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testClientInitWithEmptyUrl() {
+    http:Client|error httpEndpoint = new ("");
+    if (httpEndpoint is error) {
+        test:assertEquals(httpEndpoint.message(), "malformed URL: ", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
