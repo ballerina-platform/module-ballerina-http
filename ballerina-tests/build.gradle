@@ -157,6 +157,7 @@ task revertTomlFile {
 
 def groupParams = ""
 def disableGroups = ""
+def windowsDisableGroups = "--disable-groups disabledOnWindows"
 def debugParams = ""
 def balJavaDebugParam = ""
 def testParams = ""
@@ -201,7 +202,7 @@ task ballerinaTest {
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test " +
-                        "${testParams} ${groupParams} ${disableGroups} ${debugParams} && " +
+                        "${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups} ${debugParams} && " +
                         "exit %%ERRORLEVEL%%"
             } else {
                 commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test " +
