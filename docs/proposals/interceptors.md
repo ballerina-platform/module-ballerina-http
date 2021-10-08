@@ -1,6 +1,6 @@
 # Proposal: HTTP Interceptors 
 
-_Ownes_: @shafreenAnfar @chamil321 @ayeshLK @TharmiganK  
+_Owners_: @shafreenAnfar @chamil321 @ayeshLK @TharmiganK  
 _Reviewers_: @chamil321 @ldclakmal    
 _Created_: 2021/09/23  
 _Updated_: 2021/10/05  
@@ -284,7 +284,7 @@ There is no difference between 1.2.x and Swan-Lake when it comes to the executio
 In the above example blue dashed box represents the RequestErrorInterceptor and blue boxes simply represent the RequestInterceptors whereas green dashed box represents the ResponseErrorInterceptor and green boxes simply represent the ResponseInterceptor. The new execution orders is as follows,
  
 RequestInterceptor: 1, 2, 4  
-ResponseFilter: 5, 3, 0
+ResponseInterceptor: 5, 3, 0
 
 However, consider the scenario where RequestInterceptor at two returns an error, in that case execution jumps from 2 to 5 as the nearest ErrorInterceptor is at 5. The same goes to the response path.
  
