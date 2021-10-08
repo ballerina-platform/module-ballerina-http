@@ -208,7 +208,8 @@ service /mockHelloService on http2RetryTestserviceEndpoint1 {
 
 //Test basic retry functionality with HTTP2
 @test:Config {
-    groups: ["http2RetryClientTest"]
+    groups: ["http2RetryClientTest"],
+    enable: false
 }
 function testHttp2SimpleRetry() {
     json payload = {Name:"Ballerina"};
