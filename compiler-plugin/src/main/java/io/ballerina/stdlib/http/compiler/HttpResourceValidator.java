@@ -705,12 +705,7 @@ class HttpResourceValidator {
     private static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location, String argName,
                                          HttpDiagnosticCodes httpDiagnosticCodes,
                                          List<DiagnosticProperty<?>> diagnosticProperties) {
-        DiagnosticInfo diagnosticInfo;
-        if (argName == null) {
-            diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes);
-        } else {
-            diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
-        }
+        DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location, diagnosticProperties));
     }
 
