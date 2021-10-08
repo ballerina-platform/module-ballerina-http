@@ -41,7 +41,7 @@ public class ExternIdleTimeoutResponseTestUtil {
     /**
      * A larger client payload to be sent in chunks.
      */
-    private static final String CLIENT_PAYLOAD = "POST /idle/timeout408 HTTP/1.1\r\n"
+    private static final String CLIENT_PAYLOAD = "POST /idleTimeout/timeout408 HTTP/1.1\r\n"
             + "Content-Type: text/xml\r\n"
             + "Transfer-Encoding: chunked\r\n"
             + "Connection: Keep-Alive\r\n\r\n"
