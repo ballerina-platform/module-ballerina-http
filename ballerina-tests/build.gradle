@@ -29,7 +29,6 @@ def packageOrg = "ballerina"
 def moduleName = "tests"
 def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
 def ballerinaTomlFile = new File("$project.projectDir/Ballerina.toml")
-def originalBallerinaToml = ballerinaTomlFile.text
 def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
 def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
 def testCoverageParam = "--code-coverage --coverage-format=xml --includes=io.ballerina.stdlib.http.*:ballerina.http*"
@@ -126,9 +125,16 @@ task updateTomlVerions {
     }
 }
 
-task revertTomlFile {
+task commitTomlFiles {
     doLast {
-        ballerinaTomlFile.text = originalBallerinaToml
+        project.exec {
+            ignoreExitValue true
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "git commit -m \"[Automated] Update the native jar versions\" Ballerina.toml Dependencies.toml"
+            } else {
+                commandLine 'sh', '-c', "git commit -m '[Automated] Update the native jar versions' Ballerina.toml Dependencies.toml"
+            }
+        }
     }
 }
 
@@ -171,7 +177,6 @@ task ballerinaTest {
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:compileJava")
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:jar")
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:processResources")
-    finalizedBy(revertTomlFile)
 
     doLast {
         exec {
