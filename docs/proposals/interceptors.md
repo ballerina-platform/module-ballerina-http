@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @chamil321 @ayeshLK @TharmiganK  
 _Reviewers_: @chamil321 @ldclakmal    
 _Created_: 2021/09/23  
-_Updated_: 2021/10/05  
+_Updated_: 2021/10/18  
 _Issue_: [#692](https://github.com/ballerina-platform/ballerina-standard-library/issues/692)
 
 ## Summary 
@@ -276,7 +276,7 @@ listener http:Listener echoListener = new http:Listener(9090, config = {intercep
 
 > **Note**: Since HTTP Service configuration record includes a field of type Object, it no longer falls under `anydata`. This means you no longer can make the entire HTTP service configuration as a `configurable` variable. However, in reality you don’t need to make the entire configuration record configurable but rather a selective set which you can still do. The same applies for the HTTP Listener configuration.
 
-### Execution Order of Filters
+### Execution Order of Interceptors
 There is no difference between 1.2.x and Swan-Lake when it comes to the execution order of interceptors with the exception of RequestErrorInterceptors and ResponseErrorInterceptors.
 
 ![NewFilters](https://user-images.githubusercontent.com/6178058/133388424-e22e36d4-e9ec-4264-ab3f-43c0e81e4073.jpg)
@@ -289,6 +289,8 @@ ResponseInterceptor: 5, 3, 0
 However, consider the scenario where RequestInterceptor at two returns an error, in that case execution jumps from 2 to 5 as the nearest ErrorInterceptor is at 5. The same goes to the response path.
  
 For more information on this read the section `Execution Order of Filters` under `History` section.
+
+> **Note**: Execution of interceptors does not dependent on the existence of the end service i.e. the interceptors are executed in the relevant order even though the end service does not exist.
 
 #### Service Annotations
 Service annotations could include security validations related to the service. These security validations are only executed after executing all the request interceptors. In other words security validations are implemented as the last interceptor in the pipeline. The same applies for other service level or resource level annotations. 
