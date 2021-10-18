@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @chamil321 @ayeshLK @TharmiganK  
 _Reviewers_: @chamil321 @ldclakmal    
 _Created_: 2021/09/23  
-_Updated_: 2021/10/05  
+_Updated_: 2021/10/18  
 _Issue_: [#692](https://github.com/ballerina-platform/ballerina-standard-library/issues/692)
 
 ## Summary 
