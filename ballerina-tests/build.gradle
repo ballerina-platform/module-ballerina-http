@@ -177,6 +177,7 @@ task ballerinaTest {
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:compileJava")
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:jar")
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:processResources")
+    finalizedBy(commitTomlFiles)
 
     doLast {
         exec {
