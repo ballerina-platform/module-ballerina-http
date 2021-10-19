@@ -21,7 +21,7 @@ jobs:
         run: |
             ./gradlew build
       - name: Generate Codecov Report
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
 
   windows-build:
     name: Build on Windows
