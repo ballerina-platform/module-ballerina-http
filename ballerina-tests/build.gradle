@@ -28,6 +28,7 @@ def packageName = "http"
 def packageOrg = "ballerina"
 def moduleName = "tests"
 def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
+def ballerinaTomlFilePlaceHolder = new File("${project.rootDir}/build-config/resources/BallerinaTest.toml")
 def ballerinaTomlFile = new File("$project.projectDir/Ballerina.toml")
 def ballerinaDist = "build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
 def distributionBinPath =  project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
@@ -119,7 +120,7 @@ task copyHttpStdlib {
 
 task updateTomlVerions {
     doLast {
-        def newBallerinaToml = ballerinaTomlFile.text.replace("@project.version@", project.version)
+        def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
         ballerinaTomlFile.text = newBallerinaToml
     }
