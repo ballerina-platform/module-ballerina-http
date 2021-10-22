@@ -112,7 +112,7 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
 }
 
 @test:Config {
-    groups: ["ldap"]
+    groups: ["ldap", "disabledOnWindows"]
 }
 isolated function testListenerLdapUserStoreBasicAuthHandlerAuthSuccess() {
     http:LdapUserStoreConfig config = {
@@ -168,7 +168,7 @@ isolated function testListenerLdapUserStoreBasicAuthHandlerAuthSuccess() {
 }
 
 @test:Config {
-    groups: ["ldap"]
+    groups: ["ldap", "disabledOnWindows"]
 }
 isolated function testListenerLdapUserStoreBasicAuthHandlerAuthzFailure() {
     http:LdapUserStoreConfig config = {
@@ -224,7 +224,7 @@ isolated function testListenerLdapUserStoreBasicAuthHandlerAuthzFailure() {
 }
 
 @test:Config {
-    groups: ["ldap"]
+    groups: ["ldap", "disabledOnWindows"]
 }
 isolated function testListenerLdapUserStoreBasicAuthHandlerAuthnFailure() {
     http:LdapUserStoreConfig config = {

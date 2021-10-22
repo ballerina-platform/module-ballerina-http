@@ -145,21 +145,21 @@ service /basicAuthLdap on authListener {
 }
 
 @test:Config {
-    groups: ["ldap"]
+    groups: ["ldap", "disabledOnWindows"]
 }
 isolated function testBasicAuthLdapUserStoreServiceAuthSuccess() {
     assertSuccess(sendBasicTokenRequest("/basicAuthLdap", "ldclakmal", "ldclakmal@123"));
 }
 
 @test:Config {
-    groups: ["ldap"]
+    groups: ["ldap", "disabledOnWindows"]
 }
 isolated function testBasicAuthLdapUserStoreServiceAuthzFailure() {
     assertForbidden(sendBasicTokenRequest("/basicAuthLdap", "alice", "alice@123"));
 }
 
 @test:Config {
-    groups: ["ldap"]
+    groups: ["ldap", "disabledOnWindows"]
 }
 isolated function testBasicAuthLdapUserStoreServiceAuthnFailure() {
     assertUnauthorized(sendBasicTokenRequest("/basicAuthLdap", "eve", "eve@123"));

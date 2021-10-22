@@ -17,7 +17,7 @@
 import ballerina/http;
 
 type Person record {|
-    int id;
+    readonly int id;
 |};
 
 public annotation Person Pp on parameter;

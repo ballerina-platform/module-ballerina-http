@@ -436,7 +436,7 @@ function testXmlBodyPartAsFileUpload() {
 function testBinaryBodyPartAsFileUploadUsingStream() returns error? {
     io:ReadableByteChannel byteChannel = check io:openReadableFile
                                 ("tests/datafiles/test.tmp");
-    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
+    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8192);
     mime:Entity binaryFilePart = new;
     binaryFilePart.setByteStream(blockStream);
     http:Request request = new;
@@ -507,7 +507,7 @@ function testMultiplePartsWithMultipleBodyTypesIncludingStreams() returns error?
 
     io:ReadableByteChannel byteChannel = check io:openReadableFile
                                 ("tests/datafiles/test.tmp");
-    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8196);
+    stream<io:Block, io:Error?> blockStream = check byteChannel.blockStream(8192);
     mime:Entity binaryFilePart = new;
     binaryFilePart.setByteStream(blockStream);
 
