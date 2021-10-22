@@ -33,6 +33,7 @@ import io.ballerina.projects.plugins.codeaction.DocumentEdit;
 import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
 import io.ballerina.tools.diagnostics.DiagnosticProperty;
 import io.ballerina.tools.text.LineRange;
+import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextEdit;
 import io.ballerina.tools.text.TextRange;
@@ -114,7 +115,8 @@ public abstract class ChangeHeaderParamType implements CodeAction {
         List<TextEdit> textEdits = new ArrayList<>();
         textEdits.add(TextEdit.from(typeNodeTextRange, headerParamType()));
         TextDocumentChange change = TextDocumentChange.from(textEdits.toArray(new TextEdit[0]));
-        return Collections.singletonList(new DocumentEdit(context.fileUri(), SyntaxTree.from(syntaxTree, change)));
+        TextDocument modifiedTextDocument = syntaxTree.textDocument().apply(change);
+        return Collections.singletonList(new DocumentEdit(context.fileUri(), SyntaxTree.from(modifiedTextDocument)));
     }
     
     protected abstract String headerParamType();

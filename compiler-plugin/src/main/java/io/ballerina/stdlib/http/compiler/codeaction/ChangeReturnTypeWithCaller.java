@@ -83,7 +83,8 @@ public class ChangeReturnTypeWithCaller implements CodeAction {
         List<TextEdit> textEdits = new ArrayList<>();
         textEdits.add(TextEdit.from(TextRange.from(start, end - start), "error?"));
         TextDocumentChange change = TextDocumentChange.from(textEdits.toArray(new TextEdit[0]));
-        return Collections.singletonList(new DocumentEdit(context.fileUri(), SyntaxTree.from(syntaxTree, change)));
+        TextDocument modifiedTextDocument = syntaxTree.textDocument().apply(change);
+        return Collections.singletonList(new DocumentEdit(context.fileUri(), SyntaxTree.from(modifiedTextDocument)));
     }
 
     @Override
