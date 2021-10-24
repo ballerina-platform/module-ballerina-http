@@ -27,9 +27,9 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
         log:printDebug("Sending validation request for a stale response");
     }
 
-    var response = sendValidationRequest(httpClient, httpMethod, path, req, cachedResponse);
+    var validationResponse = sendValidationRequest(httpClient, httpMethod, path, req, cachedResponse);
 
-    if (response is ClientError) {
+    if (validationResponse is ClientError) {
         // Based on https://tools.ietf.org/html/rfc7234#section-4.2.4
         // This behaviour is based on the fact that currently error structs are returned only
         // if the connection is refused or the connection times out.
@@ -47,10 +47,8 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
             log:printDebug("Cannot reach origin server. Serving a fresh response");
         }
 
-        return response;
+        return validationResponse;
     }
-
-    Response validationResponse = <Response> checkpanic response;
 
     log:printDebug("Response for validation request received");
 

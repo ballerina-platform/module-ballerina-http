@@ -27,12 +27,7 @@ service on resourceFunctionListener {
         response.setTextPayload("Hello Ballerina!");
 
         // Manually return error.
-        if (1 == 1) {
-            error e = error("Some random error");
-            return e;
-        }
-        checkpanic caller->respond(response);
-        return;
+        return error("Some random error");
     }
 
     resource function 'default checkErrorReturn(http:Caller caller, http:Request request) returns error? {
@@ -48,11 +43,7 @@ service on resourceFunctionListener {
 }
 
 isolated function getError() returns error|int {
-    if (1 == 1) {
-        error e = error("Simulated error");
-        return e;
-    }
-    return 1;
+    return error("Simulated error");
 }
 
 //Returning error from a resource function generate 500
