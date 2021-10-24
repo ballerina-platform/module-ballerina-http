@@ -626,11 +626,10 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError result, TargetType targetType) returns Response|PayloadType|ClientError {
-    if (targetType is typedesc<Response> || result is ClientError) {
-        return result;
+isolated function processResponse(Response|ClientError response, TargetType targetType) returns Response|PayloadType|ClientError {
+    if (targetType is typedesc<Response> || response is ClientError) {
+        return response;
     }
-    Response response = <Response> checkpanic result;
     int statusCode = response.statusCode;
     if (400 <= statusCode && statusCode <= 599) {
         string reasonPhrase = response.reasonPhrase;
