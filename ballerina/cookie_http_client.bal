@@ -52,11 +52,8 @@ public client isolated class CookieClient {
         };
         self.cookieConfig = cookieInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
-        if (cookieStore is CookieStore) {
-            self.cookieStore = cookieStore;
-        } else {
-            self.cookieStore = ();
-        }
+        self.cookieStore = cookieStore;
+        return;
     }
 
     # The `CookieClient.get()` function wraps the underlying HTTP remote functions in a way to provide

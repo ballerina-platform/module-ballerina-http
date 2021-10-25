@@ -72,6 +72,7 @@ public isolated class CsvPersistentCookieHandler {
                 return error CookieHandlingError("Error in writing the csv file", result);
             }
         }
+        return;
     }
 
     # Gets all the persistent cookies.
@@ -155,6 +156,7 @@ public isolated class CsvPersistentCookieHandler {
         if (removeResults is error) {
             return error CookieHandlingError("Error in removing the csv file", removeResults);
         }
+        return;
     }
 }
 
@@ -167,7 +169,7 @@ isolated function validateFileExtension(string fileName) returns string|CookieHa
 
 isolated function readFile(string fileName) returns error|table<myCookie> key(name, domain, path) {
     io:ReadableCSVChannel rCsvChannel2 = check io:openReadableCsvFile(fileName);
-    var tblResult = rCsvChannel2.getTable(myCookie, ["name", "domain", "path"]);
+    var tblResult = rCsvChannel2.toTable(myCookie, ["name", "domain", "path"]);
     closeReadableCSVChannel(rCsvChannel2);
     if (tblResult is table<record{| anydata...; |}>) {
         return <table<myCookie> key(name, domain, path)>tblResult;
@@ -217,6 +219,7 @@ isolated function writeToFile(table<myCookie> key(name, domain, path) cookiesTab
         }
     }
     closeWritableCSVChannel(wCsvChannel2);
+    return;
 }
 
 isolated function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string[]... data) returns error? {
@@ -226,6 +229,7 @@ isolated function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string
             return returnedVal;
         }
     }
+    return;
 }
 
 isolated function closeWritableCSVChannel(io:WritableCSVChannel csvChannel) {
