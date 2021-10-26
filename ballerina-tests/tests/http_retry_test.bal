@@ -193,7 +193,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request req) {
         int count = 0;
         lock {
-            retryCounter = retryCounter + 1;
+            retryCounter += 1;
             count = retryCounter;
         }
         if (count % 4 != 0) {
@@ -255,10 +255,12 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function get .(http:Caller caller, http:Request request) {
+        int count = 0;
         lock {
-            httpGetRetryCount = httpGetRetryCount + 1;
-            waitForRetry(httpGetRetryCount);
+            httpGetRetryCount += 1;
+            count = httpGetRetryCount;
         }
+        waitForRetry(count);
         http:Response res = new;
         error? responseToCaller = caller->respond("HTTP GET method invocation is successful");
         if (responseToCaller is error) {
@@ -267,11 +269,9 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function head .(http:Caller caller, http:Request request) {
-        lock {
-            httpHeadRetryCount = httpHeadRetryCount + 1;
-        }
         int count = 0;
         lock {
+            httpHeadRetryCount += 1;
             count = httpHeadRetryCount;
         }
         waitForRetry(count);
@@ -284,23 +284,27 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function put .(http:Caller caller, http:Request request) {
+        int count = 0;
         lock {
-            httpPutRetryCount = httpPutRetryCount + 1;
-            waitForRetry(httpPutRetryCount);
+            httpPutRetryCount += 1;
+            count = httpPutRetryCount;
         }
+        waitForRetry(count);
         http:Response res = new;
         res.setTextPayload("HTTP PUT method invocation is successful");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            log:printError("Error sending response from put mock service", 'error = responseToCaller);
         }
     }
 
     resource function patch .(http:Caller caller, http:Request request) {
+        int count = 0;
         lock {
-            httpPatchRetryCount = httpPatchRetryCount + 1;
-            waitForRetry(httpPatchRetryCount);
+            httpPatchRetryCount += 1;
+            count = httpPatchRetryCount;
         }
+        waitForRetry(count);
         http:Response res = new;
         res.setTextPayload("HTTP PATCH method invocation is successful");
         error? responseToCaller = caller->respond(res);
@@ -310,10 +314,12 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function delete .(http:Caller caller, http:Request request) {
+        int count = 0;
         lock {
-            httpDeleteRetryCount = httpDeleteRetryCount + 1;
-            waitForRetry(httpDeleteRetryCount);
+            httpDeleteRetryCount +=  1;
+            count = httpDeleteRetryCount;
         }
+        waitForRetry(count);
         http:Response res = new;
         res.setTextPayload("HTTP DELETE method invocation is successful");
         error? responseToCaller = caller->respond(res);
@@ -323,10 +329,12 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function options .(http:Caller caller, http:Request request) {
+        int count = 0;
         lock {
-            httpOptionsRetryCount = httpOptionsRetryCount + 1;
-            waitForRetry(httpOptionsRetryCount);
+            httpOptionsRetryCount += 1;
+            count = httpOptionsRetryCount;
         }
+        waitForRetry(count);
         http:Response res = new;
         res.setHeader("Allow", "OPTIONS, GET, HEAD, POST");
         error? responseToCaller = caller->respond(res);
@@ -585,4 +593,3 @@ function externTestMultiPart(int servicePort, string path) returns boolean = @ja
 function externTestNestedMultiPart(int servicePort, string path) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternRetryMultipartTestutil"
 } external;
-
