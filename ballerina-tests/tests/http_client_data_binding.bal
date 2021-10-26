@@ -729,7 +729,7 @@ function testDBRecordErrorNegative() {
 function testDBRecordArrayNegative() {
     ClientDBErrorPerson[]|error response =  clientDBBackendClient->post("/backend/getRecordArr", "want record arr");
     if (response is error) {
-        test:assertEquals(response.message(),
+        assertTrueTextPayload(response.message(),
             "Payload binding failed: 'json[]' value cannot be converted to 'http_tests:ClientDBErrorPerson[]'");
     } else {
         test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson[]");
