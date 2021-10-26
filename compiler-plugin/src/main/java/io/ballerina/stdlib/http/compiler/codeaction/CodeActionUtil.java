@@ -31,8 +31,6 @@ import io.ballerina.tools.text.TextRange;
 public class CodeActionUtil {
 
     public static final String NODE_LOCATION_KEY = "node.location";
-    public static final String LINE_RANGE_KEY = "line.range";
-    public static final String TEXT_RANGE_KEY = "line.range";
 
     private CodeActionUtil() {
     }
