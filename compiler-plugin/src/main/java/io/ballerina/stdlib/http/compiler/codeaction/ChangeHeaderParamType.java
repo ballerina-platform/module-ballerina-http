@@ -97,7 +97,7 @@ public abstract class ChangeHeaderParamType implements CodeAction {
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
         NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange);
 
-        TextRange typeNodeTextRange = null;
+        TextRange typeNodeTextRange;
         switch (node.kind()) {
             case REQUIRED_PARAM:
                 typeNodeTextRange = ((RequiredParameterNode) node).typeName().textRange();

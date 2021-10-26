@@ -35,7 +35,6 @@ public class HttpCompilerPlugin extends CompilerPlugin {
     @Override
     public void init(CompilerPluginContext context) {
         context.addCodeAnalyzer(new HttpServiceAnalyzer());
-
         getCodeActions().forEach(context::addCodeAction);
     }
 

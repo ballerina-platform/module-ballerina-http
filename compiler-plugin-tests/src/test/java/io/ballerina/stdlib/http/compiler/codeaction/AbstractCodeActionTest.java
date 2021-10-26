@@ -67,7 +67,7 @@ public abstract class AbstractCodeActionTest {
      *
      * @param filePath    Source file path
      * @param cursorPos   Cursor position
-     * @param expected    Expected codeaction
+     * @param expected    Expected code action
      * @param expectedSrc File with expected content once the expected codeaction is executed
      * @throws IOException File not found, etc
      */

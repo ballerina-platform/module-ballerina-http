@@ -62,7 +62,6 @@ public enum HttpDiagnosticCodes {
             ERROR),
     HTTP_120("HTTP_120", "invalid media-type subtype '%s'",
             ERROR),
-
     HTTP_HINT_101("HTTP_HINT_101", "A resource annotation can be added", INTERNAL);
 
     private final String code;
