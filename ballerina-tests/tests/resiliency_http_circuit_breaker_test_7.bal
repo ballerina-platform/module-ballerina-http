@@ -44,12 +44,14 @@ final http:Client backendClientEP06 = check new("http://localhost:8092", conf06)
 service /cb on circuitBreakerEP06 {
 
     resource function 'default trialrun(http:Caller caller, http:Request request) {
+        int count = 0;
         lock {
             requestCount += 1;
+            count = requestCount;
+        }
             // To ensure the reset timeout period expires
-            if (requestCount == 3) {
-                runtime:sleep(3);
-            }
+        if (count == 3) {
+            runtime:sleep(3);
         }
         http:Response|error backendRes = backendClientEP06->forward("/hello06", request);
         if (backendRes is http:Response) {

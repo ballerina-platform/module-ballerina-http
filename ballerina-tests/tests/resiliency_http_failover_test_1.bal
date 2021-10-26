@@ -158,11 +158,13 @@ int counter01 = 1;
 // Define the sample service to mock a healthy service.
 service /mock01 on backendEP01 {
     resource function 'default .(http:Caller caller, http:Request req) {
+        int count = 0;
         lock {
             counter01 += 1;
-            if (counter01 % 5 == 0) {
-                runtime:sleep(30000);
-            }
+            count = counter01;
+        }
+        if (count % 5 == 0) {
+            runtime:sleep(30000);
         }
         http:Response response = new;
         if (req.hasHeader(mime:CONTENT_TYPE)

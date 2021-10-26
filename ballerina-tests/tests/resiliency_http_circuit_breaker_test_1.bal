@@ -44,12 +44,14 @@ service /cb on circuitBreakerEP00 {
 
     resource function 'default typical(http:Caller caller, http:Request request) {
         http:Response|error backendRes = backendClientEP00->forward("/hello/typical", request);
+        int count = 0;
         lock {
-            if (cbCounter % 5 == 0) {
-                runtime:sleep(5);
-            } else {
-                runtime:sleep(1);
-            }
+            count = cbCounter;
+        }
+        if (count % 5 == 0) {
+            runtime:sleep(5);
+        } else {
+            runtime:sleep(1);
         }
         lock {
             cbCounter += 1;
@@ -77,10 +79,12 @@ service /cb on circuitBreakerEP00 {
 service /hello on new http:Listener(8086) {
 
     resource function 'default typical(http:Caller caller, http:Request req) {
+        int count = 0;
         lock {
-            if (cbCounter % 5 == 3) {
-                runtime:sleep(3);
-            }
+            count = cbCounter;
+        }
+        if (count % 5 == 3) {
+            runtime:sleep(3);
         }
         error? responseToCaller = caller->respond("Hello World!!!");
         if (responseToCaller is error) {

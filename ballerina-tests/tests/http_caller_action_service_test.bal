@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/io;
 import ballerina/test;
 import ballerina/http;
+import ballerina/lang.runtime as runtime;
 
 listener http:Listener callerActionListener = new(callerActionTestPort);
 final http:Client callerActionTestClient = check new("http://localhost:" + callerActionTestPort.toString());
@@ -36,9 +36,6 @@ service /'listener on callerActionListener {
         lock {
             globalLvlStr = "respond";
         }
-        lock {
-            io:println("Service Level Variable : " + globalLvlStr);
-        }
     }
 
     resource function get redirect(http:Caller caller, http:Request req) {
@@ -46,9 +43,6 @@ service /'listener on callerActionListener {
         checkpanic caller->redirect(res, http:REDIRECT_PERMANENT_REDIRECT_308, ["/redirect1/round2"]);
         lock {
             globalLvlStr = "redirect";
-        }
-        lock {
-            io:println("Service Level Variable : " + globalLvlStr);
         }
     }
 
@@ -74,6 +68,7 @@ function testNonBlockingRespondAction() {
 
 @test:Config {dependsOn:[testNonBlockingRespondAction]}
 function testExecutionAfterRespondAction() {
+    runtime:sleep(3);
     lock {
         test:assertEquals(globalLvlStr, "respond");
     }
@@ -99,6 +94,7 @@ function testNonBlockingRedirectAction() {
 
 @test:Config {dependsOn:[testNonBlockingRedirectAction]}
 function testExecutionAfterRedirectAction() {
+    runtime:sleep(3);
     lock {
         test:assertEquals(globalLvlStr, "redirect");
     }

@@ -146,13 +146,9 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
             count = statusHits;
         }
         if count < 3 {
-            //lock {
-                return ok;
-            //}
+            return ok;
         } else {
-
-                return err;
-
+            return err;
         }
     }
 }
