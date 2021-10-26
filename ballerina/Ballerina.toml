@@ -8,7 +8,7 @@ distribution = "slbeta3"
 path = "../native/build/libs/http-native-2.0.1-SNAPSHOT.jar"
 
 [[platform.java11.dependency]]
-path = "./lib/mime-native-2.0.1-20211023-120500-5c5f45d.jar"
+path = "./lib/mime-native-2.0.1-20211026-130200-53942f1.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/netty-common-4.1.68.Final.jar"

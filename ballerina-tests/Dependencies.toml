@@ -91,11 +91,9 @@ name = "http_tests"
 version = "2.0.1"
 dependencies = [
 	{org = "ballerina", name = "http"},
-	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.runtime"},
 	{org = "ballerina", name = "lang.string"},
-	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "lang.xml"},
 	{org = "ballerina", name = "mime"},
 	{org = "ballerina", name = "test"}
 ]
@@ -112,18 +110,12 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"}
 ]
-modules = [
-	{org = "ballerina", packageName = "io", moduleName = "io"}
-]
 
 [[package]]
 org = "ballerina"
 name = "jballerina.java"
 version = "0.0.0"
 scope = "testOnly"
-modules = [
-	{org = "ballerina", packageName = "jballerina.java", moduleName = "jballerina.java"}
-]
 
 [[package]]
 org = "ballerina"
@@ -230,9 +222,6 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"},
 	{org = "ballerina", name = "observe"}
-]
-modules = [
-	{org = "ballerina", packageName = "log", moduleName = "log"}
 ]
 
 [[package]]
