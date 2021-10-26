@@ -355,8 +355,8 @@ function testDataBindingWithRecordArrayNegative() {
     http:Response|error response = dataBindingClient->post("/echo/body8", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}" +
-            "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]'\")");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}" +
+            "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
