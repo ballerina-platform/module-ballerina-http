@@ -22,9 +22,9 @@ listener http:Listener utdmockEP1 = new(uriTemplateDefaultTest2);
 listener http:Listener utdmockEP2 = new(uriTemplateDefaultTest3);
 
 
-http:Client utdClient1 = check new("http://localhost:" + uriTemplateDefaultTest1.toString());
-http:Client utdClient2 = check new("http://localhost:" + uriTemplateDefaultTest2.toString());
-http:Client utdClient3 = check new("http://localhost:" + uriTemplateDefaultTest3.toString());
+final http:Client utdClient1 = check new("http://localhost:" + uriTemplateDefaultTest1.toString());
+final http:Client utdClient2 = check new("http://localhost:" + uriTemplateDefaultTest2.toString());
+final http:Client utdClient3 = check new("http://localhost:" + uriTemplateDefaultTest3.toString());
 
 @http:ServiceConfig {
     cors: {

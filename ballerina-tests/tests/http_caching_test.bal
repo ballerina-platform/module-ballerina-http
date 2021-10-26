@@ -20,9 +20,9 @@ import ballerina/http;
 
 listener http:Listener cachingListener1 = new(cachingTestPort1);
 listener http:Listener cachingListener2 = new(cachingTestPort2);
-http:Client cachingTestClient = check new("http://localhost:" + cachingTestPort1.toString(), { cache: { enabled: false }});
+final http:Client cachingTestClient = check new("http://localhost:" + cachingTestPort1.toString(), { cache: { enabled: false }});
 
-http:Client cachingEP = check new("http://localhost:" + cachingTestPort2.toString(), { cache: { isShared: true } });
+final http:Client cachingEP = check new("http://localhost:" + cachingTestPort2.toString(), { cache: { isShared: true } });
 int cachingProxyHitcount = 0;
 
 service /cache on cachingListener1 {
@@ -31,8 +31,14 @@ service /cache on cachingListener1 {
         http:Response|error response = cachingEP->forward("/cachingBackend", req);
 
         if (response is http:Response) {
-            cachingProxyHitcount += 1;
-            response.setHeader("x-proxy-hit-count", cachingProxyHitcount.toString());
+            lock {
+                cachingProxyHitcount += 1;
+            }
+            string value = "";
+            lock {
+                value = cachingProxyHitcount.toString();
+            }
+            response.setHeader("x-proxy-hit-count", value);
             checkpanic caller->respond( response);
         } else {
             http:Response res = new;
@@ -61,12 +67,12 @@ service /cache on cachingListener1 {
     }
 }
 
-json payload = { "message": "Hello, World!" };
-int hitcount = 0;
+isolated json payload = { "message": "Hello, World!" };
+isolated int hitcount = 0;
 
 service /cachingBackend on cachingListener2 {//new http:Listener(9240) {
 
-    resource function 'default .(http:Caller caller, http:Request req) {
+    isolated resource function 'default .(http:Caller caller, http:Request req) {
         http:Response res = new;
 
         http:ResponseCacheControl resCC = new;
@@ -74,14 +80,22 @@ service /cachingBackend on cachingListener2 {//new http:Listener(9240) {
         resCC.isPrivate = false;
 
         res.cacheControl = resCC;
-
-        res.setETag(payload);
+        json jsonValue = ();
+        lock {
+            jsonValue = payload.clone();
+        }
+        res.setETag(jsonValue);
         res.setLastModified();
+        lock {
+            hitcount += 1;
+        }
+        string value = "";
+        lock {
+            value = hitcount.toString();
+        }
+        res.setHeader("x-service-hit-count", value);
 
-        hitcount += 1;
-        res.setHeader("x-service-hit-count", hitcount.toString());
-
-        res.setPayload(payload);
+        res.setPayload(jsonValue);
 
         checkpanic caller->respond(res);
     }

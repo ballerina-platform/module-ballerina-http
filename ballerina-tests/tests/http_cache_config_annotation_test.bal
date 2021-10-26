@@ -19,24 +19,24 @@ import ballerina/lang.runtime as runtime;
 import ballerina/http;
 import ballerina/crypto;
 
-http:Client cacheClientEP = check new("http://localhost:" + cacheAnnotationTestPort1.toString(), { cache: { enabled: false }});
+final http:Client cacheClientEP = check new("http://localhost:" + cacheAnnotationTestPort1.toString(), { cache: { enabled: false }});
 
-http:Client cacheBackendEP = check new("http://localhost:" + cacheAnnotationTestPort2.toString(), { cache: { isShared: true } });
+final http:Client cacheBackendEP = check new("http://localhost:" + cacheAnnotationTestPort2.toString(), { cache: { isShared: true } });
 
-int numberOfProxyHitsNew = 0;
-int noCacheHitCountNew = 0;
-int maxAgeHitCountNew = 0;
-int numberOfHitsNew = 0;
-int statusHits = 0;
-xml maxAgePayload1 = xml `<message>before cache expiration</message>`;
-xml maxAgePayload2 = xml `<message>after cache expiration</message>`;
-string errorBody = "Error";
-string mustRevalidatePayload1 = "Hello, World!";
-byte[] mustRevalidatePayload2 = "Hello, New World!".toBytes();
-json nocachePayload1 = { "message": "1st response" };
-json nocachePayload2 = { "message": "2nd response" };
-http:Ok ok = {body : mustRevalidatePayload1};
-http:InternalServerError err = {body : errorBody};
+isolated int numberOfProxyHitsNew = 0;
+isolated int noCacheHitCountNew = 0;
+isolated int maxAgeHitCountNew = 0;
+isolated int numberOfHitsNew = 0;
+isolated int statusHits = 0;
+final readonly & xml maxAgePayload1 = xml `<message>before cache expiration</message>`;
+final readonly & xml maxAgePayload2 = xml `<message>after cache expiration</message>`;
+readonly & string errorBody = "Error";
+final readonly & string mustRevalidatePayload1 = "Hello, World!";
+isolated byte[] mustRevalidatePayload2 = "Hello, New World!".toBytes();
+final readonly & json nocachePayload1 = { "message": "1st response" };
+final readonly & json nocachePayload2 = { "message": "2nd response" };
+final readonly & http:Ok ok = {body : mustRevalidatePayload1};
+final readonly & http:InternalServerError err = {body : errorBody};
 
 service / on new http:Listener(cacheAnnotationTestPort1) {
 
@@ -61,11 +61,21 @@ service / on new http:Listener(cacheAnnotationTestPort1) {
     }
 
     resource function get mustRevalidate(http:Request req) returns http:Response|http:InternalServerError {
-        numberOfProxyHitsNew += 1;
+        lock {
+            numberOfProxyHitsNew += 1;
+        }
         http:Response|error response = cacheBackendEP->forward("/mustRevalidateBE", req);
         if response is http:Response {
-            response.setHeader(serviceHitCount, numberOfHitsNew.toString());
-            response.setHeader(proxyHitCount, numberOfProxyHitsNew.toString());
+            string numberOfHitsNewString = "";
+            lock {
+                numberOfHitsNewString = numberOfHitsNew.toString();
+            }
+            response.setHeader(serviceHitCount, numberOfHitsNewString);
+            string numberOfProxyHitsNewString = "";
+            lock {
+                numberOfProxyHitsNewString = numberOfProxyHitsNew.toString();
+            }
+            response.setHeader(proxyHitCount, numberOfProxyHitsNewString);
             return response;
         } else {
             http:InternalServerError errorRes = {body : response.message()};
@@ -87,9 +97,13 @@ service / on new http:Listener(cacheAnnotationTestPort1) {
 service / on new http:Listener(cacheAnnotationTestPort2) {
 
     resource function default nocacheBE(http:Request req) returns @http:Cache{noCache : true, maxAge : -1,
-    mustRevalidate : false} json {
-        noCacheHitCountNew += 1;
-        if noCacheHitCountNew == 1 {
+            mustRevalidate : false} json {
+        int count = 0;
+        lock {
+            noCacheHitCountNew += 1;
+            count = noCacheHitCountNew;
+        }
+        if count == 1 {
             return nocachePayload1;
         } else {
             return nocachePayload2;
@@ -97,8 +111,12 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
     }
 
     resource function default maxAgeBE(http:Request req) returns @http:Cache{maxAge : 5, mustRevalidate : false} xml {
-        maxAgeHitCountNew += 1;
-        if maxAgeHitCountNew == 1 {
+        int count = 0;
+        lock {
+            maxAgeHitCountNew += 1;
+            count = maxAgeHitCountNew;
+        }
+        if count == 1 {
             return maxAgePayload1;
         } else {
             return maxAgePayload2;
@@ -106,21 +124,35 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
     }
 
     resource function get mustRevalidateBE(http:Request req) returns @http:Cache{maxAge : 5} string|byte[] {
-        numberOfHitsNew += 1;
-        if numberOfHitsNew < 2 {
+        int count = 0;
+        lock {
+            numberOfHitsNew += 1;
+            count = numberOfHitsNew;
+        }
+        if count < 2 {
             return mustRevalidatePayload1;
         } else {
-            return mustRevalidatePayload2;
+            lock {
+                return mustRevalidatePayload2.clone();
+            }
         }
     }
 
     resource function get statusResponseBE(http:Request req) returns @http:Cache{noCache : true, maxAge : -1,
-    mustRevalidate : false} http:Ok|http:InternalServerError {
-        statusHits += 1;
-        if statusHits < 3 {
-            return ok;
+            mustRevalidate : false} http:Ok|http:InternalServerError {
+        int count = 0;
+        lock {
+            statusHits += 1;
+            count = statusHits;
+        }
+        if count < 3 {
+            //lock {
+                return ok;
+            //}
         } else {
-            return err;
+
+                return err;
+
         }
     }
 }
@@ -129,7 +161,9 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
 function testNoCacheCacheControlWithAnnotation() returns error? {
     http:Response response = check cacheClientEP->get("/noCache");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    test:assertEquals(noCacheHitCountNew, 1);
+    lock {
+        test:assertEquals(noCacheHitCountNew, 1);
+    }
     test:assertTrue(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
     assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(nocachePayload1.toString().toBytes()));
@@ -138,7 +172,9 @@ function testNoCacheCacheControlWithAnnotation() returns error? {
 
     response = check cacheClientEP->get("/noCache");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    test:assertEquals(noCacheHitCountNew, 2);
+    lock {
+        test:assertEquals(noCacheHitCountNew, 2);
+    }
     test:assertTrue(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
     assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(nocachePayload2.toString().toBytes()));
@@ -147,19 +183,24 @@ function testNoCacheCacheControlWithAnnotation() returns error? {
 
     response = check cacheClientEP->get("/noCache");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    test:assertEquals(noCacheHitCountNew, 3);
+    lock {
+        test:assertEquals(noCacheHitCountNew, 3);
+    }
     test:assertTrue(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
     assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(nocachePayload2.toString().toBytes()));
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
     assertJsonPayload(response.getJsonPayload(), nocachePayload2);
+    return;
 }
 
 @test:Config {}
 function testMaxAgeCacheControlWithAnnotation() returns error? {
     http:Response response = check cacheClientEP->get("/maxAge");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    test:assertEquals(maxAgeHitCountNew, 1);
+    lock {
+        test:assertEquals(maxAgeHitCountNew, 1);
+    }
     test:assertTrue(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CACHE_CONTROL), "public,max-age=5");
     assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(maxAgePayload1.toString().toBytes()));
@@ -168,7 +209,9 @@ function testMaxAgeCacheControlWithAnnotation() returns error? {
 
     response = check cacheClientEP->get("/maxAge");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    test:assertEquals(maxAgeHitCountNew, 1);
+    lock {
+        test:assertEquals(maxAgeHitCountNew, 1);
+    }
     test:assertTrue(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CACHE_CONTROL), "public,max-age=5");
     assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(maxAgePayload1.toString().toBytes()));
@@ -180,12 +223,15 @@ function testMaxAgeCacheControlWithAnnotation() returns error? {
 
     response = check cacheClientEP->get("/maxAge");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    test:assertEquals(maxAgeHitCountNew, 2);
+    lock {
+        test:assertEquals(maxAgeHitCountNew, 2);
+    }
     test:assertTrue(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CACHE_CONTROL), "public,max-age=5");
     assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(maxAgePayload2.toString().toBytes()));
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
     assertXmlPayload(response.getXmlPayload(), maxAgePayload2);
+    return;
 }
 
 @test:Config {}
@@ -217,18 +263,27 @@ function testMustRevalidateCacheControlWithAnnotation() returns error? {
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     test:assertTrue(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CACHE_CONTROL), "must-revalidate,public,max-age=5");
-    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload2));
+    byte[] payload = [];
+    lock {
+        payload = mustRevalidatePayload2.clone();
+    }
+    assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(payload));
     assertHeaderValue(check response.getHeader(serviceHitCount), "2");
     assertHeaderValue(check response.getHeader(proxyHitCount), "3");
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_BINARY);
-    assertBinaryPayload(response.getBinaryPayload(), mustRevalidatePayload2);
+    lock {
+        assertBinaryPayload(response.getBinaryPayload(), payload);
+    }
+    return;
 }
 
 @test:Config {}
 function testReturnStatusCodeResponsesWithAnnotation() returns error? {
     http:Response response = check cacheClientEP->get("/statusResponse");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    test:assertEquals(statusHits, 1);
+    lock {
+        test:assertEquals(statusHits, 1);
+    }
     test:assertTrue(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
     assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
@@ -237,7 +292,9 @@ function testReturnStatusCodeResponsesWithAnnotation() returns error? {
 
     response = check cacheClientEP->get("/statusResponse");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    test:assertEquals(statusHits, 2);
+    lock {
+        test:assertEquals(statusHits, 2);
+    }
     test:assertTrue(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CACHE_CONTROL), "no-cache,public");
     assertHeaderValue(check response.getHeader(ETAG), crypto:crc32b(mustRevalidatePayload1.toBytes()));
@@ -246,10 +303,13 @@ function testReturnStatusCodeResponsesWithAnnotation() returns error? {
 
     response = check cacheClientEP->get("/statusResponse");
     test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-    test:assertEquals(statusHits, 3);
+    lock {
+        test:assertEquals(statusHits, 3);
+    }
     test:assertFalse(response.hasHeader(ETAG));
     test:assertFalse(response.hasHeader(CACHE_CONTROL));
     test:assertFalse(response.hasHeader(LAST_MODIFIED));
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     assertTextPayload(response.getTextPayload(), errorBody);
+    return;
 }

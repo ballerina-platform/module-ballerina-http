@@ -26,7 +26,7 @@ function setErrorResponse(http:Response response, error err) {
 }
 
 listener http:Listener multipartReqEP = new(multipartRequestTest);
-http:Client multipartReqClient = check new("http://localhost:" + multipartRequestTest.toString());
+final http:Client multipartReqClient = check new("http://localhost:" + multipartRequestTest.toString());
 
 service /test on multipartReqEP {
 
@@ -461,6 +461,7 @@ function testBinaryBodyPartAsFileUploadUsingStream() returns error? {
     } else {
         test:assertFail(msg = errorMessage + response.message());
     }
+    return;
 }
 
 // TODO: Enable after the I/O revamp
@@ -523,6 +524,7 @@ function testMultiplePartsWithMultipleBodyTypesIncludingStreams() returns error?
     } else {
         test:assertFail(msg = errorMessage + response.message());
     }
+    return;
 }
 
 @test:Config {}

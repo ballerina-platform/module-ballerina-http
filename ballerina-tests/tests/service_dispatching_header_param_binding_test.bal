@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 listener http:Listener HeaderBindingEP = new(headerParamBindingTest);
-http:Client headerBindingClient = check new("http://localhost:" + headerParamBindingTest.toString());
+final http:Client headerBindingClient = check new("http://localhost:" + headerParamBindingTest.toString());
 
 service /headerparamservice on HeaderBindingEP {
 

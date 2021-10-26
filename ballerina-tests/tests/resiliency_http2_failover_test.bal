@@ -24,7 +24,7 @@ listener http:Listener failoverEP06 = new(9314, { httpVersion: "2.0" });
 
 listener http:Listener backendEP06 = new(8094, { httpVersion: "2.0" });
 
-http:FailoverClient foBackendEP06 = check new({
+final http:FailoverClient foBackendEP06 = check new({
     timeout: 5,
     failoverCodes: [500, 501, 502, 503],
     interval: 5,

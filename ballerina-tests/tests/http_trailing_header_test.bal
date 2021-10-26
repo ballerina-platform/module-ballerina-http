@@ -19,9 +19,9 @@ import ballerina/http;
 
 listener http:Listener trailingHeaderListenerEP1 = new(trailingHeaderTestPort1);
 listener http:Listener trailingHeaderListenerEP2 = new(trailingHeaderTestPort2);
-http:Client trailingHeaderClient = check new("http://localhost:" + trailingHeaderTestPort1.toString());
+final http:Client trailingHeaderClient = check new("http://localhost:" + trailingHeaderTestPort1.toString());
 
-http:Client clientEp = check new("http://localhost:" + trailingHeaderTestPort2.toString());
+final http:Client clientEp = check new("http://localhost:" + trailingHeaderTestPort2.toString());
 
 service /initiator on trailingHeaderListenerEP1 {
 

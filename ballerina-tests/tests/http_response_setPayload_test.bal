@@ -29,6 +29,7 @@ function testResponseSetPayloadWithString() returns error? {
     check res.setContentType("text/test2");
     res.setPayload("test");
     test:assertEquals(res.getContentType(), "text/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -42,6 +43,7 @@ function testResponseSetPayloadWithXml() returns error? {
     check res.setContentType("xml/test2");
     res.setPayload(testValue);
     test:assertEquals(res.getContentType(), "xml/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -54,6 +56,7 @@ function testResponseSetPayloadWithJson() returns error? {
     check res.setContentType("json/test2");
     res.setPayload({"payload": "test"});
     test:assertEquals(res.getContentType(), "json/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -66,6 +69,7 @@ function testResponseSetPayloadWithByteArray() returns error? {
     check res.setContentType("binary/test2");
     res.setPayload("test".toBytes());
     test:assertEquals(res.getContentType(), "binary/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -80,6 +84,7 @@ function testResponseSetPayloadWithByteStream() returns error? {
     check res.setContentType("stream/test2");
     res.setPayload(blockStream);
     test:assertEquals(res.getContentType(), "stream/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -97,6 +102,7 @@ function testResponseSetPayloadWithEntityArray() returns error? {
     check res.setContentType("entity/test2");
     res.setPayload(bodyParts);
     test:assertEquals(res.getContentType(), "entity/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config{}
@@ -109,6 +115,7 @@ function testResponseSetFileAsPayload() returns error? {
     check res.setContentType("file/test2");
     res.setFileAsPayload("tests/datafiles/testFile.txt");
     test:assertEquals(res.getContentType(), "file/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -122,6 +129,7 @@ function testResponseSetXmlPayload() returns error? {
     check res.setContentType("xml/test2");
     res.setXmlPayload(testValue);
     test:assertEquals(res.getContentType(), "xml/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -134,6 +142,7 @@ function testResponseSetBinaryPayload() returns error? {
     check res.setContentType("binary/test2");
     res.setBinaryPayload("test".toBytes());
     test:assertEquals(res.getContentType(), "binary/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -146,6 +155,7 @@ function testResponseSetTextPayload() returns error? {
     check res.setContentType("text/test2");
     res.setTextPayload("test");
     test:assertEquals(res.getContentType(), "text/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -158,6 +168,7 @@ function testResponseSetJsonPayload() returns error? {
     check res.setContentType("json/test2");
     res.setJsonPayload({"payload": "test"});
     test:assertEquals(res.getContentType(), "json/test2", msg = "Found unexpected headerValue");
+    return;
 }
 
 @test:Config {}
@@ -172,4 +183,5 @@ function testResponseSetByteStream() returns error? {
     check res.setContentType("stream/test2");
     res.setByteStream(blockStream);
     test:assertEquals(res.getContentType(), "stream/test2", msg = "Found unexpected headerValue");
+    return;
 }

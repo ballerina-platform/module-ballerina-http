@@ -19,9 +19,9 @@ import ballerina/http;
 
 listener http:Listener cachingProxyListener = new(cachingTestPort3);
 listener http:Listener cachingBackendListener = new(cachingTestPort4);
-http:Client cachingProxyTestClient = check new("http://localhost:" + cachingTestPort3.toString(), { cache: { enabled: false }});
+final http:Client cachingProxyTestClient = check new("http://localhost:" + cachingTestPort3.toString(), { cache: { enabled: false }});
 
-http:Client cachingEP1 = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
+final http:Client cachingEP1 = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
 
 service /cachingProxyService on cachingProxyListener {
 
@@ -46,7 +46,11 @@ service /nocacheBackend on cachingBackendListener {
         json nocachePayload = {};
         http:Response res = new;
         http:ResponseCacheControl resCC = new;
-        if (nocachehitcount < 1) {
+        int count = 0;
+        lock {
+            count = nocachehitcount;
+        }
+        if (count < 1) {
             nocachePayload = { "message": "1st response" };
             res.cacheControl = resCC;
         } else {
@@ -54,8 +58,14 @@ service /nocacheBackend on cachingBackendListener {
         }
         resCC.noCache = true;
         res.setETag(nocachePayload);
-        nocachehitcount += 1;
-        res.setHeader("x-service-hit-count", nocachehitcount.toString());
+        lock {
+            nocachehitcount += 1;
+        }
+        string value = "";
+        lock {
+            value = nocachehitcount.toString();
+        }
+        res.setHeader("x-service-hit-count", value);
         res.setPayload(nocachePayload);
 
         checkpanic caller->respond(res);

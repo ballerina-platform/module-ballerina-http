@@ -22,7 +22,7 @@ import ballerina/http;
 
 listener http:Listener LBbackendListener = new(8093);
 
-http:LoadBalanceClient lbBackendEP = check new(
+final http:LoadBalanceClient lbBackendEP = check new(
     targets = [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
@@ -31,7 +31,7 @@ http:LoadBalanceClient lbBackendEP = check new(
     timeout = 5
 );
 
-http:LoadBalanceClient lbFailoverBackendEP = check new({
+final http:LoadBalanceClient lbFailoverBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock4" },
         { url: "http://localhost:8093/LBMock2" },
@@ -41,7 +41,7 @@ http:LoadBalanceClient lbFailoverBackendEP = check new({
     timeout: 2
 });
 
-http:LoadBalanceClient delayedBackendEP = check new({
+final http:LoadBalanceClient delayedBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock4" },
         { url: "http://localhost:8093/LBMock5" }
@@ -52,7 +52,7 @@ http:LoadBalanceClient delayedBackendEP = check new({
 
 CustomLoadBalancerRule customLbRule = new CustomLoadBalancerRule(2);
 
-http:LoadBalanceClient customLbBackendEP = check new({
+final http:LoadBalanceClient customLbBackendEP = check new({
     targets: [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
@@ -224,7 +224,7 @@ public isolated class CustomLoadBalancerRule {
 }
 
 //Test for round robin implementation algorithm of load balancer
-http:Client roundRobinLoadBalanceTestClient = check new("http://localhost:9313");
+final http:Client roundRobinLoadBalanceTestClient = check new("http://localhost:9313");
 
 @test:Config{ dataProvider:roundRobinResponseDataProvider }
 function roundRobinLoadBalanceTest(DataFeed dataFeed) {

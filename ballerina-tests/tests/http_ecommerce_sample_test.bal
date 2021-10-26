@@ -20,7 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/test;
 
 listener http:Listener ecommerceListenerEP = new(ecommerceTestPort);
-http:Client ecommerceClient = check new("http://localhost:" + ecommerceTestPort.toString());
+final http:Client ecommerceClient = check new("http://localhost:" + ecommerceTestPort.toString());
 
 service /customerservice on ecommerceListenerEP {
 
@@ -43,7 +43,7 @@ service /customerservice on ecommerceListenerEP {
     }
 }
 
-http:Client productsService = check new("http://localhost:" + ecommerceTestPort.toString());
+final http:Client productsService = check new("http://localhost:" + ecommerceTestPort.toString());
 
 service /ecommerceservice on ecommerceListenerEP {
 
@@ -132,19 +132,21 @@ service /orderservice on ecommerceListenerEP {
     }
 }
 
-map<anydata> productsMap = populateSampleProducts();
+isolated map<anydata> productsMap = populateSampleProducts().clone();
 
 service /productsservice on ecommerceListenerEP {
 
     resource function get [string prodId](http:Caller caller, http:Request req) {
-        http:Response res = new;
-        var result = productsMap[prodId].cloneWithType(json);
-        if (result is json) {
-            res.setPayload(result);
-        } else {
-            res.setPayload(result.message());
+        lock {
+            http:Response res = new;
+            var result = productsMap[prodId].cloneWithType(json);
+            if (result is json) {
+                res.setPayload(result);
+            } else {
+                res.setPayload(result.message());
+            }
+            checkpanic caller->respond(res);
         }
-        checkpanic caller->respond(res);
     }
 
     resource function post .(http:Caller caller, http:Request req) {
@@ -152,7 +154,9 @@ service /productsservice on ecommerceListenerEP {
         if (jsonReq is json) {
             var id = jsonReq.Product.ID;
             string productId = id is error ? id.toString() : id.toString();
-            productsMap[productId] = jsonReq;
+            lock {
+                productsMap[productId.clone()] = jsonReq.clone();
+            }
             json payload = {"Status":"Product is successfully added."};
 
             http:Response res = new;

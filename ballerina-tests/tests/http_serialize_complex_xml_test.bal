@@ -21,7 +21,7 @@ import ballerina/http;
 import ballerina/io;
 
 listener http:Listener serializeXmlListener = new(serializeXmlTestPort);
-http:Client xmlClientEP = check new("http://localhost:" + serializeXmlTestPort.toString());
+final http:Client xmlClientEP = check new("http://localhost:" + serializeXmlTestPort.toString());
 
 service /serialize on serializeXmlListener {
 
@@ -87,4 +87,5 @@ function testXmlSerialization() returns error? {
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
     xml content = check io:fileReadXml("tests/datafiles/ComplexTestXmlSample.xml");
     assertXmlPayload(response.getXmlPayload(), content);
+    return;
 }

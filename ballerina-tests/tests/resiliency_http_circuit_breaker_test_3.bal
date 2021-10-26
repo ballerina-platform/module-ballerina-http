@@ -20,7 +20,7 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-int forceCloseStateCount = 0;
+isolated int forceCloseStateCount = 0;
 
 listener http:Listener circuitBreakerEP02 = new(9308);
 
@@ -38,54 +38,64 @@ http:ClientConfiguration conf02 = {
     timeout: 2
 };
 
-http:Client unhealthyClientEP = check new("http://localhost:8088", conf02);
+final http:Client unhealthyClientEP = check new("http://localhost:8088", conf02);
 
 service /cb on circuitBreakerEP02 {
 
-    resource function 'default forceclose(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>unhealthyClientEP.httpClient;
-        forceCloseStateCount += 1;
-        runtime:sleep(1);
-        if (forceCloseStateCount == 4) {
-            runtime:sleep(5);
-            cbClient.forceClose();
-        }
-        http:Response|error backendRes = unhealthyClientEP->forward("/unhealthy", request);
-        if (backendRes is http:Response) {
-            error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+    isolated resource function 'default forceclose(http:Caller caller, http:Request request) {
+        //lock {
+            http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>unhealthyClientEP.httpClient;
+            lock {
+                forceCloseStateCount = forceCloseStateCount + 1;
             }
-        } else {
-            http:Response response = new;
-            response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
-            response.setPayload(backendRes.message());
-            error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+            runtime:sleep(1);
+            int count = 0;
+            lock {
+                count = forceCloseStateCount;
             }
-        }
+            if (count == 4) {
+                runtime:sleep(5);
+                cbClient.forceClose();
+            }
+            http:Response|error backendRes = unhealthyClientEP->forward("/unhealthy", request);
+            if (backendRes is http:Response) {
+                error? responseToCaller = caller->respond(backendRes);
+                if (responseToCaller is error) {
+                    log:printError("Error sending response", 'error = responseToCaller);
+                }
+            } else {
+                http:Response response = new;
+                response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
+                response.setPayload(backendRes.message());
+                error? responseToCaller = caller->respond(response);
+                if (responseToCaller is error) {
+                    log:printError("Error sending response", 'error = responseToCaller);
+                }
+            }
+        //}
     }
 }
 
 service /unhealthy on new http:Listener(8088) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
-        http:Response res = new;
-        if (forceCloseStateCount <= 3) {
-            runtime:sleep(5);
-        } else {
-            res.setPayload("Hello World!!!");
-        }
-        error? responseToCaller = caller->respond(res);
-        if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+        lock {
+            http:Response res = new;
+            if (forceCloseStateCount <= 3) {
+                runtime:sleep(5);
+            } else {
+                res.setPayload("Hello World!!!");
+            }
+            error? responseToCaller = caller->respond(res);
+            if (responseToCaller is error) {
+                log:printError("Error sending response from mock service", 'error = responseToCaller);
+            }
         }
     }
 }
 
 //Test for circuit breaker forceClose functionality
-http:Client testForceCloseClient = check new("http://localhost:9308");
+final http:Client testForceCloseClient = check new("http://localhost:9308");
 
 @test:Config{
     dataProvider:forceCloseResponseDataProvider

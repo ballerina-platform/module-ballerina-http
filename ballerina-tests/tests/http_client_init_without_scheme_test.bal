@@ -17,7 +17,7 @@
 import ballerina/http;
 import ballerina/test;
 
-http:Client clientWithoutScheme = check new ("localhost:" + clientWithoutSchemeTestPort.toString());
+final http:Client clientWithoutScheme = check new ("localhost:" + clientWithoutSchemeTestPort.toString());
 
 service / on new http:Listener(clientWithoutSchemeTestPort) {
 

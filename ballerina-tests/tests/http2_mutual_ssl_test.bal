@@ -181,4 +181,5 @@ public function testHttp2MutualSsl4() returns error? {
     } else {
         test:assertFail(msg = "Expected mutual SSL error not found");
     }
+    return;
 }

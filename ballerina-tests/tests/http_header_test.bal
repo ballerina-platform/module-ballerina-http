@@ -19,9 +19,9 @@ import ballerina/http;
 
 listener http:Listener httpHeaderListenerEP1 = new(httpHeaderTestPort1);
 listener http:Listener httpHeaderListenerEP2 = new(httpHeaderTestPort2);
-http:Client httpHeaderClient = check new("http://localhost:" + httpHeaderTestPort1.toString());
+final http:Client httpHeaderClient = check new("http://localhost:" + httpHeaderTestPort1.toString());
 
-http:Client stockqEP = check new("http://localhost:" + httpHeaderTestPort2.toString());
+final http:Client stockqEP = check new("http://localhost:" + httpHeaderTestPort2.toString());
 
 service /headerService on httpHeaderListenerEP1 {
 

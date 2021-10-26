@@ -34,7 +34,7 @@ service /declarativeclient on authListener {
     }
 }
 
-http:Client declarativeClientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+final http:Client declarativeClientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
     auth: {
         username: "admin",
         issuer: "wso2",

@@ -45,7 +45,7 @@ http:ClientConfiguration conf01 = {
     timeout: 2
 };
 
-http:Client healthyClientEP = checkpanic new("http://localhost:8087", conf01);
+final http:Client healthyClientEP = checkpanic new("http://localhost:8087", conf01);
 
 service /cb on circuitBreakerEP01 {
 
@@ -212,7 +212,7 @@ service /healthy on new http:Listener(8087) {
 
 
 //Test for circuit breaker forceOpen functionality
-http:Client testForceOpenClient = checkpanic new("http://localhost:9307");
+final http:Client testForceOpenClient = checkpanic new("http://localhost:9307");
 
 @test:Config{ 
     groups: ["circuitBreakerForceOpen"],

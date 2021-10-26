@@ -20,7 +20,7 @@ import ballerina/http;
 import ballerina/jwt;
 import ballerina/test;
 
-http:ListenerJwtAuthHandler handler = new({
+final http:ListenerJwtAuthHandler handler = new({
     issuer: "wso2",
     audience: "ballerina",
     signatureConfig: {

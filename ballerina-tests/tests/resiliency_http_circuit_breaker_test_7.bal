@@ -39,15 +39,17 @@ http:ClientConfiguration conf06 = {
     timeout: 2
 };
 
-http:Client backendClientEP06 = check new("http://localhost:8092", conf06);
+final http:Client backendClientEP06 = check new("http://localhost:8092", conf06);
 
 service /cb on circuitBreakerEP06 {
 
     resource function 'default trialrun(http:Caller caller, http:Request request) {
-        requestCount += 1;
-        // To ensure the reset timeout period expires
-        if (requestCount == 3) {
-            runtime:sleep(3);
+        lock {
+            requestCount += 1;
+            // To ensure the reset timeout period expires
+            if (requestCount == 3) {
+                runtime:sleep(3);
+            }
         }
         http:Response|error backendRes = backendClientEP06->forward("/hello06", request);
         if (backendRes is http:Response) {
@@ -70,23 +72,25 @@ service /cb on circuitBreakerEP06 {
 service /hello06 on new http:Listener(8092) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
-        actualCount += 1;
-        http:Response res = new;
-        if (actualCount == 1 || actualCount == 2) {
-            res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
-            res.setPayload("Service unavailable.");
-        } else {
-            res.setPayload("Hello World!!!");
-        }
-        error? responseToCaller = caller->respond(res);
-        if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+        lock {
+            actualCount += 1;
+            http:Response res = new;
+            if (actualCount == 1 || actualCount == 2) {
+                res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
+                res.setPayload("Service unavailable.");
+            } else {
+                res.setPayload("Hello World!!!");
+            }
+            error? responseToCaller = caller->respond(res);
+            if (responseToCaller is error) {
+                log:printError("Error sending response from mock service", 'error = responseToCaller);
+            }
         }
     }
 }
 
 //Test for circuit breaker trail failure functionality
-http:Client testTrialRunFailureClient = check new("http://localhost:9312");
+final http:Client testTrialRunFailureClient = check new("http://localhost:9312");
 
 @test:Config{ dataProvider:trialRunFailureResponseDataProvider }
 function testCBTrialRunFailure(DataFeed dataFeed) {

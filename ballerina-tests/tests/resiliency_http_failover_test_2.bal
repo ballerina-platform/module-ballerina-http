@@ -28,7 +28,7 @@ listener http:Listener failoverEP02 = new(9302);
 listener http:Listener backendEP02 = new(8082);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP02 = check new({
+final http:FailoverClient foBackendEP02 = check new({
     timeout: 5,
     failoverCodes: [501, 502, 503],
     interval: 5,
@@ -41,7 +41,7 @@ http:FailoverClient foBackendEP02 = check new({
     ]
 });
 
-http:FailoverClient foBackendFailureEP02 = check new({
+final http:FailoverClient foBackendFailureEP02 = check new({
     timeout: 5,
     failoverCodes: [501, 502, 503],
     interval: 5,
@@ -53,7 +53,7 @@ http:FailoverClient foBackendFailureEP02 = check new({
     ]
 });
 
-http:FailoverClient foStatusCodesEP02 = check new({
+final http:FailoverClient foStatusCodesEP02 = check new({
     timeout: 5,
     failoverCodes: [501, 502, 503],
     interval: 5,
@@ -158,9 +158,11 @@ int counter02 = 1;
 // Define the sample service to mock a healthy service.
 service /mock02 on backendEP02 {
     resource function 'default .(http:Caller caller, http:Request req) {
-        counter02 += 1;
-        if (counter02 % 5 == 0) {
-            runtime:sleep(30);
+        lock {
+            counter02 += 1;
+            if (counter02 % 5 == 0) {
+                runtime:sleep(30);
+            }
         }
         http:Response response = new;
         if (req.hasHeader(mime:CONTENT_TYPE)

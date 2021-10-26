@@ -21,7 +21,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener dataBindingEP = new(databindingTest);
-http:Client dataBindingClient = check new("http://localhost:" + databindingTest.toString());
+final http:Client dataBindingClient = check new("http://localhost:" + databindingTest.toString());
 
 type Person record {|
     string name;
@@ -92,31 +92,35 @@ service /echo on dataBindingEP {
     }
 
     resource function get negative1(http:Caller caller) {
-        var err = dataBindingEP.attach(multipleAnnot1, "multipleAnnot1");
-        if err is error {
-            checkpanic caller->respond(err.message());
-        } else {
-            checkpanic caller->respond("ok");
+        lock {
+            var err = dataBindingEP.attach(multipleAnnot1, "multipleAnnot1");
+            if err is error {
+                checkpanic caller->respond(err.message());
+            } else {
+                checkpanic caller->respond("ok");
+            }
         }
     }
 
     resource function get negative2(http:Caller caller) {
-        var err = dataBindingEP.attach(multipleAnnot2, "multipleAnnot2");
-        if err is error {
-            checkpanic caller->respond(err.message());
-        } else {
-            checkpanic caller->respond("ok");
+        lock {
+            var err = dataBindingEP.attach(multipleAnnot2, "multipleAnnot2");
+            if err is error {
+                checkpanic caller->respond(err.message());
+            } else {
+                checkpanic caller->respond("ok");
+            }
         }
     }
 }
 
-http:Service multipleAnnot1 = service object {
+isolated http:Service multipleAnnot1 = service object {
     resource function get annot(@http:Payload {} @http:CallerInfo {} string payload) {
         //...
     }
 };
 
-http:Service multipleAnnot2 = service object {
+isolated http:Service multipleAnnot2 = service object {
     resource function get annot(@http:Payload {} string payload1, @http:Payload {} string payload2) {
         //...
     }
