@@ -38,3 +38,8 @@ jobs:
           ./gradlew publish --scan --no-daemon
       - name: Generate CodeCov Report
         uses: codecov/codecov-action@v2
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ballerina-runtime
+          path: target/ballerina-runtime/
