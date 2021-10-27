@@ -125,7 +125,8 @@ function sendCBErrorResponse(http:Caller caller, error e) {
 final http:Client h2CBTestClient = check new("http://localhost:9315");
 
 @test:Config{
-    dataProvider:http2CircuitBreakerDataProvider
+    dataProvider:http2CircuitBreakerDataProvider,
+    groups: ["disabledOnWindows"]
 }
 function testBasicHttp2CircuitBreaker(DataFeed dataFeed) {
     invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun", dataFeed);
