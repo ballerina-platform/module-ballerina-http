@@ -38,18 +38,26 @@ http:ClientConfiguration conf07 = {
 
 final http:Client backendClientEP07 = check new("http://localhost:8095", conf07);
 
-int cbTrialRequestCount = 0;
+isolated int cbTrialRequestCount = 0;
+
+isolated function incrementCbTrialRequestCount() {
+    lock {
+        cbTrialRequestCount += 1;
+    }
+}
+
+isolated function getCbTrialRequestCount() returns int {
+    lock {
+        return cbTrialRequestCount;
+    }
+}
 
 service /cb on circuitBreakerEP07 {
 
     resource function 'default trialrun(http:Caller caller, http:Request request) {
-        int count = 0;
-        lock {
-            cbTrialRequestCount += 1;
-            count = cbTrialRequestCount;
-        }
+        incrementCbTrialRequestCount();
         // To ensure the reset timeout period expires
-        if (count == 3) {
+        if (getCbTrialRequestCount() == 3) {
             runtime:sleep(3);
         }
 
@@ -70,16 +78,25 @@ service /cb on circuitBreakerEP07 {
     }
 }
 
-int cbTrialActualCount = 0;
+isolated int cbTrialActualCount = 0;
+
+isolated function incrementCbTrialActualCount() {
+    lock {
+        cbTrialActualCount += 1;
+    }
+}
+
+isolated function getCbTrialActualCount() returns int {
+    lock {
+        return cbTrialActualCount;
+    }
+}
 
 service /hello07 on new http:Listener(8095) {
     
     resource function 'default .(http:Caller caller, http:Request req) {
-        int count = 0;
-        lock {
-            cbTrialActualCount += 1;
-            count = cbTrialActualCount;
-        }
+        incrementCbTrialActualCount();
+        int count = getCbTrialActualCount();
         http:Response res = new;
         if (count == 1 || count == 2) {
             res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
