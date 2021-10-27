@@ -67,35 +67,36 @@ service /cache on cachingListener1 {
     }
 }
 
-isolated json payload = { "message": "Hello, World!" };
 isolated int hitcount = 0;
+
+isolated function incrementHitCount() {
+    lock {
+        hitcount += 1;
+    }
+}
+
+isolated function getHitCount() returns int {
+    lock {
+        return hitcount;
+    }
+}
 
 service /cachingBackend on cachingListener2 {//new http:Listener(9240) {
 
     isolated resource function 'default .(http:Caller caller, http:Request req) {
         http:Response res = new;
-
         http:ResponseCacheControl resCC = new;
         resCC.maxAge = 60;
         resCC.isPrivate = false;
 
         res.cacheControl = resCC;
-        json jsonValue = ();
-        lock {
-            jsonValue = payload.clone();
-        }
-        res.setETag(jsonValue);
+        json payload = { "message": "Hello, World!" };
+        res.setETag(payload);
         res.setLastModified();
-        lock {
-            hitcount += 1;
-        }
-        string value = "";
-        lock {
-            value = hitcount.toString();
-        }
-        res.setHeader("x-service-hit-count", value);
+        incrementHitCount();
+        res.setHeader("x-service-hit-count", getHitCount().toString());
 
-        res.setPayload(jsonValue);
+        res.setPayload(payload);
 
         checkpanic caller->respond(res);
     }

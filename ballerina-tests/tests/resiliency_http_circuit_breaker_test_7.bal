@@ -74,19 +74,21 @@ service /cb on circuitBreakerEP06 {
 service /hello06 on new http:Listener(8092) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
+        int count = 0;
         lock {
             actualCount += 1;
-            http:Response res = new;
-            if (actualCount == 1 || actualCount == 2) {
-                res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
-                res.setPayload("Service unavailable.");
-            } else {
-                res.setPayload("Hello World!!!");
-            }
-            error? responseToCaller = caller->respond(res);
-            if (responseToCaller is error) {
-                log:printError("Error sending response from mock service", 'error = responseToCaller);
-            }
+            count = actualCount;
+        }
+        http:Response res = new;
+        if (count == 1 || count == 2) {
+            res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
+            res.setPayload("Service unavailable.");
+        } else {
+            res.setPayload("Hello World!!!");
+        }
+        error? responseToCaller = caller->respond(res);
+        if (responseToCaller is error) {
+            log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

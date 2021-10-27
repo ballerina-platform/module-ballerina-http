@@ -21,7 +21,19 @@ import ballerina/http;
 listener http:Listener serviceTestEP = new(serviceTest);
 final http:Client stClient = check new("http://localhost:" + serviceTest.toString());
 
-string globalLevelStr = "";
+isolated string globalLevelStr = "";
+
+isolated function setGlobalValue(string payload) {
+    lock {
+        globalLevelStr = payload;
+    }
+}
+
+isolated function getGlobalValue() returns string {
+    lock {
+        return globalLevelStr;
+    }
+}
 
 service /echo on serviceTestEP {
 
@@ -42,25 +54,23 @@ service /echo on serviceTestEP {
     }
 
     resource function post setString(http:Caller caller, http:Request req) {
-        lock {
-            http:Response res = new;
-            string payloadData = "";
-            var payload = req.getTextPayload();
-            if (payload is error) {
-                return;
-            } else {
-                payloadData = payload;
-            }
-            globalLevelStr = payloadData;
-            checkpanic caller->respond(globalLevelStr);
+        http:Response res = new;
+        string payloadData = "";
+        var payload = req.getTextPayload();
+        if (payload is error) {
             return;
+        } else {
+            payloadData = payload;
         }
+        setGlobalValue(payloadData);
+        checkpanic caller->respond(payloadData);
+        return;
     }
 
     resource function get getString(http:Caller caller, http:Request req) {
         lock {
             http:Response res = new;
-            res.setTextPayload(globalLevelStr);
+            res.setTextPayload(getGlobalValue());
             checkpanic caller->respond(res);
             return;
         }
