@@ -1472,12 +1472,8 @@ public class HttpUtil {
             listenerConfiguration.setVersion(httpVersion);
         }
 
-        if (endpointConfig.getType().getName().equalsIgnoreCase(HttpConstants.LISTENER_CONFIGURATION)) {
-            BString serverName = endpointConfig.getStringValue(HttpConstants.SERVER_NAME);
-            listenerConfiguration.setServerHeader(serverName != null ? serverName.getValue() : getServerName());
-        } else {
-            listenerConfiguration.setServerHeader(getServerName());
-        }
+        BString serverName = endpointConfig.getStringValue(HttpConstants.SERVER_NAME);
+        listenerConfiguration.setServerHeader(serverName != null ? serverName.getValue() : getServerName());
 
         if (sslConfig != null) {
             return setSslConfig(sslConfig, listenerConfiguration);

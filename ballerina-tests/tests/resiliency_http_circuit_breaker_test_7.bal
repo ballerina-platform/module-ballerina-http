@@ -39,14 +39,18 @@ http:ClientConfiguration conf06 = {
     timeout: 2
 };
 
-http:Client backendClientEP06 = check new("http://localhost:8092", conf06);
+final http:Client backendClientEP06 = check new("http://localhost:8092", conf06);
 
 service /cb on circuitBreakerEP06 {
 
     resource function 'default trialrun(http:Caller caller, http:Request request) {
-        requestCount += 1;
-        // To ensure the reset timeout period expires
-        if (requestCount == 3) {
+        int count = 0;
+        lock {
+            requestCount += 1;
+            count = requestCount;
+        }
+            // To ensure the reset timeout period expires
+        if (count == 3) {
             runtime:sleep(3);
         }
         http:Response|error backendRes = backendClientEP06->forward("/hello06", request);
@@ -70,9 +74,13 @@ service /cb on circuitBreakerEP06 {
 service /hello06 on new http:Listener(8092) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
-        actualCount += 1;
+        int count = 0;
+        lock {
+            actualCount += 1;
+            count = actualCount;
+        }
         http:Response res = new;
-        if (actualCount == 1 || actualCount == 2) {
+        if (count == 1 || count == 2) {
             res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
             res.setPayload("Service unavailable.");
         } else {
@@ -86,7 +94,7 @@ service /hello06 on new http:Listener(8092) {
 }
 
 //Test for circuit breaker trail failure functionality
-http:Client testTrialRunFailureClient = check new("http://localhost:9312");
+final http:Client testTrialRunFailureClient = check new("http://localhost:9312");
 
 @test:Config{ dataProvider:trialRunFailureResponseDataProvider }
 function testCBTrialRunFailure(DataFeed dataFeed) {

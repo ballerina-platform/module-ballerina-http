@@ -54,6 +54,7 @@ public client isolated class RetryClient {
                                         HttpClient httpClient) returns ClientError? {
         self.retryInferredConfig = retryInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
+        return;
     }
 
     # The `RetryClient.post()` function wraps the underlying HTTP remote functions in a way to provide

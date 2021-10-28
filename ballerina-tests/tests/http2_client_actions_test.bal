@@ -20,7 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
 
-http:Client http2Client = check new("http://localhost:9122", { httpVersion: "2.0",
+final http:Client http2Client = check new("http://localhost:9122", { httpVersion: "2.0",
                                 http2Settings: { http2PriorKnowledge: true } });
 
 service /backEndService on new http:Listener(9122, { httpVersion: "2.0" }) {

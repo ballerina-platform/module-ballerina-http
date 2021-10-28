@@ -35,7 +35,7 @@ http:ClientConfiguration conf04 = {
     timeout: 2
 };
 
-http:Client errornousClientEP = check new("http://localhost:8090", conf04);
+final http:Client errornousClientEP = check new("http://localhost:8090", conf04);
 
 service /cb on circuitBreakerEP04 {
 
@@ -59,7 +59,7 @@ service /errornous on new http:Listener(8090) {
 }
 
 //Test for circuit breaker requestVolumeThreshold functionality
-http:Client testRequestVolumeClient = check new("http://localhost:9310");
+final http:Client testRequestVolumeClient = check new("http://localhost:9310");
 
 @test:Config{ 
     groups: ["circuitBreakerRequestVolume"],

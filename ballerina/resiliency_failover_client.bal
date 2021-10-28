@@ -60,6 +60,7 @@ public client isolated class FailoverClient {
             failoverInterval:failoverClientConfig.interval
         };
         self.failoverInferredConfig = failoverInferredConfig.cloneReadOnly();
+        return;
     }
 
     # The POST remote function implementation of the Failover Connector.

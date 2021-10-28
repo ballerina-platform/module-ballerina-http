@@ -20,7 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/test;
 
 listener http:Listener resourceReturnTestEP = new(resourceReturnTest);
-http:Client resourceReturnTestClient = check new("http://localhost:" + resourceReturnTest.toString());
+final http:Client resourceReturnTestClient = check new("http://localhost:" + resourceReturnTest.toString());
 
 type RetPerson record {
     string name;
@@ -358,6 +358,7 @@ service http:Service /mytest on resourceReturnTestEP {
 
     resource function get test31(http:Caller caller) returns error? {
         check caller->respond("Hello"); // log error
+        return;
     }
 
     resource function get test32(http:Caller caller) {

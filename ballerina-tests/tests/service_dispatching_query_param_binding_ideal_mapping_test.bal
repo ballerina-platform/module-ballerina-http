@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 listener http:Listener QueryBindingIdealEP = new(queryParamBindingIdealTestPort);
-http:Client queryBindingIdealClient = check new("http://localhost:" + queryParamBindingIdealTestPort.toString());
+final http:Client queryBindingIdealClient = check new("http://localhost:" + queryParamBindingIdealTestPort.toString());
 
 @http:ServiceConfig {
     treatNilableAsOptional : false

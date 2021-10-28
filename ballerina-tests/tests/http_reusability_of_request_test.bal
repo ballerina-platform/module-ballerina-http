@@ -21,9 +21,9 @@ import ballerina/mime;
 import ballerina/test;
 
 listener http:Listener reuseRequestListenerEP = new(reuseRequestTestPort);
-http:Client reuseRequestClient = check new("http://localhost:" + reuseRequestTestPort.toString());
+final http:Client reuseRequestClient = check new("http://localhost:" + reuseRequestTestPort.toString());
 
-http:Client clientEP1 = check new("http://localhost:" + reuseRequestTestPort.toString() + "/testService_2");
+final http:Client clientEP1 = check new("http://localhost:" + reuseRequestTestPort.toString() + "/testService_2");
 
 service /reuseObj on reuseRequestListenerEP {
 

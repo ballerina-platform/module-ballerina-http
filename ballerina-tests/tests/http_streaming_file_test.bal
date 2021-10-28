@@ -21,8 +21,8 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/file;
 
-http:Client streamTestClient = check new ("http://localhost:" + streamTest1.toString());
-http:Client streamBackendClient = check new ("http://localhost:" + streamTest2.toString());
+final http:Client streamTestClient = check new ("http://localhost:" + streamTest1.toString());
+final http:Client streamBackendClient = check new ("http://localhost:" + streamTest2.toString());
 
 service /'stream on new http:Listener(streamTest1) {
     resource function get fileupload(http:Caller caller) {
@@ -121,4 +121,5 @@ function testConsumedStream() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }

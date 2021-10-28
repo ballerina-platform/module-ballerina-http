@@ -18,16 +18,18 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener httpIntroResTestListener = new(introResTest);
-http:Client httpIntroResTestClient = check new("http://localhost:" + introResTest.toString());
+final http:Client httpIntroResTestClient = check new("http://localhost:" + introResTest.toString());
 
 service / on httpIntroResTestListener {
     resource function get greeting() returns string|error {
-        check httpIntroResTestListener.attach(openApiMock, "/mock");
+        lock {
+            check httpIntroResTestListener.attach(openApiMock, "/mock");
+        }
         return "Hello Swan";
     }
 }
 
-http:Service openApiMock = service object {
+isolated http:Service openApiMock = service object {
     resource function get mockResource() returns string {
         return "Hello ballerina";
     }
@@ -48,6 +50,7 @@ function testIntrospectionResourceLinkWhenFileDoesNotExist() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -65,6 +68,7 @@ function testIntrospectionResourceLinkForBasePathWhenFileDoesNotExist() returns 
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -92,4 +96,5 @@ function testIntrospectionAnnotationInConstructorExpression() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
