@@ -15,18 +15,14 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/test;
 
-service http:Service on new http:Listener(9090) {
-    @http:ResourceConfig {
-        consumes: ["fwhbw"]
-    }
-    resource function get greeting1() returns int|error|string {
-        return error http:Error("hello") ;
+service / on new http:Listener(9999) {
+    
+    resource function get . (@http:Header string[] length) {
+        
     }
 
-    @test:Config {}
-    resource function get greeting2() returns int|error|string {
-        return error http:Error("hello") ;
+    resource function get path1(http:Caller caller) returns string {
+        
     }
 }
