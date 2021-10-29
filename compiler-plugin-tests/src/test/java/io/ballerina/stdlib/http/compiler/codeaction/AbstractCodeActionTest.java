@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractCodeActionTest {
 
     protected static final Path RESOURCE_PATH = Paths.get("src", "test", "resources");
-    protected static final Path DISTRIBUTION_PATH = Paths.get("build", "target", "ballerina-distribution");
+    protected static final Path DISTRIBUTION_PATH = Paths.get("../", "target", "ballerina-runtime");
 
     private static final Gson GSON = new Gson();
 

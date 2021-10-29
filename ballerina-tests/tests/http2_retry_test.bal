@@ -225,7 +225,8 @@ function testHttp2SimpleRetry() {
 
 //Test basic retry functionality with HTTP2 Server Push
 @test:Config {
-    groups: ["http2RetryClientTest"]
+    groups: ["http2RetryClientTest"],
+    enable: false
 }
 function testHttp2RetryWithServerPush() {
     string expectedPayload = "{\"main\":{\"response\":{\"name\":\"main resource\"}}, \"promises\":[{\"push\":{\"name\":\"resource3\"}}]}";
