@@ -744,4 +744,5 @@ public function testCaseSensitiveDomain() returns error? {
         string welcomeResp = check httpClient->get("/welcome");
         test:assertEquals(welcomeResp, "Welcome back John");
     }
+    return;
 }

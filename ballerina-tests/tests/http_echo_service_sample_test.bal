@@ -22,7 +22,7 @@ configurable string keystore = ?;
 configurable string truststore = ?;
 
 listener http:Listener echoServiceTestListenerEP = new(echoServiceTestPort);
-http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestPort.toString());
+final http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestPort.toString());
 
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
     secureSocket: {
@@ -43,7 +43,7 @@ http:ClientConfiguration echoHttpsServiceClientConfig = {
         }
     }
 };
-http:Client echoHttpsServiceClient = check new("https://localhost:" + echoHttpsServiceTestPort.toString(), echoHttpsServiceClientConfig);
+final http:Client echoHttpsServiceClient = check new("https://localhost:" + echoHttpsServiceTestPort.toString(), echoHttpsServiceClientConfig);
 
 service /echoServiceTest1 on echoServiceTestListenerEP {
 

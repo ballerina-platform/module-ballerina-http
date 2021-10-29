@@ -18,9 +18,9 @@ import ballerina/http;
 import ballerina/lang.runtime;
 import ballerina/test;
 
-http:Client foClientEP = check new ("http://localhost:" + foClientWithoutStatusCodeTestPort1.toString());
+final http:Client foClientEP = check new ("http://localhost:" + foClientWithoutStatusCodeTestPort1.toString());
 
-http:FailoverClient foBackendEP = check new ({
+final http:FailoverClient foBackendEP = check new ({
     timeout: 5,
     failoverCodes: [],
     interval: 5,

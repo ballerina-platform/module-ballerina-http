@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener httpReturnNilListener = new(httpReturnNilTestPort);
-http:Client httpReturnNilClient = check new("http://localhost:" + httpReturnNilTestPort.toString());
+final http:Client httpReturnNilClient = check new("http://localhost:" + httpReturnNilTestPort.toString());
 
 service "/url" on httpReturnNilListener  {
 
@@ -45,6 +45,7 @@ service "/url" on httpReturnNilListener  {
             return; //500 response
         }
         check caller->respond("success");
+        return;
     }
 
     resource function get nonReturn(boolean success, http:Caller caller) {

@@ -122,6 +122,7 @@ isolated function getListenerAuthConfig(Service serviceRef, string methodName, s
     if (serviceAuthConfig is ListenerAuthConfig[]) {
         return serviceAuthConfig;
     }
+    return;
 }
 
 isolated function getServiceAuthConfig(Service serviceRef) returns ListenerAuthConfig[]? {

@@ -19,12 +19,16 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serviceDetachTestEP = new(serviceDetachTest);
-http:Client serviceDetachClient = check new("http://localhost:" + serviceDetachTest.toString());
+final http:Client serviceDetachClient = check new("http://localhost:" + serviceDetachTest.toString());
 
 service /mock1 on serviceDetachTestEP {
     resource function get .(http:Caller caller, http:Request req) {
-        checkpanic serviceDetachTestEP.attach(mock2, "/mock2");
-        checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
+        lock {
+            checkpanic serviceDetachTestEP.attach(mock2, "/mock2");
+        }
+        lock {
+            checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
+        }
         error? responseToCaller = caller->respond("Mock1 invoked. Mock2 attached. Mock3 attached");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -32,10 +36,14 @@ service /mock1 on serviceDetachTestEP {
     }
 }
 
-http:Service mock2 = service object {
+isolated http:Service mock2 = service object {
     resource function get mock2Resource(http:Caller caller, http:Request req) {
-        checkpanic serviceDetachTestEP.detach(mock3);
-        checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
+        lock {
+            checkpanic serviceDetachTestEP.detach(mock3);
+        }
+        lock {
+            checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
+        }
         error? responseToCaller = caller->respond("Mock2 resource was invoked");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -43,10 +51,14 @@ http:Service mock2 = service object {
     }
 };
 
-http:Service mock3 = service object {
+isolated http:Service mock3 = service object {
     resource function get mock3Resource(http:Caller caller, http:Request req) {
-        checkpanic serviceDetachTestEP.detach(mock2);
-        checkpanic serviceDetachTestEP.attach(mock4, "/mock4");
+        lock {
+            checkpanic serviceDetachTestEP.detach(mock2);
+        }
+        lock {
+            checkpanic serviceDetachTestEP.attach(mock4, "/mock4");
+        }
         error? responseToCaller = caller->respond("Mock3 invoked. Mock2 detached. Mock4 attached");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -54,10 +66,14 @@ http:Service mock3 = service object {
     }
 };
 
-http:Service mock4 = service object {
+isolated http:Service mock4 = service object {
     resource function get mock4Resource(http:Caller caller, http:Request req) {
-        checkpanic serviceDetachTestEP.attach(mock2, "/mock2");
-        checkpanic serviceDetachTestEP.detach(mock5);
+        lock {
+            checkpanic serviceDetachTestEP.attach(mock2, "/mock2");
+        }
+        lock {
+            checkpanic serviceDetachTestEP.detach(mock5);
+        }
         error? responseToCaller = caller->respond("Mock4 invoked. Mock2 attached");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -65,7 +81,7 @@ http:Service mock4 = service object {
     }
 };
 
-http:Service mock5 = service object {
+isolated http:Service mock5 = service object {
     resource function get mock5Resource(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock5 invoked");
         if (responseToCaller is error) {

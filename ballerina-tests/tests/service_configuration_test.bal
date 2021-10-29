@@ -21,17 +21,19 @@ configurable int backendPort = ?;
 configurable string basePath = ?;
 
 listener http:Listener backendEP = new(backendPort);
-http:Client scClient = check new("http://localhost:" + serviceConfigTest.toString());
+final http:Client scClient = check new("http://localhost:" + serviceConfigTest.toString());
 
 service /schello on backendEP {
     resource function get sayHello(http:Caller caller, http:Request request) {
-        checkpanic backendEP.attach(testingService, basePath);
+        lock {
+            checkpanic backendEP.attach(testingService, basePath);
+        }
         checkpanic backendEP.start();
         checkpanic caller->respond("Service started!");
     }
 }
 
-http:Service testingService = service object {
+isolated http:Service testingService = service object {
     resource function get .(http:Caller caller, http:Request req) {
         http:Response response = new;
         response.setTextPayload("Hello World!!!");

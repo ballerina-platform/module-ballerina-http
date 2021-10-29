@@ -25,19 +25,19 @@ listener http:Listener http2RedirectServiceEndpoint2 = new(http2RedirectTestPort
 listener http:Listener http2RedirectServiceEndpoint3 = new(http2RedirectTestPort3, { httpVersion: "2.0" });
 
 
-http:Client http2RedirectClient = check new("http://localhost:" + http2RedirectTestPort1.toString());
+final http:Client http2RedirectClient = check new("http://localhost:" + http2RedirectTestPort1.toString());
 
-http:Client http2RedirectEndPoint1 = check new("http://localhost:" + http2RedirectTestPort2.toString(), {
+final http:Client http2RedirectEndPoint1 = check new("http://localhost:" + http2RedirectTestPort2.toString(), {
     httpVersion: "2.0",
     followRedirects: { enabled: true, maxCount: 3 }
 });
 
-http:Client http2RedirectEndPoint2 = check new("http://localhost:" + http2RedirectTestPort2.toString(), {
+final http:Client http2RedirectEndPoint2 = check new("http://localhost:" + http2RedirectTestPort2.toString(), {
     httpVersion: "2.0",
     followRedirects: { enabled: true, maxCount: 5 }
 });
 
-http:Client http2RedirectEndPoint3 = check new("http://localhost:" + http2RedirectTestPort3.toString(), {
+final http:Client http2RedirectEndPoint3 = check new("http://localhost:" + http2RedirectTestPort3.toString(), {
     httpVersion: "2.0",
     followRedirects: { enabled: true }
 });
@@ -80,6 +80,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get noRedirect(http:Caller caller, http:Request req) returns error? {
@@ -95,6 +96,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get qpWithRelativePath(http:Caller caller, http:Request req) returns error? {
@@ -110,6 +112,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) returns error? {
@@ -125,6 +128,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get originalRequestWithQP(http:Caller caller, http:Request req) returns error? {
@@ -140,6 +144,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get test303(http:Caller caller, http:Request req) returns error? {
@@ -155,6 +160,7 @@ service /testHttp2Redirect on http2RedirectServiceEndpoint1 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 }
 

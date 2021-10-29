@@ -17,7 +17,7 @@
 import ballerina/test;
 import ballerina/http;
 
-http:Client serviceSpecificClientEP = check new("http://localhost:" + serviceMediaTypeSubtypePrefixPort.toString());
+final http:Client serviceSpecificClientEP = check new("http://localhost:" + serviceMediaTypeSubtypePrefixPort.toString());
 listener http:Listener serviceSpecificListener = new(serviceMediaTypeSubtypePrefixPort);
 
 @http:ServiceConfig {
@@ -51,12 +51,14 @@ service /service1 on serviceSpecificListener {
         res.setPayload("test5");
         res.setHeader("content-type", "type5/subtype5");
         check caller->respond(res);
+        return;
     }
 
     resource function default test6(http:Request req, http:Caller caller) returns error? {
         http:Response res = new;
         res.setPayload("test6");
         check caller->respond(res);
+        return;
     }
 }
 
@@ -99,4 +101,5 @@ function testServiceWithSpecificmediaTypeSubtypePrefix() returns error? {
     response = check serviceSpecificClientEP->get("/service2/test");
     assertJsonPayload(response.getJsonPayload(), {message : "test"});
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), "application/testServicePrefix2+json");
+    return;
 }

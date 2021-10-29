@@ -20,7 +20,7 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-int cbCounter = 1;
+isolated int cbCounter = 1;
 
 listener http:Listener circuitBreakerEP00 = new(9306);
 
@@ -38,18 +38,24 @@ http:ClientConfiguration conf = {
     timeout: 2
 };
 
-http:Client backendClientEP00 = check new("http://localhost:8086", conf);
+final http:Client backendClientEP00 = check new("http://localhost:8086", conf);
 
 service /cb on circuitBreakerEP00 {
 
     resource function 'default typical(http:Caller caller, http:Request request) {
         http:Response|error backendRes = backendClientEP00->forward("/hello/typical", request);
-        if (cbCounter % 5 == 0) {
+        int count = 0;
+        lock {
+            count = cbCounter;
+        }
+        if (count % 5 == 0) {
             runtime:sleep(5);
         } else {
             runtime:sleep(1);
         }
-        cbCounter += 1;
+        lock {
+            cbCounter += 1;
+        }
         if (backendRes is http:Response) {
             error? responseToCaller = caller->respond(backendRes);
             if (responseToCaller is error) {
@@ -73,7 +79,11 @@ service /cb on circuitBreakerEP00 {
 service /hello on new http:Listener(8086) {
 
     resource function 'default typical(http:Caller caller, http:Request req) {
-        if (cbCounter % 5 == 3) {
+        int count = 0;
+        lock {
+            count = cbCounter;
+        }
+        if (count % 5 == 3) {
             runtime:sleep(3);
         }
         error? responseToCaller = caller->respond("Hello World!!!");
@@ -84,7 +94,7 @@ service /hello on new http:Listener(8086) {
 }
 
 //Test basic circuit breaker functionality
-http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306");
+final http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306");
 
 @test:Config {
     dataProvider:responseDataProvider

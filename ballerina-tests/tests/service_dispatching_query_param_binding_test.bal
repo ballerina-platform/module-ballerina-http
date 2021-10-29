@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/url;
 
 listener http:Listener QueryBindingEP = new(queryParamBindingTest);
-http:Client queryBindingClient = check new("http://localhost:" + queryParamBindingTest.toString());
+final http:Client queryBindingClient = check new("http://localhost:" + queryParamBindingTest.toString());
 
 service /queryparamservice on QueryBindingEP {
 
@@ -207,6 +207,7 @@ function testMapJsonQueryBinding() returns error? {
     string jsonEncoded = check url:encode(jsonObj.toJsonString(), "UTF-8");
     http:Response response = check queryBindingClient->get("/queryparamservice/q5?obj=" + jsonEncoded);
     assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonObj);
+    return;
 }
 
 @test:Config {}
@@ -219,6 +220,7 @@ function testMapJsonArrayQueryBinding() returns error? {
     http:Response response = check queryBindingClient->get("/queryparamservice/q7?objs=" + jsonEncoded1 + "," +
                                 jsonEncoded2);
     assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
+    return;
 }
 
 @test:Config {}
@@ -231,6 +233,7 @@ function testNillableMapJsonQueryBinding() returns error? {
 
     response = check queryBindingClient->get("/queryparamservice/q6");
     assertJsonPayloadtoJsonString(response.getJsonPayload(), emptyObj);
+    return;
 }
 
 @test:Config {}
@@ -247,6 +250,7 @@ function testNillableMapJsonArrayQueryBinding() returns error? {
 
     response = check queryBindingClient->get("/queryparamservice/q8");
     assertJsonPayloadtoJsonString(response.getJsonPayload(), emptyObj);
+    return;
 }
 
 @test:Config {}

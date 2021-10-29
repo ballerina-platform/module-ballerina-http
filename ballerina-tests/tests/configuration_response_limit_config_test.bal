@@ -51,14 +51,14 @@ http:ClientConfiguration http2headerLimitConfig = {
 listener http:Listener statusLineEP = new(responseLimitsTestPort1);
 listener http:Listener responseLimitBackendEP = new(responseLimitsTestPort2);
 
-http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString());
-http:Client statusLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
+final http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString());
+final http:Client statusLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
         + "/backend/statustest", statusLineLimitConfig);
-http:Client headerLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
+final http:Client headerLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
         + "/backend/headertest", headerLimitConfig);
-http:Client entityBodyLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
+final http:Client entityBodyLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
         + "/backend/entitybodytest", entityBodyLimitConfig);
-http:Client http2headerLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
+final http:Client http2headerLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
         + "/backend/headertest2", http2headerLimitConfig);
 
 service /responseLimit on statusLineEP {

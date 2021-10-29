@@ -26,7 +26,7 @@ listener http:Listener failoverEP05 = new(9305);
 listener http:Listener backendEP05 = new(8085);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP05 = check new({
+final http:FailoverClient foBackendEP05 = check new({
     timeout: 5,
     failoverCodes: [501, 502, 503],
     interval: 5,

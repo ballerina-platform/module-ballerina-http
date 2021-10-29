@@ -19,7 +19,7 @@ import ballerina/log;
 import ballerina/io;
 import ballerina/test;
 
-http:Client h2Client = check new("http://localhost:9127", {
+final http:Client h2Client = check new("http://localhost:9127", {
     httpVersion: "2.0",
     http2Settings: {
         http2PriorKnowledge: true

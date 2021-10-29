@@ -19,7 +19,7 @@ import ballerina/jballerina.java;
 
 # This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
-public class Listener {
+public isolated class Listener {
 
     private int port;
     private ListenerConfiguration config;
@@ -30,7 +30,7 @@ public class Listener {
     # + config - Configurations for the HTTP service listener
     # + return - A `ListenerError` if an error occurred during the listener initialization
     public isolated function init(int port, *ListenerConfiguration config) returns ListenerError? {
-        self.config = config;
+        self.config = config.cloneReadOnly();
         self.port = port;
         return externInitEndpoint(self);
     }
@@ -78,14 +78,18 @@ public class Listener {
     #
     # + return - The HTTP listener port
     public isolated function getPort() returns int {
-        return self.port;
+        lock {
+            return self.port;
+        }
     }
 
     # Retrieves the `ListenerConfiguration` of the HTTP listener.
     #
     # + return - The readonly HTTP listener configuration
     public isolated function getConfig() returns readonly & ListenerConfiguration {
-        return <readonly & ListenerConfiguration> self.config.cloneReadOnly();
+        lock {
+            return <readonly & ListenerConfiguration> self.config.cloneReadOnly();
+        }
     }
 }
 

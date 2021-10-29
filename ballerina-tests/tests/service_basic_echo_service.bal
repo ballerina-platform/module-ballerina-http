@@ -19,9 +19,21 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serviceTestEP = new(serviceTest);
-http:Client stClient = check new("http://localhost:" + serviceTest.toString());
+final http:Client stClient = check new("http://localhost:" + serviceTest.toString());
 
-string globalLevelStr = "";
+isolated string globalLevelStr = "";
+
+isolated function setGlobalValue(string payload) {
+    lock {
+        globalLevelStr = payload;
+    }
+}
+
+isolated function getGlobalValue() returns string {
+    lock {
+        return globalLevelStr;
+    }
+}
 
 service /echo on serviceTestEP {
 
@@ -50,14 +62,18 @@ service /echo on serviceTestEP {
         } else {
             payloadData = payload;
         }
-        globalLevelStr = payloadData;
-        checkpanic caller->respond(globalLevelStr);
+        setGlobalValue(payloadData);
+        checkpanic caller->respond(payloadData);
+        return;
     }
 
     resource function get getString(http:Caller caller, http:Request req) {
-        http:Response res = new;
-        res.setTextPayload(globalLevelStr);
-        checkpanic caller->respond(res);
+        lock {
+            http:Response res = new;
+            res.setTextPayload(getGlobalValue());
+            checkpanic caller->respond(res);
+            return;
+        }
     }
 
     resource function get removeHeaders(http:Caller caller, http:Request req) {
@@ -128,6 +144,7 @@ service /echo on serviceTestEP {
         res.setPayload(payload);
         res.statusCode = 200;
         checkpanic caller->respond(res);
+        return;
     }
 }
 
@@ -389,6 +406,7 @@ function testEncodedFormParam() returns error? {
     req.setTextPayload("first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", contentType = mime:APPLICATION_FORM_URLENCODED);
     string response = check stClient->post("/echo/formData", req);
     test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
+    return;
 }
 
 @test:Config {}
@@ -397,6 +415,7 @@ function testPlusEncodedFormParam() returns error? {
     req.setTextPayload("first+Name=WS+O2&tea%24%2Am=Bal%40Dance", contentType = mime:APPLICATION_FORM_URLENCODED);
     string response = check stClient->post("/echo/formData", req);
     test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
+    return;
 }
 
 @test:Config {}
@@ -405,4 +424,5 @@ function testEncodedFormData() returns error? {
     req.setTextPayload("first%20Name%3DWS%20O2%26tea%24%2Am%3DBal%40Dance", contentType = mime:APPLICATION_FORM_URLENCODED);
     string response = check stClient->post("/echo/formData", req);
     test:assertEquals(response, "[first Name] -> [WS O2][tea$*m] -> [Bal@Dance]", msg = "Found unexpected output");
+    return;
 }

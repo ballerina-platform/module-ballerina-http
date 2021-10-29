@@ -62,7 +62,7 @@ service / on new http:Listener(9999) {
         return "done"; //error
     }
 
-    resource function get test111(@http:CallerInfo Caller abc) returns string {
+    resource function get test111(@http:CallerInfo http:Caller abc) returns string {
         return "done"; //error
     }
 

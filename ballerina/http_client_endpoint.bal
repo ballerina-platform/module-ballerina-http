@@ -51,6 +51,7 @@ public client isolated class Client {
             }
         }
         self.httpClient = check initialize(url, config, self.cookieStore);
+        return;
     }
 
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
