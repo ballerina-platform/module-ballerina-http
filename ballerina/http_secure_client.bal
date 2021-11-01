@@ -36,6 +36,7 @@ public client isolated class HttpSecureClient {
         } else {
             return simpleClient;
         }
+        return;
     }
 
     # This wraps the `HttpSecureClient.post()` function of the underlying HTTP remote functions provider. Add relevant authentication

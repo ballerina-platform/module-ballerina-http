@@ -34,7 +34,7 @@ service /imperativeclient on authListener {
     }
 }
 
-http:Client imperativeClientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
+final http:Client imperativeClientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
     secureSocket: {
         cert: {
             path: TRUSTSTORE_PATH,

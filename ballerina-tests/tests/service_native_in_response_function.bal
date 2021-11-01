@@ -331,7 +331,7 @@ service /response on responseEp {
     }
 }
 
-http:Client responseClient = check new("http://localhost:" + responseTest.toString());
+final http:Client responseClient = check new("http://localhost:" + responseTest.toString());
 
 // Test addHeader function within a service
 @test:Config {}

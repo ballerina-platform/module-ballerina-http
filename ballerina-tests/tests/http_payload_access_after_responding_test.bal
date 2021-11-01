@@ -19,13 +19,13 @@ import ballerina/http;
 import ballerina/lang.runtime as runtime;
 
 listener http:Listener payloadAccessAfterRespondListener = new(payloadAccessAfterRespondingTestPort);
-http:Client payloadAccessAfterRespondBackendClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString());
-http:Client payloadAccessAfterRespondTestClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString());
+final http:Client payloadAccessAfterRespondBackendClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString());
+final http:Client payloadAccessAfterRespondTestClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString());
 
-error? requestJsonPayloadError = ();
-error? requestXmlPayloadError = ();
-error? requestTextPayloadError = ();
-error? requestBinaryPayloadError = ();
+isolated error? requestJsonPayloadError = ();
+isolated error? requestXmlPayloadError = ();
+isolated error? requestTextPayloadError = ();
+isolated error? requestBinaryPayloadError = ();
 
 service /passthrough on payloadAccessAfterRespondListener {
     resource function 'default . () returns string|error {
@@ -49,8 +49,12 @@ service /backend on payloadAccessAfterRespondListener {
         check caller->respond(response);
         json|error result = req.getJsonPayload();
         if result is error {
-            requestJsonPayloadError = result;
+            error err = result;
+            lock {
+                requestJsonPayloadError = result;
+            }
         }
+        return;
     }
 
     resource function 'default getXml(http:Caller caller, http:Request req) returns error? {
@@ -60,8 +64,12 @@ service /backend on payloadAccessAfterRespondListener {
         check caller->respond(response);
         xml|error result = req.getXmlPayload();
         if result is error {
-            requestXmlPayloadError = result;
+            error err = result;
+            lock {
+                requestXmlPayloadError = result;
+            }
         }
+        return;
     }
 
     resource function 'default getString(http:Caller caller, http:Request req) returns error? {
@@ -70,8 +78,12 @@ service /backend on payloadAccessAfterRespondListener {
         check caller->respond(response);
         string|error result = req.getTextPayload();
         if result is error {
-            requestTextPayloadError = result;
+            error err = result;
+            lock {
+                requestTextPayloadError = err;
+            }
         }
+        return;
     }
 
     resource function 'default getByteArray(http:Caller caller, http:Request req) returns error? {
@@ -80,8 +92,12 @@ service /backend on payloadAccessAfterRespondListener {
         check caller->respond(response);
         byte[]|error result = req.getBinaryPayload();
         if result is error {
-            requestBinaryPayloadError = result;
+            error err = result;
+            lock {
+                requestBinaryPayloadError = err;
+            }
         }
+        return;
     }
 }
 
@@ -96,15 +112,32 @@ function testPayloadAccessAfterRespondTest() returns error? {
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Request Processed successfully");
         runtime:sleep(5);
-        assertErrorMessage(requestJsonPayloadError, "Error occurred while retrieving the json payload from the request");
-        assertErrorCauseMessage(requestJsonPayloadError, errorMessage);
-        assertErrorMessage(requestXmlPayloadError, "Error occurred while retrieving the xml payload from the request");
-        assertErrorCauseMessage(requestXmlPayloadError, errorMessage);
-        assertErrorMessage(requestTextPayloadError, "Error occurred while retrieving the text payload from the request");
-        assertErrorCauseMessage(requestTextPayloadError, errorMessage);
-        assertErrorMessage(requestBinaryPayloadError, "Error occurred while retrieving the binary payload from the request");
-        assertErrorCauseMessage(requestBinaryPayloadError, errorMessage);
+        lock {
+            assertErrorMessage(requestJsonPayloadError, "Error occurred while retrieving the json payload from the request");
+        }
+        lock {
+            assertErrorCauseMessage(requestJsonPayloadError, errorMessage);
+        }
+        lock {
+            assertErrorMessage(requestXmlPayloadError, "Error occurred while retrieving the xml payload from the request");
+        }
+        lock {
+            assertErrorCauseMessage(requestXmlPayloadError, errorMessage);
+        }
+        lock {
+            assertErrorMessage(requestTextPayloadError, "Error occurred while retrieving the text payload from the request");
+        }
+        lock {
+            assertErrorCauseMessage(requestTextPayloadError, errorMessage);
+        }
+        lock {
+            assertErrorMessage(requestBinaryPayloadError, "Error occurred while retrieving the binary payload from the request");
+        }
+        lock {
+            assertErrorCauseMessage(requestBinaryPayloadError, errorMessage);
+        }
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }

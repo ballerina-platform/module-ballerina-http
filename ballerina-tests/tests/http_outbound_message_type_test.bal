@@ -19,7 +19,7 @@ import ballerina/test;
 
 listener http:Listener outRequestTypeTestEP = new(outRequestTypeTest);
 
-http:Client outRequestClient = check new("http://localhost:" + outRequestTypeTest.toString());
+final http:Client outRequestClient = check new("http://localhost:" + outRequestTypeTest.toString());
 
 type CustomerTable table<map<json>>;
 
@@ -165,6 +165,7 @@ public function testSendingJsonCompatibleOpenRecord() returns error? {
     record { string name; } customer3 = { name: "ballerina3" };
     payload = check outRequestClient->post("/mytest/json", customer3.toJson());
     assertJsonPayload(payload, {"name":"ballerina3"});
+    return;
 }
 
 type OpenCustomer record {
@@ -178,6 +179,7 @@ public function testSendingOpenRecord() returns error? {
     OpenCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
     json payload = check outRequestClient->post("/mytest/json", customer.toJson());
     assertJsonPayload(payload, {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]});
+    return;
 }
 
 @test:Config {}
@@ -187,6 +189,7 @@ public function testSendingOpenRecordArray() returns error? {
     json payload = check outRequestClient->post("/mytest/json", custArr.toJson());
     assertJsonPayload(payload, [{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},
         {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]}]);
+    return;
 }
 
 @test:Config {}
@@ -197,6 +200,7 @@ public function testSendingOpenRecordMap() returns error? {
     assertJsonPayload(payload,
         {a:{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},
         b:{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]}});
+    return;
 }
 
 @test:Config {}
@@ -209,6 +213,7 @@ public function testSendingOpenRecordTable() returns error? {
     assertJsonPayload(payload,
         [{ name: "ballerina1", aa: "<book>Hello World</book>", bb: [97,98,99]},
         { name: "ballerina2", aa: "<book>Hello World</book>", bb: [97,98,99]}]);
+    return;
 }
 
 type ClosedCustomer record {|
@@ -222,6 +227,7 @@ public function testSendingClosedRecord() returns error? {
     ClosedCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
     json payload = check outRequestClient->post("/mytest/json", customer.toJson());
     assertJsonPayload(payload, {name: "ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]});
+    return;
 }
 
 @test:Config {}
@@ -231,6 +237,7 @@ public function testSendingClosedRecordArray() returns error? {
     json payload = check outRequestClient->post("/mytest/json", custArr.toJson());
     assertJsonPayload(payload, [{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},
         {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]}]);
+    return;
 }
 
 @test:Config {}
@@ -241,6 +248,7 @@ public function testSendingClosedRecordMap() returns error? {
     assertJsonPayload(payload,
         {a:{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},
         b:{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]}});
+    return;
 }
 
 @test:Config {}
@@ -253,6 +261,7 @@ public function testSendingClosedRecordTable() returns error? {
     assertJsonPayload(payload,
         [{ name: "ballerina1", aa: "<book>Hello World</book>", bb: [97,98,99]},
         { name: "ballerina2", aa: "<book>Hello World</book>", bb: [97,98,99]}]);
+    return;
 }
 
 @test:Config {}
@@ -267,6 +276,7 @@ public function testRequestAnydataNegative() returns error? {
         }
     }
     test:assertFail(msg = "Found unexpected output");
+    return;
 }
 
 service /mytest on outRequestTypeTestEP {
@@ -331,29 +341,34 @@ service /mytest on outRequestTypeTestEP {
     resource function get openRecord(http:Caller caller) returns error? {
         OpenCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
         check caller->respond(customer.toJson());
+        return;
     }
 
     resource function get openRecordArr(http:Caller caller) returns error? {
         OpenCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
         OpenCustomer[] custArr = [customer, customer];
         check caller->respond(custArr.toJson());
+        return;
     }
 
     resource function get closedRecord(http:Caller caller) returns error? {
         ClosedCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
         check caller->respond(customer.toJson());
+        return;
     }
 
     resource function get closedRecordArr(http:Caller caller) returns error? {
         ClosedCustomer customer = { name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
         ClosedCustomer[] custArr = [customer, customer];
         check caller->respond(custArr.toJson());
+        return;
     }
 
     resource function get anydataNegative(http:Caller caller) returns error? {
         json[] x = [];
         x.push(x);
         check caller->respond(x);
+        return;
     }
 }
 
@@ -477,6 +492,7 @@ public function testGettingOpenRecord() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -490,6 +506,7 @@ public function testGettingOpenRecordArray() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -502,6 +519,7 @@ public function testGettingClosedRecord() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -515,6 +533,7 @@ public function testGettingClosedRecordArray() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -523,4 +542,5 @@ public function testResponseAnydataNegative() returns error? {
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
     assertHeaderValue(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     test:assertEquals(check resp.getTextPayload(), "json conversion error: {ballerina/lang.value}CyclicValueReferenceError");
+    return;
 }

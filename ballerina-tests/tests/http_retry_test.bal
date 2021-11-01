@@ -24,10 +24,10 @@ import ballerina/http;
 
 listener http:Listener retryTestserviceEndpoint1 = new(retryFunctionTestPort1);
 listener http:Listener retryTestserviceEndpoint2 = new(retryFunctionTestPort2);
-http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunctionTestPort1.toString());
+final http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunctionTestPort1.toString());
 
 // Define the end point to the call the `mockHelloService`.
-http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(),
+final http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(),
     retryConfig= {
         interval: 3,
         count: 3,
@@ -36,7 +36,7 @@ http:Client retryBackendClientEP = check new("http://localhost:" + retryFunction
     timeout= 2
 );
 
-http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
+final http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
     retryConfig: {
         interval: 3,
         count: 3,
@@ -191,8 +191,12 @@ int httpOptionsRetryCount = 0;
 // This should run separately from the `retryDemoService` service.
 service /mockHelloService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request req) {
-        retryCount = retryCount + 1;
-        if (retryCount % 4 != 0) {
+        int count = 0;
+        lock {
+            retryCounter += 1;
+            count = retryCounter;
+        }
+        if (count % 4 != 0) {
             log:printInfo(
                 "Request received from the client to delayed service.");
             // Delay the response by 5000 milliseconds to
@@ -251,8 +255,12 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function get .(http:Caller caller, http:Request request) {
-        httpGetRetryCount = httpGetRetryCount + 1;
-        waitForRetry(httpGetRetryCount);
+        int count = 0;
+        lock {
+            httpGetRetryCount += 1;
+            count = httpGetRetryCount;
+        }
+        waitForRetry(count);
         http:Response res = new;
         error? responseToCaller = caller->respond("HTTP GET method invocation is successful");
         if (responseToCaller is error) {
@@ -261,10 +269,14 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function head .(http:Caller caller, http:Request request) {
-        httpHeadRetryCount = httpHeadRetryCount + 1;
-        waitForRetry(httpHeadRetryCount);
+        int count = 0;
+        lock {
+            httpHeadRetryCount += 1;
+            count = httpHeadRetryCount;
+        }
+        waitForRetry(count);
         http:Response res = new;
-        res.setHeader("X-Head-Retry-Count", httpHeadRetryCount.toString());
+        res.setHeader("X-Head-Retry-Count", count.toString());
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -272,19 +284,27 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function put .(http:Caller caller, http:Request request) {
-        httpPutRetryCount = httpPutRetryCount + 1;
-        waitForRetry(httpPutRetryCount);
+        int count = 0;
+        lock {
+            httpPutRetryCount += 1;
+            count = httpPutRetryCount;
+        }
+        waitForRetry(count);
         http:Response res = new;
         res.setTextPayload("HTTP PUT method invocation is successful");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            log:printError("Error sending response from put mock service", 'error = responseToCaller);
         }
     }
 
     resource function patch .(http:Caller caller, http:Request request) {
-        httpPatchRetryCount = httpPatchRetryCount + 1;
-        waitForRetry(httpPatchRetryCount);
+        int count = 0;
+        lock {
+            httpPatchRetryCount += 1;
+            count = httpPatchRetryCount;
+        }
+        waitForRetry(count);
         http:Response res = new;
         res.setTextPayload("HTTP PATCH method invocation is successful");
         error? responseToCaller = caller->respond(res);
@@ -294,8 +314,12 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function delete .(http:Caller caller, http:Request request) {
-        httpDeleteRetryCount = httpDeleteRetryCount + 1;
-        waitForRetry(httpDeleteRetryCount);
+        int count = 0;
+        lock {
+            httpDeleteRetryCount +=  1;
+            count = httpDeleteRetryCount;
+        }
+        waitForRetry(count);
         http:Response res = new;
         res.setTextPayload("HTTP DELETE method invocation is successful");
         error? responseToCaller = caller->respond(res);
@@ -305,8 +329,12 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     }
 
     resource function options .(http:Caller caller, http:Request request) {
-        httpOptionsRetryCount = httpOptionsRetryCount + 1;
-        waitForRetry(httpOptionsRetryCount);
+        int count = 0;
+        lock {
+            httpOptionsRetryCount += 1;
+            count = httpOptionsRetryCount;
+        }
+        waitForRetry(count);
         http:Response res = new;
         res.setHeader("Allow", "OPTIONS, GET, HEAD, POST");
         error? responseToCaller = caller->respond(res);
@@ -368,8 +396,12 @@ int retryCounter = 0;
 
 service /mockStatusCodeService on retryTestserviceEndpoint2 {
     resource function 'default recover(http:Caller caller, http:Request req) {
-        retryCounter = retryCounter + 1;
-        if (retryCounter % 4 != 0) {
+        int count = 0;
+        lock {
+            retryCounter = retryCounter + 1;
+            count = retryCounter;
+        }
+        if (count % 4 != 0) {
             http:Response res = new;
             res.statusCode = 502;
             res.setPayload("Gateway Timed out.");
@@ -421,7 +453,11 @@ function testHeadRequestWithRetries() {
     http:Response|error response = retryFunctionTestClient->head("/retryDemoService");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader("X-Head-Retry-Count"), httpHeadRetryCount.toString());
+        string value = "";
+        lock {
+            value = httpHeadRetryCount.toString();
+        }
+        assertHeaderValue(checkpanic response.getHeader("X-Head-Retry-Count"), value);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -557,4 +593,3 @@ function externTestMultiPart(int servicePort, string path) returns boolean = @ja
 function externTestNestedMultiPart(int servicePort, string path) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternRetryMultipartTestutil"
 } external;
-

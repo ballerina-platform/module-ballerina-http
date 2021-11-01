@@ -87,6 +87,7 @@ public client isolated class RedirectClient {
             self.cookieEnabled = false;
             self.persistentCookieHandler = ();
         }
+        return;
     }
 
     # If the received response for the `RedirectClient.get()` remote function is redirect eligible, redirect will be

@@ -30,10 +30,10 @@ isolated function retrieveAndIncrementHttp2RetryCounter() returns int {
 
 listener http:Listener http2RetryTestserviceEndpoint1 = new(http2RetryFunctionTestPort1, { httpVersion: "2.0" });
 
-http:Client http2RetryFunctionTestClient = check new("http://localhost:" + http2RetryFunctionTestPort1.toString(), { httpVersion: "2.0" });
+final http:Client http2RetryFunctionTestClient = check new("http://localhost:" + http2RetryFunctionTestPort1.toString(), { httpVersion: "2.0" });
 
 // Define the end point to the call the `mockHelloService`.
-http:Client http2RetryBackendClientEP = check new("http://localhost:9606", {
+final http:Client http2RetryBackendClientEP = check new("http://localhost:9606", {
     // Retry configuration options.
     retryConfig: {
         interval: 3,
@@ -225,7 +225,8 @@ function testHttp2SimpleRetry() {
 
 //Test basic retry functionality with HTTP2 Server Push
 @test:Config {
-    groups: ["http2RetryClientTest"]
+    groups: ["http2RetryClientTest"],
+    enable: false
 }
 function testHttp2RetryWithServerPush() {
     string expectedPayload = "{\"main\":{\"response\":{\"name\":\"main resource\"}}, \"promises\":[{\"push\":{\"name\":\"resource3\"}}]}";

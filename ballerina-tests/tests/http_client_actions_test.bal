@@ -22,9 +22,9 @@ import ballerina/test;
 
 listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1);
 listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2);
-http:Client httpClientActionClient = check new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService");
+final http:Client httpClientActionClient = check new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService");
 
-http:Client clientEP2 = check new("http://localhost:" + httpClientActionTestPort1.toString(), { cache: { enabled: false }});
+final http:Client clientEP2 = check new("http://localhost:" + httpClientActionTestPort1.toString(), { cache: { enabled: false }});
 
 
 service /httpClientActionBE on httpClientActionListenerEP1 {
@@ -411,11 +411,13 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     resource function get testPathWithWhitespacesForLiteral(http:Caller caller) returns error? {
         http:Response response = check clientEP2->get("/httpClientActionBE/a/b c/d ");
         error? res = caller->respond( response);
+        return;
     }
 
     resource function get testClientPathWithWhitespacesForExpression(http:Caller caller) returns error? {
         http:Response response = check clientEP2->get("/httpClientActionBE/dispatched to white_spaced expression ");
         error? res = caller->respond( response);
+        return;
     }
 }
 

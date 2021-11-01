@@ -14,30 +14,36 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/io;
 import ballerina/test;
 import ballerina/http;
+import ballerina/lang.runtime as runtime;
 
 listener http:Listener callerActionListener = new(callerActionTestPort);
-http:Client callerActionTestClient = check new("http://localhost:" + callerActionTestPort.toString());
+final http:Client callerActionTestClient = check new("http://localhost:" + callerActionTestPort.toString());
 
-string globalLvlStr = "sample value";
+isolated string globalLvlStr = "sample value";
 
 service /'listener on callerActionListener {
 
     resource function get respond(http:Caller caller, http:Request req) {
         http:Response res = new;
-        res.setTextPayload( globalLvlStr);
+        string value = "";
+        lock {
+            value = globalLvlStr;
+        }
+        res.setTextPayload(value);
         checkpanic caller->respond(res);
-        globalLvlStr = "respond";
-        io:println("Service Level Variable : " + globalLvlStr);
+        lock {
+            globalLvlStr = "respond";
+        }
     }
 
     resource function get redirect(http:Caller caller, http:Request req) {
         http:Response res = new;
         checkpanic caller->redirect(res, http:REDIRECT_PERMANENT_REDIRECT_308, ["/redirect1/round2"]);
-        globalLvlStr = "redirect";
-        io:println("Service Level Variable : " + globalLvlStr);
+        lock {
+            globalLvlStr = "redirect";
+        }
     }
 
     // @http:ResourceConfig {
@@ -62,7 +68,10 @@ function testNonBlockingRespondAction() {
 
 @test:Config {dependsOn:[testNonBlockingRespondAction]}
 function testExecutionAfterRespondAction() {
-    test:assertEquals(globalLvlStr, "respond");
+    runtime:sleep(3);
+    lock {
+        test:assertEquals(globalLvlStr, "respond");
+    }
     // http:Response|error response = callerActionTestClient->get("/listener/getChangedValue");
     // if (response is http:Response) {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -85,7 +94,10 @@ function testNonBlockingRedirectAction() {
 
 @test:Config {dependsOn:[testNonBlockingRedirectAction]}
 function testExecutionAfterRedirectAction() {
-    test:assertEquals(globalLvlStr, "redirect");
+    runtime:sleep(3);
+    lock {
+        test:assertEquals(globalLvlStr, "redirect");
+    }
     // http:Response|error response = callerActionTestClient->get("/listener/getChangedValue");
     // if (response is http:Response) {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");

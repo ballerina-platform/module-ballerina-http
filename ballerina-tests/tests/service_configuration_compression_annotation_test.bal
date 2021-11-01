@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener compressionTestEP = new(CompressionConfigTest);
-http:Client compressionClient = check new("http://localhost:" + CompressionConfigTest.toString());
+final http:Client compressionClient = check new("http://localhost:" + CompressionConfigTest.toString());
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_AUTO}}
 service /autoCompress on compressionTestEP {

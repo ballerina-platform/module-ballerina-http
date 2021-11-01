@@ -52,6 +52,7 @@ public client isolated class LoadBalanceClient {
             LoadBalancerRoundRobinRule loadBalancerRoundRobinRule = new;
             self.lbRule = loadBalancerRoundRobinRule;
         }
+        return;
     }
 
     # The POST remote function implementation of the LoadBalancer Connector.

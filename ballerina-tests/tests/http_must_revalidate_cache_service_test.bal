@@ -18,16 +18,22 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-http:Client cachingEP3 = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
+final http:Client cachingEP3 = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
 int numberOfProxyHits = 0;
 
 service /mustRevalidate on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) {
-        numberOfProxyHits += 1;
+        lock {
+            numberOfProxyHits += 1;
+        }
         http:Response|error response = cachingEP3->forward("/mustRevalidateBE", req);
         if (response is http:Response) {
-            response.setHeader("x-proxy-hit-count", numberOfProxyHits.toString());
+            string value = "";
+            lock {
+                value = numberOfProxyHits.toString();
+            }
+            response.setHeader("x-proxy-hit-count", value);
             checkpanic caller->respond(response);
         } else {
             http:Response res = new;
@@ -51,9 +57,15 @@ service /mustRevalidateBE on cachingBackendListener {
         resCC.maxAge = 5;
         res.cacheControl = resCC;
         res.setETag(payload);
-        numberOfHits += 1;
+        lock {
+            numberOfHits += 1;
+        }
         res.setPayload(payload);
-        res.setHeader("x-service-hit-count", numberOfHits.toString());
+        string value = "";
+        lock {
+            value = numberOfHits.toString();
+        }
+        res.setHeader("x-service-hit-count", value);
 
         checkpanic caller->respond(res);
     }

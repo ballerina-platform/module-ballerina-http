@@ -20,6 +20,9 @@
 
 <suite name="BallerinaHttpCompilerPluginTests">
     <test name="UnitTests">
+        <packages>
+            <package name="io.ballerina.stdlib.http.compiler.codeaction.*"/>
+        </packages>
         <classes>
             <class name="io.ballerina.stdlib.http.compiler.CompilerPluginTest"/>
         </classes>

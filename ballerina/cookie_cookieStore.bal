@@ -89,6 +89,7 @@ public isolated class CookieStore {
                 }
             }
         }
+        return;
     }
 
     # Adds an array of cookies.
@@ -250,6 +251,7 @@ public isolated class CookieStore {
                 }
             }
         }
+        return;
     }
 
     # Removes all expired cookies.
@@ -282,6 +284,7 @@ public isolated class CookieStore {
         } else {
             return error CookieHandlingError("No persistent cookie store to remove expired cookies");
         }
+        return;
     }
 
     # Removes all the cookies.
@@ -295,6 +298,7 @@ public isolated class CookieStore {
                 return persistentCookieHandler.removeAllCookies();
             }
         }
+        return;
     }
 
     # Gets the identical cookie for a given cookie if one exists.
@@ -312,6 +316,7 @@ public isolated class CookieStore {
             }
             k = k + 1;
         }
+        return;
     }
 
     // Adds a session cookie to the cookie store according to the rules in [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.3 , https://tools.ietf.org/html/rfc6265#section-4.1.2).
@@ -337,6 +342,7 @@ public isolated class CookieStore {
                 self.allSessionCookies.push(getClone(cookie, time:utcNow(), time:utcNow()));
             }
         }
+        return;
     }
 
     // Adds a persistent cookie to the cookie store according to the rules in [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.3 , https://tools.ietf.org/html/rfc6265#section-4.1.2).
@@ -366,6 +372,7 @@ public isolated class CookieStore {
                 return persistentCookieHandler.storeCookie(newCookie);
             }
         }
+        return;
     }
 }
 

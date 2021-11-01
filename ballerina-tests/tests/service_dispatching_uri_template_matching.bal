@@ -21,7 +21,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener utmTestEP = new(uriTemplateMatchingTest);
-http:Client utmClient = check new("http://localhost:" + uriTemplateMatchingTest.toString());
+final http:Client utmClient = check new("http://localhost:" + uriTemplateMatchingTest.toString());
 
 service /hello on utmTestEP {
 

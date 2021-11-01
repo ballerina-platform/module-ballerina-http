@@ -467,7 +467,7 @@ service /requesthello on requestListner {
     }
 }
 
-http:Client requestClient = check new("http://localhost:" + requestTest.toString());
+final http:Client requestClient = check new("http://localhost:" + requestTest.toString());
 
 // Test addHeader function within a service
 @test:Config {}

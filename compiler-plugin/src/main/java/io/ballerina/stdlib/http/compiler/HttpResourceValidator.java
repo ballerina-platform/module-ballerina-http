@@ -48,7 +48,9 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
+import io.ballerina.tools.diagnostics.DiagnosticProperty;
 import io.ballerina.tools.diagnostics.Location;
+import org.wso2.ballerinalang.compiler.diagnostic.properties.BSymbolicProperty;
 
 import java.util.List;
 import java.util.Optional;
@@ -380,7 +382,7 @@ class HttpResourceValidator {
                             if (arrElementKind == TypeDescKind.STRING) {
                                 continue;
                             } else {
-                                reportInvalidHeaderParameterType(ctx, paramLocation, paramName);
+                                reportInvalidHeaderParameterType(ctx, paramLocation, paramName, param);
                             }
                         } else if (kind == TypeDescKind.UNION) {
                             List<TypeSymbol> symbolList = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
@@ -399,14 +401,14 @@ class HttpResourceValidator {
                                     TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) type).memberTypeDescriptor();
                                     TypeDescKind arrElementKind = arrTypeSymbol.typeKind();
                                     if (arrElementKind != TypeDescKind.STRING) {
-                                        reportInvalidHeaderParameterType(ctx, paramLocation, paramName);
+                                        reportInvalidHeaderParameterType(ctx, paramLocation, paramName, param);
                                     }
                                 } else if (elementKind != TypeDescKind.NIL && elementKind != TypeDescKind.STRING) {
-                                    reportInvalidHeaderParameterType(ctx, paramLocation, paramName);
+                                    reportInvalidHeaderParameterType(ctx, paramLocation, paramName, param);
                                 }
                             }
                         } else {
-                            reportInvalidHeaderParameterType(ctx, paramLocation, paramName);
+                            reportInvalidHeaderParameterType(ctx, paramLocation, paramName, param);
                         }
                         break;
                     }
@@ -663,9 +665,10 @@ class HttpResourceValidator {
         updateDiagnostic(ctx, location, paramName, HttpDiagnosticCodes.HTTP_108);
     }
 
-    private static void reportInvalidHeaderParameterType(SyntaxNodeAnalysisContext ctx, Location location,
-                                                         String paramName) {
-        updateDiagnostic(ctx, location, paramName, HttpDiagnosticCodes.HTTP_109);
+    private static void reportInvalidHeaderParameterType(SyntaxNodeAnalysisContext ctx, Location location, 
+                                                         String paramName, ParameterSymbol parameterSymbol) {
+        updateDiagnostic(ctx, location, paramName, HttpDiagnosticCodes.HTTP_109,
+                List.of(new BSymbolicProperty(parameterSymbol)));
     }
 
     private static void reportInvalidUnionHeaderType(SyntaxNodeAnalysisContext ctx, Location location,
@@ -697,6 +700,13 @@ class HttpResourceValidator {
                                          HttpDiagnosticCodes httpDiagnosticCodes) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
+    }
+
+    private static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location, String argName,
+                                         HttpDiagnosticCodes httpDiagnosticCodes,
+                                         List<DiagnosticProperty<?>> diagnosticProperties) {
+        DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
+        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location, diagnosticProperties));
     }
 
     private static DiagnosticInfo getDiagnosticInfo(HttpDiagnosticCodes diagnostic, Object... args) {

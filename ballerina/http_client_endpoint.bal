@@ -51,6 +51,7 @@ public client isolated class Client {
             }
         }
         self.httpClient = check initialize(url, config, self.cookieStore);
+        return;
     }
 
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
@@ -644,10 +645,6 @@ isolated function processResponse(Response|ClientError response, TargetType targ
         } else {
             return createResponseError(statusCode, reasonPhrase, headers, payload);
         }
-    }
-    if ((100 <= statusCode && statusCode <= 199) || statusCode == 204 || statusCode == 304) {
-        // TODO: improve this to do binding when the payload is available
-        return error PayloadBindingError("No payload status code: " + statusCode.toString());
     }
     return performDataBinding(response, targetType);
 }

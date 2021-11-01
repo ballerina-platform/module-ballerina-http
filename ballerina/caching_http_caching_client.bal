@@ -45,6 +45,7 @@ public client isolated class HttpCachingClient {
         }
         self.cache = new HttpCache(cacheConfig);
         self.cacheConfig = cacheConfig.cloneReadOnly();
+        return;
     }
 
     # Responses returned for POST requests are not cacheable. Therefore, the requests are simply directed to the

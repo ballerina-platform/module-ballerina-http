@@ -17,8 +17,8 @@
 import ballerina/http;
 import ballerina/test;
 
-http:Client clientTest1 = check new ("http://localhost:" + clientForwardTestPort1.toString());
-http:Client clientTest2 = check new ("http://localhost:" + clientForwardTestPort2.toString());
+final http:Client clientTest1 = check new ("http://localhost:" + clientForwardTestPort1.toString());
+final http:Client clientTest2 = check new ("http://localhost:" + clientForwardTestPort2.toString());
 
 service / on new http:Listener(clientForwardTestPort2) {
 

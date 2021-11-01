@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener httpStatusCodeListenerEP = new(httpStatusCodeTestPort);
-http:Client httpStatusCodeClient = check new("http://localhost:" + httpStatusCodeTestPort.toString());
+final http:Client httpStatusCodeClient = check new("http://localhost:" + httpStatusCodeTestPort.toString());
 
 service /differentStatusCodes on httpStatusCodeListenerEP {
 
@@ -185,10 +185,20 @@ function testNoContentWithoutBody() {
 function testNoContentWithDataBinding() {
     string|error response = httpStatusCodeClient->get("/differentStatusCodes/noContentWithoutBody");
     if (response is error) {
-        test:assertEquals(response.message(), "No payload status code: 204", msg = "Found unexpected output");
+        test:assertEquals(response.message(), "No content", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: string");
     }
+}
+
+//Test ballerina noContent() function without entity body and nil-able type
+@test:Config {}
+function testNoContentWithDataBindingWithNilableType() returns error? {
+    string? response = check httpStatusCodeClient->get("/differentStatusCodes/noContentWithoutBody");
+    if (response is string) {
+        test:assertFail(msg = "Found unexpected output type: string");
+    }
+    return;
 }
 
 //Test ballerina badRequest() function with entity body

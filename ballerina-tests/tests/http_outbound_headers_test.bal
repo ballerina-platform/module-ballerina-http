@@ -19,10 +19,10 @@ import ballerina/test;
 
 listener http:Listener outRequestOptionsTestEP = new(outRequestOptionsTest);
 
-http:Client outReqHeadClient = check new("http://localhost:" + outRequestOptionsTest.toString());
+final http:Client outReqHeadClient = check new("http://localhost:" + outRequestOptionsTest.toString());
 
 // Define the failover client 
-http:FailoverClient outRequestFOClient = check new({
+final http:FailoverClient outRequestFOClient = check new({
     timeout: 5,
     failoverCodes: [501, 502, 503],
     interval: 5,
@@ -33,7 +33,7 @@ http:FailoverClient outRequestFOClient = check new({
 });
 
 // Define the load balance client 
-http:LoadBalanceClient outRequestLBClient = check new({
+final http:LoadBalanceClient outRequestLBClient = check new({
     targets: [
         { url: "http://localhost:" + outRequestOptionsTest.toString() }
     ],

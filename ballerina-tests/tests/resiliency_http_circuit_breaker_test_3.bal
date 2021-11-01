@@ -20,7 +20,7 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-int forceCloseStateCount = 0;
+isolated int forceCloseStateCount = 0;
 
 listener http:Listener circuitBreakerEP02 = new(9308);
 
@@ -38,15 +38,21 @@ http:ClientConfiguration conf02 = {
     timeout: 2
 };
 
-http:Client unhealthyClientEP = check new("http://localhost:8088", conf02);
+final http:Client unhealthyClientEP = check new("http://localhost:8088", conf02);
 
 service /cb on circuitBreakerEP02 {
 
-    resource function 'default forceclose(http:Caller caller, http:Request request) {
+    isolated resource function 'default forceclose(http:Caller caller, http:Request request) {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>unhealthyClientEP.httpClient;
-        forceCloseStateCount += 1;
+        lock {
+            forceCloseStateCount = forceCloseStateCount + 1;
+        }
         runtime:sleep(1);
-        if (forceCloseStateCount == 4) {
+        int count = 0;
+        lock {
+            count = forceCloseStateCount;
+        }
+        if (count == 4) {
             runtime:sleep(5);
             cbClient.forceClose();
         }
@@ -71,8 +77,12 @@ service /cb on circuitBreakerEP02 {
 service /unhealthy on new http:Listener(8088) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
+        int count = 0;
+        lock {
+            count = forceCloseStateCount;
+        }
         http:Response res = new;
-        if (forceCloseStateCount <= 3) {
+        if (count <= 3) {
             runtime:sleep(5);
         } else {
             res.setPayload("Hello World!!!");
@@ -85,7 +95,7 @@ service /unhealthy on new http:Listener(8088) {
 }
 
 //Test for circuit breaker forceClose functionality
-http:Client testForceCloseClient = check new("http://localhost:9308");
+final http:Client testForceCloseClient = check new("http://localhost:9308");
 
 @test:Config{
     dataProvider:forceCloseResponseDataProvider

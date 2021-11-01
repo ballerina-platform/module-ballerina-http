@@ -148,6 +148,7 @@ public client isolated class CircuitBreakerClient {
         self.circuitBreakerInferredConfig = circuitBreakerInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
         self.circuitHealth = circuitHealth.clone();
+        return;
     }
 
     # The POST remote function implementation of the Circuit Breaker. This wraps the `CircuitBreakerClient.post()`
