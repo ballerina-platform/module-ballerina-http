@@ -23,6 +23,6 @@ service / on new http:Listener(9999) {
     }
 
     resource function get path1(http:Caller caller) returns string {
-        
+        return "";
     }
 }
