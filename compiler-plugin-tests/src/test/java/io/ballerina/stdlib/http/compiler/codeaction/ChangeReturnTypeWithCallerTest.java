@@ -34,8 +34,7 @@ import java.util.List;
  */
 public class ChangeReturnTypeWithCallerTest extends AbstractCodeActionTest {
 
-    // https://github.com/ballerina-platform/ballerina-standard-library/issues/2304
-    @Test(dataProvider = "testDataProvider", enabled = false)
+    @Test(dataProvider = "testDataProvider")
     public void testCodeActions(String srcFile, int line, int offset, CodeActionInfo expected, String resultFile)
             throws IOException {
         Path filePath = RESOURCE_PATH.resolve("ballerina_sources")
