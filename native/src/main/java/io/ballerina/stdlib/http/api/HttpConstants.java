@@ -349,6 +349,21 @@ public class HttpConstants {
     public static final String CONNECTOR_STARTED = "CONNECTOR_STARTED";
     public static final String ABSOLUTE_RESOURCE_PATH = "ABSOLUTE_RESOURCE_PATH";
 
+    //HTTP Interceptor
+    public static final String HTTP_INTERCEPTORS = "HTTP_INTERCEPTORS";
+    public static final String HTTP_INTERCEPTOR_SERVICE_REGISTRIES = "HTTP_INTERCEPTOR_SERVICE_REGISTRIES";
+    public static final String REQUEST_CONTEXT_NEXT = "REQUEST_CONTEXT_NEXT";
+    public static final String REQUEST_CONTEXT = "RequestContext";
+    public static final String ENTITY_OBJ = "EntityObj";
+    public static final String INTERCEPTOR_SERVICE = "INTERCEPTOR_SERVICE";
+    public static final String INTERCEPTOR_SERVICE_INDEX = "INTERCEPTOR_SERVICE_INDEX";
+    public static final String INTERCEPTOR_SERVICE_ERROR = "INTERCEPTOR_SERVICE_ERROR";
+    public static final String WAIT_FOR_FULL_REQUEST = "WAIT_FOR_FULL_REQUEST";
+    public static final BString HTTP_INTERCEPTOR_TYPE = StringUtils.fromString("interceptorType");
+    public static final String HTTP_NORMAL = "Normal";
+    public static final String HTTP_REQUEST_INTERCEPTOR = "RequestInterceptor";
+    public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
+
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;
     public static final BString SERVICE_ENDPOINT_CONFIG = StringUtils.fromString("config");
@@ -363,6 +378,7 @@ public class HttpConstants {
     public static final String ENDPOINT_CONFIG_CHUNKING = "chunking";
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
+    public static final BString ENDPOINT_CONFIG_INTERCEPTORS = StringUtils.fromString("interceptors");
 
     public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
     public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");

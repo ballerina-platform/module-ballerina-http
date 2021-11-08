@@ -76,6 +76,7 @@ public class HttpService {
     private String mediaTypeSubtypePrefix;
     private String introspectionResourcePath;
     private boolean treatNilableAsOptional = true;
+    private String servicetype = HttpConstants.HTTP_NORMAL;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -194,6 +195,14 @@ public class HttpService {
         }
     }
 
+    public void setServiceType(String serviceType) {
+        this.servicetype = serviceType;
+    }
+
+    public String getServiceType() {
+        return this.servicetype;
+    }
+
     public URITemplate<HttpResource, HttpCarbonMessage> getUriTemplate() throws URITemplateException {
         if (uriTemplate == null) {
             uriTemplate = new URITemplate<>(new Literal<>(new HttpResourceDataElement(), "/"));
@@ -201,8 +210,9 @@ public class HttpService {
         return uriTemplate;
     }
 
-    public static HttpService buildHttpService(BObject service, String basePath) {
+    public static HttpService buildHttpService(BObject service, String basePath, String serviceType) {
         HttpService httpService = new HttpService(service, basePath);
+        httpService.setServiceType(serviceType);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
         if (checkConfigAnnotationAvailability(serviceConfig)) {
             httpService.setCompressionConfig(

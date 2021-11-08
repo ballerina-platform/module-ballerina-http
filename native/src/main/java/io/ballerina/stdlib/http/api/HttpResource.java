@@ -76,6 +76,7 @@ public class HttpResource {
     private String returnMediaType;
     private BMap cacheConfig;
     private boolean treatNilableAsOptional;
+    private String resourceType = HttpConstants.HTTP_NORMAL;
 
     protected HttpResource(MethodType resource, HttpService parentService) {
         this.balResource = resource;
@@ -212,8 +213,17 @@ public class HttpResource {
         return treatNilableAsOptional;
     }
 
+    public void setResourceType(String resourceType) {
+        this.resourceType = resourceType;
+    }
+
+    public String getResourceType() {
+        return this.resourceType;
+    }
+
     public static HttpResource buildHttpResource(MethodType resource, HttpService httpService) {
         HttpResource httpResource = new HttpResource(resource, httpService);
+        httpResource.setResourceType(httpService.getServiceType());
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
 
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
@@ -275,7 +285,7 @@ public class HttpResource {
     }
 
     private void prepareAndValidateSignatureParams() {
-        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount);
+        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount, this.getResourceType());
     }
 
     String getWildcardToken() {

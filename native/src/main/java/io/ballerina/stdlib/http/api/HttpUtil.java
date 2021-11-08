@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.utils.JsonUtils;
@@ -41,6 +42,7 @@ import io.ballerina.stdlib.http.api.client.caching.RequestCacheControlObj;
 import io.ballerina.stdlib.http.api.client.caching.ResponseCacheControlObj;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
+import io.ballerina.stdlib.http.api.service.endpoint.Register;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
@@ -216,6 +218,7 @@ public class HttpUtil {
             ((HttpHeaders) messageObj.getNativeData(HTTP_HEADERS)).set(HttpHeaderNames.CONTENT_TYPE.toString(),
                                                                                      contentType);
         }
+        httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, entityObj);
         messageObj.set(isRequest ? REQUEST_ENTITY_FIELD : RESPONSE_ENTITY_FIELD, entityObj);
         messageObj.addNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET, checkEntityBodyAvailability(entityObj));
         if (updateAllHeaders) {
@@ -236,6 +239,8 @@ public class HttpUtil {
     public static BObject getEntity(BObject messageObj, boolean isRequest, boolean entityBodyRequired,
                                         boolean entityHeadersRequired) {
         BObject entity = (BObject) messageObj.get(isRequest ? REQUEST_ENTITY_FIELD : RESPONSE_ENTITY_FIELD);
+        HttpCarbonMessage httpCarbonMessage = HttpUtil.getCarbonMsg(messageObj,
+                HttpUtil.createHttpCarbonMessage(isRequest));
         boolean byteChannelAlreadySet = false;
 
         if (messageObj.getNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET) != null) {
@@ -247,6 +252,7 @@ public class HttpUtil {
         if (entityHeadersRequired) {
             populateEntityHeaders(messageObj, entity);
         }
+        httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, entity);
         return entity;
     }
 
@@ -263,6 +269,14 @@ public class HttpUtil {
         HttpCarbonMessage httpCarbonMessage = HttpUtil
                 .getCarbonMsg(messageObj, HttpUtil.createHttpCarbonMessage(request));
         String contentType = httpCarbonMessage.getHeader(HttpHeaderNames.CONTENT_TYPE.toString());
+        // Checking whether the call comes after an interceptor service execution
+        if (httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ) != null) {
+            messageObj.set(request ? REQUEST_ENTITY_FIELD : RESPONSE_ENTITY_FIELD, entityObj);
+            messageObj.addNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET, true);
+            // TODO : Have to check whether we need to set this
+            entityObj.addNativeData(HttpConstants.TRANSPORT_MESSAGE, httpCarbonMessage);
+            return;
+        }
         //TODO check following condition related to streaming
         if (MimeUtil.isNotNullAndEmpty(contentType) && contentType.startsWith(MULTIPART_AS_PRIMARY_TYPE)
                 && !streaming) {
@@ -1483,6 +1497,37 @@ public class HttpUtil {
         return listenerConfiguration;
     }
 
+    public static void getAndPopulateInterceptorsServices(BObject serviceEndpoint, Runtime runtime) {
+        BMap endpointConfig = serviceEndpoint.getMapValue(HttpConstants.SERVICE_ENDPOINT_CONFIG);
+        Object[] interceptors = {};
+        List<BObject> interceptorServices = new ArrayList<>();
+        BArray interceptorsArray = endpointConfig.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
+
+        if (interceptorsArray != null) {
+            interceptors = interceptorsArray.getValues();
+        }
+
+        for (Object interceptor: interceptors) {
+            if (interceptor == null) {
+                break;
+            }
+            interceptorServices.add((BObject) interceptor);
+        }
+
+        Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
+        List<HTTPServicesRegistry> httpInterceptorServicesRegistries = Register.getHttpInterceptorServicesRegistries(
+                serviceEndpoint);
+
+        // Registering all the interceptor services in separate service registries
+        for (int i = 0; i < interceptorServices.size(); i++) {
+            BObject interceptorService = interceptorServices.get(i);
+            HTTPServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
+            servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
+            servicesRegistry.registerService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH);
+            servicesRegistry.setRuntime(runtime);
+        }
+    }
+
     public static void setInboundMgsSizeValidationConfig(long maxInitialLineLength, long maxHeaderSize,
                                                          long maxEntityBodySize,
                                                          InboundMsgSizeValidationConfig sizeValidationConfig) {
@@ -1729,6 +1774,35 @@ public class HttpUtil {
         } catch (UnsupportedEncodingException e) {
             throw new BallerinaConnectorException("Error while encoding value: " + value, e);
         }
+    }
+
+    // TODO - HTTP Interceptor : Implement this function properly after this issue is fixed
+    //  https://github.com/ballerina-platform/ballerina-lang/issues/33595
+    public static String getInterceptorServiceType(BObject interceptorService) {
+        return interceptorService.get(HttpConstants.HTTP_INTERCEPTOR_TYPE).toString();
+//        ObjectType objectType = interceptorService.getType();
+//        if (objectType != null) {
+//            List<TypeId> typeIdList = (objectType instanceof BObjectType) ?
+//                    ((BObjectType) objectType).typeIdSet.getIds() : null;
+//            if (typeIdList != null) {
+//                for (TypeId typeId : typeIdList) {
+//                    switch (typeId.getName()) {
+//                        case HttpConstants.HTTP_REQUEST_INTERCEPTOR:
+//                            return HttpConstants.HTTP_REQUEST_INTERCEPTOR;
+//                        case HttpConstants.HTTP_RESPONSE_INTERCEPTOR:
+//                            return HttpConstants.HTTP_RESPONSE_INTERCEPTOR;
+//                        case HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR:
+//                            return HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR;
+//                        case HttpConstants.HTTP_RESPONSE_ERROR_INTERCEPTOR:
+//                            return HttpConstants.HTTP_RESPONSE_ERROR_INTERCEPTOR;
+//                        default:
+//                            continue;
+//                    }
+//                }
+//            }
+//            return objectType.getName();
+//        }
+//        return HttpConstants.HTTP_NO_INTERCEPTOR;
     }
 
     private HttpUtil() {

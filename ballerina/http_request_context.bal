@@ -14,7 +14,54 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/jballerina.java;
+import ballerina/lang.value;
+
 # Represents an HTTP Context that allows user to pass data between filters.
 public isolated class RequestContext {
+    private final map<value:Cloneable|isolated object {}> attributes = {};
+    private int interceptorId = 0;
 
+    public isolated function add(string 'key, value:Cloneable|isolated object {} value) {
+        if value is value:Cloneable {
+            lock {
+                self.attributes['key] = value.clone();
+            }
+        }
+        else {
+            lock {
+                self.attributes['key] = value;
+            }   
+        }
+    }
+
+    public isolated function get(string 'key) returns value:Cloneable|isolated object {} {
+        lock {
+            value:Cloneable|isolated object {} value = self.attributes.get('key);
+
+            if value is value:Cloneable {
+                return value.clone();
+            } else {
+                return value;
+            }
+        }
+    }
+
+    public isolated function remove(string 'key) {
+        lock {
+            value:Cloneable|isolated object {} err = self.attributes.remove('key);
+        }
+    }
+
+    public isolated function next() returns InterceptorReturnValues {
+        lock {
+            self.interceptorId += 1;
+            return externRequestCtxNext(self, self.interceptorId);
+        }
+    }
 }
+
+public isolated function externRequestCtxNext(RequestContext requestCtx, int interceptorId) returns InterceptorReturnValues = @java:Method {
+    name: "next",
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
+} external;

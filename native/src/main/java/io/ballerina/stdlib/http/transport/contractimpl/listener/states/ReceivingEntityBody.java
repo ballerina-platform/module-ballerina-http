@@ -18,7 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states;
 
-import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.HttpOutboundRespListener;
@@ -148,6 +148,6 @@ public class ReceivingEntityBody implements ListenerState {
 
     private boolean isDiffered(HttpCarbonMessage sourceReqCmsg) {
         //Http resource stored in the HTTPCarbonMessage means execution waits till payload.
-        return sourceReqCmsg.getProperty(Constants.HTTP_RESOURCE) != null;
+        return sourceReqCmsg.getProperty(HttpConstants.WAIT_FOR_FULL_REQUEST) != null;
     }
 }

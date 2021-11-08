@@ -18,8 +18,10 @@
 
 package io.ballerina.stdlib.http.api.service.endpoint;
 
+import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.BallerinaHTTPConnectorListener;
+import io.ballerina.stdlib.http.api.HTTPServicesRegistry;
 import io.ballerina.stdlib.http.api.HttpConnectorPortBindingListener;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
@@ -44,10 +46,18 @@ public class Start extends AbstractHttpNativeFunction {
     }
 
     private static Object startServerConnector(BObject serviceEndpoint) {
+        // TODO : Move this to `register` after this issue is fixed
+        //  https://github.com/ballerina-platform/ballerina-lang/issues/33594
+        // Get and populate interceptor services
+        HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
+        Runtime runtime = httpServicesRegistry.getRuntime();
+        HttpUtil.getAndPopulateInterceptorsServices(serviceEndpoint, runtime);
+
         ServerConnector serverConnector = getServerConnector(serviceEndpoint);
         ServerConnectorFuture serverConnectorFuture = serverConnector.start();
         BallerinaHTTPConnectorListener httpListener =
                 new BallerinaHTTPConnectorListener(getHttpServicesRegistry(serviceEndpoint),
+                                                   getHttpInterceptorServicesRegistries(serviceEndpoint),
                                                    serviceEndpoint.getMapValue(SERVICE_ENDPOINT_CONFIG));
         serviceEndpoint.addNativeData(SERVER_CONNECTOR_FUTURE, serverConnectorFuture);
         HttpConnectorPortBindingListener portBindingListener = new HttpConnectorPortBindingListener();

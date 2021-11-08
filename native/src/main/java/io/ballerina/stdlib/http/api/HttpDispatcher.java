@@ -178,7 +178,14 @@ public class HttpDispatcher {
     public static Object[] getSignatureParameters(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
                                                   BMap<BString, Object> endpointConfig) {
         BObject inRequest = null;
-        BObject httpCaller = createCaller(httpResource, httpCarbonMessage, endpointConfig);
+        // Getting the same caller, request context and entity object to pass through interceptor services
+        BObject httpCaller = (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
+        BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
+        BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
+        BError interceptorError = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+        if (httpCaller == null) {
+            httpCaller = createCaller(httpResource, httpCarbonMessage, endpointConfig);
+        }
         ParamHandler paramHandler = httpResource.getParamHandler();
         int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
@@ -202,9 +209,25 @@ public class HttpDispatcher {
                     paramFeed[index++] = httpCaller;
                     paramFeed[index] = true;
                     break;
+                case HttpConstants.REQUEST_CONTEXT:
+                    if (requestCtx == null) {
+                        requestCtx = createRequestContext(httpCarbonMessage, endpointConfig);
+                    }
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = requestCtx;
+                    paramFeed[index] = true;
+                    break;
+                case HttpConstants.STRUCT_GENERIC_ERROR:
+                    if (interceptorError == null) {
+                        throw new BallerinaConnectorException("no error param value found");
+                    }
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = interceptorError;
+                    paramFeed[index] = true;
+                    break;
                 case HttpConstants.REQUEST:
                     if (inRequest == null) {
-                        inRequest = createRequest(httpCarbonMessage);
+                        inRequest = createRequest(httpCarbonMessage, entityObj);
                     }
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = inRequest;
@@ -212,7 +235,7 @@ public class HttpDispatcher {
                     break;
                 case HttpConstants.HEADERS:
                     if (inRequest == null) {
-                        inRequest = createRequest(httpCarbonMessage);
+                        inRequest = createRequest(httpCarbonMessage, entityObj);
                     }
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = createHeadersObject(inRequest);
@@ -227,7 +250,7 @@ public class HttpDispatcher {
                     break;
                 case HttpConstants.PAYLOAD_PARAM:
                     if (inRequest == null) {
-                        inRequest = createRequest(httpCarbonMessage);
+                        inRequest = createRequest(httpCarbonMessage, entityObj);
                     }
                     populatePayloadParam(inRequest, httpCarbonMessage, paramFeed, (PayloadParam) param);
                     break;
@@ -371,9 +394,10 @@ public class HttpDispatcher {
         return arrayValue;
     }
 
-    private static BObject createRequest(HttpCarbonMessage httpCarbonMessage) {
+    private static BObject createRequest(HttpCarbonMessage httpCarbonMessage, BObject entityObj) {
         BObject inRequest = ValueCreatorUtils.createRequestObject();
-        BObject inRequestEntity = ValueCreatorUtils.createEntityObject();
+        // Reuse the entity object in case it is consumed by an interceptor
+        BObject inRequestEntity = entityObj == null ? ValueCreatorUtils.createEntityObject() : entityObj;
         HttpUtil.populateInboundRequest(inRequest, inRequestEntity, httpCarbonMessage);
         return inRequest;
     }
@@ -385,6 +409,15 @@ public class HttpDispatcher {
         HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
         httpCarbonMessage.setProperty(HttpConstants.CALLER, httpCaller);
         return httpCaller;
+    }
+
+    static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, BMap<BString, Object> endpointConfig) {
+        BObject requestContext = ValueCreatorUtils.createRequestContextObject();
+        BArray interceptors = endpointConfig.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
+        requestContext.addNativeData(HttpConstants.HTTP_INTERCEPTORS, interceptors);
+        requestContext.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+        httpCarbonMessage.setProperty(HttpConstants.REQUEST_CONTEXT, requestContext);
+        return requestContext;
     }
 
     private static Object createHeadersObject(BObject inRequest) {
@@ -444,50 +477,82 @@ public class HttpDispatcher {
         HttpUtil.populateEntityBody(inRequest, inRequestEntity, true, true);
         int index = payloadParam.getIndex();
         Type payloadType = payloadParam.getType();
-        try {
-            switch (payloadType.getTag()) {
-                case STRING_TAG:
-                    BString stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
-                    EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
-                    paramFeed[index++] = stringDataSource;
-                    break;
-                case TypeTags.JSON_TAG:
-                    Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
-                    EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
-                    paramFeed[index++] = bjson;
-                    break;
-                case TypeTags.XML_TAG:
-                    BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
-                    EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
-                    paramFeed[index++] = bxml;
-                    break;
-                case ARRAY_TAG:
-                    if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
-                        BArray blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
-                        EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
-                        paramFeed[index++] = blobDataSource;
-                    } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
+        Object dataSource = EntityBodyHandler.getMessageDataSource(inRequestEntity);
+        // Check if datasource is already available from interceptor service read
+        if (dataSource != null) {
+            try {
+                switch (payloadType.getTag()) {
+                    case ARRAY_TAG:
+                        if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                            paramFeed[index++] = dataSource;
+                        } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
+                            paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
+                        } else {
+                            throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
+                                    ((ArrayType) payloadType).getElementType().getName());
+                        }
+                        break;
+                    case TypeTags.RECORD_TYPE_TAG:
                         paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
-                    } else {
-                        throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
-                                        ((ArrayType) payloadType).getElementType().getName());
-                    }
-                    break;
-                case TypeTags.RECORD_TYPE_TAG:
-                    paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
-                    break;
-                default:
-                        //Do nothing
+                        break;
+                    default:
+                        paramFeed[index++] = dataSource;
+                }
+            } catch (BError ex) {
+                httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                throw new BallerinaConnectorException("data binding failed: " + ex.toString());
             }
             paramFeed[index] = true;
-        } catch (BError | IOException ex) {
-            httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-            throw new BallerinaConnectorException("data binding failed: " + ex.toString());
+        } else {
+            try {
+                switch (payloadType.getTag()) {
+                    case STRING_TAG:
+                        BString stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
+                        EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
+                        paramFeed[index++] = stringDataSource;
+                        break;
+                    case TypeTags.JSON_TAG:
+                        Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
+                        EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
+                        paramFeed[index++] = bjson;
+                        break;
+                    case TypeTags.XML_TAG:
+                        BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
+                        EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
+                        paramFeed[index++] = bxml;
+                        break;
+                    case ARRAY_TAG:
+                        if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                            BArray blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
+                            EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
+                            paramFeed[index++] = blobDataSource;
+                        } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
+                            paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
+                        } else {
+                            throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
+                                    ((ArrayType) payloadType).getElementType().getName());
+                        }
+                        break;
+                    case TypeTags.RECORD_TYPE_TAG:
+                        paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
+                        break;
+                    default:
+                        //Do nothing
+                }
+                paramFeed[index] = true;
+                // Set the entity obj in case it is read by an interceptor
+                httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
+            } catch (BError | IOException ex) {
+                httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                throw new BallerinaConnectorException("data binding failed: " + ex.toString());
+            }
         }
     }
 
     private static Object getRecordEntity(BObject inRequestEntity, Type entityBodyType) {
-        Object result = getRecord(entityBodyType, getBJsonValue(inRequestEntity));
+        Object bjson = EntityBodyHandler.getMessageDataSource(inRequestEntity) == null ? getBJsonValue(inRequestEntity)
+                : EntityBodyHandler.getMessageDataSource(inRequestEntity);
+        Object result = getRecord(entityBodyType, bjson);
         if (result instanceof BError) {
             throw (BError) result;
         }

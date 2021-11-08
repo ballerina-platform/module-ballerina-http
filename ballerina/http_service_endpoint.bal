@@ -19,7 +19,7 @@ import ballerina/jballerina.java;
 
 # This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
-public isolated class Listener {
+public class Listener {
 
     private int port;
     private ListenerConfiguration config;
@@ -30,7 +30,7 @@ public isolated class Listener {
     # + config - Configurations for the HTTP service listener
     # + return - A `ListenerError` if an error occurred during the listener initialization
     public isolated function init(int port, *ListenerConfiguration config) returns ListenerError? {
-        self.config = config.cloneReadOnly();
+        self.config = config;
         self.port = port;
         return externInitEndpoint(self);
     }
@@ -78,18 +78,14 @@ public isolated class Listener {
     #
     # + return - The HTTP listener port
     public isolated function getPort() returns int {
-        lock {
-            return self.port;
-        }
+        return self.port;
     }
 
     # Retrieves the `ListenerConfiguration` of the HTTP listener.
     #
     # + return - The readonly HTTP listener configuration
-    public isolated function getConfig() returns readonly & ListenerConfiguration {
-        lock {
-            return <readonly & ListenerConfiguration> self.config.cloneReadOnly();
-        }
+    public isolated function getConfig() returns ListenerConfiguration {
+        return self.config;
     }
 }
 
@@ -148,6 +144,7 @@ public type Local record {|
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
+# + interceptors - An array of interceptor services
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
@@ -156,6 +153,7 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
+    (RequestInterceptor|RequestErrorInterceptor)[]? interceptors = ();
 |};
 
 # Provides settings related to HTTP/1.x protocol.

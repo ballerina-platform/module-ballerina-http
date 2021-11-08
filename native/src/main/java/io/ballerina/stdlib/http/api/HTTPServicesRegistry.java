@@ -48,6 +48,7 @@ public class HTTPServicesRegistry {
     protected Map<String, HttpService> servicesByBasePath;
     protected List<String> sortedServiceURIs;
     private Runtime runtime;
+    private String servicesType = HttpConstants.HTTP_NORMAL;
 
     /**
      * Get ServiceInfo instance for given interface and base path.
@@ -97,7 +98,7 @@ public class HTTPServicesRegistry {
      * @param basePath absolute resource path of the service
      */
     public void registerService(Runtime runtime, BObject service, String basePath) {
-        HttpService httpService = HttpService.buildHttpService(service, basePath);
+        HttpService httpService = HttpService.buildHttpService(service, basePath, this.getServicesType());
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
         String hostName = httpService.getHostName();
         if (servicesMapByHost.get(hostName) == null) {
@@ -153,6 +154,14 @@ public class HTTPServicesRegistry {
         this.runtime = runtime;
     }
 
+    public String getServicesType() {
+        return servicesType;
+    }
+
+    public void setServicesType(String servicesType) {
+        this.servicesType = servicesType;
+    }
+
     /**
      * Holds both serviceByBasePath map and sorted Service basePath list.
      */
@@ -177,7 +186,7 @@ public class HTTPServicesRegistry {
             logger.error("service is not attached to the listener");
             return;
         }
-        HttpService httpService = HttpService.buildHttpService(service, basePath);
+        HttpService httpService = HttpService.buildHttpService(service, basePath, this.getServicesType());
         String hostName = httpService.getHostName();
         ServicesMapHolder servicesMapHolder = servicesMapByHost.get(hostName);
         if (servicesMapHolder == null) {

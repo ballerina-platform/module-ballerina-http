@@ -65,8 +65,11 @@ public class ParamHandler {
     private NonRecurringParam callerParam = null;
     private NonRecurringParam requestParam = null;
     private NonRecurringParam headerObjectParam = null;
+    private NonRecurringParam requestContextParam = null;
+    private NonRecurringParam interceptorErrorParam = null;
     private AllQueryParams queryParams = new AllQueryParams();
     private AllHeaderParams headerParams = new AllHeaderParams();
+    private String resourceType = HttpConstants.HTTP_NORMAL;
 
     private static final String PARAM_ANNOT_PREFIX = "$param$.";
     private static final MapType MAP_TYPE = TypeCreator.createMapType(
@@ -74,6 +77,7 @@ public class ParamHandler {
     private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
     private static final String REQ_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST;
     private static final String HEADERS_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.HEADERS;
+    private static final String REQUEST_CONTEXT_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST_CONTEXT;
     private static final String CALLER_ANNOTATION =
             ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_CALLER_INFO;
     public static final String PAYLOAD_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_PAYLOAD;
@@ -81,10 +85,11 @@ public class ParamHandler {
     public static final String CACHE_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON
             + ANN_NAME_CACHE;
 
-    public ParamHandler(ResourceMethodType resource, int pathParamCount) {
+    public ParamHandler(ResourceMethodType resource, int pathParamCount, String resourceType) {
         this.resource = resource;
         this.pathParamCount = pathParamCount;
         this.paramTypes = resource.getParameterTypes();
+        this.resourceType = resourceType;
         populatePathParamTokens(resource, pathParamCount);
         populatePayloadAndHeaderParamTokens(resource);
         validateSignatureParams();
@@ -106,6 +111,12 @@ public class ParamHandler {
             Type parameterType = resource.getParameterTypes()[index];
             String typeName = parameterType.toString();
             switch (typeName) {
+                case REQUEST_CONTEXT_TYPE:
+                    validateRequestContextParam(index, parameterType);
+                    break;
+                case HttpConstants.STRUCT_GENERIC_ERROR:
+                    validateInterceptorErrorParam(index, parameterType);
+                    break;
                 case CALLER_TYPE:
                     if (this.callerParam == null) {
                         this.callerParam = new NonRecurringParam(index, HttpConstants.CALLER);
@@ -131,16 +142,7 @@ public class ParamHandler {
                     }
                     break;
                 default:
-                    String paramName = resource.getParamNames()[index];
-                    HeaderParam headerParam;
-                    if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
-                        payloadParam.init(parameterType, index);
-                        getOtherParamList().add(payloadParam);
-                    } else if ((headerParam = headerParams.get(paramName)) != null) {
-                        headerParam.init(parameterType, index);
-                    } else {
-                        validateQueryParam(index, resource, parameterType);
-                    }
+                    defaultSignatureParam(index, parameterType);
             }
         }
         if (queryParams.isNotEmpty()) {
@@ -257,6 +259,49 @@ public class ParamHandler {
             throw HttpUtil.createHttpError("incompatible path parameter type: '" + type.getName() + "'",
                                            HttpErrorType.GENERIC_LISTENER_ERROR);
         });
+    }
+
+    private void validateRequestContextParam(int index, Type parameterType) {
+        if (resourceType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR) ||
+                resourceType.equals(HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR)) {
+            if (this.requestContextParam == null) {
+                this.requestContextParam = new NonRecurringParam(index, HttpConstants.REQUEST_CONTEXT);
+                getOtherParamList().add(this.requestContextParam);
+            } else {
+                throw HttpUtil.createHttpError("invalid multiple '" + REQUEST_CONTEXT_TYPE
+                        + "' parameter");
+            }
+        } else {
+            defaultSignatureParam(index, parameterType);
+        }
+    }
+
+    private void validateInterceptorErrorParam(int index, Type parameterType) {
+        if (resourceType.equals(HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR)) {
+            if (this.interceptorErrorParam == null) {
+                this.interceptorErrorParam = new NonRecurringParam(index,
+                        HttpConstants.STRUCT_GENERIC_ERROR);
+                getOtherParamList().add(this.interceptorErrorParam);
+            } else {
+                throw HttpUtil.createHttpError("invalid multiple '" +
+                        HttpConstants.STRUCT_GENERIC_ERROR + "' parameter");
+            }
+        } else {
+            defaultSignatureParam(index, parameterType);
+        }
+    }
+
+    private void defaultSignatureParam(int index, Type parameterType) {
+        String paramName = resource.getParamNames()[index];
+        HeaderParam headerParam;
+        if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
+            payloadParam.init(parameterType, index);
+            getOtherParamList().add(payloadParam);
+        } else if ((headerParam = headerParams.get(paramName)) != null) {
+            headerParam.init(parameterType, index);
+        } else {
+            validateQueryParam(index, resource, parameterType);
+        }
     }
 
     private boolean isValidBasicType(int typeTag) {
