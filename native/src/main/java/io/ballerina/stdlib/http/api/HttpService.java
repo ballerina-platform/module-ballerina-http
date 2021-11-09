@@ -76,7 +76,7 @@ public class HttpService {
     private String mediaTypeSubtypePrefix;
     private String introspectionResourcePath;
     private boolean treatNilableAsOptional = true;
-    private String servicetype = HttpConstants.HTTP_NORMAL;
+    private String serviceType = HttpConstants.HTTP_NORMAL;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -196,11 +196,11 @@ public class HttpService {
     }
 
     public void setServiceType(String serviceType) {
-        this.servicetype = serviceType;
+        this.serviceType = serviceType;
     }
 
     public String getServiceType() {
-        return this.servicetype;
+        return this.serviceType;
     }
 
     public URITemplate<HttpResource, HttpCarbonMessage> getUriTemplate() throws URITemplateException {

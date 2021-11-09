@@ -129,6 +129,14 @@ const int serviceMediaTypeSubtypePrefixPort = 9579;
 const int queryParamBindingIdealTestPort = 9580;
 const int headerParamBindingIdealTestPort = 9581;
 const int clientWithoutSchemeTestPort = 9582;
+const int databindingTestWithInterceptorsPort = 9583;
+const int defaultRequestInterceptorTestPort = 9584;
+const int requestInterceptorWithCallerRespondTestPort = 9585;
+const int requestInterceptorReturnsErrorTestPort = 9586;
+const int requestErrorInterceptorTestPort = 9587;
+const int requestInterceptorDataBindingTestPort1 = 9588;
+const int requestInterceptorDataBindingTestPort2 = 9589;
+const int requestInterceptorSetPayloadTestPort = 9590;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
