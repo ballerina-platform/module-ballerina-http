@@ -59,19 +59,19 @@ public class Listener {
 
     # Attaches a service to the listener.
     #
-    # + httpService - The service that needs to be attached
+    # + baseService - The service that needs to be attached
     # + name - Name of the service
     # + return - An `error` if an error occurred during the service attachment process or else `()`
-    public isolated function attach(Service httpService, string[]|string? name = ()) returns error? {
-        return externRegister(self, httpService, name);
+    public isolated function attach(Service baseService, string[]|string? name = ()) returns error? {
+        return externRegister(self, baseService, name);
     }
 
     # Detaches an HTTP service from the listener.
     #
-    # + httpService - The service to be detached
+    # + baseService - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
-    public isolated function detach(Service httpService) returns error? {
-        return externDetach(self, httpService);
+    public isolated function detach(Service baseService) returns error? {
+        return externDetach(self, baseService);
     }
 
     # Retrieves the port of the HTTP listener.
@@ -94,7 +94,7 @@ isolated function externInitEndpoint(Listener listenerObj) returns ListenerError
     name: "initEndpoint"
 } external;
 
-isolated function externRegister(Listener listenerObj, Service httpService, string[]|string? name) returns error? =
+isolated function externRegister(Listener listenerObj, Service baseService, string[]|string? name) returns error? =
 @java:Method {
     'class: "io.ballerina.stdlib.http.api.service.endpoint.Register",
     name: "register"
@@ -110,7 +110,7 @@ isolated function externGracefulStop(Listener listenerObj) returns error? = @jav
     name: "gracefulStop"
 } external;
 
-isolated function externDetach(Listener listenerObj, Service httpService) returns error? = @java:Method {
+isolated function externDetach(Listener listenerObj, Service baseService) returns error? = @java:Method {
     'class: "io.ballerina.stdlib.http.api.service.endpoint.Detach",
     name: "detach"
 } external;

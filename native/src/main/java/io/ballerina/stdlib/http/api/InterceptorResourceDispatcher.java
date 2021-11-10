@@ -1,52 +1,28 @@
-/*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.URITemplateException;
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 
 /**
- * Resource level dispatchers handler for HTTP protocol.
+ * Interceptor resource level dispatchers handler for HTTP protocol.
  */
-public class HttpResourceDispatcher {
+public class InterceptorResourceDispatcher {
 
-    public static HttpResource findResource(HttpService service, HttpCarbonMessage inboundRequest) {
+    public static InterceptorResource findResource(InterceptorService service, HttpCarbonMessage inboundRequest) {
 
         String method = inboundRequest.getHttpMethod();
         String subPath = (String) inboundRequest.getProperty(HttpConstants.SUB_PATH);
         subPath = sanitizeSubPath(subPath);
         HttpResourceArguments resourceArgumentValues = new HttpResourceArguments();
         try {
-            HttpResource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
-            if (resource instanceof HttpIntrospectionResource) {
-                handleIntrospectionRequest(inboundRequest, (HttpIntrospectionResource) resource);
-                return null;
-            }
+            InterceptorResource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues,
+                                                                                                        inboundRequest);
             if (resource != null) {
                 inboundRequest.setProperty(HttpConstants.RESOURCE_ARGS, resourceArgumentValues);
-                inboundRequest.setProperty(HttpConstants.RESOURCES_CORS, resource.getCorsHeaders());
                 return resource;
             } else {
                 if (method.equals(HttpConstants.HTTP_METHOD_OPTIONS)) {
@@ -74,40 +50,26 @@ public class HttpResourceDispatcher {
         return subPath;
     }
 
-    private static void handleOptionsRequest(HttpCarbonMessage cMsg, HttpService service) {
+    private static void handleOptionsRequest(HttpCarbonMessage cMsg, InterceptorService service) {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         if (cMsg.getHeader(HttpHeaderNames.ALLOW.toString()) != null) {
             response.setHeader(HttpHeaderNames.ALLOW.toString(), cMsg.getHeader(HttpHeaderNames.ALLOW.toString()));
         } else if (service.getBasePath().equals(cMsg.getProperty(HttpConstants.TO))
                 && !service.getAllAllowedMethods().isEmpty()) {
             response.setHeader(HttpHeaderNames.ALLOW.toString(),
-                               DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
+                    DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
         } else {
             cMsg.setHttpStatusCode(404);
             throw new BallerinaConnectorException("no matching resource found for path : "
                     + cMsg.getProperty(HttpConstants.TO) + " , method : " + "OPTIONS");
         }
         CorsHeaderGenerator.process(cMsg, response, false);
-        String introspectionResourcePathHeaderValue = service.getIntrospectionResourcePathHeaderValue();
-        if (introspectionResourcePathHeaderValue != null) {
-            response.setHeader(HttpConstants.LINK_HEADER, introspectionResourcePathHeaderValue);
-        }
         response.setHttpStatusCode(204);
         response.addHttpContent(new DefaultLastHttpContent());
         PipeliningHandler.sendPipelinedResponse(cMsg, response);
         cMsg.waitAndReleaseAllEntities();
     }
 
-    private static void handleIntrospectionRequest(HttpCarbonMessage cMsg, HttpIntrospectionResource resource) {
-        HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
-        response.waitAndReleaseAllEntities();
-        response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(resource.getPayload())));
-        response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString());
-        response.setHttpStatusCode(200);
-        PipeliningHandler.sendPipelinedResponse(cMsg, response);
-        cMsg.waitAndReleaseAllEntities();
-    }
-
-    private HttpResourceDispatcher() {
+    private InterceptorResourceDispatcher() {
     }
 }

@@ -31,7 +31,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
  *
  * @since SL beta 3
  */
-public class HttpIntrospectionResource extends HttpResource {
+public class HttpIntrospectionResource extends BaseResource {
 
     private static final String RESOURCE_NAME = "openapi-doc-dygixywsw";
     private static final String RESOURCE_METHOD = "$get$";
@@ -39,9 +39,9 @@ public class HttpIntrospectionResource extends HttpResource {
     private static final String ERROR_PREFIX = "Error retrieving OpenAPI spec: ";
     private final String filePath;
 
-    protected HttpIntrospectionResource(HttpService httpService, String filePath) {
-        String path = (httpService.getBasePath() + SINGLE_SLASH + RESOURCE_NAME).replaceAll("/+", SINGLE_SLASH);
-        httpService.setIntrospectionResourcePathHeaderValue("<" + path + ">;" + REL_PARAM);
+    protected HttpIntrospectionResource(BaseService baseService, String filePath) {
+        String path = (baseService.getBasePath() + SINGLE_SLASH + RESOURCE_NAME).replaceAll("/+", SINGLE_SLASH);
+        baseService.setIntrospectionResourcePathHeaderValue("<" + path + ">;" + REL_PARAM);
         this.filePath = filePath;
     }
 

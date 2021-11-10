@@ -31,59 +31,59 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * A unit test class for http module {@link HttpService} class functions.
+ * A unit test class for http module {@link BaseService} class functions.
  */
-public class HttpServiceTest {
+public class BaseServiceTest {
 
     @Test
     public void testKeepAlive() {
         BObject service = TestUtils.getNewServiceObject("hello");
-        HttpService httpService = new HttpService(service);
-        Assert.assertTrue(httpService.isKeepAlive());
+        BaseService baseService = new BaseService(service);
+        Assert.assertTrue(baseService.isKeepAlive());
 
-        httpService.setKeepAlive(false);
-        Assert.assertFalse(httpService.isKeepAlive());
+        baseService.setKeepAlive(false);
+        Assert.assertFalse(baseService.isKeepAlive());
     }
 
     @Test
     public void testNullServiceBasePath() {
         BObject service = TestUtils.getNewServiceObject("hello");
-        HttpService httpService = new HttpService(service);
-        httpService.setBasePath(null);
+        BaseService baseService = new BaseService(service);
+        baseService.setBasePath(null);
 
-        Assert.assertEquals(httpService.getBasePath(), "/hello");
+        Assert.assertEquals(baseService.getBasePath(), "/hello");
 
         service = TestUtils.getNewServiceObject("$hello");
-        httpService = new HttpService(service);
-        httpService.setBasePath(null);
+        baseService = new BaseService(service);
+        baseService.setBasePath(null);
 
-        Assert.assertEquals(httpService.getBasePath(), "/");
+        Assert.assertEquals(baseService.getBasePath(), "/");
     }
 
     @Test
     public void testEmptyNullServiceBasePath() {
         BObject service = TestUtils.getNewServiceObject("hello");
-        HttpService httpService = new HttpService(service);
-        httpService.setBasePath(" ");
+        BaseService baseService = new BaseService(service);
+        baseService.setBasePath(" ");
 
-        Assert.assertEquals(httpService.getBasePath(), "/hello");
+        Assert.assertEquals(baseService.getBasePath(), "/hello");
     }
 
     @Test
     public void testNotNullServiceBasePath() {
         BObject service = TestUtils.getNewServiceObject("hello");
-        HttpService httpService = new HttpService(service);
-        httpService.setBasePath("ballerina");
+        BaseService baseService = new BaseService(service);
+        baseService.setBasePath("ballerina");
 
-        Assert.assertEquals(httpService.getBasePath(), "/ballerina");
+        Assert.assertEquals(baseService.getBasePath(), "/ballerina");
     }
 
     @Test
     public void testGetPayloadFunctionOfIntrospectionResource() {
         BObject service = TestUtils.getNewServiceObject("hello");
-        HttpService httpService = new HttpService(service);
+        BaseService baseService = new BaseService(service);
         String filePath = "resources/ballerina/http/testopenapidoc.json";
-        HttpIntrospectionResource introspectionResource = new HttpIntrospectionResource(httpService, filePath);
+        HttpIntrospectionResource introspectionResource = new HttpIntrospectionResource(baseService, filePath);
         byte[] payload = introspectionResource.getPayload();
         byte[] fileContent = new byte[0];
         try {
@@ -105,18 +105,18 @@ public class HttpServiceTest {
     @Test
     public void testGetNameOfIntrospectionResource() {
         BObject service = TestUtils.getNewServiceObject("hello");
-        HttpService httpService = new HttpService(service);
-        HttpIntrospectionResource introspectionResource = new HttpIntrospectionResource(httpService, "abc");
+        BaseService baseService = new BaseService(service);
+        HttpIntrospectionResource introspectionResource = new HttpIntrospectionResource(baseService, "abc");
         Assert.assertEquals(introspectionResource.getName(), "$get$openapi-doc-dygixywsw");
     }
 
     @Test
     public void testGetAbsoluteResourcePath() {
-        HttpService httpService = new HttpService(TestUtils.getNewServiceObject("hello"));
-        httpService.setBasePath("/basePath/");
-        HttpResource resource = new HttpResource(TestUtils.getNewMethodType(), httpService);
+        BaseService baseService = new BaseService(TestUtils.getNewServiceObject("hello"));
+        baseService.setBasePath("/basePath/");
+        BaseResource resource = new BaseResource(TestUtils.getNewMethodType(), baseService);
         resource.setPath("/abc/{xyz}");
-        httpService.setResources(Collections.singletonList(resource));
+        baseService.setResources(Collections.singletonList(resource));
         Assert.assertEquals(resource.getAbsoluteResourcePath(), "/basePath/abc/{xyz}");
     }
 }

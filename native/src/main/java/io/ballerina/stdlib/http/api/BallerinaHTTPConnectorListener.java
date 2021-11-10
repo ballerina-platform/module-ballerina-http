@@ -49,12 +49,12 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     protected static final String HTTP_RESOURCE = "httpResource";
 
     protected final HTTPServicesRegistry httpServicesRegistry;
-    protected final List<HTTPServicesRegistry> httpInterceptorServicesRegistries;
+    protected final List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries;
 
     protected final BMap endpointConfig;
 
-    public BallerinaHTTPConnectorListener(HTTPServicesRegistry httpServicesRegistry, List<HTTPServicesRegistry>
-            httpInterceptorServicesRegistries, BMap endpointConfig) {
+    public BallerinaHTTPConnectorListener(HTTPServicesRegistry httpServicesRegistry,
+                        List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries, BMap endpointConfig) {
         this.httpInterceptorServicesRegistries = httpInterceptorServicesRegistries;
         this.httpServicesRegistry = httpServicesRegistry;
         this.endpointConfig = endpointConfig;
@@ -64,11 +64,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     public void onMessage(HttpCarbonMessage inboundMessage) {
         try {
             // Executing interceptor services
-            HttpResource interceptorResource;
+            InterceptorResource interceptorResource;
             int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX)
                     == null ? 0 : (int)  inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
             while (interceptorServiceIndex < httpInterceptorServicesRegistries.size()) {
-                HTTPServicesRegistry interceptorServicesRegistry = httpInterceptorServicesRegistries.
+                HTTPInterceptorServicesRegistry interceptorServicesRegistry = httpInterceptorServicesRegistries.
                         get(interceptorServiceIndex);
 
                 // Checking whether the interceptor service state matches the interceptor service registry
@@ -130,10 +130,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     @SuppressWarnings("unchecked")
     protected void extractPropertiesAndStartResourceExecution(HttpCarbonMessage inboundMessage,
-                                                              HttpResource httpResource) {
-        boolean isTransactionInfectable = httpResource.isTransactionInfectable();
+                                                               BaseResource baseResource) {
+        boolean isTransactionInfectable = baseResource.isTransactionInfectable();
         Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable);
-        Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig);
+        Object[] signatureParams = HttpDispatcher.getSignatureParameters(baseResource, inboundMessage, endpointConfig);
 
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = new ObserverContext();
@@ -144,16 +144,16 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             observerContext.addProperty(PROPERTY_TRACE_PROPERTIES, httpHeaders);
             observerContext.addTag(TAG_KEY_HTTP_METHOD, inboundMessage.getHttpMethod());
             observerContext.addTag(TAG_KEY_PROTOCOL, (String) inboundMessage.getProperty(HttpConstants.PROTOCOL));
-            observerContext.addTag(TAG_KEY_HTTP_URL, httpResource.getAbsoluteResourcePath());
+            observerContext.addTag(TAG_KEY_HTTP_URL, baseResource.getAbsoluteResourcePath());
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
             inboundMessage.setProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
         Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime(),
-                                httpResource.getReturnMediaType(), httpResource.getResponseCacheConfig());
-        BObject service = httpResource.getParentService().getBalService();
-        httpServicesRegistry.getRuntime().invokeMethodAsync(service, httpResource.getName(), null,
+                                baseResource.getReturnMediaType(), baseResource.getResponseCacheConfig());
+        BObject service = baseResource.getParentService().getBalService();
+        httpServicesRegistry.getRuntime().invokeMethodAsync(service, baseResource.getName(), null,
                                                             ModuleUtils.getOnMessageMetaData(), callback,
-                                                            properties, httpResource.getBalResource().getReturnType(),
+                                                            properties, baseResource.getBalResource().getReturnType(),
                                                             signatureParams);
     }
 
@@ -190,11 +190,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     }
 
     protected void extractPropertiesAndStartInterceptorResourceExecution(HttpCarbonMessage inboundMessage,
-                                                    HttpResource httpResource, HTTPServicesRegistry servicesRegistry) {
+                                InterceptorResource resource, HTTPInterceptorServicesRegistry servicesRegistry) {
         // TODO - HTTP Interceptor : Have to see whether we need all these code for interceptor service execution
-        boolean isTransactionInfectable = httpResource.isTransactionInfectable();
-        Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable);
-        Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig);
+        Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
+        Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = new ObserverContext();
@@ -205,32 +204,32 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             observerContext.addProperty(PROPERTY_TRACE_PROPERTIES, httpHeaders);
             observerContext.addTag(TAG_KEY_HTTP_METHOD, inboundMessage.getHttpMethod());
             observerContext.addTag(TAG_KEY_PROTOCOL, (String) inboundMessage.getProperty(HttpConstants.PROTOCOL));
-            observerContext.addTag(TAG_KEY_HTTP_URL, httpResource.getAbsoluteResourcePath());
+            observerContext.addTag(TAG_KEY_HTTP_URL, resource.getAbsoluteResourcePath());
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
             inboundMessage.setProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
         Callback callback = new HttpInterceptorUnitCallback(inboundMessage, this);
-        BObject service = httpResource.getParentService().getBalService();
-        servicesRegistry.getRuntime().invokeMethodAsync(service, httpResource.getName(), null,
+        BObject service = resource.getParentService().getBalService();
+        servicesRegistry.getRuntime().invokeMethodAsync(service, resource.getName(), null,
                 ModuleUtils.getOnMessageMetaData(), callback,
-                properties, httpResource.getBalResource().getReturnType(),
+                properties, resource.getBalResource().getReturnType(),
                 signatureParams);
     }
 
     protected void executeMainResourceOnMessage(HttpCarbonMessage inboundMessage) {
-        HttpResource httpResource;
+        BaseResource baseResource;
         if (accessed(inboundMessage)) {
             inboundMessage.removeProperty(HttpConstants.WAIT_FOR_FULL_REQUEST);
-            httpResource = (HttpResource) inboundMessage.getProperty(HTTP_RESOURCE);
-            extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
+            baseResource = (BaseResource) inboundMessage.getProperty(HTTP_RESOURCE);
+            extractPropertiesAndStartResourceExecution(inboundMessage, baseResource);
             return;
         }
-        httpResource = HttpDispatcher.findResource(httpServicesRegistry, inboundMessage);
+        baseResource = HttpDispatcher.findResource(httpServicesRegistry, inboundMessage);
         // Checking whether main resource has data-binding and if we already executed an interceptor resource
         // we skip getting the full request
-        if (HttpDispatcher.shouldDiffer(httpResource) &&
+        if (HttpDispatcher.shouldDiffer(baseResource) &&
                 !inboundMessage.isAccessedInInterceptorService()) {
-            inboundMessage.setProperty(HTTP_RESOURCE, httpResource);
+            inboundMessage.setProperty(HTTP_RESOURCE, baseResource);
             inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
             //Removes inbound content listener since data binding waits for all contents to be received
             //before executing its logic.
@@ -238,9 +237,9 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             return;
         }
         try {
-            if (httpResource != null) {
+            if (baseResource != null) {
                 inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE);
-                extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
+                extractPropertiesAndStartResourceExecution(inboundMessage, baseResource);
             }
         } catch (BallerinaConnectorException ex) {
             HttpUtil.handleFailure(inboundMessage, ex.getMessage());
@@ -248,10 +247,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         }
     }
 
-    private HttpResource findInterceptorResource(HTTPServicesRegistry interceptorServicesRegistry, HttpCarbonMessage
-            inboundMessage) {
+    private InterceptorResource findInterceptorResource(HTTPInterceptorServicesRegistry interceptorServicesRegistry,
+                                                                HttpCarbonMessage inboundMessage) {
         try {
-            return HttpDispatcher.findResource(interceptorServicesRegistry, inboundMessage);
+            return HttpDispatcher.findInterceptorResource(interceptorServicesRegistry, inboundMessage);
         } catch (Exception e) {
             // Return null to continue interception when there is no matching resource or resource method found
             if (e.getMessage().startsWith("no matching resource found for path")

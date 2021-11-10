@@ -18,9 +18,12 @@
 
 package io.ballerina.stdlib.http.uri;
 
+import io.ballerina.stdlib.http.api.BaseResource;
+import io.ballerina.stdlib.http.api.BaseService;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpResource;
-import io.ballerina.stdlib.http.api.HttpService;
+import io.ballerina.stdlib.http.api.InterceptorResource;
+import io.ballerina.stdlib.http.api.InterceptorService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,13 +72,24 @@ public class DispatcherUtil {
         return Arrays.stream(allMethods).collect(Collectors.toList());
     }
 
-    public static List<String> getAllResourceMethods(HttpService service) {
+    public static List<String> getAllResourceMethods(BaseService service) {
         List<String> cachedMethods = new ArrayList<>();
-        for (HttpResource resource : service.getResources()) {
+        for (BaseResource resource : service.getResources()) {
             if (resource.getMethods() == null) {
                 cachedMethods.addAll(DispatcherUtil.addAllMethods());
                 break;
             }
+            cachedMethods.addAll(resource.getMethods());
+        }
+        return validateAllowMethods(cachedMethods);
+    }
+
+    public static List<String> getInterceptorResourceMethods(InterceptorService httpInterceptorService) {
+        List<String> cachedMethods = new ArrayList<>();
+        InterceptorResource resource = httpInterceptorService.getResource();
+        if (resource.getMethods() == null) {
+            cachedMethods.addAll(DispatcherUtil.addAllMethods());
+        } else {
             cachedMethods.addAll(resource.getMethods());
         }
         return validateAllowMethods(cachedMethods);

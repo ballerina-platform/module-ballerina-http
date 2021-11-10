@@ -95,6 +95,15 @@ public class ParamHandler {
         validateSignatureParams();
     }
 
+    public ParamHandler(ResourceMethodType resource, int pathParamCount) {
+        this.resource = resource;
+        this.pathParamCount = pathParamCount;
+        this.paramTypes = resource.getParameterTypes();
+        populatePathParamTokens(resource, pathParamCount);
+        populatePayloadAndHeaderParamTokens(resource);
+        validateSignatureParams();
+    }
+
     private void populatePathParamTokens(ResourceMethodType resource, int pathParamCount) {
         if (pathParamCount == 0) {
             return;

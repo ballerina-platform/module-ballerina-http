@@ -1515,15 +1515,15 @@ public class HttpUtil {
         }
 
         Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
-        List<HTTPServicesRegistry> httpInterceptorServicesRegistries = Register.getHttpInterceptorServicesRegistries(
-                serviceEndpoint);
+        List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
+                                                    = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
 
         // Registering all the interceptor services in separate service registries
         for (int i = 0; i < interceptorServices.size(); i++) {
             BObject interceptorService = interceptorServices.get(i);
-            HTTPServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
+            HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
             servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH);
+            servicesRegistry.registerInterceptorService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH);
             servicesRegistry.setRuntime(runtime);
         }
     }

@@ -1,22 +1,3 @@
-/*
- *  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
- *
- */
-
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Runtime;
@@ -35,27 +16,28 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 
 /**
- * This services registry holds all the services of HTTP + WebSocket. This is a singleton class where all HTTP +
- * WebSocket Dispatchers can access.
+ * This services registry holds all the interceptor services of HTTP. This is a singleton class where all HTTP
+ * Dispatchers can access.
  *
- * @since 0.8
+ * @since SL Beta 4
  */
-public class HTTPServicesRegistry {
+public class HTTPInterceptorServicesRegistry {
 
-    private static final Logger logger = LoggerFactory.getLogger(HTTPServicesRegistry.class);
+    private static final Logger logger = LoggerFactory.getLogger(HTTPInterceptorServicesRegistry.class);
 
     protected Map<String, ServicesMapHolder> servicesMapByHost = new ConcurrentHashMap<>();
-    protected Map<String, BaseService> servicesByBasePath;
+    protected Map<String, InterceptorService> servicesByBasePath;
     protected List<String> sortedServiceURIs;
     private Runtime runtime;
+    private String servicesType = HttpConstants.HTTP_NORMAL;
 
     /**
      * Get ServiceInfo instance for given interface and base path.
      *
      * @param basepath basePath of the service.
-     * @return the {@link BaseService} instance if exist else null
+     * @return the {@link InterceptorService} instance if exist else null
      */
-    public BaseService getServiceInfo(String basepath) {
+    public InterceptorService getServiceInfo(String basepath) {
         return servicesByBasePath.get(basepath);
     }
 
@@ -75,7 +57,7 @@ public class HTTPServicesRegistry {
      * @param hostName of the service
      * @return the serviceHost map if exists else null
      */
-    public Map<String, BaseService> getServicesByHost(String hostName) {
+    public Map<String, InterceptorService> getServicesByHost(String hostName) {
         return servicesMapByHost.get(hostName).servicesByBasePath;
     }
 
@@ -96,10 +78,11 @@ public class HTTPServicesRegistry {
      * @param service  requested serviceInfo to be registered.
      * @param basePath absolute resource path of the service
      */
-    public void registerService(Runtime runtime, BObject service, String basePath) {
-        BaseService baseService = BaseService.buildHttpService(service, basePath);
+    public void registerInterceptorService(Runtime runtime, BObject service, String basePath) {
+        InterceptorService httpInterceptorService = InterceptorService.buildHttpService(service, basePath,
+                this.getServicesType());
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
-        String hostName = baseService.getHostName();
+        String hostName = httpInterceptorService.getHostName();
         if (servicesMapByHost.get(hostName) == null) {
             servicesByBasePath = new ConcurrentHashMap<>();
             sortedServiceURIs = new CopyOnWriteArrayList<>();
@@ -113,9 +96,9 @@ public class HTTPServicesRegistry {
             String errorMessage = hostName.equals(DEFAULT_HOST) ? "'" : "' under host name : '" + hostName + "'";
             throw ErrorCreator.createError(
                     StringUtils.fromString("Service registration failed: two services " +
-                                                   "have the same basePath : '" + basePath + errorMessage));
+                            "have the same basePath : '" + basePath + errorMessage));
         }
-        servicesByBasePath.put(basePath, baseService);
+        servicesByBasePath.put(basePath, httpInterceptorService);
         if (logger.isDebugEnabled()) {
             logger.debug(String.format("Service deployed : %s with context %s", service.getType().getName(), basePath));
         }
@@ -125,7 +108,7 @@ public class HTTPServicesRegistry {
         sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
     }
 
-    public String findTheMostSpecificBasePath(String requestURIPath, Map<String, BaseService> services,
+    public String findTheMostSpecificBasePath(String requestURIPath, Map<String, InterceptorService> services,
                                               List<String> sortedServiceURIs) {
         for (Object key : sortedServiceURIs) {
             if (!requestURIPath.toLowerCase(Locale.getDefault()).contains(
@@ -153,14 +136,23 @@ public class HTTPServicesRegistry {
         this.runtime = runtime;
     }
 
+    public String getServicesType() {
+        return servicesType;
+    }
+
+    public void setServicesType(String servicesType) {
+        this.servicesType = servicesType;
+    }
+
     /**
      * Holds both serviceByBasePath map and sorted Service basePath list.
      */
     protected static class ServicesMapHolder {
-        private Map<String, BaseService> servicesByBasePath;
+        private Map<String, InterceptorService> servicesByBasePath;
         private List<String> sortedServiceURIs;
 
-        public ServicesMapHolder(Map<String, BaseService> servicesByBasePath, List<String> sortedServiceURIs) {
+        public ServicesMapHolder(Map<String, InterceptorService> servicesByBasePath,
+                                                                                    List<String> sortedServiceURIs) {
             this.servicesByBasePath = servicesByBasePath;
             this.sortedServiceURIs = sortedServiceURIs;
         }
@@ -177,8 +169,9 @@ public class HTTPServicesRegistry {
             logger.error("service is not attached to the listener");
             return;
         }
-        BaseService baseService = BaseService.buildHttpService(service, basePath);
-        String hostName = baseService.getHostName();
+        InterceptorService interceptorService = InterceptorService.buildHttpService(service, basePath,
+                this.getServicesType());
+        String hostName = interceptorService.getHostName();
         ServicesMapHolder servicesMapHolder = servicesMapByHost.get(hostName);
         if (servicesMapHolder == null) {
             logger.error(basePath + " service is not attached to the listener");
