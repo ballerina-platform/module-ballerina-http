@@ -206,3 +206,24 @@ function testRequestInterceptorSetPayload() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("interceptor-setpayload"), "true");
 }
+
+final http:Client requestInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + requestInterceptorWithoutCtxNextTestPort.toString());
+
+listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInterceptorWithoutCtxNextTestPort, config = {
+        interceptors : [new defaultRequestInterceptor(), new requestInterceptorWithoutCtxNext(), new lastRequestInterceptor()]
+    });
+
+service / on requestInterceptorWithoutCtxNextServerEP {
+
+    resource function 'default .(http:Caller caller, http:Request req) returns string {
+        return "Response from resource - test";
+    }
+}    
+
+@test:Config{}
+function testRequestInterceptorWithoutCtxNext() returns error? {
+    http:Request req = new();
+    http:Response res = check requestInterceptorWithoutCtxNextClientEP->get("/");
+    assertTextPayload(check res.getTextPayload(), "interceptor service should call next() method to continue execution");
+    test:assertEquals(res.statusCode, 500);
+}

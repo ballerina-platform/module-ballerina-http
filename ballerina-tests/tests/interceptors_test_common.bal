@@ -109,6 +109,20 @@ service class defaultRequestErrorInterceptor {
     }
 }
 
+service class requestInterceptorWithoutCtxNext {
+    *http:RequestInterceptor;
+
+    function init() {
+        self.interceptorType = "RequestInterceptor";
+    }
+
+    resource function 'default [string...path](http:RequestContext ctx, http:Caller caller, http:Request req) returns http:InterceptorReturnValues {
+       req.setHeader("request-interceptor-without-ctx-next", "true");
+       ctx.add("last-interceptor", "request-interceptor-without-ctx-next");
+       return;
+    }
+}
+
 string largePayload = "WSO2 was founded by Sanjiva Weerawarana, Paul Fremantle and Davanum Srinivas in August 2005, " +
     "backed by Intel Capital, Toba Capital, and Pacific Controls. Weerawarana[3] was an IBM researcher and a founder " +
     "of the Web services platform.[4][5] He led the creation of IBM SOAP4J,[6] which later became Apache SOAP, and was" +
