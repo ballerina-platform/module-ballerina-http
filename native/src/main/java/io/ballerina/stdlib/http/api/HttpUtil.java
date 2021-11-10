@@ -23,6 +23,8 @@ import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.TypeId;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -1776,33 +1778,25 @@ public class HttpUtil {
         }
     }
 
-    // TODO - HTTP Interceptor : Implement this function properly after this issue is fixed
-    //  https://github.com/ballerina-platform/ballerina-lang/issues/33595
     public static String getInterceptorServiceType(BObject interceptorService) {
-        return interceptorService.get(HttpConstants.HTTP_INTERCEPTOR_TYPE).toString();
-//        ObjectType objectType = interceptorService.getType();
-//        if (objectType != null) {
-//            List<TypeId> typeIdList = (objectType instanceof BObjectType) ?
-//                    ((BObjectType) objectType).typeIdSet.getIds() : null;
-//            if (typeIdList != null) {
-//                for (TypeId typeId : typeIdList) {
-//                    switch (typeId.getName()) {
-//                        case HttpConstants.HTTP_REQUEST_INTERCEPTOR:
-//                            return HttpConstants.HTTP_REQUEST_INTERCEPTOR;
-//                        case HttpConstants.HTTP_RESPONSE_INTERCEPTOR:
-//                            return HttpConstants.HTTP_RESPONSE_INTERCEPTOR;
-//                        case HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR:
-//                            return HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR;
-//                        case HttpConstants.HTTP_RESPONSE_ERROR_INTERCEPTOR:
-//                            return HttpConstants.HTTP_RESPONSE_ERROR_INTERCEPTOR;
-//                        default:
-//                            continue;
-//                    }
-//                }
-//            }
-//            return objectType.getName();
-//        }
-//        return HttpConstants.HTTP_NO_INTERCEPTOR;
+        String interceptorServiceType = null;
+        ObjectType objectType = interceptorService.getType();
+        List<TypeId> typeIdList = objectType.getTypeIdSet().getIds();
+        for (TypeId typeId : typeIdList) {
+            switch (typeId.getName()) {
+                case HttpConstants.HTTP_REQUEST_INTERCEPTOR:
+                    interceptorServiceType = interceptorServiceType == null ?
+                            HttpConstants.HTTP_REQUEST_INTERCEPTOR : null;
+                    break;
+                case HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR:
+                    interceptorServiceType = interceptorServiceType == null ?
+                            HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR : null;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return interceptorServiceType;
     }
 
     private HttpUtil() {

@@ -191,23 +191,9 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     protected void extractPropertiesAndStartInterceptorResourceExecution(HttpCarbonMessage inboundMessage,
                                 InterceptorResource resource, HTTPInterceptorServicesRegistry servicesRegistry) {
-        // TODO - HTTP Interceptor : Have to see whether we need all these code for interceptor service execution
         Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
-        if (ObserveUtils.isObservabilityEnabled()) {
-            ObserverContext observerContext = new ObserverContext();
-            observerContext.setManuallyClosed(true);
-            observerContext.setObjectName(SERVER_CONNECTOR_HTTP);
-            Map<String, String> httpHeaders = new HashMap<>();
-            inboundMessage.getHeaders().forEach(entry -> httpHeaders.put(entry.getKey(), entry.getValue()));
-            observerContext.addProperty(PROPERTY_TRACE_PROPERTIES, httpHeaders);
-            observerContext.addTag(TAG_KEY_HTTP_METHOD, inboundMessage.getHttpMethod());
-            observerContext.addTag(TAG_KEY_PROTOCOL, (String) inboundMessage.getProperty(HttpConstants.PROTOCOL));
-            observerContext.addTag(TAG_KEY_HTTP_URL, resource.getAbsoluteResourcePath());
-            properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
-            inboundMessage.setProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
-        }
         Callback callback = new HttpInterceptorUnitCallback(inboundMessage, this);
         BObject service = resource.getParentService().getBalService();
         servicesRegistry.getRuntime().invokeMethodAsync(service, resource.getName(), null,

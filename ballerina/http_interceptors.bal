@@ -16,12 +16,12 @@
 
 # The HTTP request interceptor service object  
 public type RequestInterceptor distinct service object {
-    public string interceptorType;
+
 };
 
 # The HTTP request error interceptor service object  
 public type RequestErrorInterceptor distinct service object {
-    public string interceptorType;
+
 };
 
 # The return values from an interceptor service function  
