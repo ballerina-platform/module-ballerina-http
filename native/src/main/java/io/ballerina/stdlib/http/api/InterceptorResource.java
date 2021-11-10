@@ -39,9 +39,7 @@ public class InterceptorResource implements HttpResource {
     private InterceptorService parentService;
     private String wildcardToken;
     private int pathParamCount;
-    private String returnMediaType;
-    private BMap cacheConfig;
-    private boolean treatNilableAsOptional;
+    private boolean treatNilableAsOptional = true;
     private String resourceType = HttpConstants.HTTP_NORMAL;
 
     protected InterceptorResource(MethodType resource, InterceptorService parentService) {
@@ -57,10 +55,6 @@ public class InterceptorResource implements HttpResource {
 
     public String getName() {
         return balResource.getName();
-    }
-
-    public String getServiceName() {
-        return balResource.getParentObjectType().getName();
     }
 
     public ParamHandler getParamHandler() {
@@ -124,10 +118,6 @@ public class InterceptorResource implements HttpResource {
         this.pathParamCount = count;
     }
 
-    public void setTreatNilableAsOptional(boolean treatNilableAsOptional) {
-        this.treatNilableAsOptional = treatNilableAsOptional;
-    }
-
     public boolean isTreatNilableAsOptional() {
         return treatNilableAsOptional;
     }
@@ -165,7 +155,7 @@ public class InterceptorResource implements HttpResource {
     }
 
     private void prepareAndValidateSignatureParams() {
-        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount, this.getResourceType());
+        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount);
     }
 
     public String getWildcardToken() {
@@ -175,17 +165,5 @@ public class InterceptorResource implements HttpResource {
     private void validateReturnType() {
         Type returnType = getBalResource().getReturnType();
         log.info(returnType.toString());
-    }
-
-    String getReturnMediaType() {
-        return returnMediaType;
-    }
-
-    BMap getResponseCacheConfig() {
-        return cacheConfig;
-    }
-
-    protected String getAbsoluteResourcePath() {
-        return (parentService.getBasePath() + getPath()).replaceAll("/+", SINGLE_SLASH);
     }
 }

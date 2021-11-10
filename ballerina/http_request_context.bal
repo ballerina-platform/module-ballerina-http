@@ -53,7 +53,7 @@ public isolated class RequestContext {
         }
     }
 
-    public isolated function next() returns InterceptorReturnValues {
+    public isolated function next() returns NextService|error? {
         lock {
             self.interceptorId += 1;
             return externRequestCtxNext(self, self.interceptorId);
@@ -61,7 +61,7 @@ public isolated class RequestContext {
     }
 }
 
-public isolated function externRequestCtxNext(RequestContext requestCtx, int interceptorId) returns InterceptorReturnValues = @java:Method {
+public isolated function externRequestCtxNext(RequestContext requestCtx, int interceptorId) returns NextService|error? = @java:Method {
     name: "next",
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
 } external;

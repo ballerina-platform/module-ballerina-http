@@ -19,6 +19,7 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
@@ -250,7 +251,7 @@ public class HttpDispatcher {
         BObject httpCaller = (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
         BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
-        BError interceptorError = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+        BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         if (httpCaller == null) {
             httpCaller = createCaller(httpResource, httpCarbonMessage, endpointConfig);
         }
@@ -286,11 +287,11 @@ public class HttpDispatcher {
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.STRUCT_GENERIC_ERROR:
-                    if (interceptorError == null) {
-                        throw new BallerinaConnectorException("no error param value found");
+                    if (error == null) {
+                        error = createError();
                     }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = interceptorError;
+                    paramFeed[index++] = error;
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.REQUEST:
@@ -483,9 +484,16 @@ public class HttpDispatcher {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
         BArray interceptors = endpointConfig.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
         requestContext.addNativeData(HttpConstants.HTTP_INTERCEPTORS, interceptors);
+        int interceptorId = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) == null ? 0 :
+                (int) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
+        requestContext.set(HttpConstants.INTERCEPTOR_ID, interceptorId);
         requestContext.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
         httpCarbonMessage.setProperty(HttpConstants.REQUEST_CONTEXT, requestContext);
         return requestContext;
+    }
+
+    static BError createError() {
+        return ErrorCreator.createError(StringUtils.fromString("new error"));
     }
 
     private static Object createHeadersObject(BObject inRequest) {

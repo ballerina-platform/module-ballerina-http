@@ -12,13 +12,10 @@ import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.URITemplate;
 import io.ballerina.stdlib.http.uri.URITemplateException;
 import io.ballerina.stdlib.http.uri.parser.Literal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
 /**
@@ -28,40 +25,17 @@ import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailab
  */
 public class InterceptorService implements HttpService {
 
-    private static final Logger log = LoggerFactory.getLogger(InterceptorService.class);
-
-    protected static final BString BASE_PATH_FIELD = StringUtils.fromString("basePath");
-    private static final BString HOST_FIELD = StringUtils.fromString("host");
-
     private BObject balService;
     private InterceptorResource interceptorResource;
     private List<String> allAllowedMethods;
     private String basePath;
     private URITemplate<InterceptorResource, HttpCarbonMessage> uriTemplate;
-    private boolean keepAlive = true; //default behavior
     private String hostName;
-    private boolean treatNilableAsOptional = true;
     private String serviceType;
 
     protected InterceptorService(BObject service, String basePath) {
         this.balService = service;
         this.basePath = basePath;
-    }
-
-    public boolean isKeepAlive() {
-        return keepAlive;
-    }
-
-    public void setKeepAlive(boolean keepAlive) {
-        this.keepAlive = keepAlive;
-    }
-
-    public String getName() {
-        return HttpUtil.getServiceName(balService);
-    }
-
-    public String getPackage() {
-        return balService.getType().getPackage().getName();
     }
 
     public BObject getBalService() {
@@ -92,26 +66,8 @@ public class InterceptorService implements HttpService {
         return hostName;
     }
 
-    public void setTreatNilableAsOptional(boolean treatNilableAsOptional) {
-        this.treatNilableAsOptional = treatNilableAsOptional;
-    }
-
-    public boolean isTreatNilableAsOptional() {
-        return treatNilableAsOptional;
-    }
-
     public String getBasePath() {
         return basePath;
-    }
-
-    // Added due to WebSub requirement
-    public void setBasePath(String basePath) {
-        if (basePath == null || basePath.trim().isEmpty()) {
-            String serviceName = this.getName();
-            this.basePath = DEFAULT_BASE_PATH.concat(serviceName.startsWith(HttpConstants.DOLLAR) ? "" : serviceName);
-        } else {
-            this.basePath = HttpUtil.sanitizeBasePath(basePath);
-        }
     }
 
     public void setServiceType(String serviceType) {
@@ -178,7 +134,6 @@ public class InterceptorService implements HttpService {
         } catch (URITemplateException | UnsupportedEncodingException e) {
             throw new BallerinaConnectorException(e.getMessage());
         }
-        httpInterceptorResource.setTreatNilableAsOptional(httpService.isTreatNilableAsOptional());
         httpService.setInterceptorResource(httpInterceptorResource);
     }
 

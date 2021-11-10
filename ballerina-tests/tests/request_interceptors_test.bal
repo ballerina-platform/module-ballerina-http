@@ -4,7 +4,7 @@ import ballerina/test;
 final http:Client defaultRequestInterceptorClientEP = check new("http://localhost:" + defaultRequestInterceptorTestPort.toString());
 
 listener http:Listener defaultRequestInterceptorServerEP = new(defaultRequestInterceptorTestPort, config = {
-        interceptors : [new defaultRequestInterceptor(), new lastRequestInterceptor()]
+        interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor()]
     });
 
 service / on defaultRequestInterceptorServerEP {
@@ -34,7 +34,7 @@ function testDefaultRequestInterceptor() returns error? {
 final http:Client requestInterceptorWithCallerRespondClientEP = check new("http://localhost:" + requestInterceptorWithCallerRespondTestPort.toString());
 
 listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, config = {
-        interceptors : [new defaultRequestInterceptor(), new requestInterceptorCallerRepond(), new lastRequestInterceptor()]
+        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRepond(), new LastRequestInterceptor()]
     });
 
 service / on requestInterceptorWithCallerRespondServerEP {
@@ -54,7 +54,7 @@ function testRequestInterceptorWithCallerRespond() returns error? {
 final http:Client requestInterceptorReturnsErrorClientEP = check new("http://localhost:" + requestInterceptorReturnsErrorTestPort.toString());
 
 listener http:Listener requestInterceptorReturnsErrorServerEP = new(requestInterceptorReturnsErrorTestPort, config = {
-        interceptors : [new defaultRequestInterceptor(), new requestInterceptorReturnsError(), new lastRequestInterceptor()]
+        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorReturnsError(), new LastRequestInterceptor()]
     });
 
 service / on requestInterceptorReturnsErrorServerEP {
@@ -74,7 +74,7 @@ function testrequestInterceptorReturnsError() returns error? {
 final http:Client requestErrorInterceptorClientEP = check new("http://localhost:" + requestErrorInterceptorTestPort.toString());
 
 listener http:Listener requestErrorInterceptorServerEP = new(requestErrorInterceptorTestPort, config = {
-        interceptors : [new defaultRequestInterceptor(), new requestInterceptorReturnsError(), new defaultRequestErrorInterceptor(), new lastRequestInterceptor()]
+        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorReturnsError(), new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()]
     });
 
 service / on requestErrorInterceptorServerEP {
@@ -103,7 +103,7 @@ function testRequestErrorInterceptor() returns error? {
 final http:Client requestInterceptorDataBindingClientEP1 = check new("http://localhost:" + requestInterceptorDataBindingTestPort1.toString());
 
 listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInterceptorDataBindingTestPort1, config = {
-        interceptors : [new defaultRequestInterceptor(), new dataBindingRequestInterceptor(), new lastRequestInterceptor()]
+        interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
     });
 
 service / on requestInterceptorDataBindingServerEP1 {
@@ -121,7 +121,7 @@ service / on requestInterceptorDataBindingServerEP1 {
 final http:Client requestInterceptorDataBindingClientEP2 = check new("http://localhost:" + requestInterceptorDataBindingTestPort2.toString());
 
 listener http:Listener requestInterceptorDataBindingServerEP2 = new(requestInterceptorDataBindingTestPort2, config = {
-        interceptors : [new dataBindingRequestInterceptor(), new lastRequestInterceptor()]
+        interceptors : [new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
     });
 
 service / on requestInterceptorDataBindingServerEP2 {
@@ -178,7 +178,7 @@ function testRequestInterceptorDataBindingWithLargePayload() returns error? {
 final http:Client requestInterceptorSetPayloadClientEP = check new("http://localhost:" + requestInterceptorSetPayloadTestPort.toString());
 
 listener http:Listener requestInterceptorSetPayloadServerEP = new(requestInterceptorSetPayloadTestPort, config = {
-        interceptors : [new defaultRequestInterceptor(), new requestInterceptorSetPayload(), new lastRequestInterceptor()]
+        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSetPayload(), new LastRequestInterceptor()]
     });
 
 service / on requestInterceptorSetPayloadServerEP {
@@ -210,7 +210,7 @@ function testRequestInterceptorSetPayload() returns error? {
 final http:Client requestInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + requestInterceptorWithoutCtxNextTestPort.toString());
 
 listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInterceptorWithoutCtxNextTestPort, config = {
-        interceptors : [new defaultRequestInterceptor(), new requestInterceptorWithoutCtxNext(), new lastRequestInterceptor()]
+        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
     });
 
 service / on requestInterceptorWithoutCtxNextServerEP {

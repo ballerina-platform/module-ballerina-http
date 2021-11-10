@@ -1,29 +1,29 @@
 import ballerina/http;
 
-service class defaultRequestInterceptor {
+service class DefaultRequestInterceptor {
     *http:RequestInterceptor;
 
-    resource function 'default [string...path](http:RequestContext ctx, http:Caller caller, http:Request req) returns http:InterceptorReturnValues {
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("default-interceptor", "true");
        ctx.add("last-interceptor", "default-interceptor");
        return ctx.next();
     }
 }
 
-service class dataBindingRequestInterceptor {
+service class DataBindingRequestInterceptor {
     *http:RequestInterceptor;
 
-    resource function 'default [string...path](http:RequestContext ctx, http:Caller caller, @http:Payload string payload, @http:Header {name: "interceptor"} string header) returns http:InterceptorReturnValues {
+    resource function 'default [string... path](http:RequestContext ctx, @http:Payload string payload, @http:Header {name: "interceptor"} string header) returns http:NextService|error? {
        ctx.add("request-payload", payload);
        ctx.add("last-interceptor", header);
        return ctx.next();
     }
 }
 
-service class requestInterceptorSetPayload {
+service class RequestInterceptorSetPayload {
     *http:RequestInterceptor;
 
-    resource function 'default [string...path](http:RequestContext ctx, http:Caller caller, http:Request req) returns http:InterceptorReturnValues {
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("interceptor-setpayload", "true");
        req.setTextPayload("Text payload from interceptor");
        ctx.add("last-interceptor", "interceptor-setpayload");
@@ -31,37 +31,43 @@ service class requestInterceptorSetPayload {
     }
 }
 
-service class requestInterceptorCallerRepond {
+service class RequestInterceptorCallerRepond {
     *http:RequestInterceptor;
 
-    resource function 'default [string...path](http:RequestContext ctx, http:Caller caller, http:Request request) returns http:InterceptorReturnValues {
-       ctx.add("last-interceptor", "interceptor-caller-respond");
-       http:InterceptorReturnValues val = ctx.next();
-       if (val is error) {
-           return val;
-       } else {
-           http:Response res = new();
-           res.setHeader("last-interceptor", "request-interceptor-caller-repond");
-           res.setTextPayload("Response from caller inside interceptor");
-           check caller->respond(res);
-       }
+    resource function 'default [string... path](http:Caller caller, http:Request request) returns error? {
+        http:Response res = new();
+        res.setHeader("last-interceptor", "request-interceptor-caller-repond");
+        res.setTextPayload("Response from caller inside interceptor");
+        check caller->respond(res);
     }
 }
 
-service class requestInterceptorReturnsError {
+service class RequestInterceptorCallerRepondContinue {
     *http:RequestInterceptor;
 
-    resource function 'default [string...path](http:RequestContext ctx, http:Caller caller, http:Request req) returns http:InterceptorReturnValues {
+    resource function 'default [string... path](http:RequestContext ctx, http:Caller caller, http:Request request) returns http:NextService|error? {
+        http:Response res = new();
+        res.setHeader("last-interceptor", "request-interceptor-caller-repond");
+        res.setTextPayload("Response from caller inside interceptor");
+        check caller->respond(res);
+        return ctx.next();
+    }
+}
+
+service class RequestInterceptorReturnsError {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns error {
        req.setHeader("request-interceptor-error", "true");
        ctx.add("last-interceptor", "request-interceptor-error");
        return error("Request interceptor returns an error");
     }
 }
 
-service class lastRequestInterceptor {
+service class LastRequestInterceptor {
     *http:RequestInterceptor;
 
-    resource function 'default [string...path](http:RequestContext ctx, http:Caller caller, http:Request req) returns http:InterceptorReturnValues {
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        string|error val = ctx.get("last-interceptor").ensureType(string);
        string header = val is string ? val : "last-request-interceptor";
        req.setHeader("last-request-interceptor", "true");
@@ -70,10 +76,11 @@ service class lastRequestInterceptor {
     }
 }
 
-service class defaultRequestErrorInterceptor {
+service class DefaultRequestErrorInterceptor {
     *http:RequestErrorInterceptor;
+    int foo = 100;
 
-    resource function 'default [string...path](http:RequestContext ctx, http:Caller caller, http:Request req, error err) returns http:InterceptorReturnValues {
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
        req.setHeader("default-error-interceptor", "true");
        req.setTextPayload(err.message());
        ctx.add("last-interceptor", "default-error-interceptor");
@@ -81,13 +88,12 @@ service class defaultRequestErrorInterceptor {
     }
 }
 
-service class requestInterceptorWithoutCtxNext {
+service class RequestInterceptorWithoutCtxNext {
     *http:RequestInterceptor;
 
-    resource function 'default [string...path](http:RequestContext ctx, http:Caller caller, http:Request req) returns http:InterceptorReturnValues {
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) {
        req.setHeader("request-interceptor-without-ctx-next", "true");
        ctx.add("last-interceptor", "request-interceptor-without-ctx-next");
-       return;
     }
 }
 

@@ -354,6 +354,7 @@ public class HttpConstants {
     public static final String HTTP_INTERCEPTOR_SERVICE_REGISTRIES = "HTTP_INTERCEPTOR_SERVICE_REGISTRIES";
     public static final String REQUEST_CONTEXT_NEXT = "REQUEST_CONTEXT_NEXT";
     public static final String REQUEST_CONTEXT = "RequestContext";
+    public static final BString INTERCEPTOR_ID = StringUtils.fromString("interceptorId");
     public static final String ENTITY_OBJ = "EntityObj";
     public static final String INTERCEPTOR_SERVICE = "INTERCEPTOR_SERVICE";
     public static final String INTERCEPTOR_SERVICE_INDEX = "INTERCEPTOR_SERVICE_INDEX";
