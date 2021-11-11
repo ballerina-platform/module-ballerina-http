@@ -175,9 +175,7 @@ public client isolated class CircuitBreakerClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
-        CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.setCurrentState(self.updateCircuitState());
-
         if (self.getCurrentState() == CB_OPEN_STATE) {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -194,9 +192,7 @@ public client isolated class CircuitBreakerClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
-        CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.setCurrentState(self.updateCircuitState());
-
         if (self.getCurrentState() == CB_OPEN_STATE) {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -214,9 +210,7 @@ public client isolated class CircuitBreakerClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
-        CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.setCurrentState(self.updateCircuitState());
-
         if (self.getCurrentState() == CB_OPEN_STATE) {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -233,9 +227,7 @@ public client isolated class CircuitBreakerClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
-        CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.setCurrentState(self.updateCircuitState());
-
         if (self.getCurrentState() == CB_OPEN_STATE) {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -252,9 +244,7 @@ public client isolated class CircuitBreakerClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
-        CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.setCurrentState(self.updateCircuitState());
-
         if (self.getCurrentState() == CB_OPEN_STATE) {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -271,9 +261,7 @@ public client isolated class CircuitBreakerClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
-        CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.setCurrentState(self.updateCircuitState());
-
         if (self.getCurrentState() == CB_OPEN_STATE) {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -290,9 +278,7 @@ public client isolated class CircuitBreakerClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
-        CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.setCurrentState(self.updateCircuitState());
-
         if (self.getCurrentState() == CB_OPEN_STATE) {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -309,9 +295,7 @@ public client isolated class CircuitBreakerClient {
     # + request - A Request struct
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function forward(string path, Request request) returns Response|ClientError {
-        CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.setCurrentState(self.updateCircuitState());
-
         if (self.getCurrentState() == CB_OPEN_STATE) {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -331,9 +315,7 @@ public client isolated class CircuitBreakerClient {
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
     remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
-        CircuitBreakerInferredConfig cbic = self.circuitBreakerInferredConfig;
         self.setCurrentState(self.updateCircuitState());
-
         if (self.getCurrentState() == CB_OPEN_STATE) {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -342,6 +324,9 @@ public client isolated class CircuitBreakerClient {
             if (serviceFuture is HttpFuture) {
                 var serviceResponse = self.httpClient->getResponse(serviceFuture);
                 Response|ClientError result = self.updateCircuitHealthAndRespond(serviceResponse);
+                if result is error {
+                    log:printDebug("Error receiving response for circuit breaker submit operation: " + result.message());
+                }
             } else {
                 self.updateCircuitHealthFailure();
             }

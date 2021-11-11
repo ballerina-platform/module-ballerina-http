@@ -19,6 +19,7 @@ import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/observe;
 import ballerina/time;
+import ballerina/log;
 
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes the functions for the standard HTTP methods forwarding a received request and sending requests
@@ -701,6 +702,9 @@ isolated function performDataBinding(Response response, TargetType targetType) r
     } else {
         // Consume payload to avoid memory leaks
         byte[]|ClientError payload = response.getBinaryPayload();
+        if payload is error {
+            log:printDebug("Error releasing payload during invalid target typed data binding: " + payload.message());
+        }
         return error ClientError("invalid target type, expected: http:Response, string, xml, json, map<json>, byte[], record, record[] or a union of such a type with nil");
     }
 }
