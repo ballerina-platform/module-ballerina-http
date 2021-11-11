@@ -248,13 +248,10 @@ public class HttpDispatcher {
                                                   BMap<BString, Object> endpointConfig) {
         BObject inRequest = null;
         // Getting the same caller, request context and entity object to pass through interceptor services
-        BObject httpCaller = (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
         BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
-        if (httpCaller == null) {
-            httpCaller = createCaller(resource, httpCarbonMessage, endpointConfig);
-        }
+        BObject httpCaller = getCaller(resource, httpCarbonMessage, endpointConfig);
         ParamHandler paramHandler = resource.getParamHandler();
         int sigParamCount = resource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
@@ -474,9 +471,10 @@ public class HttpDispatcher {
         return inRequest;
     }
 
-    static BObject createCaller(Resource resource, HttpCarbonMessage httpCarbonMessage,
+    static BObject getCaller(Resource resource, HttpCarbonMessage httpCarbonMessage,
                                 BMap<BString, Object> endpointConfig) {
-        BObject httpCaller = ValueCreatorUtils.createCallerObject();
+        BObject httpCaller = httpCarbonMessage.getProperty(HttpConstants.CALLER) == null ?
+                ValueCreatorUtils.createCallerObject() : (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
         HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, resource, endpointConfig);
         HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
         httpCarbonMessage.setProperty(HttpConstants.CALLER, httpCaller);
