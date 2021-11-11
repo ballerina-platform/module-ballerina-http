@@ -84,9 +84,9 @@ public class HttpDispatcher {
     private static final ArrayType MAP_ARR = TypeCreator.createArrayType(TypeCreator.createMapType(
             PredefinedTypes.TYPE_JSON));
 
-    public static BaseService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg) {
+    public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg) {
         try {
-            Map<String, BaseService> servicesOnInterface;
+            Map<String, HttpService> servicesOnInterface;
             List<String> sortedServiceURIs;
             String hostName = inboundReqMsg.getHeader(HttpHeaderNames.HOST.toString());
 
@@ -121,7 +121,7 @@ public class HttpDispatcher {
                         validatedUri.getRawPath());
             }
 
-            BaseService service = servicesOnInterface.get(basePath);
+            HttpService service = servicesOnInterface.get(basePath);
             setInboundReqProperties(inboundReqMsg, validatedUri, basePath);
             return service;
         } catch (Exception e) {
@@ -201,7 +201,7 @@ public class HttpDispatcher {
      * @param inboundMessage incoming message.
      * @return matching resource.
      */
-    public static BaseResource findResource(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundMessage) {
+    public static HttpResource findResource(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundMessage) {
         String protocol = (String) inboundMessage.getProperty(HttpConstants.PROTOCOL);
         if (protocol == null) {
             throw new BallerinaConnectorException("protocol not defined in the incoming request");
@@ -209,7 +209,7 @@ public class HttpDispatcher {
 
         try {
             // Find the Service TODO can be improved
-            BaseService service = HttpDispatcher.findService(servicesRegistry, inboundMessage);
+            HttpService service = HttpDispatcher.findService(servicesRegistry, inboundMessage);
             if (service == null) {
                 throw new BallerinaConnectorException("no Service found to handle the service request");
                 // Finer details of the errors are thrown from the dispatcher itself, Ideally we shouldn't get here.
@@ -244,7 +244,7 @@ public class HttpDispatcher {
         }
     }
 
-    public static Object[] getSignatureParameters(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
+    public static Object[] getSignatureParameters(Resource resource, HttpCarbonMessage httpCarbonMessage,
                                                   BMap<BString, Object> endpointConfig) {
         BObject inRequest = null;
         // Getting the same caller, request context and entity object to pass through interceptor services
@@ -253,20 +253,20 @@ public class HttpDispatcher {
         BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         if (httpCaller == null) {
-            httpCaller = createCaller(httpResource, httpCarbonMessage, endpointConfig);
+            httpCaller = createCaller(resource, httpCarbonMessage, endpointConfig);
         }
-        ParamHandler paramHandler = httpResource.getParamHandler();
-        int sigParamCount = httpResource.getBalResource().getParameterTypes().length;
+        ParamHandler paramHandler = resource.getParamHandler();
+        int sigParamCount = resource.getBalResource().getParameterTypes().length;
         Object[] paramFeed = new Object[sigParamCount * 2];
         int pathParamCount = paramHandler.getPathParamTokenLength();
-        boolean treatNilableAsOptional = httpResource.isTreatNilableAsOptional();
+        boolean treatNilableAsOptional = resource.isTreatNilableAsOptional();
         // Path params are located initially in the signature before the other user provided signature params
         if (pathParamCount != 0) {
             // populate path params
             HttpResourceArguments resourceArgumentValues =
                     (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
-            updateWildcardToken(httpResource.getWildcardToken(), pathParamCount - 1, resourceArgumentValues.getMap());
-            populatePathParams(httpResource, paramFeed, resourceArgumentValues, pathParamCount);
+            updateWildcardToken(resource.getWildcardToken(), pathParamCount - 1, resourceArgumentValues.getMap());
+            populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount);
         }
         // Following was written assuming that they are validated
         for (Parameter param : paramHandler.getOtherParamList()) {
@@ -282,6 +282,9 @@ public class HttpDispatcher {
                     if (requestCtx == null) {
                         requestCtx = createRequestContext(httpCarbonMessage, endpointConfig);
                     }
+                    int interceptorId = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) == null
+                            ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
+                    requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;
@@ -471,10 +474,10 @@ public class HttpDispatcher {
         return inRequest;
     }
 
-    static BObject createCaller(HttpResource httpResource, HttpCarbonMessage httpCarbonMessage,
+    static BObject createCaller(Resource resource, HttpCarbonMessage httpCarbonMessage,
                                 BMap<BString, Object> endpointConfig) {
         BObject httpCaller = ValueCreatorUtils.createCallerObject();
-        HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, httpResource, endpointConfig);
+        HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, resource, endpointConfig);
         HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
         httpCarbonMessage.setProperty(HttpConstants.CALLER, httpCaller);
         return httpCaller;
@@ -483,10 +486,9 @@ public class HttpDispatcher {
     static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, BMap<BString, Object> endpointConfig) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
         BArray interceptors = endpointConfig.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
-        requestContext.addNativeData(HttpConstants.HTTP_INTERCEPTORS, interceptors);
-        int interceptorId = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) == null ? 0 :
-                (int) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
-        requestContext.set(HttpConstants.INTERCEPTOR_ID, interceptorId);
+        if (interceptors != null) {
+            requestContext.addNativeData(HttpConstants.HTTP_INTERCEPTORS, interceptors);
+        }
         requestContext.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
         httpCarbonMessage.setProperty(HttpConstants.REQUEST_CONTEXT, requestContext);
         return requestContext;
@@ -502,10 +504,10 @@ public class HttpDispatcher {
         return headers;
     }
 
-    private static void populatePathParams(HttpResource httpResource, Object[] paramFeed,
+    private static void populatePathParams(Resource resource, Object[] paramFeed,
                                            HttpResourceArguments resourceArgumentValues, int pathParamCount) {
 
-        String[] pathParamTokens = Arrays.copyOfRange(httpResource.getBalResource().getParamNames(), 0, pathParamCount);
+        String[] pathParamTokens = Arrays.copyOfRange(resource.getBalResource().getParamNames(), 0, pathParamCount);
         int actualSignatureParamIndex = 0;
         for (String paramName : pathParamTokens) {
             String argumentValue = resourceArgumentValues.getMap().get(paramName).get(actualSignatureParamIndex);
@@ -516,7 +518,7 @@ public class HttpDispatcher {
                 // application deal with the value.
             }
             int paramIndex = actualSignatureParamIndex * 2;
-            Type pathParamType = httpResource.getBalResource().getParameterTypes()[actualSignatureParamIndex++];
+            Type pathParamType = resource.getBalResource().getParameterTypes()[actualSignatureParamIndex++];
 
             try {
                 if (pathParamType.getTag() == ARRAY_TAG) {
@@ -664,8 +666,8 @@ public class HttpDispatcher {
         return bjson;
     }
 
-    public static boolean shouldDiffer(HttpResource httpResource) {
-        return (httpResource != null && httpResource.getParamHandler().isPayloadBindingRequired());
+    public static boolean shouldDiffer(Resource resource) {
+        return (resource != null && resource.getParamHandler().isPayloadBindingRequired());
     }
 
     private HttpDispatcher() {

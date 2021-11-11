@@ -18,7 +18,7 @@ service / on defaultRequestInterceptorServerEP {
     }
 }
 
-@test:Config{}
+@test:Config{enable : false}
 function testDefaultRequestInterceptor() returns error? {
     http:Response res = check defaultRequestInterceptorClientEP->get("/");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-interceptor");
@@ -44,7 +44,7 @@ service / on requestInterceptorWithCallerRespondServerEP {
     }
 }
 
-@test:Config{}
+@test:Config{enable : false}
 function testRequestInterceptorWithCallerRespond() returns error? {
     http:Response res = check requestInterceptorWithCallerRespondClientEP->get("/");
     assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-caller-repond");
@@ -64,7 +64,7 @@ service / on requestInterceptorReturnsErrorServerEP {
     }
 }
 
-@test:Config{}
+@test:Config{enable : false}
 function testrequestInterceptorReturnsError() returns error? {
     http:Response res = check requestInterceptorReturnsErrorClientEP->get("/");
     test:assertEquals(res.statusCode, 500);
@@ -90,7 +90,7 @@ service / on requestErrorInterceptorServerEP {
     }
 }
 
-@test:Config{}
+@test:Config{enable : false}
 function testRequestErrorInterceptor() returns error? {
     http:Response res = check requestErrorInterceptorClientEP->get("/");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-error-interceptor");
@@ -135,7 +135,7 @@ service / on requestInterceptorDataBindingServerEP2 {
     }
 }
 
-@test:Config{}
+@test:Config{enable : false}
 function testRequestInterceptorDataBinding() returns error? {
     http:Request req = new();
     req.setHeader("interceptor", "databinding-interceptor");
@@ -152,7 +152,7 @@ function testRequestInterceptorDataBinding() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
-@test:Config{}
+@test:Config{enable : false}
 function testRequestInterceptorDataBindingWithLargePayload() returns error? {
     http:Request req = new();
     string payload = "";
@@ -194,7 +194,7 @@ service / on requestInterceptorSetPayloadServerEP {
     }
 }
 
-@test:Config{}
+@test:Config{enable : false}
 function testRequestInterceptorSetPayload() returns error? {
     http:Request req = new();
     req.setHeader("interceptor", "databinding-interceptor");
@@ -220,7 +220,7 @@ service / on requestInterceptorWithoutCtxNextServerEP {
     }
 }
 
-@test:Config{}
+@test:Config{enable : true}
 function testRequestInterceptorWithoutCtxNext() returns error? {
     http:Request req = new();
     http:Response res = check requestInterceptorWithoutCtxNextClientEP->get("/");

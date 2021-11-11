@@ -23,7 +23,7 @@ import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailab
  *
  * @since SL Beta 4
  */
-public class InterceptorService implements HttpService {
+public class InterceptorService implements Service {
 
     private BObject balService;
     private InterceptorResource interceptorResource;

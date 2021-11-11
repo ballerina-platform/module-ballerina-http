@@ -212,7 +212,7 @@
     <test name="Ballerina Http native Tests" parallel="false">
         <classes>
             <class name="io.ballerina.stdlib.http.api.ExceptionTest"/>
-            <class name="io.ballerina.stdlib.http.api.BaseServiceTest"/>
+            <class name="io.ballerina.stdlib.http.api.HttpServiceTest"/>
             <class name="io.ballerina.stdlib.http.api.logging.HttpLogManagerTest"/>
             <class name="io.ballerina.stdlib.http.api.logging.util.LogUtilTest"/>
         </classes>

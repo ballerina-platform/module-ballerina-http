@@ -2,14 +2,11 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
-import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,9 +21,7 @@ import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailab
  *
  * @since SL beta 4
  */
-public class InterceptorResource implements HttpResource {
-
-    private static final Logger log = LoggerFactory.getLogger(InterceptorResource.class);
+public class InterceptorResource implements Resource {
 
     private static final BString HTTP_RESOURCE_CONFIG =
             StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
@@ -47,7 +42,7 @@ public class InterceptorResource implements HttpResource {
         this.parentService = parentService;
         this.setResourceType(parentService.getServiceType());
         if (balResource instanceof ResourceMethodType) {
-            this.populateResourcePath();
+            this.validateAndPopulateResourcePath();
             this.validateAndPopulateMethod();
             this.validateReturnType();
         }
@@ -81,7 +76,7 @@ public class InterceptorResource implements HttpResource {
             this.methods = null;
         } else {
             if (this.getResourceType().equals(HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR)) {
-                throw new BallerinaConnectorException("HTTP interceptor resources are allowed to have only default " +
+                throw new BallerinaConnectorException("interceptor resources are allowed to have only default " +
                         "method");
             } else {
                 this.methods = Collections.singletonList(accessor.toUpperCase(Locale.getDefault()));
@@ -93,7 +88,7 @@ public class InterceptorResource implements HttpResource {
         return path;
     }
 
-    private void populateResourcePath() {
+    private void validateAndPopulateResourcePath() {
         ResourceMethodType resourceFunctionType = getBalResource();
         String[] paths = resourceFunctionType.getResourcePath();
         StringBuilder resourcePath = new StringBuilder();
@@ -115,6 +110,11 @@ public class InterceptorResource implements HttpResource {
             }
         }
         this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, SINGLE_SLASH);
+        if (this.getResourceType().equals(HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR) &&
+                !this.path.equals(HttpConstants.DEFAULT_SUB_PATH)) {
+            throw new BallerinaConnectorException("interceptor resources are not allowed to have specific " +
+                    "base path");
+        }
         this.pathParamCount = count;
     }
 
@@ -163,7 +163,11 @@ public class InterceptorResource implements HttpResource {
     }
 
     private void validateReturnType() {
-        Type returnType = getBalResource().getReturnType();
-        log.info(returnType.toString());
+        String returnTypeString = getBalResource().getType().getReturnType().toString();
+        if (!(returnTypeString.equals("(ballerina/http:2:NextService|error)?") || returnTypeString.equals("error") ||
+                returnTypeString.equals("error?") || returnTypeString.equals("()"))) {
+            throw new BallerinaConnectorException("interceptor resources are not allowed to return " +
+                    returnTypeString);
+        }
     }
 }

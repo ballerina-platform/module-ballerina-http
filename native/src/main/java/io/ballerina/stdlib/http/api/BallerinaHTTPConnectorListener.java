@@ -19,6 +19,7 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
@@ -112,7 +113,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
             if (inboundMessage.isInterceptorError()) {
                 HttpInterceptorUnitCallback callback = new HttpInterceptorUnitCallback(inboundMessage, this);
-                callback.sendFailureResponse();
+                callback.sendFailureResponse((BError) inboundMessage.getProperty
+                                                                            (HttpConstants.INTERCEPTOR_SERVICE_ERROR));
             } else {
                 // Executing main resource
                 executeMainResourceOnMessage(inboundMessage);
@@ -130,10 +132,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     @SuppressWarnings("unchecked")
     protected void extractPropertiesAndStartResourceExecution(HttpCarbonMessage inboundMessage,
-                                                               BaseResource baseResource) {
-        boolean isTransactionInfectable = baseResource.isTransactionInfectable();
+                                                               HttpResource httpResource) {
+        boolean isTransactionInfectable = httpResource.isTransactionInfectable();
         Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable);
-        Object[] signatureParams = HttpDispatcher.getSignatureParameters(baseResource, inboundMessage, endpointConfig);
+        Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig);
 
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = new ObserverContext();
@@ -144,16 +146,16 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             observerContext.addProperty(PROPERTY_TRACE_PROPERTIES, httpHeaders);
             observerContext.addTag(TAG_KEY_HTTP_METHOD, inboundMessage.getHttpMethod());
             observerContext.addTag(TAG_KEY_PROTOCOL, (String) inboundMessage.getProperty(HttpConstants.PROTOCOL));
-            observerContext.addTag(TAG_KEY_HTTP_URL, baseResource.getAbsoluteResourcePath());
+            observerContext.addTag(TAG_KEY_HTTP_URL, httpResource.getAbsoluteResourcePath());
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
             inboundMessage.setProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
         Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime(),
-                                baseResource.getReturnMediaType(), baseResource.getResponseCacheConfig());
-        BObject service = baseResource.getParentService().getBalService();
-        httpServicesRegistry.getRuntime().invokeMethodAsync(service, baseResource.getName(), null,
+                                httpResource.getReturnMediaType(), httpResource.getResponseCacheConfig());
+        BObject service = httpResource.getParentService().getBalService();
+        httpServicesRegistry.getRuntime().invokeMethodAsync(service, httpResource.getName(), null,
                                                             ModuleUtils.getOnMessageMetaData(), callback,
-                                                            properties, baseResource.getBalResource().getReturnType(),
+                                                            properties, httpResource.getBalResource().getReturnType(),
                                                             signatureParams);
     }
 
@@ -203,19 +205,19 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     }
 
     protected void executeMainResourceOnMessage(HttpCarbonMessage inboundMessage) {
-        BaseResource baseResource;
+        HttpResource httpResource;
         if (accessed(inboundMessage)) {
             inboundMessage.removeProperty(HttpConstants.WAIT_FOR_FULL_REQUEST);
-            baseResource = (BaseResource) inboundMessage.getProperty(HTTP_RESOURCE);
-            extractPropertiesAndStartResourceExecution(inboundMessage, baseResource);
+            httpResource = (HttpResource) inboundMessage.getProperty(HTTP_RESOURCE);
+            extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
             return;
         }
-        baseResource = HttpDispatcher.findResource(httpServicesRegistry, inboundMessage);
+        httpResource = HttpDispatcher.findResource(httpServicesRegistry, inboundMessage);
         // Checking whether main resource has data-binding and if we already executed an interceptor resource
         // we skip getting the full request
-        if (HttpDispatcher.shouldDiffer(baseResource) &&
+        if (HttpDispatcher.shouldDiffer(httpResource) &&
                 !inboundMessage.isAccessedInInterceptorService()) {
-            inboundMessage.setProperty(HTTP_RESOURCE, baseResource);
+            inboundMessage.setProperty(HTTP_RESOURCE, httpResource);
             inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
             //Removes inbound content listener since data binding waits for all contents to be received
             //before executing its logic.
@@ -223,9 +225,9 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             return;
         }
         try {
-            if (baseResource != null) {
+            if (httpResource != null) {
                 inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE);
-                extractPropertiesAndStartResourceExecution(inboundMessage, baseResource);
+                extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
             }
         } catch (BallerinaConnectorException ex) {
             HttpUtil.handleFailure(inboundMessage, ex.getMessage());

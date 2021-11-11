@@ -45,7 +45,7 @@ public class HTTPServicesRegistry {
     private static final Logger logger = LoggerFactory.getLogger(HTTPServicesRegistry.class);
 
     protected Map<String, ServicesMapHolder> servicesMapByHost = new ConcurrentHashMap<>();
-    protected Map<String, BaseService> servicesByBasePath;
+    protected Map<String, HttpService> servicesByBasePath;
     protected List<String> sortedServiceURIs;
     private Runtime runtime;
 
@@ -53,9 +53,9 @@ public class HTTPServicesRegistry {
      * Get ServiceInfo instance for given interface and base path.
      *
      * @param basepath basePath of the service.
-     * @return the {@link BaseService} instance if exist else null
+     * @return the {@link HttpService} instance if exist else null
      */
-    public BaseService getServiceInfo(String basepath) {
+    public HttpService getServiceInfo(String basepath) {
         return servicesByBasePath.get(basepath);
     }
 
@@ -75,7 +75,7 @@ public class HTTPServicesRegistry {
      * @param hostName of the service
      * @return the serviceHost map if exists else null
      */
-    public Map<String, BaseService> getServicesByHost(String hostName) {
+    public Map<String, HttpService> getServicesByHost(String hostName) {
         return servicesMapByHost.get(hostName).servicesByBasePath;
     }
 
@@ -97,9 +97,9 @@ public class HTTPServicesRegistry {
      * @param basePath absolute resource path of the service
      */
     public void registerService(Runtime runtime, BObject service, String basePath) {
-        BaseService baseService = BaseService.buildHttpService(service, basePath);
+        HttpService httpService = HttpService.buildHttpService(service, basePath);
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
-        String hostName = baseService.getHostName();
+        String hostName = httpService.getHostName();
         if (servicesMapByHost.get(hostName) == null) {
             servicesByBasePath = new ConcurrentHashMap<>();
             sortedServiceURIs = new CopyOnWriteArrayList<>();
@@ -115,7 +115,7 @@ public class HTTPServicesRegistry {
                     StringUtils.fromString("Service registration failed: two services " +
                                                    "have the same basePath : '" + basePath + errorMessage));
         }
-        servicesByBasePath.put(basePath, baseService);
+        servicesByBasePath.put(basePath, httpService);
         if (logger.isDebugEnabled()) {
             logger.debug(String.format("Service deployed : %s with context %s", service.getType().getName(), basePath));
         }
@@ -125,7 +125,7 @@ public class HTTPServicesRegistry {
         sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
     }
 
-    public String findTheMostSpecificBasePath(String requestURIPath, Map<String, BaseService> services,
+    public String findTheMostSpecificBasePath(String requestURIPath, Map<String, HttpService> services,
                                               List<String> sortedServiceURIs) {
         for (Object key : sortedServiceURIs) {
             if (!requestURIPath.toLowerCase(Locale.getDefault()).contains(
@@ -157,10 +157,10 @@ public class HTTPServicesRegistry {
      * Holds both serviceByBasePath map and sorted Service basePath list.
      */
     protected static class ServicesMapHolder {
-        private Map<String, BaseService> servicesByBasePath;
+        private Map<String, HttpService> servicesByBasePath;
         private List<String> sortedServiceURIs;
 
-        public ServicesMapHolder(Map<String, BaseService> servicesByBasePath, List<String> sortedServiceURIs) {
+        public ServicesMapHolder(Map<String, HttpService> servicesByBasePath, List<String> sortedServiceURIs) {
             this.servicesByBasePath = servicesByBasePath;
             this.sortedServiceURIs = sortedServiceURIs;
         }
@@ -177,8 +177,8 @@ public class HTTPServicesRegistry {
             logger.error("service is not attached to the listener");
             return;
         }
-        BaseService baseService = BaseService.buildHttpService(service, basePath);
-        String hostName = baseService.getHostName();
+        HttpService httpService = HttpService.buildHttpService(service, basePath);
+        String hostName = httpService.getHostName();
         ServicesMapHolder servicesMapHolder = servicesMapByHost.get(hostName);
         if (servicesMapHolder == null) {
             logger.error(basePath + " service is not attached to the listener");

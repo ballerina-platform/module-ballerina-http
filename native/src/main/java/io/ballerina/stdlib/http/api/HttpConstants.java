@@ -354,13 +354,11 @@ public class HttpConstants {
     public static final String HTTP_INTERCEPTOR_SERVICE_REGISTRIES = "HTTP_INTERCEPTOR_SERVICE_REGISTRIES";
     public static final String REQUEST_CONTEXT_NEXT = "REQUEST_CONTEXT_NEXT";
     public static final String REQUEST_CONTEXT = "RequestContext";
-    public static final BString INTERCEPTOR_ID = StringUtils.fromString("interceptorId");
     public static final String ENTITY_OBJ = "EntityObj";
     public static final String INTERCEPTOR_SERVICE = "INTERCEPTOR_SERVICE";
     public static final String INTERCEPTOR_SERVICE_INDEX = "INTERCEPTOR_SERVICE_INDEX";
     public static final String INTERCEPTOR_SERVICE_ERROR = "INTERCEPTOR_SERVICE_ERROR";
     public static final String WAIT_FOR_FULL_REQUEST = "WAIT_FOR_FULL_REQUEST";
-    public static final BString HTTP_INTERCEPTOR_TYPE = StringUtils.fromString("interceptorType");
     public static final String HTTP_NORMAL = "Normal";
     public static final String HTTP_REQUEST_INTERCEPTOR = "RequestInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";

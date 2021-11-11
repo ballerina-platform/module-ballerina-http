@@ -369,7 +369,7 @@ public class HttpUtil {
         HttpUtil.checkEntityAvailability(outboundResponseObj);
         HttpUtil.addCorsHeaders(inboundRequestMsg, outboundResponseMsg);
         HttpUtil.enrichOutboundMessage(outboundResponseMsg, outboundResponseObj);
-        HttpService httpService = (HttpService) connectionObj.getNativeData(HttpConstants.HTTP_SERVICE);
+        Service httpService = (Service) connectionObj.getNativeData(HttpConstants.HTTP_SERVICE);
         HttpUtil.setCompressionHeaders(httpService.getCompressionConfig(), inboundRequestMsg, outboundResponseMsg);
         HttpUtil.setChunkingHeader(httpService.getChunkingConfig(), outboundResponseMsg);
         if (httpService.getMediaTypeSubtypePrefix() != null) {
@@ -743,11 +743,11 @@ public class HttpUtil {
      * Populates the HTTP caller with connection information.
      * @param httpCaller   Represents the HTTP caller
      * @param inboundMsg   Represents the carbon message
-     * @param httpResource Represents the Http Resource
+     * @param resource Represents the Http Resource
      * @param config       Represents the service endpoint configuration
      */
     public static void enrichHttpCallerWithConnectionInfo(BObject httpCaller, HttpCarbonMessage inboundMsg,
-                                                          HttpResource httpResource, BMap config) {
+                                                          Resource resource, BMap config) {
         BMap<BString, Object> remote = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.REMOTE);
         BMap<BString, Object> local = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LOCAL);
 
@@ -773,7 +773,7 @@ public class HttpUtil {
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD,
                        fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_CONFIG_FIELD, config);
-        httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, httpResource.getParentService());
+        httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, resource.getParentService());
         httpCaller.addNativeData(HttpConstants.REMOTE_SOCKET_ADDRESS, remoteSocketAddress);
     }
 

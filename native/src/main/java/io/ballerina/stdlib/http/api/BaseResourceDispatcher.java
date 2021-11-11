@@ -32,14 +32,14 @@ import io.netty.handler.codec.http.HttpHeaderValues;
  */
 public class BaseResourceDispatcher {
 
-    public static BaseResource findResource(BaseService service, HttpCarbonMessage inboundRequest) {
+    public static HttpResource findResource(HttpService service, HttpCarbonMessage inboundRequest) {
 
         String method = inboundRequest.getHttpMethod();
         String subPath = (String) inboundRequest.getProperty(HttpConstants.SUB_PATH);
         subPath = sanitizeSubPath(subPath);
         HttpResourceArguments resourceArgumentValues = new HttpResourceArguments();
         try {
-            BaseResource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
+            HttpResource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
             if (resource instanceof HttpIntrospectionResource) {
                 handleIntrospectionRequest(inboundRequest, (HttpIntrospectionResource) resource);
                 return null;
@@ -74,7 +74,7 @@ public class BaseResourceDispatcher {
         return subPath;
     }
 
-    private static void handleOptionsRequest(HttpCarbonMessage cMsg, BaseService service) {
+    private static void handleOptionsRequest(HttpCarbonMessage cMsg, HttpService service) {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         if (cMsg.getHeader(HttpHeaderNames.ALLOW.toString()) != null) {
             response.setHeader(HttpHeaderNames.ALLOW.toString(), cMsg.getHeader(HttpHeaderNames.ALLOW.toString()));

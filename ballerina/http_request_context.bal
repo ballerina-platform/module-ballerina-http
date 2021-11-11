@@ -20,7 +20,6 @@ import ballerina/lang.value;
 # Represents an HTTP Context that allows user to pass data between filters.
 public isolated class RequestContext {
     private final map<value:Cloneable|isolated object {}> attributes = {};
-    private int interceptorId = 0;
 
     public isolated function add(string 'key, value:Cloneable|isolated object {} value) {
         if value is value:Cloneable {
@@ -55,13 +54,12 @@ public isolated class RequestContext {
 
     public isolated function next() returns NextService|error? {
         lock {
-            self.interceptorId += 1;
-            return externRequestCtxNext(self, self.interceptorId);
+            return externRequestCtxNext(self);
         }
     }
 }
 
-public isolated function externRequestCtxNext(RequestContext requestCtx, int interceptorId) returns NextService|error? = @java:Method {
+public isolated function externRequestCtxNext(RequestContext requestCtx) returns NextService|error? = @java:Method {
     name: "next",
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
 } external;

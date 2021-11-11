@@ -19,10 +19,9 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.observability.ObserveUtils;
-import io.ballerina.runtime.observability.ObserverContext;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import static java.lang.System.err;
@@ -51,14 +50,15 @@ public class HttpInterceptorUnitCallback implements Callback {
             notifyFailure((BError) result);
         } else {
             if (!alreadyResponded(result)) {
-                if ((boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT)) {
-                    ballerinaHTTPConnectorListener.onMessage(requestMessage);
-                    requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
-                } else {
-                    BError err = HttpUtil.createHttpError("interceptor service should call next() method to " +
-                            "continue execution", HttpErrorType.GENERIC_LISTENER_ERROR);
-                    notifyFailure(err);
-                }
+                validateResponseAndProceed(result);
+//                if ((boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT)) {
+//                    ballerinaHTTPConnectorListener.onMessage(requestMessage);
+//                    requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+//                } else {
+//                    BError err = HttpUtil.createHttpError("interceptor service should call next() method to " +
+//                            "continue execution", HttpErrorType.GENERIC_LISTENER_ERROR);
+//                    notifyFailure(err);
+//                }
             }
         }
     }
@@ -77,26 +77,13 @@ public class HttpInterceptorUnitCallback implements Callback {
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
     }
 
-    public void sendFailureResponse() {
-        BError error = (BError) requestMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+    public void sendFailureResponse(BError error) {
         cleanupRequestAndContext();
-        // TODO : Set the Error Status Code
         HttpUtil.handleFailure(requestMessage, error);
     }
 
     private void cleanupRequestAndContext() {
         requestMessage.waitAndReleaseAllEntities();
-        stopObservationWithContext();
-    }
-
-    private void stopObservationWithContext() {
-        if (ObserveUtils.isObservabilityEnabled()) {
-            ObserverContext observerContext
-                    = (ObserverContext) requestMessage.getProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY);
-            if (observerContext != null) {
-                ObserveUtils.stopObservationWithContext(observerContext);
-            }
-        }
     }
 
     private boolean alreadyResponded(Object result) {
@@ -115,6 +102,42 @@ public class HttpInterceptorUnitCallback implements Callback {
     private void printStacktraceIfError(Object result) {
         if (result instanceof BError) {
             ((BError) result).printStackTrace();
+        }
+    }
+
+    private void sendRequestToNextService() {
+        ballerinaHTTPConnectorListener.onMessage(requestMessage);
+        requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+    }
+
+    private void validateResponseAndProceed(Object result) {
+        int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
+        BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
+        if (interceptors != null) {
+            if (interceptorId < interceptors.size()) {
+                Object interceptor = interceptors.get(interceptorId);
+                if (result == null) {
+                    if ((boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT)) {
+                        sendRequestToNextService();
+                    } else {
+                        BError err = HttpUtil.createHttpError("interceptor service should call " +
+                                "next() method to continue execution", HttpErrorType.GENERIC_LISTENER_ERROR);
+                        notifyFailure(err);
+                    }
+                } else if (result.equals(interceptor)) {
+                    sendRequestToNextService();
+                } else {
+                    BError err = HttpUtil.createHttpError("next interceptor service did not match " +
+                            "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
+                    sendFailureResponse(err);
+                }
+            } else {
+                sendRequestToNextService();
+            }
+        } else {
+            BError err = HttpUtil.createHttpError("no interceptor service reference found in the " +
+                    "request context", HttpErrorType.GENERIC_LISTENER_ERROR);
+            sendFailureResponse(err);
         }
     }
 }

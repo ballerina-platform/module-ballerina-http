@@ -179,11 +179,11 @@ public class CorsHeaderGenerator {
 
     @SuppressWarnings("unchecked")
     private static CorsHeaders getResourceCors(HttpCarbonMessage cMsg, String requestMethod) {
-        List<BaseResource> resources = (List<BaseResource>) cMsg.getProperty(HttpConstants.PREFLIGHT_RESOURCES);
+        List<HttpResource> resources = (List<HttpResource>) cMsg.getProperty(HttpConstants.PREFLIGHT_RESOURCES);
         if (resources == null) {
             return null;
         }
-        for (BaseResource resource : resources) {
+        for (HttpResource resource : resources) {
             if (resource.getMethods() != null && resource.getMethods().contains(requestMethod)) {
                 return resource.getCorsHeaders();
             }
@@ -191,7 +191,7 @@ public class CorsHeaderGenerator {
         if (!requestMethod.equals(HttpConstants.HTTP_METHOD_HEAD)) {
             return null;
         }
-        for (BaseResource resource : resources) {
+        for (HttpResource resource : resources) {
             if (resource.getMethods() != null && resource.getMethods().contains(HttpConstants.HTTP_METHOD_GET)) {
                 return resource.getCorsHeaders();
             }

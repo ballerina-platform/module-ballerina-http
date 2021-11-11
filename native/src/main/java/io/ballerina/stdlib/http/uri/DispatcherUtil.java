@@ -18,12 +18,12 @@
 
 package io.ballerina.stdlib.http.uri;
 
-import io.ballerina.stdlib.http.api.BaseResource;
-import io.ballerina.stdlib.http.api.BaseService;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpResource;
+import io.ballerina.stdlib.http.api.HttpService;
 import io.ballerina.stdlib.http.api.InterceptorResource;
 import io.ballerina.stdlib.http.api.InterceptorService;
+import io.ballerina.stdlib.http.api.Resource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +39,7 @@ public class DispatcherUtil {
             , HttpConstants.HTTP_METHOD_POST, HttpConstants.HTTP_METHOD_DELETE, HttpConstants.HTTP_METHOD_PATCH
             , HttpConstants.HTTP_METHOD_PUT, HttpConstants.HTTP_METHOD_OPTIONS};
 
-    public static boolean isMatchingMethodExist(HttpResource resourceInfo, String method) {
+    public static boolean isMatchingMethodExist(Resource resourceInfo, String method) {
         if (resourceInfo.getMethods() == null) {
             return false;
         }
@@ -72,9 +72,9 @@ public class DispatcherUtil {
         return Arrays.stream(allMethods).collect(Collectors.toList());
     }
 
-    public static List<String> getAllResourceMethods(BaseService service) {
+    public static List<String> getAllResourceMethods(HttpService service) {
         List<String> cachedMethods = new ArrayList<>();
-        for (BaseResource resource : service.getResources()) {
+        for (HttpResource resource : service.getResources()) {
             if (resource.getMethods() == null) {
                 cachedMethods.addAll(DispatcherUtil.addAllMethods());
                 break;
