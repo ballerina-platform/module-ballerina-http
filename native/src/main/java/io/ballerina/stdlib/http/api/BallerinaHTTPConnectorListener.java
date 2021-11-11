@@ -17,6 +17,7 @@
  */
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
 import io.ballerina.runtime.api.values.BMap;
@@ -112,13 +113,20 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
             inboundMessage.setProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
-        Callback callback = new HttpCallableUnitCallback(inboundMessage, httpServicesRegistry.getRuntime(),
-                                httpResource.getReturnMediaType(), httpResource.getResponseCacheConfig());
+        Runtime runtime = httpServicesRegistry.getRuntime();
+        Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource.getReturnMediaType(),
+                                                         httpResource.getResponseCacheConfig());
         BObject service = httpResource.getParentService().getBalService();
-        httpServicesRegistry.getRuntime().invokeMethodAsync(service, httpResource.getName(), null,
-                                                            ModuleUtils.getOnMessageMetaData(), callback,
-                                                            properties, httpResource.getBalResource().getReturnType(),
-                                                            signatureParams);
+        String resourceName = httpResource.getName();
+        if (service.getType().isIsolated(resourceName)) {
+            runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
+                                                  ModuleUtils.getOnMessageMetaData(), callback, properties,
+                                                  httpResource.getBalResource().getReturnType(), signatureParams);
+        } else {
+            runtime.invokeMethodAsyncSequentially(service, resourceName, null,
+                                                  ModuleUtils.getOnMessageMetaData(), callback, properties,
+                                                  httpResource.getBalResource().getReturnType(), signatureParams);
+        }
     }
 
     protected boolean accessed(HttpCarbonMessage inboundMessage) {
