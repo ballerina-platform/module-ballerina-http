@@ -30,7 +30,7 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 /**
  * Resource level dispatchers handler for HTTP protocol.
  */
-public class BaseResourceDispatcher {
+public class HttpResourceDispatcher {
 
     public static HttpResource findResource(HttpService service, HttpCarbonMessage inboundRequest) {
 
@@ -108,6 +108,6 @@ public class BaseResourceDispatcher {
         cMsg.waitAndReleaseAllEntities();
     }
 
-    private BaseResourceDispatcher() {
+    private HttpResourceDispatcher() {
     }
 }

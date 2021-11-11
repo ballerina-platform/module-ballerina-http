@@ -21,12 +21,12 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.stdlib.http.uri.parser.DataElementFactory;
 
 /**
- * Factory to create {@link BaseResourceDataElement}.
+ * Factory to create {@link HttpResourceDataElement}.
  */
-public class BaseResourceElementFactory implements DataElementFactory<BaseResourceDataElement> {
+public class HttpResourceElementFactory implements DataElementFactory<HttpResourceDataElement> {
 
     @Override
-    public BaseResourceDataElement createDataElement() {
-        return new BaseResourceDataElement();
+    public HttpResourceDataElement createDataElement() {
+        return new HttpResourceDataElement();
     }
 }

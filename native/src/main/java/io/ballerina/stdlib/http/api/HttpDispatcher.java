@@ -216,7 +216,7 @@ public class HttpDispatcher {
             }
 
             // Find the Resource
-            return BaseResourceDispatcher.findResource(service, inboundMessage);
+            return HttpResourceDispatcher.findResource(service, inboundMessage);
         } catch (Exception e) {
             throw new BallerinaConnectorException(e.getMessage());
         }

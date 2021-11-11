@@ -196,7 +196,7 @@ public class HttpService implements Service {
 
     public URITemplate<HttpResource, HttpCarbonMessage> getUriTemplate() throws URITemplateException {
         if (uriTemplate == null) {
-            uriTemplate = new URITemplate<>(new Literal<>(new BaseResourceDataElement(), "/"));
+            uriTemplate = new URITemplate<>(new Literal<>(new HttpResourceDataElement(), "/"));
         }
         return uriTemplate;
     }
@@ -247,7 +247,7 @@ public class HttpService implements Service {
     private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,
                                            HttpResource httpResource) {
         try {
-            httpService.getUriTemplate().parse(httpResource.getPath(), httpResource, new BaseResourceElementFactory());
+            httpService.getUriTemplate().parse(httpResource.getPath(), httpResource, new HttpResourceElementFactory());
         } catch (URITemplateException | UnsupportedEncodingException e) {
             throw new BallerinaConnectorException(e.getMessage());
         }

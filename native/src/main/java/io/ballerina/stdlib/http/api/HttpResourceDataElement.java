@@ -34,7 +34,7 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_LISTENER_ERROR;
 /**
  * Http Node Item for URI template tree.
  */
-public class BaseResourceDataElement implements DataElement<HttpResource, HttpCarbonMessage> {
+public class HttpResourceDataElement implements DataElement<HttpResource, HttpCarbonMessage> {
 
     private List<HttpResource> resource;
     private boolean isFirstTraverse = true;
