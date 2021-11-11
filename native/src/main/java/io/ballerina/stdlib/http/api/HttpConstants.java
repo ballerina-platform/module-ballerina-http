@@ -333,7 +333,7 @@ public class HttpConstants {
     public static final String CONNECTION_HEADER = "Connection";
     public static final String HEADER_VAL_CONNECTION_CLOSE = "Close";
     public static final String HEADER_VAL_CONNECTION_KEEP_ALIVE = "Keep-Alive";
-    public static final String LINK_HEADER = "Link";
+    public static final String LINK_HEADER = "link";
 
     //Response codes
     public static final int INVALID_STATUS_CODE = 000;
