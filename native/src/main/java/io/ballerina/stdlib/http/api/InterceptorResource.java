@@ -41,7 +41,7 @@ import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailab
 /**
  * {@code InterceptorResource} This is the http wrapper for the {@code InterceptorResource} implementation.
  *
- * @since SL beta 4
+ * @since SL Beta 4
  */
 public class InterceptorResource implements Resource {
 

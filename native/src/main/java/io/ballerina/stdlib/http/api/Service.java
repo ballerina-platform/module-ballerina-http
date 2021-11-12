@@ -26,20 +26,56 @@ import io.ballerina.stdlib.http.uri.URITemplateException;
 import java.util.List;
 
 /**
- * Interface for HTTP Service classes.
+ * Represents the interface for HTTP Service classes.
  */
 public interface Service {
+    /**
+     * Returns the compression configuration from service config annotation.
+     *
+     * @return the compression configuration map
+     */
     BMap<BString, Object> getCompressionConfig();
 
+    /**
+     * Returns the chunking configuration from service config annotation.
+     *
+     * @return the chunking configuration string
+     */
     String getChunkingConfig();
 
+    /**
+     * Returns the media-type subtype prefix from service config annotation.
+     *
+     * @return the chunking configuration string
+     */
     String getMediaTypeSubtypePrefix();
 
+    /**
+     * Returns the HTTP service URI template.
+     *
+     * @return the URI template
+     * @throws URITemplateException
+     */
     URITemplate<Resource, HttpCarbonMessage> getUriTemplate() throws URITemplateException;
 
+    /**
+     * Returns the HTTP service base path.
+     *
+     * @return the base path string
+     */
     String getBasePath();
 
+    /**
+     * Returns all the allowed HTTP methods in the service.
+     *
+     * @return the list of HTTP methods
+     */
     List<String> getAllAllowedMethods();
 
+    /**
+     * Returns introspection resource path header configured in the service.
+     *
+     * @return the introspection resource path header string
+     */
     String getIntrospectionResourcePathHeaderValue();
 }

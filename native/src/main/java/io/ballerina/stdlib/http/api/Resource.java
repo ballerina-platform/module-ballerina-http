@@ -23,29 +23,81 @@ import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
 import java.util.List;
 
 /**
- * Interface for HTTP Resource classes.
+ * Represents the interface for HTTP Resource classes.
  */
 public interface Resource {
-
+    /**
+     * Returns the HTTP methods in the resource.
+     *
+     * @return the list of HTTP methods
+     */
     List<String> getMethods();
 
+    /**
+     * Returns the Parameter Handler from the resource.
+     *
+     * @return the Parameter Handler
+     */
     ParamHandler getParamHandler();
 
+    /**
+     * Returns the Ballerina resource method type.
+     *
+     * @return the resource method type
+     */
     ResourceMethodType getBalResource();
 
+    /**
+     * Returns whether the nilable query parameters are considered as optional or not.
+     */
     boolean isTreatNilableAsOptional();
 
+    /**
+     * Returns the wildcard token in the resource path.
+     *
+     * @return the wildcard token string
+     */
     String getWildcardToken();
 
+    /**
+     * Returns the parent service of the resource.
+     *
+     * @return the HTTP parent service
+     */
     Service getParentService();
 
+    /**
+     * Returns the consumes fields from the resource config annotation.
+     *
+     * @return the list of consumes fields
+     */
     List<String> getConsumes();
 
+    /**
+     * Returns the produces fields from the resource config annotation.
+     *
+     * @return the list of produces fields
+     */
     List<String> getProduces();
 
+    /**
+     * Returns the sub-attribute values of produces field.
+     *
+     * @return the sub-attribute values
+     */
     List<String> getProducesSubTypes();
 
+    /**
+     * Returns the resource name with the resource method.
+     *
+     * @return the resource name with resource method
+     */
     String getName();
 
+    /**
+     * Returns the CORS headers from resource config annotation.
+     *
+     * @return the CORS header object
+     */
     Object getCorsHeaders();
 }

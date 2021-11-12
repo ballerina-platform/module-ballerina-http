@@ -31,6 +31,8 @@ import static java.lang.System.err;
 /**
  * {@code HttpInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina side when
  * an interceptor service is invoked.
+ *
+ * @since SL Beta 4
  */
 public class HttpInterceptorUnitCallback implements Callback {
     private final BObject caller;
