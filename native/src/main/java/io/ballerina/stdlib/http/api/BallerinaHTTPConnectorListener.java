@@ -204,12 +204,19 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
-        Callback callback = new HttpInterceptorUnitCallback(inboundMessage, servicesRegistry.getRuntime(),  this);
+        Runtime runtime = httpServicesRegistry.getRuntime();
+        Callback callback = new HttpInterceptorUnitCallback(inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();
-        servicesRegistry.getRuntime().invokeMethodAsync(service, resource.getName(), null,
-                ModuleUtils.getOnMessageMetaData(), callback,
-                properties, resource.getBalResource().getReturnType(),
-                signatureParams);
+        String resourceName = resource.getName();
+        if (service.getType().isIsolated(resourceName)) {
+            runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
+                    ModuleUtils.getOnMessageMetaData(), callback, properties,
+                    resource.getBalResource().getReturnType(), signatureParams);
+        } else {
+            runtime.invokeMethodAsyncSequentially(service, resourceName, null,
+                    ModuleUtils.getOnMessageMetaData(), callback, properties,
+                    resource.getBalResource().getReturnType(), signatureParams);
+        }
     }
 
     protected void executeMainResourceOnMessage(HttpCarbonMessage inboundMessage) {
@@ -223,8 +230,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         httpResource = HttpDispatcher.findResource(httpServicesRegistry, inboundMessage);
         // Checking whether main resource has data-binding and if we already executed an interceptor resource
         // we skip getting the full request
-        if (HttpDispatcher.shouldDiffer(httpResource) &&
-                !inboundMessage.isAccessedInInterceptorService()) {
+        if (HttpDispatcher.shouldDiffer(httpResource) && !inboundMessage.isAccessedInInterceptorService()) {
             inboundMessage.setProperty(HTTP_RESOURCE, httpResource);
             inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
             //Removes inbound content listener since data binding waits for all contents to be received
