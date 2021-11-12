@@ -19,7 +19,7 @@ import ballerina/jballerina.java;
 
 # This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
-public class Listener {
+public isolated class Listener {
 
     private int port;
     private InferredListenerConfiguration inferredConfig;
