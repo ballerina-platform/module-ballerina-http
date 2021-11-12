@@ -31,7 +31,6 @@ service /connectionNativeHello on connectionNativeTestEP {
 //Test whether the headers and status codes are set correctly
 @test:Config {}
 function testRedirect() {
-    http:Request req = new;
     http:Response|error response = connectionNativeClient->get("/connectionNativeHello/redirect");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 301, msg = "Found unexpected output");

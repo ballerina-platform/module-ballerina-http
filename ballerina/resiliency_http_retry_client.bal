@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/lang.runtime as runtime;
+import ballerina/log;
 
 # Derived set of configurations from the `RetryConfig`.
 #
@@ -283,7 +284,10 @@ isolated function performRetryAction(string path, Request request, HttpOperation
     Request inRequest = request;
     // When performing passthrough scenarios using retry client, message needs to be built before sending out the
     // to keep the request message to retry.
-    var binaryPayload = check inRequest.getBinaryPayload();
+    byte[]|error binaryPayload = check inRequest.getBinaryPayload();
+    if binaryPayload is error {
+        log:printDebug("Error building payload for request retry: " + binaryPayload.message());
+    }
 
     while (currentRetryCount < (retryCount + 1)) {
         inRequest = check populateMultipartRequest(inRequest);

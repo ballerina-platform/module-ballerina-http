@@ -54,7 +54,6 @@ service /echo on serviceTestEP {
     }
 
     resource function post setString(http:Caller caller, http:Request req) {
-        http:Response res = new;
         string payloadData = "";
         var payload = req.getTextPayload();
         if (payload is error) {

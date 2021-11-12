@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/lang.'string as strings;
+import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
@@ -182,31 +183,39 @@ service / on inResponseCachedPayloadListener {
     resource function get checkJson() returns json|error {
         http:Client diseaseEndpoint = check new ("http://localhost:" + inResponseCachedPayloadTestBEPort.toString());
         http:Response resp = check diseaseEndpoint -> get("/getXml");
-        byte[] b = check resp.getBinaryPayload(); // represents cache behaviour
+        byte[]|error b = resp.getBinaryPayload(); // represents cache behaviour
+        if b is error {
+            log:printError(b.message());
+        }
         return resp.getJsonPayload();
     }
 
     resource function get checkXml() returns xml|error {
         http:Client diseaseEndpoint = check new ("http://localhost:" + inResponseCachedPayloadTestBEPort.toString());
         http:Response resp = check diseaseEndpoint -> get("/getJson");
-        byte[] b = check resp.getBinaryPayload(); // represents cache behaviour
+        byte[]|error b = resp.getBinaryPayload(); // represents cache behaviour
+        if b is error {
+            log:printError(b.message());
+        }
         return resp.getXmlPayload();
     }
 }
 
 service / on inResponseCachedPayloadBEListener {
-    resource function get getXml(http:Caller caller) {
+    resource function get getXml(http:Caller caller) returns error? {
         http:Response response = new;
         xml xmlStr = xml `<name>Ballerina</name>`;
         response.setXmlPayload(xmlStr);
-        error? result = caller->respond(response);
+        check caller->respond(response);
+        return;
     }
 
-    resource function get getJson(http:Caller caller) {
+    resource function get getJson(http:Caller caller) returns error? {
         http:Response response = new;
         json jsonStr = {"Ballerina" : "hello"};
         response.setJsonPayload(jsonStr);
-        error? result = caller->respond(response);
+        check caller->respond(response);
+        return;
     }
 }
 
