@@ -95,3 +95,22 @@ function testRequestInterceptorDataBindingWithLargePayload() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "databinding-interceptor");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
+
+final http:Client requestInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + requestInterceptorWithoutCtxNextTestPort.toString());
+
+listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInterceptorWithoutCtxNextTestPort, config = {
+        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
+    });
+
+service / on requestInterceptorWithoutCtxNextServerEP {
+
+    resource function 'default .() returns string {
+        return "Response from resource - test";
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorWithoutCtxNext() returns error? {
+    http:Response res = check requestInterceptorWithoutCtxNextClientEP->get("/");
+    test:assertEquals(res.statusCode, 202);
+}

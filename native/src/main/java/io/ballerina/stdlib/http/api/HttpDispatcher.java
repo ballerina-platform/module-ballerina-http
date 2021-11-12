@@ -279,9 +279,6 @@ public class HttpDispatcher {
                     if (requestCtx == null) {
                         requestCtx = createRequestContext(httpCarbonMessage, endpointConfig);
                     }
-                    int interceptorId = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) == null
-                            ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
-                    requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;
@@ -488,6 +485,9 @@ public class HttpDispatcher {
             requestContext.addNativeData(HttpConstants.HTTP_INTERCEPTORS, interceptors);
         }
         requestContext.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+        int interceptorId = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) == null
+                ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) - 1;
+        requestContext.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
         httpCarbonMessage.setProperty(HttpConstants.REQUEST_CONTEXT, requestContext);
         return requestContext;
     }

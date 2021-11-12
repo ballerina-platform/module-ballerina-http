@@ -31,12 +31,12 @@ public class ExternRequestContext {
     public static Object next(BObject requestCtx) {
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
         if (interceptors != null) {
-            int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
+            int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX) + 1;
             requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, true);
+            requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
             if (interceptorId < interceptors.size()) {
                 return interceptors.get(interceptorId);
             }
-            requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId + 1);
             return null;
         } else {
             return HttpUtil.createHttpError("request context object does not contain the configured " +

@@ -97,6 +97,46 @@ service class RequestInterceptorWithoutCtxNext {
     }
 }
 
+service class GetRequestInterceptor {
+    *http:RequestInterceptor;
+
+    resource function get [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("get-interceptor", "true");
+       ctx.add("last-interceptor", "get-interceptor");
+       return ctx.next();
+    }
+}
+
+service class PostRequestInterceptor {
+    *http:RequestInterceptor;
+
+    resource function post [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("post-interceptor", "true");
+       ctx.add("last-interceptor", "post-interceptor");
+       return ctx.next();
+    }
+}
+
+service class DefaultRequestInterceptorBasePath {
+    *http:RequestInterceptor;
+
+    resource function 'default foo(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("default-base-path-interceptor", "true");
+       ctx.add("last-interceptor", "default-base-path-interceptor");
+       return ctx.next();
+    }
+}
+
+service class GetRequestInterceptorBasePath {
+    *http:RequestInterceptor;
+
+    resource function get foo/bar(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("default-base-path-interceptor", "true");
+       ctx.add("last-interceptor", "get-base-path-interceptor");
+       return ctx.next();
+    }
+}
+
 string largePayload = "WSO2 was founded by Sanjiva Weerawarana, Paul Fremantle and Davanum Srinivas in August 2005, " +
     "backed by Intel Capital, Toba Capital, and Pacific Controls. Weerawarana[3] was an IBM researcher and a founder " +
     "of the Web services platform.[4][5] He led the creation of IBM SOAP4J,[6] which later became Apache SOAP, and was" +

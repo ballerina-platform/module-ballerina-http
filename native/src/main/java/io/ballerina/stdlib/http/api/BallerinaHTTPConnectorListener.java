@@ -112,7 +112,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             }
 
             if (inboundMessage.isInterceptorError()) {
-                HttpInterceptorUnitCallback callback = new HttpInterceptorUnitCallback(inboundMessage, this);
+                HttpInterceptorUnitCallback callback = new HttpInterceptorUnitCallback(inboundMessage, null, this);
                 callback.sendFailureResponse((BError) inboundMessage.getProperty
                                                                             (HttpConstants.INTERCEPTOR_SERVICE_ERROR));
             } else {
@@ -196,7 +196,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
-        Callback callback = new HttpInterceptorUnitCallback(inboundMessage, this);
+        Callback callback = new HttpInterceptorUnitCallback(inboundMessage, servicesRegistry.getRuntime(),  this);
         BObject service = resource.getParentService().getBalService();
         servicesRegistry.getRuntime().invokeMethodAsync(service, resource.getName(), null,
                 ModuleUtils.getOnMessageMetaData(), callback,

@@ -18,10 +18,12 @@
 
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import static java.lang.System.err;
@@ -31,16 +33,20 @@ import static java.lang.System.err;
  * an interceptor service is invoked.
  */
 public class HttpInterceptorUnitCallback implements Callback {
+    private final BObject caller;
+    private final Runtime runtime;
     private final HttpCarbonMessage requestMessage;
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
     private final BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener;
     private final BObject requestCtx;
 
-    HttpInterceptorUnitCallback(HttpCarbonMessage requestMessage,
-                                    BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
+    HttpInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
+                                BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
+        this.runtime = runtime;
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         this.ballerinaHTTPConnectorListener = ballerinaHTTPConnectorListener;
+        this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
     }
 
     @Override
@@ -49,17 +55,7 @@ public class HttpInterceptorUnitCallback implements Callback {
         if (result instanceof BError) {
             notifyFailure((BError) result);
         } else {
-            if (!alreadyResponded(result)) {
-                validateResponseAndProceed(result);
-//                if ((boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT)) {
-//                    ballerinaHTTPConnectorListener.onMessage(requestMessage);
-//                    requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
-//                } else {
-//                    BError err = HttpUtil.createHttpError("interceptor service should call next() method to " +
-//                            "continue execution", HttpErrorType.GENERIC_LISTENER_ERROR);
-//                    notifyFailure(err);
-//                }
-            }
+            validateResponseAndProceed(result);
         }
     }
 
@@ -112,19 +108,30 @@ public class HttpInterceptorUnitCallback implements Callback {
 
     private void validateResponseAndProceed(Object result) {
         int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
+        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
+        boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
+
+        if (alreadyResponded(result)) {
+            if (nextCalled) {
+                sendRequestToNextService();
+            }
+            return;
+        }
+
+        if (result == null) {
+            if (nextCalled) {
+                sendRequestToNextService();
+                return;
+            }
+            returnEmptyResponse();
+            return;
+        }
+
         if (interceptors != null) {
             if (interceptorId < interceptors.size()) {
                 Object interceptor = interceptors.get(interceptorId);
-                if (result == null) {
-                    if ((boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT)) {
-                        sendRequestToNextService();
-                    } else {
-                        BError err = HttpUtil.createHttpError("interceptor service should call " +
-                                "next() method to continue execution", HttpErrorType.GENERIC_LISTENER_ERROR);
-                        notifyFailure(err);
-                    }
-                } else if (result.equals(interceptor)) {
+                if (result.equals(interceptor)) {
                     sendRequestToNextService();
                 } else {
                     BError err = HttpUtil.createHttpError("next interceptor service did not match " +
@@ -139,5 +146,70 @@ public class HttpInterceptorUnitCallback implements Callback {
                     "request context", HttpErrorType.GENERIC_LISTENER_ERROR);
             sendFailureResponse(err);
         }
+    }
+
+//    private void validateResponseAndProceed(Object result) {
+//        int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
+//        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
+//        BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
+//        boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
+//
+//        if (alreadyResponded(result)) {
+//            if (nextCalled) {
+//                sendRequestToNextService();
+//            }
+//            return;
+//        }
+//
+//        if (result == null) {
+//            if (nextCalled) {
+//                sendRequestToNextService();
+//            }
+//            returnEmptyResponse();
+//            return;
+//        }
+//
+//        if (interceptors != null) {
+//            if (interceptorId < interceptors.size()) {
+//                Object interceptor = interceptors.get(interceptorId);
+//                if (result.equals(interceptor)) {
+//                    sendRequestToNextService();
+//                } else {
+//                    BError err = HttpUtil.createHttpError("next interceptor service did not match " +
+//                            "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
+//                    sendFailureResponse(err);
+//                }
+//            } else {
+//                sendRequestToNextService();
+//            }
+//        } else {
+//            BError err = HttpUtil.createHttpError("no interceptor service reference found in the " +
+//                    "request context", HttpErrorType.GENERIC_LISTENER_ERROR);
+//            sendFailureResponse(err);
+//        }
+//    }
+
+    private void returnEmptyResponse() {
+        Object[] paramFeed = new Object[6];
+        paramFeed[0] = null;
+        paramFeed[1] = true;
+        paramFeed[2] = null;
+        paramFeed[3] = true;
+        paramFeed[4] = null;
+        paramFeed[5] = true;
+
+        Callback returnCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                printStacktraceIfError(result);
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                sendFailureResponse(result);
+            }
+        };
+        runtime.invokeMethodAsync(caller, "returnResponse", null,
+                ModuleUtils.getNotifySuccessMetaData(), returnCallback, paramFeed);
     }
 }

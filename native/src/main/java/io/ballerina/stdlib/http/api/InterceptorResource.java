@@ -164,6 +164,7 @@ public class InterceptorResource implements Resource {
 
     private void validateReturnType() {
         String returnTypeString = getBalResource().getType().getReturnType().toString();
+        // Have to define this properly
         if (!(returnTypeString.equals("(ballerina/http:2:NextService|error)?") || returnTypeString.equals("error") ||
                 returnTypeString.equals("error?") || returnTypeString.equals("()"))) {
             throw new BallerinaConnectorException("interceptor resources are not allowed to return " +

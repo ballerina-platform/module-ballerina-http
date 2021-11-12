@@ -138,6 +138,9 @@ const int requestInterceptorDataBindingTestPort1 = 9588;
 const int requestInterceptorDataBindingTestPort2 = 9589;
 const int requestInterceptorSetPayloadTestPort = 9590;
 const int requestInterceptorWithoutCtxNextTestPort = 9591;
+const int requestInterceptorHttpVerbTestPort = 9592;
+const int requestInterceptorBasePathTestPort = 9593;
+const int getRequestInterceptorBasePathTestPort = 9594;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;

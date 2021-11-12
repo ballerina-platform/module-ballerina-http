@@ -111,3 +111,114 @@ function testRequestInterceptorSetPayload() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("interceptor-setpayload"), "true");
 }
+
+final http:Client requestInterceptorHttpVerbClientEP = check new("http://localhost:" + requestInterceptorHttpVerbTestPort.toString());
+
+listener http:Listener requestInterceptorHttpVerbServerEP = new(requestInterceptorHttpVerbTestPort, config = {
+        interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptor(), new PostRequestInterceptor(), new LastRequestInterceptor()]
+    });
+
+service / on requestInterceptorHttpVerbServerEP {
+
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorHttpVerb() returns error? {
+    http:Response res = check requestInterceptorHttpVerbClientEP->get("/");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "get-interceptor");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+
+    res = check requestInterceptorHttpVerbClientEP->post("/", "testMessage");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "post-interceptor");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+}
+
+final http:Client requestInterceptorBasePathClientEP = check new("http://localhost:" + requestInterceptorBasePathTestPort.toString());
+
+listener http:Listener requestInterceptorBasePathServerEP = new(requestInterceptorBasePathTestPort, config = {
+        interceptors : [new DefaultRequestInterceptor(), new DefaultRequestInterceptorBasePath(), new LastRequestInterceptor()]
+    });
+
+service / on requestInterceptorBasePathServerEP {
+
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        check caller->respond(res);
+    }
+
+    resource function 'default foo(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorBasePath() returns error? {
+    http:Response res = check requestInterceptorBasePathClientEP->get("/");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-interceptor");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+
+    res = check requestInterceptorBasePathClientEP->post("/foo", "testMessage");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-base-path-interceptor");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+}
+
+final http:Client getRequestInterceptorBasePathClientEP = check new("http://localhost:" + getRequestInterceptorBasePathTestPort.toString());
+
+listener http:Listener getRequestInterceptorBasePathServerEP = new(getRequestInterceptorBasePathTestPort, config = {
+        interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptorBasePath(), new LastRequestInterceptor()]
+    });
+
+service /foo on getRequestInterceptorBasePathServerEP {
+
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        check caller->respond(res);
+    }
+
+    resource function 'default bar(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testGetRequestInterceptorBasePath() returns error? {
+    http:Response res = check getRequestInterceptorBasePathClientEP->get("/foo");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-interceptor");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+
+    res = check getRequestInterceptorBasePathClientEP->get("/foo/bar");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "get-base-path-interceptor");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+
+    res = check getRequestInterceptorBasePathClientEP->post("/foo/bar", "testMessage");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-interceptor");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+}
