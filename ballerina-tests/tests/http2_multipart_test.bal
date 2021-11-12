@@ -30,7 +30,6 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
 
     resource function post decode(http:Caller caller, http:Request request) {
         http:Response response = new;
-        string respPayload = "";
         mime:Entity[] respBodyParts = [];
         var bodyParts = request.getBodyParts();
         int i = 0;
@@ -67,6 +66,9 @@ service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
                 }
             }
             error? result = caller->respond(finalMessage);
+            if result is error {
+                log:printError("Error sending response", 'error = result);
+            }
         } else {
             log:printError("Error sending response", 'error = finalResponse);
         }

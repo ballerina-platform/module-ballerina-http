@@ -38,7 +38,6 @@ service /headerService on httpHeaderListenerEP1 {
     }
 
     resource function 'default id(http:Caller caller, http:Request req) {
-        http:Response clntResponse = new;
         http:Response|error clientResponse = stockqEP->forward("/quoteService1/customers", req);
         if (clientResponse is http:Response) {
             json payload = {};

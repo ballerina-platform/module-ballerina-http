@@ -16,6 +16,7 @@
 
 import ballerina/http;
 import ballerina/test;
+import ballerina/log;
 
 listener http:Listener backendEp = new(9119, {httpVersion: "2.0"});
 final http:Client trailerClientEp = check new("http://localhost:9119", { httpVersion: "2.0", http2Settings: {
@@ -23,11 +24,14 @@ final http:Client trailerClientEp = check new("http://localhost:9119", { httpVer
 
 service /trailerInitiator on new http:Listener(9118) {
 
-    resource function 'default [string svc]/[string rsc](http:Caller caller, http:Request request) {
+    resource function 'default [string svc]/[string rsc](http:Caller caller, http:Request request) returns error? {
         http:Response|error responseFromBackend = trailerClientEp->forward("/" + svc + "/" + rsc, request);
         if (responseFromBackend is http:Response) {
             string trailerHeaderValue = checkpanic responseFromBackend.getHeader("trailer");
             string|error textPayload = responseFromBackend.getTextPayload();
+            if textPayload is error {
+                log:printError("Error reading payload", 'error = textPayload);
+            }
             string firstTrailer = checkpanic responseFromBackend.getHeader("foo", position = "trailing");
             string secondTrailer = checkpanic responseFromBackend.getHeader("baz", position = "trailing");
 
@@ -36,52 +40,55 @@ service /trailerInitiator on new http:Listener(9118) {
             http:Response newResponse = new;
             newResponse.setJsonPayload({ foo: firstTrailer, baz: secondTrailer, count: headerCount });
             newResponse.setHeader("response-trailer", trailerHeaderValue);
-            error? resultSentToClient = caller->respond(newResponse);
+            return caller->respond(newResponse);
         } else {
-            error? resultSentToClient = caller->respond("No response from backend");
+            return caller->respond("No response from backend");
         }
     }
 }
 
 service /backend on backendEp {
-    resource function 'default echoResponseWithTrailer(http:Caller caller, http:Request request) {
+    resource function 'default echoResponseWithTrailer(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var textPayload = request.getTextPayload();
         string inPayload = textPayload is string ? textPayload : "error in accessing payload";
         response.setTextPayload(inPayload);
         response.setHeader("foo", "Trailer for echo payload", position = "trailing");
         response.setHeader("baz", "The second trailer", position = "trailing");
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
-    resource function 'default responseEmptyPayloadWithTrailer(http:Caller caller, http:Request request) {
+    resource function 'default responseEmptyPayloadWithTrailer(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         response.setTextPayload("");
         response.setHeader("foo", "Trailer for empty payload", position = "trailing");
         response.setHeader("baz", "The second trailer for empty payload", position = "trailing");
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 }
 
 service /passthroughservice on backendEp {
-    resource function 'default forward(http:Caller caller, http:Request request) {
+    resource function 'default forward(http:Caller caller, http:Request request) returns error? {
         http:Response|error responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
         if (responseFromBackend is http:Response) {
-            error? resultSentToClient = caller->respond(responseFromBackend);
+            return caller->respond(responseFromBackend);
         } else {
-            error? resultSentToClient = caller->respond("No response from backend");
+            return caller->respond("No response from backend");
         }
     }
 
-    resource function 'default buildPayload(http:Caller caller, http:Request request) {
+    resource function 'default buildPayload(http:Caller caller, http:Request request) returns error? {
         http:Response|error responseFromBackend = trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
         if (responseFromBackend is http:Response) {
             string|error textPayload = responseFromBackend.getTextPayload();
+            if textPayload is error {
+                log:printError("Error reading payload", 'error = textPayload);
+            }
             responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
             responseFromBackend.setHeader("barr", "this is a new trailer", position = "trailing");
-            error? resultSentToClient = caller->respond(responseFromBackend);
+            return caller->respond(responseFromBackend);
         } else {
-            error? resultSentToClient = caller->respond("No response from backend");
+            return caller->respond("No response from backend");
         }
     }
 }

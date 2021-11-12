@@ -18,6 +18,7 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 import ballerina/mime;
+import ballerina/log;
 import ballerina/lang.'string as strings;
 
 listener http:Listener clientDBProxyListener = new(clientDatabindingTestPort1);
@@ -70,8 +71,7 @@ service /passthrough on clientDBProxyListener {
         http:Response response = check clientDBBackendClient->post("/backend/getResponse", "want record[]");
         payload = payload + " | " + check response.getHeader("x-fact");
 
-        error? result = caller->respond(payload);
-        return;
+        return caller->respond(payload);
     }
 
     resource function get nillableTypes() returns string|error {
@@ -225,7 +225,10 @@ service /passthrough on clientDBProxyListener {
         string payload = "";
 
         // This is to check any compile failures with multiple default-able args
-        json hello = check clientDBBackendClient->get("/backend/getJson");
+        json|error hello = clientDBBackendClient->get("/backend/getJson");
+        if hello is error {
+            log:printError("Error reading payloade", 'error = hello);
+        }
 
         json p = check clientDBBackendClient->get("/backend/getJson");
         payload = payload + p.toJsonString();
@@ -246,16 +249,14 @@ service /passthrough on clientDBProxyListener {
         ClientDBPerson[] u = check clientDBBackendClient->forward("/backend/getRecordArr", request);
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
-        error? result = caller->respond(payload);
-        return;
+        return caller->respond(payload);
     }
 
     resource function get redirect(http:Caller caller, http:Request req) returns error? {
         http:Client redirectClient = check new("http://localhost:" + clientDatabindingTestPort3.toString(),
                                                         {followRedirects: {enabled: true, maxCount: 5}});
         json p = check redirectClient->post("/redirect1/", "want json", targetType = json);
-        error? result = caller->respond(p);
-        return;
+        return caller->respond(p);
     }
 
     resource function get 'retry(http:Caller caller, http:Request request) returns error? {
@@ -265,14 +266,12 @@ service /passthrough on clientDBProxyListener {
             }
         );
         string r = check retryClient->forward("/backend/getRetryResponse", request);
-        error? responseToCaller = caller->respond(r);
-        return;
+        return caller->respond(r);
     }
 
     resource function 'default '500(http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->post("/backend/get5XX", "want 500");
-        error? responseToCaller = caller->respond(p);
-        return;
+        return caller->respond(p);
     }
 
     resource function 'default '500handle(http:Caller caller, http:Request request) returns error? {
@@ -283,18 +282,16 @@ service /passthrough on clientDBProxyListener {
             resp.setPayload(<string>res.detail().body);
             string[] val = res.detail().headers.get("X-Type");
             resp.setHeader("X-Type", val[0]);
-            error? responseToCaller = caller->respond(resp);
+            return caller->respond(resp);
         } else {
             json p = check res;
-            error? responseToCaller = caller->respond(p);
+            return caller->respond(p);
         }
-        return;
     }
 
     resource function 'default '404(http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500");
-        error? responseToCaller = caller->respond(p);
-        return;
+        return caller->respond(p);
     }
 
     resource function  'default '404/[string path](http:Caller caller, http:Request request) returns error? {
@@ -303,70 +300,68 @@ service /passthrough on clientDBProxyListener {
             http:Response resp = new;
             resp.statusCode = res.detail().statusCode;
             resp.setPayload(<string>res.detail().body);
-            error? responseToCaller = caller->respond(resp);
+            return caller->respond(resp);
         } else {
             json p = check res;
-            error? responseToCaller = caller->respond(p);
+            return caller->respond(p);
         }
-        return;
     }
 
     resource function get testBody/[string path](http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->get("/backend/" + path);
-        error? responseToCaller = caller->respond(p);
-        return;
+        return caller->respond(p);
     }
 }
 
 service /backend on clientDBBackendListener {
-    resource function 'default getJson(http:Caller caller, http:Request req) {
+    resource function 'default getJson(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setJsonPayload({id: "chamil", values: {a: 2, b: 45, c: {x: "mnb", y: "uio"}}});
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
-    resource function 'default getXml(http:Caller caller, http:Request req) {
+    resource function 'default getXml(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         xml xmlStr = xml `<name>Ballerina</name>`;
         response.setXmlPayload(xmlStr);
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
-    resource function 'default getString(http:Caller caller, http:Request req) {
+    resource function 'default getString(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setTextPayload("This is my @4491*&&#$^($@");
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
-    resource function 'default getByteArray(http:Caller caller, http:Request req) {
+    resource function 'default getByteArray(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setBinaryPayload("BinaryPayload is textVal".toBytes());
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
-    resource function 'default getRecord(http:Caller caller, http:Request req) {
+    resource function 'default getRecord(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setJsonPayload({name: "chamil", age: 15});
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
-    resource function 'default getRecordArr(http:Caller caller, http:Request req) {
+    resource function 'default getRecordArr(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setJsonPayload([{name: "wso2", age: 12}, {name: "ballerina", age: 3}]);
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
     resource function 'default getNil() {
     }
 
-    resource function post getResponse(http:Caller caller, http:Request req) {
+    resource function post getResponse(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setJsonPayload({id: "hello"});
         response.setHeader("x-fact", "data-binding");
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
-    resource function 'default getRetryResponse(http:Caller caller, http:Request req) {
+    resource function 'default getRetryResponse(http:Caller caller, http:Request req) returns error? {
         int count = 0;
         lock {
             clientDBCounter = clientDBCounter + 1;
@@ -374,25 +369,25 @@ service /backend on clientDBBackendListener {
         }
         if (count == 1) {
             runtime:sleep(5);
-            error? responseToCaller = caller->respond("Not received");
+            return caller->respond("Not received");
         } else {
-            error? responseToCaller = caller->respond("Hello World!!!");
+            return caller->respond("Hello World!!!");
         }
     }
 
-    resource function post get5XX(http:Caller caller, http:Request req) {
+    resource function post get5XX(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.statusCode = 501;
         response.setTextPayload("data-binding-failed-with-501");
         response.setHeader("X-Type", "test");
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
-    resource function get get4XX(http:Caller caller, http:Request req) {
+    resource function get get4XX(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.statusCode = 400;
         response.setTextPayload("data-binding-failed-due-to-bad-request");
-        error? result = caller->respond(response);
+        return caller->respond(response);
     }
 
     resource function get xmltype() returns http:NotFound {
@@ -416,9 +411,9 @@ service /backend on clientDBBackendListener {
 
 service /redirect1 on clientDBBackendListener2 {
 
-    resource function 'default .(http:Caller caller, http:Request req) {
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        error? result = caller->redirect(res, http:REDIRECT_SEE_OTHER_303,
+        return caller->redirect(res, http:REDIRECT_SEE_OTHER_303,
                         ["http://localhost:" + clientDatabindingTestPort2.toString() + "/backend/getJson"]);
     }
 }

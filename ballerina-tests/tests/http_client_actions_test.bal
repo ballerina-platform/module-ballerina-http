@@ -106,13 +106,13 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
     }
 
     // withWhitespacedExpression
-    resource function 'default [string id](http:Caller caller, http:Request request) {
-        error? res = caller->respond(id);
+    resource function 'default [string id](http:Caller caller, http:Request request) returns error? {
+        return caller->respond(id);
     }
 
     // withWhitespacedLiteral
-    resource function 'default a/b\ c/d(http:Caller caller, http:Request request) {
-        error? res = caller->respond("dispatched to white_spaced literal");
+    resource function 'default a/b\ c/d(http:Caller caller, http:Request request) returns error? {
+        return caller->respond("dispatched to white_spaced literal");
     }
 }
 
@@ -410,14 +410,12 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
 
     resource function get testPathWithWhitespacesForLiteral(http:Caller caller) returns error? {
         http:Response response = check clientEP2->get("/httpClientActionBE/a/b c/d ");
-        error? res = caller->respond( response);
-        return;
+        return caller->respond( response);
     }
 
     resource function get testClientPathWithWhitespacesForExpression(http:Caller caller) returns error? {
         http:Response response = check clientEP2->get("/httpClientActionBE/dispatched to white_spaced expression ");
-        error? res = caller->respond( response);
-        return;
+        return caller->respond( response);
     }
 }
 

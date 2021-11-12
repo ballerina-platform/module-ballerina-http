@@ -29,7 +29,6 @@ final http:Client priorOff = check new("http://localhost:14555", { httpVersion: 
 service /general on ep {
 
     resource function get serverDown(http:Caller caller, http:Request req) {
-        http:Request serviceReq = new;
         http:Response|error result1 = priorOn->get("/bogusResource");
         http:Response|error result2 = priorOff->get("/bogusResource");
         string response = handleResponse(result1) + "--" + handleResponse(result2);

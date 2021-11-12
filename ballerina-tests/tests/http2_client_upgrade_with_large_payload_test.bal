@@ -22,18 +22,18 @@ final http:Client eP1 = check new("http://localhost:9106", { httpVersion: "2.0" 
 
 service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
 
-    resource function post echoResource(http:Caller caller, http:Request request) {
+    resource function post echoResource(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var jsonPayload = request.getJsonPayload();
         if (jsonPayload is json) {
             response.setPayload(jsonPayload);
-            error? result = caller->respond(response);
+            return caller->respond(response);
         } else {
             log:printError("Error getting the json payload");
         }
     }
 
-    resource function get initial(http:Caller caller, http:Request request) {
+    resource function get initial(http:Caller caller, http:Request request) returns error? {
         http:Request req = new;
         json jsonPayload = {
              "web-app":{
@@ -140,7 +140,7 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
         if (finalResponse is error) {
             log:printError("Error sending response", 'error = finalResponse);
         } else {
-            error? result = caller->respond(finalResponse);
+            return caller->respond(finalResponse);
         }
     }
 }

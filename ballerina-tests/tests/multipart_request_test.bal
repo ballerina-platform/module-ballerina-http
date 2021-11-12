@@ -266,7 +266,6 @@ function testMultiplePartsForNewSubTypes() {
 
 @test:Config {}
 function testMultipartsWithEmptyBody() {
-    mime:Entity textPart2 = new;
     http:Request request = new;
     request.setHeader("contentType", mime:MULTIPART_MIXED);
     http:Response|error response = multipartReqClient->post("/test/emptyparts", request);

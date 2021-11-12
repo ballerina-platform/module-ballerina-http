@@ -16,6 +16,7 @@
 
 import ballerina/test;
 import ballerina/http;
+import ballerina/log;
 import ballerina/lang.runtime as runtime;
 
 listener http:Listener payloadAccessAfterRespondListener = new(payloadAccessAfterRespondingTestPort);
@@ -30,13 +31,26 @@ isolated error? requestBinaryPayloadError = ();
 service /passthrough on payloadAccessAfterRespondListener {
     resource function 'default . () returns string|error {
         json jsonStr = {a: "a", b: "b"};
-        json jsonPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getJson", jsonStr);
+        json|error jsonPayload = payloadAccessAfterRespondBackendClient->post("/backend/getJson", jsonStr);
+        if jsonPayload is error {
+            log:printError("Error reading payload", 'error = jsonPayload);
+        }
 
         xml xmlStr = xml `<name>Ballerina</name>`;
-        xml xmlPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getXml", xmlStr);
+        xml|error xmlPayload = payloadAccessAfterRespondBackendClient->post("/backend/getXml", xmlStr);
+        if xmlPayload is error {
+            log:printError("Error reading payload", 'error = xmlPayload);
+        }
 
-        string stringPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getString", "want string");
-        byte[] binaryPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getByteArray", "BinaryPayload is textVal".toBytes());
+        string|error stringPayload = payloadAccessAfterRespondBackendClient->post("/backend/getString", "want string");
+        if stringPayload is error {
+            log:printError("Error reading payload", 'error = stringPayload);
+        }
+        byte[]|error binaryPayload = payloadAccessAfterRespondBackendClient->post("/backend/getByteArray",
+            "BinaryPayload is textVal".toBytes());
+        if binaryPayload is error {
+            log:printError("Error reading payload", 'error = binaryPayload);
+        }
 
         return "Request Processed successfully";
     }
@@ -49,7 +63,6 @@ service /backend on payloadAccessAfterRespondListener {
         check caller->respond(response);
         json|error result = req.getJsonPayload();
         if result is error {
-            error err = result;
             lock {
                 requestJsonPayloadError = result;
             }
@@ -64,7 +77,6 @@ service /backend on payloadAccessAfterRespondListener {
         check caller->respond(response);
         xml|error result = req.getXmlPayload();
         if result is error {
-            error err = result;
             lock {
                 requestXmlPayloadError = result;
             }

@@ -262,10 +262,7 @@ service /echo44 on utmTestEP {
 service /echo55 on utmTestEP {
 
     resource function 'default foo/bar(http:Caller caller, http:Request req) {
-        map<string[]> params = req.getQueryParams();
-        string[]? foo = params["foo"];
         json responseJson = {"echo55":"echo55"};
-
         http:Response res = new;
         res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);

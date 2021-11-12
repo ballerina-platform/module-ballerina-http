@@ -18,24 +18,24 @@ import ballerina/http;
 import ballerina/test;
 
 service /initiatingService on new http:Listener(9107) {
-    resource function get initiatingResource(http:Caller caller, http:Request request) {
+    resource function get initiatingResource(http:Caller caller, http:Request request) returns error? {
         http:Client forwadingClient = checkpanic new("http://localhost:9108",
                                        {forwarded: "enable", httpVersion: "2.0",
                                         http2Settings: { http2PriorKnowledge: true }});
         http:Response|error responseFromForwardBackend = forwadingClient->execute("GET", "/forwardedBackend/forwardedResource", request);
         if (responseFromForwardBackend is http:Response) {
-            error? resultSentToClient = caller->respond(responseFromForwardBackend);
+            return caller->respond(responseFromForwardBackend);
         }
     }
 }
 
 service /forwardedBackend on new http:Listener(9108, {httpVersion: "2.0"}) {
-    resource function get forwardedResource(http:Caller caller, http:Request request) {
+    resource function get forwardedResource(http:Caller caller, http:Request request) returns error? {
         string header = checkpanic request.getHeader("forwarded");
         http:Response response = new();
         response.setHeader("forwarded", header);
         response.setPayload("forward is working");
-        error? resultSentToClient = caller->respond(response);
+        return caller->respond(response);
     }
 }
 

@@ -67,7 +67,6 @@ service /priorKnowledgeTestBackEnd on priorEp2 {
 @test:Config {}
 public function testPriorKnowledgeOn() {
     final http:Client clientEP = checkpanic new("http://localhost:9111");
-    http:Request req = new;
     http:Response|error resp = clientEP->get("/priorKnowledge/on");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "Connection and upgrade headers are not present--Prior knowledge is enabled");
