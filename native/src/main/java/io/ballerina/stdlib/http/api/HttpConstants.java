@@ -365,7 +365,7 @@ public class HttpConstants {
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;
-    public static final BString SERVICE_ENDPOINT_CONFIG = StringUtils.fromString("config");
+    public static final String SERVICE_ENDPOINT_CONFIG = "config";
     public static final BString SERVER_NAME = StringUtils.fromString("server");
     public static final String LISTENER_CONFIGURATION = "ListenerConfiguration";
 
