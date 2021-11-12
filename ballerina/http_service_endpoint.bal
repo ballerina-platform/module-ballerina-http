@@ -87,7 +87,9 @@ public isolated class Listener {
     #
     # + return - The HTTP listener port
     public isolated function getPort() returns int {
-        return self.port;
+        lock {
+            return self.port;
+        }
     }
 
     # Retrieves the `InferredListenerConfiguration` of the HTTP listener.
