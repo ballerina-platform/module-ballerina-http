@@ -29,7 +29,7 @@ public class InterceptorService implements Service {
     private InterceptorResource interceptorResource;
     private List<String> allAllowedMethods;
     private String basePath;
-    private URITemplate<InterceptorResource, HttpCarbonMessage> uriTemplate;
+    private URITemplate<Resource, HttpCarbonMessage> uriTemplate;
     private String hostName;
     private String serviceType;
 
@@ -50,8 +50,14 @@ public class InterceptorService implements Service {
         this.interceptorResource = resource;
     }
 
+    @Override
     public List<String> getAllAllowedMethods() {
         return allAllowedMethods;
+    }
+
+    @Override
+    public String getIntrospectionResourcePathHeaderValue() {
+        return null;
     }
 
     public void setAllAllowedMethods(List<String> allAllowedMethods) {
@@ -66,6 +72,7 @@ public class InterceptorService implements Service {
         return hostName;
     }
 
+    @Override
     public String getBasePath() {
         return basePath;
     }
@@ -78,21 +85,25 @@ public class InterceptorService implements Service {
         return this.serviceType;
     }
 
+    @Override
     public BMap<BString, Object> getCompressionConfig() {
         return null;
     }
 
+    @Override
     public String getChunkingConfig() {
         return null;
     }
 
+    @Override
     public String getMediaTypeSubtypePrefix() {
         return null;
     }
 
-    public URITemplate<InterceptorResource, HttpCarbonMessage> getUriTemplate() throws URITemplateException {
+    @Override
+    public URITemplate<Resource, HttpCarbonMessage> getUriTemplate() throws URITemplateException {
         if (uriTemplate == null) {
-            uriTemplate = new URITemplate<>(new Literal<>(new InterceptorResourceDataElement(), "/"));
+            uriTemplate = new URITemplate<>(new Literal<>(new ResourceDataElement(), "/"));
         }
         return uriTemplate;
     }
@@ -130,7 +141,7 @@ public class InterceptorService implements Service {
                                                       InterceptorResource httpInterceptorResource) {
         try {
             httpService.getUriTemplate().parse(httpInterceptorResource.getPath(), httpInterceptorResource,
-                    new InterceptorResourceElementFactory());
+                    new ResourceElementFactory());
         } catch (URITemplateException | UnsupportedEncodingException e) {
             throw new BallerinaConnectorException(e.getMessage());
         }

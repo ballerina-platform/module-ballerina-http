@@ -92,6 +92,7 @@ public class HttpResource implements Resource {
 
     }
 
+    @Override
     public String getName() {
         return balResource.getName();
     }
@@ -100,18 +101,22 @@ public class HttpResource implements Resource {
         return balResource.getParentObjectType().getName();
     }
 
+    @Override
     public ParamHandler getParamHandler() {
         return paramHandler;
     }
 
+    @Override
     public HttpService getParentService() {
         return parentService;
     }
 
+    @Override
     public ResourceMethodType getBalResource() {
         return (ResourceMethodType) balResource;
     }
 
+    @Override
     public List<String> getMethods() {
         return methods;
     }
@@ -156,6 +161,7 @@ public class HttpResource implements Resource {
         this.pathParamCount = count;
     }
 
+    @Override
     public List<String> getConsumes() {
         return consumes;
     }
@@ -164,6 +170,7 @@ public class HttpResource implements Resource {
         this.consumes = consumes;
     }
 
+    @Override
     public List<String> getProduces() {
         return produces;
     }
@@ -180,6 +187,7 @@ public class HttpResource implements Resource {
         }
     }
 
+    @Override
     public List<String> getProducesSubTypes() {
         return producesSubTypes;
     }
@@ -188,6 +196,7 @@ public class HttpResource implements Resource {
         this.producesSubTypes = producesSubTypes;
     }
 
+    @Override
     public CorsHeaders getCorsHeaders() {
         return corsHeaders;
     }
@@ -208,6 +217,7 @@ public class HttpResource implements Resource {
         this.treatNilableAsOptional = treatNilableAsOptional;
     }
 
+    @Override
     public boolean isTreatNilableAsOptional() {
         return treatNilableAsOptional;
     }
@@ -278,6 +288,7 @@ public class HttpResource implements Resource {
         paramHandler = new ParamHandler(getBalResource(), this.pathParamCount);
     }
 
+    @Override
     public String getWildcardToken() {
         return wildcardToken;
     }

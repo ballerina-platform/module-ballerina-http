@@ -32,16 +32,6 @@ public class HTTPInterceptorServicesRegistry {
     private String servicesType = HttpConstants.HTTP_NORMAL;
 
     /**
-     * Get ServiceInfo instance for given interface and base path.
-     *
-     * @param basepath basePath of the service.
-     * @return the {@link InterceptorService} instance if exist else null
-     */
-    public InterceptorService getServiceInfo(String basepath) {
-        return servicesByBasePath.get(basepath);
-    }
-
-    /**
      * Get ServicesMapHolder for given host name.
      *
      * @param hostName of the service
@@ -161,39 +151,5 @@ public class HTTPInterceptorServicesRegistry {
             this.servicesByBasePath = servicesByBasePath;
             this.sortedServiceURIs = sortedServiceURIs;
         }
-    }
-
-    /**
-     * Un-register a service from the map.
-     *
-     * @param service requested service to be unregistered.
-     */
-    public void unRegisterService(BObject service) {
-        String basePath = (String) service.getNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH);
-        if (basePath == null) {
-            logger.error("service is not attached to the listener");
-            return;
-        }
-        InterceptorService interceptorService = InterceptorService.buildHttpService(service, basePath,
-                this.getServicesType());
-        String hostName = interceptorService.getHostName();
-        ServicesMapHolder servicesMapHolder = servicesMapByHost.get(hostName);
-        if (servicesMapHolder == null) {
-            logger.error(basePath + " service is not attached to the listener");
-            return;
-        }
-        servicesByBasePath = getServicesByHost(hostName);
-        sortedServiceURIs = getSortedServiceURIsByHost(hostName);
-
-        if (!servicesByBasePath.containsKey(basePath)) {
-            logger.error(basePath + " service is not attached to the listener");
-            return;
-        }
-        servicesByBasePath.remove(basePath);
-        sortedServiceURIs.remove(basePath);
-        if (logger.isDebugEnabled()) {
-            logger.debug(String.format("Service detached : %s with context %s", service.getType().getName(), basePath));
-        }
-        sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
     }
 }

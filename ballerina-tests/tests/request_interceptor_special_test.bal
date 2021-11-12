@@ -114,3 +114,28 @@ function testRequestInterceptorWithoutCtxNext() returns error? {
     http:Response res = check requestInterceptorWithoutCtxNextClientEP->get("/");
     test:assertEquals(res.statusCode, 202);
 }
+
+final http:Client requestInterceptorSkipClientEP = check new("http://localhost:" + requestInterceptorSkipTestPort.toString());
+
+listener http:Listener requestInterceptorSkipServerEP = new(requestInterceptorSkipTestPort, config = {
+        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSkip(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
+    });
+
+service / on requestInterceptorSkipServerEP {
+
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorSkip() returns error? {
+    http:Response res = check requestInterceptorSkipClientEP->get("/");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "skip-interceptor");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+}

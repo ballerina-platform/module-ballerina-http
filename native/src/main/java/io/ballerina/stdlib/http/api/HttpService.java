@@ -68,7 +68,7 @@ public class HttpService implements Service {
     private List<String> allAllowedMethods;
     private String basePath;
     private CorsHeaders corsHeaders;
-    private URITemplate<HttpResource, HttpCarbonMessage> uriTemplate;
+    private URITemplate<Resource, HttpCarbonMessage> uriTemplate;
     private boolean keepAlive = true; //default behavior
     private BMap<BString, Object> compression;
     private String hostName;
@@ -99,6 +99,7 @@ public class HttpService implements Service {
         this.compression = compression;
     }
 
+    @Override
     public BMap<BString, Object> getCompressionConfig() {
         return this.compression;
     }
@@ -107,6 +108,7 @@ public class HttpService implements Service {
         this.chunkingConfig = chunkingConfig;
     }
 
+    @Override
     public String getChunkingConfig() {
         return chunkingConfig;
     }
@@ -131,6 +133,7 @@ public class HttpService implements Service {
         this.resources = resources;
     }
 
+    @Override
     public List<String> getAllAllowedMethods() {
         return allAllowedMethods;
     }
@@ -151,6 +154,7 @@ public class HttpService implements Service {
         this.mediaTypeSubtypePrefix = mediaTypeSubtypePrefix;
     }
 
+    @Override
     public String getMediaTypeSubtypePrefix() {
         return mediaTypeSubtypePrefix;
     }
@@ -163,6 +167,7 @@ public class HttpService implements Service {
         return treatNilableAsOptional;
     }
 
+    @Override
     public String getBasePath() {
         return basePath;
     }
@@ -194,9 +199,10 @@ public class HttpService implements Service {
         }
     }
 
-    public URITemplate<HttpResource, HttpCarbonMessage> getUriTemplate() throws URITemplateException {
+    @Override
+    public URITemplate<Resource, HttpCarbonMessage> getUriTemplate() throws URITemplateException {
         if (uriTemplate == null) {
-            uriTemplate = new URITemplate<>(new Literal<>(new HttpResourceDataElement(), "/"));
+            uriTemplate = new URITemplate<>(new Literal<>(new ResourceDataElement(), "/"));
         }
         return uriTemplate;
     }
@@ -247,7 +253,7 @@ public class HttpService implements Service {
     private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,
                                            HttpResource httpResource) {
         try {
-            httpService.getUriTemplate().parse(httpResource.getPath(), httpResource, new HttpResourceElementFactory());
+            httpService.getUriTemplate().parse(httpResource.getPath(), httpResource, new ResourceElementFactory());
         } catch (URITemplateException | UnsupportedEncodingException e) {
             throw new BallerinaConnectorException(e.getMessage());
         }
@@ -266,6 +272,7 @@ public class HttpService implements Service {
         return (BMap) (service.getType()).getAnnotation(StringUtils.fromString(key + ":" + annotationName));
     }
 
+    @Override
     public String getIntrospectionResourcePathHeaderValue() {
         return this.introspectionResourcePath;
     }

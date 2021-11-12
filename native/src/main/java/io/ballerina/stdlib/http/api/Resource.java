@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface Resource {
 
-    public List<String> getMethods();
+    List<String> getMethods();
 
     ParamHandler getParamHandler();
 
@@ -21,4 +21,14 @@ public interface Resource {
     String getWildcardToken();
 
     Service getParentService();
+
+    List<String> getConsumes();
+
+    List<String> getProduces();
+
+    List<String> getProducesSubTypes();
+
+    String getName();
+
+    Object getCorsHeaders();
 }

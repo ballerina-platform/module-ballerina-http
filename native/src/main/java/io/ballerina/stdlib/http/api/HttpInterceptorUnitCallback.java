@@ -138,8 +138,6 @@ public class HttpInterceptorUnitCallback implements Callback {
                             "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
                     sendFailureResponse(err);
                 }
-            } else {
-                sendRequestToNextService();
             }
         } else {
             BError err = HttpUtil.createHttpError("no interceptor service reference found in the " +
@@ -147,47 +145,6 @@ public class HttpInterceptorUnitCallback implements Callback {
             sendFailureResponse(err);
         }
     }
-
-//    private void validateResponseAndProceed(Object result) {
-//        int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
-//        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
-//        BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
-//        boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
-//
-//        if (alreadyResponded(result)) {
-//            if (nextCalled) {
-//                sendRequestToNextService();
-//            }
-//            return;
-//        }
-//
-//        if (result == null) {
-//            if (nextCalled) {
-//                sendRequestToNextService();
-//            }
-//            returnEmptyResponse();
-//            return;
-//        }
-//
-//        if (interceptors != null) {
-//            if (interceptorId < interceptors.size()) {
-//                Object interceptor = interceptors.get(interceptorId);
-//                if (result.equals(interceptor)) {
-//                    sendRequestToNextService();
-//                } else {
-//                    BError err = HttpUtil.createHttpError("next interceptor service did not match " +
-//                            "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
-//                    sendFailureResponse(err);
-//                }
-//            } else {
-//                sendRequestToNextService();
-//            }
-//        } else {
-//            BError err = HttpUtil.createHttpError("no interceptor service reference found in the " +
-//                    "request context", HttpErrorType.GENERIC_LISTENER_ERROR);
-//            sendFailureResponse(err);
-//        }
-//    }
 
     private void returnEmptyResponse() {
         Object[] paramFeed = new Object[6];

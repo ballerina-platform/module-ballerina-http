@@ -48,14 +48,22 @@ public class InterceptorResource implements Resource {
         }
     }
 
+    @Override
     public String getName() {
         return balResource.getName();
     }
 
+    @Override
+    public Object getCorsHeaders() {
+        return null;
+    }
+
+    @Override
     public ParamHandler getParamHandler() {
         return paramHandler;
     }
 
+    @Override
     public InterceptorService getParentService() {
         return parentService;
     }
@@ -64,8 +72,24 @@ public class InterceptorResource implements Resource {
         return (ResourceMethodType) balResource;
     }
 
+    @Override
     public List<String> getMethods() {
         return methods;
+    }
+
+    @Override
+    public List<String> getConsumes() {
+        return null;
+    }
+
+    @Override
+    public List<String> getProduces() {
+        return null;
+    }
+
+    @Override
+    public List<String> getProducesSubTypes() {
+        return null;
     }
 
     private void validateAndPopulateMethod() {
@@ -118,6 +142,7 @@ public class InterceptorResource implements Resource {
         this.pathParamCount = count;
     }
 
+    @Override
     public boolean isTreatNilableAsOptional() {
         return treatNilableAsOptional;
     }
@@ -158,6 +183,7 @@ public class InterceptorResource implements Resource {
         paramHandler = new ParamHandler(getBalResource(), this.pathParamCount);
     }
 
+    @Override
     public String getWildcardToken() {
         return wildcardToken;
     }
