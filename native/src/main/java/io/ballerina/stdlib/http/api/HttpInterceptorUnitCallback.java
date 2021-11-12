@@ -141,10 +141,6 @@ public class HttpInterceptorUnitCallback implements Callback {
                     sendFailureResponse(err);
                 }
             }
-        } else {
-            BError err = HttpUtil.createHttpError("no interceptor service reference found in the " +
-                    "request context", HttpErrorType.GENERIC_LISTENER_ERROR);
-            sendFailureResponse(err);
         }
     }
 
