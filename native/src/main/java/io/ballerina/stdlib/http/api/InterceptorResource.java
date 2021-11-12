@@ -1,7 +1,29 @@
+/*
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.types.ErrorType;
 import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.NullType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
+import io.ballerina.runtime.api.types.ServiceType;
+import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -189,12 +211,36 @@ public class InterceptorResource implements Resource {
     }
 
     private void validateReturnType() {
-        String returnTypeString = getBalResource().getType().getReturnType().toString();
-        // Have to define this properly
-        if (!(returnTypeString.equals("(ballerina/http:2:NextService|error)?") || returnTypeString.equals("error") ||
-                returnTypeString.equals("error?") || returnTypeString.equals("()"))) {
+        Type returnType = getBalResource().getType().getReturnType();
+        if (!(checkReturnType(returnType))) {
             throw new BallerinaConnectorException("interceptor resources are not allowed to return " +
-                    returnTypeString);
+                    returnType.toString());
+        }
+    }
+
+    private boolean checkReturnType(Type returnType) {
+        if (returnType instanceof UnionType) {
+            List<Type> members = ((UnionType) returnType).getMemberTypes();
+            for (Type member : members) {
+                if (!checkReturnTypeForObject(member)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return checkReturnTypeForObject(returnType);
+        }
+    }
+
+    private boolean checkReturnTypeForObject(Type returnType) {
+        if (returnType instanceof ServiceType) {
+            return true;
+        } else if (returnType instanceof ErrorType) {
+            return true;
+        } else if (returnType instanceof NullType) {
+            return true;
+        } else {
+            return false;
         }
     }
 }
