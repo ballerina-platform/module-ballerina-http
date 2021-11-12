@@ -130,7 +130,7 @@ public isolated class CsvPersistentCookieHandler {
                         return error CookieHandlingError("Error in reading the csv file", tblResult);
                     }
                 }
-                var _ = self.cookiesTable.remove([name, domain, path]);
+                _ = self.cookiesTable.remove([name, domain, path]);
                 error? removeResults = file:remove(self.fileName);
                 if (removeResults is error) {
                     return error CookieHandlingError("Error in removing the csv file", removeResults);

@@ -269,7 +269,6 @@ function testDataBindingCompatiblePayload() {
 //Test data binding without a payload
 @test:Config {}
 function testDataBindingWithoutPayload() {
-    http:Request req = new;
     http:Response|error response = dataBindingClient->get("/echo/body1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
@@ -307,7 +306,6 @@ function testDataBindingIncompatibleStructPayload() {
 
 @test:Config {}
 function testDataBindingWithEmptyJsonPayload() {
-    http:Request req = new;
     http:Response|error response = dataBindingClient->get("/echo/body3");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");

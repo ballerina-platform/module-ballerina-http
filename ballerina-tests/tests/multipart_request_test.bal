@@ -268,7 +268,6 @@ function testMultiplePartsForNewSubTypes() {
 function testMultipartsWithEmptyBody() {
     mime:Entity textPart2 = new;
     http:Request request = new;
-    mime:Entity[] bodyParts = [textPart2];
     request.setHeader("contentType", mime:MULTIPART_MIXED);
     http:Response|error response = multipartReqClient->post("/test/emptyparts", request);
     if (response is http:Response) {
@@ -520,7 +519,7 @@ function testMultiplePartsWithMultipleBodyTypesIncludingStreams() returns error?
     if (response is http:Response) {
         assertMultipartResponse(response, " -- Ballerina xml file part -- jsonPart -- Ballerina text body part "
               + "-- Ballerina binary file part");
-        close(byteChannel);
+        check close(byteChannel);
     } else {
         test:assertFail(msg = errorMessage + response.message());
     }
@@ -568,9 +567,9 @@ function getContentDispositionForGivenDisposition(string partName, string dispos
     return contentDisposition;
 }
 
-function close(io:ReadableByteChannel|io:ReadableCharacterChannel ch) {
+function close(io:ReadableByteChannel|io:ReadableCharacterChannel ch) returns error? {
     object {
         public function close() returns error?;
     } channelResult = ch;
-    error? cr = channelResult.close();
+    return channelResult.close();
 }

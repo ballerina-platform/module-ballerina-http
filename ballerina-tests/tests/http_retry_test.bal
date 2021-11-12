@@ -230,12 +230,18 @@ service /mockHelloService on retryTestserviceEndpoint1 {
                                     // When performing passthrough scenarios, message needs to be built before
                                     // invoking the endpoint to create a message datasource.
                                     byte[]|error childBlobContent = childPart.getByteArray();
+                                    if childBlobContent is error {
+                                        log:printError("Error reading payload", 'error = childBlobContent);
+                                    }
                                 }
                                 io:println(bodyPart.getContentType());
                                 bodyPart.setBodyParts(childParts, bodyPart.getContentType());
                             }
                         } else {
                             byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
+                            if bodyPartBlobContent is error {
+                                log:printError("Error reading payload", 'error = bodyPartBlobContent);
+                            }
                         }
                     }
                     response.setBodyParts(bodyParts, req.getContentType());
@@ -261,7 +267,6 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             count = httpGetRetryCount;
         }
         waitForRetry(count);
-        http:Response res = new;
         error? responseToCaller = caller->respond("HTTP GET method invocation is successful");
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
