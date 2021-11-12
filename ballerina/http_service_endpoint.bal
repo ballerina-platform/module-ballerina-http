@@ -158,6 +158,7 @@ public type Local record {|
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
+# + interceptors - An array of interceptor services
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
@@ -166,6 +167,7 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
+    (RequestInterceptor|RequestErrorInterceptor)[]? interceptors = ();
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.

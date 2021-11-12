@@ -48,7 +48,7 @@ import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailab
  *
  * @since 0.94
  */
-public class HttpResource {
+public class HttpResource implements Resource {
 
     private static final Logger log = LoggerFactory.getLogger(HttpResource.class);
 
@@ -92,6 +92,7 @@ public class HttpResource {
 
     }
 
+    @Override
     public String getName() {
         return balResource.getName();
     }
@@ -100,18 +101,22 @@ public class HttpResource {
         return balResource.getParentObjectType().getName();
     }
 
+    @Override
     public ParamHandler getParamHandler() {
         return paramHandler;
     }
 
+    @Override
     public HttpService getParentService() {
         return parentService;
     }
 
+    @Override
     public ResourceMethodType getBalResource() {
         return (ResourceMethodType) balResource;
     }
 
+    @Override
     public List<String> getMethods() {
         return methods;
     }
@@ -156,6 +161,7 @@ public class HttpResource {
         this.pathParamCount = count;
     }
 
+    @Override
     public List<String> getConsumes() {
         return consumes;
     }
@@ -164,6 +170,7 @@ public class HttpResource {
         this.consumes = consumes;
     }
 
+    @Override
     public List<String> getProduces() {
         return produces;
     }
@@ -180,6 +187,7 @@ public class HttpResource {
         }
     }
 
+    @Override
     public List<String> getProducesSubTypes() {
         return producesSubTypes;
     }
@@ -188,6 +196,7 @@ public class HttpResource {
         this.producesSubTypes = producesSubTypes;
     }
 
+    @Override
     public CorsHeaders getCorsHeaders() {
         return corsHeaders;
     }
@@ -208,6 +217,7 @@ public class HttpResource {
         this.treatNilableAsOptional = treatNilableAsOptional;
     }
 
+    @Override
     public boolean isTreatNilableAsOptional() {
         return treatNilableAsOptional;
     }
@@ -278,7 +288,8 @@ public class HttpResource {
         paramHandler = new ParamHandler(getBalResource(), this.pathParamCount);
     }
 
-    String getWildcardToken() {
+    @Override
+    public String getWildcardToken() {
         return wildcardToken;
     }
 

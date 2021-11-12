@@ -20,8 +20,11 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.TypeId;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -41,6 +44,7 @@ import io.ballerina.stdlib.http.api.client.caching.RequestCacheControlObj;
 import io.ballerina.stdlib.http.api.client.caching.ResponseCacheControlObj;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
+import io.ballerina.stdlib.http.api.service.endpoint.Register;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
@@ -129,6 +133,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_PRO
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
+import static io.ballerina.stdlib.http.api.HttpConstants.SERVICE_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
@@ -216,6 +221,7 @@ public class HttpUtil {
             ((HttpHeaders) messageObj.getNativeData(HTTP_HEADERS)).set(HttpHeaderNames.CONTENT_TYPE.toString(),
                                                                                      contentType);
         }
+        httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, entityObj);
         messageObj.set(isRequest ? REQUEST_ENTITY_FIELD : RESPONSE_ENTITY_FIELD, entityObj);
         messageObj.addNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET, checkEntityBodyAvailability(entityObj));
         if (updateAllHeaders) {
@@ -236,6 +242,8 @@ public class HttpUtil {
     public static BObject getEntity(BObject messageObj, boolean isRequest, boolean entityBodyRequired,
                                         boolean entityHeadersRequired) {
         BObject entity = (BObject) messageObj.get(isRequest ? REQUEST_ENTITY_FIELD : RESPONSE_ENTITY_FIELD);
+        HttpCarbonMessage httpCarbonMessage = HttpUtil.getCarbonMsg(messageObj,
+                HttpUtil.createHttpCarbonMessage(isRequest));
         boolean byteChannelAlreadySet = false;
 
         if (messageObj.getNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET) != null) {
@@ -247,6 +255,7 @@ public class HttpUtil {
         if (entityHeadersRequired) {
             populateEntityHeaders(messageObj, entity);
         }
+        httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, entity);
         return entity;
     }
 
@@ -263,6 +272,14 @@ public class HttpUtil {
         HttpCarbonMessage httpCarbonMessage = HttpUtil
                 .getCarbonMsg(messageObj, HttpUtil.createHttpCarbonMessage(request));
         String contentType = httpCarbonMessage.getHeader(HttpHeaderNames.CONTENT_TYPE.toString());
+        // Checking whether the call comes after an interceptor service execution
+        if (httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ) != null) {
+            messageObj.set(request ? REQUEST_ENTITY_FIELD : RESPONSE_ENTITY_FIELD, entityObj);
+            messageObj.addNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET, true);
+            // TODO : Have to check whether we need to set this
+            entityObj.addNativeData(HttpConstants.TRANSPORT_MESSAGE, httpCarbonMessage);
+            return;
+        }
         //TODO check following condition related to streaming
         if (MimeUtil.isNotNullAndEmpty(contentType) && contentType.startsWith(MULTIPART_AS_PRIMARY_TYPE)
                 && !streaming) {
@@ -353,7 +370,7 @@ public class HttpUtil {
         HttpUtil.checkEntityAvailability(outboundResponseObj);
         HttpUtil.addCorsHeaders(inboundRequestMsg, outboundResponseMsg);
         HttpUtil.enrichOutboundMessage(outboundResponseMsg, outboundResponseObj);
-        HttpService httpService = (HttpService) connectionObj.getNativeData(HttpConstants.HTTP_SERVICE);
+        Service httpService = (Service) connectionObj.getNativeData(HttpConstants.HTTP_SERVICE);
         HttpUtil.setCompressionHeaders(httpService.getCompressionConfig(), inboundRequestMsg, outboundResponseMsg);
         HttpUtil.setChunkingHeader(httpService.getChunkingConfig(), outboundResponseMsg);
         if (httpService.getMediaTypeSubtypePrefix() != null) {
@@ -727,11 +744,11 @@ public class HttpUtil {
      * Populates the HTTP caller with connection information.
      * @param httpCaller   Represents the HTTP caller
      * @param inboundMsg   Represents the carbon message
-     * @param httpResource Represents the Http Resource
+     * @param resource Represents the Http Resource
      * @param config       Represents the service endpoint configuration
      */
     public static void enrichHttpCallerWithConnectionInfo(BObject httpCaller, HttpCarbonMessage inboundMsg,
-                                                          HttpResource httpResource, BMap config) {
+                                                          Resource resource, BMap config) {
         BMap<BString, Object> remote = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.REMOTE);
         BMap<BString, Object> local = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LOCAL);
 
@@ -757,7 +774,7 @@ public class HttpUtil {
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD,
                        fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_CONFIG_FIELD, config);
-        httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, httpResource.getParentService());
+        httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, resource.getParentService());
         httpCaller.addNativeData(HttpConstants.REMOTE_SOCKET_ADDRESS, remoteSocketAddress);
     }
 
@@ -1483,6 +1500,37 @@ public class HttpUtil {
         return listenerConfiguration;
     }
 
+    public static void getAndPopulateInterceptorsServices(BObject serviceEndpoint, Runtime runtime) {
+        BMap endpointConfig = (BMap) serviceEndpoint.getNativeData(SERVICE_ENDPOINT_CONFIG);
+        Object[] interceptors = {};
+        List<BObject> interceptorServices = new ArrayList<>();
+        BArray interceptorsArray = endpointConfig.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
+
+        if (interceptorsArray != null) {
+            interceptors = interceptorsArray.getValues();
+        }
+
+        for (Object interceptor: interceptors) {
+            if (interceptor == null) {
+                break;
+            }
+            interceptorServices.add((BObject) interceptor);
+        }
+
+        Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
+        List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
+                                                    = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
+
+        // Registering all the interceptor services in separate service registries
+        for (int i = 0; i < interceptorServices.size(); i++) {
+            BObject interceptorService = interceptorServices.get(i);
+            HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
+            servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
+            servicesRegistry.registerInterceptorService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH);
+            servicesRegistry.setRuntime(runtime);
+        }
+    }
+
     public static void setInboundMgsSizeValidationConfig(long maxInitialLineLength, long maxHeaderSize,
                                                          long maxEntityBodySize,
                                                          InboundMsgSizeValidationConfig sizeValidationConfig) {
@@ -1729,6 +1777,27 @@ public class HttpUtil {
         } catch (UnsupportedEncodingException e) {
             throw new BallerinaConnectorException("Error while encoding value: " + value, e);
         }
+    }
+
+    public static String getInterceptorServiceType(BObject interceptorService) {
+        String interceptorServiceType = null;
+        ObjectType objectType = interceptorService.getType();
+        List<TypeId> typeIdList = objectType.getTypeIdSet().getIds();
+        for (TypeId typeId : typeIdList) {
+            switch (typeId.getName()) {
+                case HttpConstants.HTTP_REQUEST_INTERCEPTOR:
+                    interceptorServiceType = interceptorServiceType == null ?
+                            HttpConstants.HTTP_REQUEST_INTERCEPTOR : null;
+                    break;
+                case HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR:
+                    interceptorServiceType = interceptorServiceType == null ?
+                            HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR : null;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return interceptorServiceType;
     }
 
     private HttpUtil() {
