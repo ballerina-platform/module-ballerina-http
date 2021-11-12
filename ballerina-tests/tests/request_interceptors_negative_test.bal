@@ -56,3 +56,33 @@ function testRequestInterceptorNegative2() returns error? {
     test:assertEquals(res.statusCode, 500);
     assertTextPayload(check res.getTextPayload(), "next interceptor service did not match with the configuration");
 }
+
+final http:Client requestInterceptorNegativeClientEP3 = check new("http://localhost:" + requestInterceptorNegativeTestPort3.toString());
+
+listener http:Listener requestInterceptorNegativeServerEP3 = new(requestInterceptorNegativeTestPort3, config = {
+    interceptors : [new DefaultRequestInterceptor()]
+});
+
+service / on requestInterceptorNegativeServerEP3 {
+
+    resource function 'default .(http:RequestContext ctx, http:Caller caller) returns error? {
+       string|error val = ctx.get("last-interceptor").ensureType(string);
+       string header = val is string ? val : "main-service";
+       http:Response res = new();
+       res.setHeader("last-interceptor", header);
+       http:NextService|error? nextService = ctx.next();
+       if nextService is error {
+           res.setTextPayload(nextService.message());
+       } else {
+           res.setTextPayload("Response from resource - test");
+       }
+       check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorNegative3() returns error? {
+    http:Response res = check requestInterceptorNegativeClientEP3->get("/");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-interceptor");
+    assertTextPayload(check res.getTextPayload(), "illegal function invocation : next()");
+}

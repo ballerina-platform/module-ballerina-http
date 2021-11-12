@@ -279,6 +279,11 @@ public class HttpDispatcher {
                     if (requestCtx == null) {
                         requestCtx = createRequestContext(httpCarbonMessage, endpointConfig);
                     }
+                    if (resource instanceof InterceptorResource) {
+                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
+                    } else {
+                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, false);
+                    }
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;

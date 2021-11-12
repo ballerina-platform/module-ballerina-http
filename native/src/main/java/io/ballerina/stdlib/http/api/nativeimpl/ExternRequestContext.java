@@ -28,8 +28,12 @@ import io.ballerina.stdlib.http.api.HttpUtil;
  */
 public class ExternRequestContext {
     public static Object next(BObject requestCtx) {
-        BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
+        BArray interceptors = getInterceptors(requestCtx);
         if (interceptors != null) {
+            if (!isInterceptorService(requestCtx)) {
+                return HttpUtil.createHttpError("illegal function invocation : next()",
+                        HttpErrorType.GENERIC_LISTENER_ERROR);
+            }
             int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX) + 1;
             Object interceptor = null;
             requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, true);
@@ -47,5 +51,15 @@ public class ExternRequestContext {
             return HttpUtil.createHttpError("request context object does not contain the configured " +
                     "interceptors", HttpErrorType.GENERIC_LISTENER_ERROR);
         }
+    }
+
+    private static boolean isInterceptorService(BObject requestCtx) {
+        return requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE) != null &&
+                (boolean) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE);
+    }
+
+    private static BArray getInterceptors(BObject requestCtx) {
+        return requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS) == null ? null :
+                (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
     }
 }

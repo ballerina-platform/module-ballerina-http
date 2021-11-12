@@ -144,6 +144,7 @@ const int getRequestInterceptorBasePathTestPort = 9594;
 const int requestInterceptorSkipTestPort = 9595;
 const int requestInterceptorNegativeTestPort1 = 9596;
 const int requestInterceptorNegativeTestPort2 = 9597;
+const int requestInterceptorNegativeTestPort3 = 9598;
 
 //HTTP2
 const int serverPushTestPort1 = 9601;
