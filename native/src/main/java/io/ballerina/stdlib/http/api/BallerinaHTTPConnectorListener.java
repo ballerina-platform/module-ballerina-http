@@ -133,7 +133,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     @SuppressWarnings("unchecked")
     protected void extractPropertiesAndStartResourceExecution(HttpCarbonMessage inboundMessage,
-                                                               HttpResource httpResource) {
+                                                              HttpResource httpResource) {
         boolean isTransactionInfectable = httpResource.isTransactionInfectable();
         Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable);
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig);
@@ -204,7 +204,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
-        Runtime runtime = httpServicesRegistry.getRuntime();
+        Runtime runtime = servicesRegistry.getRuntime();
         Callback callback = new HttpInterceptorUnitCallback(inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
