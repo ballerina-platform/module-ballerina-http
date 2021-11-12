@@ -20,8 +20,8 @@ import ballerina/test;
 final http:Client defaultRequestInterceptorClientEP = check new("http://localhost:" + defaultRequestInterceptorTestPort.toString());
 
 listener http:Listener defaultRequestInterceptorServerEP = new(defaultRequestInterceptorTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor()]
+});
 
 service / on defaultRequestInterceptorServerEP {
 
@@ -50,8 +50,8 @@ function testDefaultRequestInterceptor() returns error? {
 final http:Client requestInterceptorReturnsErrorClientEP = check new("http://localhost:" + requestInterceptorReturnsErrorTestPort.toString());
 
 listener http:Listener requestInterceptorReturnsErrorServerEP = new(requestInterceptorReturnsErrorTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorReturnsError(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorReturnsError(), new LastRequestInterceptor()]
+});
 
 service / on requestInterceptorReturnsErrorServerEP {
 
@@ -70,8 +70,8 @@ function testrequestInterceptorReturnsError() returns error? {
 final http:Client requestErrorInterceptorClientEP = check new("http://localhost:" + requestErrorInterceptorTestPort.toString());
 
 listener http:Listener requestErrorInterceptorServerEP = new(requestErrorInterceptorTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorReturnsError(), new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorReturnsError(), new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()]
+});
 
 service / on requestErrorInterceptorServerEP {
 
@@ -99,8 +99,8 @@ function testRequestErrorInterceptor() returns error? {
 final http:Client requestInterceptorSetPayloadClientEP = check new("http://localhost:" + requestInterceptorSetPayloadTestPort.toString());
 
 listener http:Listener requestInterceptorSetPayloadServerEP = new(requestInterceptorSetPayloadTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSetPayload(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSetPayload(), new LastRequestInterceptor()]
+});
 
 service / on requestInterceptorSetPayloadServerEP {
 
@@ -131,8 +131,8 @@ function testRequestInterceptorSetPayload() returns error? {
 final http:Client requestInterceptorHttpVerbClientEP = check new("http://localhost:" + requestInterceptorHttpVerbTestPort.toString());
 
 listener http:Listener requestInterceptorHttpVerbServerEP = new(requestInterceptorHttpVerbTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptor(), new PostRequestInterceptor(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptor(), new PostRequestInterceptor(), new LastRequestInterceptor()]
+});
 
 service / on requestInterceptorHttpVerbServerEP {
 
@@ -161,8 +161,8 @@ function testRequestInterceptorHttpVerb() returns error? {
 final http:Client requestInterceptorBasePathClientEP = check new("http://localhost:" + requestInterceptorBasePathTestPort.toString());
 
 listener http:Listener requestInterceptorBasePathServerEP = new(requestInterceptorBasePathTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new DefaultRequestInterceptorBasePath(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new DefaultRequestInterceptorBasePath(), new LastRequestInterceptor()]
+});
 
 service / on requestInterceptorBasePathServerEP {
 
@@ -199,8 +199,8 @@ function testRequestInterceptorBasePath() returns error? {
 final http:Client getRequestInterceptorBasePathClientEP = check new("http://localhost:" + getRequestInterceptorBasePathTestPort.toString());
 
 listener http:Listener getRequestInterceptorBasePathServerEP = new(getRequestInterceptorBasePathTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptorBasePath(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptorBasePath(), new LastRequestInterceptor()]
+});
 
 service /foo on getRequestInterceptorBasePathServerEP {
 

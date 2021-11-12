@@ -20,8 +20,8 @@ import ballerina/test;
 final http:Client requestInterceptorWithCallerRespondClientEP = check new("http://localhost:" + requestInterceptorWithCallerRespondTestPort.toString());
 
 listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRepond(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRepond(), new LastRequestInterceptor()]
+});
 
 service / on requestInterceptorWithCallerRespondServerEP {
 
@@ -40,8 +40,8 @@ function testRequestInterceptorWithCallerRespond() returns error? {
 final http:Client requestInterceptorDataBindingClientEP1 = check new("http://localhost:" + requestInterceptorDataBindingTestPort1.toString());
 
 listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInterceptorDataBindingTestPort1, config = {
-        interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
+});
 
 service / on requestInterceptorDataBindingServerEP1 {
 
@@ -58,8 +58,8 @@ service / on requestInterceptorDataBindingServerEP1 {
 final http:Client requestInterceptorDataBindingClientEP2 = check new("http://localhost:" + requestInterceptorDataBindingTestPort2.toString());
 
 listener http:Listener requestInterceptorDataBindingServerEP2 = new(requestInterceptorDataBindingTestPort2, config = {
-        interceptors : [new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
+});
 
 service / on requestInterceptorDataBindingServerEP2 {
 
@@ -115,8 +115,8 @@ function testRequestInterceptorDataBindingWithLargePayload() returns error? {
 final http:Client requestInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + requestInterceptorWithoutCtxNextTestPort.toString());
 
 listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInterceptorWithoutCtxNextTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
+});
 
 service / on requestInterceptorWithoutCtxNextServerEP {
 
@@ -134,8 +134,8 @@ function testRequestInterceptorWithoutCtxNext() returns error? {
 final http:Client requestInterceptorSkipClientEP = check new("http://localhost:" + requestInterceptorSkipTestPort.toString());
 
 listener http:Listener requestInterceptorSkipServerEP = new(requestInterceptorSkipTestPort, config = {
-        interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSkip(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
-    });
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSkip(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
+});
 
 service / on requestInterceptorSkipServerEP {
 
