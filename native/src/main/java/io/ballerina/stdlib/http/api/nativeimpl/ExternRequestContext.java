@@ -15,7 +15,6 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-
 package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.values.BArray;
@@ -32,12 +31,18 @@ public class ExternRequestContext {
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
         if (interceptors != null) {
             int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX) + 1;
+            Object interceptor = null;
             requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, true);
-            requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
-            if (interceptorId < interceptors.size()) {
-                return interceptors.get(interceptorId);
+            while (interceptorId < interceptors.size()) {
+                interceptor = interceptors.get(interceptorId);
+                String interceptorType = HttpUtil.getInterceptorServiceType((BObject) interceptor);
+                if (interceptorType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR)) {
+                    break;
+                }
+                interceptorId += 1;
             }
-            return null;
+            requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
+            return interceptor;
         } else {
             return HttpUtil.createHttpError("request context object does not contain the configured " +
                     "interceptors", HttpErrorType.GENERIC_LISTENER_ERROR);

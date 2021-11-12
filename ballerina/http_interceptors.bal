@@ -25,4 +25,4 @@ public type RequestErrorInterceptor distinct service object {
 };
 
 # The return values from an interceptor service function  
-public type NextService RequestInterceptor|RequestErrorInterceptor|Service;
+public type NextService RequestInterceptor|Service;
