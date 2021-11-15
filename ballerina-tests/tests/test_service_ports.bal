@@ -145,15 +145,20 @@ const int requestInterceptorSkipTestPort = 9595;
 const int requestInterceptorNegativeTestPort1 = 9596;
 const int requestInterceptorNegativeTestPort2 = 9597;
 const int requestInterceptorNegativeTestPort3 = 9598;
+const int requestInterceptorCallerRespondContinueTestPort = 9599;
+const int requestInterceptorStringPayloadBindingTestPort = 9600;
+const int requestInterceptorRecordPayloadBindingTestPort = 9601;
+const int requestInterceptorRecordArrayPayloadBindingTestPort = 9602;
+const int requestInterceptorByteArrayPayloadBindingTestPort = 9603;
 
 //HTTP2
-const int serverPushTestPort1 = 9601;
-const int serverPushTestPort2 = 9602;
-const int http2RedirectTestPort1 = 9603;
-const int http2RedirectTestPort2 = 9604;
-const int http2RedirectTestPort3 = 9605;
-const int http2RetryFunctionTestPort1 = 9606;
-const int http2RetryFunctionTestPort2 = 9607;
+const int serverPushTestPort1 = 9701;
+const int serverPushTestPort2 = 9702;
+const int http2RedirectTestPort1 = 9703;
+const int http2RedirectTestPort2 = 9704;
+const int http2RedirectTestPort3 = 9705;
+const int http2RetryFunctionTestPort1 = 9706;
+const int http2RetryFunctionTestPort2 = 9707;
 
 //Security
 const int securedListenerPort = 9400;
