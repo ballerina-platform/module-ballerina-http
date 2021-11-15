@@ -65,6 +65,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
@@ -105,6 +106,7 @@ class HttpResourceValidator {
     private static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
         boolean callerPresent = false;
         boolean requestPresent = false;
+        boolean requestCtxPresent = false;
         boolean headersPresent = false;
         Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
         Location paramLocation = member.location();
@@ -165,6 +167,10 @@ class HttpResourceValidator {
                             case REQUEST_OBJ_NAME:
                                 requestPresent = isObjectPresent(ctx, paramLocation, requestPresent, paramName,
                                                                  HttpDiagnosticCodes.HTTP_116);
+                                break;
+                            case REQUEST_CONTEXT_OBJ_NAME:
+                                requestCtxPresent = isObjectPresent(ctx, paramLocation, requestCtxPresent, paramName,
+                                                                    HttpDiagnosticCodes.HTTP_121);
                                 break;
                             case HEADER_OBJ_NAME:
                                 headersPresent = isObjectPresent(ctx, paramLocation, headersPresent, paramName,
