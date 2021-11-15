@@ -182,13 +182,13 @@ public type ListenerConfiguration record {|
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
 public type InferredListenerConfiguration record {|
-    string host;
-    ListenerHttp1Settings http1Settings;
-    ListenerSecureSocket? secureSocket;
-    string httpVersion;
-    decimal timeout;
-    string? server;
-    RequestLimitConfigs requestLimits;
+    string host = "0.0.0.0";
+    ListenerHttp1Settings http1Settings = {};
+    ListenerSecureSocket? secureSocket = ();
+    string httpVersion = "1.1";
+    decimal timeout = DEFAULT_LISTENER_TIMEOUT;
+    string? server = ();
+    RequestLimitConfigs requestLimits = {};
 |};
 
 # Provides settings related to HTTP/1.x protocol.
