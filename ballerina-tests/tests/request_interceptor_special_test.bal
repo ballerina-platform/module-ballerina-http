@@ -16,11 +16,13 @@
 
 import ballerina/http;
 import ballerina/test;
+import ballerina/lang.runtime;
+import ballerina/lang.'string as strings;
 
 final http:Client requestInterceptorWithCallerRespondClientEP = check new("http://localhost:" + requestInterceptorWithCallerRespondTestPort.toString());
 
 listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRepond(), new LastRequestInterceptor()]
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespond(), new LastRequestInterceptor()]
 });
 
 service / on requestInterceptorWithCallerRespondServerEP {
@@ -33,7 +35,7 @@ service / on requestInterceptorWithCallerRespondServerEP {
 @test:Config{}
 function testRequestInterceptorWithCallerRespond() returns error? {
     http:Response res = check requestInterceptorWithCallerRespondClientEP->get("/");
-    assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-caller-repond");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-caller-respond");
     assertTextPayload(check res.getTextPayload(), "Response from caller inside interceptor");
 }
 
@@ -154,4 +156,138 @@ function testRequestInterceptorSkip() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "skip-interceptor");
     assertHeaderValue(check res.getHeader("default-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+}
+
+final http:Client requestInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + requestInterceptorCallerRespondContinueTestPort.toString());
+
+listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(requestInterceptorCallerRespondContinueTestPort, config = {
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespondContinue(), new LastRequestInterceptor()]
+});
+
+string message = "Greetings from client";
+
+service / on requestInterceptorCallerRespondContinueServerEP {
+
+    resource function 'default .() returns string {
+        message = "Hello from main service";
+        return "Response from resource - test";
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorCallerRespondContinue() returns error? {
+    http:Response res = check requestInterceptorCallerRespondContinueClientEP->get("/");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-caller-respond");
+    assertTextPayload(check res.getTextPayload(), "Response from caller inside interceptor");
+    runtime:sleep(5);
+    test:assertEquals(message, "Hello from main service");
+}
+
+final http:Client requestInterceptorStringPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorStringPayloadBindingTestPort.toString());
+
+listener http:Listener requestInterceptorStringPayloadBindingServerEP = new(requestInterceptorStringPayloadBindingTestPort, config = {
+    interceptors : [new DefaultRequestInterceptor(), new StringPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
+});
+
+service / on requestInterceptorStringPayloadBindingServerEP {
+
+    resource function 'default .(http:RequestContext ctx, @http:Payload string payload, http:Caller caller) returns error? {
+        http:Response res = new();
+        res.setTextPayload(payload);
+        string|error val = ctx.get("request-payload").ensureType(string);
+        if val is string {
+            res.setHeader("request-payload", val);
+        }
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorStringPayloadBinding() returns error? {
+    http:Response res = check requestInterceptorStringPayloadBindingClientEP->post("/", "request from client");
+    assertTextPayload(check res.getTextPayload(), "request from client");
+    assertHeaderValue(check res.getHeader("request-payload"), "request from client");
+}
+
+final http:Client requestInterceptorRecordPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorRecordPayloadBindingTestPort.toString());
+
+listener http:Listener requestInterceptorRecordPayloadBindingServerEP = new(requestInterceptorRecordPayloadBindingTestPort, config = {
+    interceptors : [new DefaultRequestInterceptor(), new RecordPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
+});
+
+service / on requestInterceptorRecordPayloadBindingServerEP {
+
+    resource function 'default .(http:RequestContext ctx, @http:Payload Person person, http:Caller caller) returns error? {
+        http:Response res = new();
+        res.setJsonPayload(person);
+        Person|error val = ctx.get("request-payload").ensureType(Person);
+        if val is Person {
+            res.setHeader("request-payload", val.toJsonString());
+        }
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorRecordPayloadBinding() returns error? {
+    json person = {name:"wso2",age:12};
+    http:Response res = check requestInterceptorRecordPayloadBindingClientEP->post("/", person);
+    assertJsonPayload(check res.getJsonPayload(), person);
+    assertHeaderValue(check res.getHeader("request-payload"), person.toJsonString());
+}
+
+final http:Client requestInterceptorRecordArrayPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorRecordArrayPayloadBindingTestPort.toString());
+
+listener http:Listener requestInterceptorRecordArrayPayloadBindingServerEP = new(requestInterceptorRecordArrayPayloadBindingTestPort, config = {
+    interceptors : [new DefaultRequestInterceptor(), new RecordArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
+});
+
+service / on requestInterceptorRecordArrayPayloadBindingServerEP {
+
+    resource function 'default .(http:RequestContext ctx, @http:Payload Person[] persons, http:Caller caller) returns error? {
+        http:Response res = new();
+        res.setJsonPayload(persons);
+        string|error val = ctx.get("request-payload").ensureType(string);
+        if val is string {
+            res.setHeader("request-payload", val);
+        }
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorRecordArrayPayloadBinding() returns error? {
+    json persons = [{name:"wso2",age:12}, {name:"ballerina",age:3}];
+    http:Response res = check requestInterceptorRecordArrayPayloadBindingClientEP->post("/", persons);
+    assertJsonPayload(check res.getJsonPayload(), persons);
+    assertHeaderValue(check res.getHeader("request-payload"), persons.toJsonString());
+}
+
+final http:Client requestInterceptorByteArrayPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorByteArrayPayloadBindingTestPort.toString());
+
+listener http:Listener requestInterceptorByteArrayPayloadBindingServerEP = new(requestInterceptorByteArrayPayloadBindingTestPort, config = {
+    interceptors : [new DefaultRequestInterceptor(), new ByteArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
+});
+
+service / on requestInterceptorByteArrayPayloadBindingServerEP {
+
+    resource function 'default .(http:RequestContext ctx, @http:Payload byte[] person, http:Caller caller) returns error? {
+        http:Response res = new();
+        res.setTextPayload(check strings:fromBytes(person));
+        string|error val = ctx.get("request-payload").ensureType(string);
+        if val is string {
+            res.setHeader("request-payload", val);
+        }
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorByteArrayPayloadBinding() returns error? {
+    http:Request req = new();
+    string person = "person";
+    req.setBinaryPayload(person.toBytes());
+    http:Response res = check requestInterceptorByteArrayPayloadBindingClientEP->post("/", req);
+    assertJsonPayload(check res.getBinaryPayload(), person.toBytes());
+    assertHeaderValue(check res.getHeader("request-payload"), person);
 }
