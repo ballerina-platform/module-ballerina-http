@@ -22,7 +22,7 @@ import ballerina/jballerina.java;
 public isolated class Listener {
 
     private int port;
-    private ListenerConfiguration config;
+    private InferredListenerConfiguration inferredConfig;
 
     # Gets invoked during module initialization to initialize the listener.
     #
@@ -30,9 +30,18 @@ public isolated class Listener {
     # + config - Configurations for the HTTP service listener
     # + return - A `ListenerError` if an error occurred during the listener initialization
     public isolated function init(int port, *ListenerConfiguration config) returns ListenerError? {
-        self.config = config.cloneReadOnly();
+        InferredListenerConfiguration inferredListenerConfig = {
+            host: config.host,
+            http1Settings: config.http1Settings,
+            secureSocket: config.secureSocket,
+            httpVersion: config.httpVersion,
+            timeout: config.timeout,
+            server: config.server,
+            requestLimits: config.requestLimits
+        };
+        self.inferredConfig = inferredListenerConfig.cloneReadOnly();
         self.port = port;
-        return externInitEndpoint(self);
+        return externInitEndpoint(self, config);
     }
 
     # Starts the registered service programmatically.
@@ -83,17 +92,18 @@ public isolated class Listener {
         }
     }
 
-    # Retrieves the `ListenerConfiguration` of the HTTP listener.
+    # Retrieves the `InferredListenerConfiguration` of the HTTP listener.
     #
-    # + return - The readonly HTTP listener configuration
-    public isolated function getConfig() returns readonly & ListenerConfiguration {
+    # + return - The readonly HTTP listener inferred configuration
+    public isolated function getConfig() returns readonly & InferredListenerConfiguration {
         lock {
-            return <readonly & ListenerConfiguration> self.config.cloneReadOnly();
+            return <readonly & InferredListenerConfiguration> self.inferredConfig.cloneReadOnly();
         }
     }
 }
 
-isolated function externInitEndpoint(Listener listenerObj) returns ListenerError? = @java:Method {
+isolated function externInitEndpoint(Listener listenerObj, ListenerConfiguration config) returns ListenerError? =
+@java:Method {
     'class: "io.ballerina.stdlib.http.api.service.endpoint.InitEndpoint",
     name: "initEndpoint"
 } external;
@@ -148,6 +158,7 @@ public type Local record {|
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
+# + interceptors - An array of interceptor services
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
@@ -156,6 +167,28 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
+    (RequestInterceptor|RequestErrorInterceptor)[]? interceptors = ();
+|};
+
+# Provides a set of cloneable configurations for HTTP listener.
+#
+# + host - The host name/IP of the endpoint
+# + http1Settings - Configurations related to HTTP/1.x protocol
+# + secureSocket - The SSL configurations for the service endpoint. This needs to be configured in order to
+#                  communicate through HTTPS.
+# + httpVersion - Highest HTTP version supported by the endpoint
+# + timeout - Period of time in seconds that a connection waits for a read/write operation. Use value 0 to
+#                   disable timeout
+# + server - The server name which should appear as a response header
+# + requestLimits - Configurations associated with inbound request size limits
+public type InferredListenerConfiguration record {|
+    string host;
+    ListenerHttp1Settings http1Settings;
+    ListenerSecureSocket? secureSocket;
+    string httpVersion;
+    decimal timeout;
+    string? server;
+    RequestLimitConfigs requestLimits;
 |};
 
 # Provides settings related to HTTP/1.x protocol.
