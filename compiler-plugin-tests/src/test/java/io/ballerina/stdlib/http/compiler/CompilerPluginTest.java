@@ -63,6 +63,7 @@ public class CompilerPluginTest {
     private static final String HTTP_118 = "HTTP_118";
     private static final String HTTP_119 = "HTTP_119";
     private static final String HTTP_120 = "HTTP_120";
+    private static final String HTTP_121 = "HTTP_121";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -377,6 +378,15 @@ public class CompilerPluginTest {
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         Assert.assertEquals(diagnostic.diagnosticInfo().messageFormat(),
                             "annotation.attachment.cannot.specify.multiple.values");
+    }
+
+    @Test
+    public void testRequestContextParam() {
+        Package currentPackage = loadPackage("sample_package_17");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
+        assertError(diagnosticResult, 0, "invalid multiple 'http:RequestContext' parameter: 'bcd'", HTTP_121);
     }
 
 }
