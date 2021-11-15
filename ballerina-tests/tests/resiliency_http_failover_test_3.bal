@@ -144,7 +144,6 @@ service /failoverDemoService03 on failoverEP03 {
 // Define the sample service to mock connection timeouts and service outages.
 service /echo03 on backendEP03 {
     resource function 'default .(http:Caller caller, http:Request req) {
-        http:Response outResponse = new;
         // Delay the response for 30000 milliseconds to mimic network level delays.
         runtime:sleep(30);
         error? responseToCaller = caller->respond("echo Resource is invoked");
@@ -189,12 +188,18 @@ service /mock03 on backendEP03 {
                                 // When performing passthrough scenarios, message needs to be built before
                                 // invoking the endpoint to create a message datasource.
                                 byte[]|error childBlobContent = childPart.getByteArray();
+                                if childBlobContent is error {
+                                    log:printError("Error reading payload", 'error = childBlobContent);
+                                }
                             }
                             io:println(bodyPart.getContentType());
                             bodyPart.setBodyParts(childParts, bodyPart.getContentType());
                         }
                     } else {
                         byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
+                        if bodyPartBlobContent is error {
+                            log:printError("Error reading payload", 'error = bodyPartBlobContent);
+                        }
                     }
                 }
                 response.setBodyParts(mimeEntity, req.getContentType());

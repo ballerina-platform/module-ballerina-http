@@ -37,10 +37,10 @@ import static io.ballerina.stdlib.http.api.HttpUtil.getListenerConfig;
  * @since 0.966
  */
 public class InitEndpoint extends AbstractHttpNativeFunction {
-    public static Object initEndpoint(BObject serviceEndpoint) {
+    public static Object initEndpoint(BObject serviceEndpoint, BMap serviceEndpointConfig) {
         try {
             // Creating server connector
-            BMap serviceEndpointConfig = serviceEndpoint.getMapValue(HttpConstants.SERVICE_ENDPOINT_CONFIG);
+            serviceEndpoint.addNativeData(HttpConstants.SERVICE_ENDPOINT_CONFIG, serviceEndpointConfig);
             long port = serviceEndpoint.getIntValue(ENDPOINT_CONFIG_PORT);
             ListenerConfiguration listenerConfiguration = getListenerConfig(port, serviceEndpointConfig);
             ServerConnector httpServerConnector =

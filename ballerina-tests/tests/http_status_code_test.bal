@@ -221,7 +221,7 @@ function testDataBindingBadRequestWithBody() {
     if (response is http:ClientRequestError) {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
         assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], APPLICATION_XML);
-        test:assertEquals(<xml> response.detail().body, xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
+        test:assertEquals(<xml & readonly> response.detail().body, xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
     } else {
         test:assertFail(msg = "Found unexpected output type: json");
     }
@@ -295,7 +295,7 @@ function testDataBindingInternalServerErrWithBody() {
     if (response is http:RemoteServerError) {
         test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
         assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], APPLICATION_XML);
-        test:assertEquals(<xml> response.detail().body, xml `<test>Internal Server Error Occurred</test>`, msg = "Mismatched xml payload");
+        test:assertEquals(<xml & readonly> response.detail().body, xml `<test>Internal Server Error Occurred</test>`, msg = "Mismatched xml payload");
     } else {
         test:assertFail(msg = "Found unexpected output type: xml");
     }

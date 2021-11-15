@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
@@ -664,6 +665,21 @@ public class HttpCarbonMessage {
         if (fullHttpMessageFuture != null) {
             fullHttpMessageFuture.notifyFailure(exception);
         }
+    }
+
+    public boolean isAccessedInInterceptorService() {
+        return this.getProperty(HttpConstants.INTERCEPTOR_SERVICE) != null ? true : false;
+    }
+
+    public boolean isInterceptorError() {
+        return this.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR) != null ? true : false;
+    }
+
+    public String getInterceptorServiceState() {
+        if (isInterceptorError()) {
+            return HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR;
+        }
+        return HttpConstants.HTTP_REQUEST_INTERCEPTOR;
     }
 
     public Listener getListener() {

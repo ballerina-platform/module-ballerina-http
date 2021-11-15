@@ -1,4 +1,4 @@
-// Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,15 +14,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
+# The HTTP request interceptor service object  
+public type RequestInterceptor distinct service object {
 
-service / on new http:Listener(9999) {
-    
-    resource function get . (@http:Header string length) {
-        
-    }
+};
 
-    resource function get path1(http:Caller caller) returns string {
-        return "";
-    }
-}
+# The HTTP request error interceptor service object  
+public type RequestErrorInterceptor distinct service object {
+
+};
+
+# The return values from an interceptor service function  
+public type NextService RequestInterceptor|Service;

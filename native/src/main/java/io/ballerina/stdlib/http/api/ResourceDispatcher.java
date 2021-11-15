@@ -30,16 +30,16 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 /**
  * Resource level dispatchers handler for HTTP protocol.
  */
-public class HttpResourceDispatcher {
+public class ResourceDispatcher {
 
-    public static HttpResource findResource(HttpService service, HttpCarbonMessage inboundRequest) {
+    public static Resource findResource(Service service, HttpCarbonMessage inboundRequest) {
 
         String method = inboundRequest.getHttpMethod();
         String subPath = (String) inboundRequest.getProperty(HttpConstants.SUB_PATH);
         subPath = sanitizeSubPath(subPath);
         HttpResourceArguments resourceArgumentValues = new HttpResourceArguments();
         try {
-            HttpResource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
+            Resource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
             if (resource instanceof HttpIntrospectionResource) {
                 handleIntrospectionRequest(inboundRequest, (HttpIntrospectionResource) resource);
                 return null;
@@ -74,7 +74,7 @@ public class HttpResourceDispatcher {
         return subPath;
     }
 
-    private static void handleOptionsRequest(HttpCarbonMessage cMsg, HttpService service) {
+    private static void handleOptionsRequest(HttpCarbonMessage cMsg, Service service) {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         if (cMsg.getHeader(HttpHeaderNames.ALLOW.toString()) != null) {
             response.setHeader(HttpHeaderNames.ALLOW.toString(), cMsg.getHeader(HttpHeaderNames.ALLOW.toString()));
@@ -108,6 +108,6 @@ public class HttpResourceDispatcher {
         cMsg.waitAndReleaseAllEntities();
     }
 
-    private HttpResourceDispatcher() {
+    private ResourceDispatcher() {
     }
 }

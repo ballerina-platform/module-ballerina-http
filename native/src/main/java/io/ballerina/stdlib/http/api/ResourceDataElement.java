@@ -34,9 +34,9 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_LISTENER_ERROR;
 /**
  * Http Node Item for URI template tree.
  */
-public class HttpResourceDataElement implements DataElement<HttpResource, HttpCarbonMessage> {
+public class ResourceDataElement implements DataElement<Resource, HttpCarbonMessage> {
 
-    private List<HttpResource> resource;
+    private List<Resource> resource;
     private boolean isFirstTraverse = true;
     private boolean hasData = false;
 
@@ -46,7 +46,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
     }
 
     @Override
-    public void setData(HttpResource newResource) {
+    public void setData(Resource newResource) {
         if (isFirstTraverse) {
             this.resource = new ArrayList<>();
             this.resource.add(newResource);
@@ -56,7 +56,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         }
         List<String> newMethods = newResource.getMethods();
         if (newMethods == null) {
-            for (HttpResource previousResource : this.resource) {
+            for (Resource previousResource : this.resource) {
                 if (previousResource.getMethods() == null) {
                     //if both resources do not have methods but same URI, then throw following error.
                     throw HttpUtil.createHttpError("Two resources have the same addressable URI, "
@@ -87,12 +87,12 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
     }
 
     @Override
-    public boolean getData(HttpCarbonMessage carbonMessage, DataReturnAgent<HttpResource> dataReturnAgent) {
+    public boolean getData(HttpCarbonMessage carbonMessage, DataReturnAgent<Resource> dataReturnAgent) {
         try {
             if (this.resource == null) {
                 return false;
             }
-            HttpResource httpResource = validateHTTPMethod(this.resource, carbonMessage);
+            Resource httpResource = validateHTTPMethod(this.resource, carbonMessage);
             if (httpResource == null) {
                 return isOptionsRequest(carbonMessage);
             }
@@ -112,11 +112,11 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         return inboundMessage.getHeader(HttpHeaderNames.ALLOW.toString()) != null;
     }
 
-    private HttpResource validateHTTPMethod(List<HttpResource> resources, HttpCarbonMessage carbonMessage) {
-        HttpResource httpResource = null;
+    private Resource validateHTTPMethod(List<Resource> resources, HttpCarbonMessage carbonMessage) {
+        Resource httpResource = null;
         boolean isOptionsRequest = false;
         String httpMethod = carbonMessage.getHttpMethod();
-        for (HttpResource resourceInfo : resources) {
+        for (Resource resourceInfo : resources) {
             if (DispatcherUtil.isMatchingMethodExist(resourceInfo, httpMethod)) {
                 httpResource = resourceInfo;
                 break;
@@ -138,8 +138,8 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         return null;
     }
 
-    private HttpResource tryMatchingToDefaultVerb(List<HttpResource> resources) {
-        for (HttpResource resourceInfo : resources) {
+    private Resource tryMatchingToDefaultVerb(List<Resource> resources) {
+        for (Resource resourceInfo : resources) {
             if (resourceInfo.getMethods() == null) {
                 //this means, wildcard method mentioned in the dataElement, hence it has all the methods by default.
                 return resourceInfo;
@@ -148,7 +148,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         return null;
     }
 
-    private boolean setAllowHeadersIfOPTIONS(List<HttpResource> resources, String httpMethod, HttpCarbonMessage cMsg) {
+    private boolean setAllowHeadersIfOPTIONS(List<Resource> resources, String httpMethod, HttpCarbonMessage cMsg) {
         if (httpMethod.equals(HttpConstants.HTTP_METHOD_OPTIONS)) {
             cMsg.setHeader(HttpHeaderNames.ALLOW.toString(), getAllowHeaderValues(resources, cMsg));
             return true;
@@ -156,10 +156,10 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         return false;
     }
 
-    private String getAllowHeaderValues(List<HttpResource> resources, HttpCarbonMessage cMsg) {
+    private String getAllowHeaderValues(List<Resource> resources, HttpCarbonMessage cMsg) {
         List<String> methods = new ArrayList<>();
-        List<HttpResource> resourceInfos = new ArrayList<>();
-        for (HttpResource resourceInfo : resources) {
+        List<Resource> resourceInfos = new ArrayList<>();
+        for (Resource resourceInfo : resources) {
             if (resourceInfo.getMethods() != null) {
                 methods.addAll(resourceInfo.getMethods());
             }
@@ -170,7 +170,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         return DispatcherUtil.concatValues(methods, false);
     }
 
-    private void validateConsumes(HttpResource resource, HttpCarbonMessage cMsg) {
+    private void validateConsumes(Resource resource, HttpCarbonMessage cMsg) {
         String contentMediaType = extractContentMediaType(cMsg.getHeader(HttpHeaderNames.CONTENT_TYPE.toString()));
         List<String> consumesList = resource.getConsumes();
 
@@ -198,7 +198,7 @@ public class HttpResourceDataElement implements DataElement<HttpResource, HttpCa
         return header;
     }
 
-    private void validateProduces(HttpResource resource, HttpCarbonMessage cMsg) {
+    private void validateProduces(Resource resource, HttpCarbonMessage cMsg) {
         List<String> acceptMediaTypes = extractAcceptMediaTypes(cMsg.getHeader(HttpHeaderNames.ACCEPT.toString()));
         List<String> producesList = resource.getProduces();
 
