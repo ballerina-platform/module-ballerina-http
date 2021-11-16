@@ -200,22 +200,23 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     }
 
     protected void extractPropertiesAndStartInterceptorResourceExecution(HttpCarbonMessage inboundMessage,
-                                InterceptorResource resource, HTTPInterceptorServicesRegistry servicesRegistry) {
+                                                                         InterceptorResource resource,
+                                                                         HTTPInterceptorServicesRegistry registry) {
         Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
-        Runtime runtime = servicesRegistry.getRuntime();
+        Runtime runtime = registry.getRuntime();
         Callback callback = new HttpInterceptorUnitCallback(inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
-        if (service.getType().isIsolated(resourceName)) {
+        if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
             runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
-                    ModuleUtils.getOnMessageMetaData(), callback, properties,
-                    resource.getBalResource().getReturnType(), signatureParams);
+                                                  ModuleUtils.getOnMessageMetaData(), callback, properties,
+                                                  resource.getBalResource().getReturnType(), signatureParams);
         } else {
             runtime.invokeMethodAsyncSequentially(service, resourceName, null,
-                    ModuleUtils.getOnMessageMetaData(), callback, properties,
-                    resource.getBalResource().getReturnType(), signatureParams);
+                                                  ModuleUtils.getOnMessageMetaData(), callback, properties,
+                                                  resource.getBalResource().getReturnType(), signatureParams);
         }
     }
 
