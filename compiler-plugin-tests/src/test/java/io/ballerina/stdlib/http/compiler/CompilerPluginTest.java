@@ -72,7 +72,6 @@ public class CompilerPluginTest {
     private static final String HTTP_127 = "HTTP_127";
     private static final String HTTP_128 = "HTTP_128";
 
-
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
     private Package loadPackage(String path) {
