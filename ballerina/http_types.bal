@@ -26,7 +26,7 @@ public type ResponseMessage Response|string|xml|json|byte[]|int|float|decimal|bo
                             (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
 
 # The HTTP service type.
-public type Service service object {
+public type Service distinct service object {
 
 };
 
