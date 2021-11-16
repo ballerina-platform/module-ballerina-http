@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
+import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_INTERCEPTOR_RETURN_UNION;
 import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_RETURN_UNION;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
@@ -62,6 +63,15 @@ public enum HttpDiagnosticCodes {
             ERROR),
     HTTP_120("HTTP_120", "invalid media-type subtype '%s'", ERROR),
     HTTP_121("HTTP_121", "invalid multiple 'http:RequestContext' parameter: '%s'", ERROR),
+    HTTP_122("HTTP_122", "invalid multiple 'error' parameter: '%s'", ERROR),
+    HTTP_123("HTTP_123", "invalid multiple interceptor type reference: '%s'", ERROR),
+    HTTP_124("HTTP_124", "invalid multiple interceptor resource functions", ERROR),
+    HTTP_125("HTTP_125", "invalid annotation '%s': annotations are not supported for interceptor " +
+            "resource functions", ERROR),
+    HTTP_126("HTTP_126", "invalid resource method return type: expected '" +
+              ALLOWED_INTERCEPTOR_RETURN_UNION + "', but found '%s'", ERROR),
+    HTTP_127("HTTP_127", "invalid resource path: expected default resource path, but found '%s'", ERROR),
+    HTTP_128("HTTP_128", "invalid resource method: expected default resource method, but found '%s'", ERROR),
     HTTP_HINT_101("HTTP_HINT_101", "A resource annotation can be added", INTERNAL);
 
     private final String code;
