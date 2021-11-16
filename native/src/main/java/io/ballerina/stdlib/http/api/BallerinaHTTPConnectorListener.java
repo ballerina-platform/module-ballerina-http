@@ -118,7 +118,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                                                          httpResource.getResponseCacheConfig());
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
-        if (service.getType().isIsolated(resourceName)) {
+        if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
             runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
                                                   ModuleUtils.getOnMessageMetaData(), callback, properties,
                                                   httpResource.getBalResource().getReturnType(), signatureParams);
