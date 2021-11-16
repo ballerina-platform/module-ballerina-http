@@ -64,6 +64,14 @@ public class CompilerPluginTest {
     private static final String HTTP_119 = "HTTP_119";
     private static final String HTTP_120 = "HTTP_120";
     private static final String HTTP_121 = "HTTP_121";
+    private static final String HTTP_122 = "HTTP_122";
+    private static final String HTTP_123 = "HTTP_123";
+    private static final String HTTP_124 = "HTTP_124";
+    private static final String HTTP_125 = "HTTP_125";
+    private static final String HTTP_126 = "HTTP_126";
+    private static final String HTTP_127 = "HTTP_127";
+    private static final String HTTP_128 = "HTTP_128";
+
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -387,6 +395,38 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         assertError(diagnosticResult, 0, "invalid multiple 'http:RequestContext' parameter: 'bcd'", HTTP_121);
+    }
+
+    @Test
+    public void testErrorParam() {
+        Package currentPackage = loadPackage("sample_package_18");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
+        assertError(diagnosticResult, 0, "invalid multiple 'error' parameter: 'bcd'", HTTP_122);
+    }
+
+    @Test
+    public void testInterceptorServiceObject() {
+        Package currentPackage = loadPackage("sample_package_19");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
+        assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
+                "'http:RequestErrorInterceptor'", HTTP_123);
+        assertError(diagnosticResult, 1, "invalid resource path: expected default resource path, but " +
+                "found 'foo'", HTTP_127);
+        assertError(diagnosticResult, 2, "invalid resource method: expected default resource method, " +
+                "but found 'get'", HTTP_128);
+        assertError(diagnosticResult, 3, "invalid resource path: expected default resource path, but " +
+                "found 'foo'", HTTP_127);
+        assertError(diagnosticResult, 4, "invalid resource method: expected default resource method, " +
+                "but found 'get'", HTTP_128);
+        assertError(diagnosticResult, 5, "invalid resource method return type: expected " +
+                "'http:NextService|error?', but found 'string'", HTTP_126);
+        assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions", HTTP_124);
+        assertError(diagnosticResult, 7, "invalid annotation 'http:ResourceConfig': annotations" +
+                " are not supported for interceptor resource functions", HTTP_125);
     }
 
 }
