@@ -42,10 +42,10 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     @Override
     public void perform(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
         List<Diagnostic> diagnostics = syntaxNodeAnalysisContext.semanticModel().diagnostics();
-        for (Diagnostic diagnostic : diagnostics) {
-            if (diagnostic.diagnosticInfo().severity() == DiagnosticSeverity.ERROR) {
-                return;
-            }
+        boolean erroneousCompilation = diagnostics.stream()
+                .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
+        if (erroneousCompilation) {
+            return;
         }
 
         ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) syntaxNodeAnalysisContext.node();
