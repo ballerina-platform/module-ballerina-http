@@ -1,9 +1,13 @@
 package io.ballerina.stdlib.http.api.service.endpoint;
 
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.stdlib.http.api.HTTPInterceptorServicesRegistry;
 import io.ballerina.stdlib.http.api.HTTPServicesRegistry;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Includes common functions to all the actions.
@@ -14,6 +18,11 @@ public abstract class AbstractHttpNativeFunction {
 
     protected static HTTPServicesRegistry getHttpServicesRegistry(BObject serviceEndpoint) {
         return (HTTPServicesRegistry) serviceEndpoint.getNativeData(HttpConstants.HTTP_SERVICE_REGISTRY);
+    }
+
+    public static List<HTTPInterceptorServicesRegistry> getHttpInterceptorServicesRegistries(BObject serviceEndpoint) {
+        return (List<HTTPInterceptorServicesRegistry>) serviceEndpoint.getNativeData(HttpConstants.
+                HTTP_INTERCEPTOR_SERVICE_REGISTRIES);
     }
 
     protected static ServerConnector getServerConnector(BObject serviceEndpoint) {
@@ -28,5 +37,14 @@ public abstract class AbstractHttpNativeFunction {
     static void resetRegistry(BObject serviceEndpoint) {
         HTTPServicesRegistry httpServicesRegistry = new HTTPServicesRegistry();
         serviceEndpoint.addNativeData(HttpConstants.HTTP_SERVICE_REGISTRY, httpServicesRegistry);
+    }
+
+    public static void resetInterceptorRegistry(BObject serviceEndpoint, int interceptorsSize) {
+        List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries = new ArrayList<>();
+        for (int i = 0; i < interceptorsSize; i++) {
+            httpInterceptorServicesRegistries.add(new HTTPInterceptorServicesRegistry());
+        }
+        serviceEndpoint.addNativeData(HttpConstants.HTTP_INTERCEPTOR_SERVICE_REGISTRIES,
+                httpInterceptorServicesRegistries);
     }
 }

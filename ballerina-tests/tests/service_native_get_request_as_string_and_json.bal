@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
@@ -22,26 +21,12 @@ listener http:Listener testEP = new(requestTest2);
 
 service /MyService on testEP {
 
-    resource function post myResource(http:Caller caller, http:Request req) {
-        var stringValue = req.getTextPayload();
-        if (stringValue is string) {
-            string s = stringValue;
-        } else {
-            panic <error>stringValue;
-        }
-        json payload;
-        var jsonValue = req.getJsonPayload();
-        if (jsonValue is json) {
-            payload = jsonValue;
-        } else {
-            panic <error>jsonValue;
-        }
+    resource function post myResource(http:Caller caller, http:Request req) returns error? {
+        _ = check req.getTextPayload();
+        json payload = check req.getJsonPayload();
         http:Response res = new;
-        res.setPayload(checkpanic payload.foo);
-        var err = caller->respond(res);
-        if (err is error) {
-            io:println("Error sending response");
-        }
+        res.setPayload(check payload.foo);
+        return caller->respond(res);
     }
 }
 

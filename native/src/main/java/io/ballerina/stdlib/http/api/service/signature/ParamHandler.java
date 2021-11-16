@@ -65,6 +65,8 @@ public class ParamHandler {
     private NonRecurringParam callerParam = null;
     private NonRecurringParam requestParam = null;
     private NonRecurringParam headerObjectParam = null;
+    private NonRecurringParam requestContextParam = null;
+    private NonRecurringParam interceptorErrorParam = null;
     private AllQueryParams queryParams = new AllQueryParams();
     private AllHeaderParams headerParams = new AllHeaderParams();
 
@@ -74,6 +76,7 @@ public class ParamHandler {
     private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
     private static final String REQ_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST;
     private static final String HEADERS_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.HEADERS;
+    private static final String REQUEST_CONTEXT_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST_CONTEXT;
     private static final String CALLER_ANNOTATION =
             ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_CALLER_INFO;
     public static final String PAYLOAD_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_PAYLOAD;
@@ -106,6 +109,25 @@ public class ParamHandler {
             Type parameterType = resource.getParameterTypes()[index];
             String typeName = parameterType.toString();
             switch (typeName) {
+                case REQUEST_CONTEXT_TYPE:
+                    if (this.requestContextParam == null) {
+                        this.requestContextParam = new NonRecurringParam(index, HttpConstants.REQUEST_CONTEXT);
+                        getOtherParamList().add(this.requestContextParam);
+                    } else {
+                        throw HttpUtil.createHttpError("invalid multiple '" + REQUEST_CONTEXT_TYPE
+                                + "' parameter");
+                    }
+                    break;
+                case HttpConstants.STRUCT_GENERIC_ERROR:
+                    if (this.interceptorErrorParam == null) {
+                        this.interceptorErrorParam = new NonRecurringParam(index,
+                                HttpConstants.STRUCT_GENERIC_ERROR);
+                        getOtherParamList().add(this.interceptorErrorParam);
+                    } else {
+                        throw HttpUtil.createHttpError("invalid multiple '" +
+                                HttpConstants.STRUCT_GENERIC_ERROR + "' parameter");
+                    }
+                    break;
                 case CALLER_TYPE:
                     if (this.callerParam == null) {
                         this.callerParam = new NonRecurringParam(index, HttpConstants.CALLER);

@@ -55,6 +55,10 @@ public class ValueCreatorUtils {
     static BObject createHeadersObject() {
         return createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.HEADERS);
     }
+
+    static BObject createRequestContextObject() {
+        return createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.REQUEST_CONTEXT);
+    }
     
     /**
      * Method that creates a runtime record value using the given record type in the http package.

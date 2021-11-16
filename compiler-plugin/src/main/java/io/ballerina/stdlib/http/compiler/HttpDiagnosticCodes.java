@@ -61,6 +61,7 @@ public enum HttpDiagnosticCodes {
     HTTP_119("HTTP_119", "invalid media-type subtype prefix: subtype prefix should not have suffix '%s'",
             ERROR),
     HTTP_120("HTTP_120", "invalid media-type subtype '%s'", ERROR),
+    HTTP_121("HTTP_121", "invalid multiple 'http:RequestContext' parameter: '%s'", ERROR),
     HTTP_HINT_101("HTTP_HINT_101", "A resource annotation can be added", INTERNAL);
 
     private final String code;

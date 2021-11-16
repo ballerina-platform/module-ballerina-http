@@ -16,6 +16,7 @@
 
 import ballerina/jballerina.java;
 import ballerina/mime;
+import ballerina/log;
 
 # LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients.
 #
@@ -324,6 +325,9 @@ public client isolated class LoadBalanceClient {
                 // message needs to be built before trying out the load balance endpoints to keep the request message
                 // to load balance the messages in case of failure.
                 byte[]|error binaryPayload = loadBalancerInRequest.getBinaryPayload();
+                if binaryPayload is error {
+                    log:printDebug("Error building payload for request load balance: " + binaryPayload.message());
+                }
                 requestEntity = check loadBalancerInRequest.getEntity();
             }
         }

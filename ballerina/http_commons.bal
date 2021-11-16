@@ -20,6 +20,7 @@ import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
 import ballerina/time;
+import ballerina/log;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
@@ -228,10 +229,16 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
                     // When performing passthrough scenarios, message needs to be built before
                     // invoking the endpoint to create a message datasource.
                     byte[]|error childBlobContent = childPart.getByteArray();
+                    if childBlobContent is error {
+                        log:printDebug("Error building datasource for multipart request: " + childBlobContent.message());
+                    }
                 }
                 bodyPart.setBodyParts(childParts, bodyPart.getContentType());
             } else {
                 byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
+                if bodyPartBlobContent is error {
+                    log:printDebug("Error building datasource for multipart request: " + bodyPartBlobContent.message());
+                }
             }
         }
         inRequest.setBodyParts(bodyParts, inRequest.getContentType());
