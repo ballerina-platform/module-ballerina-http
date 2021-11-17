@@ -147,3 +147,7 @@ public type ListenerAuthConfig FileUserStoreConfigWithScopes|
                                LdapUserStoreConfigWithScopes|
                                JwtValidatorConfigWithScopes|
                                OAuth2IntrospectionConfigWithScopes;
+
+// Defines the listener authentication handlers.
+type ListenerAuthHandler ListenerFileUserStoreBasicAuthHandler|ListenerLdapUserStoreBasicAuthHandler|
+                         ListenerJwtAuthHandler|ListenerOAuth2Handler;

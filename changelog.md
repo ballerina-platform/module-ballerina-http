@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Added
 - [Introduce request and request error interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/2062)
 
+## Fixed
+- [Fix initiating auth handlers per each request](https://github.com/ballerina-platform/ballerina-standard-library/issues/2394)
+
 ## [1.1.0-beta.3] - 2021-10-10
 
 ## Added
