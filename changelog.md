@@ -6,15 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-## Added
+### Added
 - [Introduce request and request error interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/2062)
 
-## Fixed
+### Fixed
 - [Fix initiating auth handlers per each request](https://github.com/ballerina-platform/ballerina-standard-library/issues/2394)
+
+### Changed
+- [Mark HTTP Service type as distinct](https://github.com/ballerina-platform/ballerina-standard-library/issues/2398)
 
 ## [1.1.0-beta.3] - 2021-10-10
 
-## Added
+### Added
 - [Enable HTTP trace and access log support](https://github.com/ballerina-platform/ballerina-standard-library/issues/1073)
 - [Add HATEOS link support](https://github.com/ballerina-platform/ballerina-standard-library/issues/1637)
 - [Introduce http:CacheConfig annotation to the resource signature](https://github.com/ballerina-platform/ballerina-standard-library/issues/1533)
@@ -27,7 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Introduce service config treatNilableAsOptional for query and header params](https://github.com/ballerina-platform/ballerina-standard-library/issues/1928)
 - [Add support to URL with empty scheme in http:Client](https://github.com/ballerina-platform/ballerina-standard-library/issues/1986)
 
-## Fixed
+### Fixed
 - [Fix incorrect behaviour of client with mtls](https://github.com/ballerina-platform/ballerina-standard-library/issues/1708)
 - [Fix multiple clients created for same route not using respective config](https://github.com/ballerina-platform/ballerina-standard-library/issues/1727)
 - [Fix not applying of resource auth annotations for some resources](https://github.com/ballerina-platform/ballerina-standard-library/issues/1838)
