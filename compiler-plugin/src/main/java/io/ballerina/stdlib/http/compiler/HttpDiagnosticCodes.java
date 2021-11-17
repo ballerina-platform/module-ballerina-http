@@ -68,10 +68,12 @@ public enum HttpDiagnosticCodes {
     HTTP_124("HTTP_124", "invalid multiple interceptor resource functions", ERROR),
     HTTP_125("HTTP_125", "invalid annotation '%s': annotations are not supported for interceptor " +
             "resource functions", ERROR),
-    HTTP_126("HTTP_126", "invalid resource method return type: expected '" +
+    HTTP_126("HTTP_126", "invalid interceptor resource method return type: expected '" +
               ALLOWED_INTERCEPTOR_RETURN_UNION + "', but found '%s'", ERROR),
-    HTTP_127("HTTP_127", "invalid resource path: expected default resource path, but found '%s'", ERROR),
-    HTTP_128("HTTP_128", "invalid resource method: expected default resource method, but found '%s'", ERROR),
+    HTTP_127("HTTP_127", "invalid interceptor resource path: expected default resource path: " +
+            "'[string... path]', but found '%s'", ERROR),
+    HTTP_128("HTTP_128", "invalid interceptor resource method: expected default resource method: " +
+            "'default', but found '%s'", ERROR),
     HTTP_HINT_101("HTTP_HINT_101", "A resource annotation can be added", INTERNAL);
 
     private final String code;

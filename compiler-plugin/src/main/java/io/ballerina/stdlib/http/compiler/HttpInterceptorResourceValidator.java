@@ -51,11 +51,9 @@ public class HttpInterceptorResourceValidator {
 
     private static void extractAndValidateMethodAndPath(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
         NodeList<Node> path = member.relativeResourcePath();
-        if (!path.isEmpty()) {
-            String resourcePath = path.get(0).toString().strip();
-            if (!resourcePath.matches(Constants.DEFAULT_PATH_REGEX)) {
-                reportInvalidResourcePath(ctx, path.get(0));
-            }
+        String resourcePath = path.get(0).toString().strip();
+        if (!resourcePath.matches(Constants.DEFAULT_PATH_REGEX)) {
+            reportInvalidResourcePath(ctx, path.get(0));
         }
         String method = member.functionName().toString().strip();
         if (!method.contains(Constants.DEFAULT)) {
@@ -64,7 +62,7 @@ public class HttpInterceptorResourceValidator {
     }
 
     private static void checkResourceAnnotation(SyntaxNodeAnalysisContext ctx,
-                                           FunctionDefinitionNode member) {
+                                                FunctionDefinitionNode member) {
         Optional<MetadataNode> metadataNodeOptional = member.metadata();
         if (metadataNodeOptional.isPresent()) {
             NodeList<AnnotationNode> annotations = metadataNodeOptional.get().annotations();

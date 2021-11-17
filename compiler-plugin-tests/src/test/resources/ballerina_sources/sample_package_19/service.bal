@@ -26,7 +26,7 @@ class HelloWorld {
     }
 }
 
-service class interceptorService0 {
+service class InterceptorService0 {
 
     resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns string {
         req.setTextPayload("interceptor");
@@ -34,7 +34,7 @@ service class interceptorService0 {
     }
 }
 
-service class interceptorService1 {
+service class InterceptorService1 {
     *http:RequestInterceptor;
 
     resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
@@ -43,7 +43,7 @@ service class interceptorService1 {
     }
 }
 
-service class interceptorService2 {
+service class InterceptorService2 {
     *http:RequestInterceptor;
 
     resource function post [string... path](http:Caller caller, http:Request req) returns error? {
@@ -52,7 +52,7 @@ service class interceptorService2 {
     }
 }
 
-service class interceptorService3 {
+service class InterceptorService3 {
     *http:RequestInterceptor;
 
     resource function default [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) {
@@ -60,7 +60,7 @@ service class interceptorService3 {
     }
 }
 
-service class interceptorService4 {
+service class InterceptorService4 {
     *http:RequestInterceptor;
 
     resource function get [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) returns error{
@@ -68,7 +68,7 @@ service class interceptorService4 {
     }
 }
 
-service class interceptorService5 {
+service class InterceptorService5 {
     *http:RequestErrorInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
@@ -77,9 +77,17 @@ service class interceptorService5 {
     }
 }
 
+service class InterceptorService6 {
+    *http:RequestInterceptor;
+
+    resource function get [string... path](string q1, int q2, @http:Payload string payload, @http:Header string foo, http:Caller caller) returns error? {
+        check caller->respond(payload);
+    }
+}
+
 // Negative Cases
 
-service class interceptorService6 {
+service class InterceptorService7 {
     *http:RequestInterceptor;
     *http:RequestErrorInterceptor;
 
@@ -89,7 +97,7 @@ service class interceptorService6 {
     }
 }
 
-service class interceptorService7 {
+service class InterceptorService8 {
     *http:RequestErrorInterceptor;
 
     resource function 'default foo(http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
@@ -98,7 +106,7 @@ service class interceptorService7 {
     }
 }
 
-service class interceptorService8 {
+service class InterceptorService9 {
     *http:RequestErrorInterceptor;
 
     resource function get [string... path](http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
@@ -107,7 +115,7 @@ service class interceptorService8 {
     }
 }
 
-service class interceptorService9 {
+service class InterceptorService10 {
     *http:RequestErrorInterceptor;
 
     resource function get foo(http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
@@ -116,7 +124,7 @@ service class interceptorService9 {
     }
 }
 
-service class interceptorService10 {
+service class InterceptorService11 {
     *http:RequestInterceptor;
 
     resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns string {
@@ -125,7 +133,7 @@ service class interceptorService10 {
     }
 }
 
-service class interceptorService11 {
+service class InterceptorService12 {
     *http:RequestInterceptor;
 
     resource function get greeting1(http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
@@ -139,7 +147,7 @@ service class interceptorService11 {
     }
 }
 
-service class interceptorService12 {
+service class InterceptorService13 {
     *http:RequestInterceptor;
 
     @http:ResourceConfig{}

@@ -413,15 +413,15 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnosticResult.errorCount(), 8);
         assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
                 "'http:RequestErrorInterceptor'", HTTP_123);
-        assertError(diagnosticResult, 1, "invalid resource path: expected default resource path, but " +
-                "found 'foo'", HTTP_127);
-        assertError(diagnosticResult, 2, "invalid resource method: expected default resource method, " +
-                "but found 'get'", HTTP_128);
-        assertError(diagnosticResult, 3, "invalid resource path: expected default resource path, but " +
-                "found 'foo'", HTTP_127);
-        assertError(diagnosticResult, 4, "invalid resource method: expected default resource method, " +
-                "but found 'get'", HTTP_128);
-        assertError(diagnosticResult, 5, "invalid resource method return type: expected " +
+        assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
+                " path: '[string... path]', but found 'foo'", HTTP_127);
+        assertError(diagnosticResult, 2, "invalid interceptor resource method: expected default " +
+                "resource method: 'default', but found 'get'", HTTP_128);
+        assertError(diagnosticResult, 3, "invalid interceptor resource path: expected default resource" +
+                " path: '[string... path]', but found 'foo'", HTTP_127);
+        assertError(diagnosticResult, 4, "invalid interceptor resource method: expected default " +
+                "resource method: 'default', but found 'get'", HTTP_128);
+        assertError(diagnosticResult, 5, "invalid interceptor resource method return type: expected " +
                 "'http:NextService|error?', but found 'string'", HTTP_126);
         assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions", HTTP_124);
         assertError(diagnosticResult, 7, "invalid annotation 'http:ResourceConfig': annotations" +
