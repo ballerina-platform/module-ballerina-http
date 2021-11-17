@@ -24,6 +24,7 @@ package io.ballerina.stdlib.http.compiler;
 public class Constants {
     public static final String BALLERINA = "ballerina";
     public static final String HTTP = "http";
+    public static final String SERVICE_KEYWORD = "service";
     public static final String REMOTE_KEYWORD = "remote";
     public static final String RESPONSE_OBJ_NAME = "Response";
     public static final String CALLER_OBJ_NAME = "Caller";
@@ -41,9 +42,17 @@ public class Constants {
     public static final String RESPOND_METHOD_NAME = "respond";
     public static final String ERROR = "annotations:error";
     public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|error";
+    public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
+    public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
+    public static final String SERVICE = "Service";
+    public static final String HTTP_REQUEST_INTERCEPTOR = "http:RequestInterceptor";
+    public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "http:RequestErrorInterceptor";
+    public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "http:NextService|error?";
+    public static final String DEFAULT = "default";
 
     public static final String COLON = ":";
     public static final String PLUS = "+";
+    public static final String DEFAULT_PATH_REGEX = "\\[\\s*(string)\\s*(...)\\s*\\w*\\s*\\]";
     public static final String SUFFIX_SEPARATOR_REGEX = "\\+";
     public static final String MEDIA_TYPE_SUBTYPE_REGEX = "^(\\w)+(\\s*\\.\\s*(\\w)+)*(\\s*\\+\\s*(\\w)+)*";
     public static final String UNNECESSARY_CHARS_REGEX = "\"|\\n";

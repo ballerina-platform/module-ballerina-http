@@ -131,12 +131,7 @@ public class HTTPInterceptorServicesRegistry {
     }
 
     public void setServicesType(String servicesType) {
-        if (servicesType == null) {
-            throw new BallerinaConnectorException("HTTP interceptor services should include only one " +
-                    "interceptor type");
-        } else {
-            this.servicesType = servicesType;
-        }
+        this.servicesType = servicesType;
     }
 
     /**
