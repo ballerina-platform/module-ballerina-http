@@ -14,15 +14,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The HTTP request interceptor service object  
+# The HTTP request interceptor service object type
 public type RequestInterceptor distinct service object {
 
 };
 
-# The HTTP request error interceptor service object  
+# The HTTP request error interceptor service object type
 public type RequestErrorInterceptor distinct service object {
 
 };
 
-# The return values from an interceptor service function  
+# The return type of an interceptor service function
 public type NextService RequestInterceptor|Service;
