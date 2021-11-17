@@ -150,6 +150,7 @@ const int requestInterceptorStringPayloadBindingTestPort = 9600;
 const int requestInterceptorRecordPayloadBindingTestPort = 9601;
 const int requestInterceptorRecordArrayPayloadBindingTestPort = 9602;
 const int requestInterceptorByteArrayPayloadBindingTestPort = 9603;
+const int requestInterceptorWithQueryParamTestPort = 9604;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;

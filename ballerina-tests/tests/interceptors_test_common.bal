@@ -203,6 +203,18 @@ service class RequestInterceptorSkip {
     }
 }
 
+service class RequestInterceptorWithQueryParam {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](string q1, int q2, http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("request-interceptor-query-param", "true");
+       req.setHeader("q1", q1);
+       req.setHeader("q2", q2.toString());
+       ctx.add("last-interceptor", "request-interceptor-query-param");
+       return ctx.next();
+    }
+}
+
 service class RequestInterceptorNegative1 {
     *http:RequestInterceptor;
 

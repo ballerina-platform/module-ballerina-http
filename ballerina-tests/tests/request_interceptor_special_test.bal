@@ -291,3 +291,34 @@ function testRequestInterceptorByteArrayPayloadBinding() returns error? {
     assertJsonPayload(check res.getBinaryPayload(), person.toBytes());
     assertHeaderValue(check res.getHeader("request-payload"), person);
 }
+
+final http:Client requestInterceptorWithQueryParamClientEP = check new("http://localhost:" + requestInterceptorWithQueryParamTestPort.toString());
+
+listener http:Listener requestInterceptorWithQueryParamServerEP = new(requestInterceptorWithQueryParamTestPort, config = {
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithQueryParam(), new LastRequestInterceptor()]
+});
+
+service / on requestInterceptorWithQueryParamServerEP {
+
+    resource function 'default get(string q1, int q2, http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        res.setHeader("q1", check req.getHeader("q1"));
+        res.setHeader("request-interceptor-query-param", check req.getHeader("request-interceptor-query-param"));
+        res.setHeader("q2", check req.getHeader("q2"));
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorWithQueryParam() returns error? {
+    http:Response res = check requestInterceptorWithQueryParamClientEP->get("/get?q1=val&q2=6");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-query-param");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("request-interceptor-query-param"), "true");
+    assertHeaderValue(check res.getHeader("q1"), "val");
+    assertHeaderValue(check res.getHeader("q2"), "6");
+}
