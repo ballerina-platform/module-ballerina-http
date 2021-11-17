@@ -48,7 +48,7 @@ public isolated class RequestContext {
 
     public isolated function remove(string 'key) {
         lock {
-            value:Cloneable|isolated object {} err = self.attributes.remove('key);
+            value:Cloneable|isolated object {} _ = self.attributes.remove('key);
         }
     }
 
