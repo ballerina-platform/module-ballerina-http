@@ -10,10 +10,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Introduce request and request error interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/2062)
 
 ### Fixed
+- [Rename Link header name to link](https://github.com/ballerina-platform/ballerina-standard-library/issues/2135)
+- [Relax the data-binding restriction for no content status codes](https://github.com/ballerina-platform/ballerina-standard-library/issues/2294)
+- [Fix unused variable warning in the package](https://github.com/ballerina-platform/ballerina-standard-library/issues/2384)
 - [Fix initiating auth handlers per each request](https://github.com/ballerina-platform/ballerina-standard-library/issues/2394)
 
 ### Changed
+- [Remove the logs printed from the listeners](https://github.com/ballerina-platform/ballerina-standard-library/issues/2040)
+- [Change the runtime execution based on the isolation status](https://github.com/ballerina-platform/ballerina-standard-library/issues/2383)
 - [Mark HTTP Service type as distinct](https://github.com/ballerina-platform/ballerina-standard-library/issues/2398)
+- [Change the Listener.getConfig() API to return InferredListenerConfiguration](https://github.com/ballerina-platform/ballerina-standard-library/issues/2399)
 
 ## [1.1.0-beta.3] - 2021-10-10
 
