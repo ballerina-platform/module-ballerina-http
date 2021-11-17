@@ -45,12 +45,12 @@ service on new http:Listener(9094, { host: "0.0.0.0"}), new http:Listener(9096) 
     }
 }
 
-service http:Service on ep2, inFolder { // error
+service http:Service on ep2 { // error
     resource function get greeting(http:Response res) {
     }
 }
 
-service http:Service on inFolder { // skip http validation
+service http:Service on ep3 { // skip http validation
     remote function greeting(http:Cookie abc) {
     }
 }

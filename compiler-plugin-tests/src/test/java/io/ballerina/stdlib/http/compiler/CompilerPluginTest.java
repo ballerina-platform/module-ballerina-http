@@ -251,7 +251,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_9");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 6);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         diagnosticResult.diagnostics().stream().filter(err -> err.diagnosticInfo().code().contains(HTTP_106)).map(
                 err -> err.diagnosticInfo().messageFormat().contains(
                         "invalid resource parameter type: 'ballerina/http")).forEach(Assert::assertTrue);
