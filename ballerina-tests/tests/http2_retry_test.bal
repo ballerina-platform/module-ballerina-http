@@ -49,19 +49,14 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
     // Parameters include a reference to the caller endpoint and an object of
     // the request data.
     resource function 'default .(http:Caller caller, http:Request request) {
-        var backendFuture = http2RetryBackendClientEP->submit("GET", "/mockHelloService", request);
-        if (backendFuture is http:HttpFuture) {
-            http:Response|error backendResponse = http2RetryBackendClientEP->getResponse(backendFuture);
-            if (backendResponse is http:Response) {
-                error? responseToCaller = caller->respond(backendResponse);
-                if (responseToCaller is error) {
-                    log:printError("Error sending response", 'error = responseToCaller);
-                }
-            } else {
-                respondWithError(caller, backendResponse);
+        http:Response|error backendResponse = http2RetryBackendClientEP->get("/mockHelloService");
+        if (backendResponse is http:Response) {
+            error? responseToCaller = caller->respond(backendResponse);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
-            respondWithError(caller, <error>backendFuture);
+            respondWithError(caller, backendResponse);
         }
     }
 
@@ -208,8 +203,7 @@ service /mockHelloService on http2RetryTestserviceEndpoint1 {
 
 //Test basic retry functionality with HTTP2
 @test:Config {
-    groups: ["http2RetryClientTest"],
-    enable: false
+    groups: ["http2RetryClientTest"]
 }
 function testHttp2SimpleRetry() {
     json payload = {Name:"Ballerina"};
