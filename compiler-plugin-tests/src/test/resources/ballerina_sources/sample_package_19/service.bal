@@ -16,6 +16,27 @@
 
 import ballerina/http;
 
+public type RequestInterceptorType1 service object {
+    *http:RequestInterceptor;
+};
+
+public type RequestInterceptorType2 service object {
+    *RequestInterceptorType1;
+};
+
+public type RequestErrorInterceptorType1 service object {
+    *http:RequestErrorInterceptor;
+};
+
+public type RequestErrorInterceptorType2 service object {
+    *RequestErrorInterceptorType1;
+};
+
+public type MixedInterceptorType service object {
+    *RequestInterceptorType2;
+    *RequestErrorInterceptorType1;
+};
+
 // Positive Cases
 
 class HelloWorld {
@@ -85,9 +106,45 @@ service class InterceptorService6 {
     }
 }
 
+service class InterceptorService7 {
+    *RequestInterceptorType1;
+
+    resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
+        req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}
+
+service class InterceptorService8 {
+    *RequestInterceptorType2;
+
+    resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
+        req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}
+
+service class InterceptorService9 {
+    *RequestErrorInterceptorType1;
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
+        req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}
+
+service class InterceptorService10 {
+    *RequestErrorInterceptorType2;
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
+        req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}
+
 // Negative Cases
 
-service class InterceptorService7 {
+service class InterceptorService11 {
     *http:RequestInterceptor;
     *http:RequestErrorInterceptor;
 
@@ -97,7 +154,7 @@ service class InterceptorService7 {
     }
 }
 
-service class InterceptorService8 {
+service class InterceptorService12 {
     *http:RequestErrorInterceptor;
 
     resource function 'default foo(http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
@@ -106,7 +163,7 @@ service class InterceptorService8 {
     }
 }
 
-service class InterceptorService9 {
+service class InterceptorService13 {
     *http:RequestErrorInterceptor;
 
     resource function get [string... path](http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
@@ -115,7 +172,7 @@ service class InterceptorService9 {
     }
 }
 
-service class InterceptorService10 {
+service class InterceptorService14 {
     *http:RequestErrorInterceptor;
 
     resource function get foo(http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
@@ -124,7 +181,7 @@ service class InterceptorService10 {
     }
 }
 
-service class InterceptorService11 {
+service class InterceptorService15 {
     *http:RequestInterceptor;
 
     resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns string {
@@ -133,7 +190,7 @@ service class InterceptorService11 {
     }
 }
 
-service class InterceptorService12 {
+service class InterceptorService16 {
     *http:RequestInterceptor;
 
     resource function get greeting1(http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
@@ -147,11 +204,38 @@ service class InterceptorService12 {
     }
 }
 
-service class InterceptorService13 {
+service class InterceptorService17 {
     *http:RequestInterceptor;
 
     @http:ResourceConfig{}
     resource function get greeting1(http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
+        req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}
+
+service class InterceptorService18 {
+    *http:RequestErrorInterceptor;
+
+    resource function 'default [string path](http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
+        req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}
+
+service class InterceptorService19 {
+    *RequestErrorInterceptorType2;
+
+    resource function get [string... path](http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
+        req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}
+
+service class InterceptorService20 {
+    *MixedInterceptorType;
+
+    resource function get [string... path](http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
         req.setTextPayload("interceptor");
         return ctx.next();
     }

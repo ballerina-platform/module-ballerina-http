@@ -410,7 +410,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_19");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 8);
+        Assert.assertEquals(diagnosticResult.errorCount(), 11);
         assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
                 "'http:RequestErrorInterceptor'", HTTP_123);
         assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
@@ -426,6 +426,12 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions", HTTP_124);
         assertError(diagnosticResult, 7, "invalid annotation 'http:ResourceConfig': annotations" +
                 " are not supported for interceptor resource functions", HTTP_125);
+        assertError(diagnosticResult, 8, "invalid interceptor resource path: expected default resource" +
+                " path: '[string... path]', but found '[string path]'", HTTP_127);
+        assertError(diagnosticResult, 9, "invalid interceptor resource method: expected default " +
+                "resource method: 'default', but found 'get'", HTTP_128);
+        assertError(diagnosticResult, 10, "invalid multiple interceptor type reference: " +
+                "'MixedInterceptorType'", HTTP_123);
     }
 
 }
