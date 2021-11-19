@@ -37,6 +37,7 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -78,7 +79,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                 }
             }
         }
-        if (interceptorType != null) {
+        if (Objects.nonNull(interceptorType)) {
             validateInterceptorResourceMethod(ctx, members, interceptorType);
             interceptorType = null;
         }
@@ -90,16 +91,17 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
 
         if (typeInclusions.isEmpty()) {
             String typeName = typeReferenceSymbol.getName().isPresent() ? typeReferenceSymbol.getName().get() : null;
-            if (typeName != null) {
-                if (typeName.equals(Constants.REQUEST_INTERCEPTOR) ||
-                        typeName.equals(Constants.REQUEST_ERROR_INTERCEPTOR)) {
-                    if (interceptorType == null) {
-                        interceptorType = typeName;
-                        return true;
-                    } else {
-                        reportMultipleReferencesFound(ctx, (TypeReferenceNode) node);
-                        return false;
-                    }
+            if (Objects.isNull(typeName)) {
+                return true;
+            }
+            if (typeName.equals(Constants.REQUEST_INTERCEPTOR) ||
+                    typeName.equals(Constants.REQUEST_ERROR_INTERCEPTOR)) {
+                if (Objects.isNull(interceptorType)) {
+                    interceptorType = typeName;
+                    return true;
+                } else {
+                    reportMultipleReferencesFound(ctx, (TypeReferenceNode) node);
+                    return false;
                 }
             }
         } else {
@@ -119,7 +121,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         FunctionDefinitionNode resourceFunctionNode = null;
         for (Node member : members) {
             if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
-                if (resourceFunctionNode == null) {
+                if (Objects.isNull(resourceFunctionNode)) {
                     resourceFunctionNode = (FunctionDefinitionNode) member;
                 } else {
                     reportMultipleResourceFunctionsFound(ctx, (FunctionDefinitionNode) member);
@@ -127,7 +129,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                 }
             }
         }
-        if (resourceFunctionNode != null) {
+        if (Objects.nonNull(resourceFunctionNode)) {
             HttpInterceptorResourceValidator.validateResource(ctx, resourceFunctionNode, type);
         }
     }
