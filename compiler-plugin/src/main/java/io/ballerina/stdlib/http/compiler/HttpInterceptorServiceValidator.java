@@ -45,6 +45,7 @@ import java.util.Optional;
  */
 public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeAnalysisContext> {
     String interceptorType;
+    boolean errorReported = false;
 
     @Override
     public void perform(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
@@ -76,6 +77,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                     TypeReferenceTypeSymbol typeReferenceSymbol = (TypeReferenceTypeSymbol)
                             optionalTypeReferenceSymbol.get();
                     populateTypeReferenceName(ctx, member, typeReferenceSymbol);
+                    errorReported = false;
                 }
             }
         }
@@ -85,35 +87,35 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         }
     }
 
-    private boolean populateTypeReferenceName(SyntaxNodeAnalysisContext ctx, Node node,
+    private void populateTypeReferenceName(SyntaxNodeAnalysisContext ctx, Node node,
                                               TypeReferenceTypeSymbol typeReferenceSymbol) {
         List<TypeSymbol> typeInclusions = ((ObjectTypeSymbol) typeReferenceSymbol.typeDescriptor()).typeInclusions();
 
         if (typeInclusions.isEmpty()) {
             String typeName = typeReferenceSymbol.getName().isPresent() ? typeReferenceSymbol.getName().get() : null;
             if (Objects.isNull(typeName)) {
-                return true;
+                return;
             }
             if (typeName.equals(Constants.REQUEST_INTERCEPTOR) ||
                     typeName.equals(Constants.REQUEST_ERROR_INTERCEPTOR)) {
                 if (Objects.isNull(interceptorType)) {
                     interceptorType = typeName;
-                    return true;
                 } else {
                     reportMultipleReferencesFound(ctx, (TypeReferenceNode) node);
-                    return false;
+                    errorReported = true;
+                    interceptorType = null;
                 }
             }
         } else {
             for (TypeSymbol typeSymbol : typeInclusions) {
                 if (typeSymbol instanceof TypeReferenceTypeSymbol) {
-                    if (!populateTypeReferenceName(ctx, node, (TypeReferenceTypeSymbol) typeSymbol)) {
-                        return false;
+                    if (errorReported) {
+                        break;
                     }
+                    populateTypeReferenceName(ctx, node, (TypeReferenceTypeSymbol) typeSymbol);
                 }
             }
         }
-        return true;
     }
 
     private static void validateInterceptorResourceMethod(SyntaxNodeAnalysisContext ctx, NodeList<Node> members,
