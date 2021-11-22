@@ -21,7 +21,7 @@ import ballerina/lang.value;
 public isolated class RequestContext {
     private final map<value:Cloneable|isolated object {}> attributes = {};
 
-    public isolated function add(string 'key, value:Cloneable|isolated object {} value) {
+    public isolated function set(string 'key, value:Cloneable|isolated object {} value) {
         if value is value:Cloneable {
             lock {
                 self.attributes['key] = value.clone();
