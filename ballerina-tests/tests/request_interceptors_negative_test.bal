@@ -100,7 +100,7 @@ service / on requestInterceptorNegativeServerEP4 {
     }
 }
 
-@test:Config{enable : true}
+@test:Config{}
 function testRequestInterceptorNegative4() returns error? {
     http:Response res = check requestInterceptorNegativeClientEP4->get("/");
     test:assertEquals(res.statusCode, 500);
