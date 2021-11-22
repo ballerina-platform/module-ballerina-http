@@ -20,16 +20,17 @@ import ballerina/test;
 final http:Client defaultRequestInterceptorClientEP = check new("http://localhost:" + defaultRequestInterceptorTestPort.toString());
 
 listener http:Listener defaultRequestInterceptorServerEP = new(defaultRequestInterceptorTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor()]
+    interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new DefaultRequestErrorInterceptor()]
 });
 
 service / on defaultRequestInterceptorServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
-        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
         res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        string lastInterceptor = req.hasHeader("default-error-interceptor") ? "default-error-interceptor" : check req.getHeader("last-interceptor");
+        res.setHeader("last-interceptor", lastInterceptor);
         check caller->respond(res);
     }
 }
@@ -61,7 +62,7 @@ service / on requestInterceptorReturnsErrorServerEP {
 }
 
 @test:Config{}
-function testrequestInterceptorReturnsError() returns error? {
+function testRequestInterceptorReturnsError() returns error? {
     http:Response res = check requestInterceptorReturnsErrorClientEP->get("/");
     test:assertEquals(res.statusCode, 500);
     assertTextPayload(check res.getTextPayload(), "Request interceptor returns an error");
