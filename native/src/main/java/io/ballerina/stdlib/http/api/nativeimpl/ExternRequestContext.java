@@ -35,18 +35,20 @@ public class ExternRequestContext {
                         HttpErrorType.GENERIC_LISTENER_ERROR);
             }
             int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX) + 1;
-            Object interceptor = null;
+            Object interceptorToReturn = null;
+            Object interceptor;
             requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, true);
             while (interceptorId < interceptors.size()) {
                 interceptor = interceptors.get(interceptorId);
                 String interceptorType = HttpUtil.getInterceptorServiceType((BObject) interceptor);
                 if (interceptorType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR)) {
+                    interceptorToReturn = interceptor;
                     break;
                 }
                 interceptorId += 1;
             }
             requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
-            return interceptor;
+            return interceptorToReturn;
         } else {
             return HttpUtil.createHttpError("request context object does not contain the configured " +
                     "interceptors", HttpErrorType.GENERIC_LISTENER_ERROR);
