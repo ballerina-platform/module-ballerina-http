@@ -1786,12 +1786,10 @@ public class HttpUtil {
         for (TypeId typeId : typeIdList) {
             switch (typeId.getName()) {
                 case HttpConstants.HTTP_REQUEST_INTERCEPTOR:
-                    interceptorServiceType = interceptorServiceType == null ?
-                            HttpConstants.HTTP_REQUEST_INTERCEPTOR : null;
+                    interceptorServiceType = HttpConstants.HTTP_REQUEST_INTERCEPTOR;
                     break;
                 case HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR:
-                    interceptorServiceType = interceptorServiceType == null ?
-                            HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR : null;
+                    interceptorServiceType = HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR;
                     break;
                 default:
                     break;

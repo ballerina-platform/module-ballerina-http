@@ -15,13 +15,14 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/lang.'string as strings;
 
 service class DefaultRequestInterceptor {
     *http:RequestInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("default-interceptor", "true");
-       ctx.add("last-interceptor", "default-interceptor");
+       ctx.set("last-interceptor", "default-interceptor");
        return ctx.next();
     }
 }
@@ -30,8 +31,44 @@ service class DataBindingRequestInterceptor {
     *http:RequestInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, @http:Payload string payload, @http:Header {name: "interceptor"} string header) returns http:NextService|error? {
-       ctx.add("request-payload", payload);
-       ctx.add("last-interceptor", header);
+       ctx.set("request-payload", payload);
+       ctx.set("last-interceptor", header);
+       return ctx.next();
+    }
+}
+
+service class StringPayloadBindingRequestInterceptor {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, @http:Payload string payload) returns http:NextService|error? {
+       ctx.set("request-payload", payload);
+       return ctx.next();
+    }
+}
+
+service class RecordPayloadBindingRequestInterceptor {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, @http:Payload Person person) returns http:NextService|error? {
+       ctx.set("request-payload", person);
+       return ctx.next();
+    }
+}
+
+service class RecordArrayPayloadBindingRequestInterceptor {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, @http:Payload Person[] persons) returns http:NextService|error? {
+       ctx.set("request-payload", persons.toJsonString());
+       return ctx.next();
+    }
+}
+
+service class ByteArrayPayloadBindingRequestInterceptor {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, @http:Payload byte[] person) returns http:NextService|error? {
+       ctx.set("request-payload", strings:fromBytes(person));
        return ctx.next();
     }
 }
@@ -42,28 +79,28 @@ service class RequestInterceptorSetPayload {
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("interceptor-setpayload", "true");
        req.setTextPayload("Text payload from interceptor");
-       ctx.add("last-interceptor", "interceptor-setpayload");
+       ctx.set("last-interceptor", "interceptor-setpayload");
        return ctx.next();
     }
 }
 
-service class RequestInterceptorCallerRepond {
+service class RequestInterceptorCallerRespond {
     *http:RequestInterceptor;
 
     resource function 'default [string... path](http:Caller caller, http:Request request) returns error? {
         http:Response res = new();
-        res.setHeader("last-interceptor", "request-interceptor-caller-repond");
+        res.setHeader("last-interceptor", "request-interceptor-caller-respond");
         res.setTextPayload("Response from caller inside interceptor");
         check caller->respond(res);
     }
 }
 
-service class RequestInterceptorCallerRepondContinue {
+service class RequestInterceptorCallerRespondContinue {
     *http:RequestInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, http:Caller caller, http:Request request) returns http:NextService|error? {
         http:Response res = new();
-        res.setHeader("last-interceptor", "request-interceptor-caller-repond");
+        res.setHeader("last-interceptor", "request-interceptor-caller-respond");
         res.setTextPayload("Response from caller inside interceptor");
         check caller->respond(res);
         return ctx.next();
@@ -75,7 +112,7 @@ service class RequestInterceptorReturnsError {
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns error {
        req.setHeader("request-interceptor-error", "true");
-       ctx.add("last-interceptor", "request-interceptor-error");
+       ctx.set("last-interceptor", "request-interceptor-error");
        return error("Request interceptor returns an error");
     }
 }
@@ -94,12 +131,11 @@ service class LastRequestInterceptor {
 
 service class DefaultRequestErrorInterceptor {
     *http:RequestErrorInterceptor;
-    int foo = 100;
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
        req.setHeader("default-error-interceptor", "true");
        req.setTextPayload(err.message());
-       ctx.add("last-interceptor", "default-error-interceptor");
+       ctx.set("last-interceptor", "default-error-interceptor");
        return ctx.next();
     }
 }
@@ -109,7 +145,7 @@ service class RequestInterceptorWithoutCtxNext {
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) {
        req.setHeader("request-interceptor-without-ctx-next", "true");
-       ctx.add("last-interceptor", "request-interceptor-without-ctx-next");
+       ctx.set("last-interceptor", "request-interceptor-without-ctx-next");
     }
 }
 
@@ -118,7 +154,7 @@ service class GetRequestInterceptor {
 
     resource function get [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("get-interceptor", "true");
-       ctx.add("last-interceptor", "get-interceptor");
+       ctx.set("last-interceptor", "get-interceptor");
        return ctx.next();
     }
 }
@@ -128,7 +164,7 @@ service class PostRequestInterceptor {
 
     resource function post [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("post-interceptor", "true");
-       ctx.add("last-interceptor", "post-interceptor");
+       ctx.set("last-interceptor", "post-interceptor");
        return ctx.next();
     }
 }
@@ -138,7 +174,7 @@ service class DefaultRequestInterceptorBasePath {
 
     resource function 'default foo(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("default-base-path-interceptor", "true");
-       ctx.add("last-interceptor", "default-base-path-interceptor");
+       ctx.set("last-interceptor", "default-base-path-interceptor");
        return ctx.next();
     }
 }
@@ -148,7 +184,7 @@ service class GetRequestInterceptorBasePath {
 
     resource function get foo/bar(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("default-base-path-interceptor", "true");
-       ctx.add("last-interceptor", "get-base-path-interceptor");
+       ctx.set("last-interceptor", "get-base-path-interceptor");
        return ctx.next();
     }
 }
@@ -158,11 +194,23 @@ service class RequestInterceptorSkip {
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("skip-interceptor", "true");
-       ctx.add("last-interceptor", "skip-interceptor");
+       ctx.set("last-interceptor", "skip-interceptor");
        http:NextService|error? nextService = ctx.next();
        if (nextService is error) {
            return nextService;
        }
+       return ctx.next();
+    }
+}
+
+service class RequestInterceptorWithQueryParam {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](string q1, int q2, http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("request-interceptor-query-param", "true");
+       req.setHeader("q1", q1);
+       req.setHeader("q2", q2.toString());
+       ctx.set("last-interceptor", "request-interceptor-query-param");
        return ctx.next();
     }
 }
@@ -173,7 +221,7 @@ service class RequestInterceptorNegative1 {
     resource function 'default [string... path](http:Request req) returns http:NextService|error? {
        req.setHeader("request-interceptor-negative1", "true");
        http:RequestContext ctx = new();
-       ctx.add("last-interceptor", "request-interceptor-negative1");
+       ctx.set("last-interceptor", "request-interceptor-negative1");
        return ctx.next();
     }
 }

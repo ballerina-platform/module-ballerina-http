@@ -17,15 +17,9 @@
  */
 package io.ballerina.stdlib.http.api;
 
-import io.ballerina.runtime.api.types.ErrorType;
 import io.ballerina.runtime.api.types.MethodType;
-import io.ballerina.runtime.api.types.NullType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
-import io.ballerina.runtime.api.types.ServiceType;
-import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
-import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
@@ -36,7 +30,6 @@ import java.util.Locale;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
-import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
 /**
  * {@code InterceptorResource} This is the http wrapper for the {@code InterceptorResource} implementation.
@@ -66,7 +59,6 @@ public class InterceptorResource implements Resource {
         if (balResource instanceof ResourceMethodType) {
             this.validateAndPopulateResourcePath();
             this.validateAndPopulateMethod();
-            this.validateReturnType();
         }
     }
 
@@ -121,12 +113,7 @@ public class InterceptorResource implements Resource {
             // setting method as null means that no specific method. Resource is exposed for any method match
             this.methods = null;
         } else {
-            if (this.getResourceType().equals(HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR)) {
-                throw new BallerinaConnectorException("interceptor resources are allowed to have only default " +
-                        "method");
-            } else {
-                this.methods = Collections.singletonList(accessor.toUpperCase(Locale.getDefault()));
-            }
+            this.methods = Collections.singletonList(accessor.toUpperCase(Locale.getDefault()));
         }
     }
 
@@ -156,11 +143,6 @@ public class InterceptorResource implements Resource {
             }
         }
         this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, SINGLE_SLASH);
-        if (this.getResourceType().equals(HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR) &&
-                !this.path.equals(HttpConstants.DEFAULT_SUB_PATH)) {
-            throw new BallerinaConnectorException("interceptor resources are not allowed to have specific " +
-                    "base path");
-        }
         this.pathParamCount = count;
     }
 
@@ -180,25 +162,8 @@ public class InterceptorResource implements Resource {
     public static InterceptorResource buildInterceptorResource(MethodType resource, InterceptorService
             interceptorService) {
         InterceptorResource interceptorResource = new InterceptorResource(resource, interceptorService);
-        BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
-
-        if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
-            throw new BallerinaConnectorException("Resource Config annotation is not supported in " +
-                    "interceptor resource");
-        }
-
         interceptorResource.prepareAndValidateSignatureParams();
         return interceptorResource;
-    }
-
-    /**
-     * Get the `BMap` resource configuration of the given resource.
-     *
-     * @param resource The resource
-     * @return the resource configuration of the given resource
-     */
-    public static BMap getResourceConfigAnnotation(MethodType resource) {
-        return (BMap) resource.getAnnotation(HTTP_RESOURCE_CONFIG);
     }
 
     private void prepareAndValidateSignatureParams() {
@@ -210,37 +175,4 @@ public class InterceptorResource implements Resource {
         return wildcardToken;
     }
 
-    private void validateReturnType() {
-        Type returnType = getBalResource().getType().getReturnType();
-        if (!(checkReturnType(returnType))) {
-            throw new BallerinaConnectorException("interceptor resources are not allowed to return " +
-                    returnType.toString());
-        }
-    }
-
-    private boolean checkReturnType(Type returnType) {
-        if (returnType instanceof UnionType) {
-            List<Type> members = ((UnionType) returnType).getMemberTypes();
-            for (Type member : members) {
-                if (!checkReturnTypeForObject(member)) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return checkReturnTypeForObject(returnType);
-        }
-    }
-
-    private boolean checkReturnTypeForObject(Type returnType) {
-        if (returnType instanceof ServiceType) {
-            return true;
-        } else if (returnType instanceof ErrorType) {
-            return true;
-        } else if (returnType instanceof NullType) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 }

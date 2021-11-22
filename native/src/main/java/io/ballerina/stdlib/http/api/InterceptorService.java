@@ -19,11 +19,9 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ServiceType;
-import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.URITemplate;
@@ -32,8 +30,6 @@ import io.ballerina.stdlib.http.uri.parser.Literal;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-
-import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
 /**
  * {@code InterceptorService} This is the http wrapper for the {@code InterceptorService} implementation.
@@ -128,12 +124,6 @@ public class InterceptorService implements Service {
     public static InterceptorService buildHttpService(BObject service, String basePath, String serviceType) {
         InterceptorService interceptorService = new InterceptorService(service, basePath);
         interceptorService.setServiceType(serviceType);
-        BMap serviceConfig = getHttpServiceConfigAnnotation(service);
-        if (checkConfigAnnotationAvailability(serviceConfig)) {
-            // Redundant since compiler validation does not allow service config annotation for service objects
-            throw new BallerinaConnectorException("Service Config annotation is not supported " +
-                    "for interceptor services");
-        }
         interceptorService.setHostName(HttpConstants.DEFAULT_HOST);
         processInterceptorResource(interceptorService);
         interceptorService.setAllAllowedMethods(DispatcherUtil.getInterceptorResourceMethods(
@@ -148,9 +138,6 @@ public class InterceptorService implements Service {
             MethodType resource = resourceMethods[0];
             updateInterceptorResourceTree(interceptorService,
                     InterceptorResource.buildInterceptorResource(resource, interceptorService));
-        } else {
-            throw new BallerinaConnectorException("HTTP interceptor services are allowed to have only " +
-                    "one resource method");
         }
     }
 
@@ -163,16 +150,5 @@ public class InterceptorService implements Service {
             throw new BallerinaConnectorException(e.getMessage());
         }
         httpService.setInterceptorResource(httpInterceptorResource);
-    }
-
-    private static BMap getHttpServiceConfigAnnotation(BObject service) {
-        return getServiceConfigAnnotation(service, ModuleUtils.getHttpPackageIdentifier(),
-                HttpConstants.ANN_NAME_HTTP_SERVICE_CONFIG);
-    }
-
-    protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
-                                                     String annotationName) {
-        String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
-        return (BMap) (service.getType()).getAnnotation(StringUtils.fromString(key + ":" + annotationName));
     }
 }

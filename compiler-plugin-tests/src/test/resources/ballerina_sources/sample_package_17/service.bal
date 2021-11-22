@@ -1,4 +1,4 @@
-// Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,15 +14,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The HTTP request interceptor service object type
-public type RequestInterceptor distinct service object {
+import ballerina/http;
 
-};
+service /path on new http:Listener(9090) {
 
-# The HTTP request error interceptor service object type
-public type RequestErrorInterceptor distinct service object {
+    resource function get requestContext1(http:RequestContext a, http:Request req, http:Caller caller) returns error? {
+        check caller->respond("done");
+    }
 
-};
-
-# The return type of an interceptor service function
-public type NextService RequestInterceptor|Service;
+    resource function get requestContext2(http:RequestContext abc, http:RequestContext bcd) returns string {
+        return "done";
+    }
+}

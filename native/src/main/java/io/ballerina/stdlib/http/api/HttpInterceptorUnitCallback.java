@@ -88,10 +88,6 @@ public class HttpInterceptorUnitCallback implements Callback {
         try {
             HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
         } catch (BError e) {
-            if (result != null) { // handles nil return and end of resource exec
-                printStacktraceIfError(result);
-                err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + e.getMessage());
-            }
             return true;
         }
         return false;
