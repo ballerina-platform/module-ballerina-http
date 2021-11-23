@@ -84,5 +84,25 @@ service / on requestInterceptorNegativeServerEP3 {
 function testRequestInterceptorNegative3() returns error? {
     http:Response res = check requestInterceptorNegativeClientEP3->get("/");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-interceptor");
-    assertTextPayload(check res.getTextPayload(), "illegal function invocation : next()");
+    assertTextPayload(check res.getTextPayload(), "no next service to be returned");
+}
+
+final http:Client requestInterceptorNegativeClientEP4 = check new("http://localhost:" + requestInterceptorNegativeTestPort4.toString());
+
+listener http:Listener requestInterceptorNegativeServerEP4 = new(requestInterceptorNegativeTestPort4, config = {
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSkip()]
+});
+
+service / on requestInterceptorNegativeServerEP4 {
+
+    resource function 'default .() returns string {
+        return "Response from resource - test";
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorNegative4() returns error? {
+    http:Response res = check requestInterceptorNegativeClientEP4->get("/");
+    test:assertEquals(res.statusCode, 500);
+    assertTextPayload(check res.getTextPayload(), "no next service to be returned");
 }
