@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener httpStatusCodeListenerEP = new(httpStatusCodeTestPort);
-http:Client httpStatusCodeClient = check new("http://localhost:" + httpStatusCodeTestPort.toString());
+final http:Client httpStatusCodeClient = check new("http://localhost:" + httpStatusCodeTestPort.toString());
 
 service /differentStatusCodes on httpStatusCodeListenerEP {
 
@@ -185,10 +185,20 @@ function testNoContentWithoutBody() {
 function testNoContentWithDataBinding() {
     string|error response = httpStatusCodeClient->get("/differentStatusCodes/noContentWithoutBody");
     if (response is error) {
-        test:assertEquals(response.message(), "No payload status code: 204", msg = "Found unexpected output");
+        test:assertEquals(response.message(), "No content", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: string");
     }
+}
+
+//Test ballerina noContent() function without entity body and nil-able type
+@test:Config {}
+function testNoContentWithDataBindingWithNilableType() returns error? {
+    string? response = check httpStatusCodeClient->get("/differentStatusCodes/noContentWithoutBody");
+    if (response is string) {
+        test:assertFail(msg = "Found unexpected output type: string");
+    }
+    return;
 }
 
 //Test ballerina badRequest() function with entity body
@@ -211,7 +221,7 @@ function testDataBindingBadRequestWithBody() {
     if (response is http:ClientRequestError) {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
         assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], APPLICATION_XML);
-        test:assertEquals(<xml> response.detail().body, xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
+        test:assertEquals(<xml & readonly> response.detail().body, xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
     } else {
         test:assertFail(msg = "Found unexpected output type: json");
     }
@@ -285,7 +295,7 @@ function testDataBindingInternalServerErrWithBody() {
     if (response is http:RemoteServerError) {
         test:assertEquals(response.detail().statusCode, 500, msg = "Found unexpected output");
         assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], APPLICATION_XML);
-        test:assertEquals(<xml> response.detail().body, xml `<test>Internal Server Error Occurred</test>`, msg = "Mismatched xml payload");
+        test:assertEquals(<xml & readonly> response.detail().body, xml `<test>Internal Server Error Occurred</test>`, msg = "Mismatched xml payload");
     } else {
         test:assertFail(msg = "Found unexpected output type: xml");
     }

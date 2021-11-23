@@ -23,8 +23,8 @@ import ballerina/lang.'string as strings;
 listener http:Listener clientDBProxyListener = new(clientDatabindingTestPort1);
 listener http:Listener clientDBBackendListener = new(clientDatabindingTestPort2);
 listener http:Listener clientDBBackendListener2 = new(clientDatabindingTestPort3);
-http:Client clientDBTestClient = check new("http://localhost:" + clientDatabindingTestPort1.toString());
-http:Client clientDBBackendClient = check new("http://localhost:" + clientDatabindingTestPort2.toString());
+final http:Client clientDBTestClient = check new("http://localhost:" + clientDatabindingTestPort1.toString());
+final http:Client clientDBBackendClient = check new("http://localhost:" + clientDatabindingTestPort2.toString());
 
 type ClientDBPerson record {|
     string name;
@@ -71,15 +71,14 @@ service /passthrough on clientDBProxyListener {
         payload = payload + " | " + check response.getHeader("x-fact");
 
         error? result = caller->respond(payload);
+        return;
     }
 
     resource function get nillableTypes() returns string|error {
         string payload = "";
 
         json? jsonPayload = check clientDBBackendClient->post("/backend/getJson", "want json");
-        if jsonPayload is json {
-            payload = payload + jsonPayload.toJsonString();
-        }
+        payload = payload + jsonPayload.toJsonString();
 
         map<json>? jsonMapPayload = check clientDBBackendClient->post("/backend/getJson", "want json");
         if jsonMapPayload is map<json> {
@@ -248,6 +247,7 @@ service /passthrough on clientDBProxyListener {
         payload = payload + " | " + u[0].name + " | " + u[1].age.toString();
 
         error? result = caller->respond(payload);
+        return;
     }
 
     resource function get redirect(http:Caller caller, http:Request req) returns error? {
@@ -255,6 +255,7 @@ service /passthrough on clientDBProxyListener {
                                                         {followRedirects: {enabled: true, maxCount: 5}});
         json p = check redirectClient->post("/redirect1/", "want json", targetType = json);
         error? result = caller->respond(p);
+        return;
     }
 
     resource function get 'retry(http:Caller caller, http:Request request) returns error? {
@@ -265,11 +266,13 @@ service /passthrough on clientDBProxyListener {
         );
         string r = check retryClient->forward("/backend/getRetryResponse", request);
         error? responseToCaller = caller->respond(r);
+        return;
     }
 
     resource function 'default '500(http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->post("/backend/get5XX", "want 500");
         error? responseToCaller = caller->respond(p);
+        return;
     }
 
     resource function 'default '500handle(http:Caller caller, http:Request request) returns error? {
@@ -285,11 +288,13 @@ service /passthrough on clientDBProxyListener {
             json p = check res;
             error? responseToCaller = caller->respond(p);
         }
+        return;
     }
 
     resource function 'default '404(http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->post("/backend/getIncorrectPath404", "want 500");
         error? responseToCaller = caller->respond(p);
+        return;
     }
 
     resource function  'default '404/[string path](http:Caller caller, http:Request request) returns error? {
@@ -303,11 +308,13 @@ service /passthrough on clientDBProxyListener {
             json p = check res;
             error? responseToCaller = caller->respond(p);
         }
+        return;
     }
 
     resource function get testBody/[string path](http:Caller caller, http:Request request) returns error? {
         json p = check clientDBBackendClient->get("/backend/" + path);
         error? responseToCaller = caller->respond(p);
+        return;
     }
 }
 
@@ -360,8 +367,12 @@ service /backend on clientDBBackendListener {
     }
 
     resource function 'default getRetryResponse(http:Caller caller, http:Request req) {
-        clientDBCounter = clientDBCounter + 1;
-        if (clientDBCounter == 1) {
+        int count = 0;
+        lock {
+            clientDBCounter = clientDBCounter + 1;
+            count = clientDBCounter;
+        }
+        if (count == 1) {
             runtime:sleep(5);
             error? responseToCaller = caller->respond("Not received");
         } else {
@@ -443,6 +454,7 @@ function testAllBindingNillableTypes() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {
@@ -457,6 +469,7 @@ function testAllBindingNillableDataTypes() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {
@@ -471,6 +484,7 @@ function testAllBindingNilTypes() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {
@@ -485,6 +499,7 @@ function testAllBindingNilRecords() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {
@@ -499,6 +514,7 @@ function testAllBindingErrorReturns() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {
@@ -514,6 +530,7 @@ function testAllBindingErrors() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {
@@ -528,6 +545,7 @@ function testAllBindingErrorsWithNillableTypes() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 // Test basic client with all HTTP request methods
@@ -729,7 +747,7 @@ function testDBRecordErrorNegative() {
 function testDBRecordArrayNegative() {
     ClientDBErrorPerson[]|error response =  clientDBBackendClient->post("/backend/getRecordArr", "want record arr");
     if (response is error) {
-        test:assertEquals(response.message(),
+        assertTrueTextPayload(response.message(),
             "Payload binding failed: 'json[]' value cannot be converted to 'http_tests:ClientDBErrorPerson[]'");
     } else {
         test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson[]");

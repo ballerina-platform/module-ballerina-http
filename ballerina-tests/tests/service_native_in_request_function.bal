@@ -92,22 +92,23 @@ function testSetBinaryPayload()  {
 }
 
 @test:Config {}
-function testSetEntityBody() {
+function testSetEntityBody() returns error? {
     error? createFileResults = file:create("test.json");
     string value = "{\"name\":\"wso2\"}";
     string filePath = "";
     if (createFileResults is ()) {
-        filePath = checkpanic file:getAbsolutePath("test.json");
+        filePath = check file:getAbsolutePath("test.json");
     }
-    io:WritableByteChannel writableFileResult = checkpanic io:openWritableFile("test.json");
+    io:WritableByteChannel writableFileResult = check io:openWritableFile("test.json");
     io:WritableCharacterChannel destinationChannel = new (writableFileResult, "UTF-8");
-    var writeCharResult = checkpanic destinationChannel.write(value, 0);
-    error? close = destinationChannel.close();
+    _ = check destinationChannel.write(value, 0);
+    _ = check destinationChannel.close();
     http:Request req = new;
     req.setFileAsPayload(filePath);
     var payload = req.getEntity();
-    error? removeResults = file:remove(filePath);
+    _ = check file:remove(filePath);
     test:assertTrue(payload is mime:Entity, msg = "Payload mismatched");
+    return;
 }
 
 @test:Config {}
@@ -467,7 +468,7 @@ service /requesthello on requestListner {
     }
 }
 
-http:Client requestClient = check new("http://localhost:" + requestTest.toString());
+final http:Client requestClient = check new("http://localhost:" + requestTest.toString());
 
 // Test addHeader function within a service
 @test:Config {}

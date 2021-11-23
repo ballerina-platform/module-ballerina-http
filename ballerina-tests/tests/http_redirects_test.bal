@@ -42,12 +42,10 @@ http:ClientConfiguration endPoint2Config = {
     followRedirects: { enabled: true, maxCount: 5 }
 };
 
-http:ClientConfiguration endPoint3Config = {
+// Type should be `final readonly & http:ClientConfiguration` to preserve the isolated root inside an isolated
+// resource. But it is not possible until https://github.com/ballerina-platform/ballerina-spec/issues/544 is fixed
+final http:ClientConfiguration endPoint3Config = {
     followRedirects: { enabled: true }
-};
-
-http:ClientConfiguration endPoint4Config = {
-    followRedirects: { enabled: true, allowAuthHeaders : true }
 };
 
 http:ClientConfiguration endPoint5Config = {
@@ -60,11 +58,11 @@ http:ClientConfiguration endPoint5Config = {
     }
 };
 
-http:Client endPoint1 = check new("http://localhost:9103", followRedirects = { enabled: true, maxCount: 3 });
-http:Client endPoint2 = check new("http://localhost:9103", endPoint2Config );
-http:Client endPoint3 = check new("http://localhost:9102", endPoint3Config );
-http:Client endPoint4 = check new("http://localhost:9103");
-http:Client endPoint5 = check new("https://localhost:9104", endPoint5Config );
+final http:Client endPoint1 = check new("http://localhost:9103", followRedirects = { enabled: true, maxCount: 3 });
+final http:Client endPoint2 = check new("http://localhost:9103", endPoint2Config );
+final http:Client endPoint3 = check new("http://localhost:9102", endPoint3Config );
+final http:Client endPoint4 = check new("http://localhost:9103");
+final http:Client endPoint5 = check new("https://localhost:9104", endPoint5Config );
 
 service /testRedirectService on serviceEndpoint3 {
 
@@ -77,6 +75,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get maxRedirect(http:Caller caller, http:Request req) returns error? {
@@ -91,6 +90,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get crossDomain(http:Caller caller, http:Request req) returns error? {
@@ -106,6 +106,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get noRedirect(http:Caller caller, http:Request req) returns error? {
@@ -121,6 +122,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get qpWithRelativePath(http:Caller caller, http:Request req) returns error? {
@@ -136,6 +138,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) returns error? {
@@ -151,6 +154,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get originalRequestWithQP(http:Caller caller, http:Request req) returns error? {
@@ -166,6 +170,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get test303(http:Caller caller, http:Request req) returns error? {
@@ -181,6 +186,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get redirectOff(http:Caller caller, http:Request req) returns error? {
@@ -195,6 +201,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get httpsRedirect(http:Caller caller, http:Request req) returns error? {
@@ -210,10 +217,14 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get doPost(http:Caller caller, http:Request request) returns error? {
-        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:ClientConfiguration endPoint4Config = {
+            followRedirects: { enabled: true, allowAuthHeaders : true }
+        };
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -229,10 +240,14 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get doHead(http:Caller caller, http:Request request) returns error? {
-        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:ClientConfiguration endPoint4Config = {
+            followRedirects: { enabled: true, allowAuthHeaders : true }
+        };
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
         http:Response|error response = endPoint4->head("/redirect1/handleHead", {"X-Redirect-Action": "HTTP_TEMPORARY_REDIRECT"});
         if (response is http:Response) {
             var value = response.getHeader("X-Redirect-Details");
@@ -245,10 +260,14 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get doExecute(http:Caller caller, http:Request request) returns error? {
-        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:ClientConfiguration endPoint4Config = {
+            followRedirects: { enabled: true, allowAuthHeaders : true }
+        };
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -264,10 +283,14 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get doPatch(http:Caller caller, http:Request request) returns error? {
-        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:ClientConfiguration endPoint4Config = {
+            followRedirects: { enabled: true, allowAuthHeaders : true }
+        };
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -283,10 +306,14 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get doDelete(http:Caller caller, http:Request request) returns error? {
-        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:ClientConfiguration endPoint4Config = {
+            followRedirects: { enabled: true, allowAuthHeaders : true }
+        };
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -302,10 +329,14 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get doOptions(http:Caller caller, http:Request request) returns error? {
-        http:Client endPoint4 = checkpanic new("http://localhost:9103", endPoint4Config );
+        http:ClientConfiguration endPoint4Config = {
+            followRedirects: { enabled: true, allowAuthHeaders : true }
+        };
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
         http:Response|error response = endPoint4->options("/redirect1/handleOptions");
         if (response is http:Response) {
             var value = response.getHeader("Allow");
@@ -318,6 +349,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get doSecurePut(http:Caller caller, http:Request request) returns error? {
@@ -336,10 +368,11 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 
     resource function get testMultipart(http:Caller caller, http:Request req) returns error? {
-        http:Client endPoint3 = checkpanic new("http://localhost:9103", endPoint3Config );
+        http:Client endPoint3 = check new("http://localhost:9103", followRedirects = { enabled: true });
         mime:Entity jsonBodyPart = new;
         jsonBodyPart.setContentDisposition(getContentDispositionForFormData("json part"));
         jsonBodyPart.setJson({"name": "wso2"});
@@ -359,6 +392,7 @@ service /testRedirectService on serviceEndpoint3 {
         } else {
             io:println("Connector error!");
         }
+        return;
     }
 }
 
@@ -487,6 +521,7 @@ service /redirect2 on serviceEndpoint2 {
             }
             check caller->respond(res);
         }
+        return;
     }
 }
 

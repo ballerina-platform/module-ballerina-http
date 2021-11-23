@@ -25,7 +25,6 @@ function testAddCookieWithUnmatchedDomain() {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "foo.example.com");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://bar.example.com", cookieConfig = cookieConfig );
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://bar.example.com", "/sample");
     if (result is error) {
         io:println(result);
@@ -41,7 +40,6 @@ function testAddCookieWithUnmatchedPath() {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/mail/inbox", domain = "example.com");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://example.com", cookieConfig = cookieConfig  );
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://example.com", "/mail");
     if (result is error) {
         io:println(result);
@@ -58,7 +56,6 @@ function testAddSimilarCookie() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", httpOnly = true);
     http:Cookie cookie2 = new("SID002", "6789mnmsddd34", path = "/sample", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
     if (result is error) {
         io:println(result);
@@ -79,7 +76,6 @@ function testAddHttpOnlyCookie() {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", httpOnly = true);
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "google.com", "/sample");
     if (result is error) {
         io:println(result);
@@ -90,84 +86,83 @@ function testAddHttpOnlyCookie() {
 
 // Test to get a secure only cookie to unsecured request url
 @test:Config {}
-function testNegativeGetSecureCookieFromCookieStore() {
+function testNegativeGetSecureCookieFromCookieStore() returns error? {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", secure = true);
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
-    error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
+    _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
     http:Cookie[] cookies = cookieStore.getCookies("http://google.com", "/sample");
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
+    return;
 }
 
 // Test to get a http only cookie to non-http request url
 @test:Config {}
-function testGetHttpOnlyCookieFromCookieStore() {
+function testGetHttpOnlyCookieFromCookieStore() returns error? {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", httpOnly = true);
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
-    error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
+    _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
     http:Cookie[] cookies = cookieStore.getCookies("google.com", "/sample");
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
+    return;
 }
 
 // Test to get a host only cookie to a sub-domain from the cookie store
 @test:Config {}
-function testGetCookieToUnmatchedDomain1() {
+function testGetCookieToUnmatchedDomain1() returns error? {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
-    error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
+    _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
     http:Cookie[] cookies = cookieStore.getCookies("http://mail.google.com", "/sample");
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
+    return;
 }
 
 // Test to get a cookie to unmatched request domain
 @test:Config {}
-function testGetCookieToUnmatchedDomain2() {
+function testGetCookieToUnmatchedDomain2() returns error? {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "foo.google.com");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://foo.google.com", cookieConfig = cookieConfig );
-    error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://foo.google.com", "/sample");
+    _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://foo.google.com", "/sample");
     http:Cookie[] cookies = cookieStore.getCookies("http://google.com", "/sample");
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
+    return;
 }
 
 // Test to get a cookie to unmatched request path
 @test:Config {}
-function testGetCookieToUnmatchedPath1() {
+function testGetCookieToUnmatchedPath1() returns error? {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/mail/inbox", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
-    error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/mail/inbox");
+    _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/mail/inbox");
     http:Cookie[] cookies = cookieStore.getCookies("http://google.com", "/mail");
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
+    return;
 }
 
 // Test to get a cookie with unspecified path to unmatched request path
 @test:Config {}
-function testGetCookieToUnmatchedPath2() {
+function testGetCookieToUnmatchedPath2() returns error? {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
-    error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/mail");
+    _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/mail");
     http:Cookie[] cookies = cookieStore.getCookies("http://google.com", "/sample");
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
+    return;
 }
 
 // Test to remove a specific cookie which is not in the cookie store when persistent cookie handler is not configured
 @test:Config {}
-function testNegativeRemoveCookieFromCookieStore() {
+function testNegativeRemoveCookieFromCookieStore() returns error? {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
-    error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample" );
+    _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample" );
     var removeResult = cookieStore.removeCookie("SID003", "google.com", "/sample");
     if (removeResult is error) {
         io:println(removeResult);
@@ -175,42 +170,49 @@ function testNegativeRemoveCookieFromCookieStore() {
     http:Cookie[] cookies = cookieStore.getAllCookies();
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
+    return;
 }
 
 // Test to add cookies more than the number in maxTotalCookieCount in cookie configuration
 @test:Config {}
-function testCheckMaxTotalCookieCount() {
+function testCheckMaxTotalCookieCount() returns error? {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Cookie cookie2 = new("SID002", "jka6mnmsddd34", path = "/sample", domain = "google.com");
     http:Cookie cookie3 = new("SID003", "kafh34dmnmsddd34", path = "/sample", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true, maxTotalCookieCount:2 };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
-    error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-    result = cookieStore.addCookie(cookie2, cookieConfig, "http://google.com", "/sample");
-    result = cookieStore.addCookie(cookie3, cookieConfig, "http://google.com", "/sample");
+    _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
+    _ = check cookieStore.addCookie(cookie2, cookieConfig, "http://google.com", "/sample");
+    error? result = cookieStore.addCookie(cookie3, cookieConfig, "http://google.com", "/sample");
+    if result is error {
+        assertTrueTextPayload(result.message(), "Number of total cookies in the cookie store can not exceed");
+    }
     http:Cookie[] cookies = cookieStore.getAllCookies();
     test:assertEquals(cookies.length(), 2, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID001", msg = "Invalid cookie name");
     test:assertEquals(cookies[1].name, "SID002", msg = "Invalid cookie name");
+    return;
 }
 
 // Test to add cookies more than the number in maxCookiesPerDomain in cookie configuration
 @test:Config {}
-function testCheckMaxCookiesPerDomain() {
+function testCheckMaxCookiesPerDomain() returns error? {
     http:CookieStore cookieStore = new;
     http:Cookie cookie1 = new("SID001", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Cookie cookie2 = new("SID002", "jka6mnmsddd34", path = "/sample", domain = "google.com");
     http:Cookie cookie3 = new("SID003", "kafh34dmnmsddd34", path = "/sample", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true, maxCookiesPerDomain:2 };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
-    error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-    result = cookieStore.addCookie(cookie2, cookieConfig, "http://google.com", "/sample");
-    result = cookieStore.addCookie(cookie3, cookieConfig, "http://google.com", "/sample");
+    _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
+    _ = check cookieStore.addCookie(cookie2, cookieConfig, "http://google.com", "/sample");
+    error? result =  cookieStore.addCookie(cookie3, cookieConfig, "http://google.com", "/sample");
+    if result is error {
+        assertTrueTextPayload(result.message(), "Number of total cookies for the domain");
+    }
     http:Cookie[] cookies = cookieStore.getAllCookies();
     test:assertEquals(cookies.length(), 2, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID001", msg = "Invalid cookie name");
     test:assertEquals(cookies[1].name, "SID002", msg = "Invalid cookie name");
+    return;
 }
 
 // Test to give invalid file extension when creating a CsvPersistentCookieHandler object
@@ -234,7 +236,7 @@ function testAddPersistentCookieWithoutPersistentStore() {
 
 // Test to remove a specific cookie which is not in the cookie store, when there is a persistent cookie store
 @test:Config {}
-function testRemovePersistentCookieFromCookieStore_1() {
+function testRemovePersistentCookieFromCookieStore_1() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-6.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
@@ -243,16 +245,17 @@ function testRemovePersistentCookieFromCookieStore_1() {
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
     if (cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1) {
-        error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
+        _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
         error? result1 = trap cookieStore.removeCookie("SID003", "google.com", "/sample");
         if (result1 is error) {
             test:assertEquals(result1.message(), "{ballerina/lang.table}KeyNotFound", msg = "Incorrect error");
         }
         cookies = cookieStore.getAllCookies();
     }
-    error? removeResults = file:remove(filePath, file:RECURSIVE);
+    _ = check file:remove(filePath, file:RECURSIVE);
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
+    return;
 }
 
 // Test to remove a specific cookie which is not in the cookie store, when there is no persistent cookie store

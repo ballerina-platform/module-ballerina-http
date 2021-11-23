@@ -129,15 +129,38 @@ const int serviceMediaTypeSubtypePrefixPort = 9579;
 const int queryParamBindingIdealTestPort = 9580;
 const int headerParamBindingIdealTestPort = 9581;
 const int clientWithoutSchemeTestPort = 9582;
+const int databindingTestWithInterceptorsPort = 9583;
+const int defaultRequestInterceptorTestPort = 9584;
+const int requestInterceptorWithCallerRespondTestPort = 9585;
+const int requestInterceptorReturnsErrorTestPort = 9586;
+const int requestErrorInterceptorTestPort = 9587;
+const int requestInterceptorDataBindingTestPort1 = 9588;
+const int requestInterceptorDataBindingTestPort2 = 9589;
+const int requestInterceptorSetPayloadTestPort = 9590;
+const int requestInterceptorWithoutCtxNextTestPort = 9591;
+const int requestInterceptorHttpVerbTestPort = 9592;
+const int requestInterceptorBasePathTestPort = 9593;
+const int getRequestInterceptorBasePathTestPort = 9594;
+const int requestInterceptorSkipTestPort = 9595;
+const int requestInterceptorNegativeTestPort1 = 9596;
+const int requestInterceptorNegativeTestPort2 = 9597;
+const int requestInterceptorNegativeTestPort3 = 9598;
+const int requestInterceptorNegativeTestPort4 = 9599;
+const int requestInterceptorCallerRespondContinueTestPort = 9600;
+const int requestInterceptorStringPayloadBindingTestPort = 9601;
+const int requestInterceptorRecordPayloadBindingTestPort = 9602;
+const int requestInterceptorRecordArrayPayloadBindingTestPort = 9603;
+const int requestInterceptorByteArrayPayloadBindingTestPort = 9604;
+const int requestInterceptorWithQueryParamTestPort = 9605;
 
 //HTTP2
-const int serverPushTestPort1 = 9601;
-const int serverPushTestPort2 = 9602;
-const int http2RedirectTestPort1 = 9603;
-const int http2RedirectTestPort2 = 9604;
-const int http2RedirectTestPort3 = 9605;
-const int http2RetryFunctionTestPort1 = 9606;
-const int http2RetryFunctionTestPort2 = 9607;
+const int serverPushTestPort1 = 9701;
+const int serverPushTestPort2 = 9702;
+const int http2RedirectTestPort1 = 9703;
+const int http2RedirectTestPort2 = 9704;
+const int http2RedirectTestPort3 = 9705;
+const int http2RetryFunctionTestPort1 = 9706;
+const int http2RetryFunctionTestPort2 = 9707;
 
 //Security
 const int securedListenerPort = 9400;

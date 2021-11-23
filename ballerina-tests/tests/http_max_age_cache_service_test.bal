@@ -18,7 +18,7 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-http:Client maxAgeCacheEp = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
+final http:Client maxAgeCacheEp = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
 
 service /maxAge on cachingProxyListener {
 
@@ -41,24 +41,42 @@ service /maxAge on cachingProxyListener {
     }
 }
 
-json maxAgePayload = {};
-int maxAgehitcount = 0;
+isolated json maxAgePayload = {};
+isolated int maxAgehitcount = 0;
 
 service /maxAgeBackend on cachingBackendListener {
 
     resource function 'default .(http:Caller caller, http:Request req) {
         http:Response res = new;
         http:ResponseCacheControl resCC = new;
-        if (maxAgehitcount < 1) {
+        int count = 0;
+        lock {
+            count = maxAgehitcount;
+        }
+        if (count < 1) {
             resCC.maxAge = 5;
             res.cacheControl = resCC;
-            maxAgePayload = { "message": "before cache expiration" };
-            res.setETag(maxAgePayload);
+            lock {
+                maxAgePayload = { "message": "before cache expiration" };
+            }
+            json payload = ();
+            lock {
+                payload = maxAgePayload.clone();
+            }
+            res.setETag(payload);
         } else {
-            maxAgePayload = { "message": "after cache expiration" };
+            lock {
+                maxAgePayload = { "message": "after cache expiration" };
+            }
         }
-        maxAgehitcount += 1;
-        res.setPayload(maxAgePayload);
+        lock {
+            maxAgehitcount += 1;
+        }
+        json payload = ();
+        lock {
+            payload = maxAgePayload.clone();
+        }
+        res.setPayload(payload);
 
         checkpanic caller->respond(res);
     }

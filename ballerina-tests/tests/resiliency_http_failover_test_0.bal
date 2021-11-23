@@ -28,7 +28,7 @@ listener http:Listener failoverEP00 = new(9300);
 listener http:Listener backendEP00 = new(8080);
 
 // Define the failover client end point to call the backend services.
-http:FailoverClient foBackendEP00 = check new(
+final http:FailoverClient foBackendEP00 = check new(
     timeout = 5,
     failoverCodes = [501, 502, 503],
     interval = 5,
@@ -41,7 +41,7 @@ http:FailoverClient foBackendEP00 = check new(
     ]
 );
 
-http:FailoverClient foBackendFailureEP00 = check new({
+final http:FailoverClient foBackendFailureEP00 = check new({
     timeout: 5,
     failoverCodes: [501, 502, 503],
     interval: 5,
@@ -53,7 +53,7 @@ http:FailoverClient foBackendFailureEP00 = check new({
     ]
 });
 
-http:FailoverClient foStatusCodesEP00 = check new({
+final http:FailoverClient foStatusCodesEP00 = check new({
     timeout: 5,
     failoverCodes: [501, 502, 503],
     interval: 5,
@@ -144,7 +144,6 @@ service /failoverDemoService00 on failoverEP00 {
 // Define the sample service to mock connection timeouts and service outages.
 service /echo00 on backendEP00 {
     resource function 'default .(http:Caller caller, http:Request req) {
-        http:Response outResponse = new;
         // Delay the response for 30000 milliseconds to mimic network level delays.
         runtime:sleep(30000);
         error? responseToCaller = caller->respond("echo Resource is invoked");
@@ -158,8 +157,12 @@ int counter00 = 1;
 // Define the sample service to mock a healthy service.
 service /mockResource on backendEP00 {
     resource function 'default .(http:Caller caller, http:Request req) {
-        counter00 += 1;
-        if (counter00 % 5 == 0) {
+        int count = 0;
+        lock {
+            counter00 += 1;
+            count = counter00;
+        }
+        if (count % 5 == 0) {
             runtime:sleep(30000);
         }
         http:Response response = new;
@@ -185,12 +188,18 @@ service /mockResource on backendEP00 {
                                 // When performing passthrough scenarios, message needs to be built before
                                 // invoking the endpoint to create a message datasource.
                                 byte[]|error childBlobContent = childPart.getByteArray();
+                                if childBlobContent is error {
+                                    log:printError("Error reading payload", 'error = childBlobContent);
+                                }
                             }
                             io:println(bodyPart.getContentType());
                             bodyPart.setBodyParts(childParts, bodyPart.getContentType());
                         }
                     } else {
                         byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
+                        if bodyPartBlobContent is error {
+                            log:printError("Error reading payload", 'error = bodyPartBlobContent);
+                        }
                     }
                 }
                 response.setBodyParts(mimeEntity, req.getContentType());

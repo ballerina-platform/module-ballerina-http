@@ -29,7 +29,7 @@ function testSetJsonPayloadWithoutCharset() returns error? {
     string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json", msg = "Content-type mismatched");
-
+    return;
 }
 
 @test:Config {}
@@ -39,6 +39,7 @@ function testCharsetWithExistingContentType() returns error? {
     string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json;charset=ISO_8859-1:1987", msg = "Content-type mismatched");
+    return;
 }
 
 @test:Config {}
@@ -50,6 +51,7 @@ function testSetHeaderAfterJsonPayload() returns error? {
     string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json;charset=\"ISO_8859-1:1987\"", msg = "Content-type mismatched");
+    return;
 }
 
 @test:Config {}
@@ -85,6 +87,7 @@ function testSetXmlPayloadWithoutCharset() returns error? {
     string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml");
+    return;
 }
 
 @test:Config {}
@@ -95,6 +98,7 @@ function testCharsetWithExistingContentTypeXml() returns error? {
     string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml;charset=ISO_8859-1:1987");
+    return;
 }
 
 @test:Config {}
@@ -106,6 +110,7 @@ function testSetHeaderAfterXmlPayload() returns error? {
     string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml;charset=\"ISO_8859-1:1987\"");
+    return;
 }
 
 @test:Config {
@@ -144,6 +149,7 @@ function testSetStringPayloadWithoutCharset() returns error? {
     string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain");
+    return;
 }
 
 @test:Config {}
@@ -154,6 +160,7 @@ function testCharsetWithExistingContentTypeString() returns error? {
     string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain;charset=ISO_8859-1:1987");
+    return;
 }
 
 @test:Config {}
@@ -165,6 +172,7 @@ function testSetHeaderAfterStringPayload() returns error? {
     string[] headers = check request.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain;charset=\"ISO_8859-1:1987\"", msg = "Payload mismatched");
+    return;
 }
 
 @test:Config {}
@@ -199,6 +207,7 @@ function testSetJsonPayloadWithoutCharsetResponse() returns error? {
     string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json");
+    return;
 }
 
 @test:Config {}
@@ -209,6 +218,7 @@ function testCharsetWithExistingContentTypeResponse() returns error? {
     string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json;charset=ISO_8859-1:1987");
+    return;
 }
 
 @test:Config {}
@@ -220,6 +230,7 @@ function testSetHeaderAfterJsonPayloadResponse() returns error? {
     string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/json;charset=\"ISO_8859-1:1987\"");
+    return;
 }
 
 //Response charset with xml payload
@@ -230,6 +241,7 @@ function testSetXmlPayloadWithoutCharsetResponse() returns error? {
     string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml");
+    return;
 }
 
 @test:Config {}
@@ -240,6 +252,7 @@ function testCharsetWithExistingContentTypeXmlResponse() returns error? {
     string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml;charset=ISO_8859-1:1987");
+    return;
 }
 
 @test:Config {}
@@ -251,6 +264,7 @@ function testSetHeaderAfterXmlPayloadResponse() returns error? {
     string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "application/xml;charset=\"ISO_8859-1:1987\"");
+    return;
 }
 
 //Response charset with string payload
@@ -261,6 +275,7 @@ function testSetStringPayloadWithoutCharsetResponse() returns error? {
     string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain");
+    return;
 }
 
 @test:Config {}
@@ -271,6 +286,7 @@ function testCharsetWithExistingContentTypeStringResponse() returns error? {
     string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain;charset=ISO_8859-1:1987");
+    return;
 }
 
 @test:Config {}
@@ -282,6 +298,7 @@ function testSetHeaderAfterStringPayloadResponse() returns error? {
     string[] headers = check response.getHeaders("content-type");
     test:assertEquals(headers.length(), 1, msg = "Output mismatched");
     test:assertEquals(headers[0], "text/plain;charset=\"ISO_8859-1:1987\"");
+    return;
 }
 
 listener http:Listener entityEP = new(entityTest);
@@ -300,7 +317,7 @@ service /test on entityEP {
     }
 }
 
-http:Client entityClient = check new("http://localhost:" + entityTest.toString());
+final http:Client entityClient = check new("http://localhost:" + entityTest.toString());
 
 // Test addHeader function within a service
 @test:Config {

@@ -30,9 +30,9 @@ http:ClientConfiguration conf1 = {
     timeout: 2
 };
 
-http:Client cbrBackend = check new ("http://localhost:" + cBClientWithoutStatusCodesTestPort1.toString(), conf1);
-http:Client cbrClient = check new ("http://localhost:" + cBClientWithoutStatusCodesTestPort2.toString());
-http:Client nonExistingBackend = check new ("https://nuwandiasbanda.com", conf1);
+final http:Client cbrBackend = check new ("http://localhost:" + cBClientWithoutStatusCodesTestPort1.toString(), conf1);
+final http:Client cbrClient = check new ("http://localhost:" + cBClientWithoutStatusCodesTestPort2.toString());
+final http:Client nonExistingBackend = check new ("https://nuwandiasbanda.com", conf1);
 
 service / on new http:Listener(cBClientWithoutStatusCodesTestPort2) {
 
@@ -48,12 +48,14 @@ service / on new http:Listener(cBClientWithoutStatusCodesTestPort2) {
 service / on new http:Listener(cBClientWithoutStatusCodesTestPort1) {
     private int counter = 1;
     resource function get hello() returns string|http:InternalServerError {
-         if (self.counter % 5 == 3) {
-             self.counter += 1;
-             return {body:"Internal error occurred while processing the request."};
-         } else {
-            self.counter += 1;
-            return "Hello World!!!";
+        lock {
+             if (self.counter % 5 == 3) {
+                 self.counter += 1;
+                 return {body:"Internal error occurred while processing the request."};
+             } else {
+                self.counter += 1;
+                return "Hello World!!!";
+            }
         }
     }
 }

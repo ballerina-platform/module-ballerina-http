@@ -20,18 +20,24 @@ import ballerina/http;
 import ballerina/lang.runtime;
 
 listener http:Listener dirtyResponseListener = new(dirtyResponseTestPort);
-http:Client dirtyResponseTestClient = check new("http://localhost:" + dirtyResponseTestPort.toString());
+final http:Client dirtyResponseTestClient = check new("http://localhost:" + dirtyResponseTestPort.toString());
+
 
 http:Response dirtyResponse = getSingletonResponse();
-string dirtyErrorLog = "";
+isolated string dirtyErrorLog = "";
 
 service /hello on dirtyResponseListener {
 
     resource function 'default .(http:Caller caller, http:Request req) {
-        var responseError = caller->respond(dirtyResponse);
+        error? responseError = ();
+        lock {
+            responseError = caller->respond(dirtyResponse);
+        }
         if (responseError is error) {
-            dirtyErrorLog = responseError.message();
-            io:println(dirtyErrorLog);
+            lock {
+                dirtyErrorLog = responseError.message();
+                io:println(dirtyErrorLog);
+            }
         }
     }
 }
@@ -57,8 +63,10 @@ function testDirtyResponse() {
         assertTextPayload(response.getTextPayload(), "Couldn't complete the respond operation as the response has" +
                         " been already used.");
         runtime:sleep(5);
-        test:assertEquals(dirtyErrorLog, "Couldn't complete the respond operation as the response has" +
+        lock {
+            test:assertEquals(dirtyErrorLog, "Couldn't complete the respond operation as the response has" +
                         " been already used.");
+        }
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

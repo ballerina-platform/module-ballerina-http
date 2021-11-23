@@ -26,7 +26,7 @@ function setErrorResponse(http:Response response, error err) {
 }
 
 listener http:Listener multipartReqEP = new(multipartRequestTest);
-http:Client multipartReqClient = check new("http://localhost:" + multipartRequestTest.toString());
+final http:Client multipartReqClient = check new("http://localhost:" + multipartRequestTest.toString());
 
 service /test on multipartReqEP {
 
@@ -268,7 +268,6 @@ function testMultiplePartsForNewSubTypes() {
 function testMultipartsWithEmptyBody() {
     mime:Entity textPart2 = new;
     http:Request request = new;
-    mime:Entity[] bodyParts = [textPart2];
     request.setHeader("contentType", mime:MULTIPART_MIXED);
     http:Response|error response = multipartReqClient->post("/test/emptyparts", request);
     if (response is http:Response) {
@@ -461,6 +460,7 @@ function testBinaryBodyPartAsFileUploadUsingStream() returns error? {
     } else {
         test:assertFail(msg = errorMessage + response.message());
     }
+    return;
 }
 
 // TODO: Enable after the I/O revamp
@@ -519,10 +519,11 @@ function testMultiplePartsWithMultipleBodyTypesIncludingStreams() returns error?
     if (response is http:Response) {
         assertMultipartResponse(response, " -- Ballerina xml file part -- jsonPart -- Ballerina text body part "
               + "-- Ballerina binary file part");
-        close(byteChannel);
+        check close(byteChannel);
     } else {
         test:assertFail(msg = errorMessage + response.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -566,9 +567,9 @@ function getContentDispositionForGivenDisposition(string partName, string dispos
     return contentDisposition;
 }
 
-function close(io:ReadableByteChannel|io:ReadableCharacterChannel ch) {
+function close(io:ReadableByteChannel|io:ReadableCharacterChannel ch) returns error? {
     object {
         public function close() returns error?;
     } channelResult = ch;
-    error? cr = channelResult.close();
+    return channelResult.close();
 }

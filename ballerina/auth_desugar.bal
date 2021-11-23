@@ -51,10 +51,21 @@ public isolated function authenticateResource(Service serviceRef, string methodN
     }
 }
 
+isolated map<ListenerAuthHandler> authHandlers = {};
+
 isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header) returns Unauthorized|Forbidden? {
     foreach ListenerAuthConfig config in authConfig {
         if (config is FileUserStoreConfigWithScopes) {
-            ListenerFileUserStoreBasicAuthHandler handler = new(config.fileUserStoreConfig);
+            ListenerFileUserStoreBasicAuthHandler handler;
+            lock {
+                string key = config.fileUserStoreConfig.toString();
+                if (authHandlers.hasKey(key)) {
+                    handler = <ListenerFileUserStoreBasicAuthHandler> authHandlers.get(key);
+                } else {
+                    handler = new(config.fileUserStoreConfig.cloneReadOnly());
+                    authHandlers[key] = handler;
+                }
+            }
             auth:UserDetails|Unauthorized authn = handler.authenticate(header);
             string|string[]? scopes = config?.scopes;
             if (authn is auth:UserDetails) {
@@ -65,7 +76,16 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
                 return;
             }
         } else if (config is LdapUserStoreConfigWithScopes) {
-            ListenerLdapUserStoreBasicAuthHandler handler = new(config.ldapUserStoreConfig);
+            ListenerLdapUserStoreBasicAuthHandler handler;
+            lock {
+                string key = config.ldapUserStoreConfig.toString();
+                if (authHandlers.hasKey(key)) {
+                    handler = <ListenerLdapUserStoreBasicAuthHandler> authHandlers.get(key);
+                } else {
+                    handler = new(config.ldapUserStoreConfig.cloneReadOnly());
+                    authHandlers[key] = handler;
+                }
+            }
             auth:UserDetails|Unauthorized authn = handler->authenticate(header);
             string|string[]? scopes = config?.scopes;
             if (authn is auth:UserDetails) {
@@ -76,7 +96,16 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
                 return;
             }
         } else if (config is JwtValidatorConfigWithScopes) {
-            ListenerJwtAuthHandler handler = new(config.jwtValidatorConfig);
+            ListenerJwtAuthHandler handler;
+            lock {
+                string key = config.jwtValidatorConfig.toString();
+                if (authHandlers.hasKey(key)) {
+                    handler = <ListenerJwtAuthHandler> authHandlers.get(key);
+                } else {
+                    handler = new(config.jwtValidatorConfig.cloneReadOnly());
+                    authHandlers[key] = handler;
+                }
+            }
             jwt:Payload|Unauthorized authn = handler.authenticate(header);
             string|string[]? scopes = config?.scopes;
             if (authn is jwt:Payload) {
@@ -88,7 +117,16 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
             }
         } else {
             // Here, config is OAuth2IntrospectionConfigWithScopes
-            ListenerOAuth2Handler handler = new(config.oauth2IntrospectionConfig);
+            ListenerOAuth2Handler handler;
+            lock {
+                string key = config.oauth2IntrospectionConfig.toString();
+                if (authHandlers.hasKey(key)) {
+                    handler = <ListenerOAuth2Handler> authHandlers.get(key);
+                } else {
+                    handler = new(config.oauth2IntrospectionConfig.cloneReadOnly());
+                    authHandlers[key] = handler;
+                }
+            }
             oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(header, config?.scopes);
             if (auth is oauth2:IntrospectionResponse) {
                 return;
@@ -122,6 +160,7 @@ isolated function getListenerAuthConfig(Service serviceRef, string methodName, s
     if (serviceAuthConfig is ListenerAuthConfig[]) {
         return serviceAuthConfig;
     }
+    return;
 }
 
 isolated function getServiceAuthConfig(Service serviceRef) returns ListenerAuthConfig[]? {

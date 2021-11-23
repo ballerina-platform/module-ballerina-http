@@ -363,7 +363,7 @@ public class Request {
                 return error GenericClientError(message, typeError);
             }
             string contentTypeHeaderValue = "";
-            var mediaType = mime:getMediaType(checkpanic contentTypeValue);
+            var mediaType = mime:getMediaType(contentTypeValue);
             if (mediaType is mime:InvalidContentTypeError) {
                 return error GenericClientError(message, mediaType);
             } else {

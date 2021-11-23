@@ -21,7 +21,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener utmTestEP = new(uriTemplateMatchingTest);
-http:Client utmClient = check new("http://localhost:" + uriTemplateMatchingTest.toString());
+final http:Client utmClient = check new("http://localhost:" + uriTemplateMatchingTest.toString());
 
 service /hello on utmTestEP {
 
@@ -279,10 +279,7 @@ service /echo55 on utmTestEP {
     }
 
     resource function 'default foo/[string... s](http:Caller caller, http:Request req) {
-        map<string[]> params = req.getQueryParams();
-        string[] foo = params["foo"] ?: [];
         json responseJson = {"echo55":"/foo/*"};
-
         http:Response res = new;
         res.setJsonPayload(responseJson);
         checkpanic caller->respond(res);
@@ -346,13 +343,11 @@ service /wildcard on utmTestEP {
     }
 
     resource function 'default twisted/[string age]/[string name](http:Caller caller) {
-        http:Response res = new;
         json responseJson = { Name:name, Age:age };
         checkpanic caller->respond(responseJson);
     }
 
     resource function 'default 'type/[int age]/[string name]/[boolean status]/[float weight](http:Caller caller) {
-        http:Response res = new;
         int balAge = age + 1;
         float balWeight = weight + 2.95;
         string balName = name + " false";
@@ -736,7 +731,6 @@ function testSameNameQueryParam() {
 
     response = utmClient->get("/hello/echo155?foo=a,b,c");
     if (response is http:Response) {
-        json expected = {name1:"a", name2:"b", name3:null, name4:"d"};
         assertJsonValue(response.getJsonPayload(), "name3", ());
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

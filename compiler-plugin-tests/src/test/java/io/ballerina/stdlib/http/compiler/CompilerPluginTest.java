@@ -40,7 +40,7 @@ public class CompilerPluginTest {
 
     private static final Path RESOURCE_DIRECTORY = Paths.get("src", "test", "resources", "ballerina_sources")
             .toAbsolutePath();
-    private static final Path DISTRIBUTION_PATH = Paths.get("build", "target", "ballerina-distribution")
+    private static final Path DISTRIBUTION_PATH = Paths.get("../", "target", "ballerina-runtime")
             .toAbsolutePath();
 
     private static final String HTTP_101 = "HTTP_101";
@@ -63,6 +63,14 @@ public class CompilerPluginTest {
     private static final String HTTP_118 = "HTTP_118";
     private static final String HTTP_119 = "HTTP_119";
     private static final String HTTP_120 = "HTTP_120";
+    private static final String HTTP_121 = "HTTP_121";
+    private static final String HTTP_122 = "HTTP_122";
+    private static final String HTTP_123 = "HTTP_123";
+    private static final String HTTP_124 = "HTTP_124";
+    private static final String HTTP_125 = "HTTP_125";
+    private static final String HTTP_126 = "HTTP_126";
+    private static final String HTTP_127 = "HTTP_127";
+    private static final String HTTP_128 = "HTTP_128";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -129,8 +137,8 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_3");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 2);
-        assertError(diagnosticResult, 1, "invalid resource method annotation type: expected 'http:ResourceConfig', " +
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
+        assertError(diagnosticResult, 0, "invalid resource method annotation type: expected 'http:ResourceConfig', " +
                 "but found 'test:Config '", HTTP_103);
     }
 
@@ -250,7 +258,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_9");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 6);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         diagnosticResult.diagnostics().stream().filter(err -> err.diagnosticInfo().code().contains(HTTP_106)).map(
                 err -> err.diagnosticInfo().messageFormat().contains(
                         "invalid resource parameter type: 'ballerina/http")).forEach(Assert::assertTrue);
@@ -349,23 +357,77 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_15");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 16);
+        Assert.assertEquals(diagnosticResult.errorCount(), 15);
         // only testing the error locations
-        assertErrorPosition(diagnosticResult, 0, "(64:51,64:57)");
-        assertErrorPosition(diagnosticResult, 1, "(30:44,30:60)");
-        assertErrorPosition(diagnosticResult, 2, "(35:5,35:16)");
-        assertErrorPosition(diagnosticResult, 3, "(40:85,40:86)");
-        assertErrorPosition(diagnosticResult, 4, "(44:57,44:60)");
-        assertErrorPosition(diagnosticResult, 5, "(48:55,48:58)");
-        assertErrorPosition(diagnosticResult, 6, "(52:65,52:68)");
-        assertErrorPosition(diagnosticResult, 7, "(56:77,56:80)");
-        assertErrorPosition(diagnosticResult, 8, "(60:76,60:79)");
-        assertErrorPosition(diagnosticResult, 9, "(64:58,64:61)");
-        assertErrorPosition(diagnosticResult, 10, "(68:47,68:48)");
-        assertErrorPosition(diagnosticResult, 11, "(71:45,71:46)");
-        assertErrorPosition(diagnosticResult, 12, "(79:43,79:46)");
-        assertErrorPosition(diagnosticResult, 13, "(79:61,79:64)");
-        assertErrorPosition(diagnosticResult, 14, "(79:79,79:82)");
-        assertErrorPosition(diagnosticResult, 15, "(83:77,83:93)");
+        assertErrorPosition(diagnosticResult, 0, "(30:44,30:60)");
+        assertErrorPosition(diagnosticResult, 1, "(35:5,35:16)");
+        assertErrorPosition(diagnosticResult, 2, "(40:85,40:86)");
+        assertErrorPosition(diagnosticResult, 3, "(44:57,44:60)");
+        assertErrorPosition(diagnosticResult, 4, "(48:55,48:58)");
+        assertErrorPosition(diagnosticResult, 5, "(52:65,52:68)");
+        assertErrorPosition(diagnosticResult, 6, "(56:77,56:80)");
+        assertErrorPosition(diagnosticResult, 7, "(60:76,60:79)");
+        assertErrorPosition(diagnosticResult, 8, "(64:76,64:82)");
+        assertErrorPosition(diagnosticResult, 9, "(68:47,68:48)");
+        assertErrorPosition(diagnosticResult, 10, "(71:45,71:46)");
+        assertErrorPosition(diagnosticResult, 11, "(79:43,79:46)");
+        assertErrorPosition(diagnosticResult, 12, "(79:61,79:64)");
+        assertErrorPosition(diagnosticResult, 13, "(79:79,79:82)");
+        assertErrorPosition(diagnosticResult, 14, "(83:77,83:93)");
     }
+
+    @Test
+    public void testMultipleSameAnnotations() {
+        Package currentPackage = loadPackage("sample_package_16");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
+        Assert.assertEquals(diagnostic.diagnosticInfo().messageFormat(),
+                            "annotation.attachment.cannot.specify.multiple.values");
+    }
+
+    @Test
+    public void testRequestContextParam() {
+        Package currentPackage = loadPackage("sample_package_17");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
+        assertError(diagnosticResult, 0, "invalid multiple 'http:RequestContext' parameter: 'bcd'", HTTP_121);
+    }
+
+    @Test
+    public void testErrorParam() {
+        Package currentPackage = loadPackage("sample_package_18");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
+        assertError(diagnosticResult, 0, "invalid multiple 'error' parameter: 'bcd'", HTTP_122);
+    }
+
+    @Test
+    public void testInterceptorServiceObject() {
+        Package currentPackage = loadPackage("sample_package_19");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 9);
+        assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
+                "'http:RequestErrorInterceptor'", HTTP_123);
+        assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
+                " path: '[string... path]', but found 'foo'", HTTP_127);
+        assertError(diagnosticResult, 2, "invalid interceptor resource method: expected default " +
+                "resource method: 'default', but found 'get'", HTTP_128);
+        assertError(diagnosticResult, 3, "invalid interceptor resource path: expected default resource" +
+                " path: '[string... path]', but found 'foo'", HTTP_127);
+        assertError(diagnosticResult, 4, "invalid interceptor resource method: expected default " +
+                "resource method: 'default', but found 'get'", HTTP_128);
+        assertError(diagnosticResult, 5, "invalid interceptor resource method return type: expected " +
+                "'http:NextService|error?', but found 'string'", HTTP_126);
+        assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions", HTTP_124);
+        assertError(diagnosticResult, 7, "invalid annotation 'http:ResourceConfig': annotations" +
+                " are not supported for interceptor resource functions", HTTP_125);
+        assertError(diagnosticResult, 8, "invalid interceptor resource path: expected default resource" +
+                " path: '[string... path]', but found '[string path]'", HTTP_127);
+    }
+
 }

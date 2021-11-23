@@ -17,6 +17,7 @@
 import ballerina/jballerina.java;
 import ballerina/lang.runtime as runtime;
 import ballerina/mime;
+import ballerina/log;
 
 # Represents the inferred failover configurations passed into the failover client.
 #
@@ -60,6 +61,7 @@ public client isolated class FailoverClient {
             failoverInterval:failoverClientConfig.interval
         };
         self.failoverInferredConfig = failoverInferredConfig.cloneReadOnly();
+        return;
     }
 
     # The POST remote function implementation of the Failover Connector.
@@ -403,6 +405,9 @@ public client isolated class FailoverClient {
             // When performing passthrough scenarios using Failover connector, message needs to be built before trying
             // out the failover endpoints to keep the request message to failover the messages.
             byte[]|error binaryPayload = failoverRequest.getBinaryPayload();
+            if binaryPayload is error {
+                log:printDebug("Error building payload for request failover: " + binaryPayload.message());
+            }
             requestEntity = check failoverRequest.getEntity();
         }
         while (startIndex != currentIndex) {

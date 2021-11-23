@@ -32,52 +32,36 @@ http:ClientConfiguration conf07 = {
         resetTime: 2,
         statusCodes: [500, 501, 502, 503]
     },
-    timeout: 2,
-    httpVersion: "2.0"
+    httpVersion: "2.0",
+    http2Settings: { http2PriorKnowledge: true }
 };
 
-http:Client backendClientEP07 = check new("http://localhost:8095", conf07);
-
-int cbTrialRequestCount = 0;
+final http:Client backendClientEP07 = check new("http://localhost:8095", conf07);
 
 service /cb on circuitBreakerEP07 {
 
-    resource function 'default trialrun(http:Caller caller, http:Request request) {
-        cbTrialRequestCount += 1;
-        // To ensure the reset timeout period expires
-        if (cbTrialRequestCount == 3) {
+    resource function 'default trialrun/[int index](http:Caller caller, http:Request request) {
+        if (index == 3) {
             runtime:sleep(3);
         }
-        var backendFuture = backendClientEP07->submit("GET", "/hello07", request);
-        if (backendFuture is http:HttpFuture) {
-            http:Response|error backendRes = backendClientEP07->getResponse(backendFuture);
-            if (backendRes is http:Response) {
-                error? responseToCaller = caller->respond(backendRes);
-                if (responseToCaller is error) {
-                    log:printError("Error sending response", 'error = responseToCaller);
-                }
-            } else {
-                sendCBErrorResponse(caller, <error>backendRes);
+        http:Response|error backendRes = backendClientEP07->post("/hello07/", request);
+        if (backendRes is http:Response) {
+            error? responseToCaller = caller->respond(backendRes);
+            if (responseToCaller is error) {
+                log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
-            sendCBErrorResponse(caller, <error>backendFuture);
+            sendCBErrorResponse(caller, <error>backendRes);
         }
     }
 }
 
-int cbTrialActualCount = 0;
+service /hello07 on new http:Listener(8095, httpVersion = "2.0") {
 
-service /hello07 on new http:Listener(8095) {
-    
     resource function 'default .(http:Caller caller, http:Request req) {
-        cbTrialActualCount += 1;
         http:Response res = new;
-        if (cbTrialActualCount == 1 || cbTrialActualCount == 2) {
-            res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
-            res.setPayload("Service unavailable.");
-        } else {
-            res.setPayload("Hello World!!!");
-        }
+        res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
+        res.setPayload("Service unavailable.");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -96,13 +80,16 @@ function sendCBErrorResponse(http:Caller caller, error e) {
 }
 
 //Test circuit breaker functionality for HTTP/2 methods
-http:Client h2CBTestClient = check new("http://localhost:9315");
+final http:Client h2CBTestClient = check new("http://localhost:9315");
+
+int index = 0;
 
 @test:Config{
     dataProvider:http2CircuitBreakerDataProvider
 }
 function testBasicHttp2CircuitBreaker(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun", dataFeed);
+    index += 1;
+    invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun/" + index.toString(), dataFeed);
 }
 
 function http2CircuitBreakerDataProvider() returns DataFeed[][] {

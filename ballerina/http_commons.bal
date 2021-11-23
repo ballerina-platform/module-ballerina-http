@@ -20,15 +20,19 @@ import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
 import ballerina/time;
+import ballerina/log;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
-# Parses the given header value to extract its value and parameter map.
+# Parses the header value which contains multiple values or parameters.
+# ```ballerina
+#  http:HeaderValue[] values = check http:parseHeader("text/plain;level=1;q=0.6, application/xml;level=2");
+# ```
 #
 # + headerValue - The header value
-# + return - A tuple containing the value and its parameter map or else an `http:ClientError` if the header parsing fails
-//TODO: Make the error nillable
-public isolated function parseHeader(string headerValue) returns [string, map<any>]|ClientError = @java:Method {
+# + return - An array of `http:HeaderValue` typed record containing the value and its parameter map
+#            or else an `http:ClientError` if the header parsing fails
+public isolated function parseHeader(string headerValue) returns HeaderValue[]|ClientError = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ParseHeader",
     name: "parseHeader"
 } external;
@@ -218,22 +222,26 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
         mime:Entity[] bodyParts = check inRequest.getBodyParts();
         foreach var bodyPart in bodyParts {
             if (isNestedEntity(bodyPart)) {
-                mime:Entity[]|error result = bodyPart.getBodyParts();
+                mime:Entity[]|error childParts = bodyPart.getBodyParts();
 
-                if (result is error) {
-                    return error GenericClientError(result.message(), result);
+                if (childParts is error) {
+                    return error GenericClientError(childParts.message(), childParts);
                 }
-
-                mime:Entity[] childParts = <mime:Entity[]> checkpanic result;
 
                 foreach var childPart in childParts {
                     // When performing passthrough scenarios, message needs to be built before
                     // invoking the endpoint to create a message datasource.
                     byte[]|error childBlobContent = childPart.getByteArray();
+                    if childBlobContent is error {
+                        log:printDebug("Error building datasource for multipart request: " + childBlobContent.message());
+                    }
                 }
                 bodyPart.setBodyParts(childParts, bodyPart.getContentType());
             } else {
                 byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
+                if bodyPartBlobContent is error {
+                    log:printDebug("Error building datasource for multipart request: " + bodyPartBlobContent.message());
+                }
             }
         }
         inRequest.setBodyParts(bodyParts, inRequest.getContentType());

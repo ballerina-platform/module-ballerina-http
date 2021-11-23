@@ -21,7 +21,7 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener dataBindingEP = new(databindingTest);
-http:Client dataBindingClient = check new("http://localhost:" + databindingTest.toString());
+final http:Client dataBindingClient = check new("http://localhost:" + databindingTest.toString());
 
 type Person record {|
     string name;
@@ -92,31 +92,35 @@ service /echo on dataBindingEP {
     }
 
     resource function get negative1(http:Caller caller) {
-        var err = dataBindingEP.attach(multipleAnnot1, "multipleAnnot1");
-        if err is error {
-            checkpanic caller->respond(err.message());
-        } else {
-            checkpanic caller->respond("ok");
+        lock {
+            var err = dataBindingEP.attach(multipleAnnot1, "multipleAnnot1");
+            if err is error {
+                checkpanic caller->respond(err.message());
+            } else {
+                checkpanic caller->respond("ok");
+            }
         }
     }
 
     resource function get negative2(http:Caller caller) {
-        var err = dataBindingEP.attach(multipleAnnot2, "multipleAnnot2");
-        if err is error {
-            checkpanic caller->respond(err.message());
-        } else {
-            checkpanic caller->respond("ok");
+        lock {
+            var err = dataBindingEP.attach(multipleAnnot2, "multipleAnnot2");
+            if err is error {
+                checkpanic caller->respond(err.message());
+            } else {
+                checkpanic caller->respond("ok");
+            }
         }
     }
 }
 
-http:Service multipleAnnot1 = service object {
+isolated http:Service multipleAnnot1 = service object {
     resource function get annot(@http:Payload {} @http:CallerInfo {} string payload) {
         //...
     }
 };
 
-http:Service multipleAnnot2 = service object {
+isolated http:Service multipleAnnot2 = service object {
     resource function get annot(@http:Payload {} string payload1, @http:Payload {} string payload2) {
         //...
     }
@@ -265,7 +269,6 @@ function testDataBindingCompatiblePayload() {
 //Test data binding without a payload
 @test:Config {}
 function testDataBindingWithoutPayload() {
-    http:Request req = new;
     http:Response|error response = dataBindingClient->get("/echo/body1");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
@@ -303,7 +306,6 @@ function testDataBindingIncompatibleStructPayload() {
 
 @test:Config {}
 function testDataBindingWithEmptyJsonPayload() {
-    http:Request req = new;
     http:Response|error response = dataBindingClient->get("/echo/body3");
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
@@ -355,8 +357,8 @@ function testDataBindingWithRecordArrayNegative() {
     http:Response|error response = dataBindingClient->post("/echo/body8", req);
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}" +
-            "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]'\")");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}" +
+            "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

@@ -86,7 +86,6 @@ public function testWithStrongClientWithWeakService() {
             ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
         }
     });
-    http:Request req = new;
     http:Response|error resp = clientEP->get("/weakService/");
     if (resp is http:Response) {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
@@ -110,7 +109,6 @@ public function testWithStrongClientWithStrongService() {
             ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
         }
     });
-    http:Request req = new;
     http:Response|error resp = clientEP->get("/strongService/");
     if (resp is http:Response) {
         var payload = resp.getTextPayload();

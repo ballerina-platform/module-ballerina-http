@@ -18,29 +18,28 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener basePathTestEP = new(basePathTest);
-http:Client basePathTestClient = check new("http://localhost:" + basePathTest.toString());
+final http:Client basePathTestClient = check new("http://localhost:" + basePathTest.toString());
 
 service http:Service /my/Tes\@tHello/go on basePathTestEP {
-    resource function get foo(http:Caller caller) {
-        error? result = caller->respond("special dispatched");
+    resource function get foo(http:Caller caller) returns error? {
+        return caller->respond("special dispatched");
     }
 }
 
 service http:Service "/Tes@tHello/go" on basePathTestEP {
-    resource function get foo(http:Caller caller) {
-        error? result = caller->respond("string dispatched");
+    resource function get foo(http:Caller caller) returns error? {
+        return caller->respond("string dispatched");
     }
 }
 
 service http:Service /myservice/'andversion/a\/b/id on basePathTestEP {
-    resource function get .(http:Caller caller) {
-        error? result = caller->respond("service/version/1/1/id");
+    resource function get .(http:Caller caller) returns error? {
+        return caller->respond("service/version/1/1/id");
     }
 }
 
 @test:Config {}
 public function testBasePathSpecialChars() {
-    http:Request req = new;
     http:Response|error resp = basePathTestClient->get("/my/Tes%40tHello/go/foo");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "special dispatched");
@@ -51,7 +50,6 @@ public function testBasePathSpecialChars() {
 
 @test:Config {}
 public function testBasePathAsString() {
-    http:Request req = new;
     http:Response|error resp = basePathTestClient->get("/Tes%40tHello/go/foo");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "string dispatched");
@@ -63,7 +61,6 @@ public function testBasePathAsString() {
 
 @test:Config {}
 public function testMGWVersionBasePath() {
-    http:Request req = new;
     http:Response|error resp = basePathTestClient->get("/myservice/andversion/a%2Fb/id");
     if (resp is http:Response) {
         assertTextPayload(resp.getTextPayload(), "service/version/1/1/id");

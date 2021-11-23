@@ -19,9 +19,9 @@ import ballerina/http;
 
 listener http:Listener httpUrlListenerEP1 = new(httpUrlTestPort1);
 listener http:Listener httpUrlListenerEP2 = new(httpUrlTestPort2);
-http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString());
+final http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString());
 
-http:Client urlClient = check new("http://localhost:" + httpUrlTestPort2.toString() + "//url", { cache: { enabled: false }});
+final http:Client urlClient = check new("http://localhost:" + httpUrlTestPort2.toString() + "//url", { cache: { enabled: false }});
 
 service "/url//test" on httpUrlListenerEP2 {
 
@@ -71,6 +71,7 @@ function testResourcePathWithoutStartingSlash() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -84,6 +85,7 @@ function testResourcePathWithEmptyPath() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 
@@ -98,6 +100,7 @@ function testResourcePathWithQueryParam() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -111,6 +114,7 @@ function testResourcePathWithFragmentParam() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
 
 @test:Config {}
@@ -123,6 +127,7 @@ function testResourcePathNegative() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: http:Response");
     }
+    return;
 }
 
 @test:Config {}
@@ -134,4 +139,5 @@ function testResourcePath404Negative() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }

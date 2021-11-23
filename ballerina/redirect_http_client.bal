@@ -87,6 +87,7 @@ public client isolated class RedirectClient {
             self.cookieEnabled = false;
             self.persistentCookieHandler = ();
         }
+        return;
     }
 
     # If the received response for the `RedirectClient.get()` remote function is redirect eligible, redirect will be
@@ -300,7 +301,10 @@ public client isolated class RedirectClient {
         if !(httpOperation is safeHttpOperation) {
             // When performing redirect operation for non-safe method, message needs to be built before sending out the
             // to keep the request message to subsequent redirect.
-            var binaryPayload = check inRequest.getBinaryPayload();
+            byte[]|error binaryPayload = check inRequest.getBinaryPayload();
+            if binaryPayload is error {
+                log:printDebug("Error building datasource for request redirect: " + binaryPayload.message());
+            }
             // Build message for for multipart requests
             inRequest = check populateMultipartRequest(inRequest);
         }

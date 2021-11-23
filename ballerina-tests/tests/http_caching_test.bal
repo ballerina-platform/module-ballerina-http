@@ -20,9 +20,9 @@ import ballerina/http;
 
 listener http:Listener cachingListener1 = new(cachingTestPort1);
 listener http:Listener cachingListener2 = new(cachingTestPort2);
-http:Client cachingTestClient = check new("http://localhost:" + cachingTestPort1.toString(), { cache: { enabled: false }});
+final http:Client cachingTestClient = check new("http://localhost:" + cachingTestPort1.toString(), { cache: { enabled: false }});
 
-http:Client cachingEP = check new("http://localhost:" + cachingTestPort2.toString(), { cache: { isShared: true } });
+final http:Client cachingEP = check new("http://localhost:" + cachingTestPort2.toString(), { cache: { isShared: true } });
 int cachingProxyHitcount = 0;
 
 service /cache on cachingListener1 {
@@ -31,8 +31,14 @@ service /cache on cachingListener1 {
         http:Response|error response = cachingEP->forward("/cachingBackend", req);
 
         if (response is http:Response) {
-            cachingProxyHitcount += 1;
-            response.setHeader("x-proxy-hit-count", cachingProxyHitcount.toString());
+            lock {
+                cachingProxyHitcount += 1;
+            }
+            string value = "";
+            lock {
+                value = cachingProxyHitcount.toString();
+            }
+            response.setHeader("x-proxy-hit-count", value);
             checkpanic caller->respond( response);
         } else {
             http:Response res = new;
@@ -61,25 +67,34 @@ service /cache on cachingListener1 {
     }
 }
 
-json payload = { "message": "Hello, World!" };
-int hitcount = 0;
+isolated int hitcount = 0;
+
+isolated function incrementHitCount() {
+    lock {
+        hitcount += 1;
+    }
+}
+
+isolated function getHitCount() returns int {
+    lock {
+        return hitcount;
+    }
+}
 
 service /cachingBackend on cachingListener2 {//new http:Listener(9240) {
 
-    resource function 'default .(http:Caller caller, http:Request req) {
+    isolated resource function 'default .(http:Caller caller, http:Request req) {
         http:Response res = new;
-
         http:ResponseCacheControl resCC = new;
         resCC.maxAge = 60;
         resCC.isPrivate = false;
 
         res.cacheControl = resCC;
-
+        json payload = { "message": "Hello, World!" };
         res.setETag(payload);
         res.setLastModified();
-
-        hitcount += 1;
-        res.setHeader("x-service-hit-count", hitcount.toString());
+        incrementHitCount();
+        res.setHeader("x-service-hit-count", getHitCount().toString());
 
         res.setPayload(payload);
 

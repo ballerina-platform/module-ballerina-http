@@ -26,7 +26,7 @@ public type ResponseMessage Response|string|xml|json|byte[]|int|float|decimal|bo
                             (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
 
 # The HTTP service type.
-public type Service service object {
+public type Service distinct service object {
 
 };
 
@@ -118,4 +118,12 @@ public type Link record {
 public type Links record {|
     # Array of available links
     Link[] links;
+|};
+
+# Represents the parsed header value details
+public type HeaderValue record {|
+    # The header value
+    string value;
+    # Map of header parameters
+    map<string> params;
 |};

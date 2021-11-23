@@ -19,6 +19,7 @@ import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/observe;
 import ballerina/time;
+import ballerina/log;
 
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes the functions for the standard HTTP methods forwarding a received request and sending requests
@@ -51,6 +52,7 @@ public client isolated class Client {
             }
         }
         self.httpClient = check initialize(url, config, self.cookieStore);
+        return;
     }
 
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
@@ -626,11 +628,10 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError result, TargetType targetType) returns Response|PayloadType|ClientError {
-    if (targetType is typedesc<Response> || result is ClientError) {
-        return result;
+isolated function processResponse(Response|ClientError response, TargetType targetType) returns Response|PayloadType|ClientError {
+    if (targetType is typedesc<Response> || response is ClientError) {
+        return response;
     }
-    Response response = <Response> checkpanic result;
     int statusCode = response.statusCode;
     if (400 <= statusCode && statusCode <= 599) {
         string reasonPhrase = response.reasonPhrase;
@@ -645,10 +646,6 @@ isolated function processResponse(Response|ClientError result, TargetType target
         } else {
             return createResponseError(statusCode, reasonPhrase, headers, payload);
         }
-    }
-    if ((100 <= statusCode && statusCode <= 199) || statusCode == 204 || statusCode == 304) {
-        // TODO: improve this to do binding when the payload is available
-        return error PayloadBindingError("No payload status code: " + statusCode.toString());
     }
     return performDataBinding(response, targetType);
 }
@@ -705,6 +702,9 @@ isolated function performDataBinding(Response response, TargetType targetType) r
     } else {
         // Consume payload to avoid memory leaks
         byte[]|ClientError payload = response.getBinaryPayload();
+        if payload is error {
+            log:printDebug("Error releasing payload during invalid target typed data binding: " + payload.message());
+        }
         return error ClientError("invalid target type, expected: http:Response, string, xml, json, map<json>, byte[], record, record[] or a union of such a type with nil");
     }
 }

@@ -24,18 +24,17 @@ plugins {
 
 description = 'Ballerina - HTTP Compiler Plugin Tests'
 
-def ballerinaModulePath = "${project.rootDir}/ballerina/"
-def ballerinaDistPath = "${ballerinaModulePath}/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
-def ballerinaDist = "${buildDir}/target/ballerina-distribution"
-
 dependencies {
     checkstyle project(':checkstyle')
     checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
 
+    implementation project(':http-compiler-plugin')
+    
     testImplementation group: 'org.ballerinalang', name: 'ballerina-lang', version: "${ballerinaLangVersion}"
     testImplementation group: 'org.ballerinalang', name: 'ballerina-tools-api', version: "${ballerinaLangVersion}"
     testImplementation group: 'org.ballerinalang', name: 'ballerina-parser', version: "${ballerinaLangVersion}"
     testImplementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
+    testImplementation group: 'com.google.code.gson', name: 'gson', version: "${gsonVersion}"
 }
 
 tasks.withType(Checkstyle) {
@@ -58,7 +57,7 @@ spotbugsTest {
         html.enabled true
         text.enabled = true
     }
-    def excludeFile = file("${rootDir}/spotbugs-exclude.xml")
+    def excludeFile = file("${project.projectDir}/spotbugs-exclude.xml")
     if(excludeFile.exists()) {
         excludeFilter = excludeFile
     }
@@ -81,35 +80,9 @@ compileJava {
     }
 }
 
-task copyDistribution(type: Copy) {
-    from ballerinaDistPath
-    into ballerinaDist
-}
-
-task copyPackageBala {
-    doLast {
-        copy {
-            from "${ballerinaModulePath}/build/cache_parent"
-            into "${ballerinaDist}/repo"
-            copy {
-                into("bala/ballerina") {
-                    from "bala/ballerina"
-                }
-            }
-            copy {
-                into("cache/ballerina/") {
-                    from "cache/ballerina"
-                }
-            }
-        }
-    }
-}
-
 test {
     systemProperty "ballerina.offline.flag", "true"
     useTestNG()
 }
 
-copyDistribution.dependsOn ":http-ballerina:build"
-copyPackageBala.dependsOn copyDistribution
-test.dependsOn copyPackageBala
+test.dependsOn ":http-ballerina:build"

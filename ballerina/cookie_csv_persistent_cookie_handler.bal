@@ -72,6 +72,7 @@ public isolated class CsvPersistentCookieHandler {
                 return error CookieHandlingError("Error in writing the csv file", result);
             }
         }
+        return;
     }
 
     # Gets all the persistent cookies.
@@ -119,9 +120,6 @@ public isolated class CsvPersistentCookieHandler {
     # + path - Path of the persistent cookie to be removed
     # + return - An error will be returned if there is any error occurred during the removal of the cookie or else nil is returned
     public isolated function removeCookie(string name, string domain, string path) returns CookieHandlingError? {
-        string cookieNameToRemove = name;
-        string cookieDomainToRemove = domain;
-        string cookiePathToRemove = path;
         if (fileExist(self.fileName)) {
             lock {
                 if(self.cookiesTable.length() == 0) {
@@ -132,7 +130,7 @@ public isolated class CsvPersistentCookieHandler {
                         return error CookieHandlingError("Error in reading the csv file", tblResult);
                     }
                 }
-                var removedCookie = self.cookiesTable.remove([name, domain, path]);
+                _ = self.cookiesTable.remove([name, domain, path]);
                 error? removeResults = file:remove(self.fileName);
                 if (removeResults is error) {
                     return error CookieHandlingError("Error in removing the csv file", removeResults);
@@ -155,6 +153,7 @@ public isolated class CsvPersistentCookieHandler {
         if (removeResults is error) {
             return error CookieHandlingError("Error in removing the csv file", removeResults);
         }
+        return;
     }
 }
 
@@ -167,7 +166,7 @@ isolated function validateFileExtension(string fileName) returns string|CookieHa
 
 isolated function readFile(string fileName) returns error|table<myCookie> key(name, domain, path) {
     io:ReadableCSVChannel rCsvChannel2 = check io:openReadableCsvFile(fileName);
-    var tblResult = rCsvChannel2.getTable(myCookie, ["name", "domain", "path"]);
+    var tblResult = rCsvChannel2.toTable(myCookie, ["name", "domain", "path"]);
     closeReadableCSVChannel(rCsvChannel2);
     if (tblResult is table<record{| anydata...; |}>) {
         return <table<myCookie> key(name, domain, path)>tblResult;
@@ -198,7 +197,7 @@ returns table<myCookie> key(name, domain, path)|error {
         myCookie c1 = { name: name, value: value, domain: domain, path: path, expires: expires is string ?
         expires : "-", maxAge: cookieToAdd.maxAge, httpOnly: cookieToAdd.httpOnly, secure: cookieToAdd.secure,
         createdTime: createdTime, lastAccessedTime: lastAccessedTime, hostOnly: cookieToAdd.hostOnly };
-        var result = tableToReturn.add(c1);
+        tableToReturn.add(c1);
         return tableToReturn;
     }
     return error CookieHandlingError("Invalid data types for cookie attributes");
@@ -217,6 +216,7 @@ isolated function writeToFile(table<myCookie> key(name, domain, path) cookiesTab
         }
     }
     closeWritableCSVChannel(wCsvChannel2);
+    return;
 }
 
 isolated function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string[]... data) returns error? {
@@ -226,6 +226,7 @@ isolated function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string
             return returnedVal;
         }
     }
+    return;
 }
 
 isolated function closeWritableCSVChannel(io:WritableCSVChannel csvChannel) {

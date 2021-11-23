@@ -21,8 +21,8 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/file;
 
-http:Client streamTestClient = check new ("http://localhost:" + streamTest1.toString());
-http:Client streamBackendClient = check new ("http://localhost:" + streamTest2.toString());
+final http:Client streamTestClient = check new ("http://localhost:" + streamTest1.toString());
+final http:Client streamBackendClient = check new ("http://localhost:" + streamTest2.toString());
 
 service /'stream on new http:Listener(streamTest1) {
     resource function get fileupload(http:Caller caller) {
@@ -54,7 +54,7 @@ service /'stream on new http:Listener(streamTest1) {
 }
 
 service /streamBack on new http:Listener(streamTest2) {
-    resource function post receiver(http:Caller caller, http:Request request) {
+    resource function post receiver(http:Caller caller, http:Request request) returns error? {
         http:Response res = new;
         stream<byte[], io:Error?>|error streamer = request.getByteStream();
 
@@ -66,7 +66,7 @@ service /streamBack on new http:Listener(streamTest2) {
                 setError(res, result);
             } else {
                 res.setPayload("File Received!");
-                error? removeResults = file:remove("tests/tempfiles", file:RECURSIVE); // Removes file.
+                _ = check file:remove("tests/tempfiles", file:RECURSIVE); // Removes file.
             }
             var cr = streamer.close();
             if (cr is error) {
@@ -105,7 +105,10 @@ function testConsumedStream() returns error? {
     string cMsg = "Byte stream is not available but payload can be obtain either as xml, json, string or byte[] type";
     http:Response|error response = streamTestClient->get("/stream/cacheFileupload");
     if (response is http:Response) {
-        byte[] bytes = check response.getBinaryPayload();
+        byte[]|error bytes = response.getBinaryPayload();
+        if bytes is error {
+            log:printError("Error reading payload", 'error = bytes);
+        }
         stream<byte[], io:Error?>|error streamer = response.getByteStream();
         if (streamer is stream<byte[], io:Error?>) {
             test:assertFail(msg = "Found unexpected output type");
@@ -121,4 +124,5 @@ function testConsumedStream() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }

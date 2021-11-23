@@ -19,46 +19,53 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener listenerMethodListener = new(listenerMethodTestPort1);
-http:Client listenerMethodTestClient = check new("http://localhost:" + listenerMethodTestPort1.toString());
-http:Client backendTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString());
+final http:Client listenerMethodTestClient = check new("http://localhost:" + listenerMethodTestPort1.toString());
+final http:Client backendTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString());
 
-http:Listener listenerMethodbackendEP = check new(listenerMethodTestPort2);
+isolated http:Listener listenerMethodbackendEP = check new(listenerMethodTestPort2);
 
 boolean listenerIdle = true;
 boolean listenerStopped = false;
 
 service /startService on listenerMethodListener {
     resource function get test(http:Caller caller, http:Request req) {
-        checkpanic listenerMethodbackendEP.attach(listenerMethodMock1, "mock1");
-        checkpanic listenerMethodbackendEP.attach(listenerMethodMock2, "mock2");
-        checkpanic listenerMethodbackendEP.start();
+        lock {
+            http:Service listenerMethodMock1 = service object {
+                resource function get .(http:Caller caller, http:Request req) {
+                    error? responseToCaller = caller->respond("Mock1 invoked!");
+                    if (responseToCaller is error) {
+                        log:printError("Error sending response from mock service", 'error = responseToCaller);
+                    }
+                }
+            };
+            checkpanic listenerMethodbackendEP.attach(listenerMethodMock1, "mock1");
+        }
+
+        lock {
+            http:Service listenerMethodMock2 = service object {
+                resource function get .(http:Caller caller, http:Request req) {
+                    // gracefulStop will unbind the listener port and stop accepting new connections.
+                    // But already connection created clients can communicate until client close.
+                    lock {
+                        checkpanic listenerMethodbackendEP.gracefulStop();
+                    }
+                    error? responseToCaller = caller->respond("Mock2 invoked!");
+                    if (responseToCaller is error) {
+                        log:printError("Error sending response from mock service", 'error = responseToCaller);
+                    }
+                }
+            };
+            checkpanic listenerMethodbackendEP.attach(listenerMethodMock2, "mock2");
+        }
+        lock {
+            checkpanic listenerMethodbackendEP.start();
+        }
         error? result = caller->respond("Backend service started!");
         if (result is error) {
             log:printError("Error sending response", 'error = result);
         }
     }
 }
-
-http:Service listenerMethodMock1 = service object {
-    resource function get .(http:Caller caller, http:Request req) {
-        error? responseToCaller = caller->respond("Mock1 invoked!");
-        if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
-        }
-    }
-};
-
-http:Service listenerMethodMock2 = service object {
-    resource function get .(http:Caller caller, http:Request req) {
-        // gracefulStop will unbind the listener port and stop accepting new connections.
-        // But already connection created clients can communicate until client close.
-        checkpanic listenerMethodbackendEP.gracefulStop();
-        error? responseToCaller = caller->respond("Mock2 invoked!");
-        if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
-        }
-    }
-};
 
 @test:Config {}
 function testServiceAttachAndStart() {
@@ -98,7 +105,7 @@ function testGracefulStopMethod() {
 
 @test:Config {dependsOn:[testGracefulStopMethod]}
 function testInvokingStoppedService() returns error? {
-    http:Client backendTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(),
+    final http:Client backendTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(),
                                                 http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
     http:Response|error response = backendTestClient->get("/mock1");
     if (response is error) {
@@ -107,4 +114,5 @@ function testInvokingStoppedService() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: http:Response");
     }
+    return;
 }
