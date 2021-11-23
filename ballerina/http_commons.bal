@@ -26,7 +26,7 @@ final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
 # Parses the header value which contains multiple values or parameters.
 # ```ballerina
-#  http:HeaderValue values = check http:parseHeader("text/plain;level=1;q=0.6, application/xml;level=2");
+#  http:HeaderValue[] values = check http:parseHeader("text/plain;level=1;q=0.6, application/xml;level=2");
 # ```
 #
 # + headerValue - The header value
