@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- [Fix parseHeader() to support multiple header values](https://github.com/ballerina-platform/ballerina-standard-library/issues/2403)
+
+## [2.0.1] - 2021-11-20
+
 ### Added
 - [Introduce request and request error interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/2062)
 
