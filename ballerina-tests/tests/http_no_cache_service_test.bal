@@ -44,18 +44,18 @@ service /nocacheBackend on cachingBackendListener {
 
     resource function get .(http:Caller caller, http:Request req) {
         json nocachePayload = {};
-        http:Response res = new;
-        http:ResponseCacheControl resCC = new;
         int count = 0;
         lock {
             count = nocachehitcount;
         }
         if (count < 1) {
             nocachePayload = { "message": "1st response" };
-            res.cacheControl = resCC;
         } else {
             nocachePayload = { "message": "2nd response" };
         }
+        http:Response res = new;
+        http:ResponseCacheControl resCC = new;
+        res.cacheControl = resCC;
         resCC.noCache = true;
         res.setETag(nocachePayload);
         lock {
