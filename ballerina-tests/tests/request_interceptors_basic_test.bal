@@ -71,15 +71,16 @@ function testRequestInterceptorReturnsError() returns error? {
 final http:Client requestErrorInterceptorClientEP = check new("http://localhost:" + requestErrorInterceptorTestPort.toString());
 
 listener http:Listener requestErrorInterceptorServerEP = new(requestErrorInterceptorTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorReturnsError(), new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()]
+    interceptors : [new RequestInterceptorReturnsError(), new DefaultRequestInterceptor(), new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()]
 });
 
 service / on requestErrorInterceptorServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
+        string default_interceptor_header = req.hasHeader("default-interceptor") ? "true" : "false";
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
-        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("default-interceptor", default_interceptor_header);
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
         res.setHeader("request-interceptor-error", check req.getHeader("request-interceptor-error"));
         res.setHeader("default-error-interceptor", check req.getHeader("default-error-interceptor"));
@@ -91,7 +92,7 @@ service / on requestErrorInterceptorServerEP {
 function testRequestErrorInterceptor() returns error? {
     http:Response res = check requestErrorInterceptorClientEP->get("/");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-error-interceptor");
-    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "false");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("request-interceptor-error"), "true");
     assertHeaderValue(check res.getHeader("default-error-interceptor"), "true");
