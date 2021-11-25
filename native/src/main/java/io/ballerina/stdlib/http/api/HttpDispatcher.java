@@ -130,7 +130,7 @@ public class HttpDispatcher {
     }
 
     public static InterceptorService findInterceptorService(HTTPInterceptorServicesRegistry servicesRegistry,
-                                                                HttpCarbonMessage inboundReqMsg) {
+                                                            HttpCarbonMessage inboundReqMsg) {
         try {
             Map<String, InterceptorService> servicesOnInterface;
             List<String> sortedServiceURIs;
@@ -223,7 +223,7 @@ public class HttpDispatcher {
     }
 
     public static InterceptorResource findInterceptorResource(HTTPInterceptorServicesRegistry servicesRegistry,
-                                                                  HttpCarbonMessage inboundMessage) {
+                                                              HttpCarbonMessage inboundMessage) {
         String protocol = (String) inboundMessage.getProperty(HttpConstants.PROTOCOL);
         if (protocol == null) {
             throw new BallerinaConnectorException("protocol not defined in the incoming request");
@@ -477,7 +477,7 @@ public class HttpDispatcher {
     }
 
     static BObject getCaller(Resource resource, HttpCarbonMessage httpCarbonMessage,
-                                BMap<BString, Object> endpointConfig) {
+                             BMap<BString, Object> endpointConfig) {
         BObject httpCaller = httpCarbonMessage.getProperty(HttpConstants.CALLER) == null ?
                 ValueCreatorUtils.createCallerObject() : (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
         HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, resource, endpointConfig);
@@ -488,6 +488,10 @@ public class HttpDispatcher {
 
     static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, BMap<BString, Object> endpointConfig) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
+        Object targetService = httpCarbonMessage.getProperty(HttpConstants.TARGET_SERVICE_OBJECT);
+        if (targetService != null) {
+            requestContext.addNativeData(HttpConstants.TARGET_SERVICE_OBJECT, targetService);
+        }
         BArray interceptors = endpointConfig.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
         if (interceptors != null) {
             requestContext.addNativeData(HttpConstants.HTTP_INTERCEPTORS, interceptors);

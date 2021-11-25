@@ -26,8 +26,6 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
-import static java.lang.System.err;
-
 /**
  * {@code HttpInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina side when
  * an interceptor service is invoked.
@@ -134,6 +132,15 @@ public class HttpInterceptorUnitCallback implements Callback {
                 } else {
                     BError err = HttpUtil.createHttpError("next interceptor service did not match " +
                             "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
+                    sendFailureResponse(err);
+                }
+            } else {
+                Object mainService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE_OBJECT);
+                if (result.equals(mainService)) {
+                    sendRequestToNextService();
+                } else {
+                    BError err = HttpUtil.createHttpError("main service did not match with the configuration",
+                            HttpErrorType.GENERIC_LISTENER_ERROR);
                     sendFailureResponse(err);
                 }
             }

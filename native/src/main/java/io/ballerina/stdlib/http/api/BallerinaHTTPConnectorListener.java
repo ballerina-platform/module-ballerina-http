@@ -70,10 +70,13 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX)
                     == null ? 0 : (int)  inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
             while (interceptorServiceIndex < httpInterceptorServicesRegistries.size()) {
+                if (!inboundMessage.isAccessedInInterceptorService()) {
+                    setTargetServiceToCarbonMsg(inboundMessage);
+                }
                 HTTPInterceptorServicesRegistry interceptorServicesRegistry = httpInterceptorServicesRegistries.
                         get(interceptorServiceIndex);
 
-                // Checking whether the interceptor service state matches the interceptor service registry
+                // Checking whether the interceptor service state matches the interceptor service registry type
                 if (!interceptorServicesRegistry.getServicesType().
                                             equals(inboundMessage.getInterceptorServiceState())) {
                     interceptorServiceIndex += 1;
@@ -251,7 +254,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     }
 
     private InterceptorResource findInterceptorResource(HTTPInterceptorServicesRegistry interceptorServicesRegistry,
-                                                                HttpCarbonMessage inboundMessage) {
+                                                        HttpCarbonMessage inboundMessage) {
         try {
             return HttpDispatcher.findInterceptorResource(interceptorServicesRegistry, inboundMessage);
         } catch (Exception e) {
@@ -262,6 +265,17 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             } else {
                 throw e;
             }
+        }
+    }
+
+    private void setTargetServiceToCarbonMsg(HttpCarbonMessage inboundMessage) {
+        try {
+            HttpService targetService = HttpDispatcher.findService(httpServicesRegistry, inboundMessage);
+            BObject targetServiceObject = targetService.getBalService();
+            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE_OBJECT, targetServiceObject);
+        } catch (Exception e) {
+            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE_OBJECT, HttpUtil.createHttpError(e.getMessage(),
+                    HttpErrorType.GENERIC_LISTENER_ERROR));
         }
     }
 }

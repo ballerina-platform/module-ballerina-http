@@ -365,6 +365,7 @@ public class HttpConstants {
     public static final String HTTP_NORMAL = "Normal";
     public static final String HTTP_REQUEST_INTERCEPTOR = "RequestInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
+    public static final String TARGET_SERVICE_OBJECT = "TARGET_SERVICE_OBJECT";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;
