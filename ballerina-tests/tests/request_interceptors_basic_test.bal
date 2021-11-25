@@ -23,7 +23,7 @@ listener http:Listener defaultRequestInterceptorServerEP = new(defaultRequestInt
     interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new DefaultRequestErrorInterceptor()]
 });
 
-service / on defaultRequestInterceptorServerEP {
+service http:Service / on defaultRequestInterceptorServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -54,7 +54,7 @@ listener http:Listener requestInterceptorReturnsErrorServerEP = new(requestInter
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorReturnsError(), new LastRequestInterceptor()]
 });
 
-service / on requestInterceptorReturnsErrorServerEP {
+service http:Service / on requestInterceptorReturnsErrorServerEP {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -74,7 +74,7 @@ listener http:Listener requestErrorInterceptorServerEP = new(requestErrorInterce
     interceptors : [new RequestInterceptorReturnsError(), new DefaultRequestInterceptor(), new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()]
 });
 
-service / on requestErrorInterceptorServerEP {
+service http:Service / on requestErrorInterceptorServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -104,7 +104,7 @@ listener http:Listener requestInterceptorSetPayloadServerEP = new(requestInterce
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSetPayload(), new LastRequestInterceptor()]
 });
 
-service / on requestInterceptorSetPayloadServerEP {
+service http:Service / on requestInterceptorSetPayloadServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -136,7 +136,7 @@ listener http:Listener requestInterceptorHttpVerbServerEP = new(requestIntercept
     interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptor(), new PostRequestInterceptor(), new LastRequestInterceptor()]
 });
 
-service / on requestInterceptorHttpVerbServerEP {
+service http:Service / on requestInterceptorHttpVerbServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -166,7 +166,7 @@ listener http:Listener requestInterceptorBasePathServerEP = new(requestIntercept
     interceptors : [new DefaultRequestInterceptor(), new DefaultRequestInterceptorBasePath(), new LastRequestInterceptor()]
 });
 
-service / on requestInterceptorBasePathServerEP {
+service http:Service / on requestInterceptorBasePathServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -204,7 +204,7 @@ listener http:Listener getRequestInterceptorBasePathServerEP = new(getRequestInt
     interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptorBasePath(), new LastRequestInterceptor()]
 });
 
-service /foo on getRequestInterceptorBasePathServerEP {
+service http:Service /foo on getRequestInterceptorBasePathServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();

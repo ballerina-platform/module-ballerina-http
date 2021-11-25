@@ -140,6 +140,14 @@ service class DefaultRequestErrorInterceptor {
     }
 }
 
+service class RequestErrorInterceptorReturnsErrorMsg {
+    *http:RequestErrorInterceptor;
+
+    resource function 'default [string... path](error err, http:Caller caller) returns error? {
+       check caller->respond(err.message());
+    }
+}
+
 service class RequestInterceptorWithoutCtxNext {
     *http:RequestInterceptor;
 
@@ -231,6 +239,19 @@ service class RequestInterceptorNegative2 {
 
     resource function 'default [string... path](http:Request req) returns http:RequestInterceptor {
        req.setHeader("request-interceptor-negative2", "true");
+       return new DefaultRequestInterceptor();
+    }
+}
+
+service class RequestInterceptorNegative3 {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:Request req, http:RequestContext ctx) returns http:NextService|error? {
+       req.setHeader("request-interceptor-negative3", "true");
+       http:NextService|error? nextService = ctx.next();
+       if nextService is error {
+          return nextService;
+       }
        return new DefaultRequestInterceptor();
     }
 }
