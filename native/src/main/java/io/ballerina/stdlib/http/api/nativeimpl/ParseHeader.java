@@ -17,19 +17,22 @@
  */
 package io.ballerina.stdlib.http.api.nativeimpl;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.TupleType;
+import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.api.ValueCreatorUtils;
 import io.ballerina.stdlib.mime.util.HeaderUtil;
 
-import java.util.Arrays;
-
+import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_VALUE_FIELD;
+import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_VALUE_PARAM_FIELD;
+import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_VALUE_RECORD;
 import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_CLIENT_ERROR;
 import static io.ballerina.stdlib.mime.util.MimeConstants.COMMA;
 import static io.ballerina.stdlib.mime.util.MimeConstants.FAILED_TO_PARSE;
@@ -42,28 +45,31 @@ import static io.ballerina.stdlib.mime.util.MimeConstants.SEMICOLON;
  */
 public class ParseHeader {
 
-    private static final TupleType parseHeaderTupleType = TypeCreator.createTupleType(
-            Arrays.asList(PredefinedTypes.TYPE_STRING, PredefinedTypes.TYPE_MAP));
+    private static final RecordType RECORD_TYPE = TypeCreator.createRecordType(
+            HEADER_VALUE_RECORD, ModuleUtils.getHttpPackage(), 0, false, 0);
+    private static final ArrayType ARRAY_TYPE = TypeCreator.createArrayType(RECORD_TYPE);
 
     public static Object parseHeader(BString headerValue) {
         try {
-            if (headerValue.getValue().contains(COMMA)) {
-                headerValue = headerValue.substring(0, headerValue.getValue().indexOf(COMMA));
+            String[] headerValues = headerValue.getValue().split(COMMA);
+            BArray recordArray = ValueCreator.createArrayValue(ARRAY_TYPE);
+            for (int i = 0; i < headerValues.length; i++) {
+                String value = headerValues[i].trim();
+                if (value.contains(SEMICOLON)) {
+                    value = HeaderUtil.getHeaderValue(value);
+                }
+                BMap<BString, Object> record = ValueCreatorUtils.createHTTPRecordValue(HEADER_VALUE_RECORD);
+                record.put(HEADER_VALUE_FIELD, StringUtils.fromString(value));
+                record.put(HEADER_VALUE_PARAM_FIELD, HeaderUtil.getParamMap(headerValues[i]));
+                recordArray.add(i, record);
             }
-            // Set value and param map
-            String value = headerValue.getValue().trim();
-            if (headerValue.getValue().contains(SEMICOLON)) {
-                value = HeaderUtil.getHeaderValue(value);
-            }
-            BArray contentTuple = ValueCreator.createTupleValue(parseHeaderTupleType);
-            contentTuple.add(0, StringUtils.fromString(value));
-            contentTuple.add(1, HeaderUtil.getParamMap(headerValue.getValue()));
-            return contentTuple;
+            return recordArray;
         } catch (Exception ex) {
             String errMsg = ex instanceof BError ? ex.toString() : ex.getMessage();
             return HttpUtil.createHttpError(FAILED_TO_PARSE + errMsg, GENERIC_CLIENT_ERROR);
         }
     }
 
-    private ParseHeader() {}
+    private ParseHeader() {
+    }
 }

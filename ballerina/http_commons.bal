@@ -24,12 +24,15 @@ import ballerina/log;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
-# Parses the given header value to extract its value and parameter map.
+# Parses the header value which contains multiple values or parameters.
+# ```ballerina
+#  http:HeaderValue[] values = check http:parseHeader("text/plain;level=1;q=0.6, application/xml;level=2");
+# ```
 #
 # + headerValue - The header value
-# + return - A tuple containing the value and its parameter map or else an `http:ClientError` if the header parsing fails
-//TODO: Make the error nillable
-public isolated function parseHeader(string headerValue) returns [string, map<any>]|ClientError = @java:Method {
+# + return - An array of `http:HeaderValue` typed record containing the value and its parameter map
+#            or else an `http:ClientError` if the header parsing fails
+public isolated function parseHeader(string headerValue) returns HeaderValue[]|ClientError = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ParseHeader",
     name: "parseHeader"
 } external;

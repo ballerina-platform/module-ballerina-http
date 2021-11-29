@@ -54,12 +54,15 @@ public isolated class RequestContext {
         }
     }
 
-    # Removes an attribute from the request context object.
+    # Removes an attribute from the request context object. It panics if there is no such member.
     #
     # + key - Represents the attribute key
     public isolated function remove(string key) {
         lock {
-            value:Cloneable|isolated object {} err = self.attributes.remove(key);
+            value:Cloneable|isolated object {} err = trap self.attributes.remove(key);
+            if (err is error) {
+                panic err;
+            }
         }
     }
 
