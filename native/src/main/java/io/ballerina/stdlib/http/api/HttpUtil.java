@@ -1134,7 +1134,7 @@ public class HttpUtil {
         String boundaryString;
         String boundaryValue = HeaderUtil.extractBoundaryParameter(contentType);
         boundaryString = boundaryValue != null ? boundaryValue : HttpUtil.addBoundaryParameter(transportMessage,
-                contentType);
+                                                                                               contentType);
         return boundaryString;
     }
 

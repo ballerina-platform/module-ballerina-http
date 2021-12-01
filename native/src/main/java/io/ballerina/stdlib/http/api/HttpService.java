@@ -267,7 +267,7 @@ public class HttpService implements Service {
 
     private static BMap getHttpServiceConfigAnnotation(BObject service) {
         return getServiceConfigAnnotation(service, ModuleUtils.getHttpPackageIdentifier(),
-                HttpConstants.ANN_NAME_HTTP_SERVICE_CONFIG);
+                                          HttpConstants.ANN_NAME_HTTP_SERVICE_CONFIG);
     }
 
     protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
