@@ -67,7 +67,7 @@ public class ExternRequestContext {
     }
 
     private static BArray getInterceptors(BObject requestCtx) {
-        return requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS) == null ? null :
-                (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
+        return requestCtx.getNativeData(HttpConstants.INTERCEPTORS) == null ? null :
+                (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
     }
 }

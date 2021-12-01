@@ -23,6 +23,7 @@
 # + auth - Service auth configurations
 # + mediaTypeSubtypePrefix - Service specific media-type subtype prefix
 # + treatNilableAsOptional - Treat Nilable parameters as optional
+# + interceptors - An array of interceptor services
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
@@ -31,6 +32,7 @@ public type HttpServiceConfig record {|
     ListenerAuthConfig[] auth?;
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
+    (RequestInterceptor|RequestErrorInterceptor)[]? interceptors = ();
 |};
 
 # Configurations for CORS support.

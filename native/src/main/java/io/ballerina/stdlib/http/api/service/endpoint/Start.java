@@ -52,7 +52,8 @@ public class Start extends AbstractHttpNativeFunction {
         // Get and populate interceptor services
         HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
         Runtime runtime = httpServicesRegistry.getRuntime();
-        HttpUtil.getAndPopulateInterceptorsServices(serviceEndpoint, runtime);
+        HttpUtil.populateInterceptorServicesFromListener(serviceEndpoint, runtime);
+        HttpUtil.populateInterceptorServicesFromService(httpServicesRegistry);
 
         ServerConnector serverConnector = getServerConnector(serviceEndpoint);
         ServerConnectorFuture serverConnectorFuture = serverConnector.start();
