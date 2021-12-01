@@ -25,7 +25,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "cache"
-version = "3.0.1"
+version = "3.0.2"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "task"},
@@ -50,7 +50,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "file"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "log"},
@@ -214,7 +214,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "log"
-version = "2.0.1"
+version = "2.0.2"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
@@ -276,7 +276,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "regex"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
@@ -287,7 +287,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "task"
-version = "2.0.1"
+version = "2.0.2"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "time"}
