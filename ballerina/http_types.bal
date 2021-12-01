@@ -119,3 +119,11 @@ public type Links record {|
     # Array of available links
     Link[] links;
 |};
+
+# Represents the parsed header value details
+public type HeaderValue record {|
+    # The header value
+    string value;
+    # Map of header parameters
+    map<string> params;
+|};

@@ -156,3 +156,12 @@ service class InterceptorService13 {
         return ctx.next();
     }
 }
+
+service class InterceptorService14 {
+    *http:RequestErrorInterceptor;
+
+    resource function 'default [string path](http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
+        req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}

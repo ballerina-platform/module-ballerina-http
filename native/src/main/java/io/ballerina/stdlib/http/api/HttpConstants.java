@@ -228,6 +228,9 @@ public class HttpConstants {
     public static final String HTTP_TRAILER_HEADERS = "http_trailer_headers";
     public static final String LEADING_HEADER = "leading";
     public static final BString HEADER_REQUEST_FIELD = StringUtils.fromString("request");
+    public static final String HEADER_VALUE_RECORD = "HeaderValue";
+    public static final BString HEADER_VALUE_FIELD = StringUtils.fromString("value");
+    public static final BString HEADER_VALUE_PARAM_FIELD = StringUtils.fromString("params");
 
     public static final String HTTP_TRANSPORT_CONF = "transports.netty.conf";
     public static final String CIPHERS = "ciphers";

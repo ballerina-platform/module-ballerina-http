@@ -21,22 +21,30 @@ import ballerina/lang.value;
 public isolated class RequestContext {
     private final map<value:Cloneable|isolated object {}> attributes = {};
 
-    public isolated function add(string 'key, value:Cloneable|isolated object {} value) {
+    # Sets an attribute to the request context object.
+    #
+    # + key - Represents the attribute key
+    # + value - Represents the attribute value
+    public isolated function set(string key, value:Cloneable|isolated object {} value) {
         if value is value:Cloneable {
             lock {
-                self.attributes['key] = value.clone();
+                self.attributes[key] = value.clone();
             }
         }
         else {
             lock {
-                self.attributes['key] = value;
+                self.attributes[key] = value;
             }   
         }
     }
 
-    public isolated function get(string 'key) returns value:Cloneable|isolated object {} {
+    # Gets an attribute value from the request context object.
+    #
+    # + key - Represents the attribute key
+    # + return - Attribute value
+    public isolated function get(string key) returns value:Cloneable|isolated object {} {
         lock {
-            value:Cloneable|isolated object {} value = self.attributes.get('key);
+            value:Cloneable|isolated object {} value = self.attributes.get(key);
 
             if value is value:Cloneable {
                 return value.clone();
@@ -46,12 +54,21 @@ public isolated class RequestContext {
         }
     }
 
-    public isolated function remove(string 'key) {
+    # Removes an attribute from the request context object. It panics if there is no such member.
+    #
+    # + key - Represents the attribute key
+    public isolated function remove(string key) {
         lock {
-            value:Cloneable|isolated object {} err = self.attributes.remove('key);
+            value:Cloneable|isolated object {} err = trap self.attributes.remove(key);
+            if (err is error) {
+                panic err;
+            }
         }
     }
 
+    # Calls the next service in the interceptor pipeline.
+    #
+    # + return - The next service object in the pipeline. An error is returned, if the call fails 
     public isolated function next() returns NextService|error? {
         lock {
             return externRequestCtxNext(self);
@@ -59,7 +76,7 @@ public isolated class RequestContext {
     }
 }
 
-public isolated function externRequestCtxNext(RequestContext requestCtx) returns NextService|error? = @java:Method {
+isolated function externRequestCtxNext(RequestContext requestCtx) returns NextService|error? = @java:Method {
     name: "next",
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
 } external;
