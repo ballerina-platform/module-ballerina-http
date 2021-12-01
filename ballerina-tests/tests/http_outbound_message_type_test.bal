@@ -276,7 +276,6 @@ public function testRequestAnydataNegative() returns error? {
         }
     }
     test:assertFail(msg = "Found unexpected output");
-    return;
 }
 
 service /mytest on outRequestTypeTestEP {
