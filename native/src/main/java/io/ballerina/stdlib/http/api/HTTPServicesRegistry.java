@@ -153,6 +153,10 @@ public class HTTPServicesRegistry {
         this.runtime = runtime;
     }
 
+    public Map<String, ServicesMapHolder> getServicesMapByHost() {
+        return this.servicesMapByHost;
+    }
+
     /**
      * Holds both serviceByBasePath map and sorted Service basePath list.
      */
@@ -163,6 +167,10 @@ public class HTTPServicesRegistry {
         public ServicesMapHolder(Map<String, HttpService> servicesByBasePath, List<String> sortedServiceURIs) {
             this.servicesByBasePath = servicesByBasePath;
             this.sortedServiceURIs = sortedServiceURIs;
+        }
+
+        public Map<String, HttpService> getServicesByBasePath() {
+            return this.servicesByBasePath;
         }
     }
 

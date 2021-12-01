@@ -26,8 +26,6 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
-import static java.lang.System.err;
-
 /**
  * {@code HttpInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina side when
  * an interceptor service is invoked.
@@ -107,7 +105,7 @@ public class HttpInterceptorUnitCallback implements Callback {
     private void validateResponseAndProceed(Object result) {
         int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
-        BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
+        BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
         boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
 
         if (alreadyResponded(result)) {
