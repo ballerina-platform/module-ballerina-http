@@ -26,16 +26,16 @@ isolated function calculateCurrentResponseAge(Response cachedResponse) returns i
     time:Utc responseTime = cachedResponse.receivedTime;
     time:Utc requestTime = cachedResponse.requestTime;
 
-    time:Seconds ageDiff = time:utcDiffSeconds(responseTime, dateValue);
+    time:Seconds ageDiff = time:utcDiffSeconds(responseTime, dateValue)*1000;
     time:Seconds apparentAge = ageDiff >= 0d ? ageDiff : 0d;
 
-    time:Seconds responseDelay = time:utcDiffSeconds(responseTime, requestTime);
+    time:Seconds responseDelay = time:utcDiffSeconds(responseTime, requestTime)*1000;
     time:Seconds correctedAgeValue = ageValue + responseDelay;
 
     time:Seconds correctedInitialAge = apparentAge > correctedAgeValue ? apparentAge : correctedAgeValue;
-    time:Seconds residentTime = time:utcDiffSeconds(now, responseTime);
+    time:Seconds residentTime = time:utcDiffSeconds(now, responseTime)*1000;
 
-    return <int>((correctedInitialAge + residentTime));
+    return (<int>(correctedInitialAge + residentTime)/1000);
 }
 
 isolated function getResponseAge(Response cachedResponse) returns time:Seconds {
