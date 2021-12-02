@@ -228,7 +228,7 @@ service class RequestInterceptorWithVariable {
     }
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-       req.setHeader("request-interceptor", "true");
+       req.setHeader(self.getName(), "true");
        ctx.set("last-interceptor", self.getName());
        return ctx.next();
     }
