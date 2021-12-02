@@ -182,7 +182,7 @@ service class DefaultRequestInterceptorBasePath {
 service class GetRequestInterceptorBasePath {
     *http:RequestInterceptor;
 
-    resource function get foo/bar(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+    resource function get bar(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("default-base-path-interceptor", "true");
        ctx.set("last-interceptor", "get-base-path-interceptor");
        return ctx.next();
