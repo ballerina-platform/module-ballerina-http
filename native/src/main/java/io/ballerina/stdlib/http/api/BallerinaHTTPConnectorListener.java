@@ -42,6 +42,7 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.SERVER_C
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PROTOCOL;
+import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTORS;
 import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES;
 
 /**
@@ -276,11 +277,12 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     private void setTargetServiceToCarbonMsg(HttpCarbonMessage inboundMessage) {
         inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES, httpInterceptorServicesRegistries);
+        inboundMessage.setProperty(INTERCEPTORS, endpointConfig.getNativeData(INTERCEPTORS));
         try {
             HttpService targetService = HttpDispatcher.findService(httpServicesRegistry, inboundMessage, true);
             inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, targetService.getBalService());
             if (targetService.hasInterceptors()) {
-            inboundMessage.setProperty(HttpConstants.INTERCEPTORS, targetService.getBalInterceptorServicesArray());
+            inboundMessage.setProperty(INTERCEPTORS, targetService.getBalInterceptorServicesArray());
                 inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES,
                                            targetService.getInterceptorServicesRegistries());
             }

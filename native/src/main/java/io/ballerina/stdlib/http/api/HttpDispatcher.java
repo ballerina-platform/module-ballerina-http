@@ -491,8 +491,7 @@ public class HttpDispatcher {
     static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, BMap<BString, Object> endpointConfig) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
         BArray interceptors = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) instanceof BArray ?
-                              (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) :
-                              endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
+                              (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) : null;
         requestContext.addNativeData(HttpConstants.INTERCEPTORS, interceptors);
         requestContext.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
         httpCarbonMessage.setProperty(HttpConstants.REQUEST_CONTEXT, requestContext);
