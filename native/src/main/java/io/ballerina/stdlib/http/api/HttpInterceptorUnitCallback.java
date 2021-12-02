@@ -135,7 +135,7 @@ public class HttpInterceptorUnitCallback implements Callback {
                     sendFailureResponse(err);
                 }
             } else {
-                Object mainService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE_OBJECT);
+                Object mainService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
                 if (result.equals(mainService)) {
                     sendRequestToNextService();
                 } else {

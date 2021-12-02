@@ -29,7 +29,7 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 public class ExternRequestContext {
     public static Object next(BObject requestCtx) {
         BArray interceptors = getInterceptors(requestCtx);
-        Object mainService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE_OBJECT);
+        Object mainService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
         if (interceptors != null) {
             if (!isInterceptorService(requestCtx)) {
                 // TODO : After introducing response interceptors, calling ctx.next() should return "illegal function
