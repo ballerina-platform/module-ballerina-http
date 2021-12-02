@@ -18,8 +18,10 @@
 
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
@@ -160,7 +162,16 @@ public class HttpInterceptorUnitCallback implements Callback {
                 sendFailureResponse(result);
             }
         };
-        runtime.invokeMethodAsync(caller, "returnResponse", null,
-                ModuleUtils.getNotifySuccessMetaData(), returnCallback, paramFeed);
+        ObjectType callerType = caller.getType();
+        String remoteMethod = "returnResponse";
+        if (callerType.isIsolated() && callerType.isIsolated(remoteMethod)) {
+            runtime.invokeMethodAsyncConcurrently(
+                    caller, remoteMethod, null, ModuleUtils.getNotifySuccessMetaData(),
+                    returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        } else {
+            runtime.invokeMethodAsyncSequentially(
+                    caller, remoteMethod, null, ModuleUtils.getNotifySuccessMetaData(),
+                    returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        }
     }
 }
