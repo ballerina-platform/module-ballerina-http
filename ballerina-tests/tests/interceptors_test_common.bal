@@ -223,6 +223,25 @@ service class RequestInterceptorWithQueryParam {
     }
 }
 
+service class RequestInterceptorWithVariable {
+    *http:RequestInterceptor;
+    string name;
+
+    function init(string name) {
+        self.name = name;
+    }
+
+    function getName() returns string {
+        return self.name;
+    }
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("request-interceptor", "true");
+       ctx.set("last-interceptor", self.getName());
+       return ctx.next();
+    }
+}
+
 service class RequestInterceptorNegative1 {
     *http:RequestInterceptor;
 

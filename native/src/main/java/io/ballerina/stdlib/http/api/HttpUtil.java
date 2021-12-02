@@ -1500,11 +1500,24 @@ public class HttpUtil {
         return listenerConfiguration;
     }
 
-    public static void getAndPopulateInterceptorsServices(BObject serviceEndpoint, Runtime runtime) {
+    // TODO : Move this to `register` after this issue is fixed
+    //  https://github.com/ballerina-platform/ballerina-lang/issues/33594
+    public static void populateInterceptorServicesFromService(HTTPServicesRegistry servicesRegistry) {
+        Runtime runtime = servicesRegistry.getRuntime();
+        Map<String, HTTPServicesRegistry.ServicesMapHolder> servicesMapByHost = servicesRegistry.getServicesMapByHost();
+        for (HTTPServicesRegistry.ServicesMapHolder servicesMapHolder : servicesMapByHost.values()) {
+            Map<String, HttpService> servicesByBasePath = servicesMapHolder.getServicesByBasePath();
+            for (HttpService service : servicesByBasePath.values()) {
+                HttpService.populateInterceptorServicesRegistries(service, runtime);
+            }
+        }
+    }
+
+    public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
         BMap endpointConfig = (BMap) serviceEndpoint.getNativeData(SERVICE_ENDPOINT_CONFIG);
         Object[] interceptors = {};
         List<BObject> interceptorServices = new ArrayList<>();
-        BArray interceptorsArray = endpointConfig.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
+        BArray interceptorsArray = endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
 
         if (interceptorsArray != null) {
             interceptors = interceptorsArray.getValues();

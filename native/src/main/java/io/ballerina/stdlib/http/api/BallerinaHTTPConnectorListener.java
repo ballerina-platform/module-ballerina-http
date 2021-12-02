@@ -35,12 +35,14 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_TRACE_PROPERTIES;
 import static io.ballerina.runtime.observability.ObservabilityConstants.SERVER_CONNECTOR_HTTP;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PROTOCOL;
+import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES;
 
 /**
  * HTTP connector listener for Ballerina.
@@ -65,15 +67,19 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     @Override
     public void onMessage(HttpCarbonMessage inboundMessage) {
         try {
+            if (Objects.isNull(inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES))) {
+                setTargetServiceToCarbonMsg(inboundMessage);
+            }
+
+            List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries =
+                    (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
+
             // Executing interceptor services
             InterceptorResource interceptorResource;
             int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX)
                     == null ? 0 : (int)  inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
-            while (interceptorServiceIndex < httpInterceptorServicesRegistries.size()) {
-                if (!inboundMessage.isAccessedInInterceptorService()) {
-                    setTargetServiceToCarbonMsg(inboundMessage);
-                }
-                HTTPInterceptorServicesRegistry interceptorServicesRegistry = httpInterceptorServicesRegistries.
+            while (interceptorServiceIndex < interceptorServicesRegistries.size()) {
+                HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
                         get(interceptorServiceIndex);
 
                 // Checking whether the interceptor service state matches the interceptor service registry type
@@ -254,7 +260,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     }
 
     private InterceptorResource findInterceptorResource(HTTPInterceptorServicesRegistry interceptorServicesRegistry,
-                                                        HttpCarbonMessage inboundMessage) {
+                                                                HttpCarbonMessage inboundMessage) {
         try {
             return HttpDispatcher.findInterceptorResource(interceptorServicesRegistry, inboundMessage);
         } catch (Exception e) {
@@ -269,12 +275,17 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     }
 
     private void setTargetServiceToCarbonMsg(HttpCarbonMessage inboundMessage) {
+        inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES, httpInterceptorServicesRegistries);
         try {
-            HttpService targetService = HttpDispatcher.findService(httpServicesRegistry, inboundMessage);
-            BObject targetServiceObject = targetService.getBalService();
-            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE_OBJECT, targetServiceObject);
+            HttpService targetService = HttpDispatcher.findService(httpServicesRegistry, inboundMessage, true);
+            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, targetService.getBalService());
+            if (targetService.hasInterceptors()) {
+            inboundMessage.setProperty(HttpConstants.INTERCEPTORS, targetService.getBalInterceptorServicesArray());
+                inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES,
+                                           targetService.getInterceptorServicesRegistries());
+            }
         } catch (Exception e) {
-            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE_OBJECT, HttpUtil.createHttpError(e.getMessage(),
+            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, HttpUtil.createHttpError(e.getMessage(),
                     HttpErrorType.GENERIC_LISTENER_ERROR));
         }
     }

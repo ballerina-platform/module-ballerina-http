@@ -84,7 +84,8 @@ public class HttpDispatcher {
     private static final ArrayType MAP_ARR = TypeCreator.createArrayType(TypeCreator.createMapType(
             PredefinedTypes.TYPE_JSON));
 
-    public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg) {
+    public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg,
+                                          boolean forInterceptors) {
         try {
             Map<String, HttpService> servicesOnInterface;
             List<String> sortedServiceURIs;
@@ -103,12 +104,8 @@ public class HttpDispatcher {
             }
 
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
-            inboundReqMsg.setProperty(HttpConstants.RAW_URI, rawUri);
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
             String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams);
-
-            inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
-            inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
 
             URI validatedUri = getValidatedURI(uriWithoutMatrixParams);
 
@@ -122,7 +119,12 @@ public class HttpDispatcher {
             }
 
             HttpService service = servicesOnInterface.get(basePath);
-            setInboundReqProperties(inboundReqMsg, validatedUri, basePath);
+            if (!forInterceptors) {
+                setInboundReqProperties(inboundReqMsg, validatedUri, basePath);
+                inboundReqMsg.setProperty(HttpConstants.RAW_URI, rawUri);
+                inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
+                inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
+            }
             return service;
         } catch (Exception e) {
             throw new BallerinaConnectorException(e.getMessage());
@@ -130,7 +132,7 @@ public class HttpDispatcher {
     }
 
     public static InterceptorService findInterceptorService(HTTPInterceptorServicesRegistry servicesRegistry,
-                                                            HttpCarbonMessage inboundReqMsg) {
+                                                                HttpCarbonMessage inboundReqMsg) {
         try {
             Map<String, InterceptorService> servicesOnInterface;
             List<String> sortedServiceURIs;
@@ -209,7 +211,7 @@ public class HttpDispatcher {
 
         try {
             // Find the Service TODO can be improved
-            HttpService service = HttpDispatcher.findService(servicesRegistry, inboundMessage);
+            HttpService service = HttpDispatcher.findService(servicesRegistry, inboundMessage, false);
             if (service == null) {
                 throw new BallerinaConnectorException("no Service found to handle the service request");
                 // Finer details of the errors are thrown from the dispatcher itself, Ideally we shouldn't get here.
@@ -223,7 +225,7 @@ public class HttpDispatcher {
     }
 
     public static InterceptorResource findInterceptorResource(HTTPInterceptorServicesRegistry servicesRegistry,
-                                                              HttpCarbonMessage inboundMessage) {
+                                                                  HttpCarbonMessage inboundMessage) {
         String protocol = (String) inboundMessage.getProperty(HttpConstants.PROTOCOL);
         if (protocol == null) {
             throw new BallerinaConnectorException("protocol not defined in the incoming request");
@@ -477,7 +479,7 @@ public class HttpDispatcher {
     }
 
     static BObject getCaller(Resource resource, HttpCarbonMessage httpCarbonMessage,
-                             BMap<BString, Object> endpointConfig) {
+                                BMap<BString, Object> endpointConfig) {
         BObject httpCaller = httpCarbonMessage.getProperty(HttpConstants.CALLER) == null ?
                 ValueCreatorUtils.createCallerObject() : (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
         HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, resource, endpointConfig);
@@ -488,14 +490,12 @@ public class HttpDispatcher {
 
     static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, BMap<BString, Object> endpointConfig) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
-        Object targetService = httpCarbonMessage.getProperty(HttpConstants.TARGET_SERVICE_OBJECT);
-        if (targetService != null) {
-            requestContext.addNativeData(HttpConstants.TARGET_SERVICE_OBJECT, targetService);
-        }
-        BArray interceptors = endpointConfig.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
-        if (interceptors != null) {
-            requestContext.addNativeData(HttpConstants.HTTP_INTERCEPTORS, interceptors);
-        }
+        BArray interceptors = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) instanceof BArray ?
+                              (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) :
+                              endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
+        requestContext.addNativeData(HttpConstants.INTERCEPTORS, interceptors);
+        requestContext.addNativeData(HttpConstants.TARGET_SERVICE, httpCarbonMessage.getProperty(
+                                     HttpConstants.TARGET_SERVICE));
         requestContext.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
         httpCarbonMessage.setProperty(HttpConstants.REQUEST_CONTEXT, requestContext);
         return requestContext;
