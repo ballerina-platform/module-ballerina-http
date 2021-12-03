@@ -21,14 +21,11 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
-import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-
-import static java.lang.System.err;
 
 /**
  * {@code HttpInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina side when
