@@ -282,7 +282,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             HttpService targetService = HttpDispatcher.findService(httpServicesRegistry, inboundMessage, true);
             inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, targetService.getBalService());
             if (targetService.hasInterceptors()) {
-            inboundMessage.setProperty(INTERCEPTORS, targetService.getBalInterceptorServicesArray());
+                inboundMessage.setProperty(INTERCEPTORS, targetService.getBalInterceptorServicesArray());
                 inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES,
                                            targetService.getInterceptorServicesRegistries());
             }
