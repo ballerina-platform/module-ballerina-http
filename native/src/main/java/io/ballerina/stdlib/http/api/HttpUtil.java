@@ -1536,7 +1536,6 @@ public class HttpUtil {
             interceptorServices.add((BObject) interceptor);
         }
 
-        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorsArray);
         Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
                                                     = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
