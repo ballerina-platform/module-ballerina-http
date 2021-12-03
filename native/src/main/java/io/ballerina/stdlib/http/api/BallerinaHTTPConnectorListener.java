@@ -82,7 +82,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
                         get(interceptorServiceIndex);
 
-                // Checking whether the interceptor service state matches the interceptor service registry
+                // Checking whether the interceptor service state matches the interceptor service registry type
                 if (!interceptorServicesRegistry.getServicesType().
                                             equals(inboundMessage.getInterceptorServiceState())) {
                     interceptorServiceIndex += 1;

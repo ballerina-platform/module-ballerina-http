@@ -134,6 +134,15 @@ public class HttpInterceptorUnitCallback implements Callback {
                             "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
                     sendFailureResponse(err);
                 }
+            } else {
+                Object targetService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
+                if (result.equals(targetService)) {
+                    sendRequestToNextService();
+                } else {
+                    BError err = HttpUtil.createHttpError("target service did not match with the configuration",
+                            HttpErrorType.GENERIC_LISTENER_ERROR);
+                    sendFailureResponse(err);
+                }
             }
         }
     }

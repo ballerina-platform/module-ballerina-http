@@ -494,6 +494,8 @@ public class HttpDispatcher {
                               (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) :
                               endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
         requestContext.addNativeData(HttpConstants.INTERCEPTORS, interceptors);
+        requestContext.addNativeData(HttpConstants.TARGET_SERVICE, httpCarbonMessage.getProperty(
+                                     HttpConstants.TARGET_SERVICE));
         requestContext.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
         httpCarbonMessage.setProperty(HttpConstants.REQUEST_CONTEXT, requestContext);
         return requestContext;
