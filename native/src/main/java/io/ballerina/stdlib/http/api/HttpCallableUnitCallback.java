@@ -80,17 +80,9 @@ public class HttpCallableUnitCallback implements Callback {
                 sendFailureResponse(result);
             }
         };
-        ObjectType callerType = caller.getType();
-        String remoteMethod = "returnResponse";
-        if (callerType.isIsolated() && callerType.isIsolated(remoteMethod)) {
-            runtime.invokeMethodAsyncConcurrently(
-                    caller, remoteMethod, null, ModuleUtils.getNotifySuccessMetaData(),
-                    returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
-        } else {
-            runtime.invokeMethodAsyncSequentially(
-                    caller, remoteMethod, null, ModuleUtils.getNotifySuccessMetaData(),
-                    returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
-        }
+        runtime.invokeMethodAsyncConcurrently(
+                caller, "remoteMethod", null, ModuleUtils.getNotifySuccessMetaData(),
+                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
     @Override
