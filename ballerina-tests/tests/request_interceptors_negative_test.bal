@@ -143,5 +143,5 @@ service / on requestInterceptorNegativeServerEP6 {
 function testRequestInterceptorNegative6() returns error? {
     http:Response res = check requestInterceptorNegativeClientEP6->get("/");
     test:assertEquals(res.statusCode, 500);
-    assertTextPayload(check res.getTextPayload(), "main service did not match with the configuration");
+    assertTextPayload(check res.getTextPayload(), "target service did not match with the configuration");
 }
