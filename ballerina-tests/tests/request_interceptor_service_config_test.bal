@@ -69,7 +69,7 @@ service /hello on requestInterceptorServiceConfigServerEP1 {
     }
 }
 
-@test:Config{}
+@test:Config{enable : false}
 function testRequestInterceptorServiceConfig1() returns error? {
     http:Response res = check requestInterceptorServiceConfigClientEP1->get("/hello");
     assertHeaderValue(check res.getHeader("last-interceptor"), "interceptor-listener");
