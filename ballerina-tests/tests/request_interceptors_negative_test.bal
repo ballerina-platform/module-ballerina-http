@@ -23,7 +23,7 @@ listener http:Listener requestInterceptorNegativeServerEP1 = new(requestIntercep
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative1(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorNegativeServerEP1 {
+service / on requestInterceptorNegativeServerEP1 {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -43,7 +43,7 @@ listener http:Listener requestInterceptorNegativeServerEP2 = new(requestIntercep
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative2(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorNegativeServerEP2 {
+service / on requestInterceptorNegativeServerEP2 {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -63,7 +63,7 @@ listener http:Listener requestInterceptorNegativeServerEP3 = new(requestIntercep
     interceptors : [new DefaultRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorNegativeServerEP3 {
+service / on requestInterceptorNegativeServerEP3 {
 
     resource function 'default .(http:RequestContext ctx, http:Caller caller) returns error? {
        string|error val = ctx.get("last-interceptor").ensureType(string);
@@ -93,7 +93,7 @@ listener http:Listener requestInterceptorNegativeServerEP4 = new(requestIntercep
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSkip()]
 });
 
-service http:Service / on requestInterceptorNegativeServerEP4 {
+service / on requestInterceptorNegativeServerEP4 {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -113,7 +113,7 @@ listener http:Listener requestInterceptorNegativeServerEP5 = new(requestIntercep
     interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg()]
 });
 
-service http:Service /hello on requestInterceptorNegativeServerEP5 {
+service /hello on requestInterceptorNegativeServerEP5 {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -132,7 +132,7 @@ listener http:Listener requestInterceptorNegativeServerEP6 = new(requestIntercep
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative3()]
 });
 
-service http:Service / on requestInterceptorNegativeServerEP6 {
+service / on requestInterceptorNegativeServerEP6 {
 
     resource function 'default .() returns string {
         return "Response from resource - test";

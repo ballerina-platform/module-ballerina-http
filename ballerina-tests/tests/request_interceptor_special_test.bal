@@ -25,7 +25,7 @@ listener http:Listener requestInterceptorWithCallerRespondServerEP = new(request
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespond(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorWithCallerRespondServerEP {
+service / on requestInterceptorWithCallerRespondServerEP {
 
     resource function 'default test() returns string {
         return "Response from resource - test";
@@ -45,7 +45,7 @@ listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInter
     interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorDataBindingServerEP1 {
+service / on requestInterceptorDataBindingServerEP1 {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -63,7 +63,7 @@ listener http:Listener requestInterceptorDataBindingServerEP2 = new(requestInter
     interceptors : [new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorDataBindingServerEP2 {
+service / on requestInterceptorDataBindingServerEP2 {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -120,7 +120,7 @@ listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInt
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorWithoutCtxNextServerEP {
+service / on requestInterceptorWithoutCtxNextServerEP {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -139,7 +139,7 @@ listener http:Listener requestInterceptorSkipServerEP = new(requestInterceptorSk
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSkip(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorSkipServerEP {
+service / on requestInterceptorSkipServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -166,7 +166,7 @@ listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(req
 
 string message = "Greetings from client";
 
-service http:Service / on requestInterceptorCallerRespondContinueServerEP {
+service / on requestInterceptorCallerRespondContinueServerEP {
 
     resource function 'default .() returns string {
         message = "Hello from main service";
@@ -189,7 +189,7 @@ listener http:Listener requestInterceptorStringPayloadBindingServerEP = new(requ
     interceptors : [new DefaultRequestInterceptor(), new StringPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorStringPayloadBindingServerEP {
+service / on requestInterceptorStringPayloadBindingServerEP {
 
     resource function 'default .(http:RequestContext ctx, @http:Payload string payload, http:Caller caller) returns error? {
         http:Response res = new();
@@ -215,7 +215,7 @@ listener http:Listener requestInterceptorRecordPayloadBindingServerEP = new(requ
     interceptors : [new DefaultRequestInterceptor(), new RecordPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorRecordPayloadBindingServerEP {
+service / on requestInterceptorRecordPayloadBindingServerEP {
 
     resource function 'default .(http:RequestContext ctx, @http:Payload Person person, http:Caller caller) returns error? {
         http:Response res = new();
@@ -242,7 +242,7 @@ listener http:Listener requestInterceptorRecordArrayPayloadBindingServerEP = new
     interceptors : [new DefaultRequestInterceptor(), new RecordArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorRecordArrayPayloadBindingServerEP {
+service / on requestInterceptorRecordArrayPayloadBindingServerEP {
 
     resource function 'default .(http:RequestContext ctx, @http:Payload Person[] persons, http:Caller caller) returns error? {
         http:Response res = new();
@@ -269,7 +269,7 @@ listener http:Listener requestInterceptorByteArrayPayloadBindingServerEP = new(r
     interceptors : [new DefaultRequestInterceptor(), new ByteArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorByteArrayPayloadBindingServerEP {
+service / on requestInterceptorByteArrayPayloadBindingServerEP {
 
     resource function 'default .(http:RequestContext ctx, @http:Payload byte[] person, http:Caller caller) returns error? {
         http:Response res = new();
@@ -298,7 +298,7 @@ listener http:Listener requestInterceptorWithQueryParamServerEP = new(requestInt
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithQueryParam(), new LastRequestInterceptor()]
 });
 
-service http:Service / on requestInterceptorWithQueryParamServerEP {
+service / on requestInterceptorWithQueryParamServerEP {
 
     resource function 'default get(string q1, int q2, http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
