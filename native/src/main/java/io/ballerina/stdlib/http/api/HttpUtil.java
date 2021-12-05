@@ -1502,13 +1502,19 @@ public class HttpUtil {
 
     // TODO : Move this to `register` after this issue is fixed
     //  https://github.com/ballerina-platform/ballerina-lang/issues/33594
-    public static void populateInterceptorServicesFromService(HTTPServicesRegistry servicesRegistry) {
+    public static void populateInterceptorServicesFromService(BObject serviceEndpoint,
+                                                              HTTPServicesRegistry servicesRegistry) {
+        List<HTTPInterceptorServicesRegistry> listenerLevelInterceptors
+                = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
+        BArray interceptorsArray = serviceEndpoint.getNativeData(HttpConstants.INTERCEPTORS) instanceof BArray
+                                   ? (BArray) serviceEndpoint.getNativeData(HttpConstants.INTERCEPTORS) : null;
         Runtime runtime = servicesRegistry.getRuntime();
         Map<String, HTTPServicesRegistry.ServicesMapHolder> servicesMapByHost = servicesRegistry.getServicesMapByHost();
         for (HTTPServicesRegistry.ServicesMapHolder servicesMapHolder : servicesMapByHost.values()) {
             Map<String, HttpService> servicesByBasePath = servicesMapHolder.getServicesByBasePath();
             for (HttpService service : servicesByBasePath.values()) {
-                HttpService.populateInterceptorServicesRegistries(service, runtime);
+                HttpService.populateInterceptorServicesRegistries(listenerLevelInterceptors, interceptorsArray,
+                                                                  service, runtime);
             }
         }
     }
@@ -1530,6 +1536,7 @@ public class HttpUtil {
             interceptorServices.add((BObject) interceptor);
         }
 
+        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorsArray);
         Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
                                                     = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
@@ -1539,7 +1546,8 @@ public class HttpUtil {
             BObject interceptorService = interceptorServices.get(i);
             HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
             servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerInterceptorService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH);
+            servicesRegistry.registerInterceptorService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH,
+                                                        true);
             servicesRegistry.setRuntime(runtime);
         }
     }

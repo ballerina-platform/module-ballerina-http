@@ -20,7 +20,7 @@ import ballerina/test;
 final http:Client requestInterceptorServiceConfigClientEP1 = check new("http://localhost:" + requestInterceptorServiceConfigTestPort1.toString());
 
 listener http:Listener requestInterceptorServiceConfigServerEP1 = new(requestInterceptorServiceConfigTestPort1, config = {
-    interceptors : [new RequestInterceptorWithVariable("interceptor-listener"), new LastRequestInterceptor()]
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithVariable("interceptor-listener"), new LastRequestInterceptor()]
 });
 
 @http:ServiceConfig {
@@ -30,7 +30,9 @@ service /foo on requestInterceptorServiceConfigServerEP1 {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
-        res.setHeader("request-interceptor", check req.getHeader("request-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("interceptor-listener", check req.getHeader("interceptor-listener"));
+        res.setHeader("interceptor-service-foo", check req.getHeader("interceptor-service-foo"));
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
         check caller->respond(res);
@@ -44,7 +46,9 @@ service /bar on requestInterceptorServiceConfigServerEP1 {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
-        res.setHeader("request-interceptor", check req.getHeader("request-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("interceptor-listener", check req.getHeader("interceptor-listener"));
+        res.setHeader("interceptor-service-bar", check req.getHeader("interceptor-service-bar"));
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
         res.setHeader("request-interceptor-error", check req.getHeader("request-interceptor-error"));
@@ -57,7 +61,8 @@ service /hello on requestInterceptorServiceConfigServerEP1 {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
-        res.setHeader("request-interceptor", check req.getHeader("request-interceptor"));
+        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("interceptor-listener", check req.getHeader("interceptor-listener"));
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
         check caller->respond(res);
@@ -68,17 +73,22 @@ service /hello on requestInterceptorServiceConfigServerEP1 {
 function testRequestInterceptorServiceConfig1() returns error? {
     http:Response res = check requestInterceptorServiceConfigClientEP1->get("/hello");
     assertHeaderValue(check res.getHeader("last-interceptor"), "interceptor-listener");
-    assertHeaderValue(check res.getHeader("request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("interceptor-listener"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 
     res = check requestInterceptorServiceConfigClientEP1->get("/foo");
     assertHeaderValue(check res.getHeader("last-interceptor"), "interceptor-service-foo");
-    assertHeaderValue(check res.getHeader("request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("interceptor-listener"), "true");
+    assertHeaderValue(check res.getHeader("interceptor-service-foo"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 
     res = check requestInterceptorServiceConfigClientEP1->get("/bar");
     assertHeaderValue(check res.getHeader("last-interceptor"), "interceptor-service-bar");
-    assertHeaderValue(check res.getHeader("request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("interceptor-listener"), "true");
+    assertHeaderValue(check res.getHeader("interceptor-service-bar"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("request-interceptor-error"), "true");
     assertHeaderValue(check res.getHeader("default-error-interceptor"), "true");
@@ -96,7 +106,7 @@ service /foo on requestInterceptorServiceConfigServerEP2 {
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
         res.setTextPayload(check req.getTextPayload());
-        res.setHeader("request-interceptor", check req.getHeader("request-interceptor"));
+        res.setHeader("interceptor-service-foo", check req.getHeader("interceptor-service-foo"));
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
         res.setHeader("interceptor-setpayload", check req.getHeader("interceptor-setpayload"));
@@ -112,7 +122,7 @@ service /bar on requestInterceptorServiceConfigServerEP2 {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
-        res.setHeader("request-interceptor", check req.getHeader("request-interceptor"));
+        res.setHeader("interceptor-service-bar", check req.getHeader("interceptor-service-bar"));
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
         check caller->respond(res);
@@ -143,10 +153,10 @@ function testRequestInterceptorServiceConfig2() returns error? {
     assertHeaderValue(check res.getHeader("default-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("interceptor-setpayload"), "true");
-    assertHeaderValue(check res.getHeader("request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("interceptor-service-foo"), "true");
 
     res = check requestInterceptorServiceConfigClientEP2->get("/bar");
     assertHeaderValue(check res.getHeader("last-interceptor"), "interceptor-service-bar");
-    assertHeaderValue(check res.getHeader("request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("interceptor-service-bar"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }

@@ -99,7 +99,6 @@ public class HttpInterceptorUnitCallback implements Callback {
 
     private void sendRequestToNextService() {
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
-        requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
     }
 
     private void validateResponseAndProceed(Object result) {

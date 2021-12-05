@@ -289,6 +289,7 @@ public class HttpDispatcher {
                     int interceptorId = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) == null
                             ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) - 1;
                     requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
+                    requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;
@@ -491,8 +492,7 @@ public class HttpDispatcher {
     static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, BMap<BString, Object> endpointConfig) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
         BArray interceptors = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) instanceof BArray ?
-                              (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) :
-                              endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
+                              (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) : null;
         requestContext.addNativeData(HttpConstants.INTERCEPTORS, interceptors);
         requestContext.addNativeData(HttpConstants.TARGET_SERVICE, httpCarbonMessage.getProperty(
                                      HttpConstants.TARGET_SERVICE));
