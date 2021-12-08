@@ -38,7 +38,7 @@ service / on new http:Listener(8080) {
         return album;
     }
 
-    resource function post album(@http:Payload Album[] albums) returns Album[] {
+    resource function post batchUpdate(@http:Payload Album[] albums) returns Album[] {
         foreach Album album in albums {
             store.add(album);
         }
