@@ -115,9 +115,6 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                     inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
                     extractPropertiesAndStartInterceptorResourceExecution(inboundMessage, interceptorResource,
                             interceptorServicesRegistry);
-                    // Removes the error occurred during interceptor execution since it is consumed by the error
-                    // interceptor
-                    inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
                     return;
                 }
             }
@@ -219,6 +216,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Callback callback = new HttpInterceptorUnitCallback(inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
+
+        // Removes the error occurred during interceptor execution since it is consumed by the error
+        // interceptor
+        inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+
         if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
             runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
                                                   ModuleUtils.getOnMessageMetaData(), callback, properties,
