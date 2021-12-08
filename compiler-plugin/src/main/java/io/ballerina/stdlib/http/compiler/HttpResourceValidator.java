@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
+import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
@@ -304,7 +305,7 @@ class HttpResourceValidator {
                                 continue;
                             } else if (elementKind == TypeDescKind.TYPE_REFERENCE) {
                                 TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) arrTypeSymbol).typeDescriptor();
-                                TypeDescKind typeDescKind = typeDescriptor.typeKind();
+                                TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
                                 if (typeDescKind == TypeDescKind.RECORD) {
                                     continue;
                                 }
@@ -312,7 +313,7 @@ class HttpResourceValidator {
                         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
                             TypeSymbol typeDescriptor =
                                     ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
-                            TypeDescKind typeDescKind = typeDescriptor.typeKind();
+                            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
                             if (typeDescKind == TypeDescKind.RECORD) {
                                 continue;
                             }
@@ -520,7 +521,7 @@ class HttpResourceValidator {
             validateArrayElementType(ctx, node, returnTypeStringValue, memberTypeDescriptor);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            TypeDescKind typeDescKind = typeDescriptor.typeKind();
+            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
             if (typeDescKind == TypeDescKind.OBJECT) {
                 if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
                     reportInvalidReturnType(ctx, node, returnTypeStringValue);
@@ -553,7 +554,7 @@ class HttpResourceValidator {
         }
         if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
-            TypeDescKind typeDescKind = typeDescriptor.typeKind();
+            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
             if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
                     typeDescKind != TypeDescKind.TABLE) {
                 reportInvalidReturnType(ctx, node, typeStringValue);
@@ -561,6 +562,14 @@ class HttpResourceValidator {
         } else {
             reportInvalidReturnType(ctx, node, typeStringValue);
         }
+    }
+
+    private static TypeDescKind retrieveEffectiveTypeDesc(TypeSymbol descriptor) {
+        TypeDescKind typeDescKind = descriptor.typeKind();
+        if (typeDescKind == TypeDescKind.INTERSECTION) {
+            return ((IntersectionTypeSymbol) descriptor).effectiveTypeDescriptor().typeKind();
+        }
+        return typeDescKind;
     }
 
     private static boolean isBasicTypeDesc(TypeDescKind kind) {
