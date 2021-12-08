@@ -6,10 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- [Introduce interceptors at service level](https://github.com/ballerina-platform/ballerina-standard-library/issues/2447)
+
 ### Fixed
 - [Fix parseHeader() to support multiple header values](https://github.com/ballerina-platform/ballerina-standard-library/issues/2403)
 - [Fix HTTP caching failure when using the last-modified header as the validator](https://github.com/ballerina-platform/ballerina-standard-library/issues/2402)
 - [Fix HTTP caching failure after the initial Max Age expiry](https://github.com/ballerina-platform/ballerina-standard-library/issues/2435)
+
+### Changed
+- [Rename RequestContext add function to set](https://github.com/ballerina-platform/ballerina-standard-library/issues/2414)
+- [Only allow default path in interceptors engaged at listener level](https://github.com/ballerina-platform/ballerina-standard-library/issues/2452)
 
 ## [2.0.1] - 2021-11-20
 

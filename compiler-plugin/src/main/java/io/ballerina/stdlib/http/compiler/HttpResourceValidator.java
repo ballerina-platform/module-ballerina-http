@@ -525,6 +525,8 @@ class HttpResourceValidator {
                 if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
                     reportInvalidReturnType(ctx, node, returnTypeStringValue);
                 }
+            } else if (typeDescKind == TypeDescKind.TABLE) {
+                validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor);
             } else if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.ERROR) {
                 reportInvalidReturnType(ctx, node, returnTypeStringValue);
             }

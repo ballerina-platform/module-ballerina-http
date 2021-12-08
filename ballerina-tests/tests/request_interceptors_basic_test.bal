@@ -162,10 +162,11 @@ function testRequestInterceptorHttpVerb() returns error? {
 
 final http:Client requestInterceptorBasePathClientEP = check new("http://localhost:" + requestInterceptorBasePathTestPort.toString());
 
-listener http:Listener requestInterceptorBasePathServerEP = new(requestInterceptorBasePathTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new DefaultRequestInterceptorBasePath(), new LastRequestInterceptor()]
-});
+listener http:Listener requestInterceptorBasePathServerEP = new(requestInterceptorBasePathTestPort);
 
+@http:ServiceConfig {
+    interceptors : [new DefaultRequestInterceptor(), new DefaultRequestInterceptorBasePath(), new LastRequestInterceptor()]
+}
 service / on requestInterceptorBasePathServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
@@ -200,10 +201,11 @@ function testRequestInterceptorBasePath() returns error? {
 
 final http:Client getRequestInterceptorBasePathClientEP = check new("http://localhost:" + getRequestInterceptorBasePathTestPort.toString());
 
-listener http:Listener getRequestInterceptorBasePathServerEP = new(getRequestInterceptorBasePathTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptorBasePath(), new LastRequestInterceptor()]
-});
+listener http:Listener getRequestInterceptorBasePathServerEP = new(getRequestInterceptorBasePathTestPort);
 
+@http:ServiceConfig {
+    interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptorBasePath(), new LastRequestInterceptor()]
+}
 service /foo on getRequestInterceptorBasePathServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {

@@ -353,8 +353,9 @@ public class HttpConstants {
     public static final String ABSOLUTE_RESOURCE_PATH = "ABSOLUTE_RESOURCE_PATH";
 
     //HTTP Interceptor
-    public static final String HTTP_INTERCEPTORS = "HTTP_INTERCEPTORS";
-    public static final String HTTP_INTERCEPTOR_SERVICE_REGISTRIES = "HTTP_INTERCEPTOR_SERVICE_REGISTRIES";
+    public static final BString ANN_INTERCEPTORS = StringUtils.fromString("interceptors");
+    public static final String INTERCEPTORS = "INTERCEPTORS";
+    public static final String INTERCEPTOR_SERVICES_REGISTRIES = "INTERCEPTOR_SERVICES_REGISTRIES";
     public static final String REQUEST_CONTEXT_NEXT = "REQUEST_CONTEXT_NEXT";
     public static final String REQUEST_CONTEXT = "RequestContext";
     public static final String ENTITY_OBJ = "EntityObj";
@@ -365,6 +366,7 @@ public class HttpConstants {
     public static final String HTTP_NORMAL = "Normal";
     public static final String HTTP_REQUEST_INTERCEPTOR = "RequestInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
+    public static final String TARGET_SERVICE = "TARGET_SERVICE";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;
@@ -380,7 +382,6 @@ public class HttpConstants {
     public static final String ENDPOINT_CONFIG_CHUNKING = "chunking";
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
-    public static final BString ENDPOINT_CONFIG_INTERCEPTORS = StringUtils.fromString("interceptors");
 
     public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
     public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");
