@@ -305,7 +305,7 @@ class HttpResourceValidator {
                                 continue;
                             } else if (elementKind == TypeDescKind.TYPE_REFERENCE) {
                                 TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) arrTypeSymbol).typeDescriptor();
-                                TypeDescKind typeDescKind = retrieveTypeDesc(typeDescriptor);
+                                TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
                                 if (typeDescKind == TypeDescKind.RECORD) {
                                     continue;
                                 }
@@ -313,7 +313,7 @@ class HttpResourceValidator {
                         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
                             TypeSymbol typeDescriptor =
                                     ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
-                            TypeDescKind typeDescKind = retrieveTypeDesc(typeDescriptor);
+                            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
                             if (typeDescKind == TypeDescKind.RECORD) {
                                 continue;
                             }
@@ -521,7 +521,7 @@ class HttpResourceValidator {
             validateArrayElementType(ctx, node, returnTypeStringValue, memberTypeDescriptor);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveTypeDesc(typeDescriptor);
+            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
             if (typeDescKind == TypeDescKind.OBJECT) {
                 if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
                     reportInvalidReturnType(ctx, node, returnTypeStringValue);
@@ -554,7 +554,7 @@ class HttpResourceValidator {
         }
         if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveTypeDesc(typeDescriptor);
+            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
             if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
                     typeDescKind != TypeDescKind.TABLE) {
                 reportInvalidReturnType(ctx, node, typeStringValue);
