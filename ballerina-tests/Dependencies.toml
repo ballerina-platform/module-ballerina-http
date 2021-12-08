@@ -246,9 +246,6 @@ dependencies = [
 modules = [
 	{org = "ballerina", packageName = "lang.runtime", moduleName = "lang.runtime"}
 ]
-modules = [
-	{org = "ballerina", packageName = "lang.runtime", moduleName = "lang.runtime"}
-]
 
 [[package]]
 org = "ballerina"
