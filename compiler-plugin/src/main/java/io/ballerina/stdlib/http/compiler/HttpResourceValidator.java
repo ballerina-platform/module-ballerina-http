@@ -564,7 +564,7 @@ class HttpResourceValidator {
         }
     }
 
-    private static TypeDescKind retrieveTypeDesc(TypeSymbol descriptor) {
+    private static TypeDescKind retrieveEffectiveTypeDesc(TypeSymbol descriptor) {
         TypeDescKind typeDescKind = descriptor.typeKind();
         if (typeDescKind == TypeDescKind.INTERSECTION) {
             return ((IntersectionTypeSymbol) descriptor).effectiveTypeDescriptor().typeKind();
