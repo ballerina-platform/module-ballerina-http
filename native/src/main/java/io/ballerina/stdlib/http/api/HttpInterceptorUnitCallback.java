@@ -75,7 +75,7 @@ public class HttpInterceptorUnitCallback implements Callback {
 
     public void sendFailureResponse(BError error) {
         cleanupRequestAndContext();
-        HttpUtil.handleFailure(requestMessage, error);
+        HttpUtil.handleFailure(requestMessage, error, false);
     }
 
     private void cleanupRequestAndContext() {
