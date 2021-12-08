@@ -24,7 +24,7 @@ service /serviceEndpointHello on serviceEndpointTestEP {
 
     resource function get protocol(http:Caller caller, http:Request req) {
         http:Response res = new;
-        json connectionJson = {protocol:caller.getProtocol()};
+        json connectionJson = {protocol:caller.protocol};
         res.statusCode = 200;
         res.setJsonPayload(connectionJson);
         checkpanic caller->respond(res);
@@ -32,7 +32,7 @@ service /serviceEndpointHello on serviceEndpointTestEP {
 
     resource function get local(http:Caller caller, http:Request req) {
         http:Response res = new;
-        http:Local localAddress = caller.getLocalAddress();
+        http:Local localAddress = caller.localAddress;
         json connectionJson = {local:{host:localAddress.host, port:localAddress.port}};
         res.statusCode = 200;
         res.setJsonPayload(connectionJson);
@@ -41,11 +41,6 @@ service /serviceEndpointHello on serviceEndpointTestEP {
 
     resource function get host(http:Caller caller) returns string {
         return caller.getRemoteHostName() ?: "nohost";
-    }
-
-    resource function get nohost(http:Caller caller) returns string {
-        http:Caller caller2 = new;
-        return caller2.getRemoteHostName() ?: "nohost";
     }
 }
 
@@ -84,16 +79,6 @@ function testGetHostName() {
     var response = serviceEndpointClient->get("/serviceEndpointHello/host", targetType = string);
     if (response is string) {
         test:assertTrue(response.length() != 0, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testGetNoHostName() {
-    var response = serviceEndpointClient->get("/serviceEndpointHello/nohost", targetType = string);
-    if (response is string) {
-        test:assertEquals(response, "nohost", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

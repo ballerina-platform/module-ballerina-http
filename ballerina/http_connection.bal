@@ -23,11 +23,17 @@ import ballerina/lang.value as val;
 # + localAddress - The local address
 # + protocol - The protocol associated with the service endpoint
 public isolated client class Caller {
+    public final readonly & Remote remoteAddress;
+    public final readonly & Local localAddress;
+    public final string protocol;
     private ListenerConfiguration config = {};
-    private Remote remoteAddress = {};
-    private Local localAddress = {};
-    private string protocol = "";
     private boolean present = false;
+
+    isolated function init(Remote remoteAddress, Local localAddress, string protocol) {
+        self.remoteAddress = remoteAddress.cloneReadOnly();
+        self.localAddress = localAddress.cloneReadOnly();
+        self.protocol = protocol;
+    }
 
     # Sends the outbound response to the caller.
     #
@@ -169,24 +175,6 @@ public isolated client class Caller {
             }
         }
         return nativeRespond(self, response);
-    }
-
-    public isolated function getRemoteAddress() returns Remote {
-        lock {
-            return self.remoteAddress.cloneReadOnly();
-        }
-    }
-
-    public isolated function getLocalAddress() returns Local {
-        lock {
-            return self.localAddress.cloneReadOnly();
-        }
-    }
-
-    public isolated function getProtocol() returns string {
-        lock {
-            return self.protocol.cloneReadOnly();
-        }
     }
 }
 
