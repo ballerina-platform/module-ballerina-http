@@ -27,10 +27,10 @@ type Album readonly & record {|
 
 // albums table to seed record album data.
 table<Album> key(id) store = table [
-        {id: "1", title: "Blue Train", artist: "John Coltrane", price: 56.99},
-        {id: "2", title: "Jeru", artist: "Gerry Mulligan", price: 17.99},
-        {id: "3", title: "Sarah Vaughan and Clifford Brown", artist: "Sarah Vaughan", price: 39.99}
-    ];
+    {id: "1", title: "Blue Train", artist: "John Coltrane", price: 56.99},
+    {id: "2", title: "Jeru", artist: "Gerry Mulligan", price: 17.99},
+    {id: "3", title: "Sarah Vaughan and Clifford Brown", artist: "Sarah Vaughan", price: 39.99}
+];
 
 service / on new http:Listener(8080) {
     resource function post album(@http:Payload Album album) returns Album {
