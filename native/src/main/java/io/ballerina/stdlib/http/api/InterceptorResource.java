@@ -52,12 +52,12 @@ public class InterceptorResource implements Resource {
     private boolean treatNilableAsOptional = true;
     private String resourceType = HttpConstants.HTTP_NORMAL;
 
-    protected InterceptorResource(MethodType resource, InterceptorService parentService) {
+    protected InterceptorResource(MethodType resource, InterceptorService parentService, boolean fromListener) {
         this.balResource = resource;
         this.parentService = parentService;
         this.setResourceType(parentService.getServiceType());
         if (balResource instanceof ResourceMethodType) {
-            this.validateAndPopulateResourcePath();
+            this.validateAndPopulateResourcePath(fromListener);
             this.validateAndPopulateMethod();
         }
     }
@@ -121,7 +121,7 @@ public class InterceptorResource implements Resource {
         return path;
     }
 
-    private void validateAndPopulateResourcePath() {
+    private void validateAndPopulateResourcePath(boolean fromListener) {
         ResourceMethodType resourceFunctionType = getBalResource();
         String[] paths = resourceFunctionType.getResourcePath();
         StringBuilder resourcePath = new StringBuilder();
@@ -143,6 +143,10 @@ public class InterceptorResource implements Resource {
             }
         }
         this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, SINGLE_SLASH);
+        if (fromListener && !this.path.equals(HttpConstants.DEFAULT_SUB_PATH)) {
+            throw new BallerinaConnectorException("interceptor services engaged in listener level can only support "
+                    + "resource method with default path([string... path])");
+        }
         this.pathParamCount = count;
     }
 
@@ -160,8 +164,8 @@ public class InterceptorResource implements Resource {
     }
 
     public static InterceptorResource buildInterceptorResource(MethodType resource, InterceptorService
-            interceptorService) {
-        InterceptorResource interceptorResource = new InterceptorResource(resource, interceptorService);
+            interceptorService, boolean fromListener) {
+        InterceptorResource interceptorResource = new InterceptorResource(resource, interceptorService, fromListener);
         interceptorResource.prepareAndValidateSignatureParams();
         return interceptorResource;
     }

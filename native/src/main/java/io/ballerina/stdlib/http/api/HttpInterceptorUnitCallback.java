@@ -75,7 +75,7 @@ public class HttpInterceptorUnitCallback implements Callback {
 
     public void sendFailureResponse(BError error) {
         cleanupRequestAndContext();
-        HttpUtil.handleFailure(requestMessage, error);
+        HttpUtil.handleFailure(requestMessage, error, false);
     }
 
     private void cleanupRequestAndContext() {
@@ -99,7 +99,6 @@ public class HttpInterceptorUnitCallback implements Callback {
 
     private void sendRequestToNextService() {
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
-        requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
     }
 
     private void validateResponseAndProceed(Object result) {
@@ -132,6 +131,15 @@ public class HttpInterceptorUnitCallback implements Callback {
                 } else {
                     BError err = HttpUtil.createHttpError("next interceptor service did not match " +
                             "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
+                    sendFailureResponse(err);
+                }
+            } else {
+                Object targetService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
+                if (result.equals(targetService)) {
+                    sendRequestToNextService();
+                } else {
+                    BError err = HttpUtil.createHttpError("target service did not match with the configuration",
+                            HttpErrorType.GENERIC_LISTENER_ERROR);
                     sendFailureResponse(err);
                 }
             }

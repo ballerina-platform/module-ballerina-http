@@ -42,6 +42,7 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.SERVER_C
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PROTOCOL;
+import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTORS;
 import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES;
 
 /**
@@ -82,7 +83,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
                         get(interceptorServiceIndex);
 
-                // Checking whether the interceptor service state matches the interceptor service registry
+                // Checking whether the interceptor service state matches the interceptor service registry type
                 if (!interceptorServicesRegistry.getServicesType().
                                             equals(inboundMessage.getInterceptorServiceState())) {
                     interceptorServiceIndex += 1;
@@ -114,9 +115,6 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                     inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
                     extractPropertiesAndStartInterceptorResourceExecution(inboundMessage, interceptorResource,
                             interceptorServicesRegistry);
-                    // Removes the error occurred during interceptor execution since it is consumed by the error
-                    // interceptor
-                    inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
                     return;
                 }
             }
@@ -218,6 +216,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Callback callback = new HttpInterceptorUnitCallback(inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
+
+        // Removes the error occurred during interceptor execution since it is consumed by the error
+        // interceptor
+        inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+
         if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
             runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
                                                   ModuleUtils.getOnMessageMetaData(), callback, properties,
@@ -276,11 +279,12 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     private void setTargetServiceToCarbonMsg(HttpCarbonMessage inboundMessage) {
         inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES, httpInterceptorServicesRegistries);
+        inboundMessage.setProperty(INTERCEPTORS, endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS));
         try {
             HttpService targetService = HttpDispatcher.findService(httpServicesRegistry, inboundMessage, true);
             inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, targetService.getBalService());
             if (targetService.hasInterceptors()) {
-            inboundMessage.setProperty(HttpConstants.INTERCEPTORS, targetService.getBalInterceptorServicesArray());
+                inboundMessage.setProperty(INTERCEPTORS, targetService.getBalInterceptorServicesArray());
                 inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES,
                                            targetService.getInterceptorServicesRegistries());
             }

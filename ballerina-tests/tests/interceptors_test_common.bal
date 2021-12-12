@@ -140,6 +140,14 @@ service class DefaultRequestErrorInterceptor {
     }
 }
 
+service class RequestErrorInterceptorReturnsErrorMsg {
+    *http:RequestErrorInterceptor;
+
+    resource function 'default [string... path](error err, http:Caller caller) returns error? {
+       check caller->respond(err.message());
+    }
+}
+
 service class RequestInterceptorWithoutCtxNext {
     *http:RequestInterceptor;
 
@@ -182,7 +190,7 @@ service class DefaultRequestInterceptorBasePath {
 service class GetRequestInterceptorBasePath {
     *http:RequestInterceptor;
 
-    resource function get foo/bar(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+    resource function get bar(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("default-base-path-interceptor", "true");
        ctx.set("last-interceptor", "get-base-path-interceptor");
        return ctx.next();
@@ -228,7 +236,7 @@ service class RequestInterceptorWithVariable {
     }
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-       req.setHeader("request-interceptor", "true");
+       req.setHeader(self.getName(), "true");
        ctx.set("last-interceptor", self.getName());
        return ctx.next();
     }
@@ -250,6 +258,19 @@ service class RequestInterceptorNegative2 {
 
     resource function 'default [string... path](http:Request req) returns http:RequestInterceptor {
        req.setHeader("request-interceptor-negative2", "true");
+       return new DefaultRequestInterceptor();
+    }
+}
+
+service class RequestInterceptorNegative3 {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:Request req, http:RequestContext ctx) returns http:NextService|error? {
+       req.setHeader("request-interceptor-negative3", "true");
+       http:NextService|error? nextService = ctx.next();
+       if nextService is error {
+          return nextService;
+       }
        return new DefaultRequestInterceptor();
     }
 }
