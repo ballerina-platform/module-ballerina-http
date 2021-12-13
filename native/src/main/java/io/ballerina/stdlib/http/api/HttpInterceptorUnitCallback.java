@@ -168,7 +168,7 @@ public class HttpInterceptorUnitCallback implements Callback {
             }
         };
         runtime.invokeMethodAsyncConcurrently(
-                caller, "remoteMethod", null, ModuleUtils.getNotifySuccessMetaData(),
+                caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 }
