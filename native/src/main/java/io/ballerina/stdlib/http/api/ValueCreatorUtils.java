@@ -74,7 +74,7 @@ public class ValueCreatorUtils {
             local.put(HttpConstants.LOCAL_HOST_FIELD, fromString(localHost));
             local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
         }
-        return createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.CALLER,
+        return ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.CALLER,
                 remote, local, fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
     }
 
