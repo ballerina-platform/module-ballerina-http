@@ -54,6 +54,9 @@ path = "./lib/bcpkix-jdk15on-@bouncycastle.version@.jar"
 path = "./lib/netty-tcnative-boringssl-static-@tcnative.version@.jar"
 
 [[platform.java11.dependency]]
+path = "./lib/netty-tcnative-classes-@tcnative.version@.jar"
+
+[[platform.java11.dependency]]
 path = "./lib/mimepull-@mimepull.version@.jar"
 
 [[platform.java11.dependency]]
