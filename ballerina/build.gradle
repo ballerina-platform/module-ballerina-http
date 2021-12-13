@@ -113,6 +113,9 @@ dependencies {
     externalJars(group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: "${nettyTcnativeVersion}") {
         transitive = false
     }
+    externalJars(group: 'io.netty', name: 'netty-tcnative-classes', version: "${nettyTcnativeVersion}") {
+        transitive = false
+    }
     externalJars(group: 'org.jvnet.mimepull', name: 'mimepull', version: "${mimepullVersion}") {
         transitive = false
     }
