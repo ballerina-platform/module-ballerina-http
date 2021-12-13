@@ -9,7 +9,7 @@ dependencies-toml-version = "2"
 [[package]]
 org = "ballerina"
 name = "auth"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
@@ -19,11 +19,14 @@ dependencies = [
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "regex"}
 ]
+modules = [
+	{org = "ballerina", packageName = "auth", moduleName = "auth"}
+]
 
 [[package]]
 org = "ballerina"
 name = "cache"
-version = "3.0.2"
+version = "3.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
@@ -34,17 +37,20 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "crypto"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "crypto", moduleName = "crypto"}
+]
 
 [[package]]
 org = "ballerina"
 name = "file"
-version = "1.0.2"
+version = "1.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
@@ -53,11 +59,14 @@ dependencies = [
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "file", moduleName = "file"}
+]
 
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -88,11 +97,27 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_tests"
-version = "2.0.2"
+version = "2.1.0"
 dependencies = [
+	{org = "ballerina", name = "auth"},
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "jwt"},
+	{org = "ballerina", name = "lang.boolean"},
+	{org = "ballerina", name = "lang.float"},
+	{org = "ballerina", name = "lang.int"},
+	{org = "ballerina", name = "lang.runtime"},
+	{org = "ballerina", name = "lang.string"},
+	{org = "ballerina", name = "lang.xml"},
 	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "test"}
+	{org = "ballerina", name = "mime"},
+	{org = "ballerina", name = "oauth2"},
+	{org = "ballerina", name = "regex"},
+	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "url"}
 ]
 modules = [
 	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests"}
@@ -101,11 +126,14 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "io"
-version = "1.0.2"
+version = "1.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"}
+]
+modules = [
+	{org = "ballerina", packageName = "io", moduleName = "io"}
 ]
 
 [[package]]
@@ -113,11 +141,14 @@ org = "ballerina"
 name = "jballerina.java"
 version = "0.0.0"
 scope = "testOnly"
+modules = [
+	{org = "ballerina", packageName = "jballerina.java", moduleName = "jballerina.java"}
+]
 
 [[package]]
 org = "ballerina"
 name = "jwt"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
@@ -128,6 +159,9 @@ dependencies = [
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "jwt", moduleName = "jwt"}
 ]
 
 [[package]]
@@ -152,6 +186,18 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "lang.boolean"
+version = "0.0.0"
+scope = "testOnly"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "lang.boolean", moduleName = "lang.boolean"}
+]
+
+[[package]]
+org = "ballerina"
 name = "lang.decimal"
 version = "0.0.0"
 scope = "testOnly"
@@ -161,11 +207,26 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "lang.float"
+version = "0.0.0"
+scope = "testOnly"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "lang.float", moduleName = "lang.float"}
+]
+
+[[package]]
+org = "ballerina"
 name = "lang.int"
 version = "0.0.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "lang.int", moduleName = "lang.int"}
 ]
 
 [[package]]
@@ -182,6 +243,9 @@ scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
+modules = [
+	{org = "ballerina", packageName = "lang.runtime", moduleName = "lang.runtime"}
+]
 
 [[package]]
 org = "ballerina"
@@ -190,6 +254,9 @@ version = "0.0.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "lang.string", moduleName = "lang.string"}
 ]
 
 [[package]]
@@ -203,8 +270,20 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "lang.xml"
+version = "0.0.0"
+scope = "testOnly"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "lang.xml", moduleName = "lang.xml"}
+]
+
+[[package]]
+org = "ballerina"
 name = "log"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
@@ -219,18 +298,21 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "mime"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.int"}
 ]
+modules = [
+	{org = "ballerina", packageName = "mime", moduleName = "mime"}
+]
 
 [[package]]
 org = "ballerina"
 name = "oauth2"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
@@ -238,6 +320,9 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "oauth2", moduleName = "oauth2"}
 ]
 
 [[package]]
@@ -252,7 +337,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "os"
-version = "1.0.2"
+version = "1.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
@@ -261,16 +346,19 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "regex"
-version = "1.0.2"
+version = "1.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "regex", moduleName = "regex"}
 ]
 
 [[package]]
 org = "ballerina"
 name = "task"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
@@ -292,7 +380,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "time"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
@@ -301,10 +389,13 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "url"
-version = "2.0.2"
+version = "2.1.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "url", moduleName = "url"}
 ]
 
 

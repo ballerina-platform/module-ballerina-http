@@ -99,7 +99,7 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     private void sendFailureResponse(BError error) {
-        HttpUtil.handleFailure(requestMessage, error);
+        HttpUtil.handleFailure(requestMessage, error, true);
     }
 
     private void cleanupRequestAndContext() {

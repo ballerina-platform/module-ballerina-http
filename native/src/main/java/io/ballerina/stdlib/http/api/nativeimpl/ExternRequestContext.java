@@ -29,6 +29,7 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 public class ExternRequestContext {
     public static Object next(BObject requestCtx) {
         BArray interceptors = getInterceptors(requestCtx);
+        Object mainService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
         if (interceptors != null) {
             if (!isInterceptorService(requestCtx)) {
                 // TODO : After introducing response interceptors, calling ctx.next() should return "illegal function
@@ -37,7 +38,7 @@ public class ExternRequestContext {
                         HttpErrorType.GENERIC_LISTENER_ERROR);
             }
             int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX) + 1;
-            Object interceptorToReturn = null;
+            Object interceptorToReturn = mainService;
             Object interceptor;
             requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, true);
             while (interceptorId < interceptors.size()) {
@@ -67,7 +68,7 @@ public class ExternRequestContext {
     }
 
     private static BArray getInterceptors(BObject requestCtx) {
-        return requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS) == null ? null :
-                (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
+        return requestCtx.getNativeData(HttpConstants.INTERCEPTORS) == null ? null :
+                (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
     }
 }

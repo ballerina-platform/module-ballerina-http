@@ -52,6 +52,7 @@ dependencies {
     implementation group: 'io.netty', name: 'netty-codec-http2', version:"${nettyVersion}"
     implementation group: 'io.netty', name: 'netty-handler-proxy', version:"${nettyVersion}"
     implementation group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:"${nettyTcnativeVersion}"
+    implementation group: 'io.netty', name: 'netty-tcnative-classes', version:"${nettyTcnativeVersion}"
 
     implementation group: 'org.wso2.eclipse.osgi', name: 'org.eclipse.osgi', version:"${wso2EclipseOsgiVersion}"
     implementation group: 'commons-pool.wso2', name: 'commons-pool', version:"${wso2CommonsPoolVersion}"

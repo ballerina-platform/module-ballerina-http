@@ -76,7 +76,7 @@ public class HttpInterceptorUnitCallback implements Callback {
 
     public void sendFailureResponse(BError error) {
         cleanupRequestAndContext();
-        HttpUtil.handleFailure(requestMessage, error);
+        HttpUtil.handleFailure(requestMessage, error, false);
     }
 
     private void cleanupRequestAndContext() {
@@ -100,13 +100,12 @@ public class HttpInterceptorUnitCallback implements Callback {
 
     private void sendRequestToNextService() {
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
-        requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
     }
 
     private void validateResponseAndProceed(Object result) {
         int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
-        BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.HTTP_INTERCEPTORS);
+        BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
         boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
 
         if (alreadyResponded(result)) {
@@ -133,6 +132,15 @@ public class HttpInterceptorUnitCallback implements Callback {
                 } else {
                     BError err = HttpUtil.createHttpError("next interceptor service did not match " +
                             "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
+                    sendFailureResponse(err);
+                }
+            } else {
+                Object targetService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
+                if (result.equals(targetService)) {
+                    sendRequestToNextService();
+                } else {
+                    BError err = HttpUtil.createHttpError("target service did not match with the configuration",
+                            HttpErrorType.GENERIC_LISTENER_ERROR);
                     sendFailureResponse(err);
                 }
             }
