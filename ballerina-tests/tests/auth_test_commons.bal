@@ -197,7 +197,7 @@ const string ACCESS_TOKEN_3 = "invalid-token";
 
 isolated function createDummyRequest() returns http:Request {
     http:Request request = new;
-    request.rawPath = "/helloWorld/sayHello";
+    request.rawPath = "/foo/bar";
     request.method = "GET";
     request.httpVersion = "1.1";
     return request;
@@ -210,51 +210,51 @@ isolated function createSecureRequest(string headerValue) returns http:Request {
 }
 
 isolated function sendNoTokenRequest(string path) returns http:Response|http:ClientError {
-    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
-        secureSocket: {
+    http:Client clientEP = check new("https://localhost:" + securedListenerPort.toString(),
+        secureSocket = {
             cert: {
                 path: TRUSTSTORE_PATH,
                 password: "ballerina"
             }
         }
-    });
+    );
     return clientEP->get(path);
 }
 
 isolated function sendBasicTokenRequest(string path, string username, string password) returns http:Response|http:ClientError {
-    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
-        auth: {
+    http:Client clientEP = check new("https://localhost:" + securedListenerPort.toString(),
+        auth = {
             username: username,
             password: password
         },
-        secureSocket: {
+        secureSocket = {
             cert: {
                 path: TRUSTSTORE_PATH,
                 password: "ballerina"
             }
         }
-    });
+    );
     return clientEP->get(path);
 }
 
 isolated function sendBearerTokenRequest(string path, string token) returns http:Response|http:ClientError {
-    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
-        auth: {
+    http:Client clientEP = check new("https://localhost:" + securedListenerPort.toString(),
+        auth = {
             token: token
         },
-        secureSocket: {
+        secureSocket = {
             cert: {
                 path: TRUSTSTORE_PATH,
                 password: "ballerina"
             }
         }
-    });
+    );
     return clientEP->get(path);
 }
 
 isolated function sendJwtRequest(string path) returns http:Response|http:ClientError {
-    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
-        auth: {
+    http:Client clientEP = check new("https://localhost:" + securedListenerPort.toString(),
+        auth = {
             username: "admin",
             issuer: "wso2",
             audience: ["ballerina"],
@@ -272,19 +272,19 @@ isolated function sendJwtRequest(string path) returns http:Response|http:ClientE
                 }
             }
         },
-        secureSocket: {
+        secureSocket = {
             cert: {
                 path: TRUSTSTORE_PATH,
                 password: "ballerina"
             }
         }
-    });
+    );
     return clientEP->get(path);
 }
 
 isolated function sendOAuth2TokenRequest(string path) returns http:Response|http:ClientError {
-    http:Client clientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
-        auth: {
+    http:Client clientEP = check new("https://localhost:" + securedListenerPort.toString(),
+        auth = {
             tokenUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
             clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
             clientSecret: "9205371918321623741",
@@ -297,37 +297,37 @@ isolated function sendOAuth2TokenRequest(string path) returns http:Response|http
                 }
             }
         },
-        secureSocket: {
+        secureSocket = {
             cert: {
                 path: TRUSTSTORE_PATH,
                 password: "ballerina"
             }
         }
-    });
+    );
     return clientEP->get(path);
 }
 
 isolated function assertSuccess(http:Response|http:ClientError response) {
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 }
 
 isolated function assertForbidden(http:Response|http:ClientError response) {
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 403);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 }
 
 isolated function assertUnauthorized(http:Response|http:ClientError response) {
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 401);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -343,31 +343,27 @@ listener http:Listener sts = new(stsPort, {
 
 service /oauth2 on sts {
     resource function post token() returns json {
-        json response = {
+        return {
             "access_token": ACCESS_TOKEN_1,
             "token_type": "example",
             "expires_in": 3600,
             "example_parameter": "example_value"
         };
-        return response;
     }
 
     resource function post introspect(http:Request request) returns json {
         string|http:ClientError payload = request.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             string[] parts = regex:split(payload, "&");
             foreach string part in parts {
-                if (part.indexOf("token=") is int) {
+                if part.indexOf("token=") is int {
                     string token = regex:split(part, "=")[1];
-                    if (token == ACCESS_TOKEN_1) {
-                        json response = { "active": true, "exp": 3600, "scp": "write update" };
-                        return response;
-                    } else if (token == ACCESS_TOKEN_2) {
-                        json response = { "active": true, "exp": 3600, "scp": "read" };
-                        return response;
+                    if token == ACCESS_TOKEN_1 {
+                        return { "active": true, "exp": 3600, "scp": "write update" };
+                    } else if token == ACCESS_TOKEN_2 {
+                        return { "active": true, "exp": 3600, "scp": "read" };
                     } else {
-                        json response = { "active": false };
-                        return response;
+                        return { "active": false };
                     }
                 }
             }

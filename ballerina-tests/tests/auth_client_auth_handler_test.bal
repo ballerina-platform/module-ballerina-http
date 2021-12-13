@@ -20,37 +20,25 @@ import ballerina/http;
 import ballerina/test;
 
 @test:Config {}
-isolated function testClientBasicAuthHandler() {
+isolated function testClientBasicAuthHandler() returns error? {
     http:CredentialsConfig config = {
         username: "admin",
         password: "123"
     };
     http:ClientBasicAuthHandler handler = new(config);
     http:Request request = createDummyRequest();
-    http:Request|http:ClientAuthError result1 = handler.enrich(request);
-    if (result1 is http:Request) {
-        string header = checkpanic result1.getHeader(http:AUTH_HEADER);
-        test:assertEquals(header, "Basic YWRtaW46MTIz");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result1.message());
-    }
+    http:Request result1 = check handler.enrich(request);
+    string header = check result1.getHeader(http:AUTH_HEADER);
+    test:assertEquals(header, "Basic YWRtaW46MTIz");
 
     map<string|string[]> headers = {};
-    map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
-    if (result2 is map<string|string[]>) {
-        string header = <string>result2.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Basic YWRtaW46MTIz");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result2.message());
-    }
+    map<string|string[]> result2 = check handler.enrichHeaders(headers);
+    header = <string>result2.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Basic YWRtaW46MTIz");
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
-    if (result3 is map<string|string[]>) {
-        string header = <string>result3.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Basic YWRtaW46MTIz");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result3.message());
-    }
+    map<string|string[]> result3 = check handler.getSecurityHeaders();
+    header = <string>result3.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Basic YWRtaW46MTIz");
 }
 
 @test:Config {}
@@ -62,66 +50,54 @@ isolated function testClientBasicAuthHandlerWithEmptyCredentials() {
     http:ClientBasicAuthHandler handler = new(config);
     http:Request request = createDummyRequest();
     http:Request|http:ClientAuthError result1 = handler.enrich(request);
-    if (result1 is http:ClientAuthError) {
+    if result1 is http:ClientAuthError {
         test:assertEquals(result1.message(), "Failed to enrich request with Basic Auth token. Username or password " +
-            "cannot be empty.", msg = "Found unexpected output");
+            "cannot be empty.");
     } else {
-        test:assertFail(msg = "Found unexpected output");
+        test:assertFail("Expected error not found.");
     }
 
     map<string|string[]> headers = {};
     map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
-    if (result2 is http:ClientAuthError) {
+    if result2 is http:ClientAuthError {
         test:assertEquals(result2.message(), "Failed to enrich headers with Basic Auth token. Username or password " +
-            "cannot be empty.", msg = "Found unexpected output");
+            "cannot be empty.");
     } else {
-        test:assertFail(msg = "Found unexpected output");
+        test:assertFail("Expected error not found.");
     }
 
     map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
-    if (result3 is http:ClientAuthError) {
+    if result3 is http:ClientAuthError {
         test:assertEquals(result3.message(), "Failed to enrich headers with Basic Auth token. Username or password " +
-            "cannot be empty.", msg = "Found unexpected output");
+            "cannot be empty.");
     } else {
-        test:assertFail(msg = "Found unexpected output");
+        test:assertFail("Expected error not found.");
     }
 }
 
 @test:Config {}
-isolated function testClientBearerTokenAuthHandler() {
+isolated function testClientBearerTokenAuthHandler() returns error? {
     http:BearerTokenConfig config = {
         token: "eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"
     };
     http:ClientBearerTokenAuthHandler handler = new(config);
     http:Request request = createDummyRequest();
-    http:Request|http:ClientAuthError result1 = handler.enrich(request);
-    if (result1 is http:Request) {
-        string header = checkpanic result1.getHeader(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result1.message());
-    }
+    http:Request result1 = check handler.enrich(request);
+    string header = check result1.getHeader(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ");
 
     map<string|string[]> headers = {};
-    map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
-    if (result2 is map<string|string[]>) {
-        string header = <string>result2.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result2.message());
-    }
+    map<string|string[]>result2 = check handler.enrichHeaders(headers);
+    header = <string>result2.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ");
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
-    if (result3 is map<string|string[]>) {
-        string header = <string>result3.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result3.message());
-    }
+    map<string|string[]> result3 = check handler.getSecurityHeaders();
+    header = <string>result3.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ");
 }
 
 @test:Config {}
-isolated function testClientSelfSignedJwtAuthHandler() {
+isolated function testClientSelfSignedJwtAuthHandler() returns error? {
     http:JwtIssuerConfig config = {
         username: "admin",
         issuer: "wso2",
@@ -139,30 +115,18 @@ isolated function testClientSelfSignedJwtAuthHandler() {
     };
     http:ClientSelfSignedJwtAuthHandler handler = new(config);
     http:Request request = createDummyRequest();
-    http:Request|http:ClientAuthError result1 = handler.enrich(request);
-    if (result1 is http:Request) {
-        string header = checkpanic result1.getHeader(http:AUTH_HEADER);
-        test:assertTrue(header.startsWith("Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"));
-    } else {
-        test:assertFail(msg = "Test Failed! " + result1.message());
-    }
+    http:Request result1 = check handler.enrich(request);
+    string header = check result1.getHeader(http:AUTH_HEADER);
+    test:assertTrue(header.startsWith("Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"));
 
     map<string|string[]> headers = {};
-    map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
-    if (result2 is map<string|string[]>) {
-        string header = <string>result2.get(http:AUTH_HEADER);
-        test:assertTrue(header.startsWith("Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"));
-    } else {
-        test:assertFail(msg = "Test Failed! " + result2.message());
-    }
+    map<string|string[]> result2 = check handler.enrichHeaders(headers);
+    header = <string>result2.get(http:AUTH_HEADER);
+    test:assertTrue(header.startsWith("Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"));
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
-    if (result3 is map<string|string[]>) {
-        string header = <string>result3.get(http:AUTH_HEADER);
-        test:assertTrue(header.startsWith("Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"));
-    } else {
-        test:assertFail(msg = "Test Failed! " + result3.message());
-    }
+    map<string|string[]> result3 = check handler.getSecurityHeaders();
+    header = <string>result3.get(http:AUTH_HEADER);
+    test:assertTrue(header.startsWith("Bearer eyJhbGciOiJSUzI1NiIsICJ0eXAiOiJKV1QifQ"));
 }
 
 @test:Config {}
@@ -185,33 +149,30 @@ isolated function testClientSelfSignedJwtAuthHandlerWithEmptyPassword() {
     http:ClientSelfSignedJwtAuthHandler handler = new(config);
     http:Request request = createDummyRequest();
     http:Request|http:ClientAuthError result1 = handler.enrich(request);
-    if (result1 is http:ClientAuthError) {
-        test:assertEquals(result1.message(), "Failed to enrich request with JWT. Failed to generate a self-signed JWT.",
-            msg = "Found unexpected output");
+    if result1 is http:ClientAuthError {
+        test:assertEquals(result1.message(), "Failed to enrich request with JWT. Failed to generate a self-signed JWT.");
     } else {
-        test:assertFail(msg = "Found unexpected output");
+        test:assertFail("Expected error not found.");
     }
 
     map<string|string[]> headers = {};
     map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
-    if (result2 is http:ClientAuthError) {
-        test:assertEquals(result2.message(), "Failed to enrich headers with JWT. Failed to generate a self-signed JWT.",
-            msg = "Found unexpected output");
+    if result2 is http:ClientAuthError {
+        test:assertEquals(result2.message(), "Failed to enrich headers with JWT. Failed to generate a self-signed JWT.");
     } else {
-        test:assertFail(msg = "Found unexpected output");
+        test:assertFail("Expected error not found.");
     }
 
     map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
-    if (result3 is http:ClientAuthError) {
-        test:assertEquals(result3.message(), "Failed to enrich headers with JWT. Failed to generate a self-signed JWT.",
-            msg = "Found unexpected output");
+    if result3 is http:ClientAuthError {
+        test:assertEquals(result3.message(), "Failed to enrich headers with JWT. Failed to generate a self-signed JWT.");
     } else {
-        test:assertFail(msg = "Found unexpected output");
+        test:assertFail("Expected error not found.");
     }
 }
 
 @test:Config {}
-isolated function testClientOAuth2HandlerForClientCredentialsGrant() {
+isolated function testClientOAuth2HandlerForClientCredentialsGrant() returns error? {
     http:OAuth2ClientCredentialsGrantConfig config = {
         tokenUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
         clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
@@ -229,34 +190,22 @@ isolated function testClientOAuth2HandlerForClientCredentialsGrant() {
 
     http:Request request = createDummyRequest();
     http:ClientOAuth2Handler handler = new(config);
-    http:Request|http:ClientAuthError result1 = handler->enrich(request);
-    if (result1 is http:Request) {
-        string header = checkpanic result1.getHeader(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result1.message());
-    }
+    http:Request result1 = check handler->enrich(request);
+    string header = check result1.getHeader(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 
     map<string|string[]> headers = {};
-    map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
-    if (result2 is map<string|string[]>) {
-        string header = <string>result2.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result2.message());
-    }
+    map<string|string[]> result2 = check handler.enrichHeaders(headers);
+    header = <string>result2.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
-    if (result3 is map<string|string[]>) {
-        string header = <string>result3.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result3.message());
-    }
+    map<string|string[]> result3 = check handler.getSecurityHeaders();
+    header = <string>result3.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 }
 
 @test:Config {}
-isolated function testClientOAuth2HandlerForPasswordGrant() {
+isolated function testClientOAuth2HandlerForPasswordGrant() returns error? {
     http:OAuth2PasswordGrantConfig config = {
         tokenUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
         username: "johndoe",
@@ -276,34 +225,22 @@ isolated function testClientOAuth2HandlerForPasswordGrant() {
 
     http:Request request = createDummyRequest();
     http:ClientOAuth2Handler handler = new(config);
-    http:Request|http:ClientAuthError result1 = handler->enrich(request);
-    if (result1 is http:Request) {
-        string header = checkpanic result1.getHeader(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result1.message());
-    }
+    http:Request result1 = check handler->enrich(request);
+    string header = check result1.getHeader(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 
     map<string|string[]> headers = {};
-    map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
-    if (result2 is map<string|string[]>) {
-        string header = <string>result2.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result2.message());
-    }
+    map<string|string[]> result2 = check handler.enrichHeaders(headers);
+    header = <string>result2.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
-    if (result3 is map<string|string[]>) {
-        string header = <string>result3.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result3.message());
-    }
+    map<string|string[]> result3 = check handler.getSecurityHeaders();
+    header = <string>result3.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 }
 
 @test:Config {}
-isolated function testClientOAuth2HandlerForRefreshTokenGrant() {
+isolated function testClientOAuth2HandlerForRefreshTokenGrant() returns error? {
     http:OAuth2RefreshTokenGrantConfig config = {
         refreshUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
         refreshToken: "XlfBs91yquexJqDaKEMzVg==",
@@ -322,34 +259,22 @@ isolated function testClientOAuth2HandlerForRefreshTokenGrant() {
 
     http:Request request = createDummyRequest();
     http:ClientOAuth2Handler handler = new(config);
-    http:Request|http:ClientAuthError result1 = handler->enrich(request);
-    if (result1 is http:Request) {
-        string header = checkpanic result1.getHeader(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result1.message());
-    }
+    http:Request result1 = check handler->enrich(request);
+    string header = check result1.getHeader(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 
     map<string|string[]> headers = {};
-    map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
-    if (result2 is map<string|string[]>) {
-        string header = <string>result2.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result2.message());
-    }
+    map<string|string[]> result2 = check handler.enrichHeaders(headers);
+    header = <string>result2.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
-    if (result3 is map<string|string[]>) {
-        string header = <string>result3.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result3.message());
-    }
+    map<string|string[]> result3 = check handler.getSecurityHeaders();
+    header = <string>result3.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 }
 
 @test:Config {}
-isolated function testClientOAuth2HandlerForJwtBearerGrant() {
+isolated function testClientOAuth2HandlerForJwtBearerGrant() returns error? {
     http:OAuth2JwtBearerGrantConfig config = {
         tokenUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
         assertion: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
@@ -368,28 +293,16 @@ isolated function testClientOAuth2HandlerForJwtBearerGrant() {
 
     http:Request request = createDummyRequest();
     http:ClientOAuth2Handler handler = new(config);
-    http:Request|http:ClientAuthError result1 = handler->enrich(request);
-    if (result1 is http:Request) {
-        string header = checkpanic result1.getHeader(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result1.message());
-    }
+    http:Request result1 = check handler->enrich(request);
+    string header = check result1.getHeader(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 
     map<string|string[]> headers = {};
-    map<string|string[]>|http:ClientAuthError result2 = handler.enrichHeaders(headers);
-    if (result2 is map<string|string[]>) {
-        string header = <string>result2.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result2.message());
-    }
+    map<string|string[]> result2 = check handler.enrichHeaders(headers);
+    header = <string>result2.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 
-    map<string|string[]>|http:ClientAuthError result3 = handler.getSecurityHeaders();
-    if (result3 is map<string|string[]>) {
-        string header = <string>result3.get(http:AUTH_HEADER);
-        test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
-    } else {
-        test:assertFail(msg = "Test Failed! " + result3.message());
-    }
+    map<string|string[]> result3 = check handler.getSecurityHeaders();
+    header = <string>result3.get(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer 2YotnFZFEjr1zCsicMWpAA");
 }

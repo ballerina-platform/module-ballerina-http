@@ -19,14 +19,14 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener authListener = new(securedListenerPort, {
-    secureSocket: {
+listener http:Listener authListener = new(securedListenerPort,
+    secureSocket = {
         key: {
             path: KEYSTORE_PATH,
             password: "ballerina"
         }
     }
-});
+);
 
 // Unsecured service - Unsecured resource with different combination of resource signature parameters
 
@@ -36,23 +36,23 @@ service /baz on authListener {
     }
 
     resource function get bar(http:Request req) returns string|http:BadRequest {
-        boolean b = req.hasHeader(http:AUTH_HEADER);
-        if (b) {
+        boolean hasHeader = req.hasHeader(http:AUTH_HEADER);
+        if hasHeader {
             return "Hello World!";
         }
         http:BadRequest bad = {};
         return bad;
     }
 
-    resource function get baz(http:Caller caller, http:Request req) {
-        boolean b = req.hasHeader(http:AUTH_HEADER);
-        if (b) {
-            checkpanic caller->respond("Hello World!");
+    resource function get baz(http:Caller caller, http:Request req) returns http:ListenerError? {
+        boolean hasHeader = req.hasHeader(http:AUTH_HEADER);
+        if hasHeader {
+            check caller->respond("Hello World!");
         }
         http:Response resp = new;
         resp.statusCode = 500;
         resp.setPayload("Oops!");
-        checkpanic caller->respond(resp);
+        check caller->respond(resp);
     }
 }
 

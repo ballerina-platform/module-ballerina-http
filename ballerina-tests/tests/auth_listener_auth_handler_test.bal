@@ -29,29 +29,29 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthSuccess() {
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
     http:Request request = createSecureRequest(headerValue);
     auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is auth:UserDetails) {
+    if authn1 is auth:UserDetails {
         test:assertEquals(authn1.username, "alice");
         test:assertEquals(authn1?.scopes, ["write", "update"]);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is auth:UserDetails) {
+    if authn2 is auth:UserDetails {
         test:assertEquals(authn2.username, "alice");
         test:assertEquals(authn2?.scopes, ["write", "update"]);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "write");
-    if (authz1 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz1 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "update");
-    if (authz2 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz2 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -62,29 +62,29 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthzFailure() {
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
     http:Request request = createSecureRequest(headerValue);
     auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is auth:UserDetails) {
+    if authn1 is auth:UserDetails {
         test:assertEquals(authn1.username, "bob");
         test:assertEquals(authn1?.scopes, ["read"]);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is auth:UserDetails) {
+    if authn2 is auth:UserDetails {
         test:assertEquals(authn2.username, "bob");
         test:assertEquals(authn2?.scopes, ["read"]);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz1 = handler.authorize(<auth:UserDetails>authn1, "write");
-    if (authz1 is ()) {
-        test:assertFail(msg = "Test Failed!");
+    if authz1 is () {
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz2 = handler.authorize(<auth:UserDetails>authn2, "update");
-    if (authz2 is ()) {
-        test:assertFail(msg = "Test Failed!");
+    if authz2 is () {
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -95,18 +95,18 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
     http:Request request = createSecureRequest(headerValue);
     auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is http:Unauthorized) {
+    if authn1 is http:Unauthorized {
         test:assertEquals(authn1?.body, "Failed to authenticate username 'alice' from file user store.");
     }
 
     auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is http:Unauthorized) {
+    if authn2 is http:Unauthorized {
         test:assertEquals(authn2?.body, "Failed to authenticate username 'alice' from file user store.");
     }
 
     request = createDummyRequest();
     auth:UserDetails|http:Unauthorized authn3 = handler.authenticate(request);
-    if (authn3 is http:Unauthorized) {
+    if authn3 is http:Unauthorized {
         test:assertEquals(authn3?.body, "Authorization header not available.");
     }
 }
@@ -141,29 +141,29 @@ isolated function testListenerLdapUserStoreBasicAuthHandlerAuthSuccess() {
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
     http:Request request = createSecureRequest(headerValue);
     auth:UserDetails|http:Unauthorized authn1 = handler->authenticate(request);
-    if (authn1 is auth:UserDetails) {
+    if authn1 is auth:UserDetails {
         test:assertEquals(authn1.username, "ldclakmal");
         test:assertEquals(authn1?.scopes, ["admin", "developer"]);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     auth:UserDetails|http:Unauthorized authn2 = handler->authenticate(headerValue);
-    if (authn2 is auth:UserDetails) {
+    if authn2 is auth:UserDetails {
         test:assertEquals(authn2.username, "ldclakmal");
         test:assertEquals(authn2?.scopes, ["admin", "developer"]);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz1 = handler->authorize(<auth:UserDetails>authn1, "admin");
-    if (authz1 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz1 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz2 = handler->authorize(<auth:UserDetails>authn2, "developer");
-    if (authz2 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz2 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -197,29 +197,29 @@ isolated function testListenerLdapUserStoreBasicAuthHandlerAuthzFailure() {
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
     http:Request request = createSecureRequest(headerValue);
     auth:UserDetails|http:Unauthorized authn1 = handler->authenticate(request);
-    if (authn1 is auth:UserDetails) {
+    if authn1 is auth:UserDetails {
         test:assertEquals(authn1.username, "alice");
         test:assertEquals(authn1?.scopes, ["developer"]);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     auth:UserDetails|http:Unauthorized authn2 = handler->authenticate(headerValue);
-    if (authn2 is auth:UserDetails) {
+    if authn2 is auth:UserDetails {
         test:assertEquals(authn2.username, "alice");
         test:assertEquals(authn2?.scopes, ["developer"]);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz1 = handler->authorize(<auth:UserDetails>authn1, "admin");
-    if (authz1 is ()) {
-        test:assertFail(msg = "Test Failed!");
+    if authz1 is () {
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz2 = handler->authorize(<auth:UserDetails>authn2, "admin");
-    if (authz2 is ()) {
-        test:assertFail(msg = "Test Failed!");
+    if authz2 is () {
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -253,18 +253,18 @@ isolated function testListenerLdapUserStoreBasicAuthHandlerAuthnFailure() {
     string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
     http:Request request = createSecureRequest(headerValue);
     auth:UserDetails|http:Unauthorized authn1 = handler->authenticate(request);
-    if (authn1 is http:Unauthorized) {
+    if authn1 is http:Unauthorized {
         test:assertEquals(authn1?.body, "Failed to authenticate username 'eve' with LDAP user store. Username cannot be found in the directory.");
     }
 
     auth:UserDetails|http:Unauthorized authn2 = handler->authenticate(headerValue);
-    if (authn2 is http:Unauthorized) {
+    if authn2 is http:Unauthorized {
         test:assertEquals(authn2?.body, "Failed to authenticate username 'eve' with LDAP user store. Username cannot be found in the directory.");
     }
 
     request = createDummyRequest();
     auth:UserDetails|http:Unauthorized authn3 = handler->authenticate(request);
-    if (authn3 is http:Unauthorized) {
+    if authn3 is http:Unauthorized {
         test:assertEquals(authn3?.body, "Authorization header not available.");
     }
 }
@@ -289,7 +289,7 @@ isolated function testListenerJwtAuthHandlerAuthSuccess1() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT1;
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is jwt:Payload) {
+    if authn1 is jwt:Payload {
         test:assertEquals(authn1?.sub, "admin");
         test:assertEquals(authn1?.iss, "wso2");
         test:assertEquals(authn1?.aud, ["ballerina"]);
@@ -297,11 +297,11 @@ isolated function testListenerJwtAuthHandlerAuthSuccess1() {
         test:assertTrue(authn1?.exp is int);
         test:assertTrue(authn1?.jti is string);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is jwt:Payload) {
+    if authn2 is jwt:Payload {
         test:assertEquals(authn2?.sub, "admin");
         test:assertEquals(authn2?.iss, "wso2");
         test:assertEquals(authn2?.aud, ["ballerina"]);
@@ -309,17 +309,17 @@ isolated function testListenerJwtAuthHandlerAuthSuccess1() {
         test:assertTrue(authn2?.exp is int);
         test:assertTrue(authn2?.jti is string);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz1 = handler.authorize(<jwt:Payload>authn1, "write");
-    if (authz1 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz1 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz2 = handler.authorize(<jwt:Payload>authn2, "write");
-    if (authz2 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz2 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -343,7 +343,7 @@ isolated function testListenerJwtAuthHandlerAuthSuccess2() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT1_1;
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is jwt:Payload) {
+    if authn1 is jwt:Payload {
         test:assertEquals(authn1?.sub, "admin");
         test:assertEquals(authn1?.iss, "wso2");
         test:assertEquals(authn1?.aud, ["ballerina"]);
@@ -351,11 +351,11 @@ isolated function testListenerJwtAuthHandlerAuthSuccess2() {
         test:assertTrue(authn1?.exp is int);
         test:assertTrue(authn1?.jti is string);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is jwt:Payload) {
+    if authn2 is jwt:Payload {
         test:assertEquals(authn2?.sub, "admin");
         test:assertEquals(authn2?.iss, "wso2");
         test:assertEquals(authn2?.aud, ["ballerina"]);
@@ -363,17 +363,17 @@ isolated function testListenerJwtAuthHandlerAuthSuccess2() {
         test:assertTrue(authn2?.exp is int);
         test:assertTrue(authn2?.jti is string);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz1 = handler.authorize(<jwt:Payload>authn1, "write");
-    if (authz1 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz1 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz2 = handler.authorize(<jwt:Payload>authn2, "write");
-    if (authz2 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz2 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -397,7 +397,7 @@ isolated function testListenerJwtAuthHandlerAuthSuccess3() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT1_2;
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is jwt:Payload) {
+    if authn1 is jwt:Payload {
         test:assertEquals(authn1?.sub, "admin");
         test:assertEquals(authn1?.iss, "wso2");
         test:assertEquals(authn1?.aud, ["ballerina"]);
@@ -405,11 +405,11 @@ isolated function testListenerJwtAuthHandlerAuthSuccess3() {
         test:assertTrue(authn1?.exp is int);
         test:assertTrue(authn1?.jti is string);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is jwt:Payload) {
+    if authn2 is jwt:Payload {
         test:assertEquals(authn2?.sub, "admin");
         test:assertEquals(authn2?.iss, "wso2");
         test:assertEquals(authn2?.aud, ["ballerina"]);
@@ -417,17 +417,17 @@ isolated function testListenerJwtAuthHandlerAuthSuccess3() {
         test:assertTrue(authn2?.exp is int);
         test:assertTrue(authn2?.jti is string);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz1 = handler.authorize(<jwt:Payload>authn1, "write");
-    if (authz1 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz1 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz2 = handler.authorize(<jwt:Payload>authn2, "write");
-    if (authz2 is http:Forbidden) {
-        test:assertFail(msg = "Test Failed!");
+    if authz2 is http:Forbidden {
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -450,35 +450,35 @@ isolated function testListenerJwtAuthHandlerAuthzFailure() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT2;
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is jwt:Payload) {
+    if authn1 is jwt:Payload {
         test:assertEquals(authn1?.sub, "admin");
         test:assertEquals(authn1?.iss, "wso2");
         test:assertEquals(authn1?.aud, ["ballerina"]);
         test:assertTrue(authn1?.exp is int);
         test:assertTrue(authn1?.jti is string);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is jwt:Payload) {
+    if authn2 is jwt:Payload {
         test:assertEquals(authn2?.sub, "admin");
         test:assertEquals(authn2?.iss, "wso2");
         test:assertEquals(authn2?.aud, ["ballerina"]);
         test:assertTrue(authn2?.exp is int);
         test:assertTrue(authn2?.jti is string);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz1 = handler.authorize(<jwt:Payload>authn1, "write");
-    if (authz1 is ()) {
-        test:assertFail(msg = "Test Failed!");
+    if authz1 is () {
+        test:assertFail("Test Failed!");
     }
 
     http:Forbidden? authz2 = handler.authorize(<jwt:Payload>authn2, "write");
-    if (authz2 is ()) {
-        test:assertFail(msg = "Test Failed!");
+    if authz2 is () {
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -501,18 +501,18 @@ isolated function testListenerJwtAuthHandlerAuthnFailure() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT3;
     http:Request request = createSecureRequest(headerValue);
     jwt:Payload|http:Unauthorized authn1 = handler.authenticate(request);
-    if (authn1 is http:Unauthorized) {
+    if authn1 is http:Unauthorized {
         test:assertEquals(authn1?.body, "JWT validation failed. JWT must contain a valid issuer name.");
     }
 
     jwt:Payload|http:Unauthorized authn2 = handler.authenticate(headerValue);
-    if (authn2 is http:Unauthorized) {
+    if authn2 is http:Unauthorized {
         test:assertEquals(authn2?.body, "JWT validation failed. JWT must contain a valid issuer name.");
     }
 
     request = createDummyRequest();
     jwt:Payload|http:Unauthorized authn3 = handler.authenticate(request);
-    if (authn3 is http:Unauthorized) {
+    if authn3 is http:Unauthorized {
         test:assertEquals(authn3?.body, "Authorization header not available.");
     }
 }
@@ -537,17 +537,17 @@ function testListenerOAuth2HandlerAuthSuccess() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
     oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth1 = handler->authorize(request, ["write", "update"]);
-    if (auth1 is oauth2:IntrospectionResponse) {
+    if auth1 is oauth2:IntrospectionResponse {
         test:assertEquals(auth1.active, true);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 
     oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth2 = handler->authorize(request);
-    if (auth1 is oauth2:IntrospectionResponse) {
+    if auth1 is oauth2:IntrospectionResponse {
         test:assertEquals(auth1.active, true);
     } else {
-        test:assertFail(msg = "Test Failed!");
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -571,8 +571,8 @@ function testListenerOAuth2HandlerAuthzFailure() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
     oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(request, "read");
-    if (auth is oauth2:IntrospectionResponse || auth is http:Unauthorized) {
-        test:assertFail(msg = "Test Failed!");
+    if auth is oauth2:IntrospectionResponse || auth is http:Unauthorized {
+        test:assertFail("Test Failed!");
     }
 }
 
@@ -596,13 +596,13 @@ function testListenerOAuth2HandlerAuthnFailure() {
     string headerValue = http:AUTH_SCHEME_BEARER + " " + oauth2Token;
     http:Request request = createSecureRequest(headerValue);
     oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth1 = handler->authorize(request);
-    if (auth1 is http:Unauthorized) {
+    if auth1 is http:Unauthorized {
         test:assertEquals(auth1?.body, "The provided access-token is not active.");
     }
 
     request = createDummyRequest();
     oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth2 = handler->authorize(request);
-    if (auth2 is http:Unauthorized) {
+    if auth2 is http:Unauthorized {
         test:assertEquals(auth2?.body, "Authorization header not available.");
     }
 }
