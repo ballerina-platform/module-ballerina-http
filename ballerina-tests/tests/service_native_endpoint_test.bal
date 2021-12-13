@@ -32,8 +32,7 @@ service /serviceEndpointHello on serviceEndpointTestEP {
 
     resource function get local(http:Caller caller, http:Request req) {
         http:Response res = new;
-        http:Local localAddress = caller.localAddress;
-        json connectionJson = {local:{host:localAddress.host, port:localAddress.port}};
+        json connectionJson = {local:{host:caller.localAddress.host, port:caller.localAddress.port}};
         res.statusCode = 200;
         res.setJsonPayload(connectionJson);
         checkpanic caller->respond(res);
