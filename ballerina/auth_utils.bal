@@ -20,7 +20,7 @@ import ballerina/regex;
 // Logs and prepares the `error` as an `http:ClientAuthError`.
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
     log:printError(message, 'error = err);
-    if (err is error) {
+    if err is error {
         return error ClientAuthError(message + " " + err.message(), err);
     }
     return error ClientAuthError(message);
@@ -29,7 +29,7 @@ isolated function prepareClientAuthError(string message, error? err = ()) return
 // Logs and prepares the `error` as an `http:ListenerAuthError`.
 isolated function prepareListenerAuthError(string message, error? err = ()) returns ListenerAuthError {
     log:printError(message, 'error = err);
-    if (err is error) {
+    if err is error {
         return error ListenerAuthError(message, err);
     }
     return error ListenerAuthError(message);
@@ -39,7 +39,7 @@ isolated function prepareListenerAuthError(string message, error? err = ()) retu
 isolated function buildCompleteErrorMessage(error err) returns string {
     string message = err.message();
     error? cause = err.cause();
-    while (cause is error) {
+    while cause is error {
         message += " " + cause.message();
         cause = cause.cause();
     }
@@ -48,14 +48,14 @@ isolated function buildCompleteErrorMessage(error err) returns string {
 
 // Extract the credential from `http:Request`, `http:Headers` or `string` header.
 isolated function extractCredential(Request|Headers|string data) returns string|ListenerAuthError {
-    if (data is string) {
+    if data is string {
         return regex:split(<string>data, " ")[1];
     } else {
         object {
             public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
         } headers = data;
         var header = headers.getHeader(AUTH_HEADER);
-        if (header is string) {
+        if header is string {
             return regex:split(header, " ")[1];
         } else {
             return prepareListenerAuthError("Authorization header not available.", header);
@@ -65,27 +65,27 @@ isolated function extractCredential(Request|Headers|string data) returns string|
 
 // Match the expectedScopes with actualScopes and return if there is a match.
 isolated function matchScopes(string|string[] actualScopes, string|string[] expectedScopes) returns boolean {
-    if (expectedScopes is string) {
-        if (actualScopes is string) {
+    if expectedScopes is string {
+        if actualScopes is string {
             return actualScopes == expectedScopes;
         } else {
             foreach string actualScope in actualScopes {
-                if (actualScope == expectedScopes) {
+                if actualScope == expectedScopes {
                     return true;
                 }
             }
         }
     } else {
-        if (actualScopes is string) {
+        if actualScopes is string {
             foreach string expectedScope in expectedScopes {
-                if (actualScopes == expectedScope) {
+                if actualScopes == expectedScope {
                     return true;
                 }
             }
         } else {
             foreach string actualScope in actualScopes {
                 foreach string expectedScope in expectedScopes {
-                    if (actualScope == expectedScope) {
+                    if actualScope == expectedScope {
                         return true;
                     }
                 }
@@ -99,7 +99,7 @@ isolated function matchScopes(string|string[] actualScopes, string|string[] expe
 
 // Constructs an array of groups from the given space-separated string of groups.
 isolated function convertToArray(string spaceSeperatedString) returns string[] {
-    if (spaceSeperatedString.length() == 0) {
+    if spaceSeperatedString.length() == 0 {
         return [];
     }
     return regex:split(spaceSeperatedString, " ");

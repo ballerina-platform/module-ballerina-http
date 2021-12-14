@@ -40,25 +40,25 @@ public isolated client class ListenerOAuth2Handler {
                                        map<string>? optionalParams = ())
                                        returns oauth2:IntrospectionResponse|Unauthorized|Forbidden {
         string|ListenerAuthError credential = extractCredential(data);
-        if (credential is string) {
+        if credential is string {
             oauth2:IntrospectionResponse|oauth2:Error details = self.provider.authorize(credential, optionalParams);
-            if (details is oauth2:IntrospectionResponse) {
-                if (!details.active) {
+            if details is oauth2:IntrospectionResponse {
+                if !details.active {
                     Unauthorized unauthorized = {
                         body: "The provided access-token is not active."
                     };
                     return unauthorized;
                 }
 
-                if (expectedScopes is ()) {
+                if expectedScopes is () {
                     return details;
                 }
 
                 string scopeKey = self.scopeKey;
                 var actualScope = details[scopeKey];
-                if (actualScope is string) {
+                if actualScope is string {
                     boolean matched = matchScopes(convertToArray(actualScope), <string|string[]>expectedScopes);
-                    if (matched) {
+                    if matched {
                         return details;
                     }
                 }

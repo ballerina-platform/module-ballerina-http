@@ -35,15 +35,15 @@ import ballerina/oauth2;
 # + resourcePath - The relative path
 public isolated function authenticateResource(Service serviceRef, string methodName, string[] resourcePath) {
     ListenerAuthConfig[]? authConfig = getListenerAuthConfig(serviceRef, methodName, resourcePath);
-    if (authConfig is ()) {
+    if authConfig is () {
         return;
     }
     string|HeaderNotFoundError header = getAuthorizationHeader();
-    if (header is string) {
+    if header is string {
         Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authConfig, header);
-        if (result is Unauthorized) {
+        if result is Unauthorized {
             sendResponse(create401Response());
-        } else if (result is Forbidden) {
+        } else if result is Forbidden {
             sendResponse(create403Response());
         }
     } else {
@@ -55,11 +55,11 @@ isolated map<ListenerAuthHandler> authHandlers = {};
 
 isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header) returns Unauthorized|Forbidden? {
     foreach ListenerAuthConfig config in authConfig {
-        if (config is FileUserStoreConfigWithScopes) {
+        if config is FileUserStoreConfigWithScopes {
             ListenerFileUserStoreBasicAuthHandler handler;
             lock {
                 string key = config.fileUserStoreConfig.toString();
-                if (authHandlers.hasKey(key)) {
+                if authHandlers.hasKey(key) {
                     handler = <ListenerFileUserStoreBasicAuthHandler> authHandlers.get(key);
                 } else {
                     handler = new(config.fileUserStoreConfig.cloneReadOnly());
@@ -68,18 +68,18 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
             }
             auth:UserDetails|Unauthorized authn = handler.authenticate(header);
             string|string[]? scopes = config?.scopes;
-            if (authn is auth:UserDetails) {
-                if (scopes is string|string[]) {
+            if authn is auth:UserDetails {
+                if scopes is string|string[] {
                     Forbidden? authz = handler.authorize(authn, scopes);
                     return authz;
                 }
                 return;
             }
-        } else if (config is LdapUserStoreConfigWithScopes) {
+        } else if config is LdapUserStoreConfigWithScopes {
             ListenerLdapUserStoreBasicAuthHandler handler;
             lock {
                 string key = config.ldapUserStoreConfig.toString();
-                if (authHandlers.hasKey(key)) {
+                if authHandlers.hasKey(key) {
                     handler = <ListenerLdapUserStoreBasicAuthHandler> authHandlers.get(key);
                 } else {
                     handler = new(config.ldapUserStoreConfig.cloneReadOnly());
@@ -88,18 +88,18 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
             }
             auth:UserDetails|Unauthorized authn = handler->authenticate(header);
             string|string[]? scopes = config?.scopes;
-            if (authn is auth:UserDetails) {
-                if (scopes is string|string[]) {
+            if authn is auth:UserDetails {
+                if scopes is string|string[] {
                     Forbidden? authz = handler->authorize(authn, scopes);
                     return authz;
                 }
                 return;
             }
-        } else if (config is JwtValidatorConfigWithScopes) {
+        } else if config is JwtValidatorConfigWithScopes {
             ListenerJwtAuthHandler handler;
             lock {
                 string key = config.jwtValidatorConfig.toString();
-                if (authHandlers.hasKey(key)) {
+                if authHandlers.hasKey(key) {
                     handler = <ListenerJwtAuthHandler> authHandlers.get(key);
                 } else {
                     handler = new(config.jwtValidatorConfig.cloneReadOnly());
@@ -108,8 +108,8 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
             }
             jwt:Payload|Unauthorized authn = handler.authenticate(header);
             string|string[]? scopes = config?.scopes;
-            if (authn is jwt:Payload) {
-                if (scopes is string|string[]) {
+            if authn is jwt:Payload {
+                if scopes is string|string[] {
                     Forbidden? authz = handler.authorize(authn, scopes);
                     return authz;
                 }
@@ -120,7 +120,7 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
             ListenerOAuth2Handler handler;
             lock {
                 string key = config.oauth2IntrospectionConfig.toString();
-                if (authHandlers.hasKey(key)) {
+                if authHandlers.hasKey(key) {
                     handler = <ListenerOAuth2Handler> authHandlers.get(key);
                 } else {
                     handler = new(config.oauth2IntrospectionConfig.cloneReadOnly());
@@ -128,9 +128,9 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
                 }
             }
             oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(header, config?.scopes);
-            if (auth is oauth2:IntrospectionResponse) {
+            if auth is oauth2:IntrospectionResponse {
                 return;
-            } else if (auth is Forbidden) {
+            } else if auth is Forbidden {
                 return auth;
             }
         }
@@ -142,13 +142,13 @@ isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header
 isolated function getListenerAuthConfig(Service serviceRef, string methodName, string[] resourcePath)
                                         returns ListenerAuthConfig[]? {
     ListenerAuthConfig[]|Scopes? resourceAuthConfig = getResourceAuthConfig(serviceRef, methodName, resourcePath);
-    if (resourceAuthConfig is ListenerAuthConfig[]) {
+    if resourceAuthConfig is ListenerAuthConfig[] {
         return resourceAuthConfig;
-    } else if (resourceAuthConfig is Scopes) {
+    } else if resourceAuthConfig is Scopes {
         ListenerAuthConfig[]? serviceAuthConfig = getServiceAuthConfig(serviceRef);
-        if (serviceAuthConfig is ListenerAuthConfig[]) {
+        if serviceAuthConfig is ListenerAuthConfig[] {
             ListenerAuthConfig[]|error authConfig = serviceAuthConfig.cloneWithType();
-            if (authConfig is ListenerAuthConfig[]) {
+            if authConfig is ListenerAuthConfig[] {
                 foreach ListenerAuthConfig config in authConfig {
                     config.scopes = resourceAuthConfig.scopes;
                 }
@@ -157,7 +157,7 @@ isolated function getListenerAuthConfig(Service serviceRef, string methodName, s
         }
     }
     ListenerAuthConfig[]? serviceAuthConfig = getServiceAuthConfig(serviceRef);
-    if (serviceAuthConfig is ListenerAuthConfig[]) {
+    if serviceAuthConfig is ListenerAuthConfig[] {
         return serviceAuthConfig;
     }
     return;
@@ -166,7 +166,7 @@ isolated function getListenerAuthConfig(Service serviceRef, string methodName, s
 isolated function getServiceAuthConfig(Service serviceRef) returns ListenerAuthConfig[]? {
     typedesc<any> serviceTypeDesc = typeof serviceRef;
     var serviceAnnotation = serviceTypeDesc.@ServiceConfig;
-    if (serviceAnnotation is ()) {
+    if serviceAnnotation is () {
         return;
     }
     HttpServiceConfig serviceConfig = <HttpServiceConfig>serviceAnnotation;
@@ -180,7 +180,7 @@ isolated function getResourceAuthConfig(Service serviceRef, string methodName, s
         resourceName += "$" + path;
     }
     any resourceAnnotation = getResourceAnnotation(serviceRef, resourceName);
-    if (resourceAnnotation is ()) {
+    if resourceAnnotation is () {
         return;
     }
     HttpResourceConfig resourceConfig = <HttpResourceConfig>resourceAnnotation;
@@ -202,7 +202,7 @@ isolated function create403Response() returns Response {
 isolated function sendResponse(Response response) {
     Caller caller = getCaller();
     error? err = caller->respond(response);
-    if (err is error) {
+    if err is error {
         log:printError("Failed to respond the 401/403 request.", 'error = err);
     }
     // This panic is added to break the execution of the implementation inside the resource function after there is

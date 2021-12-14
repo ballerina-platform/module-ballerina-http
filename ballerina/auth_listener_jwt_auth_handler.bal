@@ -38,9 +38,9 @@ public isolated class ListenerJwtAuthHandler {
     # + return - The `jwt:Payload` instance or else `Unauthorized` type in case of an error
     public isolated function authenticate(Request|Headers|string data) returns jwt:Payload|Unauthorized {
         string|ListenerAuthError credential = extractCredential(data);
-        if (credential is string) {
+        if credential is string {
             jwt:Payload|jwt:Error details = self.provider.authenticate(credential);
-            if (details is jwt:Payload) {
+            if details is jwt:Payload {
                 return details;
             } else {
                 Unauthorized unauthorized = {
@@ -64,16 +64,16 @@ public isolated class ListenerJwtAuthHandler {
     public isolated function authorize(jwt:Payload jwtPayload, string|string[] expectedScopes) returns Forbidden? {
         string scopeKey = self.scopeKey;
         var actualScope = jwtPayload[scopeKey];
-        if (actualScope is string) {
+        if actualScope is string {
             boolean matched = matchScopes(convertToArray(actualScope), expectedScopes);
-            if (matched) {
+            if matched {
                 return;
             }
-        } else if (actualScope is json[]) {
+        } else if actualScope is json[] {
             string[]|error scopes = actualScope.cloneWithType(stringArray);
-            if (scopes is string[]) {
+            if scopes is string[] {
                 boolean matched = matchScopes(scopes, expectedScopes);
-                if (matched) {
+                if matched {
                     return;
                 }
             }
