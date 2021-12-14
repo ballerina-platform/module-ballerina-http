@@ -79,7 +79,7 @@ public class HttpCallableUnitCallback implements Callback {
                 sendFailureResponse(result);
             }
         };
-        runtime.invokeMethodAsyncConcurrently(
+        runtime.invokeMethodAsyncSequentially(
                 caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
