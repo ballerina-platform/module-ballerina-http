@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @chamil321 @ayeshLK @TharmiganK  
 _Reviewers_: @chamil321 @ldclakmal    
 _Created_: 2021/09/23  
-_Updated_: 2021/10/18  
+_Updated_: 2021/12/16  
 _Issue_: [#692](https://github.com/ballerina-platform/ballerina-standard-library/issues/692)
 
 ## Summary 
@@ -111,13 +111,16 @@ service class RequestInterceptor {
    *http:RequestInterceptor;
  
    resource function 'default [string… path](http:RequestContext ctx, http:Caller caller,
-                       http:Request req) returns http:RequestInterceptor|error? {
+                       http:Request req) returns http:NextService|error? {
        // do some work
        return ctx.next();
    }
 }
 
 ```
+
+> **Note**: `NextService` is a union type of `RequestInterceptor`, `ResponseInterceptor` and `HttpService`.
+
 #### `resource` Functions 
 
 Since interceptors work with network activities, it must be either a remote or resource function. In this case resource functions are used for RequestInterceptor as it gives more flexibility. With resource functions interceptors can be engaged based on HTTP method and path as well. 
@@ -129,20 +132,20 @@ service class RequestInterceptor {
    *http:RequestInterceptor;
  
    resource function 'default foo(http:RequestContext ctx, http:Caller caller,
-                       http:Request req) returns http:RequestInterceptor|error? {
+                       http:Request req) returns http:NextService|error? {
        // do some work
        return ctx.next();
    }
 }
 ```
-However, if the user wants to write a interceptor which is not bound to any path, meaning the interceptor gets hit for requests directed to `foo` or `bar`, the user can do the following.
+However, if the user wants to write an interceptor which is not bound to any path, meaning the interceptor gets hit for requests directed to `foo` or `bar`, the user can do the following.
 
 ```ballerina
 service class RequestInterceptor {
    *http:RequestInterceptor;
  
    resource function 'default [string… path](http:RequestContext ctx, http:Caller caller,
-                       http:Request req) returns http:RequestInterceptor|error? {
+                       http:Request req) returns http:NextService|error? {
        // do some work
        return ctx.next();
    }
@@ -154,13 +157,13 @@ Basically the rules are the same as what is there for the HTTP service dispatche
 The list of arguments are the same as the 1.2.x version. 
 
 #### RequestContext 
-Following is the definition of the RequestContext. Here the name ReqeustContext is used insted FilterContext because Because the Context is instigated and scoped by the request.
+Following is the definition of the RequestContext. Here the name RequestContext is used instead FilterContext because the Context is instigated and scoped by the request.
 
 ```ballerina
 public isolated class RequestContext {
     private final map<value:Cloneable|isolated object {}> attributes = {};
 
-    public isolated function add(string 'key, value:Cloneable|isolated object {} value) {
+    public isolated function set(string 'key, value:Cloneable|isolated object {} value) {
         if value is value:Cloneable {
             lock {
                 self.attributes['key] = value.clone();
@@ -185,7 +188,7 @@ public isolated class RequestContext {
         }
     }
 
-    public isolated function next() returns RequestInterceptor|ResponseInterceptor|HttpService|error? = external;
+    public isolated function next() returns NextService|error? = external;
 }
 ```
 
@@ -197,7 +200,7 @@ However, there is an addition when it comes to RequestContext. A new method name
 Previously, this was controlled by returning a boolean value which is quite cryptic and confusing. 
 
 #### Returning `error?`
-Resource functions can return only `error?` when using the Caller. In the case of an error, intercetpor pipeline execution jumps to the nearest RequestErrorInterceptor in the pipeline. It is a special kind of interceptor which could be used to handle errors. More on this can be found under section `RequestErrorInterceptor and ResponseErrorInterceptor`.
+Resource functions can return only `error?` when using the Caller. In the case of an error, interceptor pipeline execution jumps to the nearest RequestErrorInterceptor in the pipeline. It is a special kind of interceptor which could be used to handle errors. More on this can be found under section `RequestErrorInterceptor and ResponseErrorInterceptor`.
 
 However, in the case of there is no RequestErrorInterceptor in the pipeline, pipeline returns 500 internal server error response to the client similar to any HTTP service resource.
 
@@ -224,7 +227,7 @@ However, in the case of there is no ResponseErrorInterceptor in the pipeline, pi
 
 ### RequestErrorInterceptor and ResponseErrorInterceptor
 
-As mentioned above this is a special kind of interceptor designed to handle errors. These interceptors can be at any location of the pipeline.
+As mentioned above this is a special kind of interceptor designed to handle errors. These interceptors can be at any location of the pipeline. Also, these interceptors are only allowed to have default HTTP method and path.
 
 ```ballerina
 service class RequestErrorInterceptor {
@@ -254,7 +257,7 @@ service class ResponseErrorInterceptor {
 }
 ```
 
-In the case of an error returned within the ErrorInterceptor, again execution jumps to the nearest ErrorInterceptor. However, if there is no ErrorInterceptor to jump to, it resutls in 500 internal server error just like in normal interceptors. After all, ErrorInterceptor is just another interceptor.
+In the case of an error returned within the ErrorInterceptor, again execution jumps to the nearest ErrorInterceptor. However, if there is no ErrorInterceptor to jump to, it results in 500 internal server error just like in normal interceptors. After all, ErrorInterceptor is just another interceptor.
 
 ### Engaging Interceptors
 
@@ -268,7 +271,7 @@ Unlike in 1.2.x, Swan-Lake could engage interceptors at service level as well. O
 ```
 
 #### Listener Level
-There is no difference between 1.2.x and Swan-Lake when it comes to engaging the interceptors at the listener level. At the listener level resource function paths are relative to the `/`. 
+There is no difference between 1.2.x and Swan-Lake when it comes to engaging the interceptors at the listener level. At the listener level resource function paths are relative to the `/`. The interceptors engaged in Listener level are only allowed to have default path. If the user want to engage an interceptor to a specific path, they can engage them at Service level.
 
 ```ballerina
 listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: [requestFilter, responseFilter]});
@@ -291,6 +294,8 @@ However, consider the scenario where RequestInterceptor at two returns an error,
 For more information on this read the section `Execution Order of Filters` under `History` section.
 
 > **Note**: Execution of interceptors does not dependent on the existence of the end service i.e. the interceptors are executed in the relevant order even though the end service does not exist.
+
+> **Note**: When the interceptors are engaged in both Listener and Service levels, the Listener level RequestInterceptors will be executed prior to the Service level RequestInterceptors and the Listener level ResponseInterceptors will be executed after the Service level ResponseInterceptors.
 
 #### Service Annotations
 Service annotations could include security validations related to the service. These security validations are only executed after executing all the request interceptors. In other words security validations are implemented as the last interceptor in the pipeline. The same applies for other service level or resource level annotations. 
