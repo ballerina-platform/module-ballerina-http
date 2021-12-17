@@ -481,8 +481,9 @@ public class HttpDispatcher {
 
     static BObject getCaller(Resource resource, HttpCarbonMessage httpCarbonMessage,
                                 BMap<BString, Object> endpointConfig) {
-        BObject httpCaller = httpCarbonMessage.getProperty(HttpConstants.CALLER) == null ?
-                ValueCreatorUtils.createCallerObject() : (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
+        final BObject httpCaller = httpCarbonMessage.getProperty(HttpConstants.CALLER) == null ?
+                ValueCreatorUtils.createCallerObject(httpCarbonMessage) :
+                (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
         HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, resource, endpointConfig);
         HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
         httpCarbonMessage.setProperty(HttpConstants.CALLER, httpCaller);

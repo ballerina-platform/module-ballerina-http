@@ -22,15 +22,18 @@ import ballerina/lang.value as val;
 # + remoteAddress - The remote address
 # + localAddress - The local address
 # + protocol - The protocol associated with the service endpoint
-public client class Caller {
-
+public isolated client class Caller {
+    public final readonly & Remote remoteAddress;
+    public final readonly & Local localAddress;
+    public final string protocol;
     private ListenerConfiguration config = {};
-
-    //TODO:Make these readonly
-    public Remote remoteAddress = {};
-    public Local localAddress = {};
-    public string protocol = "";
     private boolean present = false;
+
+    isolated function init(Remote remoteAddress, Local localAddress, string protocol) {
+        self.remoteAddress = remoteAddress.cloneReadOnly();
+        self.localAddress = localAddress.cloneReadOnly();
+        self.protocol = protocol;
+    }
 
     # Sends the outbound response to the caller.
     #
@@ -119,7 +122,11 @@ public client class Caller {
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
         boolean cacheCompatibleType = false;
         if message is () {
-            if self.present {
+            boolean isCallerPresent = false;
+            lock {
+                isCallerPresent = self.present;
+            }
+            if isCallerPresent {
                 InternalServerError errResponse = {};
                 response = createStatusCodeResponse(errResponse);
             } else {

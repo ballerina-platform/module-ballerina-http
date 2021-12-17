@@ -95,7 +95,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
@@ -751,30 +750,7 @@ public class HttpUtil {
      */
     public static void enrichHttpCallerWithConnectionInfo(BObject httpCaller, HttpCarbonMessage inboundMsg,
                                                           Resource resource, BMap config) {
-        BMap<BString, Object> remote = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.REMOTE);
-        BMap<BString, Object> local = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LOCAL);
-
         Object remoteSocketAddress = inboundMsg.getProperty(HttpConstants.REMOTE_ADDRESS);
-        if (remoteSocketAddress instanceof InetSocketAddress) {
-            InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteSocketAddress;
-            BString remoteHost = fromString(inetSocketAddress.getHostString());
-            long remotePort = inetSocketAddress.getPort();
-            remote.put(HttpConstants.REMOTE_HOST_FIELD, remoteHost);
-            remote.put(HttpConstants.REMOTE_PORT_FIELD, remotePort);
-        }
-        httpCaller.set(HttpConstants.REMOTE_STRUCT_FIELD, remote);
-
-        Object localSocketAddress = inboundMsg.getProperty(HttpConstants.LOCAL_ADDRESS);
-        if (localSocketAddress instanceof InetSocketAddress) {
-            InetSocketAddress inetSocketAddress = (InetSocketAddress) localSocketAddress;
-            String localHost = inetSocketAddress.getHostName();
-            long localPort = inetSocketAddress.getPort();
-            local.put(HttpConstants.LOCAL_HOST_FIELD, fromString(localHost));
-            local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
-        }
-        httpCaller.set(HttpConstants.LOCAL_STRUCT_INDEX, local);
-        httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD,
-                       fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_CONFIG_FIELD, config);
         httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, resource.getParentService());
         httpCaller.addNativeData(HttpConstants.REMOTE_SOCKET_ADDRESS, remoteSocketAddress);
