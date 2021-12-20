@@ -6,7 +6,7 @@ authors = ["Ballerina"]
 keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
 license = ["Apache-2.0"]
-distribution = "slbeta6"
+distribution = "2201.0.0"
 
 [[platform.java11.dependency]]
 path = "../native/build/libs/http-native-@project.version@.jar"
