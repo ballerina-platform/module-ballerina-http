@@ -44,7 +44,17 @@
           <stringProp name="HTTPSampler.connect_timeout"></stringProp>
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
-        <hashTree/>
+        <hashTree>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Locations Response Validation" enabled="true">
+            <stringProp name="JSON_PATH">locations</stringProp>
+            <stringProp name="EXPECTED_VALUE">[{&quot;name&quot;:&quot;Alps&quot;,&quot;id&quot;:&quot;l1000&quot;,&quot;address&quot;:&quot;NC 29384, some place, switzerland&quot;,&quot;links&quot;:[{&quot;rel&quot;:&quot;room&quot;,&quot;href&quot;:&quot;\/snowpeak\/locations\/l1000\/rooms&quot;,&quot;types&quot;:[&quot;applicaion\/vnd.snowpeak.resort+json&quot;],&quot;methods&quot;:[&quot;GET&quot;]}]},{&quot;name&quot;:&quot;Pilatus&quot;,&quot;id&quot;:&quot;l2000&quot;,&quot;address&quot;:&quot;NC 29444, some place, switzerland&quot;,&quot;links&quot;:[{&quot;rel&quot;:&quot;room&quot;,&quot;href&quot;:&quot;\/snowpeak\/locations\/l2000\/rooms&quot;,&quot;types&quot;:[&quot;applicaion\/vnd.snowpeak.resort+json&quot;],&quot;methods&quot;:[&quot;GET&quot;]}]}]</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">false</boolProp>
+            <boolProp name="INVERT">false</boolProp>
+            <boolProp name="ISREGEX">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+        </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Retrieve Available Rooms" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments"/>
@@ -63,7 +73,26 @@
           <stringProp name="HTTPSampler.connect_timeout"></stringProp>
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
-        <hashTree/>
+        <hashTree>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Validate Received Rooms" enabled="true">
+            <stringProp name="JSON_PATH">$.rooms</stringProp>
+            <stringProp name="EXPECTED_VALUE">[{&quot;id&quot;:&quot;r1000&quot;,&quot;category&quot;:&quot;DELUXE&quot;,&quot;capacity&quot;:5,&quot;wifi&quot;:true,&quot;status&quot;:&quot;AVAILABLE&quot;,&quot;currency&quot;:&quot;USD&quot;,&quot;price&quot;:200.0,&quot;count&quot;:3}]</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">false</boolProp>
+            <boolProp name="INVERT">false</boolProp>
+            <boolProp name="ISREGEX">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Validate Received Links" enabled="true">
+            <stringProp name="JSON_PATH">$.links</stringProp>
+            <stringProp name="EXPECTED_VALUE">[{&quot;rel&quot;:&quot;reservation&quot;,&quot;href&quot;:&quot;\/snowpeak\/reservation&quot;,&quot;types&quot;:[&quot;applicaion\/vnd.snowpeak.resort+json&quot;],&quot;methods&quot;:[&quot;PUT&quot;]}]</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">false</boolProp>
+            <boolProp name="INVERT">false</boolProp>
+            <boolProp name="ISREGEX">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+        </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Make Reservation" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
@@ -131,6 +160,43 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
     </hashTree>
   </hashTree>
 </jmeterTestPlan>
