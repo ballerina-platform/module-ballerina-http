@@ -49,7 +49,7 @@ isolated function buildCompleteErrorMessage(error err) returns string {
 // Extract the credential from `http:Request`, `http:Headers` or `string` header.
 isolated function extractCredential(Request|Headers|string data) returns string|ListenerAuthError {
     if data is string {
-        return regex:split(<string>data, " ")[1];
+        return regex:split(data, " ")[1];
     } else {
         object {
             public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
@@ -61,6 +61,11 @@ isolated function extractCredential(Request|Headers|string data) returns string|
             return prepareListenerAuthError("Authorization header not available.", header);
         }
     }
+}
+
+// Extract the scheme from `string` header.
+isolated function extractScheme(string header) returns string {
+    return regex:split(header, " ")[0];
 }
 
 // Match the expectedScopes with actualScopes and return if there is a match.
