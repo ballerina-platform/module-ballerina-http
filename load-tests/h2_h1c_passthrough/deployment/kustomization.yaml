@@ -1,0 +1,11 @@
+resources:
+  - h2_h1c_passthrough.yaml
+  - ingress.yaml
+  - netty-backend.yaml
+patches:
+- path: deployment-patch.yaml
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: h2-h1c-passthro-deployment
