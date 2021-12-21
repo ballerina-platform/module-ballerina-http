@@ -1,0 +1,13 @@
+apiVersion: "apps/v1"
+kind: Deployment
+metadata:
+  name: no-name
+spec:
+  template:
+    metadata:
+      labels:
+        logs: "true"
+    spec:
+      containers:
+      - name: "observability-e-deployment"
+        imagePullPolicy: Always
