@@ -30,3 +30,4 @@ spec:
   - port: 8688
   selector:
     app: netty-backend
+    
