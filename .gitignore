@@ -41,6 +41,10 @@ target/
 .settings
 .vscode
 
+# Dependencies.toml of examples and load-tests
+examples/**/Dependencies.toml
+load-tests/**/Dependencies.toml
+
 # Ballerina related ignores
 Ballerina.lock
 velocity.log*

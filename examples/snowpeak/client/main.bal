@@ -43,7 +43,7 @@ public function main() returns error? {
         "startDate": "2021-08-01",
         "endDate": "2021-08-03"
     };
-    rep:ReservationReceipt recervationReciept = check snowpeak->post(rooms.links[0].href, reservation);
+    rep:ReservationReceipt recervationReciept = check snowpeak->put(rooms.links[0].href, reservation);
 
     // do the payment
     rep:Payment payment = {
@@ -52,5 +52,5 @@ public function main() returns error? {
         "expiryMonth": 9,
         "expiryYear": 2033
     };
-    rep:PaymentReceipt paymentReceipt = check snowpeak->post(recervationReciept.links[2].href, payment);
+    rep:PaymentReceipt paymentReceipt = check snowpeak->put(recervationReciept.links[2].href, payment);
 }
