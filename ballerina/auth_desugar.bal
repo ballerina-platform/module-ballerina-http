@@ -54,89 +54,122 @@ public isolated function authenticateResource(Service serviceRef, string methodN
 isolated map<ListenerAuthHandler> authHandlers = {};
 
 isolated function tryAuthenticate(ListenerAuthConfig[] authConfig, string header) returns Unauthorized|Forbidden? {
+    string scheme = extractScheme(header);
+    Unauthorized|Forbidden? authResult = <Unauthorized>{};
     foreach ListenerAuthConfig config in authConfig {
-        if config is FileUserStoreConfigWithScopes {
-            ListenerFileUserStoreBasicAuthHandler handler;
-            lock {
-                string key = config.fileUserStoreConfig.toString();
-                if authHandlers.hasKey(key) {
-                    handler = <ListenerFileUserStoreBasicAuthHandler> authHandlers.get(key);
-                } else {
-                    handler = new(config.fileUserStoreConfig.cloneReadOnly());
-                    authHandlers[key] = handler;
-                }
+        if scheme is AUTH_SCHEME_BASIC {
+            if config is FileUserStoreConfigWithScopes {
+                authResult = authenticateWithFileUserStore(config, header);
+            } else if config is LdapUserStoreConfigWithScopes {
+                authResult = authenticateWithLdapUserStoreConfig(config, header);
+            } else {
+                log:printDebug("Invalid auth configurations for 'Basic' scheme.");
             }
-            auth:UserDetails|Unauthorized authn = handler.authenticate(header);
-            string|string[]? scopes = config?.scopes;
-            if authn is auth:UserDetails {
-                if scopes is string|string[] {
-                    Forbidden? authz = handler.authorize(authn, scopes);
-                    return authz;
-                }
-                return;
-            }
-        } else if config is LdapUserStoreConfigWithScopes {
-            ListenerLdapUserStoreBasicAuthHandler handler;
-            lock {
-                string key = config.ldapUserStoreConfig.toString();
-                if authHandlers.hasKey(key) {
-                    handler = <ListenerLdapUserStoreBasicAuthHandler> authHandlers.get(key);
-                } else {
-                    handler = new(config.ldapUserStoreConfig.cloneReadOnly());
-                    authHandlers[key] = handler;
-                }
-            }
-            auth:UserDetails|Unauthorized authn = handler->authenticate(header);
-            string|string[]? scopes = config?.scopes;
-            if authn is auth:UserDetails {
-                if scopes is string|string[] {
-                    Forbidden? authz = handler->authorize(authn, scopes);
-                    return authz;
-                }
-                return;
-            }
-        } else if config is JwtValidatorConfigWithScopes {
-            ListenerJwtAuthHandler handler;
-            lock {
-                string key = config.jwtValidatorConfig.toString();
-                if authHandlers.hasKey(key) {
-                    handler = <ListenerJwtAuthHandler> authHandlers.get(key);
-                } else {
-                    handler = new(config.jwtValidatorConfig.cloneReadOnly());
-                    authHandlers[key] = handler;
-                }
-            }
-            jwt:Payload|Unauthorized authn = handler.authenticate(header);
-            string|string[]? scopes = config?.scopes;
-            if authn is jwt:Payload {
-                if scopes is string|string[] {
-                    Forbidden? authz = handler.authorize(authn, scopes);
-                    return authz;
-                }
-                return;
-            }
-        } else {
-            // Here, config is OAuth2IntrospectionConfigWithScopes
-            ListenerOAuth2Handler handler;
-            lock {
-                string key = config.oauth2IntrospectionConfig.toString();
-                if authHandlers.hasKey(key) {
-                    handler = <ListenerOAuth2Handler> authHandlers.get(key);
-                } else {
-                    handler = new(config.oauth2IntrospectionConfig.cloneReadOnly());
-                    authHandlers[key] = handler;
-                }
-            }
-            oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(header, config?.scopes);
-            if auth is oauth2:IntrospectionResponse {
-                return;
-            } else if auth is Forbidden {
-                return auth;
+        } else if scheme is AUTH_SCHEME_BEARER {
+            if config is JwtValidatorConfigWithScopes {
+                authResult = authenticateWithJwtValidatorConfig(config, header);
+            } else if config is OAuth2IntrospectionConfigWithScopes {
+                authResult = authenticateWithOAuth2IntrospectionConfig(config, header);
+            } else {
+                log:printDebug("Invalid auth configurations for 'Bearer' scheme.");
             }
         }
+        if authResult is () || authResult is Forbidden {
+            return authResult;
+        }
     }
-    Unauthorized unauthorized = {};
-    return unauthorized;
+    return authResult;
+}
+
+isolated function authenticateWithFileUserStore(FileUserStoreConfigWithScopes config, string header)
+                                                returns Unauthorized|Forbidden? {
+    ListenerFileUserStoreBasicAuthHandler handler;
+    lock {
+        string key = config.fileUserStoreConfig.toString();
+        if authHandlers.hasKey(key) {
+            handler = <ListenerFileUserStoreBasicAuthHandler> authHandlers.get(key);
+        } else {
+            handler = new(config.fileUserStoreConfig.cloneReadOnly());
+            authHandlers[key] = handler;
+        }
+    }
+    auth:UserDetails|Unauthorized authn = handler.authenticate(header);
+    string|string[]? scopes = config?.scopes;
+    if authn is auth:UserDetails {
+        if scopes is string|string[] {
+            Forbidden? authz = handler.authorize(authn, scopes);
+            return authz;
+        }
+        return;
+    }
+    return authn;
+}
+
+isolated function authenticateWithLdapUserStoreConfig(LdapUserStoreConfigWithScopes config, string header)
+                                                      returns Unauthorized|Forbidden? {
+    ListenerLdapUserStoreBasicAuthHandler handler;
+    lock {
+        string key = config.ldapUserStoreConfig.toString();
+        if authHandlers.hasKey(key) {
+            handler = <ListenerLdapUserStoreBasicAuthHandler> authHandlers.get(key);
+        } else {
+            handler = new(config.ldapUserStoreConfig.cloneReadOnly());
+            authHandlers[key] = handler;
+        }
+    }
+    auth:UserDetails|Unauthorized authn = handler->authenticate(header);
+    string|string[]? scopes = config?.scopes;
+    if authn is auth:UserDetails {
+        if scopes is string|string[] {
+            Forbidden? authz = handler->authorize(authn, scopes);
+            return authz;
+        }
+        return;
+    }
+    return authn;
+}
+
+isolated function authenticateWithJwtValidatorConfig(JwtValidatorConfigWithScopes config, string header)
+                                                     returns Unauthorized|Forbidden? {
+    ListenerJwtAuthHandler handler;
+    lock {
+        string key = config.jwtValidatorConfig.toString();
+        if authHandlers.hasKey(key) {
+            handler = <ListenerJwtAuthHandler> authHandlers.get(key);
+        } else {
+            handler = new(config.jwtValidatorConfig.cloneReadOnly());
+            authHandlers[key] = handler;
+        }
+    }
+    jwt:Payload|Unauthorized authn = handler.authenticate(header);
+    string|string[]? scopes = config?.scopes;
+    if authn is jwt:Payload {
+        if scopes is string|string[] {
+            Forbidden? authz = handler.authorize(authn, scopes);
+            return authz;
+        }
+        return;
+    }
+    return authn;
+}
+
+isolated function authenticateWithOAuth2IntrospectionConfig(OAuth2IntrospectionConfigWithScopes config, string header)
+                                                            returns Unauthorized|Forbidden? {
+    ListenerOAuth2Handler handler;
+    lock {
+        string key = config.oauth2IntrospectionConfig.toString();
+        if authHandlers.hasKey(key) {
+            handler = <ListenerOAuth2Handler> authHandlers.get(key);
+        } else {
+            handler = new(config.oauth2IntrospectionConfig.cloneReadOnly());
+            authHandlers[key] = handler;
+        }
+    }
+    oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(header, config?.scopes);
+    if auth is oauth2:IntrospectionResponse {
+        return;
+    }
+    return auth;
 }
 
 isolated function getListenerAuthConfig(Service serviceRef, string methodName, string[] resourcePath)
