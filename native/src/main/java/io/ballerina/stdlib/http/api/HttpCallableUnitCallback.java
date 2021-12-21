@@ -54,7 +54,7 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifySuccess(Object result) {
-        cleanupRequestAndContext();
+        cleanupRequestMessage();
         if (alreadyResponded(result)) {
             return;
         }
@@ -86,7 +86,7 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
-        cleanupRequestAndContext();
+        cleanupRequestMessage();
         // This check is added to release the failure path since there is an authn/authz failure and responded
         // with 401/403 internally.
         if (error.getMessage().equals("Already responded by auth desugar.")) {
@@ -99,12 +99,12 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     private void sendFailureResponse(BError error) {
+        stopObservationWithContext();
         HttpUtil.handleFailure(requestMessage, error, true);
     }
 
-    private void cleanupRequestAndContext() {
+    private void cleanupRequestMessage() {
         requestMessage.waitAndReleaseAllEntities();
-        stopObservationWithContext();
     }
 
     private void stopObservationWithContext() {
