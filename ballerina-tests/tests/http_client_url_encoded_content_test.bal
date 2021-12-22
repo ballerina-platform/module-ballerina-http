@@ -22,7 +22,7 @@ import ballerina/mime;
 import ballerina/test;
 
 final http:Client clientUrlEncodedTestClient = check new(string`http://localhost:${clientFormUrlEncodedTestPort.toString()}/databinding`);
-final string expectedResponse = "key1=value1&key2=value2";
+final string expectedResponse = "URL_ENCODED_key1=value1&key2=value2";
 final readonly & map<string> payload = {
     "key1": "value1",
     "key2": "value2"
@@ -30,8 +30,11 @@ final readonly & map<string> payload = {
 
 service /databinding on new http:Listener(clientFormUrlEncodedTestPort) {
     resource function 'default .(http:Request req) returns string|error {
+        string contentType = req.getContentType();
+        contentType = contentType == mime:APPLICATION_FORM_URLENCODED ? "URL_ENCODED": "INVALID";
         string payload = check req.getTextPayload();
-        return url:decode(payload, "UTF-8");
+        string decodedContent = check url:decode(payload, "UTF-8");
+        return string`${contentType}_${decodedContent}`;
     }
 }
 
