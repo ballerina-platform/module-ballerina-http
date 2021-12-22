@@ -77,3 +77,31 @@ isolated function testUrlContentWithExecute() returns error? {
     string response = check clientUrlEncodedTestClient->execute("POST", "", payload, mediaType = mime:APPLICATION_FORM_URLENCODED);
     test:assertEquals(response, expectedResponse, msg = "Found unexpected output");
 }
+
+@test:Config {
+    groups: ["urlEncodedContent"]
+}
+isolated function testUrlContentWithIntPayload() returns error? {
+    string|error response = clientUrlEncodedTestClient->post("", 10, mediaType = mime:APPLICATION_FORM_URLENCODED);
+    test:assertTrue(response is error, "Found unexpected output");
+    if response is error {
+        test:assertEquals(response.message(), "unsupported content for application/x-www-form-urlencoded media type", msg = "Found unexpected output");
+    }
+}
+
+@test:Config {
+    groups: ["urlEncodedContent"]
+}
+isolated function testUrlContentWithJsonPayload() returns error? {
+    json jsonPayload = {
+        "key1": "val1",
+        "key2": [
+            "val2.1", "val2.2"
+        ]
+    };
+    string|error response = clientUrlEncodedTestClient->post("", jsonPayload, mediaType = mime:APPLICATION_FORM_URLENCODED);
+    test:assertTrue(response is error, "Found unexpected output");
+    if response is error {
+        test:assertEquals(response.message(), "unsupported content for application/x-www-form-urlencoded media type", msg = "Found unexpected output");
+    }
+}
