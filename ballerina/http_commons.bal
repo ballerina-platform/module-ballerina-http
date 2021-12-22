@@ -95,9 +95,8 @@ isolated function processJsonContent(anydata message) returns json|ClientError {
     var result = trap val:toJson(message);
     if (result is error) {
         return error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
-    } else {
-        return result;
     }
+    return result;
 }
 
 isolated function buildResponse(ResponseMessage message) returns Response|ListenerError {
