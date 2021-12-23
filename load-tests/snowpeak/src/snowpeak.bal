@@ -15,8 +15,8 @@
 // under the License.
 
 import ballerina/http;
-import 'service.representations as rep;
-import 'service.mock;
+import snowpeak.representations as rep;
+import snowpeak.mock;
 
 configurable int port = 9090;
 
