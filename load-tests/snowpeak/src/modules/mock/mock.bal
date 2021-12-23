@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import 'service.representations as rep;
+import snowpeak.representations as rep;
 import ballerina/http;
 
 public isolated function getLocations() returns rep:Locations|error {
