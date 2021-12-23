@@ -74,21 +74,20 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
 
 isolated function processUrlEncodedContent(anydata message) returns string|ClientError {
     if message is map<string> {
-        string[] messageParams = message.entries().toArray().'map(constructFormEntry);
-        string payload = strings:'join("&", ...messageParams);
-        string|error encodedContent = url:encode(payload, "UTF-8");
-        if encodedContent is string {
-            return encodedContent;
-        } else {
-            return error InitializingOutboundRequestError("content encoding error: " + encodedContent.message(), encodedContent);
+        do {
+            string[] messageParams = [];
+            foreach var ['key, value] in message.entries() {
+                string encodedValue = check url:encode(value, "UTF-8");
+                string entry = string`${'key}=${encodedValue}`;
+                messageParams.push(entry);
+            }
+            return strings:'join("&", ...messageParams);
+        } on fail var e {
+            return error InitializingOutboundRequestError("content encoding error: " + e.message(), e);
         }
     } else {
         return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
     }
-}
-
-isolated function constructFormEntry([string, string] keyValPair) returns string {
-    return string`${keyValPair[0]}=${keyValPair[1]}`;
 }
 
 isolated function processJsonContent(anydata message) returns json|ClientError {
