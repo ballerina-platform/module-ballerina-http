@@ -1,6 +1,6 @@
 [package]
-org = "snowpeak"
-name = "service"
+org = "ballerina"
+name = "snowpeak"
 version = "1.0.0"
 
 [build-options]
