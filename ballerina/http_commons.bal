@@ -21,6 +21,8 @@ import ballerina/io;
 import ballerina/observe;
 import ballerina/time;
 import ballerina/log;
+import ballerina/lang.'string as strings;
+import ballerina/url;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
@@ -37,7 +39,7 @@ public isolated function parseHeader(string headerValue) returns HeaderValue[]|C
     name: "parseHeader"
 } external;
 
-isolated function buildRequest(RequestMessage message) returns Request|ClientError {
+isolated function buildRequest(RequestMessage message, string? mediaType) returns Request|ClientError {
     Request request = new;
     if (message is ()) {
         request.noEntityBody = true;
@@ -56,14 +58,44 @@ isolated function buildRequest(RequestMessage message) returns Request|ClientErr
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
     } else {
-        var result = trap val:toJson(message);
-        if (result is error) {
-            return error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
-        } else {
-            request.setJsonPayload(result);
+        match mediaType {
+            mime:APPLICATION_FORM_URLENCODED => {
+                string payload = check processUrlEncodedContent(message);
+                request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
+            }
+            _ => {
+                json payload = check processJsonContent(message);
+                request.setJsonPayload(payload);
+            }
         }
     }
     return request;
+}
+
+isolated function processUrlEncodedContent(anydata message) returns string|ClientError {
+    if message is map<string> {
+        do {
+            string[] messageParams = [];
+            foreach var ['key, value] in message.entries() {
+                string encodedValue = check url:encode(value, "UTF-8");
+                string entry = string`${'key}=${encodedValue}`;
+                messageParams.push(entry);
+            }
+            return strings:'join("&", ...messageParams);
+        } on fail var e {
+            return error InitializingOutboundRequestError("content encoding error: " + e.message(), e);
+        }
+    } else {
+        return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
+    }
+}
+
+isolated function processJsonContent(anydata message) returns json|ClientError {
+    var result = trap val:toJson(message);
+    if (result is error) {
+        return error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
+    }
+    return result;
 }
 
 isolated function buildResponse(ResponseMessage message) returns Response|ListenerError {

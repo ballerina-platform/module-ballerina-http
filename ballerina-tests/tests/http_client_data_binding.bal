@@ -396,7 +396,8 @@ service /backend on clientDBBackendListener {
     }
 
     resource function get xmltype() returns http:NotFound {
-        return {body: xml `<test>Bad Request</test>`};
+        xml payload = xml`<test>Bad Request</test>`;
+        return {body: payload};
     }
 
     resource function get jsontype() returns http:InternalServerError {
