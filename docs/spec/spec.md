@@ -75,7 +75,7 @@ that makes it easier to use, combine, and create network services.
 8. [Interceptor and error handling](#8-interceptor-and-error-handling)
     * 8.1. [Interceptor](#81-interceptor)
         * 8.1.1 [Request interceptor](#811-request-interceptor)
-            * 8.1.1.1 [Filter context](#8111-filtercontext)
+            * 8.1.1.1 [Request context](#8111-requestcontext)
             * 8.1.1.2 [Next method](#8112-next-method)
             * 8.1.1.3 [Returning error](#8113-returning-error)
         * 8.1.2 [Request error interceptor](#812-request-error-interceptor)
@@ -1489,7 +1489,7 @@ resource function.
 service class RequestInterceptor {
    *http:RequestInterceptor;
  
-   resource function 'default [string… path](http:FilterContext ctx, http:Caller caller,
+   resource function 'default [string… path](http:RequestContext ctx, http:Caller caller,
                        http:Request req) returns error? {
        request.setHeader("X-requestHeader", "RequestInterceptor");
        ctx.next();
@@ -1508,7 +1508,7 @@ user writes a interceptor as follows, it would only get hit when the request is 
 service class RequestInterceptor {
    *http:RequestInterceptor;
  
-   resource function 'default foo(http:FilterContext ctx, http:Caller caller,
+   resource function 'default foo(http:RequestContext ctx, http:Caller caller,
                        http:Request req) returns error? {
        request.setHeader("X-requestHeader", "RequestInterceptor");
        ctx.next();
@@ -1516,10 +1516,10 @@ service class RequestInterceptor {
 }
 ```
 
-##### 8.1.1.1 FilterContext  
+##### 8.1.1.1 RequestContext  
 Following is the rough definition of the interceptor context.
 ```ballerina
-public isolated class FilterContext {
+public isolated class RequestContext {
     private final map<value:Cloneable|isolated object {}> attributes = {};
 
     public isolated function add(string 'key, value:Cloneable|isolated object {} value) {
@@ -1547,12 +1547,12 @@ public isolated class FilterContext {
         }
     }
 
-    public isolated function next() returns error? = external;
+    public isolated function next() returns NextService|error? = external;
 }
 ```
 
 ##### 8.1.1.2 next() Method  
-However, there is an addition when it comes to FilterContext. A new method namely, next() is introduced to control 
+However, there is an addition when it comes to RequestContext. A new method namely, next() is introduced to control 
 the execution flow. Users must invoke next() method in order to trigger the next interceptor in the pipeline. 
 Previously, this was controlled by returning a boolean value which is quite cryptic and confusing.
 
@@ -1562,9 +1562,11 @@ whatever below the next() method will only get executed after the completion of 
 If the users forget to call next() and don't respond either, the request will be left hanging.
 
 ##### 8.1.1.3 Returning error?
-Resource functions can return only error?. In the case of an error, interceptor chain execution jumps to the last 
-interceptor in the chain. The last interceptor in the chain must be a type of RequestErrorInterceptor. It is a special kind of 
-interceptor which could be used to handle errors. More on this can be found under section RequestErrorInterceptor.
+
+Resource functions can return NextService|error?. They can return only error? when using the Caller.
+Also, in case of an error, interceptor pipeline execution jumps to the nearest RequestErrorInterceptor in the 
+pipeline. This RequestErrorInterceptor is not necessarily the last interceptor in the pipeline, it can be anywhere 
+in the chain.
 
 #### 8.1.2 Request error interceptor
 As mentioned above this is a special kind of interceptor designed to handle errors. These interceptors can only be at the end 
@@ -1580,7 +1582,7 @@ case is error err.
 service class RequestErrorInterceptor {
    *http:RequestErrorInterceptor;
  
-   remote function 'default [string… path](http:FilterContext ctx, http:Caller caller,
+   remote function 'default [string… path](http:RequestContext ctx, http:Caller caller,
                        http:Request req, error err) returns error? {
        // deal with the error
    }
@@ -1589,9 +1591,9 @@ service class RequestErrorInterceptor {
 
 #### 8.1.3 Engaging Interceptors
 ##### 8.1.3.1 Service Level
-Interceptors could get engaged at service level. One reason for this is that users may 
-want to engage two different interceptor chains for each service even though it is attached to the same Listener. At the 
-listener level resource function paths are relative to the service base path.
+Interceptors could get engaged at service level. One reason for this is that users may want to engage two different 
+interceptor chains for each service even though it is attached to the same Listener. At the service level resource 
+function paths are relative to the service base path.
 ```ballerina
 @http:ServiceConfig{
    interceptors: [requestInterceptor, responseInterceptor]
@@ -1606,7 +1608,6 @@ listener http:Listener echoListener = new http:Listener(9090, config = {intercep
 ```
 
 ##### 8.1.3.3 Execution Order of Interceptors
-These interceptors are always there in the pipeline and executed as the last.
 
 ![img.png](img.png)
 In the above example blue dashed box represents the RequestErrorInterceptor and blue boxes simply represent the 
@@ -1615,6 +1616,13 @@ ResponseInterceptors. The new execution orders is as follows,
 ```
 RequestInterceptor/RequestErrorInterceptor: 1, 2, 4, 5
 ResponseInterceptor/ResponseErrorInterceptor: 5, 3, 0
+```
+
+The execution order when interceptors are engaged at both service and listener levels is as follows;
+
+```
+ListenerLevel : RequestInterceptors -> ServiceLevel : RequestInterceptors -> TargetService -> 
+ServiceLevel : ResponseInterceptors -> ListenerLevel : ResponseInterceptors
 ```
 
 #### 8.1.4 Data Binding
