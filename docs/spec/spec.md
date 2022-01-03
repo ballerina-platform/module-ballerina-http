@@ -1541,15 +1541,15 @@ by default attaches to “/”.
 http:Listener hl = new(9090);
 
 service /ws on new ws:Listener(hl) {
-    remote function onUpgrade(http:Caller hc, http:Request req) returns ws:Service|ws:UpgradeError {
+    resource function get .(http:Request req) returns websocket:Service|websocket:UpgradeError {
         return new MyWSService();
     }
 }
 
 service class MyWSService {
-    *ws:Service;
-    remote function onText(ws:Caller caller, string text) {
-        caller->pushText(text);
+    *websocket:Service;
+    remote function onTextMessage(websocket:Caller caller, string data) returns websocket:Error? {
+        check caller->writeTextMessage(data);
     }
 }
 ```
