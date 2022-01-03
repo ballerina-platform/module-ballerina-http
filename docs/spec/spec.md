@@ -29,27 +29,27 @@ that makes it easier to use, combine, and create network services.
         * 2.3.2. [Resource-name](#232-resource-name)
         * 2.3.3. [Path parameter](#233-path-parameter)
         * 2.3.4. [Return types](#234-return-types)
-            * 2.3.4.1 [Caller](#2341-httpcaller)
-            * 2.3.4.2 [Request](#2342-httprequest)
-            * 2.3.4.3 [Query param](#2343-query-parameter)
-            * 2.3.4.4 [Payload param](#2344-payload-parameter)
-            * 2.3.4.5 [Header param](#2345-header-parameter)
+            * 2.3.4.1. [Caller](#2341-httpcaller)
+            * 2.3.4.2. [Request](#2342-httprequest)
+            * 2.3.4.3. [Query param](#2343-query-parameter)
+            * 2.3.4.4. [Payload param](#2344-payload-parameter)
+            * 2.3.4.5. [Header param](#2345-header-parameter)
       * 2.3.5. [Introspection resource](#235-introspection-resource)
     * 2.4. [Client](#24-client)
         * 2.4.1. [Client types](#241-client-types)
-            * 2.4.1.1 [Secure client](#2411-secure-client)
-            * 2.4.1.2 [Caching client](#2412-caching-client)
-            * 2.4.1.3 [Redirect client](#2413-redirect-client)
-            * 2.4.1.4 [Retry client](#2414-retry-client)
-            * 2.4.1.5 [Circuit breaker client](#2415-circuit-breaker-client)
-            * 2.4.1.6 [Cookie client](#2416-cookie-client)
-            * 2.4.1.7 [Load balance client](#2417-load-balance-client)
-            * 2.4.1.8 [Failover client](#2418-failover-client)
+            * 2.4.1.1. [Secure client](#2411-secure-client)
+            * 2.4.1.2. [Caching client](#2412-caching-client)
+            * 2.4.1.3. [Redirect client](#2413-redirect-client)
+            * 2.4.1.4. [Retry client](#2414-retry-client)
+            * 2.4.1.5. [Circuit breaker client](#2415-circuit-breaker-client)
+            * 2.4.1.6. [Cookie client](#2416-cookie-client)
+            * 2.4.1.7. [Load balance client](#2417-load-balance-client)
+            * 2.4.1.8. [Failover client](#2418-failover-client)
         * 2.4.2. [Client actions](#242-client-action)
-            * 2.4.2.1 [Entity body methods](#2421-entity-body-methods)
-            * 2.4.2.2 [Non entity body methods](#2422-non-entity-body-methods)
-            * 2.4.2.3 [Forward/execute methods](#2423-forwardexecute-methods)
-            * 2.4.2.4 [HTTP2 additional methods](#2424-http2-additional-methods)
+            * 2.4.2.1. [Entity body methods](#2421-entity-body-methods)
+            * 2.4.2.2. [Non entity body methods](#2422-non-entity-body-methods)
+            * 2.4.2.3. [Forward/execute methods](#2423-forwardexecute-methods)
+            * 2.4.2.4. [HTTP2 additional methods](#2424-http2-additional-methods)
         * 2.4.3. [Client actions return types](#243-client-action-return-types)
 3. [Request-routing](#3-request-routing)
     * 3.1. [Uri and http method match](#31-uri-and-http-method-match)
@@ -74,21 +74,47 @@ that makes it easier to use, combine, and create network services.
     * 7.1. [Parse header functions](#71-parse-header-functions)
 8. [Interceptor and error handling](#8-interceptor-and-error-handling)
     * 8.1. [Interceptor](#81-interceptor)
-        * 8.1.1 [Request interceptor](#811-request-interceptor)
-            * 8.1.1.1 [Request context](#8111-requestcontext)
-            * 8.1.1.2 [Next method](#8112-next-method)
-            * 8.1.1.3 [Returning error](#8113-returning-error)
-        * 8.1.2 [Request error interceptor](#812-request-error-interceptor)
-        * 8.1.3 [Engaging interceptor](#813-engaging-interceptors)
-            * 8.1.3.1 [Service level](#8131-service-level)
-            * 8.1.3.2 [Listener level](#8132-listener-level)
-            * 8.1.3.3 [Execution order of interceptors](#8133-execution-order-of-interceptors)
-        * 8.1.4 [Data binding](#814-data-binding)
-        * 8.1.5 [Return to respond](#815-return-to-respond)
+        * 8.1.1. [Request interceptor](#811-request-interceptor)
+            * 8.1.1.1. [Request context](#8111-requestcontext)
+            * 8.1.1.2. [Next method](#8112-next-method)
+            * 8.1.1.3. [Returning error](#8113-returning-error)
+        * 8.1.2. [Request error interceptor](#812-request-error-interceptor)
+        * 8.1.3. [Engaging interceptor](#813-engaging-interceptors)
+            * 8.1.3.1. [Service level](#8131-service-level)
+            * 8.1.3.2. [Listener level](#8132-listener-level)
+            * 8.1.3.3. [Execution order of interceptors](#8133-execution-order-of-interceptors)
+        * 8.1.4. [Data binding](#814-data-binding)
+        * 8.1.5. [Return to respond](#815-return-to-respond)
      * 8.2. [Error handling](#82-error-handling)
         * 8.2.1. [Trace log](#821-trace-log)
         * 8.2.2. [Access log](#822-access-log)
 9. [Security](#9-security)
+    * 9.1. [Authentication and Authorization](#91-authentication-and-authorization)
+        * 9.1.1. [Declarative Approach](#911-declarative-approach)
+            * 9.1.1.1. [Listener - File User Store](#9111-listener---file-user-store)
+            * 9.1.1.2. [Listener - LDAP User Store](#9112-listener---ldap-user-store)
+            * 9.1.1.3. [Listener - JWT](#9113-listener---jwt)
+            * 9.1.1.4. [Listener - OAuth2](#9114-listener---oauth2)
+            * 9.1.1.5. [Client - Basic Auth](#9115-client---basic-auth)
+            * 9.1.1.6. [Client - Bearer Token Auth](#9116-client---bearer-token-auth)
+            * 9.1.1.7. [Client - Self Signed JWT Auth](#9117-client---self-signed-jwt)
+            * 9.1.1.8. [Client - Bearer Token OAuth2](#9118-client---bearer-token-oauth2)
+            * 9.1.1.9. [Client - Grant types OAuth2](#9119-client---grant-types-oauth2)
+        * 9.1.2 [Imperative Approach](#912-imperative-approach)
+            * 9.1.2.1. [Listener - File User Store](#9121-listener---file-user-store)
+            * 9.1.2.2. [Listener - LDAP User Store](#9122-listener---ldap-user-store)
+            * 9.1.2.3. [Listener - JWT](#9123-listener---jwt)
+            * 9.1.2.4. [Listener - OAuth2](#9124-listener---oauth2)
+            * 9.1.2.5. [Client - Basic Auth](#9125-client---basic-auth)
+            * 9.1.2.6. [Client - Bearer Token Auth](#9126-client---bearer-token-auth)
+            * 9.1.2.7. [Client - Self Signed JWT Auth](#9127-self-signed-jwt)
+            * 9.1.2.8. [Client - Bearer token OAuth2](#9128-client---bearer-token-oauth2)
+            * 9.1.2.9. [Client - Grant types OAuth2](#9129-client---grant-types-oauth2)
+   * 9.2. [SSL/TLS and Mutual SSL](#92-ssltls-and-mutual-ssl)
+        * 9.2.1. [Listener - SSL/TLS](#921-listener---ssltls)
+        * 9.2.2. [Client - Mutual SSL](#922-listener---mutual-ssl)
+        * 9.2.3. [Listener - SSL/TLS](#923-client---ssltls)
+        * 9.2.4. [Client - Mutual SSL](#924-client---mutual-ssl)
 10. [Protocol-upgrade](#10-protocol-upgrade)
     * 10.1. [HTTP2](#101-http2)
         * 10.1.1. [Push promise and promise response](#1011-push-promise-and-promise-response)
@@ -1562,16 +1588,15 @@ whatever below the next() method will only get executed after the completion of 
 If the users forget to call next() and don't respond either, the request will be left hanging.
 
 ##### 8.1.1.3 Returning error?
-
 Resource functions can return NextService|error?. They can return only error? when using the Caller.
 Also, in case of an error, interceptor pipeline execution jumps to the nearest RequestErrorInterceptor in the 
 pipeline. This RequestErrorInterceptor is not necessarily the last interceptor in the pipeline, it can be anywhere 
 in the chain.
 
 #### 8.1.2 Request error interceptor
-As mentioned above this is a special kind of interceptor designed to handle errors. These interceptors can only be at the end 
-of request or response interceptor chain. Meaning these interceptors are only executed as the last interceptor in the chain. The 
-framework automatically adds default RequestErrorInterceptor and ResponseErrorInterceptor which basically prints the error 
+As mentioned above this is a special kind of interceptor designed to handle errors. These interceptors can  
+be placed anywhere in the request or response interceptor chain. The framework automatically adds default 
+RequestErrorInterceptor and ResponseErrorInterceptor which basically prints the error 
 message to the console.
 
 Users can override these interceptors by defining their own ones as follows. Users don’t have to specifically engage 
@@ -1675,7 +1700,559 @@ path = "testAccessLog.txt"  # Optional
 ```
 
 ## 9. Security
-// To be added
+
+### 9.1 Authentication and Authorization
+
+There are two ways to enable authentication and authorization in HTTP.
+
+1. Declarative approach
+2. Imperative approach
+
+#### 9.1.1 Declarative Approach
+
+This is also known as the configuration-driven approach, which is used for simple use cases, where users have to 
+provide a set of configurations and do not need to be worried more about how authentication and authorization works. 
+The user does not have full control over the configuration-driven approach.
+
+The service configurations are used to define the authentication and authorization configurations. Users can 
+configure the configurations needed for different authentication schemes and configurations needed for 
+authorizations of each authentication scheme. Also, the configurations can be provided at the service level. 
+The priority will be given from bottom to top. Then, the auth handler creation and request 
+authentication/authorization is handled internally without user intervention. The requests that succeeded both 
+authentication and/or authorization phases according to the configurations will be passed to the business logic layer.
+
+##### 9.1.1.1 Listener - File User Store
+
+```ballerina
+@http:ServiceConfig {
+    auth: [
+        {
+            fileUserStoreConfig: {},
+            scopes: ["admin"]
+        }
+    ]
+}
+service /foo on new http:Listener(9090) {
+    resource function get bar() returns string {
+        return "Hello, World!";
+    }
+}
+```
+```ballerina
+# Config.toml
+
+[[ballerina.auth.users]]
+username="alice"
+password="alice@123"
+scopes=["developer"]
+
+[[ballerina.auth.users]]
+username="ldclakmal"
+password="ldclakmal@123"
+scopes=["developer", "admin"]
+
+[[ballerina.auth.users]]
+username="eve"
+password="eve@123"
+```
+
+##### 9.1.1.2. Listener - LDAP User Store
+
+```ballerina
+@http:ServiceConfig {
+    auth: [
+        {
+            ldapUserStoreConfig: {
+                domainName: "avix.lk",
+                connectionUrl: "ldap://localhost:389",
+                connectionName: "cn=admin,dc=avix,dc=lk",
+                connectionPassword: "avix123",
+                userSearchBase: "ou=Users,dc=avix,dc=lk",
+                userEntryObjectClass: "inetOrgPerson",
+                userNameAttribute: "uid",
+                userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
+                userNameListFilter: "(objectClass=inetOrgPerson)",
+                groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
+                groupEntryObjectClass: "groupOfNames",
+                groupNameAttribute: "cn",
+                groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
+                groupNameListFilter: "(objectClass=groupOfNames)",
+                membershipAttribute: "member",
+                userRolesCacheEnabled: true,
+                connectionPoolingEnabled: false,
+                connectionTimeout: 5,
+                readTimeout: 60
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /foo on new http:Listener(9090) {
+    resource function get bar() returns string {
+        return "Hello, World!";
+    }
+}
+```
+
+##### 9.1.1.3 Listener - JWT
+
+```ballerina
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                scopeKey: "scp"
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /foo on new http:Listener(9090) {
+    resource function get bar() returns string {
+        return "Hello, World!";
+    }
+}
+```
+
+##### 9.1.1.4 Listener - OAuth2
+```ballerina
+@http:ServiceConfig {
+    auth: [
+        {
+            oauth2IntrospectionConfig: {
+                url: "https://localhost:9445/oauth2/introspect",
+                tokenTypeHint: "access_token",
+                scopeKey: "scp",
+                clientConfig: {
+                    customHeaders: {"Authorization": "Basic YWRtaW46YWRtaW4="},
+                    secureSocket: {
+                        cert: "/path/to/public.crt"
+                    }
+                }
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /foo on new http:Listener(9090) {
+    resource function get bar() returns string {
+        return "Hello, World!";
+    }
+}
+```
+
+##### 9.1.1.5 Client - Basic Auth
+```ballerina
+http:Client c = check new ("https://localhost:9090",
+    auth = {
+        username: "tom",
+        password: "123"
+    }
+);
+
+public function main() returns error? {
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+##### 9.1.1.6 Client - Bearer Token Auth
+```ballerina
+http:Client c = check new ("https://localhost:9090",
+    auth = {
+        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiw" +
+               "ibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2Q" +
+               "T4fwpMeJf36POk6yJV_adQssw5c"
+    }
+);
+
+public function main() returns error? {
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+##### 9.1.1.7 Client - Self-Signed JWT
+```ballerina
+http:Client c = check new ("https://localhost:9090",
+    auth = {
+        username: "ballerina",
+        issuer: "wso2",
+        audience: ["ballerina", "ballerina.org", "ballerina.io"],
+        keyId: "5a0b754-895f-4279-8843-b745e11a57e9",
+        jwtId: "JlbmMiOiJBMTI4Q0JDLUhTMjU2In",
+        customClaims: {"scp": "admin"},
+        expTime: 3600,
+        signatureConfig: {
+            config: {
+                keyFile: "/path/to/private.key"
+            }
+        }
+    }
+);
+
+public function main() returns error? {
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+##### 9.1.1.8 Client - Bearer Token OAuth2
+```ballerina
+http:Client c = check new ("https://localhost:9090",
+    auth = {
+        token: "56ede317-4511-44b4-8579-a08f094ee8c5"
+    }
+);
+
+public function main() returns error? {
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+##### 9.1.1.9 Client - Grant Types OAuth2
+```ballerina
+http:OAuth2ClientCredentialsGrantConfig config = {
+    tokenUrl: "https://localhost:8080/oauth2/token/authorize",
+    clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxS",
+    clientSecret: "9205371918321623741"
+};
+
+http:Client c = check new ("https://localhost:9090", auth = config);
+
+public function main() returns error? {
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+#### 9.1.2 Imperative Approach
+This is also known as the code-driven approach, which is used for advanced use cases, where users need to be 
+worried more about how authentication and authorization work and need to have further customizations. The user has 
+full control of the code-driven approach. The handler creation and authentication/authorization calls are made by 
+the user at the business logic layer.
+
+##### 9.1.2.1 Listener - File User Store
+
+```ballerina
+http:FileUserStoreConfig config = {};
+http:ListenerFileUserStoreBasicAuthHandler handler = new (config);
+
+service /foo on new http:Listener(9090) {
+    resource function post bar(@http:Header string Authorization) returns string|http:Unauthorized|http:Forbidden {
+        auth:UserDetails|http:Unauthorized authn = handler.authenticate(Authorization);
+        if (authn is http:Unauthorized) {
+            return authn;
+        }
+        http:Forbidden? authz = handler.authorize(<auth:UserDetails>authn, "admin");
+        if (authz is http:Forbidden) {
+            return authz;
+        }
+        // business logic
+    }
+}
+```
+```ballerina
+# Config.toml
+[ballerina.observe]
+enabled=true
+provider="noop"
+
+[[auth.users]]
+username="admin"
+password="123"
+scopes=["write", "update"]
+```
+
+##### 9.1.2.2 Listener - LDAP User Store
+
+```ballerina
+http:LdapUserStoreConfig config = {
+    domainName: "avix.lk",
+    connectionUrl: "ldap://localhost:389",
+    connectionName: "cn=admin,dc=avix,dc=lk",
+    connectionPassword: "avix123",
+    userSearchBase: "ou=Users,dc=avix,dc=lk",
+    userEntryObjectClass: "inetOrgPerson",
+    userNameAttribute: "uid",
+    userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
+    userNameListFilter: "(objectClass=inetOrgPerson)",
+    groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
+    groupEntryObjectClass: "groupOfNames",
+    groupNameAttribute: "cn",
+    groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
+    groupNameListFilter: "(objectClass=groupOfNames)",
+    membershipAttribute: "member",
+    userRolesCacheEnabled: true,
+    connectionPoolingEnabled: false,
+    connectionTimeout: 5,
+    readTimeout: 60
+};
+http:ListenerLdapUserStoreBasicAuthHandler handler = new (config);
+
+service /foo on new http:Listener(9090) {
+    resource function post bar(@http:Header string Authorization) returns string|http:Unauthorized|http:Forbidden {
+        auth:UserDetails|http:Unauthorized authn = handler->authenticate(Authorization);
+        if (authn is http:Unauthorized) {
+            return authn;
+        }
+        http:Forbidden? authz = handler->authorize(<auth:UserDetails>authn, "admin");
+        if (authz is http:Forbidden) {
+            return authz;
+        }
+        // business logic
+    }
+}
+```
+
+##### 9.1.2.3 Listener - JWT
+
+```ballerina
+http:JwtValidatorConfig config = {
+    issuer: "ballerina",
+    audience: ["wso2"],
+    signatureConfig: {
+        jwksConfig: {
+            url: "https://localhost:8080/jwks"
+        }
+    }
+};
+http:ListenerJwtAuthHandler handler = new (config);
+
+service /foo on new http:Listener(9090) {
+    resource function post bar(@http:Header string Authorization) returns string|http:Unauthorized|http:Forbidden {
+        jwt:Payload|http:Unauthorized authn = handler.authenticate(Authorization);
+        if (authn is http:Unauthorized) {
+            return authn;
+        }
+        http:Forbidden? authz = handler.authorize(<jwt:Payload>authn, "admin");
+        if (authz is http:Forbidden) {
+            return authz;
+        }
+        // business logic
+    }
+}
+```
+
+##### 9.1.2.4 Listener - OAuth2
+
+```ballerina
+http:OAuth2IntrospectionConfig config = {
+    url: "https://localhost:8080/oauth2/introspect",
+    tokenTypeHint: "access_token"
+};
+http:ListenerOAuth2Handler handler = new (config);
+
+service /foo on new http:Listener(9090) {
+    resource function post bar(@http:Header string authorization) returns string|http:Unauthorized|http:Forbidden {
+        oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(authorization, "admin");
+        if (auth is http:Unauthorized || auth is http:Forbidden) {
+            return auth;
+        }
+        // business logic
+    }
+}
+```
+
+##### 9.1.2.5 Client - Basic Auth
+```ballerina
+http:CredentialsConfig config = {
+    username: "tom",
+    password: "123"
+};
+http:ClientBasicAuthHandler handler = new (config);
+
+http:Client c = check new ("https://localhost:9090");
+
+public function main() returns error? {
+    http:Request req = new;
+    req = check handler.enrich(req);
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+##### 9.1.2.6 Client - Bearer Token Auth
+```ballerina
+http:BearerTokenConfig config = {
+    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFt" +
+           "ZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf3" +
+           "6POk6yJV_adQssw5c"
+};
+http:ClientBearerTokenAuthHandler handler = new (config);
+
+http:Client c = check new ("https://localhost:9090");
+
+public function main() returns error? {
+    http:Request req = new;
+    req = check handler.enrich(req);
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+##### 9.1.2.7. Self-Signed JWT
+```ballerina
+http:JwtIssuerConfig config = {
+    username: "admin",
+    issuer: "ballerina",
+    audience: ["wso2"],
+    signatureConfig: {
+        config: {
+            keyFile: "/path/to/private.key",
+            keyPassword: "password"
+        }
+    }
+};
+http:ClientSelfSignedJwtAuthHandler handler = new (config);
+
+http:Client c = check new ("https://localhost:9090");
+
+public function main() returns error? {
+    http:Request req = new;
+    req = check handler.enrich(req);
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+##### 9.1.2.8. Client - Bearer Token OAuth2
+```ballerina
+http:BearerTokenConfig config = {
+    token: "JhbGciOiJIIiwiaWF0IjUzI1NiIsInR5cCI6IkpXVCJ9WIiOiIxMjM0NTY3ODkwI"
+};
+http:ClientBearerTokenAuthHandler handler = new (config);
+
+http:Client c = check new ("https://localhost:9090");
+
+public function main() returns error? {
+    http:Request req = new;
+    req = check handler.enrich(req);
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+##### 9.1.2.9. Client - Grant Types OAuth2
+```ballerina
+http:OAuth2ClientCredentialsGrantConfig config = {
+    tokenUrl: "https://localhost:8080/oauth2/token/authorize",
+    clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxS",
+    clientSecret: "9205371918321623741"
+};
+http:ClientOAuth2Handler handler = new (config);
+
+http:Client c = check new ("https://localhost:9090");
+
+public function main() returns error? {
+    http:Request req = new;
+    req = check handler->enrich(req);
+    json response = check c->get("/foo/bar");
+    // evaluate response
+}
+```
+
+### 9.2 SSL/TLS and Mutual SSL
+
+The HTTPS listener could connect to or interact with an HTTPS client. The http:ListenerSecureSocket configuration
+of the listener exposes the HTTPS connection related configs.
+
+#### 9.2.1 Listener - SSL/TLS
+```ballerina
+listener http:Listener securedEP = new(9090,
+    secureSocket = {
+        key: {
+            certFile: "../resource/path/to/public.crt",
+            keyFile: "../resource/path/to/private.key"
+        }
+    }
+);
+
+service /foo on securedEP {
+    resource function get bar() returns string {
+        return "Hello, World!";
+    }
+}
+```
+
+#### 9.2.2 Listener - Mutual SSL
+
+The mutual SSL support which is a certificate-based authentication process in which two parties 
+(the client and server) authenticate each other by verifying the digital certificates. It ensures that both 
+parties are assured of each other’s identity.
+
+```ballerina
+listener http:Listener securedEP = new(9090,
+    secureSocket = {
+        key: {
+            certFile: "../resource/path/to/public.crt",
+            keyFile: "../resource/path/to/private.key"
+        },
+
+        mutualSsl: {
+            verifyClient: http:REQUIRE,
+            cert: "../resource/path/to/public.crt"
+        },
+
+        protocol: {
+            name: http:TLS,
+            versions: ["TLSv1.2", "TLSv1.1"]
+        },
+
+        ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
+
+    }
+);
+service /foo on securedEP {
+    resource function get bar() returns string {
+        return "Hello, World!";
+    }
+}
+```
+
+#### 9.2.3 Client - SSL/TLS
+
+```ballerina
+http:Client securedEP = check new("https://localhost:9090",
+    secureSocket = {
+        cert: "../resource/path/to/public.crt"
+    }
+);
+
+public function main() returns error? {
+    string response = check securedEP->get("/foo/bar");
+    io:println(response);
+}
+```
+
+#### 9.2.4 Client - Mutual SSL
+
+```ballerina
+http:Client securedEP = check new("https://localhost:9090",
+    secureSocket = {
+        key: {
+            certFile: "../resource/path/to/public.crt",
+            keyFile: "../resource/path/to/private.key"
+        },
+        cert: "../resource/path/to/public.crt",
+        protocol: {
+            name: http:TLS
+        },
+        ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
+
+    }
+);
+public function main() returns error? {
+    string response = check securedEP->get("/foo/bar");
+    io:println(response);
+}
+```
 
 ## 10. Protocol upgrade
 ### 10.1. HTTP/2
