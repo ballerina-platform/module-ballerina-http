@@ -75,8 +75,17 @@ that makes it easier to use, combine, and create network services.
 8. [Interceptor and error handling](#8-interceptor-and-error-handling)
     * 8.1. [Interceptor](#81-interceptor)
         * 8.1.1 [Request interceptor](#811-request-interceptor)
+            * 8.1.1.1 [Filter context](#8111-filtercontext)
+            * 8.1.1.2 [Next method](#8112-next-method)
+            * 8.1.1.3 [Returning error](#8113-returning-error)
         * 8.1.2 [Request error interceptor](#812-request-error-interceptor)
-    * 8.2. [Error handling](#82-error-handling)
+        * 8.1.3 [Engaging interceptor](#813-engaging-interceptors)
+            * 8.1.3.1 [Service level](#8131-service-level)
+            * 8.1.3.2 [Listener level](#8132-listener-level)
+            * 8.1.3.3 [Execution order of interceptors](#8133-execution-order-of-interceptors)
+        * 8.1.4 [Data binding](#814-data-binding)
+        * 8.1.5 [Return to respond](#815-return-to-respond)
+     * 8.2. [Error handling](#82-error-handling)
         * 8.2.1. [Trace log](#821-trace-log)
         * 8.2.2. [Access log](#822-access-log)
 9. [Security](#9-security)
@@ -1459,10 +1468,166 @@ parseHeader(string headerValue) returns HeaderValue[]|ClientError  {
 
 ## 8. Interceptor and Error handling
 ### 8.1 Interceptor
+Interceptor enhances the HTTP package with interceptors. Interceptors typically do small units of work such as logging, header 
+manipulation, state publishing, etc, before resources are invoked. The ability to execute some common logic for all 
+the inbound requests and outbound responses has proven to be highly useful. It typically includes some small unit of 
+work such as the below.
+ - Logging
+ - Header manipulation
+ - Observability
+ - Throttling
+ - Validating
+ - Securing
+
+Interceptors are designed for both request and response flows. Currently, only the Request interceptor has implemented.
+
 #### 8.1.1 Request interceptor
-// To be added
+Following is an example of RequestInterceptor written in Ballerina swan-lake. RequestInterceptor can only have one 
+resource function.
+
+```ballerina
+service class RequestInterceptor {
+   *http:RequestInterceptor;
+ 
+   resource function 'default [string… path](http:FilterContext ctx, http:Caller caller,
+                       http:Request req) returns error? {
+       request.setHeader("X-requestHeader", "RequestInterceptor");
+       ctx.next();
+   }
+}
+```
+
+Since interceptors work with network activities, it must be either a remote or resource function. In this case resource 
+functions are used for RequestInterceptor as it gives more flexibility. With resource functions interceptors can be engaged 
+based on HTTP method and path.
+
+For instance consider a scenario where there are two resources; one on path foo whereas the other on path bar. If the 
+user writes a interceptor as follows, it would only get hit when the request is directed to foo resource.
+
+```ballerina
+service class RequestInterceptor {
+   *http:RequestInterceptor;
+ 
+   resource function 'default foo(http:FilterContext ctx, http:Caller caller,
+                       http:Request req) returns error? {
+       request.setHeader("X-requestHeader", "RequestInterceptor");
+       ctx.next();
+   }
+}
+```
+
+##### 8.1.1.1 FilterContext  
+Following is the rough definition of the interceptor context.
+```ballerina
+public isolated class FilterContext {
+    private final map<value:Cloneable|isolated object {}> attributes = {};
+
+    public isolated function add(string 'key, value:Cloneable|isolated object {} value) {
+        if value is value:Cloneable {
+            lock {
+                self.attributes['key] = value.clone();
+            }
+        }
+        else {
+            lock {
+                self.attributes['key] = value;
+            }   
+        }
+    }
+
+    public isolated function get(string 'key) returns value:Cloneable|isolated object {} {
+        lock {
+            return self.attributes.get('key);
+        }
+    }
+
+    public isolated function remove(string 'key) {
+        lock {
+            value:Cloneable|isolated object {} _ = self.attributes.remove('key);
+        }
+    }
+
+    public isolated function next() returns error? = external;
+}
+```
+
+##### 8.1.1.2 next() Method  
+However, there is an addition when it comes to FilterContext. A new method namely, next() is introduced to control 
+the execution flow. Users must invoke next() method in order to trigger the next interceptor in the pipeline. 
+Previously, this was controlled by returning a boolean value which is quite cryptic and confusing.
+
+Moreover, invoking next() method results in immediately executing the next interceptor in the pipeline. Which means 
+whatever below the next() method will only get executed after the completion of execution of the next Interceptor.
+
+If the users forget to call next() and don't respond either, the request will be left hanging.
+
+##### 8.1.1.3 Returning error?
+Resource functions can return only error?. In the case of an error, interceptor chain execution jumps to the last 
+interceptor in the chain. The last interceptor in the chain must be a type of RequestErrorInterceptor. It is a special kind of 
+interceptor which could be used to handle errors. More on this can be found under section RequestErrorInterceptor.
+
 #### 8.1.2 Request error interceptor
-// To be added
+As mentioned above this is a special kind of interceptor designed to handle errors. These interceptors can only be at the end 
+of request or response interceptor chain. Meaning these interceptors are only executed as the last interceptor in the chain. The 
+framework automatically adds default RequestErrorInterceptor and ResponseErrorInterceptor which basically prints the error 
+message to the console.
+
+Users can override these interceptors by defining their own ones as follows. Users don’t have to specifically engage 
+these interceptors as they only have fixed positions and they are always executed. The only additional argument in this 
+case is error err.
+
+```ballerina
+service class RequestErrorInterceptor {
+   *http:RequestErrorInterceptor;
+ 
+   remote function 'default [string… path](http:FilterContext ctx, http:Caller caller,
+                       http:Request req, error err) returns error? {
+       // deal with the error
+   }
+}
+```
+
+#### 8.1.3 Engaging Interceptors
+##### 8.1.3.1 Service Level
+Interceptors could get engaged at service level. One reason for this is that users may 
+want to engage two different interceptor chains for each service even though it is attached to the same Listener. At the 
+listener level resource function paths are relative to the service base path.
+```ballerina
+@http:ServiceConfig{
+   interceptors: [requestInterceptor, responseInterceptor]
+}
+```
+
+##### 8.1.3.2 Listener Level
+Interceptors could get engaged at Listener level as well. At the listener level resource function paths are 
+relative to the /.
+```ballerina
+listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: [requestInterceptor, responseInterceptor]});
+```
+
+##### 8.1.3.3 Execution Order of Interceptors
+These interceptors are always there in the pipeline and executed as the last.
+
+![img.png](img.png)
+In the above example blue dashed box represents the RequestErrorInterceptor and blue boxes simply represent the 
+RequestInterceptors whereas green dashed box represents the ResponseErrorInterceptor(TBA) and green boxes simply represent the 
+ResponseInterceptors. The new execution orders is as follows,
+```
+RequestInterceptor/RequestErrorInterceptor: 1, 2, 4, 5
+ResponseInterceptor/ResponseErrorInterceptor: 5, 3, 0
+```
+
+#### 8.1.4 Data Binding
+Both requestInterceptor and responseInterceptor methods support data binding. Which means users can directly access the 
+payload, headers and query parameters. In order to get hold of the headers and the payload, users must use 
+@http:Payload and @http:Headers.
+
+
+#### 8.1.5 Return to Respond
+There is a key difference between interceptors and Resources. HTTP resources allow returning values which in turn 
+results in HTTP responses. But interceptors do not support this behavior. Because unlike resources interceptors do not 
+sit at the edge. Therefore, it results in complications when implementing the next() method.
+
 ### 8.2 Error handling
 ### 8.2.1 Trace log
 The HTTP trace logs can be used to monitor the HTTP traffic that goes in and out of Ballerina.
