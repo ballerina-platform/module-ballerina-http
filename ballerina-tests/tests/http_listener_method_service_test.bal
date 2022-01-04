@@ -28,7 +28,7 @@ boolean listenerIdle = true;
 boolean listenerStopped = false;
 
 service /startService on listenerMethodListener {
-    resource function get test(http:Caller remoteCaller, http:Request req) {
+    resource function get test(http:Caller remoteCaller) {
         lock {
             http:Service listenerMethodMock1 = service object {
                 resource function get .(http:Caller caller, http:Request req) {
