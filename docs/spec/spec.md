@@ -17,8 +17,8 @@ that makes it easier to use, combine, and create network services.
 1. [Overview](#1-overview)
 2. [Components](#2-components)
     * 2.1. [Listener](#21-listener)
-        * 2.1.1. [Auto binding](#211-auto-binding)
-        * 2.1.2. [Late binding](#212-late-binding)
+        * 2.1.1. [Automatically starting the service](#211-automatically-starting-the-service)
+        * 2.1.2. [Programmatically starting the service](#212-programmatically-starting-the-service)
     * 2.2. [Service](#22-service)
         * 2.2.1. [Service type](#221-service-type)
         * 2.2.2. [Service-base-path](#222-service-base-path)
@@ -129,6 +129,14 @@ The ballerina language provides the first class support for writing network orie
 initiative manner. The ballerina-http standard library consumes the rich language construct and creates the 
 programming model to write services.
 
+The HTTP standard library is designed to work with HTTP protocol. It includes high level abstractions such as 
+`http:Request`, `http:Response`, `http:Service` and `http:Client` which allow users to consume and produce HTTP 
+services. Further the users can use this library to build other libraries. In fact, the standard libraries such 
+as GraphQL, Websub and WebSubHub use this library internally.
+
+In addition to functional requirements, this library deals with none functional requirements such as security,
+observability and resiliency. Each requirement is discussed in detail in the coming sections.
+
 ## 2. Components
 ### 2.1. Listener
 The HTTP listener object receives network data from a remote process according to the HTTP transport protocol and 
@@ -138,32 +146,32 @@ attached to the listener object. The listener provides the interface between net
 As defined in [Ballerina 2021R1 Section 5.7.4](https://ballerina.io/spec/lang/2021R1/#section_5.7.4) the Listener has 
 the object constructor and life cycle methods such as attach(), detach(), 'start(), gracefulStop(), and immediateStop().
 
-#### 2.1.1. Auto binding
+#### 2.1.1. Automatically starting the service
 If a service is attached to the listener, then the listener starts listening on the given port after executing 
 attach() and start() methods. HTTP listener can be declared as follows honoring to the generic 
 [listener declaration](https://ballerina.io/spec/lang/2021R1/#section_8.3.1)
 
 ```ballerina
 // Listener object constructor
-listener http:Listener serviceListener = new(9090, config = {httpVersion: "2.0"});
+listener http:Listener serviceListener = new(9090);
 ```
 ```ballerina
 // Service attaches to the Listener
-service http:Service /sessionTest on serviceListener {
-
+service http:Service /foo/bar on serviceListener {
+    resource function get sayHello(http:Caller caller) {}
 }
 ```
 
-#### 2.1.2. Late binding
+#### 2.1.2. Programmatically starting the service
 
 Users can programmatically start the listener by calling each lifecycle method as follows.
 
 ```ballerina
-// Listener object constructor
-listener http:Listener serviceListener = new(9090);
-
 public function main() {
-    error? err1 = serviceListener.attach(s, “/basePath”);
+    // Listener object constructor
+    listener http:Listener serviceListener = new(9090);
+    
+    error? err1 = serviceListener.attach(s, “/foo/bar”);
     error? err2 = serviceListener.start();
     //...
     error? err3 = serviceListener.gracefulStop();
@@ -185,23 +193,24 @@ public type Service distinct service object {
 };
 ```
 Above distinct type is provided by HTTP module and user can include the type as `*http:Service` to refer it.
-The comprehensive typing support is yet to be added to the language
+The comprehensive typing support is yet to be added to the language. Until that, the compiler plugin is used to 
+validate the services.
 
 #### 2.2.2. Service base path
 
 The base path is considered during the request dispatching to discover the service. Identifiers and string literals
 are allowed to be stated as base path and it should be started with `/`. The base path is optional and it will be 
-default to `/` when not defined. If the base path contains any special charactors, those should be escaped or defined
+default to `/` when not defined. If the base path contains any special characters, those should be escaped or defined
 as string literals
 
 ```ballerina
-service http:Service /my/Tes\@tHello/go new http:Listener(9090) {
+service hello\-world new http:Listener(9090) {
    resource function get foo() {
 
    }
 }
 
-service http:Service "/Tes@tHello/go" new http:Listener(9090) {
+service http:Service "hello-world" new http:Listener(9090) {
    resource function get foo() {
 
    }
@@ -216,8 +225,8 @@ service and it is the mostly used approach for creating a service. The declarati
 listener object, creating a service object, attaching the service object to the listener object.
 
 ```ballerina
-service http:Service /basePath on new http:Listener(9090) {
-  resource function get foo() returns string {
+service http:Service /foo/bar on new http:Listener(9090) {
+  resource function get greeting() returns string {
       return "hello world";
   }
 }
@@ -231,15 +240,15 @@ the service to the listener. The life cycle methods to used to proceed.
 ```ballerina
 service isolated class SClass {
    *http:Service;
-   isolated resource function get greeting() returns string {
+   resource function get greeting() returns string {
        return "hello world";
    }
 }
 
-listener http:Listener serviceListener = new (9090);
-http:Service httpService = new SClass();
-
 public function main() {
+   listener http:Listener serviceListener = new (9090);
+   http:Service httpService = new SClass();
+   
    error? err1 = serviceListener.attach(httpService, ["foo", "bar"]);
    error? err2 = serviceListener.'start();
    runtime:registerListener(serviceListener);
@@ -252,7 +261,7 @@ public function main() {
 listener http:Listener serviceListener = new (9090);
 
 http:Service httpService = @http:ServiceConfig {} service object {
-   resource function get baz() returns string {
+   resource function get greeting() returns string {
        return "hello world";
    }
 };
@@ -300,7 +309,7 @@ resource function post .() {
 ```
 Any special characters can be used in the path by escaping.
 ```ballerina
-resource function post test\@hello() {
+resource function post hello\-world() {
     
 }
 ```
@@ -403,8 +412,8 @@ resource function post foo(@http:CallerInfo {respondType:Person}  http:Caller hc
 ```
 ##### 2.3.4.2. http:Request
 
-The `http:Request` represents the message which came along over the network that modelled as an object along with 
-headers and payload. Listener passes it to the resource function as an argument to be accessed by the user based on 
+The `http:Request` represents the request which is sent and received over the network which includes headers and 
+the entity body. Listener passes it to the resource function as an argument to be accessed by the user based on 
 their requirement. This parameter is not compulsory and not ordered.
 
 ```ballerina
@@ -1634,7 +1643,7 @@ listener http:Listener echoListener = new http:Listener(9090, config = {intercep
 
 ##### 8.1.3.3 Execution Order of Interceptors
 
-![img.png](img.png)
+![img.png](resources/img.png)
 In the above example blue dashed box represents the RequestErrorInterceptor and blue boxes simply represent the 
 RequestInterceptors whereas green dashed box represents the ResponseErrorInterceptor(TBA) and green boxes simply represent the 
 ResponseInterceptors. The new execution orders is as follows,
