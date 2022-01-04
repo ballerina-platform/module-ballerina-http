@@ -102,7 +102,7 @@ public class Respond extends ConnectionAction {
             if (observerContext != null) {
                 observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
             }
-            // setting the status-code in the observability context for the resource strand
+            // setting the status-code in the observability context for the resource span
             observerContext = (ObserverContext) inboundRequestMsg.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
             if (observerContext != null) {
                 observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
