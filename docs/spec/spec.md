@@ -2160,7 +2160,7 @@ public function main() returns error? {
 
 ### 9.2 SSL/TLS and Mutual SSL
 
-The HTTPS listener could connect to or interact with an HTTPS client. The http:ListenerSecureSocket configuration
+The HTTPS listener could connect to or interact with an HTTPS client. The `http:ListenerSecureSocket` configuration
 of the listener exposes the HTTPS connection related configs.
 
 #### 9.2.1 Listener - SSL/TLS
@@ -2168,8 +2168,8 @@ of the listener exposes the HTTPS connection related configs.
 listener http:Listener securedEP = new(9090,
     secureSocket = {
         key: {
-            certFile: "../resource/path/to/public.crt",
-            keyFile: "../resource/path/to/private.key"
+            certFile: "/path/to/public.crt",
+            keyFile: "/path/to/private.key"
         }
     }
 );
@@ -2191,13 +2191,13 @@ parties are assured of each other’s identity.
 listener http:Listener securedEP = new(9090,
     secureSocket = {
         key: {
-            certFile: "../resource/path/to/public.crt",
-            keyFile: "../resource/path/to/private.key"
+            certFile: "/path/to/public.crt",
+            keyFile: "/path/to/private.key"
         },
 
         mutualSsl: {
             verifyClient: http:REQUIRE,
-            cert: "../resource/path/to/public.crt"
+            cert: "/path/to/public.crt"
         },
 
         protocol: {
@@ -2221,7 +2221,7 @@ service /foo on securedEP {
 ```ballerina
 http:Client securedEP = check new("https://localhost:9090",
     secureSocket = {
-        cert: "../resource/path/to/public.crt"
+        cert: "/path/to/public.crt"
     }
 );
 
@@ -2237,10 +2237,10 @@ public function main() returns error? {
 http:Client securedEP = check new("https://localhost:9090",
     secureSocket = {
         key: {
-            certFile: "../resource/path/to/public.crt",
-            keyFile: "../resource/path/to/private.key"
+            certFile: "/path/to/public.crt",
+            keyFile: "/path/to/private.key"
         },
-        cert: "../resource/path/to/public.crt",
+        cert: "/path/to/public.crt",
         protocol: {
             name: http:TLS
         },
