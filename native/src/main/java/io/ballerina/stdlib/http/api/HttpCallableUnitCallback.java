@@ -57,7 +57,7 @@ public class HttpCallableUnitCallback implements Callback {
     public void notifySuccess(Object result) {
         cleanupRequestMessage();
         if (alreadyResponded(result)) {
-            stopObserverContext(false);
+            stopObserverContext();
             return;
         }
         printStacktraceIfError(result);
@@ -73,7 +73,7 @@ public class HttpCallableUnitCallback implements Callback {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
-                stopObserverContext(false);
+                stopObserverContext();
                 printStacktraceIfError(result);
             }
 
@@ -87,11 +87,11 @@ public class HttpCallableUnitCallback implements Callback {
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
-    private void stopObserverContext(boolean isError) {
+    private void stopObserverContext() {
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = (ObserverContext) requestMessage
                     .getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
-            if (observerContext.isManuallyClosed() || isError) {
+            if (observerContext.isManuallyClosed()) {
                 ObserveUtils.stopObservationWithContext(observerContext);
             }
         }
@@ -112,7 +112,7 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     private void sendFailureResponse(BError error) {
-        stopObserverContext(true);
+        stopObserverContext();
         HttpUtil.handleFailure(requestMessage, error, true);
     }
 
