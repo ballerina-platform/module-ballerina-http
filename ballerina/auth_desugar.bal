@@ -149,7 +149,7 @@ isolated function authenticateWithJwtValidatorConfig(JwtValidatorConfigWithScope
             return authz;
         }
         return;
-    } else if Unauthorized {
+    } else if authn is Unauthorized {
         return authn;
     } else {
         panic error("Unsupported record type found.");
