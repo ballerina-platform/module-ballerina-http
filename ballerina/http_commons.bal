@@ -58,15 +58,19 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
     } else {
-        match mediaType {
-            mime:APPLICATION_FORM_URLENCODED => {
-                string payload = check processUrlEncodedContent(message);
-                request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
+        if message is anydata {
+            match mediaType {
+                mime:APPLICATION_FORM_URLENCODED => {
+                    string payload = check processUrlEncodedContent(message);
+                    request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
+                }
+                _ => {
+                    json payload = check processJsonContent(message);
+                    request.setJsonPayload(payload);
+                }
             }
-            _ => {
-                json payload = check processJsonContent(message);
-                request.setJsonPayload(payload);
-            }
+        } else {
+            panic error InitializingOutboundRequestError("invalid content received");
         }
     }
     return request;
@@ -115,11 +119,15 @@ isolated function buildResponse(ResponseMessage message) returns Response|Listen
     } else if (message is mime:Entity[]) {
         response.setBodyParts(message);
     } else {
-        var result = trap val:toJson(message);
-        if (result is error) {
-            return error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
+        if message is anydata {
+            var result = trap val:toJson(message);
+            if (result is error) {
+                return error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
+            } else {
+                response.setJsonPayload(result);
+            }
         } else {
-            response.setJsonPayload(result);
+            panic error InitializingOutboundResponseError("invalid content received");
         }
     }
     return response;

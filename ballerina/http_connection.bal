@@ -160,11 +160,15 @@ public isolated client class Caller {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
         } else {
-            setPayload(message, response, setETag);
-            if returnMediaType is string {
-                response.setHeader(CONTENT_TYPE, returnMediaType);
+            if message is anydata {
+                setPayload(message, response, setETag);
+                if returnMediaType is string {
+                    response.setHeader(CONTENT_TYPE, returnMediaType);
+                }
+                cacheCompatibleType = true;
+            } else {
+                panic error Error("invalid content type");
             }
-            cacheCompatibleType = true;
         }
         if (cacheCompatibleType && (cacheConfig is HttpCacheConfig)) {
             ResponseCacheControl responseCacheControl = new;
