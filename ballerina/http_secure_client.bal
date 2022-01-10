@@ -217,7 +217,8 @@ isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req
     } else if (clientAuthHandler is ClientOAuth2Handler) {
         return clientAuthHandler->enrich(req);
     } else {
-        panic error ClientError("invalid client auth-handler found");
+        string errorMsg = "invalid client auth-handler found. expected one of http:ClientBasicAuthHandler|http:ClientBearerTokenAuthHandler|http:ClientSelfSignedJwtAuthHandler|http:ClientOAuth2Handler";
+        panic error ClientError(errorMsg);
     }
 }
 

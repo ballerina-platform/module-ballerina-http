@@ -166,7 +166,8 @@ public isolated client class Caller {
             }
             cacheCompatibleType = true;
         } else {
-            panic error ListenerError("invalid content type");
+            string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response|error";
+            panic error ListenerError(errorMsg);
         }
         if (cacheCompatibleType && (cacheConfig is HttpCacheConfig)) {
             ResponseCacheControl responseCacheControl = new;

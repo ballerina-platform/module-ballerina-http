@@ -70,7 +70,8 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
         }
 
     } else {
-        panic error InitializingOutboundRequestError("invalid content received");
+        string errorMsg = "invalid request body type. expected one of the types: string|xml|json|byte[]|Entity[]|stream<byte[],io:Error?>";
+        panic error InitializingOutboundRequestError(errorMsg);
     }
     return request;
 }
@@ -125,7 +126,8 @@ isolated function buildResponse(ResponseMessage message) returns Response|Listen
             response.setJsonPayload(result);
         }
     } else {
-        panic error InitializingOutboundResponseError("invalid content received");
+        string errorMsg = "invalid response body type. expected one of the types: string|xml|json|byte[]|Entity[]|stream<byte[],io:Error?>";
+        panic error InitializingOutboundResponseError(errorMsg);
     }
     return response;
 }
