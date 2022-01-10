@@ -186,7 +186,7 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     var headers = message?.headers;
     if (headers is map<string[]> || headers is map<int[]> || headers is map<boolean[]>) {
         foreach var [headerKey, headerValues] in headers.entries() {
-            string[] mappedValues = headerValues.'map(toString);
+            string[] mappedValues = headerValues.'map(val => val.toString());
             foreach string headerValue in mappedValues {
                 response.addHeader(headerKey, headerValue);
             }
@@ -198,7 +198,7 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     } else if (headers is map<string|int|boolean|string[]|int[]|boolean[]>) {
         foreach var [headerKey, headerValue] in headers.entries() {
             if (headerValue is string[] || headerValue is int[] || headerValue is boolean[]) {
-                string[] mappedValues = headerValue.'map(toString);
+                string[] mappedValues = headerValue.'map(val => val.toString());
                 foreach string value in mappedValues {
                     response.addHeader(headerKey, value);
                 }
@@ -224,10 +224,6 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
         response.setHeader(CONTENT_TYPE, returnMediaType);
     }
     return response;
-}
-
-isolated function toString(string|int|boolean val) returns string {
-    return val.toString();
 }
 
 isolated function setPayload(anydata payload, Response response, boolean setETag = false) {
