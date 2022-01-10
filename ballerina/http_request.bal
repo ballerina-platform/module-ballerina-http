@@ -556,7 +556,7 @@ public class Request {
             self.setBodyParts(payload);
         } else {
             panic error Error("invalid entity body type." +
-                "expected one of the types: string|xml|json|byte[]|Entity[]|stream<byte[],io:Error?>");
+                "expected one of the types: string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>");
         }
     }
 

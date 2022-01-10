@@ -57,7 +57,7 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
         request.setByteStream(message);
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
-    } else if (message is anydata) {
+    } else if message is anydata {
         match mediaType {
             mime:APPLICATION_FORM_URLENCODED => {
                 string payload = check processUrlEncodedContent(message);
@@ -70,7 +70,7 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
         }
 
     } else {
-        string errorMsg = "invalid request body type. expected one of the types: string|xml|json|byte[]|Entity[]|stream<byte[],io:Error?>";
+        string errorMsg = "invalid request body type. expected one of the types: Request|string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>|()";
         panic error InitializingOutboundRequestError(errorMsg);
     }
     return request;
@@ -118,7 +118,7 @@ isolated function buildResponse(ResponseMessage message) returns Response|Listen
         response.setByteStream(message);
     } else if (message is mime:Entity[]) {
         response.setBodyParts(message);
-    } else if (message is anydata) {
+    } else if message is anydata {
         var result = trap val:toJson(message);
         if (result is error) {
             return error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
@@ -126,7 +126,7 @@ isolated function buildResponse(ResponseMessage message) returns Response|Listen
             response.setJsonPayload(result);
         }
     } else {
-        string errorMsg = "invalid response body type. expected one of the types: string|xml|json|byte[]|Entity[]|stream<byte[],io:Error?>";
+        string errorMsg = "invalid response body type. expected one of the types: Response|string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>|()";
         panic error InitializingOutboundResponseError(errorMsg);
     }
     return response;
