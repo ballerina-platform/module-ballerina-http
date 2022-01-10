@@ -1,4 +1,4 @@
-# Proposal: HTTP Interceptors 
+# Proposal: Typed headers for HTTP response 
 
 _Owners_: @shafreenAnfar @chamil321 @ayeshLK @TharmiganK  
 _Reviewers_: @chamil321  
