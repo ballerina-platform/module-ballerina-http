@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- [Implement Typed `headers` for HTTP response](https://github.com/ballerina-platform/ballerina-standard-library/issues/2563)
+
+## [2.1.0] - 2021-12-14
+
+### Added
 - [Introduce interceptors at service level](https://github.com/ballerina-platform/ballerina-standard-library/issues/2447)
 
 ### Fixed
