@@ -159,12 +159,15 @@ public isolated client class Caller {
             if (returnMediaType is string && !response.hasHeader(CONTENT_TYPE)) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-        } else {
+        } else if message is anydata {
             setPayload(message, response, setETag);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
             cacheCompatibleType = true;
+        } else {
+            string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response|error";
+            panic error ListenerError(errorMsg);
         }
         if (cacheCompatibleType && (cacheConfig is HttpCacheConfig)) {
             ResponseCacheControl responseCacheControl = new;
@@ -184,24 +187,26 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     response.statusCode = message.status.code;
 
     var headers = message?.headers;
-    if (headers is map<string[]>) {
+    if (headers is map<string[]> || headers is map<int[]> || headers is map<boolean[]>) {
         foreach var [headerKey, headerValues] in headers.entries() {
-            foreach string headerValue in headerValues {
+            string[] mappedValues = headerValues.'map(val => val.toString());
+            foreach string headerValue in mappedValues {
                 response.addHeader(headerKey, headerValue);
             }
         }
-    } else if (headers is map<string>) {
+    } else if (headers is map<string> || headers is map<int> || headers is map<boolean>) {
         foreach var [headerKey, headerValue] in headers.entries() {
-            response.setHeader(headerKey, headerValue);
+            response.setHeader(headerKey, headerValue.toString());
         }
-    } else if (headers is map<string|string[]>) {
+    } else if (headers is map<string|int|boolean|string[]|int[]|boolean[]>) {
         foreach var [headerKey, headerValue] in headers.entries() {
-            if (headerValue is string[]) {
-                foreach string value in headerValue {
+            if (headerValue is string[] || headerValue is int[] || headerValue is boolean[]) {
+                string[] mappedValues = headerValue.'map(val => val.toString());
+                foreach string value in mappedValues {
                     response.addHeader(headerKey, value);
                 }
             } else {
-                response.setHeader(headerKey, headerValue);
+                response.setHeader(headerKey, headerValue.toString());
             }
         }
     }
