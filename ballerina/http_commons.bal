@@ -70,7 +70,7 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
         }
 
     } else {
-        string errorMsg = "invalid request body type. expected one of the types: http:Request|string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>|()";
+        string errorMsg = "invalid request body type. expected one of the types: http:Request|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
         panic error InitializingOutboundRequestError(errorMsg);
     }
     return request;
@@ -126,7 +126,7 @@ isolated function buildResponse(ResponseMessage message) returns Response|Listen
             response.setJsonPayload(result);
         }
     } else {
-        string errorMsg = "invalid response body type. expected one of the types: http:Response|string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>|()";
+        string errorMsg = "invalid response body type. expected one of the types: http:Response|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
         panic error InitializingOutboundResponseError(errorMsg);
     }
     return response;
