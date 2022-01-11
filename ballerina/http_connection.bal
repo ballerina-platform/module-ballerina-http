@@ -159,12 +159,15 @@ public isolated client class Caller {
             if (returnMediaType is string && !response.hasHeader(CONTENT_TYPE)) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-        } else {
+        } else if message is anydata {
             setPayload(message, response, setETag);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
             cacheCompatibleType = true;
+        } else {
+            string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response|error";
+            panic error ListenerError(errorMsg);
         }
         if (cacheCompatibleType && (cacheConfig is HttpCacheConfig)) {
             ResponseCacheControl responseCacheControl = new;
