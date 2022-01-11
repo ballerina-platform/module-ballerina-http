@@ -23,19 +23,19 @@ import ballerina/test;
 service /declarativeclient on authListener {
     resource function 'default foo(http:Request req) returns string|http:Unauthorized|http:Forbidden {
         jwt:Payload|http:Unauthorized authn = handler.authenticate(req);
-        if (authn is http:Unauthorized) {
+        if authn is http:Unauthorized {
             return authn;
         }
         http:Forbidden? authz = handler.authorize(<jwt:Payload> authn, ["write", "update"]);
-        if (authz is http:Forbidden) {
+        if authz is http:Forbidden {
             return authz;
         }
         return "Hello World!";
     }
 }
 
-final http:Client declarativeClientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
-    auth: {
+final http:Client declarativeClientEP = check new("https://localhost:" + securedListenerPort.toString(),
+    auth = {
         username: "admin",
         issuer: "wso2",
 
@@ -54,63 +54,63 @@ final http:Client declarativeClientEP = checkpanic new("https://localhost:" + se
             }
         }
     },
-    secureSocket: {
+    secureSocket = {
         cert: {
             path: TRUSTSTORE_PATH,
             password: "ballerina"
         }
     }
-});
+);
 
 @test:Config {}
-function testDeclarativeClientForGet() {
-    http:Response|http:ClientError response = declarativeClientEP->get("/declarativeclient/foo");
+function testDeclarativeClientForGet() returns error? {
+    http:Response response = check declarativeClientEP->get("/declarativeclient/foo");
     assertSuccess(response);
 }
 
 @test:Config {}
-function testDeclarativeClientForPost() {
+function testDeclarativeClientForPost() returns error? {
     string payload = "sample_value";
-    http:Response|http:ClientError response = declarativeClientEP->post("/declarativeclient/foo", payload);
+    http:Response response = check declarativeClientEP->post("/declarativeclient/foo", payload);
     assertSuccess(response);
 }
 
 @test:Config {}
-function testDeclarativeClientForHead() {
-    http:Response|http:ClientError response = declarativeClientEP->head("/declarativeclient/foo");
+function testDeclarativeClientForHead() returns error? {
+    http:Response response = check declarativeClientEP->head("/declarativeclient/foo");
     assertSuccess(response);
 }
 
 @test:Config {}
-function testDeclarativeClientForPut() {
+function testDeclarativeClientForPut() returns error? {
     string payload = "sample_value";
-    http:Response|http:ClientError response = declarativeClientEP->put("/declarativeclient/foo", payload);
+    http:Response response = check declarativeClientEP->put("/declarativeclient/foo", payload);
     assertSuccess(response);
 }
 
 @test:Config {}
-function testDeclarativeClientForExecute() {
+function testDeclarativeClientForExecute() returns error? {
     string payload = "sample_value";
-    http:Response|http:ClientError response = declarativeClientEP->execute("POST", "/declarativeclient/foo", payload);
+    http:Response response = check declarativeClientEP->execute("POST", "/declarativeclient/foo", payload);
     assertSuccess(response);
 }
 
 @test:Config {}
-function testDeclarativeClientForPatch() {
+function testDeclarativeClientForPatch() returns error? {
     string payload = "sample_value";
-    http:Response|http:ClientError response = declarativeClientEP->patch("/declarativeclient/foo", payload);
+    http:Response response = check declarativeClientEP->patch("/declarativeclient/foo", payload);
     assertSuccess(response);
 }
 
 @test:Config {}
-function testDeclarativeClientForDelete() {
+function testDeclarativeClientForDelete() returns error? {
     string payload = "sample_value";
-    http:Response|http:ClientError response = declarativeClientEP->delete("/declarativeclient/foo", payload);
+    http:Response response = check declarativeClientEP->delete("/declarativeclient/foo", payload);
     assertSuccess(response);
 }
 
 @test:Config {}
-function testDeclarativeClientForOptions() {
-    http:Response|http:ClientError response = declarativeClientEP->options("/declarativeclient/foo");
+function testDeclarativeClientForOptions() returns error? {
+    http:Response response = check declarativeClientEP->options("/declarativeclient/foo");
     assertSuccess(response);
 }

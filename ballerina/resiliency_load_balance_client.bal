@@ -74,7 +74,7 @@ public client isolated class LoadBalanceClient {
     
     private isolated function processPost(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_POST);
         return processResponse(result, targetType);
@@ -98,7 +98,7 @@ public client isolated class LoadBalanceClient {
     
     private isolated function processPut(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PUT);
         return processResponse(result, targetType);
@@ -122,7 +122,7 @@ public client isolated class LoadBalanceClient {
     
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PATCH);
         return processResponse(result, targetType);
@@ -146,7 +146,7 @@ public client isolated class LoadBalanceClient {
     
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_DELETE);
         return processResponse(result, targetType);
@@ -222,7 +222,7 @@ public client isolated class LoadBalanceClient {
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers) 
             returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceExecuteAction(path, req, httpVerb);
         return processResponse(result, targetType);
@@ -347,7 +347,7 @@ public client isolated class LoadBalanceClient {
                     return serviceResponse;
                 } else if (serviceResponse is HttpFuture) {
                     return getInvalidTypeError();
-                } else {
+                } else if (serviceResponse is ClientError) {
                     if (self.failover) {
                         loadBalancerInRequest = check createFailoverRequest(loadBalancerInRequest, requestEntity);
                         loadBalanceActionErrorData.httpActionErr[lbErrorIndex] = serviceResponse;
@@ -356,6 +356,8 @@ public client isolated class LoadBalanceClient {
                     } else {
                         return serviceResponse;
                     }
+                } else {
+                    panic error ClientError("invalid response type received");
                 }
             } else {
                 return loadBalanceClient;

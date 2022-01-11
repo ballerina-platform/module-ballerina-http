@@ -23,7 +23,12 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.mime.util.MimeUtil;
+
+import java.net.InetSocketAddress;
+
+import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 
 /**
  * Utility functions to create JVM values.
@@ -48,8 +53,29 @@ public class ValueCreatorUtils {
         return createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.REQUEST_CACHE_CONTROL);
     }
 
-    public static BObject createCallerObject() {
-        return createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.CALLER);
+    public static BObject createCallerObject(HttpCarbonMessage inboundMsg) {
+        BMap<BString, Object> remote = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.REMOTE);
+        BMap<BString, Object> local = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LOCAL);
+
+        Object remoteSocketAddress = inboundMsg.getProperty(HttpConstants.REMOTE_ADDRESS);
+        if (remoteSocketAddress instanceof InetSocketAddress) {
+            InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteSocketAddress;
+            BString remoteHost = fromString(inetSocketAddress.getHostString());
+            long remotePort = inetSocketAddress.getPort();
+            remote.put(HttpConstants.REMOTE_HOST_FIELD, remoteHost);
+            remote.put(HttpConstants.REMOTE_PORT_FIELD, remotePort);
+        }
+
+        Object localSocketAddress = inboundMsg.getProperty(HttpConstants.LOCAL_ADDRESS);
+        if (localSocketAddress instanceof InetSocketAddress) {
+            InetSocketAddress inetSocketAddress = (InetSocketAddress) localSocketAddress;
+            String localHost = inetSocketAddress.getHostName();
+            long localPort = inetSocketAddress.getPort();
+            local.put(HttpConstants.LOCAL_HOST_FIELD, fromString(localHost));
+            local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
+        }
+        return ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.CALLER,
+                remote, local, fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
     }
 
     static BObject createHeadersObject() {

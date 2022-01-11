@@ -16,12 +16,13 @@
 
 import ballerina/jballerina.java;
 import ballerina/lang.value as val;
-import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
 import ballerina/time;
 import ballerina/log;
+import ballerina/lang.'string as strings;
+import ballerina/url;
 import ballerina/regex;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
@@ -39,7 +40,7 @@ public isolated function parseHeader(string headerValue) returns HeaderValue[]|C
     name: "parseHeader"
 } external;
 
-isolated function buildRequest(RequestMessage message) returns Request|ClientError {
+isolated function buildRequest(RequestMessage message, string? mediaType) returns Request|ClientError {
     Request request = new;
     if (message is ()) {
         request.noEntityBody = true;
@@ -57,15 +58,49 @@ isolated function buildRequest(RequestMessage message) returns Request|ClientErr
         request.setByteStream(message);
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
-    } else {
-        var result = trap val:toJson(message);
-        if (result is error) {
-            return error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
-        } else {
-            request.setJsonPayload(result);
+    } else if message is anydata {
+        match mediaType {
+            mime:APPLICATION_FORM_URLENCODED => {
+                string payload = check processUrlEncodedContent(message);
+                request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
+            }
+            _ => {
+                json payload = check processJsonContent(message);
+                request.setJsonPayload(payload);
+            }
         }
+
+    } else {
+        string errorMsg = "invalid request body type. expected one of the types: http:Request|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
+        panic error InitializingOutboundRequestError(errorMsg);
     }
     return request;
+}
+
+isolated function processUrlEncodedContent(anydata message) returns string|ClientError {
+    if message is map<string> {
+        do {
+            string[] messageParams = [];
+            foreach var ['key, value] in message.entries() {
+                string encodedValue = check url:encode(value, "UTF-8");
+                string entry = string`${'key}=${encodedValue}`;
+                messageParams.push(entry);
+            }
+            return strings:'join("&", ...messageParams);
+        } on fail var e {
+            return error InitializingOutboundRequestError("content encoding error: " + e.message(), e);
+        }
+    } else {
+        return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
+    }
+}
+
+isolated function processJsonContent(anydata message) returns json|ClientError {
+    var result = trap val:toJson(message);
+    if (result is error) {
+        return error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
+    }
+    return result;
 }
 
 isolated function buildResponse(ResponseMessage message) returns Response|ListenerError {
@@ -84,13 +119,16 @@ isolated function buildResponse(ResponseMessage message) returns Response|Listen
         response.setByteStream(message);
     } else if (message is mime:Entity[]) {
         response.setBodyParts(message);
-    } else {
+    } else if message is anydata {
         var result = trap val:toJson(message);
         if (result is error) {
             return error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
         } else {
             response.setJsonPayload(result);
         }
+    } else {
+        string errorMsg = "invalid response body type. expected one of the types: http:Response|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
+        panic error InitializingOutboundResponseError(errorMsg);
     }
     return response;
 }

@@ -146,12 +146,18 @@ const int requestInterceptorNegativeTestPort1 = 9596;
 const int requestInterceptorNegativeTestPort2 = 9597;
 const int requestInterceptorNegativeTestPort3 = 9598;
 const int requestInterceptorNegativeTestPort4 = 9599;
-const int requestInterceptorCallerRespondContinueTestPort = 9600;
-const int requestInterceptorStringPayloadBindingTestPort = 9601;
-const int requestInterceptorRecordPayloadBindingTestPort = 9602;
-const int requestInterceptorRecordArrayPayloadBindingTestPort = 9603;
-const int requestInterceptorByteArrayPayloadBindingTestPort = 9604;
-const int requestInterceptorWithQueryParamTestPort = 9605;
+const int requestInterceptorNegativeTestPort5 = 9600;
+const int requestInterceptorNegativeTestPort6 = 9601;
+const int requestInterceptorCallerRespondContinueTestPort = 9602;
+const int requestInterceptorStringPayloadBindingTestPort = 9603;
+const int requestInterceptorRecordPayloadBindingTestPort = 9604;
+const int requestInterceptorRecordArrayPayloadBindingTestPort = 9605;
+const int requestInterceptorByteArrayPayloadBindingTestPort = 9606;
+const int requestInterceptorWithQueryParamTestPort = 9607;
+const int requestInterceptorServiceConfigTestPort1 = 9608;
+const int requestInterceptorServiceConfigTestPort2 = 9609;
+const int clientFormUrlEncodedTestPort = 9610;
+const int typedHeadersTestPort = 9611;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;

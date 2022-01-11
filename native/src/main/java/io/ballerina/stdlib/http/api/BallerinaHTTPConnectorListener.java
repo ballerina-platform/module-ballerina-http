@@ -35,12 +35,15 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_TRACE_PROPERTIES;
 import static io.ballerina.runtime.observability.ObservabilityConstants.SERVER_CONNECTOR_HTTP;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_METHOD;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_HTTP_URL;
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PROTOCOL;
+import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTORS;
+import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES;
 
 /**
  * HTTP connector listener for Ballerina.
@@ -65,15 +68,22 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     @Override
     public void onMessage(HttpCarbonMessage inboundMessage) {
         try {
+            if (Objects.isNull(inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES))) {
+                setTargetServiceToCarbonMsg(inboundMessage);
+            }
+
+            List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries =
+                    (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
+
             // Executing interceptor services
             InterceptorResource interceptorResource;
             int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX)
                     == null ? 0 : (int)  inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
-            while (interceptorServiceIndex < httpInterceptorServicesRegistries.size()) {
-                HTTPInterceptorServicesRegistry interceptorServicesRegistry = httpInterceptorServicesRegistries.
+            while (interceptorServiceIndex < interceptorServicesRegistries.size()) {
+                HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
                         get(interceptorServiceIndex);
 
-                // Checking whether the interceptor service state matches the interceptor service registry
+                // Checking whether the interceptor service state matches the interceptor service registry type
                 if (!interceptorServicesRegistry.getServicesType().
                                             equals(inboundMessage.getInterceptorServiceState())) {
                     interceptorServiceIndex += 1;
@@ -105,9 +115,6 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                     inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
                     extractPropertiesAndStartInterceptorResourceExecution(inboundMessage, interceptorResource,
                             interceptorServicesRegistry);
-                    // Removes the error occurred during interceptor execution since it is consumed by the error
-                    // interceptor
-                    inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
                     return;
                 }
             }
@@ -209,6 +216,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Callback callback = new HttpInterceptorUnitCallback(inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
+
+        // Removes the error occurred during interceptor execution since it is consumed by the error
+        // interceptor
+        inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+
         if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
             runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
                                                   ModuleUtils.getOnMessageMetaData(), callback, properties,
@@ -262,6 +274,23 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             } else {
                 throw e;
             }
+        }
+    }
+
+    private void setTargetServiceToCarbonMsg(HttpCarbonMessage inboundMessage) {
+        inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES, httpInterceptorServicesRegistries);
+        inboundMessage.setProperty(INTERCEPTORS, endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS));
+        try {
+            HttpService targetService = HttpDispatcher.findService(httpServicesRegistry, inboundMessage, true);
+            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, targetService.getBalService());
+            if (targetService.hasInterceptors()) {
+                inboundMessage.setProperty(INTERCEPTORS, targetService.getBalInterceptorServicesArray());
+                inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES,
+                                           targetService.getInterceptorServicesRegistries());
+            }
+        } catch (Exception e) {
+            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, HttpUtil.createHttpError(e.getMessage(),
+                    HttpErrorType.GENERIC_LISTENER_ERROR));
         }
     }
 }

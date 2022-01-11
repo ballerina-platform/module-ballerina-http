@@ -28,7 +28,7 @@ boolean listenerIdle = true;
 boolean listenerStopped = false;
 
 service /startService on listenerMethodListener {
-    resource function get test(http:Caller caller, http:Request req) {
+    resource function get test(http:Caller remoteCaller) {
         lock {
             http:Service listenerMethodMock1 = service object {
                 resource function get .(http:Caller caller, http:Request req) {
@@ -60,7 +60,7 @@ service /startService on listenerMethodListener {
         lock {
             checkpanic listenerMethodbackendEP.start();
         }
-        error? result = caller->respond("Backend service started!");
+        error? result = remoteCaller->respond("Backend service started!");
         if (result is error) {
             log:printError("Error sending response", 'error = result);
         }

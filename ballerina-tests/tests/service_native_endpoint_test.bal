@@ -41,11 +41,6 @@ service /serviceEndpointHello on serviceEndpointTestEP {
     resource function get host(http:Caller caller) returns string {
         return caller.getRemoteHostName() ?: "nohost";
     }
-
-    resource function get nohost(http:Caller caller) returns string {
-        http:Caller caller2 = new;
-        return caller2.getRemoteHostName() ?: "nohost";
-    }
 }
 
 //Test the protocol value of ServiceEndpoint struct within a service
@@ -83,16 +78,6 @@ function testGetHostName() {
     var response = serviceEndpointClient->get("/serviceEndpointHello/host", targetType = string);
     if (response is string) {
         test:assertTrue(response.length() != 0, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testGetNoHostName() {
-    var response = serviceEndpointClient->get("/serviceEndpointHello/nohost", targetType = string);
-    if (response is string) {
-        test:assertEquals(response, "nohost", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

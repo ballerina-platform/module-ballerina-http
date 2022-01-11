@@ -488,8 +488,11 @@ public class Response {
             self.setJsonPayload(payload);
         } else if (payload is stream<byte[], io:Error?>) {
             self.setByteStream(payload);
-        } else {
+        } else if (payload is mime:Entity[]) {
             self.setBodyParts(payload);
+        } else {
+            panic error Error("invalid entity body type." +
+                "expected one of the types: string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>");
         }
     }
 

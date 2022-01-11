@@ -22,7 +22,7 @@ public abstract class AbstractHttpNativeFunction {
 
     public static List<HTTPInterceptorServicesRegistry> getHttpInterceptorServicesRegistries(BObject serviceEndpoint) {
         return (List<HTTPInterceptorServicesRegistry>) serviceEndpoint.getNativeData(HttpConstants.
-                HTTP_INTERCEPTOR_SERVICE_REGISTRIES);
+                INTERCEPTOR_SERVICES_REGISTRIES);
     }
 
     protected static ServerConnector getServerConnector(BObject serviceEndpoint) {
@@ -44,7 +44,7 @@ public abstract class AbstractHttpNativeFunction {
         for (int i = 0; i < interceptorsSize; i++) {
             httpInterceptorServicesRegistries.add(new HTTPInterceptorServicesRegistry());
         }
-        serviceEndpoint.addNativeData(HttpConstants.HTTP_INTERCEPTOR_SERVICE_REGISTRIES,
+        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES,
                 httpInterceptorServicesRegistries);
     }
 }

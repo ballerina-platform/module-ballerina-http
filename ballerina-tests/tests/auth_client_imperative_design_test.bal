@@ -23,73 +23,61 @@ import ballerina/test;
 service /imperativeclient on authListener {
     resource function 'default foo(http:Request req) returns string|http:Unauthorized|http:Forbidden {
         jwt:Payload|http:Unauthorized authn = handler.authenticate(req);
-        if (authn is http:Unauthorized) {
+        if authn is http:Unauthorized {
             return authn;
         }
         http:Forbidden? authz = handler.authorize(<jwt:Payload> authn, ["write", "update"]);
-        if (authz is http:Forbidden) {
+        if authz is http:Forbidden {
             return authz;
         }
         return "Hello World!";
     }
 }
 
-final http:Client imperativeClientEP = checkpanic new("https://localhost:" + securedListenerPort.toString(), {
-    secureSocket: {
+final http:Client imperativeClientEP = check new("https://localhost:" + securedListenerPort.toString(),
+    secureSocket = {
         cert: {
             path: TRUSTSTORE_PATH,
             password: "ballerina"
         }
     }
-});
+);
 
 @test:Config {}
-function testImperativeEnrichRequest() {
+function testImperativeEnrichRequest() returns error? {
     http:BearerTokenConfig config = {
         token: JWT1
     };
     http:ClientBearerTokenAuthHandler handler = new(config);
     http:Request request = createDummyRequest();
-    http:Request|http:ClientAuthError result = handler.enrich(request);
-    if (result is http:Request) {
-        http:Response|http:ClientError response = imperativeClientEP->post("/imperativeclient/foo", result);
-        assertSuccess(response);
-    } else {
-        test:assertFail(msg = "Test Failed! " + result.message());
-    }
+    http:Request result = check handler.enrich(request);
+    http:Response response = check imperativeClientEP->post("/imperativeclient/foo", result);
+    assertSuccess(response);
 }
 
 @test:Config {}
-function testImperativeEnrichHeaders() {
+function testImperativeEnrichHeaders() returns error? {
     http:BearerTokenConfig config = {
         token: JWT1
     };
     http:ClientBearerTokenAuthHandler handler = new(config);
     map<string|string[]> headers = {};
-    map<string|string[]>|http:ClientAuthError result = handler.enrichHeaders(headers);
-    if (result is map<string|string[]>) {
-        http:Response|http:ClientError response1 = imperativeClientEP->get("/imperativeclient/foo", result);
-        assertSuccess(response1);
-        http:Response|http:ClientError response2 = imperativeClientEP->post("/imperativeclient/foo", result);
-        assertUnauthorized(response2);
-    } else {
-        test:assertFail(msg = "Test Failed! " + result.message());
-    }
+    map<string|string[]> result = check handler.enrichHeaders(headers);
+    http:Response response1 = check imperativeClientEP->get("/imperativeclient/foo", result);
+    assertSuccess(response1);
+    http:Response response2 = check imperativeClientEP->post("/imperativeclient/foo", result);
+    assertUnauthorized(response2);
 }
 
 @test:Config {}
-function testImperativeGetSecurityHeaders() {
+function testImperativeGetSecurityHeaders() returns error? {
     http:BearerTokenConfig config = {
         token: JWT1
     };
     http:ClientBearerTokenAuthHandler handler = new(config);
-    map<string|string[]>|http:ClientAuthError result = handler.getSecurityHeaders();
-    if (result is map<string|string[]>) {
-        http:Response|http:ClientError response1 = imperativeClientEP->get("/imperativeclient/foo", result);
-        assertSuccess(response1);
-        http:Response|http:ClientError response2 = imperativeClientEP->post("/imperativeclient/foo", result);
-        assertUnauthorized(response2);
-    } else {
-        test:assertFail(msg = "Test Failed! " + result.message());
-    }
+    map<string|string[]> result = check handler.getSecurityHeaders();
+    http:Response response1 = check imperativeClientEP->get("/imperativeclient/foo", result);
+    assertSuccess(response1);
+    http:Response response2 = check imperativeClientEP->post("/imperativeclient/foo", result);
+    assertUnauthorized(response2);
 }

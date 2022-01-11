@@ -20,31 +20,31 @@ import ballerina/time;
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.2.3
 isolated function calculateCurrentResponseAge(Response cachedResponse) returns int {
-    time:Seconds ageValue = getResponseAge(cachedResponse);
+    decimal ageValue = getResponseAge(cachedResponse);
     time:Utc dateValue = getDateValue(cachedResponse);
     time:Utc now = time:utcNow();
     time:Utc responseTime = cachedResponse.receivedTime;
     time:Utc requestTime = cachedResponse.requestTime;
 
-    time:Seconds ageDiff = time:utcDiffSeconds(responseTime, dateValue);
-    time:Seconds apparentAge = ageDiff >= 0d ? ageDiff : 0d;
+    decimal ageDiff = (<decimal>time:utcDiffSeconds(responseTime, dateValue))*1000;
+    decimal apparentAge = ageDiff >= 0d ? ageDiff : 0d;
 
-    time:Seconds responseDelay = time:utcDiffSeconds(responseTime, requestTime);
-    time:Seconds correctedAgeValue = ageValue + responseDelay;
+    decimal responseDelay = (<decimal>time:utcDiffSeconds(responseTime, requestTime))*1000;
+    decimal correctedAgeValue = ageValue + responseDelay;
 
-    time:Seconds correctedInitialAge = apparentAge > correctedAgeValue ? apparentAge : correctedAgeValue;
-    time:Seconds residentTime = time:utcDiffSeconds(now, responseTime);
+    decimal correctedInitialAge = apparentAge > correctedAgeValue ? apparentAge : correctedAgeValue;
+    decimal residentTime = (<decimal>time:utcDiffSeconds(now, responseTime))*1000;
 
-    return <int>((correctedInitialAge + residentTime));
+    return <int>((correctedInitialAge + residentTime)/1000d);
 }
 
-isolated function getResponseAge(Response cachedResponse) returns time:Seconds {
+isolated function getResponseAge(Response cachedResponse) returns decimal {
     string|error ageHeaderString = cachedResponse.getHeader(AGE);
     if (ageHeaderString is error) {
         return 0;
     } else {
         var ageValue = 'decimal:fromString(ageHeaderString);
-        return (ageValue is decimal) ? <time:Seconds> ageValue : 0;
+        return (ageValue is decimal) ? ageValue : 0;
     }
 }
 

@@ -121,23 +121,24 @@ public class InterceptorService implements Service {
         return uriTemplate;
     }
 
-    public static InterceptorService buildHttpService(BObject service, String basePath, String serviceType) {
+    public static InterceptorService buildHttpService(BObject service, String basePath, String serviceType,
+                                                      boolean fromListener) {
         InterceptorService interceptorService = new InterceptorService(service, basePath);
         interceptorService.setServiceType(serviceType);
         interceptorService.setHostName(HttpConstants.DEFAULT_HOST);
-        processInterceptorResource(interceptorService);
+        processInterceptorResource(interceptorService, fromListener);
         interceptorService.setAllAllowedMethods(DispatcherUtil.getInterceptorResourceMethods(
                 interceptorService));
         return interceptorService;
     }
 
-    private static void processInterceptorResource(InterceptorService interceptorService) {
+    private static void processInterceptorResource(InterceptorService interceptorService, boolean fromListener) {
         MethodType[] resourceMethods = ((ServiceType) interceptorService.getBalService().getType())
                 .getResourceMethods();
         if (resourceMethods.length == 1) {
             MethodType resource = resourceMethods[0];
             updateInterceptorResourceTree(interceptorService,
-                    InterceptorResource.buildInterceptorResource(resource, interceptorService));
+                    InterceptorResource.buildInterceptorResource(resource, interceptorService, fromListener));
         }
     }
 

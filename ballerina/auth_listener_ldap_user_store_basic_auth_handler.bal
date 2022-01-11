@@ -34,9 +34,9 @@ public isolated client class ListenerLdapUserStoreBasicAuthHandler {
     # + return - The `auth:UserDetails` instance or else `Unauthorized` type in case of an error
     remote isolated function authenticate(Request|Headers|string data) returns auth:UserDetails|Unauthorized {
         string|ListenerAuthError credential = extractCredential(data);
-        if (credential is string) {
+        if credential is string {
             auth:UserDetails|auth:Error details = self.provider.authenticate(credential);
-            if (details is auth:UserDetails) {
+            if details is auth:UserDetails {
                 return details;
             } else {
                 Unauthorized unauthorized = {
@@ -59,9 +59,9 @@ public isolated client class ListenerLdapUserStoreBasicAuthHandler {
     # + return - `()`, if it is successful or else `Forbidden` type in case of an error
     remote isolated function authorize(auth:UserDetails userDetails, string|string[] expectedScopes) returns Forbidden? {
         string[]? actualScopes = userDetails?.scopes;
-        if (actualScopes is string[]) {
+        if actualScopes is string[] {
             boolean matched = matchScopes(actualScopes, expectedScopes);
-            if (matched) {
+            if matched {
                 return;
             }
         }

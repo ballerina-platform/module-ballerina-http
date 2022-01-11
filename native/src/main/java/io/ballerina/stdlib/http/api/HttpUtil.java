@@ -95,7 +95,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
@@ -457,10 +456,12 @@ public class HttpUtil {
         PipeliningHandler.sendPipelinedResponse(requestMessage, createErrorMessage(errorMsg, statusCode));
     }
 
-    static void handleFailure(HttpCarbonMessage requestMessage, BError error) {
+    static void handleFailure(HttpCarbonMessage requestMessage, BError error, Boolean printStackTrace) {
         String errorMsg = getErrorMessage(error);
         int statusCode = getStatusCode(requestMessage, errorMsg);
-        error.printStackTrace();
+        if (printStackTrace) {
+            error.printStackTrace();
+        }
         PipeliningHandler.sendPipelinedResponse(requestMessage, createErrorMessage(errorMsg, statusCode));
     }
 
@@ -749,30 +750,7 @@ public class HttpUtil {
      */
     public static void enrichHttpCallerWithConnectionInfo(BObject httpCaller, HttpCarbonMessage inboundMsg,
                                                           Resource resource, BMap config) {
-        BMap<BString, Object> remote = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.REMOTE);
-        BMap<BString, Object> local = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LOCAL);
-
         Object remoteSocketAddress = inboundMsg.getProperty(HttpConstants.REMOTE_ADDRESS);
-        if (remoteSocketAddress instanceof InetSocketAddress) {
-            InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteSocketAddress;
-            BString remoteHost = fromString(inetSocketAddress.getHostString());
-            long remotePort = inetSocketAddress.getPort();
-            remote.put(HttpConstants.REMOTE_HOST_FIELD, remoteHost);
-            remote.put(HttpConstants.REMOTE_PORT_FIELD, remotePort);
-        }
-        httpCaller.set(HttpConstants.REMOTE_STRUCT_FIELD, remote);
-
-        Object localSocketAddress = inboundMsg.getProperty(HttpConstants.LOCAL_ADDRESS);
-        if (localSocketAddress instanceof InetSocketAddress) {
-            InetSocketAddress inetSocketAddress = (InetSocketAddress) localSocketAddress;
-            String localHost = inetSocketAddress.getHostName();
-            long localPort = inetSocketAddress.getPort();
-            local.put(HttpConstants.LOCAL_HOST_FIELD, fromString(localHost));
-            local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
-        }
-        httpCaller.set(HttpConstants.LOCAL_STRUCT_INDEX, local);
-        httpCaller.set(HttpConstants.SERVICE_ENDPOINT_PROTOCOL_FIELD,
-                       fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
         httpCaller.set(HttpConstants.SERVICE_ENDPOINT_CONFIG_FIELD, config);
         httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, resource.getParentService());
         httpCaller.addNativeData(HttpConstants.REMOTE_SOCKET_ADDRESS, remoteSocketAddress);
@@ -1500,11 +1478,30 @@ public class HttpUtil {
         return listenerConfiguration;
     }
 
-    public static void getAndPopulateInterceptorsServices(BObject serviceEndpoint, Runtime runtime) {
+    // TODO : Move this to `register` after this issue is fixed
+    //  https://github.com/ballerina-platform/ballerina-lang/issues/33594
+    public static void populateInterceptorServicesFromService(BObject serviceEndpoint,
+                                                              HTTPServicesRegistry servicesRegistry) {
+        List<HTTPInterceptorServicesRegistry> listenerLevelInterceptors
+                = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
+        BArray interceptorsArray = serviceEndpoint.getNativeData(HttpConstants.INTERCEPTORS) instanceof BArray
+                                   ? (BArray) serviceEndpoint.getNativeData(HttpConstants.INTERCEPTORS) : null;
+        Runtime runtime = servicesRegistry.getRuntime();
+        Map<String, HTTPServicesRegistry.ServicesMapHolder> servicesMapByHost = servicesRegistry.getServicesMapByHost();
+        for (HTTPServicesRegistry.ServicesMapHolder servicesMapHolder : servicesMapByHost.values()) {
+            Map<String, HttpService> servicesByBasePath = servicesMapHolder.getServicesByBasePath();
+            for (HttpService service : servicesByBasePath.values()) {
+                HttpService.populateInterceptorServicesRegistries(listenerLevelInterceptors, interceptorsArray,
+                                                                  service, runtime);
+            }
+        }
+    }
+
+    public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
         BMap endpointConfig = (BMap) serviceEndpoint.getNativeData(SERVICE_ENDPOINT_CONFIG);
         Object[] interceptors = {};
         List<BObject> interceptorServices = new ArrayList<>();
-        BArray interceptorsArray = endpointConfig.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
+        BArray interceptorsArray = endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
 
         if (interceptorsArray != null) {
             interceptors = interceptorsArray.getValues();
@@ -1517,6 +1514,7 @@ public class HttpUtil {
             interceptorServices.add((BObject) interceptor);
         }
 
+        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorsArray);
         Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
                                                     = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
@@ -1526,7 +1524,8 @@ public class HttpUtil {
             BObject interceptorService = interceptorServices.get(i);
             HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
             servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerInterceptorService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH);
+            servicesRegistry.registerInterceptorService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH,
+                                                        true);
             servicesRegistry.setRuntime(runtime);
         }
     }

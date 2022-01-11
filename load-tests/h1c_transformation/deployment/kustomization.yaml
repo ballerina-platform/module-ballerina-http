@@ -1,0 +1,12 @@
+resources:
+  - h1c_transformation.yaml
+  - ingress.yaml
+  - netty-backend.yaml
+patches:
+- path: deployment-patch.yaml
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: h1c-transformat-deployment
+    

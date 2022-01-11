@@ -38,11 +38,11 @@ final http:ListenerJwtAuthHandler handler = new({
 service /imperative on authListener {
     resource function get foo(http:Request req) returns string|http:Unauthorized|http:Forbidden {
         jwt:Payload|http:Unauthorized authn = handler.authenticate(req);
-        if (authn is http:Unauthorized) {
+        if authn is http:Unauthorized {
             return authn;
         }
         http:Forbidden? authz = handler.authorize(<jwt:Payload> authn, ["write", "update"]);
-        if (authz is http:Forbidden) {
+        if authz is http:Forbidden {
             return authz;
         }
         return "Hello World!";
@@ -50,11 +50,11 @@ service /imperative on authListener {
 
     resource function get bar(http:Headers headers) returns string|http:Unauthorized|http:Forbidden {
         jwt:Payload|http:Unauthorized authn = handler.authenticate(headers);
-        if (authn is http:Unauthorized) {
+        if authn is http:Unauthorized {
             return authn;
         }
         http:Forbidden? authz = handler.authorize(<jwt:Payload> authn, ["write", "update"]);
-        if (authz is http:Forbidden) {
+        if authz is http:Forbidden {
             return authz;
         }
         return "Hello World!";
@@ -62,11 +62,11 @@ service /imperative on authListener {
 
     resource function get baz(@http:Header { name: "Authorization" } string header) returns string|http:Unauthorized|http:Forbidden {
         jwt:Payload|http:Unauthorized authn = handler.authenticate(header);
-        if (authn is http:Unauthorized) {
+        if authn is http:Unauthorized {
             return authn;
         }
         http:Forbidden? authz = handler.authorize(<jwt:Payload> authn, ["write", "update"]);
-        if (authz is http:Forbidden) {
+        if authz is http:Forbidden {
             return authz;
         }
         return "Hello World!";

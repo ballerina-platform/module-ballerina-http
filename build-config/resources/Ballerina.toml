@@ -5,8 +5,9 @@ version = "@toml.version@"
 authors = ["Ballerina"]
 keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
+icon = "icon.png"
 license = ["Apache-2.0"]
-distribution = "slbeta3"
+distribution = "2201.0.0"
 
 [[platform.java11.dependency]]
 path = "../native/build/libs/http-native-@project.version@.jar"
@@ -52,6 +53,9 @@ path = "./lib/bcpkix-jdk15on-@bouncycastle.version@.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/netty-tcnative-boringssl-static-@tcnative.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/netty-tcnative-classes-@tcnative.version@.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/mimepull-@mimepull.version@.jar"
