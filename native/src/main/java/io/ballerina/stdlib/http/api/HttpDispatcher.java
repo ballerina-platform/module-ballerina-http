@@ -53,14 +53,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
@@ -71,8 +68,6 @@ import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
-import static io.ballerina.stdlib.mime.util.MimeConstants.APPLICATION_FORM;
-import static io.ballerina.stdlib.mime.util.MimeConstants.APPLICATION_JSON;
 import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 
 /**
@@ -681,7 +676,7 @@ public class HttpDispatcher {
 
     private static Object getFormParamMap(Object stringDataSource) {
         try {
-            String formData = ((BString)stringDataSource).getValue();
+            String formData = ((BString) stringDataSource).getValue();
             BMap<BString, Object> formParamsMap = ValueCreator.createMapValue(STRING_MAP);
             if (formData.isEmpty()) {
                 return formParamsMap;

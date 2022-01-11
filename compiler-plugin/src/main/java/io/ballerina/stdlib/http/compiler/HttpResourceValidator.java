@@ -316,14 +316,11 @@ class HttpResourceValidator {
                             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
                             if (typeDescKind == TypeDescKind.RECORD) {
                                 continue;
-                            } else if (typeDescKind == TypeDescKind.MAP) {
-                                
                             }
                         } else if (kind == TypeDescKind.MAP) {
-                            TypeSymbol typeDescriptor =
-                                    ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
+                            TypeSymbol typeDescriptor = ((MapTypeSymbol) param.typeDescriptor()).typeParam();
                             TypeDescKind typeDescKind = typeDescriptor.typeKind();
-                            if (typeDescKind == TypeDescKind.RECORD) {
+                            if (typeDescKind == TypeDescKind.STRING) {
                                 continue;
                             }
                         }

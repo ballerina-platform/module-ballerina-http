@@ -36,6 +36,10 @@ service http:Service on new http:Listener(9090) {
         return "done";
     }
 
+    resource function get dbMapOfString(@http:Payload map<string> abc) returns string {
+        return "done";
+    }
+
     resource function get dbByteArr(@http:Payload byte[] abc) returns string {
         return "done";
     }
@@ -57,6 +61,10 @@ service http:Service on new http:Listener(9090) {
     }
 
     resource function get dbTable(table<Person> key(id)  abc) returns string {
+        return "done"; // error
+    }
+
+    resource function get dbMapOfIntNegative(@http:Payload map<int> abc) returns string {
         return "done"; // error
     }
 }
