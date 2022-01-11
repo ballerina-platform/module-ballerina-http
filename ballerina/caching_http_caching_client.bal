@@ -286,11 +286,11 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
         RequestCacheControl? reqCache = req.cacheControl;
         ResponseCacheControl? resCache = cachedResponse.cacheControl;
 
-        boolean isFreshResp = false;
+        boolean freshResponse = false;
         lock {
-            isFreshResp = isFreshResponse(cachedResponse, isShared);
+            freshResponse = isFreshResponse(cachedResponse, isShared);
         }
-        if (isFreshResp) {
+        if (freshResponse) {
             // If the no-cache directive is not set, responses can be served straight from the cache, without
             // validating with the origin server.
             if (!isNoCacheSet(reqCache, resCache) && !req.hasHeader(PRAGMA)) {
