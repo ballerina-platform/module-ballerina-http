@@ -1,7 +1,7 @@
 [package]
 org = "ballerina"
 name = "http"
-version = "2.2.0"
+version = "2.2.11"
 authors = ["Ballerina"]
 keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
@@ -10,10 +10,10 @@ license = ["Apache-2.0"]
 distribution = "2201.0.0"
 
 [[platform.java11.dependency]]
-path = "../native/build/libs/http-native-2.2.0-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-2.2.11.jar"
 
 [[platform.java11.dependency]]
-path = "./lib/mime-native-2.2.0-20220110-185500-739a5a4.jar"
+path = "./lib/mime-native-2.2.0-20220111-071100-b107aa1.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/netty-common-4.1.71.Final.jar"
