@@ -347,7 +347,7 @@ public client isolated class LoadBalanceClient {
                     return serviceResponse;
                 } else if (serviceResponse is HttpFuture) {
                     return getInvalidTypeError();
-                } else {
+                } else if (serviceResponse is ClientError) {
                     if (self.failover) {
                         loadBalancerInRequest = check createFailoverRequest(loadBalancerInRequest, requestEntity);
                         loadBalanceActionErrorData.httpActionErr[lbErrorIndex] = serviceResponse;
@@ -356,6 +356,8 @@ public client isolated class LoadBalanceClient {
                     } else {
                         return serviceResponse;
                     }
+                } else {
+                    panic error ClientError("invalid response type received");
                 }
             } else {
                 return loadBalanceClient;
