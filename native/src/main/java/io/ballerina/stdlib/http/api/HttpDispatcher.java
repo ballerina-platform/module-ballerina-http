@@ -681,14 +681,13 @@ public class HttpDispatcher {
             if (formData.isEmpty()) {
                 return formParamsMap;
             }
-            if (!formData.contains("&") || !formData.contains("=")) {
-                throw new BallerinaConnectorException("Datasource does not contain form data");
-            }
-
             Map<String, String> tempParamMap = new HashMap<>();
             String decodedValue = URLDecoder.decode(formData, StandardCharsets.UTF_8);
-            String[] formParamValues = decodedValue.split("&");
 
+            if (!decodedValue.contains("&") || !decodedValue.contains("=")) {
+                throw new BallerinaConnectorException("Datasource does not contain form data");
+            }
+            String[] formParamValues = decodedValue.split("&");
             for (String formParam : formParamValues) {
                 int index = formParam.indexOf('=');
                 if (index == -1) {
