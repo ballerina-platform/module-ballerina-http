@@ -270,7 +270,7 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
     req.parseCacheControlHeader();
 
     any|error cacheEntry = cache.get(getCacheKey(httpMethod, path));
-    if (cacheEntry !is error && cacheEntry !is null) {
+    if (cacheEntry !is error) {
         Response[] cachedValue = <Response[]> cacheEntry;
         Response cachedResponse = cachedValue[cachedValue.length() - 1];
 
@@ -286,18 +286,20 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
         RequestCacheControl? reqCache = req.cacheControl;
         ResponseCacheControl? resCache = cachedResponse.cacheControl;
 
+        boolean isFreshResp = false;
         lock {
-            if (isFreshResponse(cachedResponse, isShared)) {
-                // If the no-cache directive is not set, responses can be served straight from the cache, without
-                // validating with the origin server.
-                if (!isNoCacheSet(reqCache, resCache) && !req.hasHeader(PRAGMA)) {
-                    log:printDebug("Serving a cached fresh response without validating with the origin server");
-                    return cachedResponse;
-                }
-
-                log:printDebug("Serving a cached fresh response after validating with the origin server");
-                return getValidationResponse(httpClient, req, cachedResponse, cache, currentT, path, httpMethod, true);
+            isFreshResp = isFreshResponse(cachedResponse, isShared);
+        }
+        if (isFreshResp) {
+            // If the no-cache directive is not set, responses can be served straight from the cache, without
+            // validating with the origin server.
+            if (!isNoCacheSet(reqCache, resCache) && !req.hasHeader(PRAGMA)) {
+                log:printDebug("Serving a cached fresh response without validating with the origin server");
+                return cachedResponse;
             }
+
+            log:printDebug("Serving a cached fresh response after validating with the origin server");
+            return getValidationResponse(httpClient, req, cachedResponse, cache, currentT, path, httpMethod, true);
         }
 
         // If a fresh response is not available, serve a stale response, provided that it is not prohibited by
