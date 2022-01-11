@@ -686,7 +686,8 @@ public class HttpDispatcher {
             }
 
             Map<String, String> tempParamMap = new HashMap<>();
-            String[] formParamValues = formData.split("&");
+            String decodedValue = URLDecoder.decode(formData, StandardCharsets.UTF_8);
+            String[] formParamValues = decodedValue.split("&");
 
             for (String formParam : formParamValues) {
                 int index = formParam.indexOf('=');
@@ -698,9 +699,7 @@ public class HttpDispatcher {
                 }
                 String formParamName = formParam.substring(0, index).trim();
                 String formParamValue = formParam.substring(index + 1).trim();
-                String decodedValue;
-                decodedValue = URLDecoder.decode(formParamValue, StandardCharsets.UTF_8);
-                tempParamMap.put(formParamName, decodedValue);
+                tempParamMap.put(formParamName, formParamValue);
             }
 
             for (Map.Entry<String, String> entry : tempParamMap.entrySet()) {

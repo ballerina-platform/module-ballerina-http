@@ -16,11 +16,13 @@
 
 import ballerina/jballerina.java;
 import ballerina/lang.value as val;
+import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
 import ballerina/time;
 import ballerina/log;
+import ballerina/regex;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
@@ -464,4 +466,33 @@ isolated function setByteStream(mime:Entity entity, stream<byte[], io:Error?> by
             entity.setByteStream(byteStream, existingContentType);
         }
     }
+}
+
+isolated function getFormDataMap(string formData) returns map<string>|ClientError {
+    map<string> parameters = {};
+    if (formData == "") {
+        return parameters;
+    }
+    if (strings:indexOf(formData, "&") is () || strings:indexOf(formData, "=") is ()) {
+        return error ClientError("Datasource does not contain form data");
+    }
+    var decodedValue = decode(formData);
+    if decodedValue is error {
+        return error ClientError("form data decode failure");
+    }
+    string[] entries = regex:split(decodedValue, "&");
+    int entryIndex = 0;
+    while (entryIndex < entries.length()) {
+        int? index = entries[entryIndex].indexOf("=");
+        if (index is int && index != -1) {
+            string name = entries[entryIndex].substring(0, index);
+            name = name.trim();
+            int size = entries[entryIndex].length();
+            string value = entries[entryIndex].substring(index + 1, size);
+            value = value.trim();
+            parameters[name] = value;
+        }
+        entryIndex = entryIndex + 1;
+    }
+    return parameters;
 }

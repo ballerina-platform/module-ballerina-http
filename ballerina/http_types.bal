@@ -31,7 +31,7 @@ public type Service distinct service object {
 };
 
 # The types of the response payload that are returned by the HTTP `client` after the data binding operation.
-public type PayloadType string|xml|json|map<json>|byte[]|record {| anydata...; |}|record {| anydata...; |}[];
+public type PayloadType string|xml|json|map<string>|map<json>|byte[]|record {| anydata...; |}|record {| anydata...;|}[];
 
 # The types of data values that are expected by the HTTP `client` to return after the data binding operation.
 public type TargetType typedesc<Response|PayloadType>;

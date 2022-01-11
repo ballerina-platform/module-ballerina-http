@@ -444,10 +444,10 @@ function testDataBindingWithMapOfStringEmptyValue() {
 @test:Config {}
 function testDataBindingWithMapOfStringEmptyKeyValue() {
     http:Request req = new;
-    req.setTextPayload("name=hello%20go&ballerina", contentType = "application/x-www-form-urlencoded");
+    req.setTextPayload("name=hello%20go&=ballerina", contentType = "application/x-www-form-urlencoded");
     http:Response|error response = dataBindingClient->post("/echo/body9", req);
     if (response is http:Response) {
-        assertJsonPayload(response.getJsonPayload(), {"1":"hello go","2":null});
+        assertJsonPayload(response.getJsonPayload(), {"1":"hello go","2":()});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

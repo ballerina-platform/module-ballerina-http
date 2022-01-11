@@ -656,6 +656,18 @@ isolated function performDataBinding(Response response, TargetType targetType) r
     } else if (targetType is typedesc<string?>) {
         string|ClientError payload = response.getTextPayload();
         return payload is NoContentError ? () : payload;
+    } else if (targetType is typedesc<map<string>>) {
+        string payload = check response.getTextPayload();
+        return getFormDataMap(payload);
+    } else if (targetType is typedesc<map<string>?>) {
+        string|ClientError payload = response.getTextPayload();
+        if payload is error {
+            if payload is NoContentError {
+                return;
+            }
+            return payload;
+        }
+        return getFormDataMap(payload);
     } else if (targetType is typedesc<xml>) {
         return response.getXmlPayload();
     } else if (targetType is typedesc<xml?>) {
