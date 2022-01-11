@@ -52,11 +52,15 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
@@ -67,6 +71,8 @@ import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
+import static io.ballerina.stdlib.mime.util.MimeConstants.APPLICATION_FORM;
+import static io.ballerina.stdlib.mime.util.MimeConstants.APPLICATION_JSON;
 import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 
 /**
@@ -83,6 +89,7 @@ public class HttpDispatcher {
     private static final ArrayType DECIMAL_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
     private static final ArrayType MAP_ARR = TypeCreator.createArrayType(TypeCreator.createMapType(
             PredefinedTypes.TYPE_JSON));
+    private static final MapType STRING_MAP = TypeCreator.createMapType(PredefinedTypes.TYPE_STRING);
 
     public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg) {
         try {
@@ -593,6 +600,16 @@ public class HttpDispatcher {
                         EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
                         paramFeed[index++] = stringDataSource;
                         break;
+                    case MAP_TAG:
+                        Type constrainedType = ((MapType) payloadType).getConstrainedType();
+                        if (constrainedType.getTag() != STRING_TAG) {
+                            throw ErrorCreator.createError(StringUtils.fromString(
+                                    "invalid map constrained type. Expected: 'map<string>'"));
+                        }
+                        stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
+                        EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
+                        paramFeed[index++] = getFormParamMap(stringDataSource);
+                        break;
                     case TypeTags.JSON_TAG:
                         Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
                         EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
@@ -654,6 +671,50 @@ public class HttpDispatcher {
         } catch (NullPointerException ex) {
             throw new BallerinaConnectorException("cannot convert payload to record type: " +
                     entityBodyType.getName());
+        }
+    }
+
+    private static Object getFormParamMap(Object stringDataSource) {
+        try {
+            String formData = ((BString)stringDataSource).getValue();
+            BMap<BString, Object> formParamsMap = ValueCreator.createMapValue(STRING_MAP);
+            if (formData.isEmpty()) {
+                return formParamsMap;
+            }
+            if (!formData.contains("&") || !formData.contains("=")) {
+                throw new BallerinaConnectorException("Datasource does not contain form data");
+            }
+
+            Map<String, String> tempParamMap = new HashMap<>();
+            String[] formParamValues = formData.split("&");
+
+            for (String formParam : formParamValues) {
+                int index = formParam.indexOf('=');
+                if (index == -1) {
+                    if (!tempParamMap.containsKey(formParam)) {
+                        tempParamMap.put(formParam, null);
+                    }
+                    continue;
+                }
+                String formParamName = formParam.substring(0, index).trim();
+                String formParamValue = formParam.substring(index + 1).trim();
+                String decodedValue;
+                decodedValue = URLDecoder.decode(formParamValue, StandardCharsets.UTF_8);
+                tempParamMap.put(formParamName, decodedValue);
+            }
+
+            for (Map.Entry<String, String> entry : tempParamMap.entrySet()) {
+                String entryValue = entry.getValue();
+                if (entryValue != null) {
+                    formParamsMap.put(StringUtils.fromString(entry.getKey()), StringUtils.fromString(entryValue));
+                } else {
+                    formParamsMap.put(StringUtils.fromString(entry.getKey()), null);
+                }
+            }
+            return formParamsMap;
+        } catch (Exception ex) {
+            throw ErrorCreator.createError(
+                    StringUtils.fromString("Could not convert payload to map<string>: " + ex.getMessage()));
         }
     }
 

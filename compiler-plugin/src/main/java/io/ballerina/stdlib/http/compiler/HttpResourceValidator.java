@@ -315,6 +315,15 @@ class HttpResourceValidator {
                             TypeDescKind typeDescKind = typeDescriptor.typeKind();
                             if (typeDescKind == TypeDescKind.RECORD) {
                                 continue;
+                            } else if (typeDescKind == TypeDescKind.MAP) {
+                                
+                            }
+                        } else if (kind == TypeDescKind.MAP) {
+                            TypeSymbol typeDescriptor =
+                                    ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
+                            TypeDescKind typeDescKind = typeDescriptor.typeKind();
+                            if (typeDescKind == TypeDescKind.RECORD) {
+                                continue;
                             }
                         }
                         String paramTypeName = param.typeDescriptor().signature();
