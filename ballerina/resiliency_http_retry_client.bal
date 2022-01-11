@@ -343,9 +343,7 @@ isolated function performRetryAction(string path, Request request, HttpOperation
             [interval, currentRetryCount] =
                             calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
                             backOffFactor, maxWaitInterval);
-            if backendResponse is ClientError {
-                httpConnectorErr = backendResponse;
-            }
+            httpConnectorErr = backendResponse;
         } else {
             panic error ClientError("invalid response type received");
         }
