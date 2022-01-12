@@ -66,6 +66,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION;
@@ -265,12 +266,15 @@ public abstract class AbstractHTTPAction {
         //Make the request associate with this response consumable again so that it can be reused.
         checkDirtiness(dataContext, outboundRequestMsg);
 
-        Object sourceHandler = outboundRequestMsg.getProperty(HttpConstants.SRC_HANDLER);
-        if (sourceHandler == null) {
+        if (Objects.nonNull(dataContext.getEnvironment().getStrandLocal(HttpConstants.MAIN_STRAND))) {
+            Object sourceHandler = outboundRequestMsg.getProperty(HttpConstants.SRC_HANDLER);
+            if (sourceHandler == null) {
 
-            outboundRequestMsg.setProperty(HttpConstants.SRC_HANDLER,
-                    dataContext.getEnvironment().getStrandLocal(HttpConstants.SRC_HANDLER));
+                outboundRequestMsg.setProperty(HttpConstants.SRC_HANDLER,
+                        dataContext.getEnvironment().getStrandLocal(HttpConstants.SRC_HANDLER));
+            }
         }
+
         Object poolableByteBufferFactory = outboundRequestMsg.getProperty(HttpConstants.POOLED_BYTE_BUFFER_FACTORY);
         if (poolableByteBufferFactory == null) {
             outboundRequestMsg.setProperty(HttpConstants.POOLED_BYTE_BUFFER_FACTORY,
