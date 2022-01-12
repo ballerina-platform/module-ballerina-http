@@ -16,6 +16,9 @@
 
 import ballerina/jballerina.java;
 import ballerina/lang.value as val;
+import ballerina/lang.'string as strings;
+import ballerina/url;
+import ballerina/mime;
 
 # The caller actions for responding to client requests.
 #
@@ -159,12 +162,15 @@ public isolated client class Caller {
             if (returnMediaType is string && !response.hasHeader(CONTENT_TYPE)) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-        } else {
-            setPayload(message, response, setETag);
+        } else if message is anydata {
+            setPayload(message, response, setETag = setETag);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
             cacheCompatibleType = true;
+        } else {
+            string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response|error";
+            panic error ListenerError(errorMsg);
         }
         if (cacheCompatibleType && (cacheConfig is HttpCacheConfig)) {
             ResponseCacheControl responseCacheControl = new;
@@ -184,29 +190,31 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     response.statusCode = message.status.code;
 
     var headers = message?.headers;
-    if (headers is map<string[]>) {
+    if (headers is map<string[]> || headers is map<int[]> || headers is map<boolean[]>) {
         foreach var [headerKey, headerValues] in headers.entries() {
-            foreach string headerValue in headerValues {
+            string[] mappedValues = headerValues.'map(val => val.toString());
+            foreach string headerValue in mappedValues {
                 response.addHeader(headerKey, headerValue);
             }
         }
-    } else if (headers is map<string>) {
+    } else if (headers is map<string> || headers is map<int> || headers is map<boolean>) {
         foreach var [headerKey, headerValue] in headers.entries() {
-            response.setHeader(headerKey, headerValue);
+            response.setHeader(headerKey, headerValue.toString());
         }
-    } else if (headers is map<string|string[]>) {
+    } else if (headers is map<string|int|boolean|string[]|int[]|boolean[]>) {
         foreach var [headerKey, headerValue] in headers.entries() {
-            if (headerValue is string[]) {
-                foreach string value in headerValue {
+            if (headerValue is string[] || headerValue is int[] || headerValue is boolean[]) {
+                string[] mappedValues = headerValue.'map(val => val.toString());
+                foreach string value in mappedValues {
                     response.addHeader(headerKey, value);
                 }
             } else {
-                response.setHeader(headerKey, headerValue);
+                response.setHeader(headerKey, headerValue.toString());
             }
         }
     }
 
-    setPayload(message?.body, response, setETag);
+    setPayload(message?.body, response, returnMediaType, setETag);
 
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
@@ -224,38 +232,67 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     return response;
 }
 
-isolated function setPayload(anydata payload, Response response, boolean setETag = false) {
+isolated function setPayload(anydata payload, Response response, string? mediaType = (), boolean setETag = false) {
     if payload is () {
         return;
-    } else if payload is xml {
+    }
+
+    if payload is xml {
         response.setXmlPayload(payload);
-        if setETag {
-            response.setETag(payload);
-        }
     } else if payload is string {
         response.setTextPayload(payload);
-        if setETag {
-            response.setETag(payload);
-        }
     } else if payload is byte[] {
         response.setBinaryPayload(payload);
-        if setETag {
-            response.setETag(payload);
-        }
     } else {
-        castToJsonAndSetPayload(response, payload, "anydata to json conversion error: ", setETag);
+        processAnydata(response, payload, mediaType, setETag);
+    }
+
+    if setETag {
+        updateETag(response, payload);
     }
 }
 
-isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg, boolean setETag = false) {
-    var result = trap val:toJson(payload);
-    if result is error {
-        panic error InitializingOutboundResponseError(errMsg + result.message(), result);
-    } else {
-        response.setJsonPayload(result);
-        if setETag {
-            response.setETag(result);
+isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
+    match mediaType {
+        mime:APPLICATION_FORM_URLENCODED => {
+            if payload is map<string> {
+                string result = retrieveUrlEncodedData(payload);
+                response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
+            } else {
+                panic error InitializingOutboundResponseError("unsupported content for application/x-www-form-urlencoded media type");
+            }
         }
+        _ => {
+            var result = trap val:toJson(payload);
+            if result is error {
+                panic error InitializingOutboundResponseError(string `anydata to json conversion error: ${result.message()}`, result);
+            } else {
+                response.setJsonPayload(result);
+            }
+        }
+    }
+}
+
+isolated function retrieveUrlEncodedData(map<string> message) returns string {
+    do {
+        string[] messageParams = [];
+        foreach var ['key, value] in message.entries() {
+            string encodedKey = check url:encode('key, "UTF-8");
+            string encodedValue = check url:encode(value, "UTF-8");
+            string entry = string `${'encodedKey}=${encodedValue}`;
+            messageParams.push(entry);
+        }
+        return strings:'join("&", ...messageParams);
+    } on fail var e {
+        panic error InitializingOutboundResponseError("content encoding error: " + e.message(), e);
+    }
+}
+
+isolated function updateETag(Response response, anydata payload) {
+    if payload is byte[] {
+        response.setETag(payload);
+    } else {
+        response.setETag(payload.toString());
     }
 }
 

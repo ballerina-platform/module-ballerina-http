@@ -1,0 +1,96 @@
+// Copyright (c) 2022 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import ballerina/http;
+import ballerina/mime;
+import ballerina/test;
+
+listener http:Listener urlEncodedResponsesTestEP = new(urlEncodedResponsesTestPort);
+final http:Client urlEncodedResponsesTestClient = check new("http://localhost:" + urlEncodedResponsesTestPort.toString());
+
+type AcceptedResponse record {|
+    *http:Accepted;
+    string mediaType = mime:APPLICATION_FORM_URLENCODED;
+    map<string> body;
+|};
+
+type ClientErrorResponse record {|
+    *http:BadRequest;
+    string mediaType = mime:APPLICATION_FORM_URLENCODED;
+    map<string> body;
+|};
+
+type ServerErrorResponse record {|
+    *http:InternalServerError;
+    string mediaType = mime:APPLICATION_FORM_URLENCODED;
+    map<string> body;
+|};
+
+final map<string> & readonly acceptedResponseBody = {
+    "message": "Request is accepted by the server"
+};
+
+final map<string> & readonly clientErrorResponseBody = {
+    "message": "Bad Request"
+};
+
+final map<string> & readonly serverErrorResponseBody = {
+    "message": "Internal Server Error"
+};
+
+service /test on urlEncodedResponsesTestEP {
+    resource function get accepted() returns AcceptedResponse {
+        return {
+            body: acceptedResponseBody
+        };
+    }
+
+    resource function get clientError() returns ClientErrorResponse {
+        return {
+            body: clientErrorResponseBody
+        };
+    }
+
+    resource function get serverError() returns ServerErrorResponse {
+        return {
+            body: serverErrorResponseBody
+        };
+    }
+}
+
+@test:Config {}
+public function testUrlEncodedAcceptedResponse() returns error? {
+    http:Response resp = check urlEncodedResponsesTestClient->get("/test/accepted");
+    test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
+    string payload = check resp.getTextPayload();
+    check assertUrlEncodedPayload(payload, acceptedResponseBody);
+}
+
+@test:Config {}
+public function testUrlEncodedClientErrorResponse() returns error? {
+    http:Response resp = check urlEncodedResponsesTestClient->get("/test/clientError");
+    test:assertEquals(resp.statusCode, 400, msg = "Found unexpected output");
+    string payload = check resp.getTextPayload();
+    check assertUrlEncodedPayload(payload, acceptedResponseBody);
+}
+
+@test:Config {}
+public function testUrlEncodedServerErrorResponse() returns error? {
+    http:Response resp = check urlEncodedResponsesTestClient->get("/test/serverError");
+    test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
+    string payload = check resp.getTextPayload();
+    check assertUrlEncodedPayload(payload, acceptedResponseBody);
+}
