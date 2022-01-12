@@ -519,18 +519,15 @@ isolated function getFormDataMap(string formData) returns map<string>|ClientErro
         return error ClientError("Datasource does not contain form data");
     }
     string[] entries = regex:split(decodedValue, "&");
-    int entryIndex = 0;
-    while (entryIndex < entries.length()) {
-        int? index = entries[entryIndex].indexOf("=");
+    foreach string entry in entries {
+        int? index = entry.indexOf("=");
         if (index is int && index != -1) {
-            string name = entries[entryIndex].substring(0, index);
+            string name = entry.substring(0, index);
             name = name.trim();
-            int size = entries[entryIndex].length();
-            string value = entries[entryIndex].substring(index + 1, size);
+            string value = entry.substring(index + 1);
             value = value.trim();
             parameters[name] = value;
         }
-        entryIndex = entryIndex + 1;
     }
     return parameters;
 }
