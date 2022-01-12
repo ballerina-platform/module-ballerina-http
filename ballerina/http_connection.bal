@@ -163,7 +163,7 @@ public isolated client class Caller {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
         } else if message is anydata {
-            setPayload(message, response, setETag = setETag);
+            setPayload(message, response, returnMediaType, setETag);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
