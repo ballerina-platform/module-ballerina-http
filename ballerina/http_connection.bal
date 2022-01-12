@@ -213,23 +213,28 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
             }
         }
     }
-
-    setPayload(message?.body, response, returnMediaType, setETag);
-
+    string? mediaType = retrieveMediaType(message, returnMediaType);
+    setPayload(message?.body, response, mediaType, setETag);
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
     // 2. Payload annotation mediaType value
     // 3. The content type header included in headers field
     // 4. Default content type related to payload
-    string? mediaType = message?.mediaType;
     if (mediaType is string) {
         response.setHeader(CONTENT_TYPE, mediaType);
         return response;
     }
-    if (returnMediaType is string) {
-        response.setHeader(CONTENT_TYPE, returnMediaType);
-    }
     return response;
+}
+
+isolated function retrieveMediaType(StatusCodeResponse resp, string? retrievedMediaType) returns string? {
+    string? mediaType = resp?.mediaType;
+    if (mediaType is string) {
+        return mediaType;
+    }
+    if (retrievedMediaType is string) {
+        return retrievedMediaType;
+    }
 }
 
 isolated function setPayload(anydata payload, Response response, string? mediaType = (), boolean setETag = false) {
@@ -244,7 +249,7 @@ isolated function setPayload(anydata payload, Response response, string? mediaTy
     } else if payload is byte[] {
         response.setBinaryPayload(payload);
     } else {
-        processAnydata(response, payload, mediaType, setETag);
+        processAnydata(response, payload, mediaType);
     }
 
     if setETag {
@@ -252,7 +257,7 @@ isolated function setPayload(anydata payload, Response response, string? mediaTy
     }
 }
 
-isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
+isolated function processAnydata(Response response, anydata payload, string? mediaType = ()) {
     match mediaType {
         mime:APPLICATION_FORM_URLENCODED => {
             if payload is map<string> {
