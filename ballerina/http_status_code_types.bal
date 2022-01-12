@@ -41,7 +41,7 @@ public type Status distinct object {
 # + body - The response payload
 public type CommonResponse record {|
     string mediaType?;
-    map<string|string[]> headers?;
+    map<string|int|boolean|string[]|int[]|boolean[]> headers?;
     anydata body?;
 |};
 

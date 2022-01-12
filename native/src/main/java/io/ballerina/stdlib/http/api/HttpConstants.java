@@ -176,6 +176,7 @@ public class HttpConstants {
     public static final String HTTP_CLIENT = "HttpClient";
     public static final String CLIENT_CONFIG_HASH_CODE = "ClientConfigHashCode";
 
+    public static final String MAIN_STRAND = "MAIN_STRAND";
     public static final String SRC_HANDLER = "SRC_HANDLER";
     public static final String REMOTE_ADDRESS = "REMOTE_ADDRESS";
     public static final String ORIGIN_HOST = "ORIGIN_HOST";

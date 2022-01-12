@@ -97,12 +97,15 @@ public class Respond extends ConnectionAction {
         if (ObserveUtils.isObservabilityEnabled()) {
             int statusCode = (int) outboundResponseObj.getIntValue(RESPONSE_STATUS_CODE_FIELD);
             ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(env);
-            if (observerContext == null) {
-                observerContext = (ObserverContext) inboundRequestMsg.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            // setting the status-code in the observability context for the current strand
+            // this is done for the `caller->respond()`
+            if (observerContext != null) {
+                observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
             }
-            observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
-            if (observerContext.isManuallyClosed()) {
-                ObserveUtils.stopObservationWithContext(observerContext);
+            // setting the status-code in the observability context for the resource span
+            observerContext = (ObserverContext) inboundRequestMsg.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            if (observerContext != null) {
+                observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
             }
         }
         try {

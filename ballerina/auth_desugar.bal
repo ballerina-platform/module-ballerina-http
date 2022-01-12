@@ -149,8 +149,11 @@ isolated function authenticateWithJwtValidatorConfig(JwtValidatorConfigWithScope
             return authz;
         }
         return;
+    } else if authn is Unauthorized {
+        return authn;
+    } else {
+        panic error("Unsupported record type found.");
     }
-    return authn;
 }
 
 isolated function authenticateWithOAuth2IntrospectionConfig(OAuth2IntrospectionConfigWithScopes config, string header)
@@ -168,8 +171,11 @@ isolated function authenticateWithOAuth2IntrospectionConfig(OAuth2IntrospectionC
     oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(header, config?.scopes);
     if auth is oauth2:IntrospectionResponse {
         return;
+    } else if auth is Unauthorized || auth is Forbidden {
+        return auth;
+    } else {
+        panic error("Unsupported record type found.");
     }
-    return auth;
 }
 
 isolated function getListenerAuthConfig(Service serviceRef, string methodName, string[] resourcePath)

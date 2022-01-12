@@ -15,6 +15,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: snowpeak
+                name: snowpeak-svc
                 port:
                   number: 9090
