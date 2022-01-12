@@ -37,11 +37,13 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.KEY_OBSERVER_CONTEXT;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.CURRENT_TRANSACTION_CONTEXT_PROPERTY;
+import static io.ballerina.stdlib.http.api.HttpConstants.MAIN_STRAND;
 import static io.ballerina.stdlib.http.api.HttpConstants.ORIGIN_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.POOLED_BYTE_BUFFER_FACTORY;
 import static io.ballerina.stdlib.http.api.HttpConstants.REMOTE_ADDRESS;
@@ -183,7 +185,7 @@ public class HttpClientAction extends AbstractHTTPAction {
     }
 
     private static Map<String, Object> getPropertiesToPropagate(Environment env) {
-        String[] keys = {CURRENT_TRANSACTION_CONTEXT_PROPERTY, KEY_OBSERVER_CONTEXT, SRC_HANDLER,
+        String[] keys = {CURRENT_TRANSACTION_CONTEXT_PROPERTY, KEY_OBSERVER_CONTEXT, SRC_HANDLER, MAIN_STRAND,
                 POOLED_BYTE_BUFFER_FACTORY, REMOTE_ADDRESS, ORIGIN_HOST};
         Map<String, Object> subMap = new HashMap<>();
         for (String key : keys) {
@@ -191,6 +193,11 @@ public class HttpClientAction extends AbstractHTTPAction {
             if (value != null) {
                 subMap.put(key, value);
             }
+        }
+        String strandParentFunctionName = Objects.isNull(env.getStrandMetadata()) ? null :
+                env.getStrandMetadata().getParentFunctionName();
+        if (Objects.nonNull(strandParentFunctionName) && strandParentFunctionName.equals("onMessage")) {
+            subMap.put(MAIN_STRAND, true);
         }
         return subMap;
     }
