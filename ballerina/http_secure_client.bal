@@ -219,7 +219,7 @@ isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req
         // https://github.com/ballerina-platform/ballerina-lang/issues/31040
         object {} ob = clientAuthHandler;
         if (ob is ClientOAuth2Handler) {
-            return clientAuthHandler->enrich(req);
+            return ob->enrich(req);
         } else {
             string errorMsg = "invalid client auth-handler found. expected one of http:ClientBasicAuthHandler|http:ClientBearerTokenAuthHandler|http:ClientSelfSignedJwtAuthHandler|http:ClientOAuth2Handler";
             panic error ClientError(errorMsg);
