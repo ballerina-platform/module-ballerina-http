@@ -40,15 +40,21 @@ type ServerErrorResponse record {|
 |};
 
 final map<string> & readonly acceptedResponseBody = {
-    "message": "Request is accepted by the server"
+    "message": "Request is accepted by the server",
+    "info": "server.1.1.1.1/data",
+    "foo": "bar"
 };
 
 final map<string> & readonly clientErrorResponseBody = {
-    "message": "Bad Request"
+    "message": "Bad Request",
+    "key1": "value1",
+    "key2": "value2"
 };
 
 final map<string> & readonly serverErrorResponseBody = {
-    "message": "Internal Server Error"
+    "message": "Internal Server Error",
+    "key3": "value3",
+    "key4": "value4"
 };
 
 service /test on urlEncodedResponsesTestEP {
