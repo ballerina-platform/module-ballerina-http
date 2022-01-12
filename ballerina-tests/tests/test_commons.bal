@@ -123,7 +123,7 @@ isolated function assertTextPayload(string|error payload, string expectValue) {
 
 isolated function assertUrlEncodedPayload(string payload, map<string> expectedValue) returns error? {
     map<string> retrievedPayload = {};
-    string decodedPayload = check url:decode(value, "UTF-8");
+    string decodedPayload = check url:decode(payload, "UTF-8");
     string[] entries = regex:split(decodedPayload, "&");
     foreach string entry in entries {
         int? delimeterIdx = entry.indexOf("=");
