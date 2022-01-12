@@ -262,36 +262,39 @@ isolated function processAnydata(Response response, anydata payload, string? med
     match mediaType {
         mime:APPLICATION_FORM_URLENCODED => {
             if payload is map<string> {
-                string result = retrieveUrlEncodedData(payload);
-                response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
+                string|error result = retrieveUrlEncodedData(payload);
+                if result is string {
+                    response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
+                    return;
+                }
+                panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
             } else {
-                panic error InitializingOutboundResponseError("unsupported content for application/x-www-form-urlencoded media type");
+                setJsonPayload(response, payload);
             }
         }
         _ => {
-            var result = trap val:toJson(payload);
-            if result is error {
-                panic error InitializingOutboundResponseError(string `anydata to json conversion error: ${result.message()}`, result);
-            } else {
-                response.setJsonPayload(result);
-            }
+            setJsonPayload(response, payload);
         }
     }
 }
 
-isolated function retrieveUrlEncodedData(map<string> message) returns string {
-    do {
-        string[] messageParams = [];
-        foreach var ['key, value] in message.entries() {
-            string encodedKey = check url:encode('key, "UTF-8");
-            string encodedValue = check url:encode(value, "UTF-8");
-            string entry = string `${'encodedKey}=${encodedValue}`;
-            messageParams.push(entry);
-        }
-        return strings:'join("&", ...messageParams);
-    } on fail var e {
-        panic error InitializingOutboundResponseError("content encoding error: " + e.message(), e);
+isolated function retrieveUrlEncodedData(map<string> message) returns string|error {
+    string[] messageParams = [];
+    foreach var ['key, value] in message.entries() {
+        string encodedKey = check url:encode('key, "UTF-8");
+        string encodedValue = check url:encode(value, "UTF-8");
+        string entry = string `${'encodedKey}=${encodedValue}`;
+        messageParams.push(entry);
     }
+    return strings:'join("&", ...messageParams);
+}
+
+isolated function setJsonPayload(Response response, anydata payload) {
+    var result = trap val:toJson(payload);
+    if result is error {
+        panic error InitializingOutboundResponseError(string `anydata to json conversion error: ${result.message()}`, result);
+    }
+    response.setJsonPayload(result);
 }
 
 isolated function updateETag(Response response, anydata payload) {
