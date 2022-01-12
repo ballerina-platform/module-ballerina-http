@@ -84,7 +84,7 @@ public function testUrlEncodedClientErrorResponse() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/test/clientError");
     test:assertEquals(resp.statusCode, 400, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
-    check assertUrlEncodedPayload(payload, acceptedResponseBody);
+    check assertUrlEncodedPayload(payload, clientErrorResponseBody);
 }
 
 @test:Config {}
@@ -92,5 +92,5 @@ public function testUrlEncodedServerErrorResponse() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/test/serverError");
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
-    check assertUrlEncodedPayload(payload, acceptedResponseBody);
+    check assertUrlEncodedPayload(payload, serverErrorResponseBody);
 }
