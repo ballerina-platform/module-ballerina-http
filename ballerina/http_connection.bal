@@ -245,35 +245,43 @@ isolated function setPayload(anydata payload, Response response, string? mediaTy
 
     if payload is xml {
         response.setXmlPayload(payload);
+        if setETag {
+            response.setETag(payload);
+        }
     } else if payload is string {
         response.setTextPayload(payload);
+        if setETag {
+            response.setETag(payload);
+        }
     } else if payload is byte[] {
         response.setBinaryPayload(payload);
+        if setETag {
+            response.setETag(payload);
+        }
     } else {
-        processAnydata(response, payload, mediaType);
-    }
-
-    if setETag {
-        updateETag(response, payload);
+        processAnydata(response, payload, mediaType, setETag);
     }
 }
 
-isolated function processAnydata(Response response, anydata payload, string? mediaType = ()) {
+isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
     match mediaType {
         mime:APPLICATION_FORM_URLENCODED => {
             if payload is map<string> {
                 string|error result = retrieveUrlEncodedData(payload);
                 if result is string {
                     response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
+                    if setETag {
+                        response.setETag(result);
+                    }
                     return;
                 }
                 panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
             } else {
-                setJsonPayload(response, payload);
+                setJsonPayload(response, payload, setETag);
             }
         }
         _ => {
-            setJsonPayload(response, payload);
+            setJsonPayload(response, payload, setETag);
         }
     }
 }
@@ -289,12 +297,15 @@ isolated function retrieveUrlEncodedData(map<string> message) returns string|err
     return strings:'join("&", ...messageParams);
 }
 
-isolated function setJsonPayload(Response response, anydata payload) {
+isolated function setJsonPayload(Response response, anydata payload, boolean setETag) {
     var result = trap val:toJson(payload);
     if result is error {
         panic error InitializingOutboundResponseError(string `anydata to json conversion error: ${result.message()}`, result);
     }
     response.setJsonPayload(result);
+    if setETag {
+        response.setETag(result);
+    }
 }
 
 isolated function updateETag(Response response, anydata payload) {
