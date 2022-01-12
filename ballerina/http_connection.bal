@@ -235,6 +235,7 @@ isolated function retrieveMediaType(StatusCodeResponse resp, string? retrievedMe
     if (retrievedMediaType is string) {
         return retrievedMediaType;
     }
+    return ();
 }
 
 isolated function setPayload(anydata payload, Response response, string? mediaType = (), boolean setETag = false) {
