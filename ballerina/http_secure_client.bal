@@ -214,16 +214,11 @@ isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req
         return clientAuthHandler.enrich(req);
     } else if (clientAuthHandler is ClientSelfSignedJwtAuthHandler) {
         return clientAuthHandler.enrich(req);
+    } else if (clientAuthHandler is ClientOAuth2Handler) {
+        return clientAuthHandler->enrich(req);
     } else {
-        // Temporary fix to mislead the type checker and avoid breaking in future with
-        // https://github.com/ballerina-platform/ballerina-lang/issues/31040
-        object {} ob = clientAuthHandler;
-        if (ob is ClientOAuth2Handler) {
-            return ob->enrich(req);
-        } else {
-            string errorMsg = "invalid client auth-handler found. expected one of http:ClientBasicAuthHandler|http:ClientBearerTokenAuthHandler|http:ClientSelfSignedJwtAuthHandler|http:ClientOAuth2Handler";
-            panic error ClientError(errorMsg);
-        }
+        string errorMsg = "Invalid client auth-handler found. Expected one of http:ClientBasicAuthHandler|http:ClientBearerTokenAuthHandler|http:ClientSelfSignedJwtAuthHandler|http:ClientOAuth2Handler.";
+        panic error ClientError(errorMsg);
     }
 }
 
