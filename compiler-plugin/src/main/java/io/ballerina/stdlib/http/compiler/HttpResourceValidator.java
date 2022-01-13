@@ -47,8 +47,6 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
-import io.ballerina.tools.diagnostics.DiagnosticFactory;
-import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.Location;
 import org.wso2.ballerinalang.compiler.diagnostic.properties.BSymbolicProperty;
 
@@ -62,9 +60,11 @@ import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.FIELD_RESPONSE_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.GET;
+import static io.ballerina.stdlib.http.compiler.Constants.HEAD;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
@@ -292,8 +292,8 @@ class HttpResourceValidator {
                 switch (typeName) {
                     case PAYLOAD_ANNOTATION_TYPE: {
                         Optional<String> resourceMethodOptional = resourceMethodSymbolOptional.get().getName();
-                        if (resourceMethodOptional.isPresent() && resourceMethodOptional.get().equals(GET)) {
-                            reportInvalidUsageOfPayloadAnnotation(ctx, paramLocation);
+                        if (resourceMethodOptional.isPresent()) {
+                            validatePayloadAnnotationUsage(ctx, paramLocation, resourceMethodOptional.get());
                         }
                         if (annotated) { // multiple annotations
                             reportInvalidMultipleAnnotation(ctx, paramLocation, paramName);
@@ -439,6 +439,13 @@ class HttpResourceValidator {
                         break;
                 }
             }
+        }
+    }
+
+    private static void validatePayloadAnnotationUsage(SyntaxNodeAnalysisContext ctx, Location location,
+                                                       String methodName) {
+        if (methodName.equals(GET) || methodName.equals(HEAD) || methodName.equals(OPTIONS)) {
+            reportInvalidUsageOfPayloadAnnotation(ctx, location, methodName);
         }
     }
 
@@ -729,9 +736,8 @@ class HttpResourceValidator {
         HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), paramName, HttpDiagnosticCodes.HTTP_114);
     }
 
-    private static void reportInvalidUsageOfPayloadAnnotation(SyntaxNodeAnalysisContext ctx, Location location) {
-        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HttpDiagnosticCodes.HTTP_129.getCode(), HttpDiagnosticCodes.
-                                        HTTP_129.getMessage(), HttpDiagnosticCodes.HTTP_129.getSeverity());
-        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
+    private static void reportInvalidUsageOfPayloadAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
+                                                              String methodName) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, methodName, HttpDiagnosticCodes.HTTP_129);
     }
 }

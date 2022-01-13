@@ -50,6 +50,8 @@ public class Constants {
     public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "http:NextService|error?";
     public static final String DEFAULT = "default";
     public static final String GET = "get";
+    public static final String HEAD = "head";
+    public static final String OPTIONS = "options";
 
     public static final String COLON = ":";
     public static final String PLUS = "+";
