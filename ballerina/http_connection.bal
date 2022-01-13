@@ -289,8 +289,8 @@ isolated function processAnydata(Response response, anydata payload, string? med
 isolated function retrieveUrlEncodedData(map<string> message) returns string|error {
     string[] messageParams = [];
     foreach var ['key, value] in message.entries() {
-        string encodedKey = check url:encode('key, "UTF-8");
-        string encodedValue = check url:encode(value, "UTF-8");
+        string encodedKey = check url:encode('key, CHARSET_UTF_8);
+        string encodedValue = check url:encode(value, CHARSET_UTF_8);
         string entry = string `${'encodedKey}=${encodedValue}`;
         messageParams.push(entry);
     }
