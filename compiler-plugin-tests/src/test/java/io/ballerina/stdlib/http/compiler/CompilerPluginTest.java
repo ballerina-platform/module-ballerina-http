@@ -151,12 +151,12 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnosticResult.errorCount(), 8);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
-        assertError(diagnosticResult, 1, "invalid payload annotation usage for non entity body " +
-                "resource : 'get'. Use accessor that supports entity", HTTP_129);
-        assertError(diagnosticResult, 2, "invalid payload annotation usage for non entity body " +
-                "resource : 'head'. Use accessor that supports entity", HTTP_129);
-        assertError(diagnosticResult, 3, "invalid payload annotation usage for non entity body " +
-                "resource : 'options'. Use accessor that supports entity", HTTP_129);
+        assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
+                "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
+        assertError(diagnosticResult, 2, "invalid usage of payload annotation for a non entity body " +
+                "resource : 'head'. Use an accessor that supports entity body", HTTP_129);
+        assertError(diagnosticResult, 3, "invalid usage of payload annotation for a non entity body " +
+                "resource : 'options'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 4, "invalid payload parameter type: 'json[]'", HTTP_107);
         assertError(diagnosticResult, 5, "invalid annotation type on param 'a': expected one of the following types: " +
                 "'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_104);
@@ -436,8 +436,8 @@ public class CompilerPluginTest {
                 " are not supported for interceptor resource functions", HTTP_125);
         assertError(diagnosticResult, 8, "invalid interceptor resource path: expected default resource" +
                 " path: '[string... path]', but found '[string path]'", HTTP_127);
-        assertError(diagnosticResult, 9, "invalid payload annotation usage for non entity body " +
-                "resource : 'get'. Use accessor that supports entity", HTTP_129);
+        assertError(diagnosticResult, 9, "invalid usage of payload annotation for a non entity body " +
+                "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
     }
 
     @Test
