@@ -38,7 +38,7 @@ service / on new http:Listener(9999) {
         return error http:Error("hello") ;
     }
 
-    resource function get test104(int num, @http:Payload json abc, @Pp {id:0} string a) returns string {
+    resource function post test104(int num, @http:Payload json abc, @Pp {id:0} string a) returns string {
         return "done";
     }
 
@@ -46,11 +46,11 @@ service / on new http:Listener(9999) {
         return "done";
     }
 
-    resource function get test107(@http:Payload json[] abc) returns string {
+    resource function post test107(@http:Payload json[] abc) returns string {
         return "done"; // error
     }
 
-    resource function get test108(@http:Payload @http:Header xml abc) returns string {
+    resource function post test108(@http:Payload @http:Header xml abc) returns string {
         return "done";
     }
 

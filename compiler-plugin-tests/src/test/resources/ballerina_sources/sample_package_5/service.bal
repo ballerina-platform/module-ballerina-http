@@ -38,7 +38,7 @@ service http:Service on new http:Listener(9090) {
         return "done"; //error
     }
 
-    resource function get headerErr2(@http:Header @http:Payload string abc) returns string {
+    resource function post headerErr2(@http:Header @http:Payload string abc) returns string {
         return "done"; //error
     }
 
