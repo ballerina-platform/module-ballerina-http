@@ -47,6 +47,8 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
+import io.ballerina.tools.diagnostics.DiagnosticFactory;
+import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.Location;
 import org.wso2.ballerinalang.compiler.diagnostic.properties.BSymbolicProperty;
 
@@ -59,6 +61,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.FIELD_RESPONSE_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.GET;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
@@ -288,6 +291,10 @@ class HttpResourceValidator {
                 String typeName = annotationTypeNameOptional.get();
                 switch (typeName) {
                     case PAYLOAD_ANNOTATION_TYPE: {
+                        Optional<String> resourceMethodOptional = resourceMethodSymbolOptional.get().getName();
+                        if (resourceMethodOptional.isPresent() && resourceMethodOptional.get().equals(GET)) {
+                            reportInvalidUsageOfPayloadAnnotation(ctx, paramLocation);
+                        }
                         if (annotated) { // multiple annotations
                             reportInvalidMultipleAnnotation(ctx, paramLocation, paramName);
                             continue;
@@ -720,5 +727,11 @@ class HttpResourceValidator {
     private static void reportInCompatibleCallerInfoType(SyntaxNodeAnalysisContext ctx, PositionalArgumentNode node,
                                                          String paramName) {
         HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), paramName, HttpDiagnosticCodes.HTTP_114);
+    }
+
+    private static void reportInvalidUsageOfPayloadAnnotation(SyntaxNodeAnalysisContext ctx, Location location) {
+        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HttpDiagnosticCodes.HTTP_129.getCode(), HttpDiagnosticCodes.
+                                        HTTP_129.getMessage(), HttpDiagnosticCodes.HTTP_129.getSeverity());
+        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
     }
 }
