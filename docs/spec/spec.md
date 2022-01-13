@@ -37,14 +37,14 @@ that makes it easier to use, combine, and create network services.
       * 2.3.5. [Introspection resource](#235-introspection-resource)
     * 2.4. [Client](#24-client)
         * 2.4.1. [Client types](#241-client-types)
-            * 2.4.1.1. [Secure client](#2411-secure-client)
-            * 2.4.1.2. [Caching client](#2412-caching-client)
-            * 2.4.1.3. [Redirect client](#2413-redirect-client)
-            * 2.4.1.4. [Retry client](#2414-retry-client)
-            * 2.4.1.5. [Circuit breaker client](#2415-circuit-breaker-client)
-            * 2.4.1.6. [Cookie client](#2416-cookie-client)
-            * 2.4.1.7. [Load balance client](#2417-load-balance-client)
-            * 2.4.1.8. [Failover client](#2418-failover-client)
+            * 2.4.1.1. [Security](#2411-security)
+            * 2.4.1.2. [Caching](#2412-caching)
+            * 2.4.1.3. [Redirect](#2413-redirect)
+            * 2.4.1.4. [Retry](#2414-retry)
+            * 2.4.1.5. [Circuit breaker](#2415-circuit-breaker)
+            * 2.4.1.6. [Cookie](#2416-cookie)
+            * 2.4.1.7. [Load balance](#2417-load-balance)
+            * 2.4.1.8. [Failover](#2418-failover)
         * 2.4.2. [Client actions](#242-client-action)
             * 2.4.2.1. [Entity body methods](#2421-entity-body-methods)
             * 2.4.2.2. [Non entity body methods](#2422-non-entity-body-methods)
@@ -61,7 +61,7 @@ that makes it easier to use, combine, and create network services.
     * 4.2. [Resource configuration](#42-resource-configuration)
     * 4.3. [Payload annotation](#43-payload-annotation)
         * 4.3.1. [Payload binding parameter](#431-payload-binding-parameter)
-        * 4.3.2. [anydata return value info](#432-anydata-return-value-info)
+        * 4.3.2. [Anydata return value info](#432-anydata-return-value-info)
     * 4.4. [Callerinfo annotation](#44-callerinfo-annotation)
     * 4.5. [Header annotation](#45-header-annotation)
     * 4.6. [Cache config annotation](#46-cache-config-annotation)
@@ -118,7 +118,6 @@ that makes it easier to use, combine, and create network services.
 10. [Protocol-upgrade](#10-protocol-upgrade)
     * 10.1. [HTTP2](#101-http2)
         * 10.1.1. [Push promise and promise response](#1011-push-promise-and-promise-response)
-    * 10.2. [Websocket](#102-websocket)
 
 ## 1. Overview
 This specification elaborates on Basic Auth authentication and authorization for all the Ballerina listeners and
@@ -245,8 +244,8 @@ service isolated class SClass {
    }
 }
 
-public function main() {
-   listener http:Listener serviceListener = new (9090);
+public function main() returns error? {
+   http:Listener serviceListener = check new (9090);
    http:Service httpService = new SClass();
    
    error? err1 = serviceListener.attach(httpService, ["foo", "bar"]);
@@ -451,7 +450,7 @@ query param of the request URL has no corresponding parameter in the resource fu
 If the parameter is defined in the function, but there is no such query param in the URL, that request will lead 
 to a 400 BAD REQUEST error response unless the type is nilable (string?)
 
-The query param consists of query name and values. Sometimes user may sent query without value(`foo:`). In such
+The query param consists of query name and values. Sometimes user may send query without value(`foo:`). In such
 situations, when the query param type is nilable, the values returns nil and same happened when the complete query is
 not present in the request. In order to avoid the missing detail, a service level configuration has introduced naming
 `treatNilableAsOptional`
@@ -870,7 +869,7 @@ curl -v localhost:9090/hello -X OPTIONS
 A client allows the program to send network messages to a remote process according to the HTTP protocol. The fixed 
 remote functions of the client object correspond to distinct network operations defined by the HTTP protocol.
 
-The client init function requires port and configuration to initialize the client. 
+The client init function requires a valid URL and optional configuration to initialize the client. 
 ```ballerina
 http:Client clientEP = check new ("http://localhost:9090", { httpVersion: "2.0" });
 ```
@@ -901,7 +900,7 @@ public type ClientConfiguration record {|
 Based on the config, the client object will be accompanied by following client behaviours. Following clients cannot be
 instantiated calling `new`, instead user have to enable the config in the `ClientConfiguration`.
 
-##### 2.4.1.1 Secure client 
+##### 2.4.1.1 Security 
 Provides secure HTTP remote functions for interacting with HTTP endpoints. This will make use of the authentication
 schemes configured in the HTTP client endpoint to secure the HTTP requests.
 ```ballerina
@@ -919,8 +918,8 @@ http:Client clientEP = check new("https://localhost:9090",
 );
 ```
 
-##### 2.4.1.2 Caching client
-An HTTP caching client implementation which wraps with an HTTP caching layer once `cache` config is enabled.
+##### 2.4.1.2 Caching
+An HTTP caching client uses the HTTP caching layer once `cache` config is enabled.
 ```ballerina
 http:Client clientEP = check new("http://localhost:9090",
     cache = {
@@ -930,7 +929,7 @@ http:Client clientEP = check new("http://localhost:9090",
 );
 ```
 
-##### 2.4.1.3 Redirect client
+##### 2.4.1.3 Redirect
 Provide the redirection support for outbound requests internally considering the location header when `followRedirects`
 configs are defined.
 ```ballerina
@@ -942,7 +941,7 @@ http:Client clientEP = check new("http://localhost:9090",
 );
 ```
 
-##### 2.4.1.4 Retry client
+##### 2.4.1.4 Retry
 Provides the retrying over HTTP requests when `retryConfig` is defined.
 ```ballerina
 http:Client clientEP = check new("http://localhost:9090",
@@ -954,7 +953,7 @@ http:Client clientEP = check new("http://localhost:9090",
 );
 ```
 
-##### 2.4.1.5 Circuit breaker client
+##### 2.4.1.5 Circuit breaker
 A Circuit Breaker implementation which can be used to gracefully handle network failures.
 ```ballerina
 http:Client clientEP = check new("http://localhost:9090", 
@@ -971,7 +970,7 @@ http:Client clientEP = check new("http://localhost:9090",
 );
 ```
 
-##### 2.4.1.6 Cookie client
+##### 2.4.1.6 Cookie
 Provides the cookie functionality across HTTP client actions. The support functions defined in the request can be 
 used to manipulate cookies.
 ```ballerina
@@ -985,7 +984,7 @@ http:Client clientEP = check new("http://localhost:9090",
 
 Following clients can be created separately as it requires different configurations.
 
-##### 2.4.1.7 Load balance client
+##### 2.4.1.7 Load balance
 LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients. It uses the
 LoadBalanceClientConfiguration. 
 ```ballerina
@@ -1006,7 +1005,7 @@ http:LoadBalanceClient clientEP = check new(
 );
 ```
 
-##### 2.4.1.8 Failover client
+##### 2.4.1.8 Failover
 An HTTP client endpoint which provides failover support over multiple HTTP clients. It uses the
 FailoverClientConfiguration.
 ```ballerina
@@ -1151,20 +1150,20 @@ Following are the HTTP2 client related additional remote functions to deal with 
 remote isolated function submit(string httpVerb, string path, RequestMessage message)
     returns HttpFuture|ClientError;
 
-# This just pass the request to actual network call.
-remote isolated function  getResponse(HttpFuture httpFuture) returns Response|ClientError;
+# Passes the request to actual network call.
+remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError;
 
-# This just pass the request to actual network call.
-remote isolated function  hasPromise(HttpFuture httpFuture) returns boolean;
+# Passes the request to actual network call.
+remote isolated function hasPromise(HttpFuture httpFuture) returns boolean;
 
-# This just pass the request to actual network call.
-remote isolated function  getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError;
+# Passes the request to actual network call.
+remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError;
 
 # Passes the request to an actual network call.
-remote isolated function  getPromisedResponse(PushPromise promise) returns Response|ClientError;
+remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError;
 
-# This just pass the request to actual network call.
-remote isolated function  rejectPromise(PushPromise promise);
+# Passes the request to actual network call.
+remote isolated function rejectPromise(PushPromise promise);
 ```
 
 ##### 2.4.3. Client action return types
@@ -1325,7 +1324,7 @@ During the runtime, the request content-type header is matched against the media
 validation fails, the listener returns an error response with the status code of 415 Unsupported Media Type. 
 Otherwise the dispatching moves forward. 
 
-#### 4.3.2. anydata return value info
+#### 4.3.2. Anydata return value info
 
 The same annotation can be used to specify the MIME type return value when a particular resource function returns 
 one of the anydata typed values. In this way users can override the default MIME type which the service type has 
@@ -2283,32 +2282,3 @@ Push Promise and Promise response are the only application level new semantics w
 
 Other protocol changes such as streams, messages, frames, request prioritization, flow control, header compression, 
 etc. are all lower level changes that can be handled by the HTTP listener seamlessly from the user.
-
-### 10.2. Websocket
-
-The Websocket protocol is also considered as an upgrade from HTTP where the initial handshake is happening over HTTP. 
-Therefore websocket applications can use the same http:Listener and the respective port to initialize the websocket 
-service.
-
-The WebSocket listener can be constructed with a port or an http:Listener. When a port is passed to the listener 
-constructor, the listener opens the port and attaches the upgrader service at the given service path.
-When the http:Listener is passed in, the upgrader service gets attached to it at the given service path. The service 
-by default attaches to “/”.
-
-
-```ballerina
-http:Listener hl = new(9090);
-
-service /ws on new ws:Listener(hl) {
-    resource function get .(http:Request req) returns websocket:Service|websocket:UpgradeError {
-        return new MyWSService();
-    }
-}
-
-service class MyWSService {
-    *websocket:Service;
-    remote function onTextMessage(websocket:Caller caller, string data) returns websocket:Error? {
-        check caller->writeTextMessage(data);
-    }
-}
-```
