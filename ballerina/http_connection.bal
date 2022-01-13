@@ -308,14 +308,6 @@ isolated function setJsonPayload(Response response, anydata payload, boolean set
     }
 }
 
-isolated function updateETag(Response response, anydata payload) {
-    if payload is byte[] {
-        response.setETag(payload);
-    } else {
-        response.setETag(payload.toString());
-    }
-}
-
 isolated function nativeRespond(Caller caller, Response response) returns ListenerError? = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.connection.Respond",
     name: "nativeRespond"
