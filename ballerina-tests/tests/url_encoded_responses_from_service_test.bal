@@ -75,6 +75,13 @@ service /test on urlEncodedResponsesTestEP {
             body: serverErrorResponseBody
         };
     }
+
+    resource function get acceptedWithStringPayload() returns http:Accepted {
+        return {
+            mediaType: mime:APPLICATION_FORM_URLENCODED,
+            body: "Request is accepted by the server"
+        };
+    }
 }
 
 @test:Config {}
@@ -99,4 +106,13 @@ public function testUrlEncodedServerErrorResponse() returns error? {
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
     check assertUrlEncodedPayload(payload, serverErrorResponseBody);
+}
+
+@test:Config {}
+public function testAcceptedWithStringPayload() returns error? {
+    http:Response resp = check urlEncodedResponsesTestClient->get("/test/acceptedWithStringPayload");
+    test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
+    test:assertEquals(checkpanic resp.getContentType(), mime:APPLICATION_FORM_URLENCODED);
+    string payload = check resp.getTextPayload();
+    assertTextPayload(payload, "Request is accepted by the server");
 }
