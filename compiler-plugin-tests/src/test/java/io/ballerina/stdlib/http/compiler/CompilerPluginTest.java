@@ -147,7 +147,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 4);
+        Assert.assertEquals(diagnosticResult.errorCount(), 5);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid payload parameter type: 'json[]'", HTTP_107);
@@ -155,6 +155,7 @@ public class CompilerPluginTest {
                 "'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_104);
         assertError(diagnosticResult, 3,
                     "invalid resource parameter type: 'table<http_test/sample_4:0.1.0:Person> key(id)'", HTTP_106);
+        assertError(diagnosticResult, 4, "invalid payload parameter type: 'map<int>'", HTTP_107);
     }
 
     @Test

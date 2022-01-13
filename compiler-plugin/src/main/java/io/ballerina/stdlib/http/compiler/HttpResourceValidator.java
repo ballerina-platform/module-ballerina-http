@@ -317,6 +317,12 @@ class HttpResourceValidator {
                             if (typeDescKind == TypeDescKind.RECORD) {
                                 continue;
                             }
+                        } else if (kind == TypeDescKind.MAP) {
+                            TypeSymbol typeDescriptor = ((MapTypeSymbol) param.typeDescriptor()).typeParam();
+                            TypeDescKind typeDescKind = typeDescriptor.typeKind();
+                            if (typeDescKind == TypeDescKind.STRING) {
+                                continue;
+                            }
                         }
                         String paramTypeName = param.typeDescriptor().signature();
                         reportInvalidPayloadParameterType(ctx, paramLocation, paramTypeName);
