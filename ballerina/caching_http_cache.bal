@@ -99,9 +99,8 @@ public isolated class HttpCache {
         return self.cache.hasKey(key);
     }
 
-    isolated function get(string key) returns Response {
-        Response[] cacheEntry = <Response[]> checkpanic self.cache.get(key);
-        return cacheEntry[cacheEntry.length() - 1];
+    isolated function get(string key) returns any|error {
+        return self.cache.get(key);
     }
 
     isolated function getAll(string key) returns Response[]|() {
