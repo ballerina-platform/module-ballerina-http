@@ -82,6 +82,13 @@ service /test on urlEncodedResponsesTestEP {
             body: "Request is accepted by the server"
         };
     }
+
+    resource function get invalidMediaType() returns http:Accepted {
+        return {
+            mediaType: "XYZ",
+            body: acceptedResponseBody
+        };
+    }
 }
 
 @test:Config {}
@@ -115,4 +122,13 @@ public function testAcceptedWithStringPayload() returns error? {
     test:assertEquals(checkpanic resp.getContentType(), mime:APPLICATION_FORM_URLENCODED);
     string payload = check resp.getTextPayload();
     assertTextPayload(payload, "Request is accepted by the server");
+}
+
+@test:Config {}
+public function testAcceptedInvalidMediaType() returns error? {
+    http:Response resp = check urlEncodedResponsesTestClient->get("/test/invalidMediaType");
+    test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
+    test:assertEquals(checkpanic resp.getContentType(), "XYZ");
+    json payload = check resp.getJsonPayload();
+    test:assertEquals(payload, acceptedResponseBody, msg = "Found unexpected output");
 }
