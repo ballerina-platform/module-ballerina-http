@@ -36,6 +36,14 @@ service http:Service on new http:Listener(9090) {
         return "done"; // error
     }
 
+    resource function head dbString(@http:Payload string abc) returns string {
+        return "done"; // error
+    }
+
+    resource function options dbString(@http:Payload string abc) returns string {
+        return "done"; // error
+    }
+
     resource function post dbMapOfString(@http:Payload map<string> abc) returns string {
         return "done";
     }

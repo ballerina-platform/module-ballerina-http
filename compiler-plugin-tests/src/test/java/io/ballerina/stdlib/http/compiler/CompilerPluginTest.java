@@ -148,16 +148,21 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 6);
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
-        assertError(diagnosticResult, 1, "invalid payload annotation usage for GET resource", HTTP_129);
-        assertError(diagnosticResult, 2, "invalid payload parameter type: 'json[]'", HTTP_107);
-        assertError(diagnosticResult, 3, "invalid annotation type on param 'a': expected one of the following types: " +
+        assertError(diagnosticResult, 1, "invalid payload annotation usage for non entity body " +
+                "resource : 'get'", HTTP_129);
+        assertError(diagnosticResult, 2, "invalid payload annotation usage for non entity body " +
+                "resource : 'head'", HTTP_129);
+        assertError(diagnosticResult, 3, "invalid payload annotation usage for non entity body " +
+                "resource : 'options'", HTTP_129);
+        assertError(diagnosticResult, 4, "invalid payload parameter type: 'json[]'", HTTP_107);
+        assertError(diagnosticResult, 5, "invalid annotation type on param 'a': expected one of the following types: " +
                 "'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_104);
-        assertError(diagnosticResult, 4,
+        assertError(diagnosticResult, 6,
                     "invalid resource parameter type: 'table<http_test/sample_4:0.1.0:Person> key(id)'", HTTP_106);
-        assertError(diagnosticResult, 5, "invalid payload parameter type: 'map<int>'", HTTP_107);
+        assertError(diagnosticResult, 7, "invalid payload parameter type: 'map<int>'", HTTP_107);
     }
 
     @Test
@@ -431,7 +436,8 @@ public class CompilerPluginTest {
                 " are not supported for interceptor resource functions", HTTP_125);
         assertError(diagnosticResult, 8, "invalid interceptor resource path: expected default resource" +
                 " path: '[string... path]', but found '[string path]'", HTTP_127);
-        assertError(diagnosticResult, 9, "invalid payload annotation usage for GET resource", HTTP_129);
+        assertError(diagnosticResult, 9, "invalid payload annotation usage for non entity body " +
+                "resource : 'get'", HTTP_129);
     }
 
     @Test
