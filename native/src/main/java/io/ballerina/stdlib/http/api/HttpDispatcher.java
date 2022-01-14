@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -83,6 +84,7 @@ public class HttpDispatcher {
     private static final ArrayType DECIMAL_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
     private static final ArrayType MAP_ARR = TypeCreator.createArrayType(TypeCreator.createMapType(
             PredefinedTypes.TYPE_JSON));
+    private static final MapType STRING_MAP = TypeCreator.createMapType(PredefinedTypes.TYPE_STRING);
 
     public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg,
                                           boolean forInterceptors) {
@@ -598,6 +600,16 @@ public class HttpDispatcher {
                         EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
                         paramFeed[index++] = stringDataSource;
                         break;
+                    case MAP_TAG:
+                        Type constrainedType = ((MapType) payloadType).getConstrainedType();
+                        if (constrainedType.getTag() != STRING_TAG) {
+                            throw ErrorCreator.createError(StringUtils.fromString(
+                                    "invalid map constrained type. Expected: 'map<string>'"));
+                        }
+                        stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
+                        EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
+                        paramFeed[index++] = getFormParamMap(stringDataSource);
+                        break;
                     case TypeTags.JSON_TAG:
                         Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
                         EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
@@ -659,6 +671,48 @@ public class HttpDispatcher {
         } catch (NullPointerException ex) {
             throw new BallerinaConnectorException("cannot convert payload to record type: " +
                     entityBodyType.getName());
+        }
+    }
+
+    private static Object getFormParamMap(Object stringDataSource) {
+        try {
+            String formData = ((BString) stringDataSource).getValue();
+            BMap<BString, Object> formParamsMap = ValueCreator.createMapValue(STRING_MAP);
+            if (formData.isEmpty()) {
+                return formParamsMap;
+            }
+            Map<String, String> tempParamMap = new HashMap<>();
+            String decodedValue = URLDecoder.decode(formData, StandardCharsets.UTF_8);
+
+            if (!decodedValue.contains("&") || !decodedValue.contains("=")) {
+                throw new BallerinaConnectorException("Datasource does not contain form data");
+            }
+            String[] formParamValues = decodedValue.split("&");
+            for (String formParam : formParamValues) {
+                int index = formParam.indexOf('=');
+                if (index == -1) {
+                    if (!tempParamMap.containsKey(formParam)) {
+                        tempParamMap.put(formParam, null);
+                    }
+                    continue;
+                }
+                String formParamName = formParam.substring(0, index).trim();
+                String formParamValue = formParam.substring(index + 1).trim();
+                tempParamMap.put(formParamName, formParamValue);
+            }
+
+            for (Map.Entry<String, String> entry : tempParamMap.entrySet()) {
+                String entryValue = entry.getValue();
+                if (entryValue != null) {
+                    formParamsMap.put(StringUtils.fromString(entry.getKey()), StringUtils.fromString(entryValue));
+                } else {
+                    formParamsMap.put(StringUtils.fromString(entry.getKey()), null);
+                }
+            }
+            return formParamsMap;
+        } catch (Exception ex) {
+            throw ErrorCreator.createError(
+                    StringUtils.fromString("Could not convert payload to map<string>: " + ex.getMessage()));
         }
     }
 

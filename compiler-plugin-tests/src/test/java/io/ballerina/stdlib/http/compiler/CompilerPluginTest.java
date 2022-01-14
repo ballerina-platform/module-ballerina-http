@@ -71,6 +71,7 @@ public class CompilerPluginTest {
     private static final String HTTP_126 = "HTTP_126";
     private static final String HTTP_127 = "HTTP_127";
     private static final String HTTP_128 = "HTTP_128";
+    private static final String HTTP_129 = "HTTP_129";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -147,14 +148,21 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 4);
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
-        assertError(diagnosticResult, 1, "invalid payload parameter type: 'json[]'", HTTP_107);
-        assertError(diagnosticResult, 2, "invalid annotation type on param 'a': expected one of the following types: " +
+        assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
+                "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
+        assertError(diagnosticResult, 2, "invalid usage of payload annotation for a non entity body " +
+                "resource : 'head'. Use an accessor that supports entity body", HTTP_129);
+        assertError(diagnosticResult, 3, "invalid usage of payload annotation for a non entity body " +
+                "resource : 'options'. Use an accessor that supports entity body", HTTP_129);
+        assertError(diagnosticResult, 4, "invalid payload parameter type: 'json[]'", HTTP_107);
+        assertError(diagnosticResult, 5, "invalid annotation type on param 'a': expected one of the following types: " +
                 "'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_104);
-        assertError(diagnosticResult, 3,
+        assertError(diagnosticResult, 6,
                     "invalid resource parameter type: 'table<http_test/sample_4:0.1.0:Person> key(id)'", HTTP_106);
+        assertError(diagnosticResult, 7, "invalid payload parameter type: 'map<int>'", HTTP_107);
     }
 
     @Test
@@ -361,10 +369,10 @@ public class CompilerPluginTest {
         // only testing the error locations
         assertErrorPosition(diagnosticResult, 0, "(30:44,30:60)");
         assertErrorPosition(diagnosticResult, 1, "(35:5,35:16)");
-        assertErrorPosition(diagnosticResult, 2, "(40:85,40:86)");
+        assertErrorPosition(diagnosticResult, 2, "(40:86,40:87)");
         assertErrorPosition(diagnosticResult, 3, "(44:57,44:60)");
-        assertErrorPosition(diagnosticResult, 4, "(48:55,48:58)");
-        assertErrorPosition(diagnosticResult, 5, "(52:65,52:68)");
+        assertErrorPosition(diagnosticResult, 4, "(48:56,48:59)");
+        assertErrorPosition(diagnosticResult, 5, "(52:66,52:69)");
         assertErrorPosition(diagnosticResult, 6, "(56:77,56:80)");
         assertErrorPosition(diagnosticResult, 7, "(60:76,60:79)");
         assertErrorPosition(diagnosticResult, 8, "(64:76,64:82)");
@@ -410,7 +418,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_19");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 9);
+        Assert.assertEquals(diagnosticResult.errorCount(), 10);
         assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
                 "'http:RequestErrorInterceptor'", HTTP_123);
         assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
@@ -428,6 +436,8 @@ public class CompilerPluginTest {
                 " are not supported for interceptor resource functions", HTTP_125);
         assertError(diagnosticResult, 8, "invalid interceptor resource path: expected default resource" +
                 " path: '[string... path]', but found '[string path]'", HTTP_127);
+        assertError(diagnosticResult, 9, "invalid usage of payload annotation for a non entity body " +
+                "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
     }
 
     @Test

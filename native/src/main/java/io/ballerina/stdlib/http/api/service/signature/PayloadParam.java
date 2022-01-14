@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
@@ -63,7 +64,8 @@ public class PayloadParam implements Parameter {
 
     private void validatePayloadParam() {
         if (typeTag == TypeTags.RECORD_TYPE_TAG || typeTag == TypeTags.JSON_TAG || typeTag == TypeTags.XML_TAG ||
-                typeTag == TypeTags.STRING_TAG || (typeTag == TypeTags.ARRAY_TAG && validArrayType())) {
+                typeTag == TypeTags.STRING_TAG || (typeTag == TypeTags.ARRAY_TAG && validArrayType()) ||
+                (typeTag == TypeTags.MAP_TAG && validMapConstraintType())) {
             return;
         }
         throw HttpUtil.createHttpError("incompatible payload parameter type : '" + type.getName() + "'",
@@ -73,6 +75,10 @@ public class PayloadParam implements Parameter {
     private boolean validArrayType() {
         return ((ArrayType) type).getElementType().getTag() == TypeTags.BYTE_TAG ||
                 ((ArrayType) type).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG;
+    }
+
+    private boolean validMapConstraintType() {
+        return ((MapType) type).getConstrainedType().getTag() == TypeTags.STRING_TAG;
     }
 
     public Type getType() {

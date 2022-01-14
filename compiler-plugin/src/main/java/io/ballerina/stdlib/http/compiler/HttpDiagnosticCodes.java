@@ -74,6 +74,8 @@ public enum HttpDiagnosticCodes {
             "'[string... path]', but found '%s'", ERROR),
     HTTP_128("HTTP_128", "invalid interceptor resource method: expected default resource method: " +
             "'default', but found '%s'", ERROR),
+    HTTP_129("HTTP_129", "invalid usage of payload annotation for a non entity body resource : '%s'. " +
+            "Use an accessor that supports entity body", ERROR),
     HTTP_HINT_101("HTTP_HINT_101", "A resource annotation can be added", INTERNAL);
 
     private final String code;

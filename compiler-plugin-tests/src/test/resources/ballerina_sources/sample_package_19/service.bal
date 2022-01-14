@@ -55,7 +55,7 @@ service class InterceptorService2 {
 service class InterceptorService3 {
     *http:RequestInterceptor;
 
-    resource function default [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) {
+    resource function 'default [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) {
         req.setTextPayload("interceptor");
     }
 }
@@ -80,7 +80,7 @@ service class InterceptorService5 {
 service class InterceptorService6 {
     *http:RequestInterceptor;
 
-    resource function get [string... path](string q1, int q2, @http:Payload string payload, @http:Header string foo, http:Caller caller) returns error? {
+    resource function post [string... path](string q1, int q2, @http:Payload string payload, @http:Header string foo, http:Caller caller) returns error? {
         check caller->respond(payload);
     }
 }
@@ -162,6 +162,14 @@ service class InterceptorService14 {
 
     resource function 'default [string path](http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
         req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}
+
+service class InterceptorService15 {
+    *http:RequestInterceptor;
+
+    resource function get greeting(http:RequestContext ctx, @http:Payload string abc) returns http:NextService|error? {
         return ctx.next();
     }
 }

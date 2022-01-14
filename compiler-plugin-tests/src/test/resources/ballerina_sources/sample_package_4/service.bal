@@ -24,39 +24,55 @@ public annotation Person Pp on parameter;
 
 service http:Service on new http:Listener(9090) {
 
-    resource function get dbJson(@http:Payload json abc) returns string {
+    resource function post dbJson(@http:Payload json abc) returns string {
         return "done";
     }
 
-    resource function get dbXml(@http:Payload @http:Header xml abc) returns string {
-        return "done";
+    resource function post dbXml(@http:Payload @http:Header xml abc) returns string {
+        return "done"; // error
     }
 
     resource function get dbString(@http:Payload string abc) returns string {
-        return "done";
-    }
-
-    resource function get dbByteArr(@http:Payload byte[] abc) returns string {
-        return "done";
-    }
-
-    resource function get dbRecord(@http:Payload Person abc) returns string {
-        return "done";
-    }
-
-    resource function get dbRecArr(@http:Payload Person[] abc) returns string {
-        return "done";
-    }
-
-    resource function get dbJsonArr(@http:Payload json[] abc) returns string {
         return "done"; // error
     }
 
-    resource function get greeting1(int num, @http:Payload json abc, @Pp {id:0} string a) returns string {
+    resource function head dbString(@http:Payload string abc) returns string {
         return "done"; // error
     }
 
-    resource function get dbTable(table<Person> key(id)  abc) returns string {
+    resource function options dbString(@http:Payload string abc) returns string {
+        return "done"; // error
+    }
+
+    resource function post dbMapOfString(@http:Payload map<string> abc) returns string {
+        return "done";
+    }
+
+    resource function post dbByteArr(@http:Payload byte[] abc) returns string {
+        return "done";
+    }
+
+    resource function post dbRecord(@http:Payload Person abc) returns string {
+        return "done";
+    }
+
+    resource function post dbRecArr(@http:Payload Person[] abc) returns string {
+        return "done";
+    }
+
+    resource function post dbJsonArr(@http:Payload json[] abc) returns string {
+        return "done"; // error
+    }
+
+    resource function post greeting1(int num, @http:Payload json abc, @Pp {id:0} string a) returns string {
+        return "done"; // error
+    }
+
+    resource function post dbTable(table<Person> key(id)  abc) returns string {
+        return "done"; // error
+    }
+
+    resource function post dbMapOfIntNegative(@http:Payload map<int> abc) returns string {
         return "done"; // error
     }
 }
