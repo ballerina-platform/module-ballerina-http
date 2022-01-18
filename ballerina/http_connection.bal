@@ -19,6 +19,7 @@ import ballerina/lang.value as val;
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
+import ballerina/log;
 
 # The caller actions for responding to client requests.
 #
@@ -268,23 +269,7 @@ isolated function setPayload(anydata payload, Response response, string? mediaTy
             }
         }
     } else {
-        processAnydata(response, payload, mediaType, setETag);
-    }
-}
-
-isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
-    match mediaType {
-        mime:APPLICATION_FORM_URLENCODED => {
-            do {
-                map<string> pairs = check val:ensureType(payload);
-                setUrlEncodedPayload(response, pairs, setETag);
-            } on fail var e {
-                panic error InitializingOutboundResponseError(string `unsupported content for application/x-www-form-urlencoded media type: ${e.message()}`, e);
-            }
-        }
-        _ => {
-            setJsonPayload(response, payload, setETag);
-        }
+        setJsonPayload(response, payload, setETag);
     }
 }
 
