@@ -138,12 +138,12 @@ public isolated client class Caller {
             }
         } else if message is error {
             if message is ApplicationResponseError {
+                string? retrievedMediaType = retrieveMediaTypeForErrorResponse(returnMediaType, message.detail().get(CONTENT_TYPE));
                 InternalServerError err = {
-                    mediaType: returnMediaType is ()? mime:APPLICATION_JSON: returnMediaType,
                     headers: message.detail().headers,
                     body: message.detail().body
                 };
-                response = createStatusCodeResponse(err, returnMediaType);
+                response = createStatusCodeResponse(err, retrievedMediaType);
                 response.statusCode = message.detail().statusCode;
             } else {
                 response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
@@ -182,6 +182,17 @@ public isolated client class Caller {
             }
         }
         return nativeRespond(self, response);
+    }
+}
+
+isolated function retrieveMediaTypeForErrorResponse(string? annotatedMediaType, anydata retrievedMediaType) returns string? {
+    if annotatedMediaType is string {
+        return annotatedMediaType;
+    } else {
+        string|error resolvedMediaType = val:ensureType(retrievedMediaType);
+        if resolvedMediaType is string {
+            return resolvedMediaType;
+        }
     }
 }
 
