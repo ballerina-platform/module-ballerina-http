@@ -23,6 +23,7 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
+import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 
@@ -118,6 +119,12 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     public void notifyHttpListener(Throwable throwable) {
         responseLock.lock();
         try {
+            if (outboundMsgHolder != null) {
+                BackPressureObservable backPressureObservable = outboundMsgHolder.getBackPressureObservable();
+                if (backPressureObservable != null) {
+                    backPressureObservable.removeListener();
+                }
+            }
             this.throwable = throwable;
             returnError = throwable;
             if (executionWaitSem != null) {
