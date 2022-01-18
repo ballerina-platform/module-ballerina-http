@@ -86,7 +86,11 @@ service /test on urlEncodedResponsesTestEP {
     resource function get invalidMediaType() returns http:Accepted {
         return {
             mediaType: "XYZ",
-            body: acceptedResponseBody
+            body: {
+                "message": "Request is accepted by the server",
+                "info": "server.1.1.1.1/data",
+                "foo": "bar"
+            }
         };
     }
 }
