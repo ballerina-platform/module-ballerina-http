@@ -202,6 +202,7 @@ isolated function retrieveMediaTypeForApplicationError(string? annotatedMediaTyp
             }
         }
     }
+    return;
 }
 
 isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false)
