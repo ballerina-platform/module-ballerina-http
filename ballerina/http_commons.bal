@@ -58,6 +58,17 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
         request.setByteStream(message);
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
+    } else if message is map<string> {
+        match mediaType {
+            mime:APPLICATION_JSON => {
+                json payload = check processJsonContent(message);
+                request.setJsonPayload(payload);
+            }
+            _ => {
+                string payload = check processUrlEncodedContent(message);
+                request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
+            }
+        }
     } else if message is anydata {
         match mediaType {
             mime:APPLICATION_FORM_URLENCODED => {
