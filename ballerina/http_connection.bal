@@ -138,7 +138,7 @@ public isolated client class Caller {
             }
         } else if message is error {
             if message is ApplicationResponseError {
-                string? retrievedMediaType = retrieveMediaTypeForErrorResponse(returnMediaType, message.detail().get(CONTENT_TYPE));
+                string? retrievedMediaType = retrieveMediaTypeForApplicationError(returnMediaType, message.detail().get(CONTENT_TYPE));
                 InternalServerError err = {
                     headers: message.detail().headers,
                     body: message.detail().body
@@ -185,7 +185,7 @@ public isolated client class Caller {
     }
 }
 
-isolated function retrieveMediaTypeForErrorResponse(string? annotatedMediaType, anydata retrievedMediaType) returns string? {
+isolated function retrieveMediaTypeForApplicationError(string? annotatedMediaType, anydata retrievedMediaType) returns string? {
     if annotatedMediaType is string {
         return annotatedMediaType;
     } else {
@@ -194,6 +194,7 @@ isolated function retrieveMediaTypeForErrorResponse(string? annotatedMediaType, 
             return resolvedMediaType;
         }
     }
+    return;
 }
 
 isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false)
