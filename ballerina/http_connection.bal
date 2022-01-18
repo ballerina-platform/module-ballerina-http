@@ -192,8 +192,7 @@ isolated function retrieveMediaTypeForApplicationError(string? annotatedMediaTyp
     } else {
         if !headers.hasKey(CONTENT_TYPE) {
             return;
-        }
-        
+        } 
         string[]|string mediaType = headers.get(CONTENT_TYPE);
         if mediaType is string {
             return mediaType;
