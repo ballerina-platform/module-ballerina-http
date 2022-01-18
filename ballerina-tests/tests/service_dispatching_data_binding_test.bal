@@ -430,6 +430,18 @@ function testDataBindingWithMapOfStringNegative() {
 }
 
 @test:Config {}
+function testDataBindingWithMapOfStringWithSinglePair() {
+    http:Request req = new;
+    req.setTextPayload("name=hello%20go", contentType = "application/x-www-form-urlencoded");
+    http:Response|error response = dataBindingClient->post("/echo/body9", req);
+    if (response is http:Response) {
+        assertJsonPayload(response.getJsonPayload(), {"1":"hello go"});
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
 function testDataBindingWithMapOfStringEmptyValue() {
     http:Request req = new;
     req.setTextPayload("name=hello%20go&team=", contentType = "application/x-www-form-urlencoded");

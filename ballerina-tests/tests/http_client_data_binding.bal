@@ -352,6 +352,13 @@ service /passthrough on clientDBProxyListener {
         string? val2 = person["tea$*m"];
         return { key1: val1, key2: val2 };
     }
+
+    resource function get mapOfString6() returns json|error {
+        map<string> person = check clientDBBackendClient->get("/backend/getFormData6");
+        string? val1 = person["first Name"];
+        string? val2 = person["tea$*m"];
+        return { key1: val1, key2: val2 };
+    }
 }
 
 service /backend on clientDBBackendListener {
@@ -471,6 +478,10 @@ service /backend on clientDBBackendListener {
 
     resource function get getFormData5() returns http:Ok|error {
         return { body : "", mediaType : "x-www-form-urlencoded"};
+    }
+
+    resource function get getFormData6() returns http:Ok|error {
+        return { body : "first%20Name=WS%20O2", mediaType : "x-www-form-urlencoded"};
     }
 }
 
@@ -882,6 +893,19 @@ function testMapOfStringDataBindingWithEmptyPayload() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "No content");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testMapOfStringDataBindingWithSinglePair() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString6");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        json j = {"key1":"WS O2","key2":()};
+        assertJsonPayload(response.getJsonPayload(), j);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
