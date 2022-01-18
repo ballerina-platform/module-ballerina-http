@@ -19,6 +19,7 @@ import ballerina/lang.value as val;
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
+import ballerina/log;
 
 # The caller actions for responding to client requests.
 #
@@ -139,6 +140,7 @@ public isolated client class Caller {
         } else if message is error {
             if message is ApplicationResponseError {
                 InternalServerError err = {
+                    mediaType: returnMediaType is ()? mime:APPLICATION_JSON: returnMediaType,
                     headers: message.detail().headers,
                     body: message.detail().body
                 };
