@@ -138,9 +138,10 @@ public isolated client class Caller {
             }
         } else if message is error {
             if message is ApplicationResponseError {
-                string? retrievedMediaType = retrieveMediaTypeForApplicationError(returnMediaType, message.detail().get(CONTENT_TYPE));
+                map<string|string[]> headers = message.detail().headers;
+                string? retrievedMediaType = retrieveMediaTypeForApplicationError(returnMediaType, headers);
                 InternalServerError err = {
-                    headers: message.detail().headers,
+                    headers: headers,
                     body: message.detail().body
                 };
                 response = createStatusCodeResponse(err, retrievedMediaType);
@@ -185,16 +186,17 @@ public isolated client class Caller {
     }
 }
 
-isolated function retrieveMediaTypeForApplicationError(string? annotatedMediaType, anydata retrievedMediaType) returns string? {
+isolated function retrieveMediaTypeForApplicationError(string? annotatedMediaType, map<string|string[]> headers) returns string? {
     if annotatedMediaType is string {
         return annotatedMediaType;
     } else {
-        string|error resolvedMediaType = val:ensureType(retrievedMediaType);
-        if resolvedMediaType is string {
-            return resolvedMediaType;
+        string[]|string mediaType = headers.get(CONTENT_TYPE);
+        if mediaType is string {
+            return mediaType;
+        } else {
+            return mediaType[0];
         }
     }
-    return;
 }
 
 isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false)
