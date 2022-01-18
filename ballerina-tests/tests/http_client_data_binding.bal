@@ -445,7 +445,7 @@ service /backend on clientDBBackendListener {
 
     resource function get jsontype() returns http:InternalServerError {
         json j = {id:"hello"};
-        return {body: j, mediaType: mime:APPLICATION_JSON};
+        return {body: j};
     }
 
     resource function get binarytype() returns http:ServiceUnavailable {
