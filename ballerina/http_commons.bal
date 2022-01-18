@@ -526,7 +526,7 @@ isolated function getFormDataMap(string formData) returns map<string>|ClientErro
     if decodedValue is error {
         return error ClientError("form data decode failure");
     }
-    if (strings:indexOf(decodedValue, "&") is () || strings:indexOf(decodedValue, "=") is ()) {
+    if (strings:indexOf(decodedValue, "=") is ()) {
         return error ClientError("Datasource does not contain form data");
     }
     string[] entries = regex:split(decodedValue, "&");
