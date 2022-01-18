@@ -74,7 +74,7 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
             mime:APPLICATION_FORM_URLENCODED => {
                 map<string>|error pairs = val:ensureType(message);
                 if pairs is error {
-                    return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type: " + pairs.message(), pairs);
+                    return error InitializingOutboundRequestError(string `unsupported content for application/x-www-form-urlencoded media type: ${pairs.message()}`, pairs);
                 }
                 string payload = check processUrlEncodedContent(pairs);
                 request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
