@@ -59,7 +59,6 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
     } else if message is map<string> {
-        log:printInfo("In map<string> path");
         match mediaType {
             mime:APPLICATION_JSON => {
                 json payload = check processJsonContent(message);
