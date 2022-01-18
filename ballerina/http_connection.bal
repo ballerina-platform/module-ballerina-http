@@ -19,7 +19,6 @@ import ballerina/lang.value as val;
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
-import ballerina/log;
 
 # The caller actions for responding to client requests.
 #
@@ -277,7 +276,7 @@ isolated function setPayload(anydata payload, Response response, string? mediaTy
 isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
     match mediaType {
         mime:APPLICATION_FORM_URLENCODED => {
-            map<string>|error pairs = checkpanic val:cloneWithType(payload);
+            map<string>|error pairs = val:cloneWithType(payload);
             if pairs is map<string> {
                 string|error result = retrieveUrlEncodedData(pairs);
                 if result is string {
