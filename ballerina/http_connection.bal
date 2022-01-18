@@ -194,7 +194,9 @@ isolated function retrieveMediaTypeForApplicationError(string? annotatedMediaTyp
         if mediaType is string {
             return mediaType;
         } else {
-            return mediaType[0];
+            if mediaType.length() >= 1 {
+                return mediaType[0];
+            }
         }
     }
 }
