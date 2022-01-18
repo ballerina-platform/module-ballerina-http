@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/mime;
 import ballerina/test;
 
 listener http:Listener outRequestTypeTestEP = new(outRequestTypeTest);
