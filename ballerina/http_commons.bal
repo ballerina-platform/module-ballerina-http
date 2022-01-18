@@ -70,9 +70,20 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
             }
         }
     } else if message is anydata {
-        json payload = check processJsonContent(message);
-        request.setJsonPayload(payload);
-
+        match mediaType {
+            mime:APPLICATION_FORM_URLENCODED => {
+                map<string>|error pairs = val:cloneWithType(message);
+                if pairs is error {
+                    return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
+                }
+                string payload = check processUrlEncodedContent(pairs);
+                request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
+            }
+            _ => {
+                json payload = check processJsonContent(message);
+                request.setJsonPayload(payload);
+            }
+        }
     } else {
         string errorMsg = "invalid request body type. expected one of the types: http:Request|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
         panic error InitializingOutboundRequestError(errorMsg);

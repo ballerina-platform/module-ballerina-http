@@ -269,7 +269,31 @@ isolated function setPayload(anydata payload, Response response, string? mediaTy
             }
         }
     } else {
-        setJsonPayload(response, payload, setETag);
+        processAnydata(response, payload, mediaType, setETag);
+    }
+}
+
+isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
+    match mediaType {
+        mime:APPLICATION_FORM_URLENCODED => {
+            map<string>|error pairs = checkpanic val:cloneWithType(payload);
+            if pairs is map<string> {
+                string|error result = retrieveUrlEncodedData(pairs);
+                if result is string {
+                    response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
+                    if setETag {
+                        response.setETag(result);
+                    }
+                    return;
+                }
+                panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
+            } else {
+                return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
+            }
+        }
+        _ => {
+            setJsonPayload(response, payload, setETag);
+        }
     }
 }
 

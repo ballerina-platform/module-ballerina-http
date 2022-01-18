@@ -50,7 +50,7 @@ isolated function testUrlContentWithPost() returns error? {
     groups: ["urlEncodedContent"]
 }
 isolated function testUrlContentInline() returns error? {
-    string response = check clientUrlEncodedTestClient->post("", <map<string>>{
+    string response = check clientUrlEncodedTestClient->post("", {
         "key1": "value1",
         "key2": "value2"
     }, mediaType = mime:APPLICATION_FORM_URLENCODED);
@@ -96,7 +96,7 @@ isolated function testUrlContentWithIntPayload() returns error? {
     string|error response = clientUrlEncodedTestClient->post("", 10, mediaType = mime:APPLICATION_FORM_URLENCODED);
     test:assertTrue(response is error, "Found unexpected output");
     if response is error {
-        test:assertEquals(response.message(), "unsupported content for application/x-www-form-urlencoded media type: {ballerina}TypeCastError", msg = "Found unexpected output");
+        test:assertEquals(response.message(), "unsupported content for application/x-www-form-urlencoded media type", msg = "Found unexpected output");
     }
 }
 
@@ -113,6 +113,6 @@ isolated function testUrlContentWithJsonPayload() returns error? {
     string|error response = clientUrlEncodedTestClient->post("", jsonPayload, mediaType = mime:APPLICATION_FORM_URLENCODED);
     test:assertTrue(response is error, "Found unexpected output");
     if response is error {
-        test:assertEquals(response.message(), "unsupported content for application/x-www-form-urlencoded media type: {ballerina}TypeCastError", msg = "Found unexpected output");
+        test:assertEquals(response.message(), "unsupported content for application/x-www-form-urlencoded media type", msg = "Found unexpected output");
     }
 }
