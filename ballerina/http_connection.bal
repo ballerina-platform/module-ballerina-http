@@ -19,7 +19,6 @@ import ballerina/lang.value as val;
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
-import ballerina/log;
 
 # The caller actions for responding to client requests.
 #
