@@ -50,7 +50,8 @@ isolated function testUrlContentWithPost() returns error? {
     groups: ["urlEncodedContent"]
 }
 isolated function testUrlContentInline() returns error? {
-    string response = check clientUrlEncodedTestClient->post("", {
+    string response = check clientUrlEncodedTestClient->post("",
+    {
         "key1": "value1",
         "key2": "value2"
     }, mediaType = mime:APPLICATION_FORM_URLENCODED);
