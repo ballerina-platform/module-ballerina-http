@@ -82,6 +82,10 @@ public class TargetChannel {
         targetHandler.setTargetChannel(this);
     }
 
+    public BackPressureHandler getBackPressureHandler() {
+        return Util.getBackPressureHandler(targetHandler.getContext());
+    }
+
     public void writeContent(HttpCarbonMessage httpOutboundRequest) {
         if (handlerExecutor != null) {
             handlerExecutor.executeAtTargetRequestReceiving(httpOutboundRequest);
