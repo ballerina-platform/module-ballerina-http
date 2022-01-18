@@ -288,7 +288,7 @@ isolated function processAnydata(Response response, anydata payload, string? med
                 }
                 panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
             } else {
-                return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
+                panic error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
             }
         }
         _ => {
