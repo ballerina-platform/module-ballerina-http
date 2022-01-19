@@ -61,7 +61,11 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
     } else if message is anydata {
         match mediaType {
             mime:APPLICATION_FORM_URLENCODED => {
-                string payload = check processUrlEncodedContent(message);
+                map<string>|error pairs = val:cloneWithType(message);
+                if pairs is error {
+                    return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
+                }
+                string payload = check processUrlEncodedContent(pairs);
                 request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
             }
             _ => {
@@ -77,21 +81,17 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
     return request;
 }
 
-isolated function processUrlEncodedContent(anydata message) returns string|ClientError {
-    if message is map<string> {
-        do {
-            string[] messageParams = [];
-            foreach var ['key, value] in message.entries() {
-                string encodedValue = check url:encode(value, "UTF-8");
-                string entry = string`${'key}=${encodedValue}`;
-                messageParams.push(entry);
-            }
-            return strings:'join("&", ...messageParams);
-        } on fail var e {
-            return error InitializingOutboundRequestError("content encoding error: " + e.message(), e);
+isolated function processUrlEncodedContent(map<string> message) returns string|ClientError {
+    do {
+        string[] messageParams = [];
+        foreach var ['key, value] in message.entries() {
+            string encodedValue = check url:encode(value, "UTF-8");
+            string entry = string `${'key}=${encodedValue}`;
+            messageParams.push(entry);
         }
-    } else {
-        return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
+        return strings:'join("&", ...messageParams);
+    } on fail var e {
+        return error InitializingOutboundRequestError("content encoding error: " + e.message(), e);
     }
 }
 

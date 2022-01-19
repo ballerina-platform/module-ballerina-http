@@ -82,12 +82,47 @@ service /test on urlEncodedResponsesTestEP {
             body: "Request is accepted by the server"
         };
     }
+
+    resource function get acceptedWithInlinePayload() returns http:Accepted {
+        return {
+            mediaType: mime:APPLICATION_FORM_URLENCODED,
+            body: {
+                "message": "Request is accepted by the server",
+                "info": "server.1.1.1.1/data",
+                "foo": "bar"
+            }
+        };
+    }
+
+    resource function get directReturn() returns @http:Payload {mediaType: mime:APPLICATION_FORM_URLENCODED} map<string> {
+        return {
+            "message": "Request is accepted by the server",
+            "info": "server.1.1.1.1/data",
+            "foo": "bar"
+        };
+    }
 }
 
 @test:Config {}
 public function testUrlEncodedAcceptedResponse() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/test/accepted");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
+    string payload = check resp.getTextPayload();
+    check assertUrlEncodedPayload(payload, acceptedResponseBody);
+}
+
+@test:Config {}
+public function testUrlEncodedAcceptedResponseWithInlineAcceptedBody() returns error? {
+    http:Response resp = check urlEncodedResponsesTestClient->get("/test/acceptedWithInlinePayload");
+    test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
+    string payload = check resp.getTextPayload();
+    check assertUrlEncodedPayload(payload, acceptedResponseBody);
+}
+
+@test:Config {}
+public function testUrlEncodedWithDirectReturn() returns error? {
+    http:Response resp = check urlEncodedResponsesTestClient->get("/test/directReturn");
+    test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
     check assertUrlEncodedPayload(payload, acceptedResponseBody);
 }
