@@ -58,25 +58,10 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
         request.setByteStream(message);
     } else if (message is mime:Entity[]) {
         request.setBodyParts(message);
-    } else if message is map<string> {
-        match mediaType {
-            mime:APPLICATION_JSON => {
-                json payload = check processJsonContent(message);
-                request.setJsonPayload(payload);
-            }
-            _ => {
-                string payload = check processUrlEncodedContent(message);
-                request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
-            }
-        }
     } else if message is anydata {
         match mediaType {
             mime:APPLICATION_FORM_URLENCODED => {
-                map<string>|error pairs = val:cloneWithType(message);
-                if pairs is error {
-                    return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
-                }
-                string payload = check processUrlEncodedContent(pairs);
+                string payload = check processUrlEncodedContent(message);
                 request.setTextPayload(payload, mime:APPLICATION_FORM_URLENCODED);
             }
             _ => {
@@ -84,6 +69,7 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
                 request.setJsonPayload(payload);
             }
         }
+
     } else {
         string errorMsg = "invalid request body type. expected one of the types: http:Request|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
         panic error InitializingOutboundRequestError(errorMsg);
@@ -91,17 +77,21 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
     return request;
 }
 
-isolated function processUrlEncodedContent(map<string> message) returns string|ClientError {
-    do {
-        string[] messageParams = [];
-        foreach var ['key, value] in message.entries() {
-            string encodedValue = check url:encode(value, "UTF-8");
-            string entry = string `${'key}=${encodedValue}`;
-            messageParams.push(entry);
+isolated function processUrlEncodedContent(anydata message) returns string|ClientError {
+    if message is map<string> {
+        do {
+            string[] messageParams = [];
+            foreach var ['key, value] in message.entries() {
+                string encodedValue = check url:encode(value, "UTF-8");
+                string entry = string`${'key}=${encodedValue}`;
+                messageParams.push(entry);
+            }
+            return strings:'join("&", ...messageParams);
+        } on fail var e {
+            return error InitializingOutboundRequestError("content encoding error: " + e.message(), e);
         }
-        return strings:'join("&", ...messageParams);
-    } on fail var e {
-        return error InitializingOutboundRequestError("content encoding error: " + e.message(), e);
+    } else {
+        return error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
     }
 }
 
