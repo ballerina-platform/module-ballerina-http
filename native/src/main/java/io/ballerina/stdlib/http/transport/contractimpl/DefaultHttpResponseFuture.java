@@ -26,6 +26,8 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandle
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -36,6 +38,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * Implementation of the response returnError future.
  */
 public class DefaultHttpResponseFuture implements HttpResponseFuture {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpResponseFuture.class);
 
     private HttpConnectorListener httpConnectorListener;
     private HttpClientConnectorListener responseHandleListener;
@@ -120,10 +124,14 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     public void notifyHttpListener(Throwable throwable) {
         responseLock.lock();
         try {
+            // For HTTP1.1 we have the listener attached to BackPressureObservable inside the BackPressureHandler.
+            // Whereas for HTTP2 we have the listener attached to BackPressureObservable inside the OutboundMsgHolder.
             if (backPressureHandler != null) {
                 backPressureHandler.getBackPressureObservable().removeListener();
             } else if (outboundMsgHolder != null) {
                 outboundMsgHolder.getBackPressureObservable().removeListener();
+            } else {
+                LOG.warn("No BackPressureObservable found.");
             }
             this.throwable = throwable;
             returnError = throwable;
