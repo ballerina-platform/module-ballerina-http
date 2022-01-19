@@ -104,9 +104,9 @@ service / on new http:Listener(cacheAnnotationTestPort2) {
             count = noCacheHitCountNew;
         }
         if count == 1 {
-            return { "message": "1st response" };
+            return nocachePayload1;
         } else {
-            return { "message": "2nd response" };
+            return nocachePayload2;
         }
     }
 

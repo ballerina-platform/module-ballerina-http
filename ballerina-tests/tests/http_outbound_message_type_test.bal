@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/mime;
 import ballerina/test;
 
 listener http:Listener outRequestTypeTestEP = new(outRequestTypeTest);
@@ -156,7 +155,7 @@ public function testSendingJsonCompatibleOpenRecord() returns error? {
     // 2. Have json rest param in open records
     // 3. Call .toJson() and pass as a json
     record {| string name; |} customer1 = { name: "ballerina1" };
-    json payload = check outRequestClient->post("/mytest/json", customer1, mediaType=mime:APPLICATION_JSON);
+    json payload = check outRequestClient->post("/mytest/json", customer1);
     assertJsonPayload(payload, {"name":"ballerina1"});
 
     record {| string name; json...; |} customer2 = { name: "ballerina2" };
