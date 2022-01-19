@@ -138,11 +138,13 @@ public isolated client class Caller {
             }
         } else if message is error {
             if message is ApplicationResponseError {
+                map<string|string[]> headers = message.detail().headers;
+                string? retrievedMediaType = retrieveMediaTypeForApplicationError(returnMediaType, headers);
                 InternalServerError err = {
-                    headers: message.detail().headers,
+                    headers: headers,
                     body: message.detail().body
                 };
-                response = createStatusCodeResponse(err, returnMediaType);
+                response = createStatusCodeResponse(err, retrievedMediaType);
                 response.statusCode = message.detail().statusCode;
             } else {
                 response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
@@ -182,6 +184,25 @@ public isolated client class Caller {
         }
         return nativeRespond(self, response);
     }
+}
+
+isolated function retrieveMediaTypeForApplicationError(string? annotatedMediaType, map<string|string[]> headers) returns string? {
+    if annotatedMediaType is string {
+        return annotatedMediaType;
+    } else {
+        if !headers.hasKey(CONTENT_TYPE) {
+            return;
+        } 
+        string[]|string mediaType = headers.get(CONTENT_TYPE);
+        if mediaType is string {
+            return mediaType;
+        } else {
+            if mediaType.length() >= 1 {
+                return mediaType[0];
+            }
+        }
+    }
+    return;
 }
 
 isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false)
@@ -258,6 +279,15 @@ isolated function setPayload(anydata payload, Response response, string? mediaTy
         if setETag {
             response.setETag(payload);
         }
+    } else if payload is map<string> {
+        match mediaType {
+            mime:APPLICATION_JSON => {
+                setJsonPayload(response, payload, setETag);
+            }
+            _ => {
+                setUrlEncodedPayload(response, payload, setETag);
+            }
+        }
     } else {
         processAnydata(response, payload, mediaType, setETag);
     }
@@ -266,8 +296,9 @@ isolated function setPayload(anydata payload, Response response, string? mediaTy
 isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
     match mediaType {
         mime:APPLICATION_FORM_URLENCODED => {
-            if payload is map<string> {
-                string|error result = retrieveUrlEncodedData(payload);
+            map<string>|error pairs = val:cloneWithType(payload);
+            if pairs is map<string> {
+                string|error result = retrieveUrlEncodedData(pairs);
                 if result is string {
                     response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
                     if setETag {
@@ -277,13 +308,25 @@ isolated function processAnydata(Response response, anydata payload, string? med
                 }
                 panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
             } else {
-                setJsonPayload(response, payload, setETag);
+                panic error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
             }
         }
         _ => {
             setJsonPayload(response, payload, setETag);
         }
     }
+}
+
+isolated function setUrlEncodedPayload(Response response, map<string> payload, boolean setETag) {
+    string|error result = retrieveUrlEncodedData(payload);
+    if result is string {
+        response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
+        if setETag {
+            response.setETag(result);
+        }
+        return;
+    }
+    panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
 }
 
 isolated function retrieveUrlEncodedData(map<string> message) returns string|error {
