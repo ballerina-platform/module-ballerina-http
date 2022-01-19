@@ -684,7 +684,7 @@ public class HttpDispatcher {
             Map<String, String> tempParamMap = new HashMap<>();
             String decodedValue = URLDecoder.decode(formData, StandardCharsets.UTF_8);
 
-            if (!decodedValue.contains("&") || !decodedValue.contains("=")) {
+            if (!decodedValue.contains("=")) {
                 throw new BallerinaConnectorException("Datasource does not contain form data");
             }
             String[] formParamValues = decodedValue.split("&");

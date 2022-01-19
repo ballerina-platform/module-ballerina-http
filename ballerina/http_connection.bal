@@ -266,8 +266,9 @@ isolated function setPayload(anydata payload, Response response, string? mediaTy
 isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
     match mediaType {
         mime:APPLICATION_FORM_URLENCODED => {
-            if payload is map<string> {
-                string|error result = retrieveUrlEncodedData(payload);
+            map<string>|error pairs = val:cloneWithType(payload);
+            if pairs is map<string> {
+                string|error result = retrieveUrlEncodedData(pairs);
                 if result is string {
                     response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
                     if setETag {
@@ -277,7 +278,7 @@ isolated function processAnydata(Response response, anydata payload, string? med
                 }
                 panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
             } else {
-                setJsonPayload(response, payload, setETag);
+                panic error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
             }
         }
         _ => {
