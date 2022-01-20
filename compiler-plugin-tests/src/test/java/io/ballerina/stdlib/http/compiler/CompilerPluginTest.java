@@ -148,7 +148,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 8);
+        Assert.assertEquals(diagnosticResult.errorCount(), 11);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
@@ -163,6 +163,9 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 6,
                     "invalid resource parameter type: 'table<http_test/sample_4:0.1.0:Person> key(id)'", HTTP_106);
         assertError(diagnosticResult, 7, "invalid payload parameter type: 'map<int>'", HTTP_107);
+        assertError(diagnosticResult, 8, "invalid payload parameter type: 'string[]'", HTTP_107);
+        assertError(diagnosticResult, 9, "invalid payload parameter type: 'xml[]'", HTTP_107);
+        assertError(diagnosticResult, 10, "invalid payload parameter type: 'map<string>[]'", HTTP_107);
     }
 
     @Test
