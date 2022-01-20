@@ -75,4 +75,16 @@ service http:Service on new http:Listener(9090) {
     resource function post dbMapOfIntNegative(@http:Payload map<int> abc) returns string {
         return "done"; // error
     }
+
+    resource function post dbStringArrNegative(@http:Payload string[] abc) returns string {
+        return "done"; // error
+    }
+
+    resource function post dbXmlArrNegative(@http:Payload xml[] abc) returns string {
+        return "done"; // error
+    }
+
+    resource function post dbMapStringArrNegative(@http:Payload map<string>[] abc) returns string {
+        return "done"; // error
+    }
 }

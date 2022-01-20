@@ -18,14 +18,7 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.types.UnionType;
-import io.ballerina.stdlib.http.api.HttpErrorType;
-import io.ballerina.stdlib.http.api.HttpUtil;
-
-import java.util.List;
 
 /**
  * {@code {@link HeaderParam }} represents a inbound request header parameter details.
@@ -38,7 +31,6 @@ public class HeaderParam {
     private final String token;
     private boolean nilable;
     private int index;
-    private Type type;
     private String headerName;
 
     HeaderParam(String token) {
@@ -46,48 +38,9 @@ public class HeaderParam {
     }
 
     public void init(Type type, int index) {
-        this.type = type;
         this.typeTag = type.getTag();
         this.index = index;
-        validateHeaderParamType();
-    }
-
-    private void validateHeaderParamType() {
-        if (this.type instanceof UnionType) {
-            List<Type> memberTypes = ((UnionType) this.type).getMemberTypes();
-            int size = memberTypes.size();
-            if (size > 2 || !this.type.isNilable()) {
-                throw HttpUtil.createHttpError(
-                        "invalid header param type '" + this.type.getName() + "': a string or an array " +
-                                "of a string can only be union with '()'. Eg: string|() or string[]|()");
-            }
-            this.nilable = true;
-            for (Type type : memberTypes) {
-                if (type.getTag() == TypeTags.NULL_TAG) {
-                    continue;
-                }
-                validateBasicType(type);
-                break;
-            }
-        } else {
-            validateBasicType(this.type);
-        }
-    }
-
-    // Note the validation is only done for the non-object header params. i.e for the string, string[] types
-    private void validateBasicType(Type type) {
-        if (isValidBasicType(type.getTag()) || (type.getTag() == TypeTags.ARRAY_TAG && isValidBasicType(
-                ((ArrayType) type).getElementType().getTag()))) {
-            // Assign element type as the type of header param
-            this.typeTag = type.getTag();
-            return;
-        }
-        throw HttpUtil.createHttpError("incompatible header parameter type: '" + type.getName() + "'. " +
-                                               "expected: string or string[]", HttpErrorType.GENERIC_LISTENER_ERROR);
-    }
-
-    private boolean isValidBasicType(int typeTag) {
-        return typeTag == TypeTags.STRING_TAG;
+        this.nilable = type.isNilable();
     }
 
     public String getToken() {

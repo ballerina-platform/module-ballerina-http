@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
@@ -594,50 +595,7 @@ public class HttpDispatcher {
             paramFeed[index] = true;
         } else {
             try {
-                switch (payloadType.getTag()) {
-                    case STRING_TAG:
-                        BString stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
-                        EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
-                        paramFeed[index++] = stringDataSource;
-                        break;
-                    case MAP_TAG:
-                        Type constrainedType = ((MapType) payloadType).getConstrainedType();
-                        if (constrainedType.getTag() != STRING_TAG) {
-                            throw ErrorCreator.createError(StringUtils.fromString(
-                                    "invalid map constrained type. Expected: 'map<string>'"));
-                        }
-                        stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
-                        EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
-                        paramFeed[index++] = getFormParamMap(stringDataSource);
-                        break;
-                    case TypeTags.JSON_TAG:
-                        Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
-                        EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
-                        paramFeed[index++] = bjson;
-                        break;
-                    case TypeTags.XML_TAG:
-                        BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
-                        EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
-                        paramFeed[index++] = bxml;
-                        break;
-                    case ARRAY_TAG:
-                        if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
-                            BArray blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
-                            EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
-                            paramFeed[index++] = blobDataSource;
-                        } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
-                            paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
-                        } else {
-                            throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
-                                    ((ArrayType) payloadType).getElementType().getName());
-                        }
-                        break;
-                    case TypeTags.RECORD_TYPE_TAG:
-                        paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
-                        break;
-                    default:
-                        //Do nothing
-                }
+                index = populateParamFeed(paramFeed, inRequestEntity, index, payloadType);
                 paramFeed[index] = true;
                 // Set the entity obj in case it is read by an interceptor
                 httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
@@ -646,6 +604,62 @@ public class HttpDispatcher {
                 throw new BallerinaConnectorException("data binding failed: " + ex.toString());
             }
         }
+    }
+
+    private static int populateParamFeed(Object[] paramFeed, BObject inRequestEntity, int index, Type payloadType)
+            throws IOException {
+        switch (payloadType.getTag()) {
+            case STRING_TAG:
+                BString stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
+                EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
+                paramFeed[index++] = stringDataSource;
+                break;
+            case MAP_TAG:
+                Type constrainedType = ((MapType) payloadType).getConstrainedType();
+                if (constrainedType.getTag() != STRING_TAG) {
+                    throw ErrorCreator.createError(StringUtils.fromString(
+                            "invalid map constrained type. Expected: 'map<string>'"));
+                }
+                stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
+                EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
+                paramFeed[index++] = getFormParamMap(stringDataSource);
+                break;
+            case TypeTags.JSON_TAG:
+                Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
+                EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
+                paramFeed[index++] = bjson;
+                break;
+            case TypeTags.XML_TAG:
+                BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
+                EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
+                paramFeed[index++] = bxml;
+                break;
+            case ARRAY_TAG:
+                Type elementType = ((ArrayType) payloadType).getElementType();
+                if (elementType.getTag() == TypeTags.BYTE_TAG) {
+                    BArray blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
+                    EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
+                    paramFeed[index++] = blobDataSource;
+                } else if (elementType.getTag() == TypeTags.RECORD_TYPE_TAG ||
+                        elementType.getTag() == TypeTags.INTERSECTION_TAG) {
+                    // Assumes that only the byte[] and record[] are supported
+                    paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
+                } else {
+                    throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
+                            elementType.getName());
+                }
+                break;
+            case TypeTags.RECORD_TYPE_TAG:
+                paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
+                break;
+            case TypeTags.INTERSECTION_TAG:
+                Type pureType = ((IntersectionType) payloadType).getEffectiveType();
+                index = populateParamFeed(paramFeed, inRequestEntity, index, pureType);
+                break;
+            default:
+                //Do nothing
+        }
+        return index;
     }
 
     private static Object getRecordEntity(BObject inRequestEntity, Type entityBodyType) {
