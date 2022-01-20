@@ -47,6 +47,7 @@ import io.ballerina.stdlib.http.uri.URIUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
+import org.ballerinalang.langlib.value.CloneReadOnly;
 import org.ballerinalang.langlib.value.CloneWithType;
 
 import java.io.IOException;
@@ -640,10 +641,11 @@ public class HttpDispatcher {
                     BArray blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
                     EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
                     paramFeed[index++] = blobDataSource;
-                } else if (elementType.getTag() == TypeTags.RECORD_TYPE_TAG ||
-                        elementType.getTag() == TypeTags.INTERSECTION_TAG) {
-                    // Assumes that only the byte[] and record[] are supported
+                } else if (elementType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                     paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
+                } else if (elementType.getTag() == TypeTags.INTERSECTION_TAG) {
+                    // Assumes that only the byte[] and record[] are supported and intersected with readonly
+                    paramFeed[index++] = getCloneReadOnlyValue(getRecordEntity(inRequestEntity, payloadType));
                 } else {
                     throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
                             elementType.getName());
@@ -653,8 +655,10 @@ public class HttpDispatcher {
                 paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
                 break;
             case TypeTags.INTERSECTION_TAG:
+                // Assumes that only intersected with readonly
                 Type pureType = ((IntersectionType) payloadType).getEffectiveType();
                 index = populateParamFeed(paramFeed, inRequestEntity, index, pureType);
+                paramFeed[index - 1] = getCloneReadOnlyValue(paramFeed[index - 1]);
                 break;
             default:
                 //Do nothing
@@ -686,6 +690,10 @@ public class HttpDispatcher {
             throw new BallerinaConnectorException("cannot convert payload to record type: " +
                     entityBodyType.getName());
         }
+    }
+
+    private static Object getCloneReadOnlyValue(Object bValue) {
+        return CloneReadOnly.cloneReadOnly(bValue);
     }
 
     private static Object getFormParamMap(Object stringDataSource) {
