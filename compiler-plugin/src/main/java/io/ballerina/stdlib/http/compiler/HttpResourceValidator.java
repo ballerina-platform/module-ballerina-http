@@ -300,14 +300,23 @@ class HttpResourceValidator {
                             continue;
                         }
                         annotated = true;
-                        TypeDescKind kind = param.typeDescriptor().typeKind();
+                        TypeSymbol paramTypeDescriptor = param.typeDescriptor();
+                        if (paramTypeDescriptor.typeKind() == TypeDescKind.INTERSECTION) {
+                            paramTypeDescriptor =
+                                    ((IntersectionTypeSymbol) param.typeDescriptor()).effectiveTypeDescriptor();
+                        }
+                        TypeDescKind kind = paramTypeDescriptor.typeKind();
                         if (kind == TypeDescKind.JSON || kind == TypeDescKind.STRING ||
                                 kind == TypeDescKind.XML) {
                             continue;
                         } else if (kind == TypeDescKind.ARRAY) {
                             TypeSymbol arrTypeSymbol =
-                                    ((ArrayTypeSymbol) param.typeDescriptor()).memberTypeDescriptor();
+                                    ((ArrayTypeSymbol) paramTypeDescriptor).memberTypeDescriptor();
                             TypeDescKind elementKind = arrTypeSymbol.typeKind();
+                            if (elementKind == TypeDescKind.INTERSECTION) {
+                                arrTypeSymbol = ((IntersectionTypeSymbol) arrTypeSymbol).effectiveTypeDescriptor();
+                                elementKind = arrTypeSymbol.typeKind();
+                            }
                             if (elementKind == TypeDescKind.BYTE) {
                                 continue;
                             } else if (elementKind == TypeDescKind.TYPE_REFERENCE) {
@@ -319,13 +328,13 @@ class HttpResourceValidator {
                             }
                         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
                             TypeSymbol typeDescriptor =
-                                    ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
+                                    ((TypeReferenceTypeSymbol) paramTypeDescriptor).typeDescriptor();
                             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
                             if (typeDescKind == TypeDescKind.RECORD) {
                                 continue;
                             }
                         } else if (kind == TypeDescKind.MAP) {
-                            TypeSymbol typeDescriptor = ((MapTypeSymbol) param.typeDescriptor()).typeParam();
+                            TypeSymbol typeDescriptor = ((MapTypeSymbol) paramTypeDescriptor).typeParam();
                             TypeDescKind typeDescKind = typeDescriptor.typeKind();
                             if (typeDescKind == TypeDescKind.STRING) {
                                 continue;
