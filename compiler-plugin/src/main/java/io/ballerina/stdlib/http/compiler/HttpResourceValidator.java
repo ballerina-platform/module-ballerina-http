@@ -59,9 +59,12 @@ import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.FIELD_RESPONSE_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.GET;
+import static io.ballerina.stdlib.http.compiler.Constants.HEAD;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
@@ -288,19 +291,32 @@ class HttpResourceValidator {
                 String typeName = annotationTypeNameOptional.get();
                 switch (typeName) {
                     case PAYLOAD_ANNOTATION_TYPE: {
+                        Optional<String> resourceMethodOptional = resourceMethodSymbolOptional.get().getName();
+                        if (resourceMethodOptional.isPresent()) {
+                            validatePayloadAnnotationUsage(ctx, paramLocation, resourceMethodOptional.get());
+                        }
                         if (annotated) { // multiple annotations
                             reportInvalidMultipleAnnotation(ctx, paramLocation, paramName);
                             continue;
                         }
                         annotated = true;
-                        TypeDescKind kind = param.typeDescriptor().typeKind();
+                        TypeSymbol paramTypeDescriptor = param.typeDescriptor();
+                        if (paramTypeDescriptor.typeKind() == TypeDescKind.INTERSECTION) {
+                            paramTypeDescriptor =
+                                    ((IntersectionTypeSymbol) param.typeDescriptor()).effectiveTypeDescriptor();
+                        }
+                        TypeDescKind kind = paramTypeDescriptor.typeKind();
                         if (kind == TypeDescKind.JSON || kind == TypeDescKind.STRING ||
                                 kind == TypeDescKind.XML) {
                             continue;
                         } else if (kind == TypeDescKind.ARRAY) {
                             TypeSymbol arrTypeSymbol =
-                                    ((ArrayTypeSymbol) param.typeDescriptor()).memberTypeDescriptor();
+                                    ((ArrayTypeSymbol) paramTypeDescriptor).memberTypeDescriptor();
                             TypeDescKind elementKind = arrTypeSymbol.typeKind();
+                            if (elementKind == TypeDescKind.INTERSECTION) {
+                                arrTypeSymbol = ((IntersectionTypeSymbol) arrTypeSymbol).effectiveTypeDescriptor();
+                                elementKind = arrTypeSymbol.typeKind();
+                            }
                             if (elementKind == TypeDescKind.BYTE) {
                                 continue;
                             } else if (elementKind == TypeDescKind.TYPE_REFERENCE) {
@@ -312,9 +328,15 @@ class HttpResourceValidator {
                             }
                         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
                             TypeSymbol typeDescriptor =
-                                    ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
+                                    ((TypeReferenceTypeSymbol) paramTypeDescriptor).typeDescriptor();
                             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
                             if (typeDescKind == TypeDescKind.RECORD) {
+                                continue;
+                            }
+                        } else if (kind == TypeDescKind.MAP) {
+                            TypeSymbol typeDescriptor = ((MapTypeSymbol) paramTypeDescriptor).typeParam();
+                            TypeDescKind typeDescKind = typeDescriptor.typeKind();
+                            if (typeDescKind == TypeDescKind.STRING) {
                                 continue;
                             }
                         }
@@ -426,6 +448,13 @@ class HttpResourceValidator {
                         break;
                 }
             }
+        }
+    }
+
+    private static void validatePayloadAnnotationUsage(SyntaxNodeAnalysisContext ctx, Location location,
+                                                       String methodName) {
+        if (methodName.equals(GET) || methodName.equals(HEAD) || methodName.equals(OPTIONS)) {
+            reportInvalidUsageOfPayloadAnnotation(ctx, location, methodName);
         }
     }
 
@@ -714,5 +743,10 @@ class HttpResourceValidator {
     private static void reportInCompatibleCallerInfoType(SyntaxNodeAnalysisContext ctx, PositionalArgumentNode node,
                                                          String paramName) {
         HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), paramName, HttpDiagnosticCodes.HTTP_114);
+    }
+
+    private static void reportInvalidUsageOfPayloadAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
+                                                              String methodName) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, methodName, HttpDiagnosticCodes.HTTP_129);
     }
 }

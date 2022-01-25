@@ -18,12 +18,8 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.stdlib.http.api.HttpConstants;
-import io.ballerina.stdlib.http.api.HttpErrorType;
-import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +33,6 @@ public class PayloadParam implements Parameter {
 
     private int index;
     private Type type;
-    private int typeTag;
     private final String token;
     private List<String> mediaTypes = new ArrayList<>();
 
@@ -47,9 +42,7 @@ public class PayloadParam implements Parameter {
 
     public void init(Type type, int index) {
         this.type = type;
-        this.typeTag = type.getTag();
         this.index = index;
-        validatePayloadParam();
     }
 
     @Override
@@ -59,20 +52,6 @@ public class PayloadParam implements Parameter {
 
     public int getIndex() {
         return this.index * 2;
-    }
-
-    private void validatePayloadParam() {
-        if (typeTag == TypeTags.RECORD_TYPE_TAG || typeTag == TypeTags.JSON_TAG || typeTag == TypeTags.XML_TAG ||
-                typeTag == TypeTags.STRING_TAG || (typeTag == TypeTags.ARRAY_TAG && validArrayType())) {
-            return;
-        }
-        throw HttpUtil.createHttpError("incompatible payload parameter type : '" + type.getName() + "'",
-                                       HttpErrorType.GENERIC_LISTENER_ERROR);
-    }
-
-    private boolean validArrayType() {
-        return ((ArrayType) type).getElementType().getTag() == TypeTags.BYTE_TAG ||
-                ((ArrayType) type).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG;
     }
 
     public Type getType() {

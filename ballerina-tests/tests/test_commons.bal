@@ -15,7 +15,9 @@
 // under the License.
 
 import ballerina/lang.'string as strings;
+import ballerina/url;
 import ballerina/mime;
+import ballerina/regex;
 import ballerina/test;
 
 const string CONTENT_TYPE = "content-type";
@@ -117,6 +119,23 @@ isolated function assertTextPayload(string|error payload, string expectValue) {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + payload.message());
     }
+}
+
+isolated function assertUrlEncodedPayload(string payload, map<string> expectedValue) returns error? {
+    map<string> retrievedPayload = {};
+    string decodedPayload = check url:decode(payload, "UTF-8");
+    string[] entries = regex:split(decodedPayload, "&");
+    foreach string entry in entries {
+        int? delimeterIdx = entry.indexOf("=");
+        if delimeterIdx is int {
+            string name = entry.substring(0, delimeterIdx);
+            name = name.trim();
+            string value = entry.substring(delimeterIdx + 1);
+            value = value.trim();
+            retrievedPayload[name] = value;
+        }
+    }
+    test:assertEquals(retrievedPayload, expectedValue, msg = "Found unexpected output");
 }
 
 isolated function assertTrueTextPayload(string|error payload, string expectValue) {

@@ -103,11 +103,11 @@ service http:Service on new http:Listener(9090) {
         return [{id:123, name: "john"}, {id:124, name: "khan"}];
     }
 
-    resource function get greeting16() returns @http:Payload {mediaType:["application/json+123"]} json {
+    resource function post greeting16() returns @http:Payload {mediaType:["application/json+123"]} json {
         return {hello: "world"};
     }
 
-    resource function get greeting17() returns @http:Payload {mediaType:["text/xml", "app/xml"]} xml {
+    resource function post greeting17() returns @http:Payload {mediaType:["text/xml", "app/xml"]} xml {
         return xml `<book>Hello World</book>`;
     }
 
@@ -116,7 +116,7 @@ service http:Service on new http:Listener(9090) {
         return resp;
     }
 
-    resource function get greeting19() returns @http:Payload {mediaType:["text/plain"]} int {
+    resource function post greeting19() returns @http:Payload {mediaType:["text/plain"]} int {
         return 56;
     }
 
@@ -132,7 +132,7 @@ service http:Service on new http:Listener(9090) {
         return true;
     }
 
-    resource function get greeting23() returns @http:Payload {mediaType:"application/json"} http:Created|http:Ok {
+    resource function post greeting23() returns @http:Payload {mediaType:"application/json"} http:Created|http:Ok {
         http:Created cre = { body: {hello:"World"}, headers: { xtest: "Elle"}, mediaType:"application/json+id" };
         return cre;
     }

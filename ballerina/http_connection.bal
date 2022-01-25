@@ -16,6 +16,9 @@
 
 import ballerina/jballerina.java;
 import ballerina/lang.value as val;
+import ballerina/lang.'string as strings;
+import ballerina/url;
+import ballerina/mime;
 
 # The caller actions for responding to client requests.
 #
@@ -160,7 +163,7 @@ public isolated client class Caller {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
         } else if message is anydata {
-            setPayload(message, response, setETag);
+            setPayload(message, response, returnMediaType, setETag);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
@@ -210,29 +213,37 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
             }
         }
     }
-
-    setPayload(message?.body, response, setETag);
-
+    string? mediaType = retrieveMediaType(message, returnMediaType);
+    setPayload(message?.body, response, mediaType, setETag);
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
     // 2. Payload annotation mediaType value
     // 3. The content type header included in headers field
     // 4. Default content type related to payload
-    string? mediaType = message?.mediaType;
     if (mediaType is string) {
         response.setHeader(CONTENT_TYPE, mediaType);
         return response;
     }
-    if (returnMediaType is string) {
-        response.setHeader(CONTENT_TYPE, returnMediaType);
-    }
     return response;
 }
 
-isolated function setPayload(anydata payload, Response response, boolean setETag = false) {
+isolated function retrieveMediaType(StatusCodeResponse resp, string? retrievedMediaType) returns string? {
+    string? mediaType = resp?.mediaType;
+    if (mediaType is string) {
+        return mediaType;
+    }
+    if (retrievedMediaType is string) {
+        return retrievedMediaType;
+    }
+    return;
+}
+
+isolated function setPayload(anydata payload, Response response, string? mediaType = (), boolean setETag = false) {
     if payload is () {
         return;
-    } else if payload is xml {
+    }
+
+    if payload is xml {
         response.setXmlPayload(payload);
         if setETag {
             response.setETag(payload);
@@ -248,19 +259,53 @@ isolated function setPayload(anydata payload, Response response, boolean setETag
             response.setETag(payload);
         }
     } else {
-        castToJsonAndSetPayload(response, payload, "anydata to json conversion error: ", setETag);
+        processAnydata(response, payload, mediaType, setETag);
     }
 }
 
-isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg, boolean setETag = false) {
+isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
+    match mediaType {
+        mime:APPLICATION_FORM_URLENCODED => {
+            map<string>|error pairs = val:cloneWithType(payload);
+            if pairs is map<string> {
+                string|error result = retrieveUrlEncodedData(pairs);
+                if result is string {
+                    response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
+                    if setETag {
+                        response.setETag(result);
+                    }
+                    return;
+                }
+                panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
+            } else {
+                panic error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
+            }
+        }
+        _ => {
+            setJsonPayload(response, payload, setETag);
+        }
+    }
+}
+
+isolated function retrieveUrlEncodedData(map<string> message) returns string|error {
+    string[] messageParams = [];
+    foreach var ['key, value] in message.entries() {
+        string encodedKey = check url:encode('key, CHARSET_UTF_8);
+        string encodedValue = check url:encode(value, CHARSET_UTF_8);
+        string entry = string `${'encodedKey}=${encodedValue}`;
+        messageParams.push(entry);
+    }
+    return strings:'join("&", ...messageParams);
+}
+
+isolated function setJsonPayload(Response response, anydata payload, boolean setETag) {
     var result = trap val:toJson(payload);
     if result is error {
-        panic error InitializingOutboundResponseError(errMsg + result.message(), result);
-    } else {
-        response.setJsonPayload(result);
-        if setETag {
-            response.setETag(result);
-        }
+        panic error InitializingOutboundResponseError(string `anydata to json conversion error: ${result.message()}`, result);
+    }
+    response.setJsonPayload(result);
+    if setETag {
+        response.setETag(result);
     }
 }
 

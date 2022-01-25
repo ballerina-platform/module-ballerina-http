@@ -375,31 +375,10 @@ public class Request {
                 return error GenericClientError(message, typeError);
             }
             var formData = externGetText(mimeEntity);
-            map<string> parameters = {};
             if (formData is error) {
                 return error GenericClientError(message, formData);
-            } else {
-                if (formData != "") {
-                    formData = check decode(formData);
-                    string[] entries = regex:split(checkpanic formData, "&");
-                    int entryIndex = 0;
-                    while (entryIndex < entries.length()) {
-                        int? index = entries[entryIndex].indexOf("=");
-                        if (index is int && index != -1) {
-                            string name = entries[entryIndex].substring(0, index);
-                            name = name.trim();
-                            int size = entries[entryIndex].length();
-                            string value = entries[entryIndex].substring(index + 1, size);
-                            value = value.trim();
-                            if (value != "") {
-                                parameters[name] = value;
-                            }
-                        }
-                        entryIndex = entryIndex + 1;
-                    }
-                }
             }
-            return parameters;
+            return getFormDataMap(formData);
         }
     }
 

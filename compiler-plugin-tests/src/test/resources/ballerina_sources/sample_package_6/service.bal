@@ -30,7 +30,7 @@ service a:Service on new a:Listener(9090) {
         return "done"; //error
     }
 
-    resource function get callerErr2(@a:CallerInfo @a:Payload a:Caller abc) returns string {
+    resource function post callerErr2(@a:CallerInfo @a:Payload a:Caller abc) returns string {
         return "done"; //error
     }
 

@@ -22,8 +22,6 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
-import io.ballerina.stdlib.http.api.HttpErrorType;
-import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.List;
 
@@ -55,12 +53,6 @@ public class HeaderParam {
     private void validateHeaderParamType() {
         if (this.type instanceof UnionType) {
             List<Type> memberTypes = ((UnionType) this.type).getMemberTypes();
-            int size = memberTypes.size();
-            if (size > 2 || !this.type.isNilable()) {
-                throw HttpUtil.createHttpError(
-                        "invalid header param type '" + this.type.getName() + "': a string or an array " +
-                                "of a string can only be union with '()'. Eg: string|() or string[]|()");
-            }
             this.nilable = true;
             for (Type type : memberTypes) {
                 if (type.getTag() == TypeTags.NULL_TAG) {
@@ -80,10 +72,7 @@ public class HeaderParam {
                 ((ArrayType) type).getElementType().getTag()))) {
             // Assign element type as the type of header param
             this.typeTag = type.getTag();
-            return;
         }
-        throw HttpUtil.createHttpError("incompatible header parameter type: '" + type.getName() + "'. " +
-                                               "expected: string or string[]", HttpErrorType.GENERIC_LISTENER_ERROR);
     }
 
     private boolean isValidBasicType(int typeTag) {

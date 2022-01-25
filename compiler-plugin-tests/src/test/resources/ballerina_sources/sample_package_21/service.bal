@@ -18,6 +18,13 @@ import ballerina/http;
 
 // Positive Cases
 
+type NewAlbum record {|
+    string id;
+    string title;
+    string artist;
+    decimal price;
+|};
+
 type Album readonly & record {|
     string id;
     string title;
@@ -43,5 +50,35 @@ service / on new http:Listener(8080) {
             store.add(album);
         }
         return albums;
+    }
+}
+
+service / on new http:Listener(8090) {
+    resource function post album(@http:Payload readonly & NewAlbum album) returns string {
+        return "album";
+    }
+
+    resource function post albumArray(@http:Payload readonly & NewAlbum[] albums) returns string {
+        return "albumArray";
+    }
+
+    resource function post byteArray(@http:Payload readonly & byte[] albums) returns string {
+        return "byteArray";
+    }
+
+    resource function post readonlyString(@http:Payload readonly & string album) returns string {
+        return "string";
+    }
+
+    resource function post readonlyJson(@http:Payload readonly & json album) returns string {
+        return "json";
+    }
+
+    resource function post readonlyXml(@http:Payload readonly & xml album) returns string {
+        return "xml";
+    }
+
+    resource function post readonlyMapString(@http:Payload readonly & map<string> album) returns string {
+        return "mapOfString";
     }
 }

@@ -18,6 +18,7 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 import ballerina/mime;
+import ballerina/url;
 import ballerina/lang.'string as strings;
 
 listener http:Listener clientDBProxyListener = new(clientDatabindingTestPort1);
@@ -316,6 +317,48 @@ service /passthrough on clientDBProxyListener {
         error? responseToCaller = caller->respond(p);
         return;
     }
+
+    resource function get mapOfString1() returns json|error {
+        map<string> person = check clientDBBackendClient->get("/backend/getFormData1");
+        string? val1 = person["key1"];
+        string? val2 = person["key2"];
+        return { key1: val1, key2: val2 };
+    }
+
+    resource function get mapOfString2() returns json|error {
+        map<string> person = check clientDBBackendClient->get("/backend/getFormData2");
+        string? val1 = person["first Name"];
+        string? val2 = person["tea$*m"];
+        return { key1: val1, key2: val2 };
+    }
+
+    resource function get mapOfString3() returns json|error {
+        map<string> person = check clientDBBackendClient->get("/backend/getFormData3");
+        string? val1 = person["first Name"];
+        string? val2 = person["tea$*m"];
+        return { key1: val1, key2: val2 };
+    }
+
+    resource function get mapOfString4() returns json|error {
+        map<string> person = check clientDBBackendClient->get("/backend/getFormData4");
+        string? val1 = person["first Name"];
+        string? val2 = person["tea$*m"];
+        return { key1: val1, key2: val2 };
+    }
+
+    resource function get mapOfString5() returns json|error {
+        map<string> person = check clientDBBackendClient->get("/backend/getFormData5");
+        string? val1 = person["first Name"];
+        string? val2 = person["tea$*m"];
+        return { key1: val1, key2: val2 };
+    }
+
+    resource function get mapOfString6() returns json|error {
+        map<string> person = check clientDBBackendClient->get("/backend/getFormData6");
+        string? val1 = person["first Name"];
+        string? val2 = person["tea$*m"];
+        return { key1: val1, key2: val2 };
+    }
 }
 
 service /backend on clientDBBackendListener {
@@ -412,6 +455,33 @@ service /backend on clientDBBackendListener {
 
     resource function 'default getErrorResponseWithErrorContentType() returns http:BadRequest {
         return { body : {name: "hello", age: 15}, mediaType : "application/xml"};
+    }
+
+    resource function get getFormData1() returns http:Ok|error {
+        string encodedPayload1 = check url:encode("value 1", "UTF-8");
+        string encodedPayload2 = check url:encode("value 2", "UTF-8");
+        string payload = string `key1=${encodedPayload1}&key2=${encodedPayload2}`;
+        return { body : payload, mediaType : "x-www-form-urlencoded"};
+    }
+
+    resource function get getFormData2() returns http:Ok|error {
+        return { body : "first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", mediaType : "x-www-form-urlencoded"};
+    }
+
+    resource function get getFormData3() returns http:Ok|error {
+        return { body : "first%20Name=WS%20O2&tea%24%2Am=", mediaType : "x-www-form-urlencoded"};
+    }
+
+    resource function get getFormData4() returns http:Ok|error {
+        return { body : "first%20Name=WS%20O2&=Bal%40Dance", mediaType : "x-www-form-urlencoded"};
+    }
+
+    resource function get getFormData5() returns http:Ok|error {
+        return { body : "", mediaType : "x-www-form-urlencoded"};
+    }
+
+    resource function get getFormData6() returns http:Ok|error {
+        return { body : "first%20Name=WS%20O2", mediaType : "x-www-form-urlencoded"};
     }
 }
 
@@ -628,7 +698,7 @@ function test4XXErrorPanic() {
     if (response is http:Response) {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), 
+        assertTextPayload(response.getTextPayload(),
             "no matching resource found for path : /backend/getIncorrectPath404 , method : POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -753,4 +823,96 @@ function testDBRecordArrayNegative() {
     } else {
         test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson[]");
     }
+}
+
+@test:Config {}
+function testMapOfStringDataBinding() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString1");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        json j = {"key1":"value 1","key2":"value 2"};
+        assertJsonPayload(response.getJsonPayload(), j);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testMapOfStringDataBindingWithJsonPayload() {
+    map<string>|error response = clientDBBackendClient->get("/backend/getJson");
+    if (response is error) {
+        assertTextPayload(response.message(), "Datasource does not contain form data");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: map<string>");
+    }
+}
+
+@test:Config {}
+function testMapOfStringDataBindingWithEncodedKey() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString2");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        json j = {"key1":"WS O2","key2":"Bal@Dance"};
+        assertJsonPayload(response.getJsonPayload(), j);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testMapOfStringDataBindingWithEmptyValue() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString3");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        json j = {"key1":"WS O2","key2":""};
+        assertJsonPayload(response.getJsonPayload(), j);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testMapOfStringDataBindingWithEmptyKey() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString4");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        json j = {"key1":"WS O2","key2":()};
+        assertJsonPayload(response.getJsonPayload(), j);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testMapOfStringDataBindingWithEmptyPayload() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString5");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "No content");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testMapOfStringDataBindingWithSinglePair() {
+    http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString6");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        json j = {"key1":"WS O2","key2":()};
+        assertJsonPayload(response.getJsonPayload(), j);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testNilableMapOfStringDataBindingWithEmptyPayload() {
+    map<string>?|error response = clientDBBackendClient->get("/backend/getFormData5");
+    test:assertTrue(response is (), msg = "Found unexpected output");
 }
