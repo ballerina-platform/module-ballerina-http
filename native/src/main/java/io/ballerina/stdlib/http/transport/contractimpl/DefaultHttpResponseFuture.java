@@ -133,7 +133,6 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
             } else {
                 LOG.warn("No BackPressureObservable found.");
             }
-
             this.throwable = throwable;
             returnError = throwable;
             if (executionWaitSem != null) {
