@@ -47,8 +47,7 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     private HttpConnectorListener pushPromiseListener;
     private ConcurrentHashMap<Integer, HttpConnectorListener> pushResponseListeners;
     private ConcurrentHashMap<Integer, Throwable> pushResponseListenerErrors;
-    private BackPressureHandler requestBackPressureHandler;
-    private BackPressureHandler responseBackPressureHandler;
+    private BackPressureHandler backPressureHandler;
 
     private HttpCarbonMessage httpCarbonMessage;
     private ResponseHandle responseHandle;
@@ -125,16 +124,12 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     public void notifyHttpListener(Throwable throwable) {
         responseLock.lock();
         try {
-            // For HTTP1.1, the listener is attached to BackPressureObservable inside the BackPressureHandler.
-            // For HTTP2 outbound request, the listener is attached to BackPressureObservable inside the
-            // OutboundMsgHolder. Whereas for HTTP2 outbound response, the listener is attached to
-            // BackPressureObservable inside the ResponseWriter, which is removed in Http2OutboundRespListener.
-            if (requestBackPressureHandler != null) {
-                requestBackPressureHandler.getBackPressureObservable().removeListener();
+            // For HTTP1.1 we have the listener attached to BackPressureObservable inside the BackPressureHandler.
+            // Whereas for HTTP2 we have the listener attached to BackPressureObservable inside the OutboundMsgHolder.
+            if (backPressureHandler != null) {
+                backPressureHandler.getBackPressureObservable().removeListener();
             } else if (outboundMsgHolder != null) {
                 outboundMsgHolder.getBackPressureObservable().removeListener();
-            } else if (responseBackPressureHandler != null) {
-                responseBackPressureHandler.getBackPressureObservable().removeListener();
             } else {
                 LOG.warn("No BackPressureObservable found.");
             }
@@ -186,12 +181,8 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
         this.returnError = null;
     }
 
-    public void setRequestBackPressureHandler(BackPressureHandler requestBackPressureHandler) {
-        this.requestBackPressureHandler = requestBackPressureHandler;
-    }
-
-    public void setResponseBackPressureHandler(BackPressureHandler responseBackPressureHandler) {
-        this.responseBackPressureHandler = responseBackPressureHandler;
+    public void setBackPressureHandler(BackPressureHandler backPressureHandler) {
+        this.backPressureHandler = backPressureHandler;
     }
 
     @Override

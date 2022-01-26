@@ -68,8 +68,8 @@ public class HttpOutboundRespListener implements HttpConnectorListener {
     }
 
     public void setBackPressureHandlerToHttpResponseFuture() {
-        inboundRequestMsg.getHttpOutboundRespStatusFuture().setResponseBackPressureHandler(Util.
-                getBackPressureHandler(sourceContext));
+        inboundRequestMsg.getHttpOutboundRespStatusFuture().
+                setBackPressureHandler(Util.getBackPressureHandler(sourceContext));
     }
 
     @Override

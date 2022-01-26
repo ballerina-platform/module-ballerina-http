@@ -68,18 +68,11 @@ public interface HttpResponseFuture {
     void resetStatus();
 
     /**
-     * Sets request back pressure handler.
+     * Sets back pressure handler.
      *
-     * @param requestBackPressureHandler which handles backpressure for outbound request write
+     * @param backPressureHandler which handles backpressure
      */
-    void setRequestBackPressureHandler(BackPressureHandler requestBackPressureHandler);
-
-    /**
-     * Sets response back pressure handler.
-     *
-     * @param responseBackPressureHandler which handles backpressure for outbound response write
-     */
-    void setResponseBackPressureHandler(BackPressureHandler responseBackPressureHandler);
+    void setBackPressureHandler(BackPressureHandler backPressureHandler);
 
     /**
      * Makes the async operation sync.
