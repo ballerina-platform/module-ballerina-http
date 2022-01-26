@@ -194,10 +194,6 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
         this.responseBackPressureHandler = responseBackPressureHandler;
     }
 
-    public BackPressureHandler getResponseBackPressureHandler() {
-        return this.responseBackPressureHandler;
-    }
-
     @Override
     public void setResponseHandleListener(HttpClientConnectorListener responseHandleListener) {
         responseHandleLock.lock();
