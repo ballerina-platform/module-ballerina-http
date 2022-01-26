@@ -64,6 +64,12 @@ public class HttpOutboundRespListener implements HttpConnectorListener {
         this.handlerExecutor = HttpTransportContextHolder.getInstance().getHandlerExecutor();
         this.serverName = sourceHandler.getServerName();
         this.listenerReqRespStateManager = requestMsg.listenerReqRespStateManager;
+        setBackPressureHandlerToHttpResponseFuture();
+    }
+
+    public void setBackPressureHandlerToHttpResponseFuture() {
+        inboundRequestMsg.getHttpOutboundRespStatusFuture().setResponseBackPressureHandler(Util.
+                getBackPressureHandler(sourceContext));
     }
 
     @Override

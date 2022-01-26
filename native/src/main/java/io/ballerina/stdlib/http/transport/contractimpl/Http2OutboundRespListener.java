@@ -161,6 +161,7 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
                     writer.writeOutboundResponse(outboundResponseMsg, httpContent);
                 } catch (Http2Exception ex) {
                     LOG.error("Failed to send the outbound response : " + ex.getMessage(), ex);
+                    removeBackPressureListener();
                     inboundRequestMsg.getHttpOutboundRespStatusFuture().notifyHttpListener(ex);
                 }
             });
