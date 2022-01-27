@@ -25,7 +25,7 @@ jobs:
         run: |
           clusterName="${{github.event.inputs.clusterName}}"
           if [ "$clusterName" = "" ]; then
-            clusterName="grpc-perf-cluster-test"
+            clusterName="http-perf-cluster-test"
           fi
           printf "::set-output name=clusterName::%s" $clusterName
       - name: Get latest ballerina runtime artifact
