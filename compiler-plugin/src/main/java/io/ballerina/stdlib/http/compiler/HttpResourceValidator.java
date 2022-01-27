@@ -307,7 +307,7 @@ class HttpResourceValidator {
                         }
                         TypeDescKind kind = paramTypeDescriptor.typeKind();
                         if (kind == TypeDescKind.JSON || kind == TypeDescKind.STRING ||
-                                kind == TypeDescKind.XML) {
+                                kind == TypeDescKind.XML || kind == TypeDescKind.RECORD) {
                             continue;
                         } else if (kind == TypeDescKind.ARRAY) {
                             TypeSymbol arrTypeSymbol =

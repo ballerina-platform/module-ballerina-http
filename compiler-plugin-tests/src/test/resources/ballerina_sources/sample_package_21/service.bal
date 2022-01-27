@@ -81,4 +81,12 @@ service / on new http:Listener(8090) {
     resource function post readonlyMapString(@http:Payload readonly & map<string> album) returns string {
         return "mapOfString";
     }
+
+    resource function post inlineRecord(@http:Payload record {|string name; int age;|} person) returns string {
+        return "inlineRecord";
+    }
+
+    resource function post inlineReadOnlyRecord(@http:Payload readonly & record {|string name; int age;|} person) returns string {
+        return "inlineReadOnlyRecord";
+    }
 }
