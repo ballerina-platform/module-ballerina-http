@@ -180,7 +180,9 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     }
 
     public void setBackPressureObservable(BackPressureObservable backPressureObservable) {
-        this.backPressureObservable = backPressureObservable;
+        if (backPressureObservable != null) {
+            this.backPressureObservable = backPressureObservable;
+        }
     }
 
     @Override
