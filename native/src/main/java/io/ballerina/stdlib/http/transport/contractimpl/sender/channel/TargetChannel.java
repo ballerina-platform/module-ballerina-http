@@ -27,6 +27,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.Conne
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
 import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
+import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -82,8 +83,11 @@ public class TargetChannel {
         targetHandler.setTargetChannel(this);
     }
 
-    public BackPressureHandler getBackPressureHandler() {
-        return Util.getBackPressureHandler(targetHandler.getContext());
+    public BackPressureObservable getBackPressureObservable() {
+        if (Util.getBackPressureHandler(targetHandler.getContext()) != null) {
+            return Util.getBackPressureHandler(targetHandler.getContext()).getBackPressureObservable();
+        }
+        return null;
     }
 
     public void writeContent(HttpCarbonMessage httpOutboundRequest) {
