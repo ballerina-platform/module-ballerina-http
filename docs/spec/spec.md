@@ -125,21 +125,11 @@ Conforming implementation of the specification is released and included in the d
         * 10.1.1. [Push promise and promise response](#1011-push-promise-and-promise-response)
 
 ## 1. Overview
-This specification elaborates on Basic Auth authentication and authorization for all the Ballerina listeners and
-clients. The HTTP, gRPC, GraphQL, WebSocket, WebSub protocol-based listeners and clients are secured according to this
-specification.
+Ballerina language provides first-class support for writing network-oriented programs. The HTTP standard library uses these language constructs and creates the programming model to produce and consume HTTP APIs.
 
-The ballerina language provides the first class support for writing network oriented programming models in a more 
-initiative manner. The ballerina-http standard library consumes the rich language construct and creates the 
-programming model to write services.
+The HTTP standard library is designed to work with HTTP protocol. It includes high-level abstractions such as `http:Request`, `http:Response`, `http:Service` and `http:Client` which allow users to produce and consume HTTP API. Further, the users can use this library to build other libraries. The standard libraries such as GraphQL, Websub, and WebSubHub use this library internally.
 
-The HTTP standard library is designed to work with HTTP protocol. It includes high level abstractions such as 
-`http:Request`, `http:Response`, `http:Service` and `http:Client` which allow users to consume and produce HTTP 
-services. Further the users can use this library to build other libraries. In fact, the standard libraries such 
-as GraphQL, Websub and WebSubHub use this library internally.
-
-In addition to functional requirements, this library deals with none functional requirements such as security,
-observability and resiliency. Each requirement is discussed in detail in the coming sections.
+In addition to functional requirements, this library deals with none functional requirements such as security, observability, and resiliency. Each requirement is discussed in detail in the coming sections.
 
 ## 2. Components
 ### 2.1. Listener
