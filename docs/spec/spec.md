@@ -4,13 +4,18 @@ _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
 _Updated_: 2021/12/23  
+_Edition_: Swan Lake  
 _Issue_: [#572](https://github.com/ballerina-platform/ballerina-standard-library/issues/572)
 
 
 # Introduction
-This is the specification for HTTP standard library, which provides HTTP functionalities in the 
-[Ballerina programming language](https://ballerina.io/), which is an open-source programming language for the cloud 
-that makes it easier to use, combine, and create network services.
+This is the specification for the HTTP standard library of [Ballerina language](https://ballerina.io/), which provides HTTP client-server functionalities to produce and consume HTTP APIs.  
+
+The HTTP library has evolved and may continue to evolve in the future. Released versions of the specification can be found under the relevant Github tag. 
+
+If you have any feedback or suggestions about the library, do not hesitate to start a discussion via a Github issue or in [Slack Channel](https://ballerina.io/community/). Based on the outcome specification and implementation can be updated. Community feedback is always welcome. Any accepted proposal which affects the specification is stored under `/docs/proposals`. Proposals under discussion can be found with the label `type/proposal` in Github.
+
+Conforming implementation of the specification is released and included in the distribution. Any deviation from the specification is considered a bug.
 
 # Contents
 
