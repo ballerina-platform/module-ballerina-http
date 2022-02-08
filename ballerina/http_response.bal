@@ -194,9 +194,7 @@ public class Response {
         return contentTypeHeaderValue;
     }
 
-    # Extract `json` payload from the response.
-    #
-    # If the payload is empty, a `http:NoContentError` is returned.
+    # Extract `json` payload from the response. For an empty payload, `http:NoContentError` is returned.
     #
     # If the content type is not JSON, an `http:ClientError` is returned.
     #
@@ -220,9 +218,9 @@ public class Response {
         }
     }
 
-    # Extracts `xml` payload from the response.
+    # Extracts `xml` payload from the response. For an empty payload, `http:NoContentError` is returned.
     #
-    # If the payload is empty, a `http:NoContentError` is returned.
+    # If the content type is not XML, an `http:ClientError` is returned.
     #
     # + return - The `xml` payload or `http:ClientError` in case of errors
     public isolated function getXmlPayload() returns xml|ClientError {
@@ -244,9 +242,9 @@ public class Response {
         }
     }
 
-    # Extracts `text` payload from the response.
+    # Extracts `text` payload from the response. For an empty payload, `http:NoContentError` is returned.
     #
-    # If the payload is empty, a `http:NoContentError` is returned.
+    # If the content type is not of type text, an `http:ClientError` is returned.
     #
     # + return - The string representation of the message payload or `http:ClientError` in case of errors
     public isolated function getTextPayload() returns string|ClientError {
