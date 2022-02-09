@@ -17,7 +17,7 @@
 import ballerina/http;
 
 service /greeting on new http:Listener(0) {
-    resource function get hi () returns string {
+    resource function get hi (@http:Header string header) returns string {
         return "hi";
     }
 

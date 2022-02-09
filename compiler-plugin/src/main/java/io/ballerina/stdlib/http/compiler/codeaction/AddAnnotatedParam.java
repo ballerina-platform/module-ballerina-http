@@ -46,9 +46,9 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.FUNCTION_SIGNATURE;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_ACCESSOR_DEFINITION;
 
 /**
- * Abstract implementation of code action to add a parameter to resource signature.
+ * Abstract implementation of code action to add an annotated parameter to resource signature.
  */
-public abstract class AddParam implements CodeAction {
+public abstract class AddAnnotatedParam implements CodeAction {
     @Override
     public List<String> supportedDiagnosticCodes() {
         return List.of(diagnosticCode());

@@ -23,7 +23,7 @@ import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
 /**
  * CodeAction to add the header annotation.
  */
-public class AddHeaderParam extends AddParam {
+public class AddHeaderParam extends AddAnnotatedParam {
 
     @Override
     protected String diagnosticCode() {

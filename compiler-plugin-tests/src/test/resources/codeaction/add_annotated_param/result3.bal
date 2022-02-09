@@ -25,7 +25,7 @@ service /greeting on new http:Listener(0) {
         return "hi";
     }
 
-    resource function post hello () returns string {
+    resource function post hello (@http:Payload json payload) returns string {
         return "hello";
     }
 

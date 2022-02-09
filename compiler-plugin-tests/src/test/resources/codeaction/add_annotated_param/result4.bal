@@ -29,7 +29,7 @@ service /greeting on new http:Listener(0) {
         return "hello";
     }
 
-    resource function post hey (@http:Header string header) returns string {
+    resource function post hey (@http:Header string header, @http:Payload json payload) returns string {
         return "hey";
     }
 }

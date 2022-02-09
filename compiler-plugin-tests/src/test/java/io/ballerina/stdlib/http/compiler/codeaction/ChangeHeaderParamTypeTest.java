@@ -30,7 +30,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Tests the change return type to 'error?' when http:Caller is a function parameter.
+ * Test for changing header parameter type to string or string[].
  */
 public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
 

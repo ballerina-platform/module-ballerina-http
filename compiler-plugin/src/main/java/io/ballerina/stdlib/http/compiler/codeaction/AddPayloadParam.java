@@ -23,7 +23,7 @@ import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
 /**
  * CodeAction to add the payload annotation if the resource function has entity body support.
  */
-public class AddPayloadParam extends AddParam {
+public class AddPayloadParam extends AddAnnotatedParam {
 
     @Override
     protected String diagnosticCode() {
