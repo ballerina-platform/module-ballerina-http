@@ -70,6 +70,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NA
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_HINT_101;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_HINT_102;
 
 /**
  * Validates a ballerina http resource.
@@ -110,11 +112,14 @@ class HttpResourceValidator {
         boolean requestCtxPresent = false;
         boolean headersPresent = false;
         boolean errorPresent = false;
+        boolean payloadAnnotationPresent = false;
+        boolean headerAnnotationPresent = false;
         Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
         Location paramLocation = member.location();
         if (resourceMethodSymbolOptional.isEmpty()) {
             return;
         }
+        Optional<String> resourceMethodOptional = resourceMethodSymbolOptional.get().getName();
         Optional<List<ParameterSymbol>> parametersOptional =
                 ((ResourceMethodSymbol) resourceMethodSymbolOptional.get()).typeDescriptor().params();
         if (parametersOptional.isEmpty()) {
@@ -291,7 +296,7 @@ class HttpResourceValidator {
                 String typeName = annotationTypeNameOptional.get();
                 switch (typeName) {
                     case PAYLOAD_ANNOTATION_TYPE: {
-                        Optional<String> resourceMethodOptional = resourceMethodSymbolOptional.get().getName();
+                        payloadAnnotationPresent = true;
                         if (resourceMethodOptional.isPresent()) {
                             validatePayloadAnnotationUsage(ctx, paramLocation, resourceMethodOptional.get());
                         }
@@ -397,6 +402,7 @@ class HttpResourceValidator {
                         break;
                     }
                     case HEADER_ANNOTATION_TYPE: {
+                        headerAnnotationPresent = true;
                         if (annotated) {
                             reportInvalidMultipleAnnotation(ctx, paramLocation, paramName);
                             continue;
@@ -449,6 +455,23 @@ class HttpResourceValidator {
                 }
             }
         }
+        if (resourceMethodOptional.isPresent() && !payloadAnnotationPresent) {
+            enableAddPayloadParamCodeAction(ctx, member.location(), resourceMethodOptional.get());
+        }
+        if (!headerAnnotationPresent) {
+            enableAddHeaderParamCodeAction(ctx, member.location());
+        }
+    }
+
+    private static void enableAddPayloadParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location,
+                                                        String methodName) {
+        if (!methodName.equals(GET) && !methodName.equals(HEAD) && !methodName.equals(OPTIONS)) {
+            HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HTTP_HINT_101);
+        }
+    }
+
+    private static void enableAddHeaderParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HTTP_HINT_102);
     }
 
     private static void validatePayloadAnnotationUsage(SyntaxNodeAnalysisContext ctx, Location location,

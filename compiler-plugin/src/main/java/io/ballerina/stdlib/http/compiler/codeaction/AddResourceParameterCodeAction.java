@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,11 +18,9 @@
 
 package io.ballerina.stdlib.http.compiler.codeaction;
 
-import io.ballerina.compiler.api.symbols.ParameterSymbol;
-import io.ballerina.compiler.syntax.tree.IncludedRecordParameterNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
-import io.ballerina.compiler.syntax.tree.RestParameterNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
 import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
@@ -30,66 +28,62 @@ import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.projects.plugins.codeaction.DocumentEdit;
-import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
-import io.ballerina.tools.diagnostics.DiagnosticProperty;
+import io.ballerina.stdlib.http.compiler.Constants;
+import io.ballerina.tools.diagnostics.Diagnostic;
+import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextEdit;
 import io.ballerina.tools.text.TextRange;
-import org.wso2.ballerinalang.compiler.diagnostic.properties.BSymbolicProperty;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Abstract implementation of code action to change a resource header param's type.
- */
-public abstract class ChangeHeaderParamType implements CodeAction {
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.FUNCTION_SIGNATURE;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_ACCESSOR_DEFINITION;
 
+/**
+ * Abstract implementation of code action to add a parameter to the resource signature.
+ */
+public abstract class AddResourceParameterCodeAction implements CodeAction {
     @Override
     public List<String> supportedDiagnosticCodes() {
-        return List.of(HttpDiagnosticCodes.HTTP_109.getCode());
+        return List.of(diagnosticCode());
     }
 
     @Override
     public Optional<CodeActionInfo> codeActionInfo(CodeActionContext context) {
+        Diagnostic diagnostic = context.diagnostic();
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
-        List<DiagnosticProperty<?>> properties = context.diagnostic().properties();
-        if (properties.isEmpty()) {
+        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, diagnostic.location().lineRange());
+        if (!node.kind().equals(RESOURCE_ACCESSOR_DEFINITION)) {
             return Optional.empty();
         }
-
-        DiagnosticProperty<?> diagnosticProperty = properties.get(0);
-        if (!(diagnosticProperty instanceof BSymbolicProperty) || 
-                !(diagnosticProperty.value() instanceof ParameterSymbol)) {
+        Optional<LinePosition> optionalCursorPosition = context.cursorPosition();
+        if (optionalCursorPosition.isEmpty()) {
             return Optional.empty();
         }
-
-        ParameterSymbol parameterSymbol = (ParameterSymbol) diagnosticProperty.value();
-        Optional<NonTerminalNode> nonTerminalNode = parameterSymbol.getLocation()
-                .flatMap(location -> Optional.ofNullable(CodeActionUtil.findNode(syntaxTree, parameterSymbol)));
-        if (nonTerminalNode.isEmpty()) {
+        if (CodeActionUtil.isWithinRange(((FunctionDefinitionNode) node).functionBody().lineRange(),
+                optionalCursorPosition.get())) {
             return Optional.empty();
         }
-
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, 
-                nonTerminalNode.get().location().lineRange());
-        return Optional.of(CodeActionInfo.from(String.format("Change header param to '%s'", headerParamType()),
-                List.of(locationArg)));
+        CodeActionArgument arg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY,
+                ((FunctionDefinitionNode) node).functionSignature().lineRange());
+        CodeActionInfo info = CodeActionInfo.from(String.format("Add %s parameter", paramKind()), List.of(arg));
+        return Optional.of(info);
     }
 
     @Override
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
         LineRange lineRange = null;
-        for (CodeActionArgument argument : context.arguments()) {
-            if (CodeActionUtil.NODE_LOCATION_KEY.equals(argument.key())) {
-                lineRange = argument.valueAs(LineRange.class);
+        for (CodeActionArgument arg : context.arguments()) {
+            if (CodeActionUtil.NODE_LOCATION_KEY.equals(arg.key())) {
+                lineRange = arg.valueAs(LineRange.class);
             }
         }
-
         if (lineRange == null) {
             return Collections.emptyList();
         }
@@ -97,27 +91,28 @@ public abstract class ChangeHeaderParamType implements CodeAction {
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
         NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange);
 
-        TextRange typeNodeTextRange;
-        switch (node.kind()) {
-            case REQUIRED_PARAM:
-                typeNodeTextRange = ((RequiredParameterNode) node).typeName().textRange();
-                break;
-            case REST_PARAM:
-                typeNodeTextRange = ((RestParameterNode) node).typeName().textRange();
-                break;
-            case INCLUDED_RECORD_PARAM:
-                typeNodeTextRange = ((IncludedRecordParameterNode) node).typeName().textRange();
-                break;
-            default:
-                return Collections.emptyList();
+        if (!node.kind().equals(FUNCTION_SIGNATURE)) {
+            return Collections.emptyList();
         }
 
+        String payloadParam = paramSignature();
+        int start = ((FunctionSignatureNode) node).openParenToken().position() + 1;
+        int end = ((FunctionSignatureNode) node).closeParenToken().position();
+        if (end - start != 0) {
+            payloadParam = Constants.COMMA_WITH_SPACE + payloadParam;
+        }
+        TextRange textRange = TextRange.from(end, 0);
+
         List<TextEdit> textEdits = new ArrayList<>();
-        textEdits.add(TextEdit.from(typeNodeTextRange, headerParamType()));
+        textEdits.add(TextEdit.from(textRange, payloadParam));
         TextDocumentChange change = TextDocumentChange.from(textEdits.toArray(new TextEdit[0]));
         TextDocument modifiedTextDocument = syntaxTree.textDocument().apply(change);
         return Collections.singletonList(new DocumentEdit(context.fileUri(), SyntaxTree.from(modifiedTextDocument)));
     }
-    
-    protected abstract String headerParamType();
+
+    protected abstract String diagnosticCode();
+
+    protected abstract String paramKind();
+
+    protected abstract String paramSignature();
 }

@@ -41,7 +41,7 @@ import java.util.Optional;
  * Codeaction to change the return type to <pre>error?</pre> if the resource function has <pre>http:Caller</pre> as a
  * parameter.
  */
-public class ChangeReturnTypeWithCaller implements CodeAction {
+public class ChangeReturnTypeWithCallerCodeAction implements CodeAction {
 
     @Override
     public List<String> supportedDiagnosticCodes() {

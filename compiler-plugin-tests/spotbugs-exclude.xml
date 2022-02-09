@@ -24,4 +24,8 @@
         <Class name="io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCallerTest" />
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.codeaction.AddResourceParameterTest" />
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
+    </Match>
 </FindBugsFilter>

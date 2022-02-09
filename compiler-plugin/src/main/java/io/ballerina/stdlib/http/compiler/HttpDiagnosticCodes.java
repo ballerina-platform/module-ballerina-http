@@ -76,7 +76,8 @@ public enum HttpDiagnosticCodes {
             "'default', but found '%s'", ERROR),
     HTTP_129("HTTP_129", "invalid usage of payload annotation for a non entity body resource : '%s'. " +
             "Use an accessor that supports entity body", ERROR),
-    HTTP_HINT_101("HTTP_HINT_101", "A resource annotation can be added", INTERNAL);
+    HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
+    HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL);
 
     private final String code;
     private final String message;

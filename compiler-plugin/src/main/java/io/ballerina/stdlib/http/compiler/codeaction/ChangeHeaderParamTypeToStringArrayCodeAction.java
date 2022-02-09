@@ -19,7 +19,7 @@ package io.ballerina.stdlib.http.compiler.codeaction;
 /**
  * Code action to change header parameter's type to string[].
  */
-public class ChangeHeaderParamTypeToStringArray extends ChangeHeaderParamType {
+public class ChangeHeaderParamTypeToStringArrayCodeAction extends ChangeHeaderParamTypeCodeAction {
 
     @Override
     protected String headerParamType() {
