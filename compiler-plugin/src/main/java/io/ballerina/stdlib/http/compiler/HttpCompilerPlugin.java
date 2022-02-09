@@ -21,7 +21,11 @@ package io.ballerina.stdlib.http.compiler;
 import io.ballerina.projects.plugins.CompilerPlugin;
 import io.ballerina.projects.plugins.CompilerPluginContext;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
-import io.ballerina.stdlib.http.compiler.codeaction.*;
+import io.ballerina.stdlib.http.compiler.codeaction.AddHeaderParam;
+import io.ballerina.stdlib.http.compiler.codeaction.AddPayloadParam;
+import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToString;
+import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringArray;
+import io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCaller;
 
 import java.util.List;
 

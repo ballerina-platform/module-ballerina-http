@@ -19,7 +19,10 @@
 package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
-import io.ballerina.tools.diagnostics.*;
+import io.ballerina.tools.diagnostics.DiagnosticFactory;
+import io.ballerina.tools.diagnostics.DiagnosticInfo;
+import io.ballerina.tools.diagnostics.DiagnosticProperty;
+import io.ballerina.tools.diagnostics.Location;
 
 import java.util.List;
 
