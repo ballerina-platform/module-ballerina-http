@@ -32,14 +32,14 @@ public class AddAnnotatedParameterTest extends AbstractCodeActionTest {
     @DataProvider
     private Object[][] testDataProvider() {
         return new Object[][]{
-                {"service.bal", 19, 30, getAddHeaderCodeAction(LinePosition.from(19,29),
-                        LinePosition.from(19,46)), "result1.bal"},
-                {"service.bal", 23, 59, getAddHeaderCodeAction(LinePosition.from(23,30),
-                        LinePosition.from(23,75)), "result2.bal"},
-                {"service.bal", 27, 50, getAddPayloadCodeAction(LinePosition.from(27,33),
-                        LinePosition.from(27,50)), "result3.bal"},
-                {"service.bal", 31, 58, getAddPayloadCodeAction(LinePosition.from(31,31),
-                        LinePosition.from(31,74)), "result4.bal"}
+                {"service.bal", 19, 30, getAddHeaderCodeAction(LinePosition.from(19, 29),
+                        LinePosition.from(19, 46)), "result1.bal"},
+                {"service.bal", 23, 59, getAddHeaderCodeAction(LinePosition.from(23, 30),
+                        LinePosition.from(23, 75)), "result2.bal"},
+                {"service.bal", 27, 50, getAddPayloadCodeAction(LinePosition.from(27, 33),
+                        LinePosition.from(27, 50)), "result3.bal"},
+                {"service.bal", 31, 58, getAddPayloadCodeAction(LinePosition.from(31, 31),
+                        LinePosition.from(31, 74)), "result4.bal"}
         };
     }
 
