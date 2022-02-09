@@ -17,19 +17,19 @@
 import ballerina/http;
 
 service /greeting on new http:Listener(0) {
-    resource function get hi () returns string {
+    resource function get hi() returns string {
         return "hi";
     }
 
-    resource function post hi (@http:Payload string payload) returns string {
+    resource function post hi(@http:Payload string payload) returns string {
         return "hi";
     }
 
-    resource function post hello () returns string {
+    resource function post hello() returns string {
         return "hello";
     }
 
-    resource function post hey (@http:Header string header, @http:Payload json payload) returns string {
+    resource function post hey(@http:Header string header, @http:Payload json payload) returns string {
         return "hey";
     }
 }

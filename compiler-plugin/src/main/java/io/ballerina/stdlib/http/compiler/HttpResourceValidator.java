@@ -464,7 +464,7 @@ class HttpResourceValidator {
     }
 
     private static void enableAddPayloadParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location,
-                                                       String methodName) {
+                                                        String methodName) {
         if (!methodName.equals(GET) && !methodName.equals(HEAD) && !methodName.equals(OPTIONS)) {
             HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HTTP_HINT_101);
         }
