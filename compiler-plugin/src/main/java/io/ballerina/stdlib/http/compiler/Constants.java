@@ -55,6 +55,7 @@ public class Constants {
 
     public static final String COLON = ":";
     public static final String PLUS = "+";
+    public static final String COMMA_WITH_SPACE = ", ";
     public static final String DEFAULT_PATH_REGEX = "\\[\\s*(string)\\s*(\\.{3})\\s*\\w+\\s*\\]";
     public static final String SUFFIX_SEPARATOR_REGEX = "\\+";
     public static final String MEDIA_TYPE_SUBTYPE_REGEX = "^(\\w)+(\\s*\\.\\s*(\\w)+)*(\\s*\\+\\s*(\\w)+)*";

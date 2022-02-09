@@ -21,9 +21,7 @@ package io.ballerina.stdlib.http.compiler;
 import io.ballerina.projects.plugins.CompilerPlugin;
 import io.ballerina.projects.plugins.CompilerPluginContext;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
-import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToString;
-import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringArray;
-import io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCaller;
+import io.ballerina.stdlib.http.compiler.codeaction.*;
 
 import java.util.List;
 
@@ -42,7 +40,9 @@ public class HttpCompilerPlugin extends CompilerPlugin {
         return List.of(
                 new ChangeHeaderParamTypeToString(),
                 new ChangeHeaderParamTypeToStringArray(),
-                new ChangeReturnTypeWithCaller()
+                new ChangeReturnTypeWithCaller(),
+                new AddPayloadParam(),
+                new AddHeaderParam()
         );
     }
 }

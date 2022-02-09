@@ -19,10 +19,7 @@
 package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
-import io.ballerina.tools.diagnostics.DiagnosticFactory;
-import io.ballerina.tools.diagnostics.DiagnosticInfo;
-import io.ballerina.tools.diagnostics.DiagnosticProperty;
-import io.ballerina.tools.diagnostics.Location;
+import io.ballerina.tools.diagnostics.*;
 
 import java.util.List;
 
@@ -30,6 +27,13 @@ import java.util.List;
  * Utility class providing http compiler plugin utility methods.
  */
 public class HttpCompilerPluginUtil {
+
+    public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
+                                        HttpDiagnosticCodes httpDiagnosticCodes) {
+        DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes);
+        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
+    }
+
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location, String argName,
                                          HttpDiagnosticCodes httpDiagnosticCodes) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
