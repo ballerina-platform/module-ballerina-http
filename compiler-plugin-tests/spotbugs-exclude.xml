@@ -25,7 +25,7 @@
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
     <Match>
-        <Class name="io.ballerina.stdlib.http.compiler.codeaction.AddAnnotatedParameterTest" />
+        <Class name="io.ballerina.stdlib.http.compiler.codeaction.AddResourceParameterTest" />
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
 </FindBugsFilter>

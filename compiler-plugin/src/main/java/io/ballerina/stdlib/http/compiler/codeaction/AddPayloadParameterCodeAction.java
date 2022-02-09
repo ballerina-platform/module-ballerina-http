@@ -21,25 +21,25 @@ package io.ballerina.stdlib.http.compiler.codeaction;
 import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
 
 /**
- * CodeAction to add the header annotation.
+ * CodeAction to add the annotated payload parameter.
  */
-public class AddHeaderParam extends AddAnnotatedParam {
+public class AddPayloadParameterCodeAction extends AddResourceParameterCodeAction {
 
     @Override
     protected String diagnosticCode() {
-        return HttpDiagnosticCodes.HTTP_HINT_102.getCode();
+        return HttpDiagnosticCodes.HTTP_HINT_101.getCode();
     }
 
     protected String paramKind() {
-        return "header";
+        return "payload";
     }
 
     protected String paramSignature() {
-        return "@http:Header string header";
+        return "@http:Payload json payload";
     }
 
     @Override
     public String name() {
-        return "ADD_HEADER_PARAM";
+        return "ADD_PAYLOAD_PARAM";
     }
 }

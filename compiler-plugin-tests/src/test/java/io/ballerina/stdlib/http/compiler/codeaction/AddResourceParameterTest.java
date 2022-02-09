@@ -12,9 +12,9 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Test for adding annotated parameter to the resource signature.
+ * Test for adding parameters to the resource signature.
  */
-public class AddAnnotatedParameterTest extends AbstractCodeActionTest {
+public class AddResourceParameterTest extends AbstractCodeActionTest {
 
     @Test(dataProvider = "testDataProvider")
     public void testCodeActions(String srcFile, int line, int offset, CodeActionInfo expected, String resultFile)
