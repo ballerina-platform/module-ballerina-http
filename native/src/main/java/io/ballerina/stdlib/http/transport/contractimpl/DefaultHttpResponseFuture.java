@@ -22,8 +22,8 @@ package io.ballerina.stdlib.http.transport.contractimpl;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
+import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     private HttpConnectorListener pushPromiseListener;
     private ConcurrentHashMap<Integer, HttpConnectorListener> pushResponseListeners;
     private ConcurrentHashMap<Integer, Throwable> pushResponseListenerErrors;
-    private BackPressureHandler backPressureHandler;
+    private BackPressureObservable backPressureObservable;
 
     private HttpCarbonMessage httpCarbonMessage;
     private ResponseHandle responseHandle;
@@ -71,6 +71,7 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
 
     public DefaultHttpResponseFuture(OutboundMsgHolder outboundMsgHolder) {
         this.outboundMsgHolder = outboundMsgHolder;
+        this.backPressureObservable = outboundMsgHolder != null ? outboundMsgHolder.getBackPressureObservable() : null;
         pushResponseListeners = new ConcurrentHashMap<>();
         pushResponseListenerErrors = new ConcurrentHashMap<>();
     }
@@ -126,10 +127,8 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
         try {
             // For HTTP1.1 we have the listener attached to BackPressureObservable inside the BackPressureHandler.
             // Whereas for HTTP2 we have the listener attached to BackPressureObservable inside the OutboundMsgHolder.
-            if (backPressureHandler != null) {
-                backPressureHandler.getBackPressureObservable().removeListener();
-            } else if (outboundMsgHolder != null) {
-                outboundMsgHolder.getBackPressureObservable().removeListener();
+            if (backPressureObservable != null) {
+                backPressureObservable.removeListener();
             } else {
                 LOG.warn("No BackPressureObservable found.");
             }
@@ -180,8 +179,10 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
         this.returnError = null;
     }
 
-    public void setBackPressureHandler(BackPressureHandler backPressureHandler) {
-        this.backPressureHandler = backPressureHandler;
+    public void setBackPressureObservable(BackPressureObservable backPressureObservable) {
+        if (backPressureObservable != null) {
+            this.backPressureObservable = backPressureObservable;
+        }
     }
 
     @Override
