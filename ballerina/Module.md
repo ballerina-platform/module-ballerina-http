@@ -51,7 +51,7 @@ The payload can be retrieved as the return value from the remote function as fol
 
 ```ballerina
 // Retrieve payload as json.
-json payload = check clientEndpoint->post("/backend/Json", "foo", targetType = json);
+json payload = check clientEndpoint->post("/backend/Json", "foo");
 ```
 
 ### Listener
