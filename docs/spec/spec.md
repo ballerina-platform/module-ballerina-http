@@ -1372,16 +1372,16 @@ resource function post hello(@http:Header {name:"Referer"} string referer) {
 
 }
 ```
-### 4.6. Cache config annotation
+### 4.6. Cache annotation
 
 This annotation can be used to enable response caching from the resource signature. This allows to set the 
 `cache-control`, `etag` and `last-modified` headers in the response.
 
-The default behavior (`@http:CacheConfig`) is to have `must-revalidate,public,max-age=3600` directives in 
+The default behavior (`@http:Cache`) is to have `must-revalidate,public,max-age=3600` directives in 
 `cache-control` header. In addition to that `etag` and `last-modified` headers will be added.
 
 ```ballerina
-@http:CacheConfig {           // Default Configuration
+@http:Cache {                 // Default Configuration
     mustRevalidate : true,    // Sets the must-revalidate directive
     noCache : false,          // Sets the no-cache directive
     noStore : false,          // Sets the no-store directive 
@@ -1402,7 +1402,7 @@ values cache configuration will not be added through this annotation)
 ```ballerina
 // Sets the cache-control header as "public,must-revalidate,max-age=5". Also sets the etag header.
 // last-modified header will not be set
-resource function get cachingBackEnd(http:Request req) returns @http:CacheConfig{maxAge : 5, 
+resource function get cachingBackEnd(http:Request req) returns @http:Cache{maxAge : 5, 
     setLastModified : false} string {
 
     return "Hello, World!!"
