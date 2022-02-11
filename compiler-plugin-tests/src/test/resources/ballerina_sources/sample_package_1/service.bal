@@ -26,7 +26,7 @@ service http:Service on new http:Listener(9090) {
     isolated resource function post noGreeting() {
     }
 
-    resource function get hello() returns @http:Payload{mediaType: "text/plain"} string {
+    private function hello() returns string {
         return "yo";
     }
 
