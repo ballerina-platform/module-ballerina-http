@@ -72,6 +72,8 @@ public class CompilerPluginTest {
     private static final String HTTP_127 = "HTTP_127";
     private static final String HTTP_128 = "HTTP_128";
     private static final String HTTP_129 = "HTTP_129";
+    private static final String HTTP_130 = "HTTP_130";
+    private static final String HTTP_131 = "HTTP_131";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -461,5 +463,23 @@ public class CompilerPluginTest {
         long availableErrors = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
         Assert.assertEquals(availableErrors, 0);
+    }
+
+    @Test
+    public void testAnnotationUsageWithReturnType() {
+        Package currentPackage = loadPackage("sample_package_22");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 4);
+        assertError(diagnosticResult, 0, "invalid usage of cache annotation with return type : " +
+                "'error'. Cache annotation only supports return types of anydata and SuccessStatusCodeResponse",
+                HTTP_130);
+        assertError(diagnosticResult, 1, "invalid usage of payload annotation with return type : " +
+                "'error'", HTTP_131);
+        assertError(diagnosticResult, 2, "invalid usage of payload annotation with return type : " +
+                "'error?'", HTTP_131);
+        assertError(diagnosticResult, 3, "invalid usage of cache annotation with return type : " +
+                "'error?'. Cache annotation only supports return types of anydata and SuccessStatusCodeResponse",
+                HTTP_130);
     }
 }

@@ -18,9 +18,7 @@
 
 package io.ballerina.stdlib.http.compiler.codeaction;
 
-import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
@@ -29,9 +27,7 @@ import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.projects.plugins.codeaction.DocumentEdit;
-import io.ballerina.stdlib.http.compiler.Constants;
-import io.ballerina.tools.diagnostics.Diagnostic;
-import io.ballerina.tools.text.LinePosition;
+import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
@@ -44,34 +40,25 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Abstract implementation of code action to add a parameter to the resource signature.
+ * CodeAction to add response cache configuration.
  */
-public abstract class AddResourceParameterCodeAction implements CodeAction {
+public class AddResponseCacheConfigCodeAction implements CodeAction {
     @Override
     public List<String> supportedDiagnosticCodes() {
-        return List.of(diagnosticCode());
+        return List.of(HttpDiagnosticCodes.HTTP_HINT_104.getCode());
     }
 
     @Override
     public Optional<CodeActionInfo> codeActionInfo(CodeActionContext context) {
-        Diagnostic diagnostic = context.diagnostic();
-        SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
-        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, diagnostic.location().lineRange());
-        if (!node.kind().equals(SyntaxKind.FUNCTION_SIGNATURE)) {
+        NonTerminalNode node = CodeActionUtil.findNode(context.currentDocument().syntaxTree(),
+                context.diagnostic().location().lineRange());
+        if (node == null || node.parent().kind() != SyntaxKind.RETURN_TYPE_DESCRIPTOR) {
             return Optional.empty();
         }
-        Optional<LinePosition> cursorPosition = context.cursorPosition();
-        if (cursorPosition.isEmpty()) {
-            return Optional.empty();
-        }
-        Optional<ReturnTypeDescriptorNode> returnNode = ((FunctionSignatureNode) node).returnTypeDesc();
-        if (returnNode.isPresent() && CodeActionUtil.isWithinRange(returnNode.get().lineRange(),
-                cursorPosition.get())) {
-            return Optional.empty();
-        }
-        CodeActionArgument arg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, node.lineRange());
-        CodeActionInfo info = CodeActionInfo.from(String.format("Add %s parameter", paramKind()), List.of(arg));
-        return Optional.of(info);
+
+        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY,
+                node.location().lineRange());
+        return Optional.of(CodeActionInfo.from("Add response cache configuration", List.of(locationArg)));
     }
 
     @Override
@@ -89,28 +76,19 @@ public abstract class AddResourceParameterCodeAction implements CodeAction {
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
         NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange);
 
-        if (!node.kind().equals(SyntaxKind.FUNCTION_SIGNATURE)) {
-            return Collections.emptyList();
-        }
-
-        String payloadParam = paramSignature();
-        int start = ((FunctionSignatureNode) node).openParenToken().position() + 1;
-        int end = ((FunctionSignatureNode) node).closeParenToken().position();
-        if (end - start != 0) {
-            payloadParam = Constants.COMMA_WITH_SPACE + payloadParam;
-        }
-        TextRange textRange = TextRange.from(end, 0);
+        String cacheConfig = "@http:Cache ";
+        int start = node.position();
+        TextRange textRange = TextRange.from(start, 0);
 
         List<TextEdit> textEdits = new ArrayList<>();
-        textEdits.add(TextEdit.from(textRange, payloadParam));
+        textEdits.add(TextEdit.from(textRange, cacheConfig));
         TextDocumentChange change = TextDocumentChange.from(textEdits.toArray(new TextEdit[0]));
         TextDocument modifiedTextDocument = syntaxTree.textDocument().apply(change);
         return Collections.singletonList(new DocumentEdit(context.fileUri(), SyntaxTree.from(modifiedTextDocument)));
     }
 
-    protected abstract String diagnosticCode();
-
-    protected abstract String paramKind();
-
-    protected abstract String paramSignature();
+    @Override
+    public String name() {
+        return "ADD_RESPONSE_CACHE_CONFIG";
+    }
 }

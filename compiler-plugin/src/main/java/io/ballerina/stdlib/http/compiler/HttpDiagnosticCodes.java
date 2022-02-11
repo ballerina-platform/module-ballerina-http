@@ -76,8 +76,13 @@ public enum HttpDiagnosticCodes {
             "'default', but found '%s'", ERROR),
     HTTP_129("HTTP_129", "invalid usage of payload annotation for a non entity body resource : '%s'. " +
             "Use an accessor that supports entity body", ERROR),
+    HTTP_130("HTTP_130", "invalid usage of cache annotation with return type : '%s'. " +
+            "Cache annotation only supports return types of anydata and SuccessStatusCodeResponse", ERROR),
+    HTTP_131("HTTP_131", "invalid usage of payload annotation with return type : '%s'", ERROR),
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
-    HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL);
+    HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
+    HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),
+    HTTP_HINT_104("HTTP_HINT_104", "Response cache configuration can be added", INTERNAL);
 
     private final String code;
     private final String message;
