@@ -23,6 +23,8 @@ import io.ballerina.projects.plugins.CompilerPluginContext;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddHeaderParameterCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddPayloadParameterCodeAction;
+import io.ballerina.stdlib.http.compiler.codeaction.AddResponseCacheConfigCodeAction;
+import io.ballerina.stdlib.http.compiler.codeaction.AddResponseContentTypeCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringArrayCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCallerCodeAction;
@@ -46,7 +48,9 @@ public class HttpCompilerPlugin extends CompilerPlugin {
                 new ChangeHeaderParamTypeToStringArrayCodeAction(),
                 new ChangeReturnTypeWithCallerCodeAction(),
                 new AddPayloadParameterCodeAction(),
-                new AddHeaderParameterCodeAction()
+                new AddHeaderParameterCodeAction(),
+                new AddResponseContentTypeCodeAction(),
+                new AddResponseCacheConfigCodeAction()
         );
     }
 }

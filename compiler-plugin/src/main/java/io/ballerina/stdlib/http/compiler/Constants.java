@@ -31,6 +31,8 @@ public class Constants {
     public static final String REQUEST_OBJ_NAME = "Request";
     public static final String REQUEST_CONTEXT_OBJ_NAME = "RequestContext";
     public static final String HEADER_OBJ_NAME = "Headers";
+    public static final String PAYLOAD_ANNOTATION = "Payload";
+    public static final String CACHE_ANNOTATION = "Cache";
     public static final String SERVICE_CONFIG_ANNOTATION = "ServiceConfig";
     public static final String MEDIA_TYPE_SUBTYPE_PREFIX = "mediaTypeSubtypePrefix";
     public static final String RESOURCE_CONFIG_ANNOTATION = "ResourceConfig";

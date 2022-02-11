@@ -18,9 +18,10 @@
 
 package io.ballerina.stdlib.http.compiler.codeaction;
 
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
 import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
@@ -42,9 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.FUNCTION_SIGNATURE;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_ACCESSOR_DEFINITION;
-
 /**
  * Abstract implementation of code action to add a parameter to the resource signature.
  */
@@ -59,19 +57,19 @@ public abstract class AddResourceParameterCodeAction implements CodeAction {
         Diagnostic diagnostic = context.diagnostic();
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
         NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, diagnostic.location().lineRange());
-        if (!node.kind().equals(RESOURCE_ACCESSOR_DEFINITION)) {
+        if (!node.kind().equals(SyntaxKind.FUNCTION_SIGNATURE)) {
             return Optional.empty();
         }
-        Optional<LinePosition> optionalCursorPosition = context.cursorPosition();
-        if (optionalCursorPosition.isEmpty()) {
+        Optional<LinePosition> cursorPosition = context.cursorPosition();
+        if (cursorPosition.isEmpty()) {
             return Optional.empty();
         }
-        if (CodeActionUtil.isWithinRange(((FunctionDefinitionNode) node).functionBody().lineRange(),
-                optionalCursorPosition.get())) {
+        Optional<ReturnTypeDescriptorNode> returnNode = ((FunctionSignatureNode) node).returnTypeDesc();
+        if (returnNode.isPresent() && CodeActionUtil.isWithinRange(returnNode.get().lineRange(),
+                cursorPosition.get())) {
             return Optional.empty();
         }
-        CodeActionArgument arg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY,
-                ((FunctionDefinitionNode) node).functionSignature().lineRange());
+        CodeActionArgument arg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, node.lineRange());
         CodeActionInfo info = CodeActionInfo.from(String.format("Add %s parameter", paramKind()), List.of(arg));
         return Optional.of(info);
     }
@@ -91,7 +89,7 @@ public abstract class AddResourceParameterCodeAction implements CodeAction {
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
         NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange);
 
-        if (!node.kind().equals(FUNCTION_SIGNATURE)) {
+        if (!node.kind().equals(SyntaxKind.FUNCTION_SIGNATURE)) {
             return Collections.emptyList();
         }
 
