@@ -12,15 +12,15 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Test for adding parameters to the resource signature.
+ * Test for adding annotations to the resource return statement.
  */
-public class AddResourceParameterTest extends AbstractCodeActionTest {
+public class AddAnnotationsToReturnTypeTest extends AbstractCodeActionTest {
 
     @Test(dataProvider = "testDataProvider")
     public void testCodeActions(String srcFile, int line, int offset, CodeActionInfo expected, String resultFile)
             throws IOException {
         Path filePath = RESOURCE_PATH.resolve("ballerina_sources")
-                .resolve("sample_codeaction_package_2")
+                .resolve("sample_codeaction_package_1")
                 .resolve(srcFile);
         Path resultPath = RESOURCE_PATH.resolve("codeaction")
                 .resolve(getConfigDir())
@@ -32,34 +32,30 @@ public class AddResourceParameterTest extends AbstractCodeActionTest {
     @DataProvider
     private Object[][] testDataProvider() {
         return new Object[][]{
-                {"service.bal", 19, 29, getAddHeaderCodeAction(LinePosition.from(19, 28),
-                        LinePosition.from(19, 45)), "result1.bal"},
-                {"service.bal", 23, 58, getAddHeaderCodeAction(LinePosition.from(23, 29),
-                        LinePosition.from(23, 74)), "result2.bal"},
-                {"service.bal", 27, 33, getAddPayloadCodeAction(LinePosition.from(27, 32),
-                        LinePosition.from(27, 49)), "result3.bal"},
-                {"service.bal", 31, 57, getAddPayloadCodeAction(LinePosition.from(31, 30),
-                        LinePosition.from(31, 73)), "result4.bal"}
+                {"service.bal", 24, 63, getAddResponseCacheConfigCodeAction(LinePosition.from(24, 60),
+                        LinePosition.from(24, 66)), "result1.bal"},
+                {"service.bal", 24, 63, getAddResponseContentTypeCodeAction(LinePosition.from(24, 60),
+                        LinePosition.from(24, 66)), "result2.bal"}
         };
     }
 
-    private CodeActionInfo getAddPayloadCodeAction(LinePosition startLine, LinePosition endLine) {
+    private CodeActionInfo getAddResponseCacheConfigCodeAction(LinePosition startLine, LinePosition endLine) {
         LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
         CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
-        CodeActionInfo codeAction = CodeActionInfo.from("Add payload parameter", List.of(locationArg));
-        codeAction.setProviderName("HTTP_HINT_101/ballerina/http/ADD_PAYLOAD_PARAM");
+        CodeActionInfo codeAction = CodeActionInfo.from("Add response cache configuration", List.of(locationArg));
+        codeAction.setProviderName("HTTP_HINT_104/ballerina/http/ADD_RESPONSE_CACHE_CONFIG");
         return codeAction;
     }
 
-    private CodeActionInfo getAddHeaderCodeAction(LinePosition startLine, LinePosition endLine) {
+    private CodeActionInfo getAddResponseContentTypeCodeAction(LinePosition startLine, LinePosition endLine) {
         LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
         CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
-        CodeActionInfo codeAction = CodeActionInfo.from("Add header parameter", List.of(locationArg));
-        codeAction.setProviderName("HTTP_HINT_102/ballerina/http/ADD_HEADER_PARAM");
+        CodeActionInfo codeAction = CodeActionInfo.from("Add response content-type", List.of(locationArg));
+        codeAction.setProviderName("HTTP_HINT_103/ballerina/http/ADD_RESPONSE_CONTENT_TYPE");
         return codeAction;
     }
 
     protected String getConfigDir() {
-        return "add_annotated_param";
+        return "add_annotations_to_return_type";
     }
 }

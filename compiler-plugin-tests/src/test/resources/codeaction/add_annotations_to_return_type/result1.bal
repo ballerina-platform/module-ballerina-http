@@ -16,34 +16,13 @@
 
 import ballerina/http;
 
-service http:Service on new http:Listener(9090) {
-
-    string abc = "as";
-
-    resource function get greeting() {
+service / on new http:Listener(9999) {
+    
+    resource function get . (@http:Header int length) {
+        
     }
 
-    isolated resource function post noGreeting() {
-    }
-
-    resource function get hello() returns @http:Payload{mediaType: "text/plain"} string {
-        return "yo";
-    }
-
-    isolated remote function greeting() returns string {
-        return "Hello";
-    }
-
-    function hello2() returns string {
-        return "yo";
-    }
-
-    remote function greeting2() returns string|http:Response {
-        return "Hello";
-    }
-}
-
-service http:Service on new http:Listener(9091) {
-    remote function greeting2(http:Caller caller) {
+    resource function get path1(http:Caller caller) returns @http:Cache string {
+        return "";
     }
 }
