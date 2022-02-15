@@ -106,6 +106,8 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         }
         if (resourceFunctionNode != null) {
             HttpInterceptorResourceValidator.validateResource(ctx, resourceFunctionNode, type);
+        } else {
+            reportResourceFunctionNotFound(ctx, type);
         }
     }
 
@@ -119,5 +121,9 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HttpDiagnosticCodes.HTTP_124.getCode(),
                 HttpDiagnosticCodes.HTTP_124.getMessage(), HttpDiagnosticCodes.HTTP_124.getSeverity());
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
+    }
+
+    private static void reportResourceFunctionNotFound(SyntaxNodeAnalysisContext ctx, String type) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, ctx.node().location(), type, HttpDiagnosticCodes.HTTP_132);
     }
 }
