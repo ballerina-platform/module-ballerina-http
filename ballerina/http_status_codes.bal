@@ -89,6 +89,8 @@ public const int STATUS_RANGE_NOT_SATISFIABLE = 416;
 public const int STATUS_EXPECTATION_FAILED = 417;
 # The HTTP response status code: 426 Upgrade Required
 public const int STATUS_UPGRADE_REQUIRED = 426;
+# The HTTP response status code: 429 Too Many Requests
+public const int STATUS_TOO_MANY_REQUESTS = 429;
 # The HTTP response status code: 431 Request Header Fields Too Large
 public const int STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
 

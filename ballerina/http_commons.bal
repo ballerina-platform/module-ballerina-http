@@ -42,21 +42,21 @@ public isolated function parseHeader(string headerValue) returns HeaderValue[]|C
 
 isolated function buildRequest(RequestMessage message, string? mediaType) returns Request|ClientError {
     Request request = new;
-    if (message is ()) {
+    if message is () {
         request.noEntityBody = true;
         return request;
-    } else if (message is Request) {
+    } else if message is Request {
         request = message;
         request.noEntityBody = !request.checkEntityBodyAvailability();
-    } else if (message is string) {
+    } else if message is string {
         request.setTextPayload(message);
-    } else if (message is xml) {
+    } else if message is xml {
         request.setXmlPayload(message);
-    } else if (message is byte[]) {
+    } else if message is byte[] {
         request.setBinaryPayload(message);
-    } else if (message is stream<byte[], io:Error?>) {
+    } else if message is stream<byte[], io:Error?> {
         request.setByteStream(message);
-    } else if (message is mime:Entity[]) {
+    } else if message is mime:Entity[] {
         request.setBodyParts(message);
     } else if message is anydata {
         match mediaType {
@@ -97,7 +97,7 @@ isolated function processUrlEncodedContent(map<string> message) returns string|C
 
 isolated function processJsonContent(anydata message) returns json|ClientError {
     var result = trap val:toJson(message);
-    if (result is error) {
+    if result is error {
         return error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
     }
     return result;
@@ -105,23 +105,23 @@ isolated function processJsonContent(anydata message) returns json|ClientError {
 
 isolated function buildResponse(ResponseMessage message) returns Response|ListenerError {
     Response response = new;
-    if (message is ()) {
+    if message is () {
         return response;
-    } else if (message is Response) {
+    } else if message is Response {
         response = message;
-    } else if (message is string) {
+    } else if message is string {
         response.setTextPayload(message);
-    } else if (message is xml) {
+    } else if message is xml {
         response.setXmlPayload(message);
-    } else if (message is byte[]) {
+    } else if message is byte[] {
         response.setBinaryPayload(message);
-    } else if (message is stream<byte[], io:Error?>) {
+    } else if message is stream<byte[], io:Error?> {
         response.setByteStream(message);
-    } else if (message is mime:Entity[]) {
+    } else if message is mime:Entity[] {
         response.setBodyParts(message);
     } else if message is anydata {
         var result = trap val:toJson(message);
-        if (result is error) {
+        if result is error {
             return error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
         } else {
             response.setJsonPayload(result);
@@ -140,7 +140,7 @@ isolated function populateOptions(Request request, string? mediaType, map<string
     // 2. Headers arg in client method
     // 3. Default content type related to payload
     populateHeaders(request, headers);
-    if (mediaType is string) {
+    if mediaType is string {
         request.setHeader(CONTENT_TYPE, mediaType);
     }
 }
@@ -153,19 +153,19 @@ isolated function buildRequestWithHeaders(map<string|string[]>? headers) returns
 }
 
 isolated function populateHeaders(Request request, map<string|string[]>? headers) {
-    if (headers is map<string[]>) {
+    if headers is map<string[]> {
         foreach var [headerKey, headerValues] in headers.entries() {
             foreach string headerValue in headerValues {
                 request.addHeader(headerKey, headerValue);
             }
         }
-    } else if (headers is map<string>) {
+    } else if headers is map<string> {
         foreach var [headerKey, headerValue] in headers.entries() {
             request.setHeader(headerKey, headerValue);
         }
-    } else if (headers is map<string|string[]>) {
+    } else if headers is map<string|string[]> {
         foreach var [headerKey, headerValue] in headers.entries() {
-            if (headerValue is string[]) {
+            if headerValue is string[] {
                 foreach string value in headerValue {
                     request.addHeader(headerKey, value);
                 }
@@ -188,31 +188,31 @@ isolated function populateHeaders(Request request, map<string|string[]>? headers
 public isolated function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
         string verb = "") returns  HttpResponse|ClientError {
 
-    if (HTTP_GET == requestAction) {
+    if HTTP_GET == requestAction {
         var result = httpClient->get(path, message = outRequest);
         return result;
-    } else if (HTTP_POST == requestAction) {
+    } else if HTTP_POST == requestAction {
         var result = httpClient->post(path, outRequest);
         return result;
-    } else if (HTTP_OPTIONS == requestAction) {
+    } else if HTTP_OPTIONS == requestAction {
         var result = httpClient->options(path, message = outRequest);
         return result;
-    } else if (HTTP_PUT == requestAction) {
+    } else if HTTP_PUT == requestAction {
         var result = httpClient->put(path, outRequest);
         return result;
-    } else if (HTTP_DELETE == requestAction) {
+    } else if HTTP_DELETE == requestAction {
         var result = httpClient->delete(path, outRequest);
         return result;
-    } else if (HTTP_PATCH == requestAction) {
+    } else if HTTP_PATCH == requestAction {
         var result = httpClient->patch(path, outRequest);
         return result;
-    } else if (HTTP_FORWARD == requestAction) {
+    } else if HTTP_FORWARD == requestAction {
         var result = httpClient->forward(path, outRequest);
         return result;
-    } else if (HTTP_HEAD == requestAction) {
+    } else if HTTP_HEAD == requestAction {
         var result = httpClient->head(path, message = outRequest);
         return result;
-    } else if (HTTP_SUBMIT == requestAction) {
+    } else if HTTP_SUBMIT == requestAction {
         return httpClient->submit(verb, path, outRequest);
     } else {
         return getError();
@@ -222,23 +222,23 @@ public isolated function invokeEndpoint (string path, Request outRequest, HttpOp
 // Extracts HttpOperation from the Http verb passed in.
 isolated function extractHttpOperation (string httpVerb) returns HttpOperation {
     HttpOperation inferredConnectorAction = HTTP_NONE;
-    if ("GET" == httpVerb) {
+    if "GET" == httpVerb {
         inferredConnectorAction = HTTP_GET;
-    } else if ("POST" == httpVerb) {
+    } else if "POST" == httpVerb {
         inferredConnectorAction = HTTP_POST;
-    } else if ("OPTIONS" == httpVerb) {
+    } else if "OPTIONS" == httpVerb {
         inferredConnectorAction = HTTP_OPTIONS;
-    } else if ("PUT" == httpVerb) {
+    } else if "PUT" == httpVerb {
         inferredConnectorAction = HTTP_PUT;
-    } else if ("DELETE" == httpVerb) {
+    } else if "DELETE" == httpVerb {
         inferredConnectorAction = HTTP_DELETE;
-    } else if ("PATCH" == httpVerb) {
+    } else if "PATCH" == httpVerb {
         inferredConnectorAction = HTTP_PATCH;
-    } else if ("FORWARD" == httpVerb) {
+    } else if "FORWARD" == httpVerb {
         inferredConnectorAction = HTTP_FORWARD;
-    } else if ("HEAD" == httpVerb) {
+    } else if "HEAD" == httpVerb {
         inferredConnectorAction = HTTP_HEAD;
-    } else if ("SUBMIT" == httpVerb) {
+    } else if "SUBMIT" == httpVerb {
         inferredConnectorAction = HTTP_SUBMIT;
     }
     return inferredConnectorAction;
@@ -258,13 +258,13 @@ isolated function populateRequestFields (Request originalRequest, Request newReq
 }
 
 isolated function populateMultipartRequest(Request inRequest) returns Request|ClientError {
-    if (isMultipartRequest(inRequest)) {
+    if isMultipartRequest(inRequest) {
         mime:Entity[] bodyParts = check inRequest.getBodyParts();
         foreach var bodyPart in bodyParts {
-            if (isNestedEntity(bodyPart)) {
+            if isNestedEntity(bodyPart) {
                 mime:Entity[]|error childParts = bodyPart.getBodyParts();
 
-                if (childParts is error) {
+                if childParts is error {
                     return error GenericClientError(childParts.message(), childParts);
                 }
 
@@ -300,7 +300,7 @@ isolated function isNestedEntity(mime:Entity entity) returns boolean {
 }
 
 isolated function createFailoverRequest(Request request, mime:Entity requestEntity) returns Request|ClientError {
-    if (isMultipartRequest(request)) {
+    if isMultipartRequest(request) {
         return populateMultipartRequest(request);
     } else {
         Request newOutRequest = new;
@@ -327,7 +327,7 @@ isolated function getStatusCodeRange(string statusCode) returns string {
 # + return - The random string
 isolated function uuid() returns string {
     var result = java:toString(nativeUuid());
-    if (result is string) {
+    if result is string {
         return result;
     } else {
         panic error("Error occured when converting the UUID to string.");
@@ -409,10 +409,10 @@ isolated function utcToString(time:Utc utc, string pattern) returns string|error
 // Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/json`
 isolated function setJson(mime:Entity entity, json payload, string existingContentType, string? newContentType) {
-    if (newContentType is string) {
+    if newContentType is string {
         entity.setJson(payload, newContentType);
     } else {
-        if (existingContentType == "") {
+        if existingContentType == "" {
             entity.setJson(payload);
         } else {
             entity.setJson(payload, existingContentType);
@@ -423,10 +423,10 @@ isolated function setJson(mime:Entity entity, json payload, string existingConte
 // Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/xml`
 isolated function setXml(mime:Entity entity, xml payload, string existingContentType, string? newContentType) {
-    if (newContentType is string) {
+    if newContentType is string {
         entity.setXml(payload, newContentType);
     } else {
-        if (existingContentType == "") {
+        if existingContentType == "" {
             entity.setXml(payload);
         } else {
             entity.setXml(payload, existingContentType);
@@ -437,10 +437,10 @@ isolated function setXml(mime:Entity entity, xml payload, string existingContent
 // Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `text/plain`
 isolated function setText(mime:Entity entity, string payload, string existingContentType, string? newContentType) {
-    if (newContentType is string) {
+    if newContentType is string {
         entity.setText(payload, newContentType);
     } else {
-        if (existingContentType == "") {
+        if existingContentType == "" {
             entity.setText(payload);
         } else {
             entity.setText(payload, existingContentType);
@@ -451,10 +451,10 @@ isolated function setText(mime:Entity entity, string payload, string existingCon
 // Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/octet-stream`
 isolated function setByteArray(mime:Entity entity, byte[] payload, string existingContentType, string? newContentType) {
-    if (newContentType is string) {
+    if newContentType is string {
         entity.setByteArray(payload, newContentType);
     } else {
-        if (existingContentType == "") {
+        if existingContentType == "" {
             entity.setByteArray(payload);
         } else {
             entity.setByteArray(payload, existingContentType);
@@ -466,10 +466,10 @@ isolated function setByteArray(mime:Entity entity, byte[] payload, string existi
 // `existingContentType` is not set, then the content-type will be set to default : `multipart/form-data`
 isolated function setBodyParts(mime:Entity entity, mime:Entity[] bodyParts, string existingContentType,
         string? newContentType) {
-    if (newContentType is string) {
+    if newContentType is string {
         entity.setBodyParts(bodyParts, newContentType);
     } else {
-        if (existingContentType == "") {
+        if existingContentType == "" {
             entity.setBodyParts(bodyParts);
         } else {
             entity.setBodyParts(bodyParts, existingContentType);
@@ -480,10 +480,10 @@ isolated function setBodyParts(mime:Entity entity, mime:Entity[] bodyParts, stri
 // Overrides the Entity object content-type by newContentType. If `newContentType` is not provided and
 // `existingContentType` is not set, then the content-type will be set to default : `application/octet-stream`
 isolated function setFile(mime:Entity entity, string filePath, string existingContentType, string? newContentType) {
-    if (newContentType is string) {
+    if newContentType is string {
         entity.setFileAsEntityBody(filePath, newContentType);
     } else {
-        if (existingContentType == "") {
+        if existingContentType == "" {
             entity.setFileAsEntityBody(filePath);
         } else {
             entity.setFileAsEntityBody(filePath, existingContentType);
@@ -495,10 +495,10 @@ isolated function setFile(mime:Entity entity, string filePath, string existingCo
 // `existingContentType` is not set, then the content-type will be set to default : `application/octet-stream`
 isolated function setByteStream(mime:Entity entity, stream<byte[], io:Error?> byteStream, string existingContentType,
         string? newContentType) {
-    if (newContentType is string) {
+    if newContentType is string {
         entity.setByteStream(byteStream, newContentType);
     } else {
-        if (existingContentType == "") {
+        if existingContentType == "" {
             entity.setByteStream(byteStream);
         } else {
             entity.setByteStream(byteStream, existingContentType);
@@ -508,20 +508,20 @@ isolated function setByteStream(mime:Entity entity, stream<byte[], io:Error?> by
 
 isolated function getFormDataMap(string formData) returns map<string>|ClientError {
     map<string> parameters = {};
-    if (formData == "") {
+    if formData == "" {
         return parameters;
     }
     var decodedValue = decode(formData);
     if decodedValue is error {
         return error ClientError("form data decode failure");
     }
-    if (strings:indexOf(decodedValue, "=") is ()) {
+    if strings:indexOf(decodedValue, "=") is () {
         return error ClientError("Datasource does not contain form data");
     }
     string[] entries = regex:split(decodedValue, "&");
     foreach string entry in entries {
         int? index = entry.indexOf("=");
-        if (index is int && index != -1) {
+        if index is int && index != -1 {
             string name = entry.substring(0, index);
             name = name.trim();
             string value = entry.substring(index + 1);

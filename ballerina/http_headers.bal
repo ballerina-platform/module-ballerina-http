@@ -21,7 +21,7 @@ public class Headers {
 
     isolated function getRequest() returns Request {
         var req = self.request;
-        if (req is Request) {
+        if req is Request {
             return req;
         }
         panic error GenericListenerError("Request is not initialized to retrieve headers");

@@ -198,9 +198,9 @@ service http:Service /mytest on resourceReturnTestEP {
             http:PermanentRedirect|http:PaymentRequired|http:MethodNotAllowed|http:NotAcceptable|
             http:ProxyAuthenticationRequired|http:RequestTimeout|http:Conflict|http:LengthRequired|
             http:PreconditionFailed|http:PayloadTooLarge|http:UriTooLong|http:UnsupportedMediaType|
-            http:RangeNotSatisfiable|http:ExpectationFailed|http:UpgradeRequired|http:RequestHeaderFieldsTooLarge|
-            http:NotImplemented|http:BadGateway|http:ServiceUnavailable|http:GatewayTimeout|
-            http:HttpVersionNotSupported|http:Ok {
+            http:RangeNotSatisfiable|http:ExpectationFailed|http:UpgradeRequired|http:TooManyRequests
+            http:RequestHeaderFieldsTooLarge|http:NotImplemented|http:BadGateway|http:ServiceUnavailable|
+            http:GatewayTimeout|http:HttpVersionNotSupported|http:Ok {
         match sType {
             "Continue" => {
                 http:Continue res = {};
@@ -308,6 +308,10 @@ service http:Service /mytest on resourceReturnTestEP {
             }
             "UpgradeRequired" => {
                 http:UpgradeRequired res = {};
+                return res;
+            }
+            "TooManyRequests" => {
+                http:TooManyRequests res = {};
                 return res;
             }
             "RequestHeaderFieldsTooLarge" => {
@@ -945,6 +949,13 @@ public function testAllOtherStatusCodes() {
     resp = resourceReturnTestClient->get("/mytest/test27/UpgradeRequired");
     if (resp is http:Response) {
         test:assertEquals(resp.statusCode, 426, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " +  resp.message());
+    }
+
+    resp = resourceReturnTestClient->get("/mytest/test27/TooManyRequests");
+    if (resp is http:Response) {
+        test:assertEquals(resp.statusCode, 429, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
