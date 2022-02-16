@@ -444,8 +444,8 @@ public class CompilerPluginTest {
                 " path: '[string... path]', but found '[string path]'", HTTP_127);
         assertError(diagnosticResult, 9, "invalid usage of payload annotation for a non entity body " +
                 "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
-        assertError(diagnosticResult, 10, "RequestInterceptor should have a resource method", HTTP_132);
-        assertError(diagnosticResult, 11, "RequestErrorInterceptor should have a resource method",
+        assertError(diagnosticResult, 10, "RequestInterceptor must have a resource method", HTTP_132);
+        assertError(diagnosticResult, 11, "RequestErrorInterceptor must have a resource method",
                 HTTP_132);
     }
 
