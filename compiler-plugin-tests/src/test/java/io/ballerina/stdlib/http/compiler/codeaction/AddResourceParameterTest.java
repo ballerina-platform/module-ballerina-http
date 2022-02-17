@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,15 +30,15 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Test for changing header parameter type to string or string[].
+ * Test for adding parameters to the resource signature.
  */
-public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
+public class AddResourceParameterTest extends AbstractCodeActionTest {
 
     @Test(dataProvider = "testDataProvider")
     public void testCodeActions(String srcFile, int line, int offset, CodeActionInfo expected, String resultFile)
             throws IOException {
         Path filePath = RESOURCE_PATH.resolve("ballerina_sources")
-                .resolve("sample_codeaction_package_1")
+                .resolve("sample_codeaction_package_2")
                 .resolve(srcFile);
         Path resultPath = RESOURCE_PATH.resolve("codeaction")
                 .resolve(getConfigDir())
@@ -50,30 +50,34 @@ public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
     @DataProvider
     private Object[][] testDataProvider() {
         return new Object[][]{
-                {"service.bal", 20, 49, getChangeHeaderParamToStringCodeAction(), "result1.bal"},
-                {"service.bal", 20, 49, getChangeHeaderParamToStringArrayCodeAction(), "result2.bal"}
+                {"service.bal", 19, 29, getAddHeaderCodeAction(LinePosition.from(19, 28),
+                        LinePosition.from(19, 45)), "result1.bal"},
+                {"service.bal", 23, 58, getAddHeaderCodeAction(LinePosition.from(23, 29),
+                        LinePosition.from(23, 74)), "result2.bal"},
+                {"service.bal", 27, 33, getAddPayloadCodeAction(LinePosition.from(27, 32),
+                        LinePosition.from(27, 49)), "result3.bal"},
+                {"service.bal", 31, 57, getAddPayloadCodeAction(LinePosition.from(31, 30),
+                        LinePosition.from(31, 73)), "result4.bal"}
         };
     }
 
-    private CodeActionInfo getChangeHeaderParamToStringCodeAction() {
-        LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
-                LinePosition.from(20, 52));
+    private CodeActionInfo getAddPayloadCodeAction(LinePosition startLine, LinePosition endLine) {
+        LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
         CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
-        CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string'", List.of(locationArg));
-        codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING");
+        CodeActionInfo codeAction = CodeActionInfo.from("Add payload parameter", List.of(locationArg));
+        codeAction.setProviderName("HTTP_HINT_101/ballerina/http/ADD_PAYLOAD_PARAM");
         return codeAction;
     }
 
-    private CodeActionInfo getChangeHeaderParamToStringArrayCodeAction() {
-        LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
-                LinePosition.from(20, 52));
+    private CodeActionInfo getAddHeaderCodeAction(LinePosition startLine, LinePosition endLine) {
+        LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
         CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
-        CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string[]'", List.of(locationArg));
-        codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING_ARRAY");
+        CodeActionInfo codeAction = CodeActionInfo.from("Add header parameter", List.of(locationArg));
+        codeAction.setProviderName("HTTP_HINT_102/ballerina/http/ADD_HEADER_PARAM");
         return codeAction;
     }
 
     protected String getConfigDir() {
-        return "change_header_param_type";
+        return "add_annotated_param";
     }
 }

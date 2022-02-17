@@ -30,6 +30,13 @@ import java.util.List;
  * Utility class providing http compiler plugin utility methods.
  */
 public class HttpCompilerPluginUtil {
+
+    public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
+                                        HttpDiagnosticCodes httpDiagnosticCodes) {
+        DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes);
+        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
+    }
+
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location, String argName,
                                          HttpDiagnosticCodes httpDiagnosticCodes) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);

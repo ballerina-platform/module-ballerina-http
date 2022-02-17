@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,9 +30,9 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Test for changing header parameter type to string or string[].
+ * Test for adding annotations to the resource return statement.
  */
-public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
+public class AddAnnotationsToReturnTypeTest extends AbstractCodeActionTest {
 
     @Test(dataProvider = "testDataProvider")
     public void testCodeActions(String srcFile, int line, int offset, CodeActionInfo expected, String resultFile)
@@ -50,30 +50,30 @@ public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
     @DataProvider
     private Object[][] testDataProvider() {
         return new Object[][]{
-                {"service.bal", 20, 49, getChangeHeaderParamToStringCodeAction(), "result1.bal"},
-                {"service.bal", 20, 49, getChangeHeaderParamToStringArrayCodeAction(), "result2.bal"}
+                {"service.bal", 24, 63, getAddResponseCacheConfigCodeAction(LinePosition.from(24, 60),
+                        LinePosition.from(24, 66)), "result1.bal"},
+                {"service.bal", 24, 63, getAddResponseContentTypeCodeAction(LinePosition.from(24, 60),
+                        LinePosition.from(24, 66)), "result2.bal"}
         };
     }
 
-    private CodeActionInfo getChangeHeaderParamToStringCodeAction() {
-        LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
-                LinePosition.from(20, 52));
+    private CodeActionInfo getAddResponseCacheConfigCodeAction(LinePosition startLine, LinePosition endLine) {
+        LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
         CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
-        CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string'", List.of(locationArg));
-        codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING");
+        CodeActionInfo codeAction = CodeActionInfo.from("Add response cache configuration", List.of(locationArg));
+        codeAction.setProviderName("HTTP_HINT_104/ballerina/http/ADD_RESPONSE_CACHE_CONFIG");
         return codeAction;
     }
 
-    private CodeActionInfo getChangeHeaderParamToStringArrayCodeAction() {
-        LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
-                LinePosition.from(20, 52));
+    private CodeActionInfo getAddResponseContentTypeCodeAction(LinePosition startLine, LinePosition endLine) {
+        LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
         CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
-        CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string[]'", List.of(locationArg));
-        codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING_ARRAY");
+        CodeActionInfo codeAction = CodeActionInfo.from("Add response content-type", List.of(locationArg));
+        codeAction.setProviderName("HTTP_HINT_103/ballerina/http/ADD_RESPONSE_CONTENT_TYPE");
         return codeAction;
     }
 
     protected String getConfigDir() {
-        return "change_header_param_type";
+        return "add_annotations_to_return_type";
     }
 }
