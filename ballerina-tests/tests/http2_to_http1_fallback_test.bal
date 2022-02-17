@@ -47,7 +47,7 @@ service /helloWorldWithSSL on serviceEndpointWithSSL {
 public function testFallback() {
     http:Client clientEP = checkpanic new("http://localhost:9101");
     http:Response|error resp = clientEP->get("/helloWorldWithoutSSL");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -65,7 +65,7 @@ public function testFallbackWithSSL() {
         }
     });
     http:Response|error resp = clientEP->get("/helloWorldWithSSL");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());

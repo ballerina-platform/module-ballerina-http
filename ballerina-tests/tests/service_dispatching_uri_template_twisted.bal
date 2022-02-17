@@ -54,7 +54,7 @@ service / on pathParamCheckListener {
 @test:Config {}
 function testSamePositionNodeWithSamePathTemplates() {
     http:Response|error response = pathParamTestClient->get("/path/hello");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "a-hello");
     } else {
@@ -65,7 +65,7 @@ function testSamePositionNodeWithSamePathTemplates() {
 @test:Config {}
 function testSamePositionNodeWithSamePathTemplatesError() {
     http:Response|error response = pathParamTestClient->get("/path/hello/aa/gone");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "b-hello gone");
     } else {
@@ -76,7 +76,7 @@ function testSamePositionNodeWithSamePathTemplatesError() {
 @test:Config {}
 function testSameTwistedPathTemplate() {
     http:Response|error response = pathParamTestClient->get("/aa/go/bb");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "c-aa bb");
     } else {
@@ -87,7 +87,7 @@ function testSameTwistedPathTemplate() {
 @test:Config {}
 function testSameTwistedPathTemplateError() {
     http:Response|error response = pathParamTestClient->get("/foo/go/bar/cc");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "d-bar foo cc");
     } else {
@@ -98,7 +98,7 @@ function testSameTwistedPathTemplateError() {
 @test:Config {}
 function testRestPathParamMatch() {
     http:Response|error response = pathParamTestClient->get("/bar/bb/go/baz");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "e-baz bb");
     } else {
@@ -109,7 +109,7 @@ function testRestPathParamMatch() {
 @test:Config {}
 function testRestPathParamTwistedMatch() {
     http:Response|error response = pathParamTestClient->get("/path/bb/aa/baz/foo");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "f-foo bb");
     } else {

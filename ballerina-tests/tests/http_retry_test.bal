@@ -53,9 +53,9 @@ service /retryDemoService on retryTestserviceEndpoint1 {
     // the request data.
     resource function 'default .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->forward("/mockHelloService", request);
-        if (backendResponse is http:Response) {
+        if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -63,7 +63,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -71,9 +71,9 @@ service /retryDemoService on retryTestserviceEndpoint1 {
 
     resource function get .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->execute("GET", "/mockHelloService", request);
-        if (backendResponse is http:Response) {
+        if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -81,7 +81,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -89,9 +89,9 @@ service /retryDemoService on retryTestserviceEndpoint1 {
 
     resource function head .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->head("/mockHelloService");
-        if (backendResponse is http:Response) {
+        if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -99,7 +99,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -107,7 +107,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
 
     resource function put .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->put("/mockHelloService", request);
-        if (backendResponse is http:Response) {
+        if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -125,7 +125,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
 
     resource function patch .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->patch("/mockHelloService", request);
-        if (backendResponse is http:Response) {
+        if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -143,7 +143,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
 
     resource function options .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->options("/mockHelloService");
-        if (backendResponse is http:Response) {
+        if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -161,7 +161,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
 
     resource function delete .(http:Caller caller, http:Request request) {
         http:Response|error backendResponse = retryBackendClientEP->delete("/mockHelloService", request);
-        if (backendResponse is http:Response) {
+        if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
                 log:printError("Error sending response", 'error = responseToCaller);
@@ -206,7 +206,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             res.setPayload("Hello World!!!");
             error? result = caller->respond(res);
 
-            if (result is error) {
+            if result is error {
                 log:printError("Error sending response from mock service", 'error = result);
             }
         } else {
@@ -363,7 +363,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         if (checkpanic request.getHeader("x-retry") == "recover") {
             http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", request);
-            if (backendResponse is http:Response) {
+            if backendResponse is http:Response {
                 var responseError = caller->respond(backendResponse);
                 if (responseError is error) {
                     log:printError("Error sending response", 'error = responseError);
@@ -379,7 +379,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
             }
         } else if (checkpanic request.getHeader("x-retry") == "internalError") {
             http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/internalError", request);
-            if (backendResponse is http:Response) {
+            if backendResponse is http:Response {
                 var responseError = caller->respond(backendResponse);
                 if (responseError is error) {
                     log:printError("Error sending response", 'error = responseError);
@@ -441,7 +441,7 @@ service /mockStatusCodeService on retryTestserviceEndpoint2 {
 function testSimpleRetry() {
     json payload = {Name:"Ballerina"};
     http:Response|error response = retryFunctionTestClient->post("/retryDemoService", payload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
@@ -456,7 +456,7 @@ function testSimpleRetry() {
 }
 function testHeadRequestWithRetries() {
     http:Response|error response = retryFunctionTestClient->head("/retryDemoService");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         string value = "";
         lock {
@@ -474,7 +474,7 @@ function testHeadRequestWithRetries() {
 }
 function testPutRequestWithRetries() {
     http:Response|error response = retryFunctionTestClient->put("/retryDemoService", "This is a simple HTTP PUT request");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "HTTP PUT method invocation is successful");
     } else {
@@ -488,7 +488,7 @@ function testPutRequestWithRetries() {
 }
 function testPatchRequestWithRetries() {
     http:Response|error response = retryFunctionTestClient->patch("/retryDemoService", "This is a simple HTTP PATCH request");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "HTTP PATCH method invocation is successful");
     } else {
@@ -502,7 +502,7 @@ function testPatchRequestWithRetries() {
 }
 function testDeleteRequestWithRetries() {
     http:Response|error response = retryFunctionTestClient->delete("/retryDemoService", "This is a simple HTTP DELETE request");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "HTTP DELETE method invocation is successful");
     } else {
@@ -516,7 +516,7 @@ function testDeleteRequestWithRetries() {
 }
 function testOptionsRequestWithRetries() {
     http:Response|error response = retryFunctionTestClient->options("/retryDemoService");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("Allow"), "OPTIONS, GET, HEAD, POST");
     } else {
@@ -530,7 +530,7 @@ function testOptionsRequestWithRetries() {
 }
 function testExecuteWithRetries() {
     http:Response|error response = retryFunctionTestClient->execute("GET", "/retryDemoService", new http:Request());
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "HTTP GET method invocation is successful");
@@ -564,7 +564,7 @@ function testRetryBasedOnHttpStatusCodes() {
     req.setHeader("x-retry", "recover");
     req.setJsonPayload({Name:"Ballerina"});
     http:Response|error response = retryFunctionTestClient->post("/retryStatusService", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
@@ -582,7 +582,7 @@ function testRetryBasedOnHttpStatusCodesContinuousFailure() {
     req.setHeader("x-retry", "internalError");
     req.setJsonPayload({Name:"Ballerina"});
     http:Response|error response = retryFunctionTestClient->post("/retryStatusService", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 502, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Gateway Timed out.");

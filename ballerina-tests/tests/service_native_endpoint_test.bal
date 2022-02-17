@@ -47,7 +47,7 @@ service /serviceEndpointHello on serviceEndpointTestEP {
 @test:Config {}
 function testGetProtocolConnectionStruct() {
     http:Response|error response = serviceEndpointClient->get("/serviceEndpointHello/protocol");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "protocol", "http");
     } else {
@@ -59,7 +59,7 @@ function testGetProtocolConnectionStruct() {
 @test:Config {}
 function testLocalStructInConnection() {
     http:Response|error response = serviceEndpointClient->get("/serviceEndpointHello/local");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         var payload = response.getJsonPayload();
         if payload is map<json> {

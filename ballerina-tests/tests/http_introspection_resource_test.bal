@@ -38,7 +38,7 @@ isolated http:Service openApiMock = service object {
 @test:Config {}
 function testIntrospectionResourceLinkWhenFileDoesNotExist() returns error? {
     http:Response|error response = httpIntroResTestClient->options("/greeting");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
         string|error header = response.getHeader(LINK);
@@ -56,7 +56,7 @@ function testIntrospectionResourceLinkWhenFileDoesNotExist() returns error? {
 @test:Config {}
 function testIntrospectionResourceLinkForBasePathWhenFileDoesNotExist() returns error? {
     http:Response|error response = httpIntroResTestClient->options("/");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
         string|error header = response.getHeader(LINK);
@@ -74,7 +74,7 @@ function testIntrospectionResourceLinkForBasePathWhenFileDoesNotExist() returns 
 @test:Config {}
 function testIntrospectionAnnotationInConstructorExpression() returns error? {
     http:Response|error response = httpIntroResTestClient->get("/greeting");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Hello Swan");
     } else {
@@ -82,7 +82,7 @@ function testIntrospectionAnnotationInConstructorExpression() returns error? {
     }
 
     response = httpIntroResTestClient->options("/mock");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
         test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
     } else {
@@ -90,7 +90,7 @@ function testIntrospectionAnnotationInConstructorExpression() returns error? {
     }
 
     response = httpIntroResTestClient->get("/mock/openapi-doc-dygixywsw");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected statusCode");
         assertTrueTextPayload(response.getTextPayload(), "no matching resource found for path");
     } else {

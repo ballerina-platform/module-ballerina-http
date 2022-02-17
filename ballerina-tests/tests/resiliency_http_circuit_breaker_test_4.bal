@@ -43,12 +43,12 @@ service /cb on circuitBreakerEP03 {
         http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>simpleClientEP.httpClient;
         http:Response|error backendRes = simpleClientEP->forward("/simple", request);
         http:CircuitState currentState = cbClient.getCurrentState();
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             if (!(currentState == http:CB_CLOSED_STATE)) {
                 backendRes.setPayload("Circuit Breaker is not in correct state state");
             }
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -56,7 +56,7 @@ service /cb on circuitBreakerEP03 {
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -67,7 +67,7 @@ service /simple on new http:Listener(8089) {
     
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Hello World!!!");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }

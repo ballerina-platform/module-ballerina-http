@@ -33,7 +33,7 @@ service "/url" on httpReturnNilListener  {
 
     resource function get end(http:Caller caller) {
         error? err = caller->respond("hi"); // 200 response
-        if (err is error) {
+        if err is error {
            log:printError("Error occurred while sending response", 'error = err);
         }
         return; // consider as exec end
@@ -41,7 +41,7 @@ service "/url" on httpReturnNilListener  {
 
     resource function get double(http:Caller caller) returns string {
         error? err = caller->respond("Hello"); // 200 response
-        if (err is error) {
+        if err is error {
            log:printError("Error occurred while sending response", 'error = err);
         }
         return "hi"; // exception
@@ -58,7 +58,7 @@ service "/url" on httpReturnNilListener  {
     resource function get nonReturn(boolean success, http:Caller caller) {
         if success {
             error? err = caller->respond("success");
-            if (err is error) {
+            if err is error {
                log:printError("Error occurred while sending response", 'error = err);
             }
             return;
@@ -70,7 +70,7 @@ service "/url" on httpReturnNilListener  {
 @test:Config {}
 function testNilReturn() {
     http:Response|error response = httpReturnNilClient->get("/url/nil");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -80,7 +80,7 @@ function testNilReturn() {
 @test:Config {}
 function testEmptyResource() {
     http:Response|error response = httpReturnNilClient->get("/url/empty");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -90,7 +90,7 @@ function testEmptyResource() {
 @test:Config {}
 function testNilReturnAsEndExec() {
     http:Response|error response = httpReturnNilClient->get("/url/end");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hi");
@@ -102,7 +102,7 @@ function testNilReturnAsEndExec() {
 @test:Config {}
 function testDoubleResponseWithExecption() {
     http:Response|error response = httpReturnNilClient->get("/url/double");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
@@ -114,7 +114,7 @@ function testDoubleResponseWithExecption() {
 @test:Config {}
 function testNilReturnWithCaller() {
     http:Response|error response = httpReturnNilClient->get("/url/errorCaller?err=true");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         string|error payload = response.getTextPayload();
         if payload is error {
@@ -127,7 +127,7 @@ function testNilReturnWithCaller() {
     }
 
     response = httpReturnNilClient->get("/url/errorCaller?err=false");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "success");
@@ -139,7 +139,7 @@ function testNilReturnWithCaller() {
 @test:Config {}
 function testNilReturnWithCallerNoReturnType() {
     http:Response|error response = httpReturnNilClient->get("/url/nonReturn?success=false");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         string|error payload = response.getTextPayload();
         if payload is error {

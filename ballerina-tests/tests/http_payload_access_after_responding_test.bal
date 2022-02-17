@@ -30,13 +30,13 @@ isolated error? requestBinaryPayloadError = ();
 service /passthrough on payloadAccessAfterRespondListener {
     resource function 'default . () returns string|error {
         json jsonStr = {a: "a", b: "b"};
-        json jsonPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getJson", jsonStr);
+        json _ = check payloadAccessAfterRespondBackendClient->post("/backend/getJson", jsonStr);
 
         xml xmlStr = xml `<name>Ballerina</name>`;
-        xml xmlPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getXml", xmlStr);
+        xml _ = check payloadAccessAfterRespondBackendClient->post("/backend/getXml", xmlStr);
 
-        string stringPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getString", "want string");
-        byte[] binaryPayload = check payloadAccessAfterRespondBackendClient->post("/backend/getByteArray", "BinaryPayload is textVal".toBytes());
+        string _ = check payloadAccessAfterRespondBackendClient->post("/backend/getString", "want string");
+        byte[] _ = check payloadAccessAfterRespondBackendClient->post("/backend/getByteArray", "BinaryPayload is textVal".toBytes());
 
         return "Request Processed successfully";
     }
@@ -51,7 +51,7 @@ service /backend on payloadAccessAfterRespondListener {
         if result is error {
             error err = result;
             lock {
-                requestJsonPayloadError = result;
+                requestJsonPayloadError = err;
             }
         }
         return;
@@ -66,7 +66,7 @@ service /backend on payloadAccessAfterRespondListener {
         if result is error {
             error err = result;
             lock {
-                requestXmlPayloadError = result;
+                requestXmlPayloadError = err;
             }
         }
         return;

@@ -24,7 +24,7 @@ service /validation\-request on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) {
         http:Response|error response = cachingEP4->forward("/validation-req-be", req);
-        if (response is http:Response) {
+        if response is http:Response {
             checkpanic caller->respond( response);
         } else {
             http:Response res = new;
@@ -58,7 +58,7 @@ function testCallerRequestHeaderPreservation() {
     string callerReqHeader = "x-caller-req-header";    
 
     http:Response|error response = cachingProxyTestClient->get("/validation-request", {[callerReqHeader]:"First Request"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "First Request");
         test:assertFalse(response.hasHeader(IF_NONE_MATCH));
@@ -71,7 +71,7 @@ function testCallerRequestHeaderPreservation() {
 
 // Since this request gets served straight from the cache, the value of 'x-caller-req-header' doesn't change.
     response = cachingProxyTestClient->get("/validation-request", {[callerReqHeader]:"Second Request"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "First Request");
         test:assertFalse(response.hasHeader(IF_NONE_MATCH));
@@ -86,7 +86,7 @@ function testCallerRequestHeaderPreservation() {
     runtime:sleep(3);
 
     response = cachingProxyTestClient->get("/validation-request", {[callerReqHeader]:"Third Request"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(callerReqHeader), "Third Request");
         test:assertFalse(response.hasHeader(IF_NONE_MATCH));
@@ -102,7 +102,7 @@ function testCallerRequestHeaderPreservation() {
 @test:Config {enable: false}
 function testCallerRequestHeaderPreservation2() {
     http:Response|error response = cachingProxyTestClient->get("/validation-request", {[IF_NONE_MATCH]:"c854ce2c"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 304, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Hello from POST!Hello from POST!");
     } else {

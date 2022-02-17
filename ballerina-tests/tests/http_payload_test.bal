@@ -28,12 +28,12 @@ service /testService16 on httpPayloadListenerEP1 {
 
     resource function get .(http:Caller caller, http:Request request) {
         http:Response|error res = clientEP19->get("/payloadTest");
-        if (res is http:Response) {
+        if res is http:Response {
             //First get the payload as a byte array, then take it as an xml
             var binaryPayload = res.getBinaryPayload();
-            if (binaryPayload is byte[]) {
+            if binaryPayload is byte[] {
                 var payload = res.getXmlPayload();
-                if (payload is xml) {
+                if payload is xml {
                     //xml descendants = payload.selectDescendants("title");
                     checkpanic caller->respond((payload/**/<title>/*).toString());
                 } else {
@@ -49,15 +49,15 @@ service /testService16 on httpPayloadListenerEP1 {
 
     resource function 'default getPayloadForParseError(http:Caller caller, http:Request request) {
         http:Response|error res = clientEP19->get("/payloadTest/getString");
-        if (res is http:Response) {
+        if res is http:Response {
             var payload = res.getXmlPayload();
-            if (payload is xml) {
+            if payload is xml {
                 //xml descendants = payload.selectDescendants("title");
                 checkpanic caller->respond((payload/**/<title>/*).toString());
             } else {
-                if (payload is http:GenericClientError) {
+                if payload is http:GenericClientError {
                     var cause = payload.cause();
-                    if (cause is mime:ParserError) {
+                    if cause is mime:ParserError {
                         checkpanic caller->respond(cause.message());
                     }
                 }
@@ -99,7 +99,7 @@ service /payloadTest on httpPayloadListenerEP2 {
 @test:Config {}
 function testXmlPayload() {
     http:Response|error response = httpPayloadClient->get("/testService16/");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "W3Schools Home PageRSS Tutorial");
@@ -113,7 +113,7 @@ function testXmlPayload() {
 @test:Config {}
 function testGetXmlPayloadReturnParserError() {
     http:Response|error response = httpPayloadClient->get("/testService16/getPayloadForParseError");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(),

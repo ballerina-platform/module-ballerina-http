@@ -39,7 +39,7 @@ service / on new http:Listener(clientForwardTestPort1) {
 @test:Config {}
 function testClientForwardRuntimeError() {
     http:Response|error response = clientTest1->get("/test");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500);
         test:assertEquals(response.getTextPayload(),
             "client method invocation failed: invalid inbound request parameter");

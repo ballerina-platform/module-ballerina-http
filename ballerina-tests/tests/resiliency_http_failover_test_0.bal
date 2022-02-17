@@ -68,9 +68,9 @@ final http:FailoverClient foStatusCodesEP00 = check new({
 service /failoverDemoService00 on failoverEP00 {
     resource function 'default typical(http:Caller caller, http:Request request) {
         http:Response|error backendRes = foBackendEP00->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -78,7 +78,7 @@ service /failoverDemoService00 on failoverEP00 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -86,9 +86,9 @@ service /failoverDemoService00 on failoverEP00 {
 
     resource function 'default invokeAllFailureEndpoint(http:Caller caller, http:Request request) {
         http:Response|error backendRes = foBackendFailureEP00->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -96,7 +96,7 @@ service /failoverDemoService00 on failoverEP00 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -104,9 +104,9 @@ service /failoverDemoService00 on failoverEP00 {
 
     resource function 'default invokeAllFailureStatusCodesEndpoint(http:Caller caller, http:Request request) {
         http:Response|error backendRes = foStatusCodesEP00->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -114,7 +114,7 @@ service /failoverDemoService00 on failoverEP00 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -123,10 +123,10 @@ service /failoverDemoService00 on failoverEP00 {
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP00.getSucceededEndpointIndex().toString();
         http:Response|error backendRes = foBackendEP00->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             string responseMessage = "Failover start index is : " + startIndex;
             error? responseToCaller = caller->respond(responseMessage);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -134,7 +134,7 @@ service /failoverDemoService00 on failoverEP00 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -147,7 +147,7 @@ service /echo00 on backendEP00 {
         // Delay the response for 30000 milliseconds to mimic network level delays.
         runtime:sleep(30000);
         error? responseToCaller = caller->respond("echo Resource is invoked");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -208,7 +208,7 @@ service /mockResource on backendEP00 {
             response.setPayload("Mock Resource is Invoked.");
         }
         error? responseToCaller = caller->respond(response);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -221,7 +221,7 @@ service /failureStatusCodeService on backendEP00 {
         outResponse.statusCode = 503;
         outResponse.setPayload("Failure status code scenario");
         error? responseToCaller = caller->respond(outResponse);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -232,7 +232,7 @@ service /failureStatusCodeService on backendEP00 {
 function testSimpleFailover() {
     http:Client testClient = checkpanic new("http://localhost:9300");
     http:Response|error response = testClient->post("/failoverDemoService00/typical", requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Mock Resource is Invoked.");

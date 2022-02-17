@@ -27,11 +27,11 @@ final http:Client continueClient = check new("http://localhost:" + httpClientCon
 service /'continue on httpClientContinueListenerEP1 {
 
     resource function 'default .(http:Caller caller, http:Request request) {
-        if (request.expects100Continue()) {
+        if request.expects100Continue() {
             string mediaType = checkpanic request.getHeader("Content-Type");
-            if (mediaType.toLowerAscii() == "text/plain") {
+            if mediaType.toLowerAscii() == "text/plain" {
                 error? result = caller->continue();
-                if (result is error) {
+                if result is error {
                     log:printError("Error sending response", 'error = result);
                 }
             } else {
@@ -39,7 +39,7 @@ service /'continue on httpClientContinueListenerEP1 {
                 res.statusCode = 417;
                 res.setPayload("Unprocessable Entity");
                 error? result = caller->respond(res);
-                if (result is error) {
+                if result is error {
                     log:printError("Error sending response", 'error = result);
                 }
                 return;
@@ -47,18 +47,18 @@ service /'continue on httpClientContinueListenerEP1 {
         }
         http:Response res = new;
         var payload = request.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             res.statusCode = 200;
             res.setPayload("Hello World!\n");
             error? result = caller->respond(res);
-            if (result is error) {
+            if result is error {
                 log:printError("Error sending response", 'error = result);
             }
         } else {
             res.statusCode = 500;
             res.setPayload(payload.message());
             error? result = caller->respond(res);
-            if (result is error) {
+            if result is error {
                 log:printError("Error sending response", 'error = result);
             }
         }
@@ -72,7 +72,7 @@ service /'continue on httpClientContinueListenerEP2  {
         req.addHeader("Expect", "100-continue");
         req.setPayload("Hi");
         http:Response|error response = continueClient->post("/continue", req);
-        if (response is http:Response) {
+        if response is http:Response {
             checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error: " + response.toString());
@@ -84,7 +84,7 @@ service /'continue on httpClientContinueListenerEP2  {
         req.addHeader("content-type", "application/json");
         req.setPayload({ name: "apple", color: "red" });
         http:Response|error response = continueClient->post("/continue", req);
-        if (response is http:Response) {
+        if response is http:Response {
             checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error: " + response.toString());
@@ -99,9 +99,9 @@ function testContinueActionWithMain() {
     req.addHeader("Expect", "100-continue");
     req.setPayload("Hello World!");
     http:Response|error response = clientEP->post("/continue", req);
-    if (response is http:Response) {
+    if response is http:Response {
         var payload = response.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
             assertTextPayload(response.getTextPayload(), "Hello World!\n");
         } else {
@@ -116,7 +116,7 @@ function testContinueActionWithMain() {
 @test:Config {dependsOn:[testContinueActionWithMain]}
 function testContinueAction() {
     http:Response|error response = httpClientContinueClient->get("/continue");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!\n");
@@ -129,7 +129,7 @@ function testContinueAction() {
 @test:Config {dependsOn:[testContinueAction]}
 function testNegativeContinueAction() {
     http:Response|error response = httpClientContinueClient->get("/continue/failure");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     } else {

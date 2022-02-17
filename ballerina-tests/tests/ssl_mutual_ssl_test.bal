@@ -59,10 +59,10 @@ service /helloWorld15 on echo15 {
                         + "vDeBPSJ/scRGasZ5q2W3IenDNrfPIUhD74tFiCiqNJO91qD/LO+++3XeZzfPh8NRKkiPX7dB8WJ3YNBuQAvgRWTISpSS"
                         + "XLmqMb+7MPQVgecsepZdk8CwkRLxh3RKPJMjigmCgyvkSaoDMKAYC3iYjfUTiJ57UeqoSl0IaOFJ0wfZRFh+UytlDZa";
         http:Response res = new;
-        if (req.mutualSslHandshake["status"] == "passed") {
+        if req.mutualSslHandshake["status"] == "passed" {
             string? cert = req.mutualSslHandshake["base64EncodedCert"];
-            if (cert is string) {
-                if (cert == expectedCert) {
+            if cert is string {
+                if cert == expectedCert {
                     res.setTextPayload("hello world");
                 } else {
                     res.setTextPayload("Expected cert not found");
@@ -110,9 +110,9 @@ http:ClientConfiguration mutualSslClientConf1 = {
 public function testMutualSsl1() {
     http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf1);
     http:Response|error resp = httpClient->get("/helloWorld15/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "hello world");
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
@@ -143,7 +143,7 @@ public function testMutualSsl2() {
     http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf2);
     http:Response|error resp = httpClient->get("/helloWorld15/");
     string expectedErrMsg = "SSL connection failed:unable to find valid certification path to requested target localhost/127.0.0.1:9116";
-    if (resp is error) {
+    if resp is error {
         test:assertEquals(resp.message(), expectedErrMsg);
     } else {
         test:assertFail(msg = "Expected mutual SSL error not found");
@@ -171,9 +171,9 @@ http:ClientConfiguration mutualSslClientConf3 = {
 public function testMutualSsl3() {
     http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf3);
     http:Response|error resp = httpClient->get("/helloWorld15/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "hello world");
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());

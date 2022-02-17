@@ -107,7 +107,7 @@ service /alwaysCompressWithEmptyContentType on compressionTestEP {
 @test:Config {}
 function testAutoCompress() {
     http:Response|error response = compressionClient->get("/autoCompress");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the identity which means no compression " +
                         "should be done to the response");
@@ -121,7 +121,7 @@ function testAutoCompress() {
 @test:Config {}
 function testAutoCompressWithAcceptEncoding() {
     http:Response|error response = compressionClient->get("/autoCompress", {[ACCEPT_ENCODING]:[ENCODING_GZIP]});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
                         "be used for compression from the backend");
@@ -135,7 +135,7 @@ function testAutoCompressWithAcceptEncoding() {
 @test:Config {}
 function testAutoCompressWithContentTypes() {
     http:Response|error response = compressionClient->get("/autoCompressWithContentType");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the identity which means no compression " +
                                   "should be done to the response");
@@ -150,7 +150,7 @@ function testAutoCompressWithContentTypes() {
 @test:Config {enable: false}
 function testAlwaysCompress() {
     http:Response|error response = compressionClient->get("/alwaysCompress");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP, 
             msg = "The content-encoding header should be gzip.");
     } else {
@@ -166,7 +166,7 @@ function testAlwaysCompressWithAcceptEncoding() {
     req.setTextPayload("hello");
     req.setHeader(ACCEPT_ENCODING, ENCODING_DEFLATE);
     http:Response|error response = compressionClient->post("/alwaysCompress", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be set to null and the transport will use the original" +
                         "Accept-Encoding value for compression.");
@@ -181,7 +181,7 @@ function testAlwaysCompressWithAcceptEncoding() {
 @test:Config {enable: false}
 function testAlwaysCompressWithContentTypes() {
     http:Response|error response = compressionClient->get("/alwaysCompressWithContentType");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP, 
             msg = "The content-encoding header should be gzip.");
     } else {
@@ -195,7 +195,7 @@ function testAlwaysCompressWithContentTypes() {
 @test:Config {enable: false}
 function testNeverCompress() {
     http:Response|error response = compressionClient->get("/neverCompress");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY, 
             msg = "The content-encoding header of the response that was sent " +
                         "to transport should be set to identity.");
@@ -213,7 +213,7 @@ function testNeverCompressWithAcceptEncoding() {
     req.setTextPayload("hello");
     req.setHeader(ACCEPT_ENCODING, ENCODING_GZIP);
     http:Response|error response = compressionClient->post("/userOverridenValue", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE, 
             msg = "The content-encoding header of the response that was sent " +
                         "to transport should be set to identity.");
@@ -228,7 +228,7 @@ function testNeverCompressWithAcceptEncoding() {
 @test:Config {enable: false}
 function testNeverCompressWithContentTypes() {
     http:Response|error response = compressionClient->get("/neverCompressWithContentType");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY, 
             msg = "The content-encoding header of the response that was sent to transport should be set to identity.");
     } else {
@@ -242,7 +242,7 @@ function testNeverCompressWithContentTypes() {
 @test:Config {enable: false}
 function testAutoCompressWithIncompatibleContentTypes() {
     http:Response|error response = compressionClient->get("/autoCompressWithInCompatibleContentType");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY, 
             msg = "The content-encoding header of the response that was sent to transport should be set to identity.");
     } else {
@@ -256,7 +256,7 @@ function testAutoCompressWithIncompatibleContentTypes() {
 @test:Config {enable: false}
 function testAlwaysCompressWithEmptyContentTypes() {
     http:Response|error response = compressionClient->get("/alwaysCompressWithEmptyContentType");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP, 
             msg = "The content-encoding header should be gzip.");
     } else {

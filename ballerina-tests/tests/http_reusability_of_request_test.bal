@@ -32,9 +32,9 @@ service /reuseObj on reuseRequestListenerEP {
         string secondVal = "";
 
         http:Response|error firstResponse = clientEP1 -> get("");
-        if (firstResponse is http:Response) {
+        if firstResponse is http:Response {
             var result = firstResponse.getTextPayload();
-            if (result is string) {
+            if result is string {
                 firstVal = result;
             } else {
                 firstVal = result.message();
@@ -44,9 +44,9 @@ service /reuseObj on reuseRequestListenerEP {
         }
 
         http:Response|error secondResponse = clientEP1 -> get("");
-        if (secondResponse is http:Response) {
+        if secondResponse is http:Response {
             var result = secondResponse.getTextPayload();
-            if (result is string) {
+            if result is string {
                 secondVal = result;
             } else {
                 secondVal = result.message();
@@ -68,9 +68,9 @@ service /reuseObj on reuseRequestListenerEP {
         string secondVal = "";
 
         http:Response|error firstResponse = clientEP1 -> execute("GET", "", clientReq);
-        if (firstResponse is http:Response) {
+        if firstResponse is http:Response {
             var result = firstResponse.getTextPayload();
-            if (result is string) {
+            if result is string {
                 firstVal = result;
             } else {
                 firstVal = result.message();
@@ -80,9 +80,9 @@ service /reuseObj on reuseRequestListenerEP {
         }
 
         http:Response|error secondResponse = clientEP1 -> execute("GET", "", clientReq);
-        if (secondResponse is http:Response) {
+        if secondResponse is http:Response {
             var result = secondResponse.getTextPayload();
-            if (result is string) {
+            if result is string {
                 secondVal = result;
             } else {
                 secondVal = result.message();
@@ -104,22 +104,22 @@ service /reuseObj on reuseRequestListenerEP {
         http:Response testResponse = new;
 
         var entity = clientReq.getEntity();
-        if (entity is mime:Entity) {
+        if entity is mime:Entity {
             newRequest.setEntity(entity);
             http:Response|error firstResponse = clientEP1 -> execute("GET", "", clientReq);
-            if (firstResponse is http:Response) {
+            if firstResponse is http:Response {
                 newRequest.setHeader("test2", "value2");
                 http:Response|error secondResponse = clientEP1 -> execute("GET", "", newRequest);
-                if (secondResponse is http:Response) {
+                if secondResponse is http:Response {
                     var result1 = firstResponse.getTextPayload();
-                    if (result1 is string) {
+                    if result1 is string {
                         firstVal = result1;
                     } else {
                         firstVal = result1.message();
                     }
 
                     var result2 = secondResponse.getTextPayload();
-                    if (result2 is string) {
+                    if result2 is string {
                         secondVal = result2;
                     } else {
                         secondVal = result2.message();
@@ -144,9 +144,9 @@ service /reuseObj on reuseRequestListenerEP {
         string firstVal = "";
         string secondVal = "";
         http:Response|error firstResponse = clientEP1 -> post("/datasource", clientReq);
-        if (firstResponse is http:Response) {
+        if firstResponse is http:Response {
             var result = firstResponse.getTextPayload();
-            if (result is string) {
+            if result is string {
                 firstVal = result;
             } else {
                 firstVal = result.message();
@@ -156,9 +156,9 @@ service /reuseObj on reuseRequestListenerEP {
         }
 
         http:Response|error secondResponse = clientEP1 -> post("/datasource", clientReq);
-        if (secondResponse is http:Response) {
+        if secondResponse is http:Response {
             var result = secondResponse.getTextPayload();
-            if (result is string) {
+            if result is string {
                 secondVal = result;
             } else {
                 secondVal = result.message();
@@ -175,15 +175,15 @@ service /reuseObj on reuseRequestListenerEP {
     // resource function post request_with_bytechannel(http:Caller caller, http:Request clientRequest) {
     //     http:Request clientReq = new;
     //     var byteChannel = clientRequest.getByteChannel();
-    //     if (byteChannel is io:ReadableByteChannel) {
+    //     if byteChannel is io:ReadableByteChannel {
     //         clientReq.setByteChannel(byteChannel, "text/plain");
     //         http:Response|error firstResponse = clientEP1 -> post("/consumeChannel", clientReq);
-    //         if (firstResponse is http:Response) {
+    //         if firstResponse is http:Response {
     //             http:Response|error secondResponse = clientEP1 -> post("/consumeChannel", clientReq);
     //             http:Response testResponse = new;
     //             string firstVal = "";
     //             string secondVal = "";
-    //             if (secondResponse is http:Response) {
+    //             if secondResponse is http:Response {
     //                 var result1 = secondResponse.getTextPayload();
     //                 if  (result1 is string) {
     //                     secondVal = result1;
@@ -195,7 +195,7 @@ service /reuseObj on reuseRequestListenerEP {
     //             }
 
     //             var result2 = firstResponse.getTextPayload();
-    //             if (result2 is string) {
+    //             if result2 is string {
     //                 firstVal = result2;
     //             } else {
     //                 firstVal = result2.message();
@@ -214,15 +214,15 @@ service /reuseObj on reuseRequestListenerEP {
     resource function post request_with_byteStream(http:Caller caller, http:Request clientRequest) {
         http:Request clientReq = new;
         var byteStream = clientRequest.getByteStream();
-        if (byteStream is stream<byte[], io:Error?>) {
+        if byteStream is stream<byte[], io:Error?> {
             clientReq.setByteStream(byteStream, "text/plain");
             http:Response|error firstResponse = clientEP1 -> post("/consumeChannel", clientReq);
-            if (firstResponse is http:Response) {
+            if firstResponse is http:Response {
                 http:Response|error secondResponse = clientEP1 -> post("/consumeChannel", clientReq);
                 http:Response testResponse = new;
                 string firstVal = "";
                 string secondVal = "";
-                if (secondResponse is http:Response) {
+                if secondResponse is http:Response {
                     var result1 = secondResponse.getTextPayload();
                     if  (result1 is string) {
                         secondVal = result1;
@@ -234,7 +234,7 @@ service /reuseObj on reuseRequestListenerEP {
                 }
 
                 var result2 = firstResponse.getTextPayload();
-                if (result2 is string) {
+                if result2 is string {
                     firstVal = result2;
                 } else {
                     firstVal = result2.message();
@@ -268,7 +268,7 @@ service /testService_2 on reuseRequestListenerEP {
     resource function post consumeChannel(http:Caller caller, http:Request clientRequest) {
         http:Response response = new;
         var stringPayload = clientRequest.getTextPayload();
-        if (stringPayload is string) {
+        if stringPayload is string {
             response.setPayload(stringPayload);
         } else  {
             response.setPayload(stringPayload.message());
@@ -280,7 +280,7 @@ service /testService_2 on reuseRequestListenerEP {
 @test:Config {}
 function reuseRequestWithoutEntity() {
     http:Response|error response = reuseRequestClient->get("/reuseObj/request_without_entity");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
@@ -292,7 +292,7 @@ function reuseRequestWithoutEntity() {
 @test:Config {}
 function reuseRequestWithEmptyEntity() {
     http:Response|error response = reuseRequestClient->get("/reuseObj/request_with_empty_entity");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
@@ -304,7 +304,7 @@ function reuseRequestWithEmptyEntity() {
 @test:Config {}
 function twoRequestsSameEntity() {
     http:Response|error response = reuseRequestClient->get("/reuseObj/two_request_same_entity");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
@@ -316,7 +316,7 @@ function twoRequestsSameEntity() {
 @test:Config {}
 function sameRequestWithADatasource() {
     http:Response|error response = reuseRequestClient->get("/reuseObj/request_with_datasource");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!Hello from POST!");
@@ -329,7 +329,7 @@ function sameRequestWithADatasource() {
 @test:Config {enable:false}
 function sameRequestWithByteChannel() {
     http:Response|error response = reuseRequestClient->post("/reuseObj/request_with_bytechannel", "Hello from POST!");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!No content");
@@ -341,7 +341,7 @@ function sameRequestWithByteChannel() {
 @test:Config {}
 function sameRequestWithByteStream() {
     http:Response|error response = reuseRequestClient->post("/reuseObj/request_with_byteStream", "Hello from POST!");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!No content");

@@ -125,7 +125,7 @@ json responseMessage = {"ABC Bank":{Address:"111 River Oaks Pkwy, San Jose, CA 9
 @test:Config {}
 function testServiceChaining() {
     http:Response|error response = serviceChainingClient->post("/ABCBank/locator", requestMessage);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseMessage);

@@ -237,7 +237,7 @@ service /response on responseEp {
         json jsonStr = {lang:value};
         res.setJsonPayload(jsonStr);
         var returnResult = res.getJsonPayload();
-        if (returnResult is error) {
+        if returnResult is error {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
@@ -250,7 +250,7 @@ service /response on responseEp {
         http:Response res = new;
         res.setTextPayload(valueStr);
         var returnResult = res.getTextPayload();
-        if (returnResult is error) {
+        if returnResult is error {
             res.setTextPayload("Error occurred");
             res.statusCode =500;
         } else {
@@ -264,7 +264,7 @@ service /response on responseEp {
         xml xmlStr = xml `<name>ballerina</name>`;
         res.setXmlPayload(xmlStr);
         var returnResult = res.getXmlPayload();
-        if (returnResult is error) {
+        if returnResult is error {
             res.setTextPayload("Error occurred");
             res.statusCode =500;
         } else {
@@ -340,7 +340,7 @@ function testResponseServiceAddHeader() {
     string value = "ballerina";
     string path = "/response/addheader/" + key + "/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {lang:"ballerina"});
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -353,7 +353,7 @@ function testResponseServiceGetHeader() {
     string value = "test-header-value";
     string path = "/response/getHeader/" + "test-header-name" + "/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {value: value});
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -366,7 +366,7 @@ function testResponseServiceGetJsonPayload() {
     string value = "ballerina";
     string path = "/response/getJsonPayload/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), value);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -379,7 +379,7 @@ function testResponseServiceGetTextPayload() {
     string value = "ballerina";
     string path = "/response/GetTextPayload/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), value);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -392,7 +392,7 @@ function testResponseServiceGetXmlPayload() {
     string value = "ballerina";
     string path = "/response/GetXmlPayload";
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), value);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -412,7 +412,7 @@ function testResponseServiceRemoveHeader() {
     string value = "x-www-form-urlencoded";
     string path = "/response/RemoveHeader/Content-Type/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -424,7 +424,7 @@ function testResponseServiceRemoveHeader() {
 function testResponseServiceRemoveAllHeaders() {
     string path = "/response/RemoveAllHeaders";
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -443,7 +443,7 @@ function testSetReasonPhase() {
     string phase = "ballerina";
     string path = "/response/twelve/" + phase;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.reasonPhrase, phase);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -454,7 +454,7 @@ function testSetReasonPhase() {
 function testSetStatusCode() {
     string path = "/response/thirteen";
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 203);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());

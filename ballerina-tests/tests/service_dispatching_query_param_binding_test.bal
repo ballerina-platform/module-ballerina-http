@@ -87,14 +87,14 @@ service /queryparamservice on QueryBindingEP {
 @test:Config {}
 function testStringQueryBinding() {
     http:Response|error response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=56");
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {value1:"WSO2", value2:56});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = queryBindingClient->get("/queryparamservice?foo=bal&bar=12");
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {value1:"bal", value2:12});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -105,7 +105,7 @@ function testStringQueryBinding() {
 @test:Config {}
 function testNegativeStringQueryBindingCaseSensitivity() {
     http:Response|error response = queryBindingClient->get("/queryparamservice/?FOO=WSO2&bar=go");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "no query param value found for 'foo'");
     } else {
@@ -116,7 +116,7 @@ function testNegativeStringQueryBindingCaseSensitivity() {
 @test:Config {}
 function testNegativeIntQueryBindingCastingError() {
     http:Response|error response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=go");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500);
         assertTextPayload(response.getTextPayload(), "Error in casting query param : For input string: \"go\"");
     } else {
@@ -129,7 +129,7 @@ function testAllTypeQueryBinding() {
     http:Response|error response = queryBindingClient->get(
         "/queryparamservice/q1?id=324441&isPresent=true&dc=5.67&PersoN=hello&val=1.11");
     json expected = {iValue:324441, sValue:"hello", fValue: 1.11, bValue: true, dValue: 5.67};
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -139,7 +139,7 @@ function testAllTypeQueryBinding() {
         "/queryparamservice/q1?id=5652,324441,652&isPresent=false,true,false&dc=4.78,5.67,2.34" +
         "&PersoN=no,hello,gool&val=53.9,1.11,43.9");
     expected = {iValue:5652, sValue:"no", fValue: 53.9, bValue: false, dValue: 4.78 };
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -152,7 +152,7 @@ function testAllTypeArrQueryBinding() {
         "/queryparamservice/q2?id=324441,5652&isPresent=true,false&PersoN=hello,gool&val=1.11,53.9&dc=4.78,5.67");
     json expected = {iValue:[324441, 5652], sValue:["hello", "gool"], fValue:[1.11, 53.9],
             bValue:[true, false], dValue:[4.78, 5.67]};
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -163,7 +163,7 @@ function testAllTypeArrQueryBinding() {
 function testNilableAllTypeQueryBinding() {
     http:Response|error response = queryBindingClient->get("/queryparamservice/q3");
     json expected = {iValue: null, sValue: null, fValue: null, bValue: null, dValue: null};
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -173,7 +173,7 @@ function testNilableAllTypeQueryBinding() {
         "/queryparamservice/q3?id=5652,324441,652&isPresent=false,true,false&dc=4.78,5.67" +
         "&PersoN=no,hello,gool&val=53.9,1.11,43.9");
     expected = {iValue:5652, sValue:"no", fValue: 53.9, bValue: false, dValue: 4.78};
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -184,7 +184,7 @@ function testNilableAllTypeQueryBinding() {
 function testNilableAllTypeQueryArrBinding() {
     http:Response|error response = queryBindingClient->get("/queryparamservice/q4?ID=8?lang=bal");
     json expected = {iValue: null, sValue: null, fValue: null, bValue: null, dValue: null};
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -194,7 +194,7 @@ function testNilableAllTypeQueryArrBinding() {
         "/queryparamservice/q4?id=324441,5652&isPresent=true,false&PersoN=hello,gool&val=1.11,53.9&dc=4.78,5.67");
     expected = {iValue:[324441, 5652], sValue:["hello", "gool"], fValue:[1.11, 53.9],
             bValue:[true, false], dValue:[4.78, 5.67]};
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -32,7 +32,7 @@ service /connectionNativeHello on connectionNativeTestEP {
 @test:Config {}
 function testRedirect() {
     http:Response|error response = connectionNativeClient->get("/connectionNativeHello/redirect");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 301, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader("Location"), "location1");
     } else {

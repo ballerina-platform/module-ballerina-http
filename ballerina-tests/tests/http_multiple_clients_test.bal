@@ -31,7 +31,7 @@ service /globalClientTest on multipleClientListener1 {
 
     resource function get h1(http:Caller caller, http:Request req) {
         http:Response|error response = h1Client->post("/backend", "HTTP/1.1 request");
-        if (response is http:Response) {
+        if response is http:Response {
             checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error in client post - HTTP/1.1");
@@ -40,7 +40,7 @@ service /globalClientTest on multipleClientListener1 {
 
     resource function get h2(http:Caller caller, http:Request req) {
         http:Response|error response = h2WithPriorKnowledgeClient->post("/backend", "HTTP/2 with prior knowledge");
-        if (response is http:Response) {
+        if response is http:Response {
             checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error in client post - HTTP/2");
@@ -68,7 +68,7 @@ service /backend on multipleClientListener2 {
 @test:Config {}
 function testH1Client() {
     http:Response|error response = multipleClientTestClient->get("/globalClientTest/h1");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Connection and upgrade headers are not present--HTTP/1.1 request--1.1");
@@ -80,7 +80,7 @@ function testH1Client() {
 @test:Config {}
 function testH2Client() {
     http:Response|error response = multipleClientTestClient->get("/globalClientTest/h2");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Connection and upgrade headers are not present--HTTP/2 with prior knowledge--2.0");

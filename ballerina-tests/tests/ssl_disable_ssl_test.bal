@@ -47,9 +47,9 @@ http:ClientConfiguration disableSslClientConf1 = {
 public function testSslDisabledClient1() {
     http:Client httpClient = checkpanic new("https://localhost:9238", disableSslClientConf1);
     http:Response|error resp = httpClient->get("/httpsService");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "hello world");
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());

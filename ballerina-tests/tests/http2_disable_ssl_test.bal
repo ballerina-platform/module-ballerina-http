@@ -33,7 +33,7 @@ listener http:Listener sslServerEp = new(9114, config = helloWorldEPConfig);
 service /hello on sslServerEp {
     resource function get .(http:Caller caller, http:Request req) {
         error? result = caller->respond("Hello World!");
-        if (result is error) {
+        if result is error {
             log:printError("Failed to respond", 'error = result);
         }
     }
@@ -50,7 +50,7 @@ http:ClientConfiguration sslDisabledConfig = {
 public function disableSslTest() {
     http:Client clientEP = checkpanic new("https://localhost:9114", sslDisabledConfig);
     http:Response|error resp = clientEP->get("/hello/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Hello World!");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());

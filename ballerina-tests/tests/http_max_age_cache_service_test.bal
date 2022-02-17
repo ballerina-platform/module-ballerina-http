@@ -24,9 +24,9 @@ service /maxAge on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) {
         http:Response|error response = maxAgeCacheEp->forward("/maxAgeBackend", req);
-        if (response is http:Response) {
+        if response is http:Response {
             json responsePayload;
-            if (response.hasHeader("cache-control")) {
+            if response.hasHeader("cache-control") {
                 responsePayload = checkpanic response.getHeader("cache-control");
                 checkpanic caller->respond(responsePayload);
             } else {
@@ -53,7 +53,7 @@ service /maxAgeBackend on cachingBackendListener {
         lock {
             count = maxAgehitcount;
         }
-        if (count < 1) {
+        if count < 1 {
             resCC.maxAge = 5;
             res.cacheControl = resCC;
             lock {
@@ -86,7 +86,7 @@ service /maxAgeBackend on cachingBackendListener {
 @test:Config {}
 function testMaxAgeCacheControl() {
     http:Response|error response = cachingProxyTestClient->get("/maxAge");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "public,max-age=5");
@@ -95,7 +95,7 @@ function testMaxAgeCacheControl() {
     }
 
     response = cachingProxyTestClient->get("/maxAge");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "public,max-age=5");
@@ -107,7 +107,7 @@ function testMaxAgeCacheControl() {
     runtime:sleep(5);
 
     response = cachingProxyTestClient->get("/maxAge");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {message:"after cache expiration"});

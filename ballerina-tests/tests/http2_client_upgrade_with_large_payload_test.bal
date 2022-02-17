@@ -15,25 +15,21 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
 import ballerina/test;
 
 final http:Client eP1 = check new("http://localhost:9106", { httpVersion: "2.0" });
 
 service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
 
-    resource function post echoResource(http:Caller caller, http:Request request) {
+    resource function post echoResource(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
-        var jsonPayload = request.getJsonPayload();
-        if (jsonPayload is json) {
-            response.setPayload(jsonPayload);
-            error? result = caller->respond(response);
-        } else {
-            log:printError("Error getting the json payload");
-        }
+        json jsonPayload = check request.getJsonPayload();
+        response.setPayload(jsonPayload);
+        check caller->respond(response);
+        return;
     }
 
-    resource function get initial(http:Caller caller, http:Request request) {
+    resource function get initial(http:Caller caller, http:Request request) returns error? {
         http:Request req = new;
         json jsonPayload = {
              "web-app":{
@@ -136,12 +132,8 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
              }
          };
         req.setPayload(jsonPayload);
-        http:Response|error finalResponse = eP1->post("/http2EchoService/echoResource", req);
-        if (finalResponse is error) {
-            log:printError("Error sending response", 'error = finalResponse);
-        } else {
-            error? result = caller->respond(finalResponse);
-        }
+        http:Response finalResponse = check eP1->post("/http2EchoService/echoResource", req);
+        check caller->respond(finalResponse);
     }
 }
 
@@ -187,7 +179,7 @@ public function testClientUpgradewithLargePayload() {
                         + "\"cofaxCDS\":\"/\", \"cofaxEmail\":\"/cofaxutil/aemail/*\", \"cofaxAdmin\":\"/admin/*\", "
                         + "\"fileServlet\":\"/static/*\", \"cofaxTools\":\"/tools/*\"}, \"taglib\":{\"taglib-uri\":"
                         + "\"cofax.tld\", \"taglib-location\":\"/WEB-INF/tlds/cofax.tld\"}}}";
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), expectedPayload);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());

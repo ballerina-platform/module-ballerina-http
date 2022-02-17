@@ -329,7 +329,7 @@ function jsonTest() {
     request.setHeader("content-type", "application/json");
     request.setPayload({test: "菜鸟驿站"});
     http:Response|error response = entityClient->post(path, request);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {test: "菜鸟驿站"});
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());

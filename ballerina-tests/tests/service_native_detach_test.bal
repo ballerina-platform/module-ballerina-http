@@ -30,7 +30,7 @@ service /mock1 on serviceDetachTestEP {
             checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
         }
         error? responseToCaller = caller->respond("Mock1 invoked. Mock2 attached. Mock3 attached");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -45,7 +45,7 @@ isolated http:Service mock2 = service object {
             checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
         }
         error? responseToCaller = caller->respond("Mock2 resource was invoked");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -60,7 +60,7 @@ isolated http:Service mock3 = service object {
             checkpanic serviceDetachTestEP.attach(mock4, "/mock4");
         }
         error? responseToCaller = caller->respond("Mock3 invoked. Mock2 detached. Mock4 attached");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -75,7 +75,7 @@ isolated http:Service mock4 = service object {
             checkpanic serviceDetachTestEP.detach(mock5);
         }
         error? responseToCaller = caller->respond("Mock4 invoked. Mock2 attached");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -84,7 +84,7 @@ isolated http:Service mock4 = service object {
 isolated http:Service mock5 = service object {
     resource function get mock5Resource(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock5 invoked");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -94,7 +94,7 @@ isolated http:Service mock5 = service object {
 @test:Config {}
 function testServiceDetach() {
     http:Response|error response = serviceDetachClient->get("/mock1");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock1 invoked. Mock2 attached. Mock3 attached");
     } else {
@@ -103,7 +103,7 @@ function testServiceDetach() {
 
     //Invoke recently attached mock2 services. Test detaching and re attaching mock3 service
     response = serviceDetachClient->get("/mock2/mock2Resource");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock2 resource was invoked");
     } else {
@@ -112,7 +112,7 @@ function testServiceDetach() {
 
     //Invoke recently attached mock3 service. That detached the mock2 service and attach mock3
     response = serviceDetachClient->get("/mock3/mock3Resource");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock3 invoked. Mock2 detached. Mock4 attached");
     } else {
@@ -121,7 +121,7 @@ function testServiceDetach() {
 
     //Invoke detached mock2 services expecting a 404
     response = serviceDetachClient->get("/mock2/mock2Resource");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching service found for path : /mock2/mock2Resource");
     } else {
@@ -130,7 +130,7 @@ function testServiceDetach() {
 
     //Invoke mock3 services again expecting a error for re-attaching already available service
     response = serviceDetachClient->get("/mock3/mock3Resource");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
             "Service registration failed: two services have the same basePath : '/mock4'");
@@ -140,7 +140,7 @@ function testServiceDetach() {
 
     //Invoke mock4 service. mock2 service is re attached
     response = serviceDetachClient->get("/mock4/mock4Resource");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock4 invoked. Mock2 attached");
     } else {
@@ -149,7 +149,7 @@ function testServiceDetach() {
 
     //Invoke recently re-attached mock2 services
     response = serviceDetachClient->get("/mock2/mock2Resource");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Mock2 resource was invoked");
     } else {

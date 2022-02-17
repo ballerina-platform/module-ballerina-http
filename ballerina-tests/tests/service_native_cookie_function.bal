@@ -28,7 +28,7 @@ function testAddCookieToCookieStore1() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
     var result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -44,7 +44,7 @@ function testAddCookieToCookieStore2() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
     var result = cookieStore.addCookie(cookie1, cookieConfig, "http://mail.google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -60,7 +60,7 @@ function testAddCookieToCookieStore3() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample");
     http:CookieConfig cookieConfig = { enabled: true };
     var result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -76,7 +76,7 @@ function testAddCookieToCookieStore4() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
     var result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -92,7 +92,7 @@ function testAddCookieToCookieStore5() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/mail", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
     var result = cookieStore.addCookie(cookie1, cookieConfig, "http://mail.google.com", "/mail/inbox");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -108,7 +108,7 @@ function testAddThirdPartyCookieToCookieStore() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/home", domain = "ad.doubleclick.net");
     http:CookieConfig cookieConfig = { enabled: true, blockThirdPartyCookies:false };
     var result = cookieStore.addCookie(cookie1, cookieConfig, "http://mail.google.com", "/mail/inbox");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -141,11 +141,11 @@ function testAddSimilarCookieToCookieStore() {
     http:Cookie cookie2 = new("SID002", "6789mnmsddd34", path = "/sample", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
     var result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     result = cookieStore.addCookie(cookie2, cookieConfig, "http://google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -165,31 +165,31 @@ function testAddCookiesConcurrentlyToCookieStore() returns error? {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     worker w1 {
         http:CookieStore? localCookieStore = cookieStore;
-        if (localCookieStore is http:CookieStore) {
+        if localCookieStore is http:CookieStore {
             localCookieStore.addCookies(cookiesToadd, cookieConfig, "http://google.com", "/sample");
         }
     }
     worker w2 {
         http:CookieStore? localCookieStore = cookieStore;
-        if (localCookieStore is http:CookieStore) {
+        if localCookieStore is http:CookieStore {
             localCookieStore.addCookies(cookiesToadd, cookieConfig, "http://google.com", "/sample");
         }
     }
     worker w3 {
         http:CookieStore? localCookieStore = cookieStore;
-        if (localCookieStore is http:CookieStore) {
+        if localCookieStore is http:CookieStore {
             localCookieStore.addCookies(cookiesToadd, cookieConfig, "http://google.com", "/sample");
         }
     }
     worker w4 {
         http:CookieStore? localCookieStore = cookieStore;
-        if (localCookieStore is http:CookieStore) {
+        if localCookieStore is http:CookieStore {
             localCookieStore.addCookies(cookiesToadd, cookieConfig, "http://google.com", "/sample");
         }
     }
     _ = wait {w1, w2, w3, w4};
     http:Cookie[] cookies = [];
-    if (cookieStore is http:CookieStore) {
+    if cookieStore is http:CookieStore {
         cookies = cookieStore.getAllCookies();
     }
     // Gets all the cookies.
@@ -307,7 +307,7 @@ function testRemoveCookieFromCookieStore() returns error? {
     http:CookieConfig cookieConfig = { enabled: true };
     _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
     var result = cookieStore.removeCookie("SID002", "google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -328,12 +328,12 @@ function testRemoveAllCookiesInCookieStore() returns error? {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     boolean|error validCookie1 = cookie1.isValid();
     boolean|error validCookie2 = cookie2.isValid();
-    if (cookieStore is http:CookieStore && validCookie1 is boolean &&
-        validCookie1 && validCookie2 is boolean && validCookie2) {
+    if cookieStore is http:CookieStore && validCookie1 is boolean &&
+        validCookie1 && validCookie2 is boolean && validCookie2 {
         var result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
         result = cookieStore.addCookie(cookie2, cookieConfig, "http://google.com", "/sample");
         result = cookieStore.removeAllCookies();
-        if (result is error) {
+        if result is error {
             io:println(result);
         }
         cookies = cookieStore.getAllCookies();
@@ -353,7 +353,7 @@ function testAddPersistentCookieToCookieStore() returns error? {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
-    if (cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1) {
+    if cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1 {
         _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
         cookies = cookieStore.getAllCookies();
     }
@@ -373,7 +373,7 @@ function testAddPersistentCookieToCookieStore_2() returns error? {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
-    if (cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1) {
+    if cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1 {
         _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
         cookies = cookieStore.getAllCookies();
     }
@@ -393,7 +393,7 @@ function testGetPersistentCookieFromCookieStore() returns error? {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
-    if (cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1) {
+    if cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1 {
         _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
         cookies = cookieStore.getCookies("http://google.com", "/sample");
     }
@@ -413,10 +413,10 @@ function testRemovePersistentCookieFromCookieStore() returns error? {
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
-    if (cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1) {
+    if cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1 {
         var result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
         result = cookieStore.removeCookie("SID002", "google.com", "/sample");
-        if (result is error) {
+        if result is error {
             io:println(result);
         }
         cookies = cookieStore.getAllCookies();
@@ -467,7 +467,7 @@ function testRemoveCookiesByDomain() returns error? {
     _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
     _ = check cookieStore.addCookie(cookie2, cookieConfig, "http://google.com", "/sample");
     var removeResult = cookieStore.removeCookiesByDomain("google.com");
-    if (removeResult is error) {
+    if removeResult is error {
         io:println(removeResult);
     }
     http:Cookie[] cookies = cookieStore.getAllCookies();

@@ -68,9 +68,9 @@ final http:FailoverClient foStatusCodesEP03 = check new({
 service /failoverDemoService03 on failoverEP03 {
     resource function 'default invokeAllFailureEndpoint03(http:Caller caller, http:Request request) {
         http:Response|error backendRes = foBackendEP03->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -78,7 +78,7 @@ service /failoverDemoService03 on failoverEP03 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -86,9 +86,9 @@ service /failoverDemoService03 on failoverEP03 {
 
     resource function 'default invokeAllFailureEndpoint(http:Caller caller, http:Request request) {
         http:Response|error backendRes = foBackendFailureEP03->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -96,7 +96,7 @@ service /failoverDemoService03 on failoverEP03 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -104,9 +104,9 @@ service /failoverDemoService03 on failoverEP03 {
 
     resource function 'default invokeAllFailureStatusCodesEndpoint(http:Caller caller, http:Request request) {
         http:Response|error backendRes = foStatusCodesEP03->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -114,7 +114,7 @@ service /failoverDemoService03 on failoverEP03 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -123,10 +123,10 @@ service /failoverDemoService03 on failoverEP03 {
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP03.getSucceededEndpointIndex().toString();
         http:Response|error backendRes = foBackendEP03->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             string responseMessage = "Failover start index is : " + startIndex;
             error? responseToCaller = caller->respond(responseMessage);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -134,7 +134,7 @@ service /failoverDemoService03 on failoverEP03 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -147,7 +147,7 @@ service /echo03 on backendEP03 {
         // Delay the response for 30000 milliseconds to mimic network level delays.
         runtime:sleep(30);
         error? responseToCaller = caller->respond("echo Resource is invoked");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -162,23 +162,23 @@ service /mock03 on backendEP03 {
             counter03 += 1;
             count = counter03;
         }
-        if (count % 5 == 0) {
+        if count % 5 == 0 {
             runtime:sleep(30);
         }
         http:Response response = new;
-        if (req.hasHeader(mime:CONTENT_TYPE)
+        if req.hasHeader(mime:CONTENT_TYPE
             && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
             var mimeEntity = req.getBodyParts();
-            if (mimeEntity is error) {
+            if mimeEntity is error {
                 log:printError(mimeEntity.message());
                 response.setPayload("Error in decoding multiparts!");
                 response.statusCode = 500;
             } else {
                 foreach var bodyPart in mimeEntity {
-                    if (bodyPart.hasHeader(mime:CONTENT_TYPE)
+                    if bodyPart.hasHeader(mime:CONTENT_TYPE)
                         && bodyPart.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
                         var nestedMimeEntity = bodyPart.getBodyParts();
-                        if (nestedMimeEntity is error) {
+                        if nestedMimeEntity is error {
                             log:printError(nestedMimeEntity.message());
                             response.setPayload("Error in decoding nested multiparts!");
                             response.statusCode = 500;
@@ -209,7 +209,7 @@ service /mock03 on backendEP03 {
         }
 
         error? responseToCaller = caller->respond(response);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -222,7 +222,7 @@ service /failureStatusCodeService03 on backendEP03 {
         outResponse.statusCode = 503;
         outResponse.setPayload("Failure status code scenario");
         error? responseToCaller = caller->respond(outResponse);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -235,7 +235,7 @@ function testAllEndpointFailure() {
                 "Idle timeout triggered before initiating inbound response";
     http:Client testClient = checkpanic new("http://localhost:9303");
     http:Response|error response = testClient->post("/failoverDemoService03/invokeAllFailureEndpoint", requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), expectedMessage);

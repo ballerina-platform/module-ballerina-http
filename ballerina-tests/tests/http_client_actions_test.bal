@@ -106,13 +106,13 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
     }
 
     // withWhitespacedExpression
-    resource function 'default [string id](http:Caller caller, http:Request request) {
-        error? res = caller->respond(id);
+    resource function 'default [string id](http:Caller caller, http:Request request) returns error? {
+        check caller->respond(id);
     }
 
     // withWhitespacedLiteral
-    resource function 'default a/b\ c/d(http:Caller caller, http:Request request) {
-        error? res = caller->respond("dispatched to white_spaced literal");
+    resource function 'default a/b\ c/d(http:Caller caller, http:Request request) returns error? {
+        check caller->respond("dispatched to white_spaced literal");
     }
 }
 
@@ -162,7 +162,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         string value = "";
         //No Payload
         http:Response|error clientResponse = clientEP2->post("/httpClientActionBE/directPayload", ());
-        if (clientResponse is http:Response) {
+        if clientResponse is http:Response {
             var returnValue = clientResponse.getTextPayload();
             if (returnValue is string) {
                 value = returnValue;
@@ -410,21 +410,19 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
 
     resource function get testPathWithWhitespacesForLiteral(http:Caller caller) returns error? {
         http:Response response = check clientEP2->get("/httpClientActionBE/a/b c/d ");
-        error? res = caller->respond( response);
-        return;
+        check caller->respond( response);
     }
 
     resource function get testClientPathWithWhitespacesForExpression(http:Caller caller) returns error? {
         http:Response response = check clientEP2->get("/httpClientActionBE/dispatched to white_spaced expression ");
-        error? res = caller->respond( response);
-        return;
+        check caller->respond( response);
     }
 }
 
 @test:Config {}
 function testGetAction() {
     http:Response|error response = httpClientActionClient->get("/clientGet");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "HelloHelloHello");
@@ -436,7 +434,7 @@ function testGetAction() {
 @test:Config {}
 function testPostAction() {
     http:Response|error response = httpClientActionClient->get("/clientPostWithoutBody");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No content");
@@ -448,7 +446,7 @@ function testPostAction() {
 @test:Config {}
 function testPostActionWithBody() {
     http:Response|error response = httpClientActionClient->get("/clientPostWithBody");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample TextSample Xml{\"name\":\"apple\", \"color\":\"red\"}");
@@ -460,7 +458,7 @@ function testPostActionWithBody() {
 @test:Config {}
 function testPostWithBlob() {
     http:Response|error response = httpClientActionClient->get("/handleBinary");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
@@ -473,7 +471,7 @@ function testPostWithBlob() {
 @test:Config {enable:false}
 function testPostWithByteChannel() {
     http:Response|error response = httpClientActionClient->post("/handleByteChannel", "Sample Text");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
@@ -485,7 +483,7 @@ function testPostWithByteChannel() {
 @test:Config {}
 function testPostWithByteStream() {
     http:Response|error response = httpClientActionClient->post("/handleByteStream", "Sample Text");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
@@ -497,7 +495,7 @@ function testPostWithByteStream() {
 @test:Config {}
 function testPostWithByteStreamToText() {
     http:Response|error response = httpClientActionClient->post("/handleByteStreamToText", "Sample Text");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
@@ -509,7 +507,7 @@ function testPostWithByteStreamToText() {
 @test:Config {}
 function testPostWithTextToByteStream() {
     http:Response|error response = httpClientActionClient->post("/handleTextToByteStream", "Sample Text");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
@@ -521,7 +519,7 @@ function testPostWithTextToByteStream() {
 @test:Config {}
 function testPostWithBodyParts() {
     http:Response|error response = httpClientActionClient->get("/handleMultiparts");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"name\":\"wso2\"}Hello");
@@ -534,7 +532,7 @@ function testPostWithBodyParts() {
 @test:Config {}
 function testPostWithStringJson() {
     http:Response|error response = httpClientActionClient->get("/handleStringJson");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "\"a\\nb\\n\"");
@@ -547,7 +545,7 @@ function testPostWithStringJson() {
 @test:Config {}
 function testPostWithTextAndJsonContent() {
     http:Response|error response = httpClientActionClient->get("/handleTextAndJsonContent");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
@@ -560,7 +558,7 @@ function testPostWithTextAndJsonContent() {
 @test:Config {}
 function testPostWithTextAndXmlContent() {
     http:Response|error response = httpClientActionClient->get("/handleTextAndXmlContent");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
@@ -573,7 +571,7 @@ function testPostWithTextAndXmlContent() {
 @test:Config {}
 function testPostWithTextAndJsonAlternateContent() {
     http:Response|error response = httpClientActionClient->get("/handleTextAndJsonAlternateContent");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "\"a\\nb\\n\"");
@@ -586,7 +584,7 @@ function testPostWithTextAndJsonAlternateContent() {
 @test:Config {}
 function testPostWithStringJsonAlternate() {
     http:Response|error response = httpClientActionClient->get("/handleStringJsonAlternate");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "a\nb\n");
@@ -599,7 +597,7 @@ function testPostWithStringJsonAlternate() {
 @test:Config {}
 function testClientPathWithWhitespaces() {
     http:Response|error response = httpClientActionClient->get("/testPathWithWhitespacesForLiteral");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "dispatched to white_spaced literal");
@@ -608,7 +606,7 @@ function testClientPathWithWhitespaces() {
     }
 
     response = httpClientActionClient->get("/testClientPathWithWhitespacesForExpression");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "dispatched to white_spaced expression");

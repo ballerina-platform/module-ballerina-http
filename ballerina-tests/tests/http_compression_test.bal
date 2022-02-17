@@ -65,7 +65,7 @@ service /userOverridenValue on compressionAnnotListenerEP {
 @test:Config {}
 function testCompressionAnnotAutoCompress() {
     http:Response|error response = compressionAnnotClient->get("/autoCompress");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
@@ -79,7 +79,7 @@ function testCompressionAnnotAutoCompress() {
 @test:Config {enable: false}
 function testCompressionAnnotAutoCompressWithAcceptEncoding() {
     http:Response|error response = compressionAnnotClient->get("/autoCompress", {[ACCEPT_ENCODING]:[ENCODING_GZIP]});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
@@ -92,7 +92,7 @@ function testCompressionAnnotAutoCompressWithAcceptEncoding() {
 @test:Config {}
 function testAcceptEncodingWithQValueZero() {
     http:Response|error response = compressionAnnotClient->get("/autoCompress", {[ACCEPT_ENCODING]:"gzip;q=0"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
@@ -106,7 +106,7 @@ function testAcceptEncodingWithQValueZero() {
 @test:Config {enable: false}
 function testCompressionAnnotAlwaysCompress() {
     http:Response|error response = compressionAnnotClient->get("/alwaysCompress");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
@@ -120,7 +120,7 @@ function testCompressionAnnotAlwaysCompress() {
 @test:Config {enable: false}
 function testCompressionAnnotAlwaysCompressWithAcceptEncoding() {
     http:Response|error response = compressionAnnotClient->get("/alwaysCompress", {[ACCEPT_ENCODING]:"deflate;q=1.0, gzip;q=0.8"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
@@ -133,7 +133,7 @@ function testCompressionAnnotAlwaysCompressWithAcceptEncoding() {
 @test:Config {}
 function testCompressionAnnotNeverCompress() {
     http:Response|error response = compressionAnnotClient->get("/neverCompress");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
@@ -146,7 +146,7 @@ function testCompressionAnnotNeverCompress() {
 @test:Config {}
 function testCompressionAnnotNeverCompressWithAcceptEncoding() {
     http:Response|error response = compressionAnnotClient->get("/neverCompress", {[ACCEPT_ENCODING]:"deflate;q=1.0, gzip;q=0.8"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
@@ -160,7 +160,7 @@ function testCompressionAnnotNeverCompressWithAcceptEncoding() {
 @test:Config {enable: false}
 function testCompressionAnnotNeverCompressWithUserOverridenValue() {
     http:Response|error response = compressionAnnotClient->get("/userOverridenValue", {[ACCEPT_ENCODING]:"deflate;q=1.0, gzip;q=0.8"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);

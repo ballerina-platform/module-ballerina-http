@@ -35,9 +35,9 @@ service "//url" on httpUrlListenerEP1  {
     resource function get .(http:Caller caller, http:Request request) {
         string value = "";
         http:Response|error response = urlClient->get("//test");
-        if (response is http:Response) {
+        if response is http:Response {
             var result = response.getTextPayload();
-            if (result is string) {
+            if result is string {
                 value = result;
             } else {
                 value = result.message();
@@ -51,7 +51,7 @@ service "//url" on httpUrlListenerEP1  {
 @test:Config {}
 function testUrlDoubleSlash() {
     http:Response|error response = httpUrlClient->get("/url");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
@@ -64,7 +64,7 @@ function testUrlDoubleSlash() {
 function testResourcePathWithoutStartingSlash() returns error? {
     http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/");
     http:Response|error response = httpUrlClient->get("url");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
@@ -78,7 +78,7 @@ function testResourcePathWithoutStartingSlash() returns error? {
 function testResourcePathWithEmptyPath() returns error? {
     http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url/");
     http:Response|error response = httpUrlClient->get("");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
@@ -93,7 +93,7 @@ function testResourcePathWithEmptyPath() returns error? {
 function testResourcePathWithQueryParam() returns error? {
     http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url");
     http:Response|error response = httpUrlClient->get("?abc=go&xyz=no");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
@@ -107,7 +107,7 @@ function testResourcePathWithQueryParam() returns error? {
 function testResourcePathWithFragmentParam() returns error? {
     http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url");
     http:Response|error response = httpUrlClient->get("#foo");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
@@ -121,7 +121,7 @@ function testResourcePathWithFragmentParam() returns error? {
 function testResourcePathNegative() returns error? {
     http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString());
     http:Response|error response = httpUrlClient->get("url");
-    if (response is error) {
+    if response is error {
         test:assertEquals(response.message(),
             "client method invocation failed: malformed URL specified. Error at index 4 in: \"9521url\"");
     } else {
@@ -133,7 +133,7 @@ function testResourcePathNegative() returns error? {
 @test:Config {}
 function testResourcePath404Negative() returns error? {
     http:Response|error response = urlClient->get("test");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "no matching service found for path : /urltest");
     } else {

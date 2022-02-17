@@ -26,7 +26,7 @@ function testAddCookieWithUnmatchedDomain() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "foo.example.com");
     http:CookieConfig cookieConfig = { enabled: true };
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://bar.example.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -41,7 +41,7 @@ function testAddCookieWithUnmatchedPath() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/mail/inbox", domain = "example.com");
     http:CookieConfig cookieConfig = { enabled: true };
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://example.com", "/mail");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     http:Cookie[] cookies = cookieStore.getAllCookies();
@@ -57,11 +57,11 @@ function testAddSimilarCookie() {
     http:Cookie cookie2 = new("SID002", "6789mnmsddd34", path = "/sample", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     result = cookieStore.addCookie(cookie2, cookieConfig, "google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     http:Cookie[] cookies = cookieStore.getAllCookies();
@@ -77,7 +77,7 @@ function testAddHttpOnlyCookie() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", httpOnly = true);
     http:CookieConfig cookieConfig = { enabled: true };
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     http:Cookie[] cookies = cookieStore.getAllCookies();
@@ -226,7 +226,7 @@ function testAddPersistentCookieWithoutPersistentStore() {
     boolean|error validCookie1 = cookie1.isValid();
     if (cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1) {
         error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-        if (result is error) {
+        if result is error {
             io:println(result);
         }
         cookies = cookieStore.getAllCookies();
@@ -268,7 +268,7 @@ function testRemovePersistentCookieFromCookieStore_2() {
     http:Cookie[] cookies = [];
     if (cookieStore is http:CookieStore) {
         error? result = cookieStore.removeCookie("SID003", "google.com", "/sample");
-        if (result is error) {
+        if result is error {
             io:println(result);
         }
         cookies = cookieStore.getAllCookies();
@@ -286,7 +286,7 @@ function testRemoveAllCookiesFromCookieStore() {
     http:Cookie[] cookies = [];
     if (cookieStore is http:CookieStore) {
         error? result = cookieStore.removeAllCookies();
-        if (result is error) {
+        if result is error {
             io:println(result);
         }
         cookies = cookieStore.getAllCookies();

@@ -761,7 +761,7 @@ isolated function getHeaders(Response response) returns map<string[]> {
     string[] headerKeys = response.getHeaderNames();
     foreach string key in headerKeys {
         string[]|HeaderNotFoundError values = response.getHeaders(key);
-        if (values is string[]) {
+        if values is string[] {
             headers[key] = values;
         }
     }

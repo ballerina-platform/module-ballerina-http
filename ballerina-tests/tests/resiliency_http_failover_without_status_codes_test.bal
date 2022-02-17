@@ -51,7 +51,7 @@ service / on new http:Listener(foClientWithoutStatusCodeTestPort2) {
 @test:Config {}
 function testFailoverWithoutStatusCodes() {
     http:Response|error response = foClientEP->get("/fo");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Mock Resource is Invoked.");

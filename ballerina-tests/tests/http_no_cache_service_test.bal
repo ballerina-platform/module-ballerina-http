@@ -27,7 +27,7 @@ service /cachingProxyService on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) {
         http:Response|error response = cachingEP1->forward("/nocachebackend", req);
-        if (response is http:Response) {
+        if response is http:Response {
             checkpanic caller->respond(response);
         } else {
             http:Response res = new;
@@ -48,7 +48,7 @@ service /nocacheBackend on cachingBackendListener {
         lock {
             count = nocachehitcount;
         }
-        if (count < 1) {
+        if count < 1 {
             nocachePayload = { "message": "1st response" };
         } else {
             nocachePayload = { "message": "2nd response" };
@@ -76,7 +76,7 @@ service /nocacheBackend on cachingBackendListener {
 @test:Config {}
 function testNoCacheCacheControl() {
     http:Response|error response = cachingProxyTestClient->get("/cachingProxyService");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
@@ -86,7 +86,7 @@ function testNoCacheCacheControl() {
     }
 
     response = cachingProxyTestClient->get("/cachingProxyService");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "2");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
@@ -96,7 +96,7 @@ function testNoCacheCacheControl() {
     }
 
     response = cachingProxyTestClient->get("/cachingProxyService");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "3");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);

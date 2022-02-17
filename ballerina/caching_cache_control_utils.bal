@@ -18,7 +18,7 @@ import ballerina/lang.'decimal;
 import ballerina/regex;
 
 isolated function appendFields (string[] fields) returns string {
-    if (fields.length() > 0) {
+    if fields.length() > 0 {
         return "=\"" + buildCommaSeparatedString(fields) + "\"";
     }
     return "";
@@ -40,12 +40,12 @@ isolated function getDirectiveValue (string directive) returns decimal {
     string[] directiveParts = regex:split(directive, "=");
 
     // Disregarding the directive if a value isn't provided
-    if (directiveParts.length() != 2) {
+    if directiveParts.length() != 2 {
         return -1;
     }
 
     var age = 'decimal:fromString(directiveParts[1]);
-    if (age is decimal) {
+    if age is decimal {
         return age;
     }
     return -1; // Disregarding the directive if the value cannot be parsed

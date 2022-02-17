@@ -57,7 +57,7 @@ service /multipart on mockEP2 {
         http:Response outResponse = new;
         var bodyParts = request.getBodyParts();
 
-        if (bodyParts is mime:Entity[]) {
+        if bodyParts is mime:Entity[] {
             outResponse.setBodyParts(bodyParts, contentType);
         } else {
             outResponse.setPayload(bodyParts.message());
@@ -69,30 +69,30 @@ service /multipart on mockEP2 {
 @test:Config {}
 function testMultipartsInOutResponse() {
     http:Response|error response = multipartRespClient->get("/multipart/encode_out_response");
-    if (response is http:Response) {
+    if response is http:Response {
         mime:Entity[]|error bodyParts = response.getBodyParts();
-        if (bodyParts is mime:Entity[]) {
+        if bodyParts is mime:Entity[] {
             test:assertEquals(bodyParts.length(), 4, msg = errorMessage);
             json|error jsonPart = bodyParts[0].getJson();
-            if (jsonPart is json) {
+            if jsonPart is json {
                test:assertEquals(jsonPart.toJsonString(), "{\"" + "bodyPart" + "\":\"" + "jsonPart" + "\"}");
             } else {
                test:assertFail(msg = errorMessage + jsonPart.message());
             }
             xml|error xmlPart = bodyParts[1].getXml();
-            if (xmlPart is xml) {
+            if xmlPart is xml {
                test:assertEquals(xmlPart.toString(), "<name>Ballerina xml file part</name>");
             } else {
                test:assertFail(msg = errorMessage + xmlPart.message());
             }
             string|error textPart = bodyParts[2].getText();
-            if (textPart is string) {
+            if textPart is string {
                test:assertEquals(textPart, "Ballerina text body part");
             } else {
                test:assertFail(msg = errorMessage + textPart.message());
             }
             stream<byte[], io:Error?>|error filePart = bodyParts[3].getByteStream();
-            if (filePart is error) {
+            if filePart is error {
                test:assertFail(msg = errorMessage + filePart.message());
             }
         } else {
@@ -108,9 +108,9 @@ function testNestedPartsInOutResponse() {
     http:Request request = new;
     request.setBodyParts(createNestedPartRequest(), contentType = mime:MULTIPART_FORM_DATA);
     http:Response|error response = multipartRespClient->post("/multipart/nested_parts_in_outresponse", request);
-    if (response is http:Response) {
+    if response is http:Response {
         mime:Entity[]|error bodyParts = response.getBodyParts();
-        if (bodyParts is mime:Entity[]) {
+        if bodyParts is mime:Entity[] {
             test:assertEquals(bodyParts.length(), 1, msg = errorMessage);
             string payload = "";
             int i = 0;

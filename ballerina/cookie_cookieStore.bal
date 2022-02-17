@@ -132,7 +132,7 @@ public isolated class CookieStore {
                     continue;
                 }
                 if cookie.hostOnly == true {
-                    if (cookie.domain == domain && checkPath(path, cookie)) {
+                    if cookie.domain == domain && checkPath(path, cookie) {
                         cookiesToReturn.push(cookie);
                     }
                 } else {
@@ -481,7 +481,7 @@ isolated function isFirstRequest(Cookie[] allSessionCookies, string domain) retu
 
 // Returns true if the cookie is expired according to the rules in [RFC-6265](https://tools.ietf.org/html/rfc6265#section-4.1.2.2).
 isolated function isExpired(Cookie cookie) returns boolean {
-    if (cookie.maxAge > 0) {
+    if cookie.maxAge > 0 {
         time:Utc expTime = time:utcAddSeconds(cookie.createdTime, <time:Seconds> cookie.maxAge);
         time:Utc curTime = time:utcNow();
         return (time:utcDiffSeconds(expTime, curTime) < 0d);

@@ -46,7 +46,7 @@ isolated http:Service testingService = service object {
 @test:Config {}
 function testConfiguringAService() {
     http:Response|error response = scClient->get("/schello/sayHello");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Service started!");
     } else {
@@ -54,7 +54,7 @@ function testConfiguringAService() {
     }
 
     response = scClient->get("/hello");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {

@@ -30,7 +30,7 @@ service /priorKnowledge on priorEp1 {
 
     resource function get 'on(http:Caller caller, http:Request req) {
         http:Response|error response = h2WithPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is enabled");
-        if (response is http:Response) {
+        if response is http:Response {
             checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error in client post with prior knowledge on");
@@ -39,7 +39,7 @@ service /priorKnowledge on priorEp1 {
 
     resource function get off(http:Caller caller, http:Request req) {
         http:Response|error response = h2WithoutPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is disabled");
-        if (response is http:Response) {
+        if response is http:Response {
             checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error in client post with prior knowledge off");
@@ -51,7 +51,7 @@ service /priorKnowledgeTestBackEnd on priorEp2 {
 
     resource function post .(http:Caller caller, http:Request req) {
         string outboundResponse = "";
-        if (req.hasHeader(http:CONNECTION) && req.hasHeader(http:UPGRADE)) {
+        if req.hasHeader(http:CONNECTION) && req.hasHeader(http:UPGRADE) {
             string[] connHeaders = checkpanic req.getHeaders(http:CONNECTION);
             outboundResponse = connHeaders[1];
             outboundResponse = outboundResponse + "--" + checkpanic req.getHeader(http:UPGRADE);
@@ -67,9 +67,8 @@ service /priorKnowledgeTestBackEnd on priorEp2 {
 @test:Config {}
 public function testPriorKnowledgeOn() {
     final http:Client clientEP = checkpanic new("http://localhost:9111");
-    http:Request req = new;
     http:Response|error resp = clientEP->get("/priorKnowledge/on");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Connection and upgrade headers are not present--Prior knowledge is enabled");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -80,7 +79,7 @@ public function testPriorKnowledgeOn() {
 public function testPriorKnowledgeOff() {
     final http:Client clientEP = checkpanic new("http://localhost:9111");
     http:Response|error resp = clientEP->get("/priorKnowledge/off");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "HTTP2-Settings,upgrade--h2c--Prior knowledge is disabled");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());

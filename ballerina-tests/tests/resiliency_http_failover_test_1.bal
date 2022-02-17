@@ -68,9 +68,9 @@ final http:FailoverClient foStatusCodesEP01 = check new({
 service /failoverDemoService01 on failoverEP01 {
     resource function 'default invokeAllFailureEndpoint01(http:Caller caller, http:Request request) {
         http:Response|error backendRes = foBackendEP01->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -78,7 +78,7 @@ service /failoverDemoService01 on failoverEP01 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -86,9 +86,9 @@ service /failoverDemoService01 on failoverEP01 {
 
     resource function 'default invokeAllFailureEndpoint(http:Caller caller, http:Request request) {
         http:Response|error backendRes = foBackendFailureEP01->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -96,7 +96,7 @@ service /failoverDemoService01 on failoverEP01 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -104,9 +104,9 @@ service /failoverDemoService01 on failoverEP01 {
 
     resource function 'default invokeAllFailureStatusCodesEndpoint(http:Caller caller, http:Request request) {
         http:Response|error backendRes = foStatusCodesEP01->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -114,7 +114,7 @@ service /failoverDemoService01 on failoverEP01 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -123,10 +123,10 @@ service /failoverDemoService01 on failoverEP01 {
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP01.getSucceededEndpointIndex().toString();
         http:Response|error backendRes = foBackendEP01->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             string responseMessage = "Failover start index is : " + startIndex;
             error? responseToCaller = caller->respond(responseMessage);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -134,7 +134,7 @@ service /failoverDemoService01 on failoverEP01 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -147,7 +147,7 @@ service /echo01 on backendEP01 {
         // Delay the response for 30000 milliseconds to mimic network level delays.
         runtime:sleep(30);
         error? responseToCaller = caller->respond("echo Resource is invoked");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -209,7 +209,7 @@ service /mock01 on backendEP01 {
         }
 
         error? responseToCaller = caller->respond(response);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -222,7 +222,7 @@ service /failureStatusCodeService01 on backendEP01 {
         outResponse.statusCode = 503;
         outResponse.setPayload("Failure status code scenario");
         error? responseToCaller = caller->respond(outResponse);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }

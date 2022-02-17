@@ -33,7 +33,7 @@ service /hello on dirtyResponseListener {
         lock {
             responseError = caller->respond(dirtyResponse);
         }
-        if (responseError is error) {
+        if responseError is error {
             lock {
                 dirtyErrorLog = responseError.message();
                 io:println(dirtyErrorLog);
@@ -50,14 +50,14 @@ function getSingletonResponse() returns http:Response {
 @test:Config {}
 function testDirtyResponse() {
     http:Response|error response = dirtyResponseTestClient->get("/hello");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = dirtyResponseTestClient->get("/hello");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Couldn't complete the respond operation as the response has" +

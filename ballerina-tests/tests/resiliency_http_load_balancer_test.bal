@@ -66,9 +66,9 @@ service /loadBalancerDemoService on new http:Listener(9313) {
     resource function 'default roundRobin(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
         http:Response|error response = lbBackendEP->post("/", requestPayload);
-        if (response is http:Response) {
+        if response is http:Response {
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -76,7 +76,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             outResponse.statusCode = 500;
             outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -85,9 +85,9 @@ service /loadBalancerDemoService on new http:Listener(9313) {
     resource function 'default lbFailover(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
         http:Response|error response = lbFailoverBackendEP->post("/", requestPayload);
-        if (response is http:Response) {
+        if response is http:Response {
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -95,7 +95,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             outResponse.statusCode = 500;
             outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -104,9 +104,9 @@ service /loadBalancerDemoService on new http:Listener(9313) {
     resource function 'default delayResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
         http:Response|error response = delayedBackendEP->post("/", requestPayload);
-        if (response is http:Response) {
+        if response is http:Response {
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -114,7 +114,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             outResponse.statusCode = 500;
             outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -123,9 +123,9 @@ service /loadBalancerDemoService on new http:Listener(9313) {
     resource function 'default customResource(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
         http:Response|error response = customLbBackendEP->post("/", requestPayload);
-        if (response is http:Response) {
+        if response is http:Response {
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -133,7 +133,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
             outResponse.statusCode = 500;
             outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -143,7 +143,7 @@ service /loadBalancerDemoService on new http:Listener(9313) {
 service /LBMock1 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock1 Resource is Invoked.");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -260,7 +260,7 @@ function testAllLbEndpointFailure() {
     string expectedMessage = "All the load balance endpoints failed. Last error was: Idle timeout triggered " +
                 "before initiating inbound response";
     http:Response|error response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), expectedMessage);

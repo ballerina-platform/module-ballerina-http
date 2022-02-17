@@ -57,7 +57,7 @@ service /'listener on callerActionListener {
 @test:Config {}
 function testNonBlockingRespondAction() {
     http:Response|error response = callerActionTestClient->get("/listener/respond");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "sample value");
@@ -73,7 +73,7 @@ function testExecutionAfterRespondAction() {
         test:assertEquals(globalLvlStr, "respond");
     }
     // http:Response|error response = callerActionTestClient->get("/listener/getChangedValue");
-    // if (response is http:Response) {
+    // if response is http:Response {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     //     assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     //     assertTextPayload(response.getTextPayload(), "respond");
@@ -85,7 +85,7 @@ function testExecutionAfterRespondAction() {
 @test:Config {dependsOn:[testExecutionAfterRespondAction]}
 function testNonBlockingRedirectAction() {
     http:Response|error response = callerActionTestClient->get("/listener/redirect");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 308, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -99,7 +99,7 @@ function testExecutionAfterRedirectAction() {
         test:assertEquals(globalLvlStr, "redirect");
     }
     // http:Response|error response = callerActionTestClient->get("/listener/getChangedValue");
-    // if (response is http:Response) {
+    // if response is http:Response {
     //     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     //     assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     //     assertTextPayload(response.getTextPayload(), "redirect");

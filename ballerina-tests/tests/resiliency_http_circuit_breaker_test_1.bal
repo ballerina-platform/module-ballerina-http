@@ -56,9 +56,9 @@ service /cb on circuitBreakerEP00 {
         lock {
             cbCounter += 1;
         }
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -66,7 +66,7 @@ service /cb on circuitBreakerEP00 {
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -87,7 +87,7 @@ service /hello on new http:Listener(8086) {
             runtime:sleep(3);
         }
         error? responseToCaller = caller->respond("Hello World!!!");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }

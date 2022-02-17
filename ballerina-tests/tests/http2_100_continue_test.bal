@@ -34,7 +34,7 @@ service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
         handleRespError(result);
         http:Response res = new;
         var payload = request.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             res.statusCode = 200;
             res.setPayload(payload);
             var result1 = caller->respond(res);
@@ -53,7 +53,7 @@ service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
     resource function get initial(http:Caller caller, http:Request req) {
         io:println("test100ContinueResource");
         http:Response|error response = h2Client->post("/helloWorld/abnormalResource", "100 continue response should be ignored by this client");
-        if (response is http:Response) {
+        if response is http:Response {
             checkpanic caller->respond(response);
         } else {
             checkpanic caller->respond("Error sending client request");
@@ -62,7 +62,7 @@ service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
 }
 
 function handleRespError(error? result) {
-    if (result is error) {
+    if result is error {
         log:printError(result.message(), 'error = result);
     }
 }
@@ -71,9 +71,9 @@ function handleRespError(error? result) {
 public function testUnexpected100ContinueResponse() {
     http:Client clientEP = checkpanic new("http://localhost:9128");
     http:Response|error resp = clientEP->get("/continueService/initial");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "100 continue response should be ignored by this client");
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());

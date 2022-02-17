@@ -30,7 +30,7 @@ service /contentBasedRouting on httpRoutingListenerEP {
         string nyseString = "nyse";
         var jsonMsg = req.getJsonPayload();
         string nameString = "";
-        if (jsonMsg is json) {
+        if jsonMsg is json {
             var tempName = jsonMsg.name;
             nameString = tempName is error ? tempName.toString() : tempName.toString();
         } else {
@@ -38,9 +38,9 @@ service /contentBasedRouting on httpRoutingListenerEP {
         }
         http:Request clientRequest = new;
         http:Response clientResponse = new;
-        if (nameString == nyseString) {
+        if nameString == nyseString {
             http:Response|error result = nyseEP2 -> post("/stocks", clientRequest);
-            if (result is http:Response) {
+            if result is http:Response {
                 checkpanic conn->respond(result);
             } else  {
                 clientResponse.statusCode = 500;
@@ -49,7 +49,7 @@ service /contentBasedRouting on httpRoutingListenerEP {
             }
         } else {
             http:Response|error result = nasdaqEP -> post("/stocks", clientRequest);
-            if (result is http:Response) {
+            if result is http:Response {
                 checkpanic conn->respond(result);
             } else {
                 clientResponse.statusCode = 500;
@@ -68,9 +68,9 @@ service /headerBasedRouting on httpRoutingListenerEP {
 
         http:Request clientRequest = new;
         http:Response clientResponse = new;
-        if (nameString == nyseString) {
+        if nameString == nyseString {
             http:Response|error result = nyseEP2 -> post("/stocks", clientRequest);
-            if (result is http:Response) {
+            if result is http:Response {
                 checkpanic caller->respond(result);
             } else {
                 clientResponse.statusCode = 500;
@@ -79,7 +79,7 @@ service /headerBasedRouting on httpRoutingListenerEP {
             }
         } else {
             http:Response|error result = nasdaqEP -> post("/stocks", clientRequest);
-            if (result is http:Response) {
+            if result is http:Response {
                 checkpanic caller->respond(result);
             } else {
                 clientResponse.statusCode = 500;
@@ -119,7 +119,7 @@ json responseNasdaqMessage = {exchange:"nasdaq", name:"IBM", value:"127.50"};
 @test:Config {}
 function testContentBaseRouting() {
     http:Response|error response = httpRoutingClient->post("/contentBasedRouting", requestNyseMessage);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNyseMessage);
@@ -128,7 +128,7 @@ function testContentBaseRouting() {
     }
 
     response = httpRoutingClient->post("/contentBasedRouting", requestNasdaqMessage);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNasdaqMessage);
@@ -141,7 +141,7 @@ function testContentBaseRouting() {
 @test:Config {}
 function testHeaderBaseRouting() {
     http:Response|error response = httpRoutingClient->get("/headerBasedRouting", {"name":"nyse"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNyseMessage);
@@ -150,7 +150,7 @@ function testHeaderBaseRouting() {
     }
 
     response = httpRoutingClient->get("/headerBasedRouting", {"name":"nasdaq"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNasdaqMessage);

@@ -38,7 +38,7 @@ isolated function parseSetCookieHeader(string cookieStringValue) returns Cookie 
             }
             MAX_AGE_ATTRIBUTE => {
                 int|error age = ints:fromString(nameValuePair[1]);
-                if (age is int) {
+                if age is int {
                     options.maxAge = age;
                 }
             }

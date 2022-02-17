@@ -33,7 +33,7 @@ service /frontendHttpService on serverPushFrontendEP {
         http:HttpFuture httpFuture = new;
         // Submit a request
         var submissionResult = backendClientEP->submit("GET", "/backendHttp2Service/main", serviceReq);
-        if (submissionResult is http:HttpFuture) {
+        if submissionResult is http:HttpFuture {
             httpFuture = submissionResult;
         } else {
             io:println("Error occurred while submitting a request");
@@ -50,7 +50,7 @@ service /frontendHttpService on serverPushFrontendEP {
             http:PushPromise pushPromise = new;
             // Get the next promise
             var nextPromiseResult = backendClientEP->getNextPromise(httpFuture);
-            if (nextPromiseResult is http:PushPromise) {
+            if nextPromiseResult is http:PushPromise {
                 pushPromise = nextPromiseResult;
             } else {
                 io:println("Error occurred while fetching a push promise");
@@ -66,7 +66,7 @@ service /frontendHttpService on serverPushFrontendEP {
             hasPromise = backendClientEP->hasPromise(httpFuture);
         }
         // By this time 3 promises should be received, if not send an error response
-        if (promiseCount != 3) {
+        if promiseCount != 3 {
             json errMsg = { "error": "expected number of promises not received" };
             checkpanic caller->respond(errMsg);
             return;
@@ -76,7 +76,7 @@ service /frontendHttpService on serverPushFrontendEP {
         // Get the requested resource
         http:Response response = new;
         var result = backendClientEP->getResponse(httpFuture);
-        if (result is http:Response) {
+        if result is http:Response {
             response = result;
         } else {
             io:println("Error occurred while fetching response");
@@ -87,7 +87,7 @@ service /frontendHttpService on serverPushFrontendEP {
 
         var responsePayload = response.getJsonPayload();
         json responseJsonPayload = {};
-        if (responsePayload is json) {
+        if responsePayload is json {
             responseJsonPayload = responsePayload;
         } else {
             json errMsg = { "error": "expected response message not received" };
@@ -96,7 +96,7 @@ service /frontendHttpService on serverPushFrontendEP {
         }
         // Check whether correct response received
         string responseStringPayload = responseJsonPayload.toString();
-        if (!(strings:includes(responseStringPayload, "main"))) {
+        if !(strings:includes(responseStringPayload, "main")) {
             json errMsg = { "error": "expected response message not received" };
             checkpanic caller->respond(errMsg);
             return;
@@ -108,7 +108,7 @@ service /frontendHttpService on serverPushFrontendEP {
             http:PushPromise promise = <http:PushPromise>p;
             http:Response promisedResponse = new;
             var promisedResponseResult = backendClientEP->getPromisedResponse(promise);
-            if (promisedResponseResult is http:Response) {
+            if promisedResponseResult is http:Response {
                 promisedResponse = promisedResponseResult;
             } else {
                 io:println("Error occurred while fetching promised response");
@@ -119,7 +119,7 @@ service /frontendHttpService on serverPushFrontendEP {
 
             json promisedJsonPayload = {};
             var promisedPayload = promisedResponse.getJsonPayload();
-            if (promisedPayload is json) {
+            if promisedPayload is json {
                 promisedJsonPayload = promisedPayload;
             } else {
                 json errMsg = { "error": "expected promised response not received" };
@@ -130,7 +130,7 @@ service /frontendHttpService on serverPushFrontendEP {
             // check whether expected
             string expectedVal = promise.path.substring(1, 10);
             string promisedStringPayload = promisedJsonPayload.toString();
-            if (!(strings:includes(promisedStringPayload, expectedVal))) {
+            if !(strings:includes(promisedStringPayload, expectedVal)) {
                 json errMsg = { "error": "expected promised response not received" };
                 checkpanic caller->respond(errMsg);
                 return;
@@ -202,7 +202,7 @@ service /backendHttp2Service on serverPushBackendEP {
 }
 function testPushPromise() {
     http:Response|error response = serverPushClient->get("/frontendHttpService");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {status:"successful"});

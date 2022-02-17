@@ -28,7 +28,7 @@ service /mustRevalidate on cachingProxyListener {
             numberOfProxyHits += 1;
         }
         http:Response|error response = cachingEP3->forward("/mustRevalidateBE", req);
-        if (response is http:Response) {
+        if response is http:Response {
             string value = "";
             lock {
                 value = numberOfProxyHits.toString();
@@ -75,7 +75,7 @@ service /mustRevalidateBE on cachingBackendListener {
 @test:Config {}
 function testMustRevalidateCacheControl() {
     http:Response|error response = cachingProxyTestClient->get("/mustRevalidate");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "1");
@@ -86,7 +86,7 @@ function testMustRevalidateCacheControl() {
     }
 
     response = cachingProxyTestClient->get("/mustRevalidate");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "2");
@@ -100,7 +100,7 @@ function testMustRevalidateCacheControl() {
     runtime:sleep(5);
 
     response = cachingProxyTestClient->get("/mustRevalidate");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "2");
         assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "3");

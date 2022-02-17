@@ -58,10 +58,10 @@ service /http2Service on http2Listener {
                       + "vDeBPSJ/scRGasZ5q2W3IenDNrfPIUhD74tFiCiqNJO91qD/LO+++3XeZzfPh8NRKkiPX7dB8WJ3YNBuQAvgRWTISpSS"
                       + "XLmqMb+7MPQVgecsepZdk8CwkRLxh3RKPJMjigmCgyvkSaoDMKAYC3iYjfUTiJ57UeqoSl0IaOFJ0wfZRFh+UytlDZa";
         http:Response res = new;
-        if (req.mutualSslHandshake["status"] == "passed") {
+        if req.mutualSslHandshake["status"] == "passed" {
             string? cert = req.mutualSslHandshake["base64EncodedCert"];
-            if (cert is string) {
-                if (cert == expectedCert) {
+            if cert is string {
+                if cert == expectedCert {
                     res.setTextPayload("Passed");
                 } else {
                     res.setTextPayload("Expected cert not found");
@@ -100,7 +100,7 @@ http:ClientConfiguration http2MutualSslClientConf1 = {
 public function testHttp2MutualSsl1() {
     http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf1);
     http:Response|error resp = httpClient->get("/http2Service/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Passed");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -128,7 +128,7 @@ http:ClientConfiguration http2MutualSslClientConf2 = {
 public function testHttp2MutualSsl2() {
     http:Client|error httpClient = new("https://localhost:9204", http2MutualSslClientConf2);
     string expectedErrMsg = "Need to configure cert with client SSL certificates file for HTTP 2.0";
-    if (httpClient is error) {
+    if httpClient is error {
         test:assertEquals(httpClient.message(), expectedErrMsg);
     } else {
         test:assertFail(msg = "Expected mutual SSL error not found");
@@ -156,7 +156,7 @@ http:ClientConfiguration http2MutualSslClientConf3 = {
 public function testHttp2MutualSsl3() {
     http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf3);
     http:Response|error resp = httpClient->get("/http2Service/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Passed");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -176,7 +176,7 @@ public function testHttp2MutualSsl4() returns error? {
     http:Client httpClient = check new("https://localhost:9204", http2MutualSslClientConf4);
     http:Response|error resp = httpClient->get("/http2Service/");
     string expectedErrMsg = "SSL connection failed:javax.net.ssl.SSLHandshakeException: error:10000410:SSL routines:OPENSSL_internal:SSLV3_ALERT_HANDSHAKE_FAILURE localhost/127.0.0.1:9204";
-    if (resp is error) {
+    if resp is error {
         test:assertEquals(resp.message(), expectedErrMsg);
     } else {
         test:assertFail(msg = "Expected mutual SSL error not found");

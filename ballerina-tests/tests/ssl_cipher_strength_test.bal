@@ -87,7 +87,7 @@ public function testWithStrongClientWithWeakService() {
         }
     });
     http:Response|error resp = clientEP->get("/weakService/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
     } else {
         test:assertEquals(resp.message(), "SSL connection failed:Received fatal alert: handshake_failure localhost/127.0.0.1:9227");
@@ -110,9 +110,9 @@ public function testWithStrongClientWithStrongService() {
         }
     });
     http:Response|error resp = clientEP->get("/strongService/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "hello world", msg = "Found unexpected output");
         } else {
             test:assertFail(msg = "Found unexpected output: " + payload.message());

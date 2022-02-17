@@ -147,7 +147,7 @@ public function testUrlEncodedServerErrorResponse() returns error? {
 public function testAcceptedWithStringPayload() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/test/acceptedWithStringPayload");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-    test:assertEquals(checkpanic resp.getContentType(), mime:APPLICATION_FORM_URLENCODED);
+    test:assertEquals(resp.getContentType(), mime:APPLICATION_FORM_URLENCODED);
     string payload = check resp.getTextPayload();
     assertTextPayload(payload, "Request is accepted by the server");
 }

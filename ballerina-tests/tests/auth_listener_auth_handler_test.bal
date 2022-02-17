@@ -544,8 +544,8 @@ function testListenerOAuth2HandlerAuthSuccess() {
     }
 
     oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth2 = handler->authorize(request);
-    if auth1 is oauth2:IntrospectionResponse {
-        test:assertEquals(auth1.active, true);
+    if auth2 is oauth2:IntrospectionResponse {
+        test:assertEquals(auth2.active, true);
     } else {
         test:assertFail("Test Failed!");
     }

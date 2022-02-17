@@ -29,20 +29,20 @@ service /pipeliningTest on pipeliningListenerEP1 {
     resource function 'default responseOrder(http:Caller caller, http:Request req) {
         http:Response response = new;
 
-        if (req.hasHeader("message-id")) {
+        if req.hasHeader("message-id") {
             //Request one roughly takes 4 seconds to prepare its response
-            if (checkpanic req.getHeader("message-id") == "request-one") {
+            if checkpanic req.getHeader("message-id") == "request-one" {
                 runtime:sleep(4);
                 response.setHeader("message-id", "response-one");
                 response.setPayload("Hello1");
             }
             //Request two's response will get ready immediately without any sleep time
-            if (checkpanic req.getHeader("message-id") == "request-two") {
+            if checkpanic req.getHeader("message-id") == "request-two" {
                 response.setHeader("message-id", "response-two");
                 response.setPayload("Hello2");
             }
             //Request three roughly takes 2 seconds to prepare its response
-            if (checkpanic req.getHeader("message-id") == "request-three") {
+            if checkpanic req.getHeader("message-id") == "request-three" {
                 runtime:sleep(2);
                 response.setHeader("message-id", "response-three");
                 response.setPayload("Hello3");
@@ -50,7 +50,7 @@ service /pipeliningTest on pipeliningListenerEP1 {
         }
 
         error? result = caller->respond(response);
-        if (result is error) {
+        if result is error {
             error err = result;
             log:printError(err.message(), 'error = result);
         }
@@ -62,27 +62,27 @@ service /pipelining on pipeliningListenerEP2 {
     resource function 'default testTimeout(http:Caller caller, http:Request req) {
         http:Response response = new;
 
-        if (req.hasHeader("message-id")) {
+        if req.hasHeader("message-id") {
             //Request one roughly takes 8 seconds to prepare its response
-            if (checkpanic req.getHeader("message-id") == "request-one") {
+            if checkpanic req.getHeader("message-id") == "request-one" {
                 runtime:sleep(8);
                 response.setHeader("message-id", "response-one");
                 response.setPayload("Hello1");
             }
             //Request two and three will be ready immediately, but they should't have sent out to the client
-            if (checkpanic req.getHeader("message-id") == "request-two") {
+            if checkpanic req.getHeader("message-id") == "request-two" {
                 response.setHeader("message-id", "response-two");
                 response.setPayload("Hello2");
             }
 
-            if (checkpanic req.getHeader("message-id") == "request-three") {
+            if checkpanic req.getHeader("message-id") == "request-three" {
                 response.setHeader("message-id", "response-three");
                 response.setPayload("Hello3");
             }
         }
 
         var responseError = caller->respond(response);
-        if (responseError is error) {
+        if responseError is error {
             log:printError("Pipeline timeout:" + responseError.message(), 'error = responseError);
         }
     }
@@ -97,7 +97,7 @@ service /pipeliningLimit on pipeliningListenerEP3 {
         response.setPayload("Pipelined Response");
 
         var responseError = caller->respond(response);
-        if (responseError is error) {
+        if responseError is error {
             log:printError("Pipeline limit exceeded:" + responseError.message(), 'error = responseError);
         }
     }

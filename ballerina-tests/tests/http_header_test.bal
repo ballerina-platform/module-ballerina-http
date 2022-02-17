@@ -30,7 +30,7 @@ service /headerService on httpHeaderListenerEP1 {
         req.addHeader("core", "bbb");
 
         http:Response|error result = stockqEP->execute("GET", "/quoteService1/stocks", req);
-        if (result is http:Response) {
+        if result is http:Response {
             checkpanic caller->respond(result);
         } else {
             checkpanic caller->respond(result.message());
@@ -38,9 +38,8 @@ service /headerService on httpHeaderListenerEP1 {
     }
 
     resource function 'default id(http:Caller caller, http:Request req) {
-        http:Response clntResponse = new;
         http:Response|error clientResponse = stockqEP->forward("/quoteService1/customers", req);
-        if (clientResponse is http:Response) {
+        if clientResponse is http:Response {
             json payload = {};
             if (clientResponse.hasHeader("person")) {
                 string[] headers = checkpanic clientResponse.getHeaders("person");
@@ -60,7 +59,7 @@ service /headerService on httpHeaderListenerEP1 {
 
     resource function 'default nonEntityBodyGet(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->get("/quoteService1/entitySizeChecker");
-        if (result is http:Response) {
+        if result is http:Response {
             checkpanic caller->respond(result);
         } else {
             checkpanic caller->respond(result.message());
@@ -69,7 +68,7 @@ service /headerService on httpHeaderListenerEP1 {
 
     resource function 'default entityBodyGet(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->post("/quoteService1/entitySizeChecker", "hello");
-        if (result is http:Response) {
+        if result is http:Response {
             checkpanic caller->respond(result);
         } else {
             checkpanic caller->respond(result.message());
@@ -80,7 +79,7 @@ service /headerService on httpHeaderListenerEP1 {
         http:Request request = new;
         request.setHeader("X_test", "One header");
         http:Response|error result = stockqEP->get("/quoteService1/entitySizeChecker", {"X_test":"One header"});
-        if (result is http:Response) {
+        if result is http:Response {
             checkpanic caller->respond(result);
         } else {
             checkpanic caller->respond(result.message());
@@ -89,7 +88,7 @@ service /headerService on httpHeaderListenerEP1 {
 
     resource function 'default entityForward(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->forward("/quoteService1/entitySizeChecker", req);
-        if (result is http:Response) {
+        if result is http:Response {
             checkpanic caller->respond(result);
         } else {
             checkpanic caller->respond(result.message());
@@ -98,7 +97,7 @@ service /headerService on httpHeaderListenerEP1 {
 
     resource function 'default entityExecute(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->execute("GET", "/quoteService1/entitySizeChecker", "hello ballerina");
-        if (result is http:Response) {
+        if result is http:Response {
             checkpanic caller->respond(result);
         } else {
             checkpanic caller->respond(result.message());
@@ -107,7 +106,7 @@ service /headerService on httpHeaderListenerEP1 {
 
     resource function 'default noEntityExecute(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->execute("GET", "/quoteService1/entitySizeChecker", ());
-        if (result is http:Response) {
+        if result is http:Response {
             checkpanic caller->respond(result);
         } else {
             checkpanic caller->respond(result.message());
@@ -116,7 +115,7 @@ service /headerService on httpHeaderListenerEP1 {
 
     resource function 'default passthruGet(http:Caller caller, http:Request req) {
         http:Response|error result = stockqEP->post("/quoteService1/entitySizeChecker", req);
-        if (result is http:Response) {
+        if result is http:Response {
             checkpanic caller->respond(result);
         } else {
             checkpanic caller->respond(result.message());
@@ -163,7 +162,7 @@ service /quoteService1 on httpHeaderListenerEP2 {
 @test:Config {}
 function testOutboundRequestHeaders() {
     http:Response|error response = httpHeaderClient->get("/headerService/value");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {header1:"aaa", header2:"bbb"});
@@ -176,7 +175,7 @@ function testOutboundRequestHeaders() {
 @test:Config {}
 function testInboundResponseHeaders() {
     http:Response|error response = httpHeaderClient->get("/headerService/id");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {header1:"kkk", header2:"jjj"});
@@ -189,7 +188,7 @@ function testInboundResponseHeaders() {
 @test:Config {}
 function testOutboundNonEntityBodyGetRequestHeaders() {
     http:Response|error response = httpHeaderClient->get("/headerService/nonEntityBodyGet");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No Content size related header present");
@@ -202,7 +201,7 @@ function testOutboundNonEntityBodyGetRequestHeaders() {
 @test:Config {}
 function testOutboundEntityBodyGetRequestHeaders() {
     http:Response|error response = httpHeaderClient->get("/headerService/entityBodyGet");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Content-length header available");
@@ -215,7 +214,7 @@ function testOutboundEntityBodyGetRequestHeaders() {
 @test:Config {}
 function testOutboundEntityGetRequestHeaders() {
     http:Response|error response = httpHeaderClient->get("/headerService/entityGet");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No Content size related header present");
@@ -228,7 +227,7 @@ function testOutboundEntityGetRequestHeaders() {
 @test:Config {}
 function testOutboundForwardNoEntityBodyRequestHeaders() {
     http:Response|error response = httpHeaderClient->get("/headerService/entityForward");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No Content size related header present");
@@ -241,7 +240,7 @@ function testOutboundForwardNoEntityBodyRequestHeaders() {
 @test:Config {}
 function testHeadersWithExecuteAction() {
     http:Response|error response = httpHeaderClient->get("/headerService/entityExecute");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Content-length header available");
@@ -254,7 +253,7 @@ function testHeadersWithExecuteAction() {
 @test:Config {}
 function testHeadersWithExecuteActionWithoutBody() {
     http:Response|error response = httpHeaderClient->get("/headerService/noEntityExecute");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "No Content size related header present");
@@ -267,7 +266,7 @@ function testHeadersWithExecuteActionWithoutBody() {
 @test:Config {}
 function testPassthruWithBody() {
     http:Response|error response = httpHeaderClient->post("/headerService/passthruGet", "HelloWorld");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Content-length header available");

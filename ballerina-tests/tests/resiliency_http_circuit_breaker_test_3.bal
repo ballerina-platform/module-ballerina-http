@@ -57,9 +57,9 @@ service /cb on circuitBreakerEP02 {
             cbClient.forceClose();
         }
         http:Response|error backendRes = unhealthyClientEP->forward("/unhealthy", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -67,7 +67,7 @@ service /cb on circuitBreakerEP02 {
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -88,7 +88,7 @@ service /unhealthy on new http:Listener(8088) {
             res.setPayload("Hello World!!!");
         }
         error? responseToCaller = caller->respond(res);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
