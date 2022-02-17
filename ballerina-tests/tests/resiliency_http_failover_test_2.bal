@@ -166,8 +166,8 @@ service /mock02 on backendEP02 {
             runtime:sleep(30);
         }
         http:Response response = new;
-        if req.hasHeader(mime:CONTENT_TYPE
-            && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+        if req.hasHeader(mime:CONTENT_TYPE)
+            && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE) {
             var mimeEntity = req.getBodyParts();
             if mimeEntity is error {
                 log:printError(mimeEntity.message());

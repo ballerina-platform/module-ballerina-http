@@ -39,7 +39,7 @@ service /echoDummy on httpOptionsListenerEP {
 @test:Config {}
 function testOptionsContentLengthHeader() {
     http:Response|error response = httpOptionsClient->options("/echoDummy", {[CONTENT_TYPE]:[APPLICATION_JSON]});
-    ifresponse is http:Response {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(ALLOW), "POST, OPTIONS");
     } else {
@@ -51,7 +51,7 @@ function testOptionsContentLengthHeader() {
 @test:Config {}
 function testOptionsResourceWithPayload() {
     http:Response|error response = httpOptionsClient->options("/echoDummy/getOptions", {[CONTENT_TYPE]:[APPLICATION_JSON]});
-    ifresponse is http:Response {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "13");
         assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);

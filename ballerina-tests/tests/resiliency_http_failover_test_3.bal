@@ -166,8 +166,8 @@ service /mock03 on backendEP03 {
             runtime:sleep(30);
         }
         http:Response response = new;
-        if req.hasHeader(mime:CONTENT_TYPE
-            && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+        if req.hasHeader(mime:CONTENT_TYPE)
+            && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE) {
             var mimeEntity = req.getBodyParts();
             if mimeEntity is error {
                 log:printError(mimeEntity.message());
@@ -176,7 +176,7 @@ service /mock03 on backendEP03 {
             } else {
                 foreach var bodyPart in mimeEntity {
                     if bodyPart.hasHeader(mime:CONTENT_TYPE)
-                        && bodyPart.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
+                        && bodyPart.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE) {
                         var nestedMimeEntity = bodyPart.getBodyParts();
                         if nestedMimeEntity is error {
                             log:printError(nestedMimeEntity.message());
