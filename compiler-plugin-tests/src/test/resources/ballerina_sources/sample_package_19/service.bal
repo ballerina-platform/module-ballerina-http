@@ -173,3 +173,11 @@ service class InterceptorService15 {
         return ctx.next();
     }
 }
+
+service class InterceptorService16 {
+    *http:RequestInterceptor;
+}
+
+service class InterceptorService17 {
+    *http:RequestErrorInterceptor;
+}

@@ -74,6 +74,7 @@ public class CompilerPluginTest {
     private static final String HTTP_129 = "HTTP_129";
     private static final String HTTP_130 = "HTTP_130";
     private static final String HTTP_131 = "HTTP_131";
+    private static final String HTTP_132 = "HTTP_132";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -423,7 +424,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_19");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 10);
+        Assert.assertEquals(diagnosticResult.errorCount(), 12);
         assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
                 "'http:RequestErrorInterceptor'", HTTP_123);
         assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
@@ -443,6 +444,9 @@ public class CompilerPluginTest {
                 " path: '[string... path]', but found '[string path]'", HTTP_127);
         assertError(diagnosticResult, 9, "invalid usage of payload annotation for a non entity body " +
                 "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
+        assertError(diagnosticResult, 10, "RequestInterceptor must have a resource method", HTTP_132);
+        assertError(diagnosticResult, 11, "RequestErrorInterceptor must have a resource method",
+                HTTP_132);
     }
 
     @Test
