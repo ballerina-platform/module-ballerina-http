@@ -26,8 +26,8 @@ final http:Client utClient2 = check new("http://localhost:" + uriTemplateTest2.t
 
 service /ecommerceservice on utTestEP {
 
-    resource function get products/[string productId]/[string regId](http:Caller caller, http:Request req) {
-        string orderId = checkpanic req.getHeader("X-ORDER-ID");
+    resource function get products/[string productId]/[string regId](http:Caller caller, http:Request req) returns error? {
+        string orderId = check req.getHeader("X-ORDER-ID");
         io:println("Order ID " + orderId);
         io:println("Product ID " + productId);
         io:println("Reg ID " + regId);
@@ -36,10 +36,10 @@ service /ecommerceservice on utTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get products2/[string productId]/[string regId]/item(http:Caller caller) {
+    resource function get products2/[string productId]/[string regId]/item(http:Caller caller) returns error? {
         json responseJson;
         io:println("Product ID " + productId);
         io:println("Reg ID " + regId);
@@ -48,10 +48,10 @@ service /ecommerceservice on utTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get products3/[string productId]/[string regId]/[string... extra](http:Caller caller) {
+    resource function get products3/[string productId]/[string regId]/[string... extra](http:Caller caller) returns error? {
         json responseJson;
         io:println("Product ID " + productId);
         io:println("Reg ID " + regId);
@@ -60,10 +60,10 @@ service /ecommerceservice on utTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get products/[string productId] (http:Caller caller, http:Request req) {
+    resource function get products/[string productId] (http:Caller caller, http:Request req) returns error? {
         json responseJson;
         map<string[]> qParams = req.getQueryParams();
         string[]? rID = qParams["regID"];
@@ -75,10 +75,10 @@ service /ecommerceservice on utTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get products(http:Caller caller, http:Request req) {
+    resource function get products(http:Caller caller, http:Request req) returns error? {
         json responseJson;
         map<string[]> params = req.getQueryParams();
         string[]? prdID = params["prodID"];
@@ -92,10 +92,10 @@ service /ecommerceservice on utTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get products5/[string productId]/reg(http:Caller caller, http:Request req) {
+    resource function get products5/[string productId]/reg(http:Caller caller, http:Request req) returns error? {
         json responseJson;
         map<string[]> params = req.getQueryParams();
         string[]? rID = params["regID"];
@@ -107,63 +107,63 @@ service /ecommerceservice on utTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default echo1(http:Caller caller) {
+    resource function 'default echo1(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo11":"echo11"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /options on utTestEP {
 
-    resource function post test(http:Caller caller) {
+    resource function post test(http:Caller caller) returns error? {
         http:Response res = new;
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function options hi(http:Caller caller) {
+    resource function options hi(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"wso2"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get test(http:Caller caller) {
+    resource function get test(http:Caller caller) returns error? {
         http:Response res = new;
-        checkpanic caller->respond(res);
+        check caller->respond(res);
 
     }
 
-    resource function get getme(http:Caller caller) {
+    resource function get getme(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"get"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function post post(http:Caller caller) {
+    resource function post post(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"post"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function put put/add(http:Caller caller) {
+    resource function put put/add(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"put"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function delete put/[string abc](http:Caller caller) {
+    resource function delete put/[string abc](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"delete"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -172,31 +172,31 @@ service /noResource on utTestEP {
 
 service /hello on utTestEP {
 
-    resource function get test(http:Caller caller) {
+    resource function get test(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"sanitized"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /ech\[o on utTestEP {
 
-    resource function get ech\[o/[string foo] (http:Caller caller, http:Request req) {
+    resource function get ech\[o/[string foo] (http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo113": foo};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /ech\[o14 on utTestEP {
 
-    resource function get ech\[o14/[string foo](http:Caller caller, http:Request req) {
+    resource function get ech\[o14/[string foo](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo114": foo};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -353,11 +353,11 @@ function testOPTIONSMethods() {
 
 //Test dispatching with OPTIONS request with GET method
 @test:Config{}
-function testOPTIONSWithGETMethods() {
+function testOPTIONSWithGETMethods() returns error? {
     http:Response|error response = utClient1->options("/options/getme");
     if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        test:assertEquals(checkpanic response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(check response.getHeader("Allow"), "GET, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -365,11 +365,11 @@ function testOPTIONSWithGETMethods() {
 
 //Test dispatching with OPTIONS request with POST method
 @test:Config{}
-function testOPTIONSWithPOSTMethods() {
+function testOPTIONSWithPOSTMethods() returns error? {
     http:Response|error response = utClient1->options("/options/post");
     if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(check response.getHeader("Allow"), "POST, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -377,11 +377,11 @@ function testOPTIONSWithPOSTMethods() {
 
 //Test dispatching with OPTIONS request with PUT method
 @test:Config{}
-function testOPTIONSWithPUTMethods() {
+function testOPTIONSWithPUTMethods() returns error? {
     http:Response|error response = utClient1->options("/options/put/add");
     if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        test:assertEquals(checkpanic response.getHeader("Allow"), "PUT, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(check response.getHeader("Allow"), "PUT, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -389,11 +389,11 @@ function testOPTIONSWithPUTMethods() {
 
 //Test dispatching with OPTIONS request with PATH params
 @test:Config{}
-function testOPTIONSWithPathParams() {
+function testOPTIONSWithPathParams() returns error? {
     http:Response|error response = utClient1->options("/options/put/xyz");
     if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        test:assertEquals(checkpanic response.getHeader("Allow"), "DELETE, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(check response.getHeader("Allow"), "DELETE, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -401,11 +401,11 @@ function testOPTIONSWithPathParams() {
 
 //Test dispatching with OPTIONS request multiple resources
 @test:Config{}
-function testOPTIONSWithMultiResources() {
+function testOPTIONSWithMultiResources() returns error? {
     http:Response|error response = utClient1->options("/options/test");
     if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
+        test:assertEquals(check response.getHeader("Allow"), "POST, GET, OPTIONS", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -413,11 +413,11 @@ function testOPTIONSWithMultiResources() {
 
 //Test dispatching with OPTIONS request to Root
 @test:Config{}
-function testOPTIONSAtRootPath() {
+function testOPTIONSAtRootPath() returns error? {
     http:Response|error response = utClient1->options("/options");
     if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        test:assertEquals(checkpanic response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
+        test:assertEquals(check response.getHeader("Allow"), "POST, OPTIONS, GET, PUT, DELETE", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

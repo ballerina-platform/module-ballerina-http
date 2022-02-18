@@ -28,11 +28,11 @@ final http:Client priorOff = check new("http://localhost:14555", { httpVersion: 
 
 service /general on ep {
 
-    resource function get serverDown(http:Caller caller, http:Request req) {
+    resource function get serverDown(http:Caller caller, http:Request req) returns error? {
         http:Response|error result1 = priorOn->get("/bogusResource");
         http:Response|error result2 = priorOff->get("/bogusResource");
         string response = handleResponse(result1) + "--" + handleResponse(result2);
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 }
 
@@ -45,8 +45,8 @@ isolated function handleResponse(http:Response|error result) returns string {
 }
 
 @test:Config {}
-public function testServerDown() {
-    http:Client clientEP = checkpanic new("http://localhost:9099");
+public function testServerDown() returns error? {
+    http:Client clientEP = check new("http://localhost:9099");
     http:Response|error resp = clientEP->get("/general/serverDown");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Call to backend failed due to:Something wrong with the connection--Call to backend " +

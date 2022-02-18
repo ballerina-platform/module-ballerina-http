@@ -230,14 +230,14 @@ service /failureStatusCodeService03 on backendEP03 {
 
 //Test the functionality for all endpoints failure scenario
 @test:Config {}
-function testAllEndpointFailure() {
+function testAllEndpointFailure() returns error? {
     string expectedMessage = "All the failover endpoints failed. Last error was: " +
                 "Idle timeout triggered before initiating inbound response";
-    http:Client testClient = checkpanic new("http://localhost:9303");
+    http:Client testClient = check new("http://localhost:9303");
     http:Response|error response = testClient->post("/failoverDemoService03/invokeAllFailureEndpoint", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), expectedMessage);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

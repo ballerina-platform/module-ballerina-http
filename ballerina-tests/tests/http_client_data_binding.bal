@@ -492,11 +492,11 @@ service /redirect1 on clientDBBackendListener2 {
 @test:Config {
     groups: ["dataBinding"]
 }
-function testAllBindingDataTypes() {
+function testAllBindingDataTypes() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/allTypes");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
                  "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | \"chamil\" | <name>Ballerina</name> | " +
                  "This is my @4491*&&#$^($@ | BinaryPayload is textVal | chamil | wso2 | 3 | data-binding");
@@ -617,11 +617,11 @@ function testAllBindingErrorsWithNillableTypes() returns error? {
 @test:Config {
     groups: ["dataBinding"]
 }
-function testDifferentMethods() {
+function testDifferentMethods() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/allMethods");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "{\"id\":\"chamil\", \"values\":{\"a\":2, \"b\":45, " +
                 "\"c\":{\"x\":\"mnb\", \"y\":\"uio\"}}} | application/xml | This is my @4491*&&#$^($@ | BinaryPayload" +
                 " is textVal | chamil | wso2 | 3");
@@ -632,11 +632,11 @@ function testDifferentMethods() {
 
 // Test HTTP redirect client data binding
 @test:Config {}
-function testRedirectClientDataBinding() {
+function testRedirectClientDataBinding() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/redirect");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         json j = {id:"chamil", values:{a:2, b:45, c:{x:"mnb", y:"uio"}}};
         assertJsonPayload(response.getJsonPayload(), j);
     } else {
@@ -646,11 +646,11 @@ function testRedirectClientDataBinding() {
 
 // Test HTTP retry client data binding
 @test:Config {}
-function testRetryClientDataBinding() {
+function testRetryClientDataBinding() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/retry");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -659,12 +659,12 @@ function testRetryClientDataBinding() {
 
 // Test 500 error panic
 @test:Config {}
-function test5XXErrorPanic() {
+function test5XXErrorPanic() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/500");
     if response is http:Response {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(checkpanic response.getHeader("X-Type"), "test");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader("X-Type"), "test");
         assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -673,12 +673,12 @@ function test5XXErrorPanic() {
 
 // Test 500 error handle
 @test:Config {}
-function test5XXHandleError() {
+function test5XXHandleError() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/500handle");
     if response is http:Response {
         test:assertEquals(response.statusCode, 501, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(checkpanic response.getHeader("X-Type"), "test");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader("X-Type"), "test");
         assertTextPayload(response.getTextPayload(), "data-binding-failed-with-501");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -687,11 +687,11 @@ function test5XXHandleError() {
 
 // Test 404 error panic
 @test:Config {}
-function test4XXErrorPanic() {
+function test4XXErrorPanic() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/404");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(),
             "no matching resource found for path : /backend/getIncorrectPath404 , method : POST");
     } else {
@@ -701,11 +701,11 @@ function test4XXErrorPanic() {
 
 // Test 404 error handle
 @test:Config {}
-function test4XXHandleError() {
+function test4XXHandleError() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/404/handle");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "no matching resource found for path : /backend/handle , method : POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -714,11 +714,11 @@ function test4XXHandleError() {
 
 // Test 405 error handle
 @test:Config {}
-function test405HandleError() {
+function test405HandleError() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/404/get4XX");
     if response is http:Response {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Method not allowed");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -738,11 +738,11 @@ function test405AsApplicationResponseError() {
 }
 
 @test:Config {}
-function testXmlErrorSerialize() {
+function testXmlErrorSerialize() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/testBody/xmltype");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_XML);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);
         test:assertEquals(response.getXmlPayload(), xml `<test>Bad Request</test>`, msg = "Mismatched xml payload");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -750,11 +750,11 @@ function testXmlErrorSerialize() {
 }
 
 @test:Config {}
-function testJsonErrorSerialize() {
+function testJsonErrorSerialize() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/testBody/jsontype");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {id:"hello"});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -762,11 +762,11 @@ function testJsonErrorSerialize() {
 }
 
 @test:Config {}
-function testBinaryErrorSerialize() {
+function testBinaryErrorSerialize() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/testBody/binarytype");
     if response is http:Response {
         test:assertEquals(response.statusCode, 503, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), mime:APPLICATION_OCTET_STREAM);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), mime:APPLICATION_OCTET_STREAM);
         var blobValue = response.getBinaryPayload();
         if (blobValue is byte[]) {
             test:assertEquals(strings:fromBytes(blobValue), "ballerina", msg = "Payload mismatched");
@@ -820,11 +820,11 @@ function testDBRecordArrayNegative() {
 }
 
 @test:Config {}
-function testMapOfStringDataBinding() {
+function testMapOfStringDataBinding() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString1");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         json j = {"key1":"value 1","key2":"value 2"};
         assertJsonPayload(response.getJsonPayload(), j);
     } else {
@@ -843,11 +843,11 @@ function testMapOfStringDataBindingWithJsonPayload() {
 }
 
 @test:Config {}
-function testMapOfStringDataBindingWithEncodedKey() {
+function testMapOfStringDataBindingWithEncodedKey() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString2");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         json j = {"key1":"WS O2","key2":"Bal@Dance"};
         assertJsonPayload(response.getJsonPayload(), j);
     } else {
@@ -856,11 +856,11 @@ function testMapOfStringDataBindingWithEncodedKey() {
 }
 
 @test:Config {}
-function testMapOfStringDataBindingWithEmptyValue() {
+function testMapOfStringDataBindingWithEmptyValue() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString3");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         json j = {"key1":"WS O2","key2":""};
         assertJsonPayload(response.getJsonPayload(), j);
     } else {
@@ -869,11 +869,11 @@ function testMapOfStringDataBindingWithEmptyValue() {
 }
 
 @test:Config {}
-function testMapOfStringDataBindingWithEmptyKey() {
+function testMapOfStringDataBindingWithEmptyKey() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString4");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         json j = {"key1":"WS O2","key2":()};
         assertJsonPayload(response.getJsonPayload(), j);
     } else {
@@ -893,11 +893,11 @@ function testMapOfStringDataBindingWithEmptyPayload() {
 }
 
 @test:Config {}
-function testMapOfStringDataBindingWithSinglePair() {
+function testMapOfStringDataBindingWithSinglePair() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/mapOfString6");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         json j = {"key1":"WS O2","key2":()};
         assertJsonPayload(response.getJsonPayload(), j);
     } else {

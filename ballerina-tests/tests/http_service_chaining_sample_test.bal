@@ -26,7 +26,7 @@ final http:Client branchLocatorService = check new("http://localhost:" + service
 
 service /ABCBank on serviceChainingListenerEP {
 
-    resource function post locator(http:Caller caller, http:Request req) {
+    resource function post locator(http:Caller caller, http:Request req) returns error? {
 
         http:Request backendServiceReq = new;
         var jsonLocatorReq = req.getJsonPayload();
@@ -68,13 +68,13 @@ service /ABCBank on serviceChainingListenerEP {
         } else {
             io:println("Error occurred while writing info response");
         }
-        checkpanic caller->respond(informationResponse);
+        check caller->respond(informationResponse);
     }
 }
 
 service /bankinfo on serviceChainingListenerEP {
 
-    resource function post product(http:Caller caller, http:Request req) {
+    resource function post product(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         var jsonRequest = req.getJsonPayload();
         if (jsonRequest is json) {
@@ -91,13 +91,13 @@ service /bankinfo on serviceChainingListenerEP {
             io:println("Error occurred while reading bank info request");
         }
 
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /branchlocator on serviceChainingListenerEP {
 
-    resource function post product(http:Caller caller, http:Request req) {
+    resource function post product(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         var jsonRequest = req.getJsonPayload();
         if (jsonRequest is json) {
@@ -114,7 +114,7 @@ service /branchlocator on serviceChainingListenerEP {
             io:println("Error occurred while reading bank locator request");
         }
 
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -123,11 +123,11 @@ json responseMessage = {"ABC Bank":{Address:"111 River Oaks Pkwy, San Jose, CA 9
 
 //Test service chaining sample
 @test:Config {}
-function testServiceChaining() {
+function testServiceChaining() returns error? {
     http:Response|error response = serviceChainingClient->post("/ABCBank/locator", requestMessage);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseMessage);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

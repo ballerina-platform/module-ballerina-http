@@ -30,10 +30,10 @@ listener http:Listener httpsListener = new(9238, serviceConf);
 
 service /httpsService on httpsListener {
     
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("hello world");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -44,8 +44,8 @@ http:ClientConfiguration disableSslClientConf1 = {
 };
 
 @test:Config {}
-public function testSslDisabledClient1() {
-    http:Client httpClient = checkpanic new("https://localhost:9238", disableSslClientConf1);
+public function testSslDisabledClient1() returns error? {
+    http:Client httpClient = check new("https://localhost:9238", disableSslClientConf1);
     http:Response|error resp = httpClient->get("/httpsService");
     if resp is http:Response {
         var payload = resp.getTextPayload();

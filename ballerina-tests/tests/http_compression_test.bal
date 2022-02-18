@@ -23,51 +23,51 @@ final http:Client compressionAnnotClient = check new("http://localhost:" + compr
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_AUTO}}
 service /autoCompress on compressionAnnotListenerEP {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_ALWAYS}}
 service /alwaysCompress on compressionAnnotListenerEP {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_NEVER}}
 service /neverCompress on compressionAnnotListenerEP {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_NEVER}}
 service /userOverridenValue on compressionAnnotListenerEP {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
         res.setHeader("content-encoding", "deflate");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 //Test Compression.AUTO, with no Accept-Encoding header.
 @test:Config {}
-function testCompressionAnnotAutoCompress() {
+function testCompressionAnnotAutoCompress() returns error? {
     http:Response|error response = compressionAnnotClient->get("/autoCompress");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -77,12 +77,12 @@ function testCompressionAnnotAutoCompress() {
 //Test Compression.AUTO, with Accept-Encoding header.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testCompressionAnnotAutoCompressWithAcceptEncoding() {
+function testCompressionAnnotAutoCompressWithAcceptEncoding() returns error? {
     http:Response|error response = compressionAnnotClient->get("/autoCompress", {[ACCEPT_ENCODING]:[ENCODING_GZIP]});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -90,11 +90,11 @@ function testCompressionAnnotAutoCompressWithAcceptEncoding() {
 
 //Test Accept-Encoding header with a q value of 0, which means not acceptable
 @test:Config {}
-function testAcceptEncodingWithQValueZero() {
+function testAcceptEncodingWithQValueZero() returns error? {
     http:Response|error response = compressionAnnotClient->get("/autoCompress", {[ACCEPT_ENCODING]:"gzip;q=0"});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -104,12 +104,12 @@ function testAcceptEncodingWithQValueZero() {
 //Test Compression.ALWAYS, with no Accept-Encoding header.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testCompressionAnnotAlwaysCompress() {
+function testCompressionAnnotAlwaysCompress() returns error? {
     http:Response|error response = compressionAnnotClient->get("/alwaysCompress");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_ENCODING), ENCODING_GZIP);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -118,12 +118,12 @@ function testCompressionAnnotAlwaysCompress() {
 //Test Compression.ALWAYS, with Accept-Encoding header.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testCompressionAnnotAlwaysCompressWithAcceptEncoding() {
+function testCompressionAnnotAlwaysCompressWithAcceptEncoding() returns error? {
     http:Response|error response = compressionAnnotClient->get("/alwaysCompress", {[ACCEPT_ENCODING]:"deflate;q=1.0, gzip;q=0.8"});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -131,11 +131,11 @@ function testCompressionAnnotAlwaysCompressWithAcceptEncoding() {
 
 //Test Compression.NEVER, with no Accept-Encoding header.
 @test:Config {}
-function testCompressionAnnotNeverCompress() {
+function testCompressionAnnotNeverCompress() returns error? {
     http:Response|error response = compressionAnnotClient->get("/neverCompress");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -144,11 +144,11 @@ function testCompressionAnnotNeverCompress() {
 
 //Test Compression.NEVER, with Accept-Encoding header.
 @test:Config {}
-function testCompressionAnnotNeverCompressWithAcceptEncoding() {
+function testCompressionAnnotNeverCompressWithAcceptEncoding() returns error? {
     http:Response|error response = compressionAnnotClient->get("/neverCompress", {[ACCEPT_ENCODING]:"deflate;q=1.0, gzip;q=0.8"});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         test:assertFalse(response.hasHeader(CONTENT_ENCODING));
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -158,12 +158,12 @@ function testCompressionAnnotNeverCompressWithAcceptEncoding() {
 //Test Compression.NEVER, with Accept-Encoding header and user overridden content-encoding.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testCompressionAnnotNeverCompressWithUserOverridenValue() {
+function testCompressionAnnotNeverCompressWithUserOverridenValue() returns error? {
     http:Response|error response = compressionAnnotClient->get("/userOverridenValue", {[ACCEPT_ENCODING]:"deflate;q=1.0, gzip;q=0.8"});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

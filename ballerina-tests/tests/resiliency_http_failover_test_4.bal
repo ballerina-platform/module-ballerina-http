@@ -229,14 +229,14 @@ service /failureStatusCodeService04 on backendEP04 {
 
 //Test the functionality for error response codes
 @test:Config {}
-function testResponseWithErrorStatusCodes() {
+function testResponseWithErrorStatusCodes() returns error? {
     string expectedMessage = "All the failover endpoints failed. " +
                 "Last endpoint returned response is: 503 Service Unavailable";
-    http:Client testClient = checkpanic new("http://localhost:9304");
+    http:Client testClient = check new("http://localhost:9304");
     http:Response|error response = testClient->post("/failoverDemoService04/invokeAllFailureStatusCodesEndpoint", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), expectedMessage);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

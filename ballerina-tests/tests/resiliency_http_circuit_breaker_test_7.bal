@@ -97,8 +97,8 @@ service /hello06 on new http:Listener(8092) {
 final http:Client testTrialRunFailureClient = check new("http://localhost:9312");
 
 @test:Config{ dataProvider:trialRunFailureResponseDataProvider }
-function testCBTrialRunFailure(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed);
+function testCBTrialRunFailure(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed);
 }
 
 function trialRunFailureResponseDataProvider() returns DataFeed[][] {

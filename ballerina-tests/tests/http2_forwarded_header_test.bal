@@ -38,11 +38,11 @@ service /forwardedBackend on new http:Listener(9108, {httpVersion: "2.0"}) {
 }
 
 @test:Config {}
-public function testForwardHeader() {
-    http:Client clientEP = checkpanic new("http://localhost:9107");
+public function testForwardHeader() returns error? {
+    http:Client clientEP = check new("http://localhost:9107");
     http:Response|error resp = clientEP->get("/initiatingService/initiatingResource");
     if resp is http:Response {
-        assertHeaderValue(checkpanic resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");
+        assertHeaderValue(check resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }

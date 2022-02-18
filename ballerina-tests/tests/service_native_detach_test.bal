@@ -22,12 +22,12 @@ listener http:Listener serviceDetachTestEP = new(serviceDetachTest);
 final http:Client serviceDetachClient = check new("http://localhost:" + serviceDetachTest.toString());
 
 service /mock1 on serviceDetachTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         lock {
-            checkpanic serviceDetachTestEP.attach(mock2, "/mock2");
+            check serviceDetachTestEP.attach(mock2, "/mock2");
         }
         lock {
-            checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
+            check serviceDetachTestEP.attach(mock3, "/mock3");
         }
         error? responseToCaller = caller->respond("Mock1 invoked. Mock2 attached. Mock3 attached");
         if responseToCaller is error {
@@ -37,12 +37,12 @@ service /mock1 on serviceDetachTestEP {
 }
 
 isolated http:Service mock2 = service object {
-    resource function get mock2Resource(http:Caller caller, http:Request req) {
+    resource function get mock2Resource(http:Caller caller, http:Request req) returns error? {
         lock {
-            checkpanic serviceDetachTestEP.detach(mock3);
+            check serviceDetachTestEP.detach(mock3);
         }
         lock {
-            checkpanic serviceDetachTestEP.attach(mock3, "/mock3");
+            check serviceDetachTestEP.attach(mock3, "/mock3");
         }
         error? responseToCaller = caller->respond("Mock2 resource was invoked");
         if responseToCaller is error {
@@ -52,12 +52,12 @@ isolated http:Service mock2 = service object {
 };
 
 isolated http:Service mock3 = service object {
-    resource function get mock3Resource(http:Caller caller, http:Request req) {
+    resource function get mock3Resource(http:Caller caller, http:Request req) returns error? {
         lock {
-            checkpanic serviceDetachTestEP.detach(mock2);
+            check serviceDetachTestEP.detach(mock2);
         }
         lock {
-            checkpanic serviceDetachTestEP.attach(mock4, "/mock4");
+            check serviceDetachTestEP.attach(mock4, "/mock4");
         }
         error? responseToCaller = caller->respond("Mock3 invoked. Mock2 detached. Mock4 attached");
         if responseToCaller is error {
@@ -67,12 +67,12 @@ isolated http:Service mock3 = service object {
 };
 
 isolated http:Service mock4 = service object {
-    resource function get mock4Resource(http:Caller caller, http:Request req) {
+    resource function get mock4Resource(http:Caller caller, http:Request req) returns error? {
         lock {
-            checkpanic serviceDetachTestEP.attach(mock2, "/mock2");
+            check serviceDetachTestEP.attach(mock2, "/mock2");
         }
         lock {
-            checkpanic serviceDetachTestEP.detach(mock5);
+            check serviceDetachTestEP.detach(mock5);
         }
         error? responseToCaller = caller->respond("Mock4 invoked. Mock2 attached");
         if responseToCaller is error {

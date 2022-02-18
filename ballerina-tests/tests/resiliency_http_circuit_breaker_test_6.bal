@@ -78,8 +78,8 @@ final http:Client testCBStatusCodesClient = check new("http://localhost:9311");
     groups: ["circuitBreakerStatusCodeResponse"],
     dataProvider:statusCodeResponseDataProvider 
 }
-function httpStatusCodesTest(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testCBStatusCodesClient, "/cb/statuscode", dataFeed);
+function httpStatusCodesTest(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(testCBStatusCodesClient, "/cb/statuscode", dataFeed);
 }
 
 function statusCodeResponseDataProvider() returns DataFeed[][] {

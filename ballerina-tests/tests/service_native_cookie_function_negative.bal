@@ -217,10 +217,10 @@ function testCheckMaxCookiesPerDomain() returns error? {
 
 // Test to give invalid file extension when creating a CsvPersistentCookieHandler object
 @test:Config {}
-function testAddPersistentCookieWithoutPersistentStore() {
+function testAddPersistentCookieWithoutPersistentStore() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
+    http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
@@ -240,7 +240,7 @@ function testRemovePersistentCookieFromCookieStore_1() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-6.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
+    http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
@@ -260,10 +260,10 @@ function testRemovePersistentCookieFromCookieStore_1() returns error? {
 
 // Test to remove a specific cookie which is not in the cookie store, when there is no persistent cookie store
 @test:Config {}
-function testRemovePersistentCookieFromCookieStore_2() {
+function testRemovePersistentCookieFromCookieStore_2() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-7.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
+    http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     if (cookieStore is http:CookieStore) {
@@ -278,10 +278,10 @@ function testRemovePersistentCookieFromCookieStore_2() {
 
 // Test to remove all cookies when there is no persistent cookie store
 @test:Config {}
-function testRemoveAllCookiesFromCookieStore() {
+function testRemoveAllCookiesFromCookieStore() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-8.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
+    http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     if (cookieStore is http:CookieStore) {

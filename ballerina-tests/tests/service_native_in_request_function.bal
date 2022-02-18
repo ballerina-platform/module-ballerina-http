@@ -22,41 +22,41 @@ import ballerina/test;
 import ballerina/http;
 
 @test:Config {}
-function testContentType() {
+function testContentType() returns error? {
     http:Request req = new;
     string contentType = "application/x-custom-type+json";
-    checkpanic req.setContentType(contentType);
+    check req.setContentType(contentType);
     test:assertEquals(req.getContentType(), contentType, msg = "Mismatched content type");
 }
 
 @test:Config {}
-function testGetContentLength() {
+function testGetContentLength() returns error? {
     http:Request req = new;
     string payload = "ballerina";
     req.setHeader(CONTENT_LENGTH, payload.length().toString());
-    test:assertEquals(checkpanic req.getHeader(CONTENT_LENGTH), payload.length().toString(), msg = "Mismatched content length");
+    test:assertEquals(check req.getHeader(CONTENT_LENGTH), payload.length().toString(), msg = "Mismatched content length");
 }
 
 @test:Config {}
-function testAddHeader() {
+function testAddHeader() returns error? {
     http:Request req = new;
     string key = "header1";
     string value = "abc, xyz";
     req.setHeader(key, "1stHeader");
     req.addHeader(key, value);
-    string[] headers = checkpanic req.getHeaders(key);
+    string[] headers = check req.getHeaders(key);
     test:assertEquals(headers[0], "1stHeader", msg = "Mismatched header value");
     test:assertEquals(headers[1], "abc, xyz", msg = "Mismatched header value");
 }
 
 @test:Config {}
-function testSetHeader() {
+function testSetHeader() returns error? {
     http:Request req = new;
     string key = "lang";
     string value = "ballerina; a=6";
     req.setHeader(key, "abc");
     req.setHeader(key, value);
-    test:assertEquals(checkpanic req.getHeader(key), value, msg = "Mismatched header value");
+    test:assertEquals(check req.getHeader(key), value, msg = "Mismatched header value");
 }
 
 @test:Config {}
@@ -120,22 +120,22 @@ function testSetPayloadAndGetText() {
 }
 
 @test:Config {}
-function testGetHeader() {
+function testGetHeader() returns error? {
     http:Request req = new;
     string key = "lang";
     string value = "ballerina; a=6";
     req.setHeader(key, value);
-    test:assertEquals(checkpanic req.getHeader(key), value, msg = "Mismatched header value");
+    test:assertEquals(check req.getHeader(key), value, msg = "Mismatched header value");
 }
 
 @test:Config {}
-function testGetHeaders() {
+function testGetHeaders() returns error? {
     http:Request req = new;
     string key = "header1";
     string value = "abc, xyz";
     req.setHeader(key, "1stHeader");
     req.addHeader(key, value);
-    string[] headers = checkpanic req.getHeaders(key);
+    string[] headers = check req.getHeaders(key);
     test:assertEquals(headers[0], "1stHeader", msg = "Mismatched header value");
     test:assertEquals(headers[1], "abc, xyz", msg = "Mismatched header value");
 }
@@ -221,56 +221,56 @@ listener http:Listener requestListner = new(requestTest);
 
 service /requesthello on requestListner {
 
-    resource function get addheader/[string key]/[string value](http:Caller caller, http:Request inReq) {
+    resource function get addheader/[string key]/[string value](http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
         req.addHeader(key, value);
-        string result = checkpanic req.getHeader(key);
+        string result = check req.getHeader(key);
         http:Response res = new;
         res.setJsonPayload({ lang: result });
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get '11(http:Caller caller, http:Request req) {
+    resource function get '11(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         string method = req.method;
         res.setTextPayload(method);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get '12(http:Caller caller, http:Request req) {
+    resource function get '12(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         string url = req.rawPath;
         res.setTextPayload(url);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get '13(http:Caller caller, http:Request req) {
+    resource function get '13(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         string url = req.rawPath;
         res.setTextPayload(url);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get getHeader(http:Caller caller, http:Request req) {
+    resource function get getHeader(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        string header = checkpanic req.getHeader("content-type");
+        string header = check req.getHeader("content-type");
         res.setJsonPayload({ value: header });
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function post getJsonPayload(http:Caller caller, http:Request req) {
+    resource function post getJsonPayload(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         var returnResult = req.getJsonPayload();
         if returnResult is error {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setJsonPayload(checkpanic returnResult.lang);
+            res.setJsonPayload(check returnResult.lang);
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function post GetTextPayload(http:Caller caller, http:Request req) {
+    resource function post GetTextPayload(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         var returnResult = req.getTextPayload();
         if returnResult is error {
@@ -279,10 +279,10 @@ service /requesthello on requestListner {
         } else {
             res.setTextPayload(returnResult);
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function post GetXmlPayload(http:Caller caller, http:Request req) {
+    resource function post GetXmlPayload(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         var returnResult = req.getXmlPayload();
         if returnResult is error {
@@ -292,10 +292,10 @@ service /requesthello on requestListner {
             var name = (returnResult/*).toString();
             res.setTextPayload(name);
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function post GetBinaryPayload(http:Caller caller, http:Request req) {
+    resource function post GetBinaryPayload(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         var returnResult = req.getBinaryPayload();
         if returnResult is error {
@@ -310,7 +310,7 @@ service /requesthello on requestListner {
                 res.statusCode = 500;
             }
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     // TODO: Enable after the I/O revamp
@@ -323,10 +323,10 @@ service /requesthello on requestListner {
     //     } else {
     //         res.setByteChannel(returnResult);
     //     }
-    //     checkpanic caller->respond(res);
+    //     check caller->respond(res);
     // }
 
-    resource function post GetByteStream(http:Caller caller, http:Request req) {
+    resource function post GetByteStream(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         var returnResult = req.getByteStream();
         if returnResult is error {
@@ -335,10 +335,10 @@ service /requesthello on requestListner {
         } else {
             res.setByteStream(returnResult);
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get RemoveHeader(http:Caller caller, http:Request inReq) {
+    resource function get RemoveHeader(http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
         req.setHeader("Content-Type", "application/x-www-form-urlencoded");
         req.removeHeader("Content-Type");
@@ -348,10 +348,10 @@ service /requesthello on requestListner {
         }
         http:Response res = new;
         res.setJsonPayload({ value: header });
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get RemoveAllHeaders(http:Caller caller, http:Request inReq) {
+    resource function get RemoveAllHeaders(http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
         req.setHeader("Content-Type", "application/x-www-form-urlencoded");
         req.setHeader("Expect", "100-continue");
@@ -363,21 +363,21 @@ service /requesthello on requestListner {
         }
         http:Response res = new;
         res.setJsonPayload({ value: header });
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get setHeader/[string key]/[string value](http:Caller caller, http:Request inReq) {
+    resource function get setHeader/[string key]/[string value](http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
         req.setHeader(key, "abc");
         req.setHeader(key, value);
-        string result = checkpanic req.getHeader(key);
+        string result = check req.getHeader(key);
 
         http:Response res = new;
         res.setJsonPayload({ value: result });
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get SetJsonPayload/[string value](http:Caller caller, http:Request inReq) {
+    resource function get SetJsonPayload/[string value](http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
         json jsonStr = { lang: value };
         req.setJsonPayload(jsonStr);
@@ -389,10 +389,10 @@ service /requesthello on requestListner {
         } else {
             res.setJsonPayload(returnResult);
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get SetStringPayload/[string value](http:Caller caller, http:Request inReq) {
+    resource function get SetStringPayload/[string value](http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
         req.setTextPayload(value);
         http:Response res = new;
@@ -403,10 +403,10 @@ service /requesthello on requestListner {
         } else {
             res.setJsonPayload({ lang: returnResult });
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get SetXmlPayload(http:Caller caller, http:Request inReq) {
+    resource function get SetXmlPayload(http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
         xml xmlStr = xml `<name>Ballerina</name>`;
         req.setXmlPayload(xmlStr);
@@ -419,10 +419,10 @@ service /requesthello on requestListner {
             var name = (returnResult/*).toString();
             res.setJsonPayload({ lang: name });
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get SetBinaryPayload(http:Caller caller, http:Request inReq) {
+    resource function get SetBinaryPayload(http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
         string text = "Ballerina";
         byte[] payload = text.toBytes();
@@ -441,30 +441,30 @@ service /requesthello on requestListner {
                 res.statusCode = 500;
             }
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get addCookies(http:Caller caller, http:Request inReq) {
+    resource function get addCookies(http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
         http:Cookie cookie1 = new("SID1", "31d4d96e407aad42", path = "/sample", domain = "google.com");
         http:Cookie cookie2 = new("SID2", "2638747623468bce72", path = "/sample/about", domain = "google.com");
         http:Cookie cookie3 = new("SID3", "782638747668bce72", path = "/sample", domain = "google.com");
         http:Cookie[] cookiesToAdd = [cookie1, cookie2, cookie3];
         req.addCookies(cookiesToAdd);
-        string result = checkpanic req.getHeader("Cookie");
+        string result = check req.getHeader("Cookie");
         http:Response res = new;
         res.setJsonPayload({ cookieHeader: result });
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get getCookies(http:Caller caller, http:Request req) {
+    resource function get getCookies(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         http:Cookie cookie1 = new("SID1", "31d4d96e407aad42", path = "/sample", domain = "google.com");
         http:Cookie[] cookiesToAdd = [cookie1];
         req.addCookies(cookiesToAdd);
         http:Cookie[] cookiesInRequest = req.getCookies();
         res.setTextPayload(cookiesInRequest[0].name );
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 

@@ -35,7 +35,7 @@ listener http:Listener mutualSslistener = new(9110, sslConf);
 
 service /mutualSslService on mutualSslistener {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         string expectedCert = "MIIDsTCCApmgAwIBAgIUAcBP5M4LISxVgyGsnJohqmsCN/kwDQYJKoZIhvcNAQELBQAwaDELMAkGA1UEBhMCTEsx"
                     + "EDAOBgNVBAgMB1dlc3Rlcm4xEDAOBgNVBAcMB0NvbG9tYm8xDTALBgNVBAoMBHdzbzIxEjAQBgNVBAsMCWJhbGxlcmluYTE"
@@ -63,7 +63,7 @@ service /mutualSslService on mutualSslistener {
                 res.setTextPayload("Cert not found");
             }
         }
-        checkpanic caller->respond( res);
+        check caller->respond( res);
     }
 }
 
@@ -79,8 +79,8 @@ http:ClientConfiguration certsClientConf1 = {
 };
 
 @test:Config {}
-public function mutualSslWithCerts1() {
-    http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf1);
+public function mutualSslWithCerts1() returns error? {
+    http:Client clientEP = check new("https://localhost:9110", certsClientConf1);
     http:Response|error resp = clientEP->get("/mutualSslService/");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Response received");
@@ -123,8 +123,8 @@ http:ClientConfiguration certsClientConf3 = {
 };
 
 @test:Config {}
-public function mutualSslWithCerts3() {
-    http:Client clientEP = checkpanic new("https://localhost:9110", certsClientConf3);
+public function mutualSslWithCerts3() returns error? {
+    http:Client clientEP = check new("https://localhost:9110", certsClientConf3);
     http:Response|error resp = clientEP->get("/mutualSslService/");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Response received");

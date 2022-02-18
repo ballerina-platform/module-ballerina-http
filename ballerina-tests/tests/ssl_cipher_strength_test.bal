@@ -37,10 +37,10 @@ listener http:Listener strongCipher = new(9226, strongCipherConfig);
 
 service /strongService on strongCipher {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("hello world");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -64,16 +64,16 @@ listener http:Listener weakCipher = new(9227, weakCipherConfig);
 
 service /weakService on weakCipher {
     
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("hello world");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @test:Config {}
-public function testWithStrongClientWithWeakService() {
-    http:Client clientEP = checkpanic new("https://localhost:9227", {
+public function testWithStrongClientWithWeakService() returns error? {
+    http:Client clientEP = check new("https://localhost:9227", {
         secureSocket: {
             key: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -95,8 +95,8 @@ public function testWithStrongClientWithWeakService() {
 }
 
 @test:Config {}
-public function testWithStrongClientWithStrongService() {
-    http:Client clientEP = checkpanic new("https://localhost:9226", {
+public function testWithStrongClientWithStrongService() returns error? {
+    http:Client clientEP = check new("https://localhost:9226", {
         secureSocket: {
             key: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",

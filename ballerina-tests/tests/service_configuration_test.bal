@@ -24,20 +24,20 @@ listener http:Listener backendEP = new(backendPort);
 final http:Client scClient = check new("http://localhost:" + serviceConfigTest.toString());
 
 service /schello on backendEP {
-    resource function get sayHello(http:Caller caller, http:Request request) {
+    resource function get sayHello(http:Caller caller, http:Request request) returns error? {
         lock {
-            checkpanic backendEP.attach(testingService, basePath);
+            check backendEP.attach(testingService, basePath);
         }
-        checkpanic backendEP.start();
-        checkpanic caller->respond("Service started!");
+        check backendEP.start();
+        check caller->respond("Service started!");
     }
 }
 
 isolated http:Service testingService = service object {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response response = new;
         response.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 };
 

@@ -40,11 +40,11 @@ service /headerparamservice on HeaderBindingEP {
     }
 
     resource function get q3(@http:Header string? foo, http:Request req, @http:Header string[]? bar, 
-            http:Headers headerObj) returns json {
+            http:Headers headerObj) returns json|error {
         string[] err = ["bar header not found"];
         string header1 = foo ?: "foo header not found";
         string[] header2 = bar ?: err;
-        string header3 = checkpanic headerObj.getHeader("BAz");
+        string header3 = check headerObj.getHeader("BAz");
         json responseJson = { val1: header1, val2: header2, val3: header3};
         return responseJson;
     }

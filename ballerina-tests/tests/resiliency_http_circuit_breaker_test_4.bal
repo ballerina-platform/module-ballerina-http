@@ -77,8 +77,8 @@ service /simple on new http:Listener(8089) {
 final http:Client testGetStateClient = check new("http://localhost:9309");
 
 @test:Config{ dataProvider:getStateResponseDataProvider }
-function testGetState(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testGetStateClient, "/cb/getstate", dataFeed);
+function testGetState(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(testGetStateClient, "/cb/getstate", dataFeed);
 }
 
 function getStateResponseDataProvider() returns DataFeed[][] {

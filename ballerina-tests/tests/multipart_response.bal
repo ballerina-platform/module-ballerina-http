@@ -23,7 +23,7 @@ listener http:Listener mockEP2 = new(9091);
 final http:Client multipartRespClient = check new("http://localhost:9091");
 
 service /multipart on mockEP2 {
-    resource function get encode_out_response(http:Caller caller, http:Request request) {
+    resource function get encode_out_response(http:Caller caller, http:Request request) returns error? {
 
         //Create a body part with json content.
         mime:Entity bodyPart1 = new;
@@ -49,11 +49,11 @@ service /multipart on mockEP2 {
         string contentType = mime:MULTIPART_MIXED + "; boundary=e3a0b9ad7b4e7cdb";
         outResponse.setBodyParts(bodyParts, contentType);
 
-        checkpanic caller->respond(outResponse);
+        check caller->respond(outResponse);
     }
 
-    resource function post nested_parts_in_outresponse(http:Caller caller, http:Request request) {
-        string contentType = checkpanic request.getHeader("content-type");
+    resource function post nested_parts_in_outresponse(http:Caller caller, http:Request request) returns error? {
+        string contentType = check request.getHeader("content-type");
         http:Response outResponse = new;
         var bodyParts = request.getBodyParts();
 
@@ -62,7 +62,7 @@ service /multipart on mockEP2 {
         } else {
             outResponse.setPayload(bodyParts.message());
         }
-        checkpanic caller->respond(outResponse);
+        check caller->respond(outResponse);
     }
 }
 

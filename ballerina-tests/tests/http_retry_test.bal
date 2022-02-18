@@ -360,8 +360,8 @@ isolated function waitForRetry(int counter) {
 }
 
 service /retryStatusService on retryTestserviceEndpoint1 {
-    resource function 'default .(http:Caller caller, http:Request request) {
-        if (checkpanic request.getHeader("x-retry") == "recover") {
+    resource function 'default .(http:Caller caller, http:Request request) returns error? {
+        if (check request.getHeader("x-retry") == "recover") {
             http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/recover", request);
             if backendResponse is http:Response {
                 var responseError = caller->respond(backendResponse);
@@ -377,7 +377,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                     log:printError("Error sending response", 'error = responseError);
                 }
             }
-        } else if (checkpanic request.getHeader("x-retry") == "internalError") {
+        } else if (check request.getHeader("x-retry") == "internalError") {
             http:Response|error backendResponse = internalErrorEP->post("/mockStatusCodeService/internalError", request);
             if backendResponse is http:Response {
                 var responseError = caller->respond(backendResponse);
@@ -438,12 +438,12 @@ service /mockStatusCodeService on retryTestserviceEndpoint2 {
 @test:Config {
     groups: ["retryClientTest"]
 }
-function testSimpleRetry() {
+function testSimpleRetry() returns error? {
     json payload = {Name:"Ballerina"};
     http:Response|error response = retryFunctionTestClient->post("/retryDemoService", payload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -454,7 +454,7 @@ function testSimpleRetry() {
 @test:Config {
     groups: ["retryClientTest"]
 }
-function testHeadRequestWithRetries() {
+function testHeadRequestWithRetries() returns error? {
     http:Response|error response = retryFunctionTestClient->head("/retryDemoService");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -462,7 +462,7 @@ function testHeadRequestWithRetries() {
         lock {
             value = httpHeadRetryCount.toString();
         }
-        assertHeaderValue(checkpanic response.getHeader("X-Head-Retry-Count"), value);
+        assertHeaderValue(check response.getHeader("X-Head-Retry-Count"), value);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -514,11 +514,11 @@ function testDeleteRequestWithRetries() {
 @test:Config {
     groups: ["retryClientTest"]
 }
-function testOptionsRequestWithRetries() {
+function testOptionsRequestWithRetries() returns error? {
     http:Response|error response = retryFunctionTestClient->options("/retryDemoService");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader("Allow"), "OPTIONS, GET, HEAD, POST");
+        assertHeaderValue(check response.getHeader("Allow"), "OPTIONS, GET, HEAD, POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -528,11 +528,11 @@ function testOptionsRequestWithRetries() {
 @test:Config {
     groups: ["retryClientTest"]
 }
-function testExecuteWithRetries() {
+function testExecuteWithRetries() returns error? {
     http:Response|error response = retryFunctionTestClient->execute("GET", "/retryDemoService", new http:Request());
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "HTTP GET method invocation is successful");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -559,14 +559,14 @@ function testRetryWithNestedMultiPart() {
 @test:Config {
     groups: ["retryClientTest"]
 }
-function testRetryBasedOnHttpStatusCodes() {
+function testRetryBasedOnHttpStatusCodes() returns error? {
     http:Request req = new;
     req.setHeader("x-retry", "recover");
     req.setJsonPayload({Name:"Ballerina"});
     http:Response|error response = retryFunctionTestClient->post("/retryStatusService", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -577,14 +577,14 @@ function testRetryBasedOnHttpStatusCodes() {
 @test:Config {
     groups: ["retryClientTest"]
 }
-function testRetryBasedOnHttpStatusCodesContinuousFailure() {
+function testRetryBasedOnHttpStatusCodesContinuousFailure() returns error? {
     http:Request req = new;
     req.setHeader("x-retry", "internalError");
     req.setJsonPayload({Name:"Ballerina"});
     http:Response|error response = retryFunctionTestClient->post("/retryStatusService", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 502, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Gateway Timed out.");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

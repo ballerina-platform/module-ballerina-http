@@ -43,7 +43,7 @@ listener http:Listener http2Listener = new(9204, http2MutualSslServiceConf);
 
 service /http2Service on http2Listener {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         string expectedCert = "MIIDdzCCAl+gAwIBAgIEfP3e8zANBgkqhkiG9w0BAQsFADBkMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExF"
                       + "jAUBgNVBAcTDU1vdW50YWluIFZpZXcxDTALBgNVBAoTBFdTTzIxDTALBgNVBAsTBFdTTzIxEjAQBgNVBAMTCWxvY2Fsa"
                       + "G9zdDAeFw0xNzEwMjQwNTQ3NThaFw0zNzEwMTkwNTQ3NThaMGQxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA"
@@ -72,7 +72,7 @@ service /http2Service on http2Listener {
         } else {
             res.setTextPayload("Failed");
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -97,8 +97,8 @@ http:ClientConfiguration http2MutualSslClientConf1 = {
 };
 
 @test:Config {}
-public function testHttp2MutualSsl1() {
-    http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf1);
+public function testHttp2MutualSsl1() returns error? {
+    http:Client httpClient = check new("https://localhost:9204", http2MutualSslClientConf1);
     http:Response|error resp = httpClient->get("/http2Service/");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Passed");
@@ -153,8 +153,8 @@ http:ClientConfiguration http2MutualSslClientConf3 = {
 };
 
 @test:Config {}
-public function testHttp2MutualSsl3() {
-    http:Client httpClient = checkpanic new("https://localhost:9204", http2MutualSslClientConf3);
+public function testHttp2MutualSsl3() returns error? {
+    http:Client httpClient = check new("https://localhost:9204", http2MutualSslClientConf3);
     http:Response|error resp = httpClient->get("/http2Service/");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Passed");

@@ -30,7 +30,7 @@ final http:Client multipartReqClient = check new("http://localhost:" + multipart
 
 service /test on multipartReqEP {
 
-    resource function post textbodypart(http:Caller caller, http:Request request) {
+    resource function post textbodypart(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var bodyParts = request.getBodyParts();
 
@@ -45,10 +45,10 @@ service /test on multipartReqEP {
             }
         }
 
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 
-    resource function post jsonbodypart(http:Caller caller, http:Request request) {
+    resource function post jsonbodypart(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var bodyParts = request.getBodyParts();
 
@@ -60,10 +60,10 @@ service /test on multipartReqEP {
                 setErrorResponse(response, result);
             }
         }
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 
-    resource function post xmlbodypart(http:Caller caller, http:Request request) {
+    resource function post xmlbodypart(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var bodyParts = request.getBodyParts();
 
@@ -75,10 +75,10 @@ service /test on multipartReqEP {
                 setErrorResponse(response, result);
             }
         }
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 
-    resource function post binarybodypart(http:Caller caller, http:Request request) {
+    resource function post binarybodypart(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var bodyParts = request.getBodyParts();
 
@@ -90,10 +90,10 @@ service /test on multipartReqEP {
                 setErrorResponse(response, result);
             }
         }
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 
-    resource function post multipleparts(http:Caller caller, http:Request request) {
+    resource function post multipleparts(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var bodyParts = request.getBodyParts();
 
@@ -107,10 +107,10 @@ service /test on multipartReqEP {
             }
             response.setTextPayload(content);
         }
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 
-    resource function post emptyparts(http:Caller caller, http:Request request) {
+    resource function post emptyparts(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var bodyParts = request.getBodyParts();
 
@@ -119,10 +119,10 @@ service /test on multipartReqEP {
         } else {
             response.setPayload(bodyParts.message());
         }
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 
-    resource function post nestedparts(http:Caller caller, http:Request request) {
+    resource function post nestedparts(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var bodyParts = request.getBodyParts();
 
@@ -136,7 +136,7 @@ service /test on multipartReqEP {
             }
             response.setTextPayload(payload);
         }
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 }
 
@@ -446,7 +446,7 @@ function testBinaryBodyPartAsFileUploadUsingStream() returns error? {
         if (str is stream<byte[], io:Error?>) {
             record {|byte[] value;|}|io:Error? arr1 = str.next();
             if (arr1 is record {|byte[] value;|}) {
-                string name = checkpanic strings:fromBytes(arr1.value);
+                string name = check strings:fromBytes(arr1.value);
                 test:assertEquals(name, "Ballerina binary file part", msg = "Found unexpected output");
                 io:Error? arr2 = str.close();
                 test:assertTrue(arr2 is (), msg = "Found unexpected output");

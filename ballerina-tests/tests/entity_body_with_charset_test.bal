@@ -305,7 +305,7 @@ listener http:Listener entityEP = new(entityTest);
 
 service /test on entityEP {
 
-    resource function post jsonTest(http:Caller caller, http:Request request) {
+    resource function post jsonTest(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         var payload = request.getJsonPayload();
         if (payload is json) {
@@ -313,7 +313,7 @@ service /test on entityEP {
         } else {
             response.setPayload( payload.message());
         }
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 }
 

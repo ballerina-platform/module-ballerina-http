@@ -27,7 +27,7 @@ int cachingProxyHitcount = 0;
 
 service /cache on cachingListener1 {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = cachingEP->forward("/cachingBackend", req);
 
         if response is http:Response {
@@ -39,12 +39,12 @@ service /cache on cachingListener1 {
                 value = cachingProxyHitcount.toString();
             }
             response.setHeader("x-proxy-hit-count", value);
-            checkpanic caller->respond( response);
+            check caller->respond( response);
         } else {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload( response.message());
-            checkpanic caller->respond(res);
+            check caller->respond(res);
         }
     }
 
@@ -83,7 +83,7 @@ isolated function getHitCount() returns int {
 
 service /cachingBackend on cachingListener2 {//new http:Listener(9240) {
 
-    isolated resource function 'default .(http:Caller caller, http:Request req) {
+    isolated resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         http:ResponseCacheControl resCC = new;
         resCC.maxAge = 60;
@@ -98,7 +98,7 @@ service /cachingBackend on cachingListener2 {//new http:Listener(9240) {
 
         res.setPayload(payload);
 
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -108,13 +108,13 @@ json cachingPayload = {message:"Hello, World!"};
 
 //Test basic caching behaviour
 @test:Config {}
-function testBasicCachingBehaviour() {
+function testBasicCachingBehaviour() returns error? {
     http:Response|error response = cachingTestClient->get("/cache");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "1");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(serviceHitCount), "1");
+        assertHeaderValue(check response.getHeader(proxyHitCount), "1");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -123,9 +123,9 @@ function testBasicCachingBehaviour() {
     response = cachingTestClient->get("/cache");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "2");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(serviceHitCount), "1");
+        assertHeaderValue(check response.getHeader(proxyHitCount), "2");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -137,9 +137,9 @@ function testBasicCachingBehaviour() {
     response = cachingTestClient->get("/cache");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "3");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(serviceHitCount), "1");
+        assertHeaderValue(check response.getHeader(proxyHitCount), "3");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -227,8 +227,8 @@ public isolated class CustomLoadBalancerRule {
 final http:Client roundRobinLoadBalanceTestClient = check new("http://localhost:9313");
 
 @test:Config{ dataProvider:roundRobinResponseDataProvider }
-function roundRobinLoadBalanceTest(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/roundRobin", dataFeed);
+function roundRobinLoadBalanceTest(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/roundRobin", dataFeed);
 }
 
 function roundRobinResponseDataProvider() returns DataFeed[][] {
@@ -242,8 +242,8 @@ function roundRobinResponseDataProvider() returns DataFeed[][] {
 
 //Test for verify failover behavior with load balancer
 @test:Config{ dataProvider:roundRobinWithFailoverResponseDataProvider }
-function roundRobinWithFailoverResponseTest(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/lbFailover", dataFeed);
+function roundRobinWithFailoverResponseTest(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/lbFailover", dataFeed);
 }
 
 function roundRobinWithFailoverResponseDataProvider() returns DataFeed[][] {
@@ -256,13 +256,13 @@ function roundRobinWithFailoverResponseDataProvider() returns DataFeed[][] {
 
 //Test for verify the error message when all endpoints are failing
 @test:Config{}
-function testAllLbEndpointFailure() {
+function testAllLbEndpointFailure() returns error? {
     string expectedMessage = "All the load balance endpoints failed. Last error was: Idle timeout triggered " +
                 "before initiating inbound response";
     http:Response|error response = roundRobinLoadBalanceTestClient->post("/loadBalancerDemoService/delayResource", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), expectedMessage);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -271,8 +271,8 @@ function testAllLbEndpointFailure() {
 
 //Test for custom algorithm implementation of load balancer
 @test:Config{ dataProvider:customLbResponseDataProvider }
-function customLbResponseTest(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/customResource", dataFeed);
+function customLbResponseTest(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/customResource", dataFeed);
 }
 
 function customLbResponseDataProvider() returns DataFeed[][] {

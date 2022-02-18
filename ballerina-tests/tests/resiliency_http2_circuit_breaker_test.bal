@@ -87,9 +87,9 @@ int index = 0;
 @test:Config{
     dataProvider:http2CircuitBreakerDataProvider
 }
-function testBasicHttp2CircuitBreaker(DataFeed dataFeed) {
+function testBasicHttp2CircuitBreaker(DataFeed dataFeed) returns error? {
     index += 1;
-    invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun/" + index.toString(), dataFeed);
+    check invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun/" + index.toString(), dataFeed);
 }
 
 function http2CircuitBreakerDataProvider() returns DataFeed[][] {

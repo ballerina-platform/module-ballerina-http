@@ -65,7 +65,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
         }
     }
 
-    resource function get .(http:Caller caller, http:Request request) {
+    resource function get .(http:Caller caller, http:Request request) returns error? {
         var backendFuture = http2RetryBackendClientEP->submit("POST", "/mockHelloService", request);
         if backendFuture is http:HttpFuture {
             // Check whether promises exists
@@ -81,8 +81,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
                 } else {
                     log:printError("Error occurred while fetching a push promise");
                     json errMsg = { "error": "error occurred while fetching a push promise" };
-                    checkpanic caller->respond(errMsg);
-                    return;
+                    check caller->respond(errMsg);
                 }
                 log:printInfo(string`Received Promise for path [${pushPromise.path}]`);
                 // Store required promises
@@ -94,8 +93,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
             // By this time 1 promise should be received, if not send an error response
             if promiseCount <= 0 {
                 json errMsg = { "error": "expected number of promises not received" };
-                checkpanic caller->respond(errMsg);
-                return;
+                check caller->respond(errMsg);
             }
 
             // Get the requested resource
@@ -106,8 +104,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
             } else {
                 log:printError("Error occurred while fetching response");
                 json errMsg = { "error": "error occurred while fetching response" };
-                checkpanic caller->respond(errMsg);
-                return;
+                check caller->respond(errMsg);
             }
 
             var responsePayload = response.getJsonPayload();
@@ -118,8 +115,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
             } else {
                 log:printError("Received Error response ", errorMsg = responsePayload.message());
                 json errMsg = { "error": "expected response message not received" };
-                checkpanic caller->respond(errMsg);
-                return;
+                check caller->respond(errMsg);
             }
 
             // Fetch required promised responses
@@ -133,8 +129,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
                 } else {
                     log:printError("Error occurred while fetching promised response");
                     json errMsg = { "error": "error occurred while fetching promised response" };
-                    checkpanic caller->respond(errMsg);
-                    return;
+                    check caller->respond(errMsg);
                 }
 
                 json promisedJsonPayload = {};
@@ -143,8 +138,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
                     promisedJsonPayload = promisedPayload;
                 } else {
                     json errMsg = { "error": "expected promised response not received" };
-                    checkpanic caller->respond(errMsg);
-                    return;
+                    check caller->respond(errMsg);
                 }
                 retrievedPromises.push(promisedJsonPayload);
             }
@@ -185,12 +179,12 @@ service /mockHelloService on http2RetryTestserviceEndpoint1 {
         }
     }
 
-    isolated resource function post .(http:Caller caller, http:Request request) {
+    isolated resource function post .(http:Caller caller, http:Request request) returns error? {
         int counter = retrieveAndIncrementHttp2RetryCounter();
         waitForRetry(counter);
         // Send a Push Promise
         http:PushPromise promise = new("/resource1", "POST");
-        checkpanic caller->promise(promise);
+        check caller->promise(promise);
         // Construct requested resource
         json mainResponseMsg = {
             "response": {
@@ -198,11 +192,11 @@ service /mockHelloService on http2RetryTestserviceEndpoint1 {
             }
         };
         // Send the requested resource
-        checkpanic caller->respond(mainResponseMsg);
+        check caller->respond(mainResponseMsg);
         http:Response pushResponse = new;
         json msg = { "push": { "name": "resource3" } };
         pushResponse.setJsonPayload(msg);
-        checkpanic caller->pushPromisedResponse(promise, pushResponse);
+        check caller->pushPromisedResponse(promise, pushResponse);
     }
 }
 
@@ -211,12 +205,12 @@ service /mockHelloService on http2RetryTestserviceEndpoint1 {
     groups: ["http2RetryClientTest"],
     enable: false
 }
-function testHttp2SimpleRetry() {
+function testHttp2SimpleRetry() returns error? {
     json payload = {Name:"Ballerina"};
     http:Response|error response = http2RetryFunctionTestClient->post("/retryDemoService", payload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -228,12 +222,12 @@ function testHttp2SimpleRetry() {
     groups: ["http2RetryClientTest"],
     enable: false
 }
-function testHttp2RetryWithServerPush() {
+function testHttp2RetryWithServerPush() returns error? {
     string expectedPayload = "{\"main\":{\"response\":{\"name\":\"main resource\"}}, \"promises\":[{\"push\":{\"name\":\"resource3\"}}]}";
     http:Response|error response = http2RetryFunctionTestClient->get("/retryDemoService");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertTextPayload(response.getTextPayload(), expectedPayload);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

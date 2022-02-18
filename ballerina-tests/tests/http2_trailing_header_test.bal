@@ -32,8 +32,8 @@ service /trailerInitiator on new http:Listener(9118) {
             if textPayload is error {
                 log:printError("Error reading payload", 'error = textPayload);
             }
-            string firstTrailer = checkpanic responseFromBackend.getHeader("foo", position = "trailing");
-            string secondTrailer = checkpanic responseFromBackend.getHeader("baz", position = "trailing");
+            string firstTrailer = check responseFromBackend.getHeader("foo", position = "trailing");
+            string secondTrailer = check responseFromBackend.getHeader("baz", position = "trailing");
 
             int headerCount = responseFromBackend.getHeaderNames(position = "trailing").length();
 

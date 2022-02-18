@@ -138,8 +138,8 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
 }
 
 @test:Config {}
-public function testClientUpgradewithLargePayload() {
-    http:Client clientEP = checkpanic new("http://localhost:9106");
+public function testClientUpgradewithLargePayload() returns error? {
+    http:Client clientEP = check new("http://localhost:9106");
     http:Response|error resp = clientEP->get("/http2EchoService/initial");
     string expectedPayload = "{\"web-app\":{\"servlet\":[{\"servlet-name\":\"cofaxCDS\", \"servlet-class\":"
                         + "\"org.cofax.cds.CDSServlet\", \"init-param\":{\"configGlossary:installationAt\":"

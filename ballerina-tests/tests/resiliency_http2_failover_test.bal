@@ -111,12 +111,12 @@ function sendErrorResponse(http:Caller caller, error e) {
 
 //Test basic failover scenario for HTTP2 clients. //////TODO: #24260
 @test:Config{}
-function testBasicHttp2Failover() {
-    http:Client testClient = checkpanic new("http://localhost:9314");
+function testBasicHttp2Failover() returns error? {
+    http:Client testClient = check new("http://localhost:9314");
     http:Response|error response = testClient->post("/failoverDemoService06/index", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 0");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -125,7 +125,7 @@ function testBasicHttp2Failover() {
     response = testClient->post("/failoverDemoService06/index", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 2");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

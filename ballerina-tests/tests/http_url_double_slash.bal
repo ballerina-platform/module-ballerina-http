@@ -25,14 +25,14 @@ final http:Client urlClient = check new("http://localhost:" + httpUrlTestPort2.t
 
 service "/url//test" on httpUrlListenerEP2 {
 
-    resource function get .(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("Hello");
+    resource function get .(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("Hello");
     }
 }
 
 service "//url" on httpUrlListenerEP1  {
 
-    resource function get .(http:Caller caller, http:Request request) {
+    resource function get .(http:Caller caller, http:Request request) returns error? {
         string value = "";
         http:Response|error response = urlClient->get("//test");
         if response is http:Response {
@@ -43,17 +43,17 @@ service "//url" on httpUrlListenerEP1  {
                 value = result.message();
             }
         }
-        checkpanic caller->respond(value);
+        check caller->respond(value);
     }
 }
 
 //Test for handling double slashes
 @test:Config {}
-function testUrlDoubleSlash() {
+function testUrlDoubleSlash() returns error? {
     http:Response|error response = httpUrlClient->get("/url");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -66,7 +66,7 @@ function testResourcePathWithoutStartingSlash() returns error? {
     http:Response|error response = httpUrlClient->get("url");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -80,7 +80,7 @@ function testResourcePathWithEmptyPath() returns error? {
     http:Response|error response = httpUrlClient->get("");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -95,7 +95,7 @@ function testResourcePathWithQueryParam() returns error? {
     http:Response|error response = httpUrlClient->get("?abc=go&xyz=no");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -109,7 +109,7 @@ function testResourcePathWithFragmentParam() returns error? {
     http:Response|error response = httpUrlClient->get("#foo");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -185,8 +185,8 @@ isolated function getContDisposition(string partName) returns (mime:ContentDispo
 }
 
 @test:Config {}
-public function testMultipart() {
-    http:Client clientEP = checkpanic new("http://localhost:9100");
+public function testMultipart() returns error? {
+    http:Client clientEP = check new("http://localhost:9100");
     http:Response|error resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"false"});
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");
@@ -196,8 +196,8 @@ public function testMultipart() {
 }
 
 @test:Config {}
-public function testMultipartsWithPriorKnowledge() {
-    http:Client clientEP = checkpanic new("http://localhost:9100");
+public function testMultipartsWithPriorKnowledge() returns error? {
+    http:Client clientEP = check new("http://localhost:9100");
     http:Response|error resp = clientEP->get("/multiparts/initial", {"priorKnowledge":"true"});
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"wso2\"}<message>Hello world</message>text content");

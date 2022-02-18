@@ -51,8 +51,8 @@ http:ClientConfiguration http2SslClientConf1 = {
 };
 
 @test:Config {}
-public function testHttp2Ssl1() {
-    http:Client clientEP = checkpanic new("https://localhost:9206", http2SslClientConf1);
+public function testHttp2Ssl1() returns error? {
+    http:Client clientEP = check new("https://localhost:9206", http2SslClientConf1);
     http:Response|error resp = clientEP->get("/http2Service/");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Hello World!");

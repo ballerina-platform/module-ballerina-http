@@ -218,56 +218,56 @@ final http:Client testForceOpenClient = checkpanic new("http://localhost:9307");
     groups: ["circuitBreakerForceOpen"],
     dataProvider:forceOpenResponseDataProvider 
 }
-function testForceOpen(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testForceOpenClient, "/cb/forceopen", dataFeed);
+function testForceOpen(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
 @test:Config{ 
     groups: ["circuitBreakerForceOpen"],
     dataProvider:forceOpenResponseDataProvider 
 }
-function testForceOpenWithHttpGet(DataFeed dataFeed) {
-    invokeApiAndVerifyResponseWithHttpGet(testForceOpenClient, "/cb/forceopen", dataFeed);
+function testForceOpenWithHttpGet(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponseWithHttpGet(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
 @test:Config{ 
     groups: ["circuitBreakerForceOpen"],
     dataProvider:forceOpenResponseDataProviderForHeadRequest 
 }
-function testForceOpenWithHttpHead(DataFeed dataFeed) {
-    invokeApiAndVerifyResponseWithHttpHead(testForceOpenClient, "/cb/forceopen", dataFeed);
+function testForceOpenWithHttpHead(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponseWithHttpHead(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
 @test:Config{ 
     groups: ["circuitBreakerForceOpen"],
     dataProvider:forceOpenResponseDataProviderForOptionsRequest 
 }
-function testForceOpenWithHttpOptions(DataFeed dataFeed) {
-    invokeApiAndVerifyResponseWithHttpOptions(testForceOpenClient, "/cb/forceopen", dataFeed);
+function testForceOpenWithHttpOptions(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponseWithHttpOptions(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
 @test:Config{ 
     groups: ["circuitBreakerForceOpen"],
     dataProvider:forceOpenResponseDataProvider 
 }
-function testForceOpenWithHttpPut(DataFeed dataFeed) {
-    invokeApiAndVerifyResponseWithHttpPut(testForceOpenClient, "/cb/forceopen", dataFeed);
+function testForceOpenWithHttpPut(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponseWithHttpPut(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
 @test:Config{ 
     groups: ["circuitBreakerForceOpen"],
     dataProvider:forceOpenResponseDataProvider 
 }
-function testForceOpenWithHttpPatch(DataFeed dataFeed) {
-    invokeApiAndVerifyResponseWithHttpPatch(testForceOpenClient, "/cb/forceopen", dataFeed);
+function testForceOpenWithHttpPatch(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponseWithHttpPatch(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
 @test:Config{ 
     groups: ["circuitBreakerForceOpen"],
     dataProvider:forceOpenResponseDataProvider 
 }
-function testForceOpenWithHttpDelete(DataFeed dataFeed) {
-    invokeApiAndVerifyResponseWithHttpDelete(testForceOpenClient, "/cb/forceopen", dataFeed);
+function testForceOpenWithHttpDelete(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponseWithHttpDelete(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
 function forceOpenResponseDataProvider() returns DataFeed[][] {

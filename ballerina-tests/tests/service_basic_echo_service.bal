@@ -37,15 +37,15 @@ isolated function getGlobalValue() returns string {
 
 service /echo on serviceTestEP {
 
-    resource function get message(http:Caller caller, http:Request req) {
+    resource function get message(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get message_worker(http:Caller caller, http:Request req) {
+    resource function get message_worker(http:Caller caller, http:Request req) returns error? {
         //worker w1 {
             http:Response res = new;
-            checkpanic caller->respond(res);
+            check caller->respond(res);
         //}
         //worker w2 {
         //    int x = 0;
@@ -53,7 +53,7 @@ service /echo on serviceTestEP {
         //}
     }
 
-    resource function post setString(http:Caller caller, http:Request req) {
+    resource function post setString(http:Caller caller, http:Request req) returns error? {
         string payloadData = "";
         var payload = req.getTextPayload();
         if (payload is error) {
@@ -62,32 +62,32 @@ service /echo on serviceTestEP {
             payloadData = payload;
         }
         setGlobalValue(payloadData);
-        checkpanic caller->respond(payloadData);
+        check caller->respond(payloadData);
         return;
     }
 
-    resource function get getString(http:Caller caller, http:Request req) {
+    resource function get getString(http:Caller caller, http:Request req) returns error? {
         lock {
             http:Response res = new;
             res.setTextPayload(getGlobalValue());
-            checkpanic caller->respond(res);
+            check caller->respond(res);
             return;
         }
     }
 
-    resource function get removeHeaders(http:Caller caller, http:Request req) {
+    resource function get removeHeaders(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setHeader("header1", "wso2");
         res.setHeader("header2", "ballerina");
         res.setHeader("header3", "hello");
         res.removeAllHeaders();
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     resource function get testEmptyResourceBody(http:Caller caller, http:Request req) {
     }
 
-    resource function post getFormParams(http:Caller caller, http:Request req) {
+    resource function post getFormParams(http:Caller caller, http:Request req) returns error? {
         var params = req.getFormParams();
         http:Response res = new;
         if (params is map<string>) {
@@ -115,7 +115,7 @@ service /echo on serviceTestEP {
                 res.setPayload(errMsg is string ?  errMsg : "Error in parsing form params");
             }
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     resource function post formData(http:Request request) returns string|error {
@@ -131,10 +131,10 @@ service /echo on serviceTestEP {
         return payload;
     }
 
-    resource function patch modify(http:Caller caller, http:Request req) {
+    resource function patch modify(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.statusCode = 204;
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     resource function post parseJSON(http:Caller caller, http:Request req) returns error? {
@@ -142,8 +142,7 @@ service /echo on serviceTestEP {
         http:Response res = new;
         res.setPayload(payload);
         res.statusCode = 200;
-        checkpanic caller->respond(res);
-        return;
+        check caller->respond(res);
     }
 }
 
@@ -151,16 +150,16 @@ service /echo on serviceTestEP {
 service /hello on serviceTestEP {
 
     @http:ResourceConfig {}
-    resource function 'default echo(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("Uninitialized configs");
+    resource function 'default echo(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("Uninitialized configs");
     }
 
-    resource function 'default testFunctionCall(http:Caller caller, http:Request req) {
+    resource function 'default testFunctionCall(http:Caller caller, http:Request req) returns error? {
         string str;
         lock {
             str = self.nonRemoteFunctionCall();
         }
-        checkpanic caller->respond(str);
+        check caller->respond(str);
     }
 
     isolated function nonRemoteFunctionCall() returns string {

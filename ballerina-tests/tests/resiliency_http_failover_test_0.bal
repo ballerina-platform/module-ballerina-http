@@ -229,12 +229,12 @@ service /failureStatusCodeService on backendEP00 {
 
 //Test basic failover functionality
 @test:Config {}
-function testSimpleFailover() {
-    http:Client testClient = checkpanic new("http://localhost:9300");
+function testSimpleFailover() returns error? {
+    http:Client testClient = check new("http://localhost:9300");
     http:Response|error response = testClient->post("/failoverDemoService00/typical", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Mock Resource is Invoked.");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

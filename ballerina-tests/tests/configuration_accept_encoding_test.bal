@@ -33,17 +33,17 @@ final http:Client acceptEncodingDisableEP = check new("http://localhost:" + acce
 
 service /hello on acceptEncodingListenerEP {
 
-    resource function 'default .(http:Caller caller, http:Request req) {
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json payload = {};
         boolean hasHeader = req.hasHeader(ACCEPT_ENCODING);
         if (hasHeader) {
-            payload = {acceptEncoding: checkpanic req.getHeader(ACCEPT_ENCODING)};
+            payload = {acceptEncoding: check req.getHeader(ACCEPT_ENCODING)};
         } else {
             payload = {acceptEncoding:"Accept-Encoding header not present."};
         }
         res.setJsonPayload( payload);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 

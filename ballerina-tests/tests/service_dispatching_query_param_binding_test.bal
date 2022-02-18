@@ -23,32 +23,33 @@ final http:Client queryBindingClient = check new("http://localhost:" + queryPara
 
 service /queryparamservice on QueryBindingEP {
 
-    resource function get .(string foo, http:Caller caller, int bar, http:Request req) {
+    resource function get .(string foo, http:Caller caller, int bar, http:Request req) returns error? {
         json responseJson = { value1: foo, value2: bar};
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 
-    resource function get q1(int id, string PersoN, http:Caller caller, float val, boolean isPresent, decimal dc) {
+    resource function get q1(int id, string PersoN, http:Caller caller, float val, boolean isPresent, decimal dc)
+            returns error? {
         json responseJson = { iValue: id, sValue: PersoN, fValue: val, bValue: isPresent, dValue: dc };
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 
     resource function get q2(int[] id, string[] PersoN, float[] val, boolean[] isPresent, 
-            http:Caller caller, decimal[] dc) {
+            http:Caller caller, decimal[] dc) returns error? {
         json responseJson = { iValue: id, sValue: PersoN, fValue: val, bValue: isPresent, dValue: dc };
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 
     resource function get q3(http:Caller caller, int? id, string? PersoN, float? val, 
-            boolean? isPresent, decimal? dc) {
+            boolean? isPresent, decimal? dc) returns error? {
         json responseJson = { iValue: id, sValue: PersoN, fValue: val, bValue: isPresent, dValue: dc };
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 
     resource function get q4(int[]? id, string[]? PersoN, float[]? val, boolean[]? isPresent, 
-            http:Caller caller, decimal[]? dc) {
+            http:Caller caller, decimal[]? dc) returns error? {
         json responseJson = { iValue: id, sValue: PersoN, fValue: val, bValue: isPresent, dValue: dc };
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 
     resource function get q5(map<json> obj) returns json {

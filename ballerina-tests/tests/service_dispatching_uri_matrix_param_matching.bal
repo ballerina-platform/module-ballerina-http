@@ -22,7 +22,7 @@ final http:Client matrixClient = check new("http://localhost:" + uriMatrixParamM
 
 service /hello on matrixEP {
 
-    resource function get t1/[string person]/bar/[string yearParam]/foo(http:Caller caller, http:Request req) {
+    resource function get t1/[string person]/bar/[string yearParam]/foo(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         map<json> outJson = {};
         outJson["pathParams"] = string `${person}, ${yearParam}`;
@@ -50,10 +50,10 @@ service /hello on matrixEP {
         outJson["queryParams"] = string `x=${xVal}&y=${yVal}`;
 
         res.setJsonPayload(outJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get t2/[string person]/foo\;a\=5\;b\=10(http:Caller caller, http:Request req) {
+    resource function get t2/[string person]/foo\;a\=5\;b\=10(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         map<json> outJson = {};
         outJson["person"] = person;
@@ -65,7 +65,7 @@ service /hello on matrixEP {
         outJson["fooParamSize"] = fooMParams.length();
 
         res.setJsonPayload(outJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 

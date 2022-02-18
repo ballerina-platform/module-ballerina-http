@@ -22,26 +22,26 @@ final http:Client httpOptionsClient = check new("http://localhost:" + httpOption
 
 service /echoDummy on httpOptionsListenerEP {
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("hello world");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function options getOptions(http:Caller caller, http:Request req) {
+    resource function options getOptions(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("hello Options");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 //Test OPTIONS content length header sample test case
 @test:Config {}
-function testOptionsContentLengthHeader() {
+function testOptionsContentLengthHeader() returns error? {
     http:Response|error response = httpOptionsClient->options("/echoDummy", {[CONTENT_TYPE]:[APPLICATION_JSON]});
     if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(ALLOW), "POST, OPTIONS");
+        assertHeaderValue(check response.getHeader(ALLOW), "POST, OPTIONS");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -49,12 +49,12 @@ function testOptionsContentLengthHeader() {
 
 //Test OPTIONS content length header sample test case
 @test:Config {}
-function testOptionsResourceWithPayload() {
+function testOptionsResourceWithPayload() returns error? {
     http:Response|error response = httpOptionsClient->options("/echoDummy/getOptions", {[CONTENT_TYPE]:[APPLICATION_JSON]});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_LENGTH), "13");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_LENGTH), "13");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello Options");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

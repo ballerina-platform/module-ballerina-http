@@ -25,37 +25,37 @@ service /echo66 on pcEP {
     @http:ResourceConfig {
         consumes: ["application/xml"]
     }
-    resource function post test1(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ msg: "wso2" });
+    resource function post test1(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ msg: "wso2" });
     }
 
     @http:ResourceConfig {
         produces: ["text/xml", "application/xml "]
     }
-    resource function get test2(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ msg: "wso22" });
+    resource function get test2(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ msg: "wso22" });
     }
 
     @http:ResourceConfig {
         consumes: ["application/xhtml+xml", "text/plain", "text/json"],
         produces: ["text/css", "application/json"]
     }
-    resource function post test3(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ msg: "wso222" });
+    resource function post test3(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ msg: "wso222" });
     }
 
     @http:ResourceConfig {
         consumes: ["appliCation/XML"],
         produces: ["Application/JsON"]
     }
-    resource function post test4(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ msg: "wso222" });
+    resource function post test4(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ msg: "wso222" });
     }
 }
 
 service /echo67 on pcEP {
-    resource function 'default echo1(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ echo33: "echo1" });
+    resource function 'default echo1(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ echo33: "echo1" });
     }
 }
 

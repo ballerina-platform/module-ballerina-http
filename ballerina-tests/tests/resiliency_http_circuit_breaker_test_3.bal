@@ -100,8 +100,8 @@ final http:Client testForceCloseClient = check new("http://localhost:9308");
 @test:Config{
     dataProvider:forceCloseResponseDataProvider
 }
-function testForceClose(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testForceCloseClient, "/cb/forceclose", dataFeed);
+function testForceClose(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(testForceCloseClient, "/cb/forceclose", dataFeed);
 }
 
 function forceCloseResponseDataProvider() returns DataFeed[][] {

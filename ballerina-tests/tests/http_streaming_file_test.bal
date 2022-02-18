@@ -88,11 +88,11 @@ function setError(http:Response res, error err) {
 }
 
 @test:Config {}
-function testStreamingLargeFile() {
+function testStreamingLargeFile() returns error? {
     http:Response|error response = streamTestClient->get("/stream/fileupload");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "File Received!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

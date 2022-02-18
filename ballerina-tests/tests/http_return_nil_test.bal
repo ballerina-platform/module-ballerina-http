@@ -88,11 +88,11 @@ function testEmptyResource() {
 }
 
 @test:Config {}
-function testNilReturnAsEndExec() {
+function testNilReturnAsEndExec() returns error? {
     http:Response|error response = httpReturnNilClient->get("/url/end");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hi");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -100,11 +100,11 @@ function testNilReturnAsEndExec() {
 }
 
 @test:Config {}
-function testDoubleResponseWithExecption() {
+function testDoubleResponseWithExecption() returns error? {
     http:Response|error response = httpReturnNilClient->get("/url/double");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -112,7 +112,7 @@ function testDoubleResponseWithExecption() {
 }
 
 @test:Config {}
-function testNilReturnWithCaller() {
+function testNilReturnWithCaller() returns error? {
     http:Response|error response = httpReturnNilClient->get("/url/errorCaller?err=true");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
@@ -129,7 +129,7 @@ function testNilReturnWithCaller() {
     response = httpReturnNilClient->get("/url/errorCaller?err=false");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "success");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

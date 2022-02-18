@@ -47,8 +47,8 @@ http:ClientConfiguration sslDisabledConfig = {
 };
 
 @test:Config {}
-public function disableSslTest() {
-    http:Client clientEP = checkpanic new("https://localhost:9114", sslDisabledConfig);
+public function disableSslTest() returns error? {
+    http:Client clientEP = check new("https://localhost:9114", sslDisabledConfig);
     http:Response|error resp = clientEP->get("/hello/");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Hello World!");

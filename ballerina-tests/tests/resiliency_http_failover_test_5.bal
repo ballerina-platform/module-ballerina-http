@@ -84,12 +84,12 @@ service /mock05 on backendEP05 {
 
 //Test to verify whether failover will test from last successful endpoint
 @test:Config {}
-function testFailoverStartingPosition() {
-    http:Client testClient = checkpanic new("http://localhost:9305");
+function testFailoverStartingPosition() returns error? {
+    http:Client testClient = check new("http://localhost:9305");
     http:Response|error response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Failover start index is : 0");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -98,7 +98,7 @@ function testFailoverStartingPosition() {
     response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Failover start index is : 2");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -66,12 +66,12 @@ final http:Client endPoint5 = check new("https://localhost:9104", endPoint5Confi
 
 service /testRedirectService on serviceEndpoint3 {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = endPoint1->get("/redirect1");
         http:Response finalResponse = new;
         if response is http:Response {
             finalResponse.setPayload(response.resolvedRequestedURI);
-            checkpanic caller->respond(finalResponse);
+            check caller->respond(finalResponse);
         } else {
             io:println("Connector error!");
         }
@@ -398,71 +398,71 @@ service /testRedirectService on serviceEndpoint3 {
 
 service /redirect1 on serviceEndpoint3 {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, ["http://localhost:9102/redirect2"]);
+        check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, ["http://localhost:9102/redirect2"]);
     }
 
-    resource function get round1(http:Caller caller, http:Request req) {
+    resource function get round1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_PERMANENT_REDIRECT_308, ["/redirect1/round2"]);
+        check caller->redirect(res, http:REDIRECT_PERMANENT_REDIRECT_308, ["/redirect1/round2"]);
     }
 
-    resource function get round2(http:Caller caller, http:Request req) {
+    resource function get round2(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_USE_PROXY_305, ["/redirect1/round3"]);
+        check caller->redirect(res, http:REDIRECT_USE_PROXY_305, ["/redirect1/round3"]);
     }
 
-    resource function get round3(http:Caller caller, http:Request req) {
+    resource function get round3(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_MULTIPLE_CHOICES_300, ["/redirect1/round4"]);
+        check caller->redirect(res, http:REDIRECT_MULTIPLE_CHOICES_300, ["/redirect1/round4"]);
     }
 
-    resource function get round4(http:Caller caller, http:Request req) {
+    resource function get round4(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_MOVED_PERMANENTLY_301, ["/redirect1/round5"]);
+        check caller->redirect(res, http:REDIRECT_MOVED_PERMANENTLY_301, ["/redirect1/round5"]);
     }
 
-    resource function get round5(http:Caller caller, http:Request req) {
+    resource function get round5(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_FOUND_302, ["http://localhost:9102/redirect2"]);
+        check caller->redirect(res, http:REDIRECT_FOUND_302, ["http://localhost:9102/redirect2"]);
     }
 
-    resource function get qpWithRelativePath(http:Caller caller, http:Request req) {
+    resource function get qpWithRelativePath(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, ["/redirect1/processQP?key=value&lang=ballerina"
+        check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, ["/redirect1/processQP?key=value&lang=ballerina"
             ]);
     }
 
-    resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) {
+    resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
+        check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
                 "http://localhost:9103/redirect1/processQP?key=value&lang=ballerina"]);
     }
 
-    resource function get processQP(http:Caller caller, http:Request req) {
+    resource function get processQP(http:Caller caller, http:Request req) returns error? {
         map<string[]> paramsMap = req.getQueryParams();
         string[]? arr1 = paramsMap["key"];
         string[]? arr2 = paramsMap["lang"];
         string returnVal = (arr1 is string[] ? arr1[0] : "") + ":" + (arr2 is string[] ? arr2[0] : "");
-        checkpanic caller->respond(returnVal);
+        check caller->respond(returnVal);
     }
 
-    resource function head handleHead(http:Caller caller, http:Request req) {
+    resource function head handleHead(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
+        check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
                 "http://localhost:9102/redirect2/echo"]);
     }
 
-    resource function options handleOptions(http:Caller caller, http:Request req) {
+    resource function options handleOptions(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
+        check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
                 "http://localhost:9102/redirect2/echo"]);
     }
 
-    resource function 'default handlePost(http:Caller caller, http:Request req) {
+    resource function 'default handlePost(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
+        check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
                 "http://localhost:9102/redirect2/echo"]);
     }
 }
@@ -470,21 +470,21 @@ service /redirect1 on serviceEndpoint3 {
 
 service /redirect2 on serviceEndpoint2 {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setPayload("hello world");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function post test303(http:Caller caller, http:Request req) {
+    resource function post test303(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_SEE_OTHER_303, ["/redirect2"]);
+        check caller->redirect(res, http:REDIRECT_SEE_OTHER_303, ["/redirect2"]);
     }
 
-    resource function options echo(http:Caller caller, http:Request req) {
+    resource function options echo(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setHeader("Allow", "OPTIONS, HEAD");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     resource function 'default echo(http:Caller caller, http:Request req) returns error? {
@@ -527,18 +527,18 @@ service /redirect2 on serviceEndpoint2 {
 
 service /redirect3 on httpsEP {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_SEE_OTHER_303, ["/redirect3/result"]);
+        check caller->redirect(res, http:REDIRECT_SEE_OTHER_303, ["/redirect3/result"]);
     }
 
-    resource function get result(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("HTTPs Result");
+    resource function get result(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("HTTPs Result");
     }
 
-    resource function put handlePost(http:Caller caller, http:Request req) {
+    resource function put handlePost(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_PERMANENT_REDIRECT_308, [
+        check caller->redirect(res, http:REDIRECT_PERMANENT_REDIRECT_308, [
                 "http://localhost:9103/redirect1/handlePost"]);
     }
 }
@@ -546,8 +546,8 @@ service /redirect3 on httpsEP {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testHttpRedirects() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testHttpRedirects() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/");
     if resp is http:Response {
         assertRedirectResponse(resp, "http://localhost:9102/redirect2");
@@ -559,8 +559,8 @@ public function testHttpRedirects() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testMaxRedirect() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testMaxRedirect() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/maxRedirect");
     if resp is http:Response {
         assertRedirectResponse(resp, "/redirect1/round5:http://localhost:9103/redirect1/round4");
@@ -572,8 +572,8 @@ public function testMaxRedirect() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testCrossDomain() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testCrossDomain() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/noRedirect");
     if resp is http:Response {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -585,8 +585,8 @@ public function testCrossDomain() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testNoRedirect() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testNoRedirect() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/crossDomain");
     if resp is http:Response {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -598,8 +598,8 @@ public function testNoRedirect() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectOff() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testRedirectOff() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/redirectOff");
     if resp is http:Response {
         assertRedirectResponse(resp, "/redirect1/round2:");
@@ -611,8 +611,8 @@ public function testRedirectOff() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testQPWithRelativePath() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testQPWithRelativePath() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/qpWithRelativePath");
     if resp is http:Response {
         assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
@@ -624,8 +624,8 @@ public function testQPWithRelativePath() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testQPWithAbsolutePath() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testQPWithAbsolutePath() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/qpWithAbsolutePath");
     if resp is http:Response {
         assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
@@ -637,8 +637,8 @@ public function testQPWithAbsolutePath() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testOriginalRequestWithQP() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testOriginalRequestWithQP() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/originalRequestWithQP");
     if resp is http:Response {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -650,8 +650,8 @@ public function testOriginalRequestWithQP() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function test303Status() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function test303Status() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/test303");
     if resp is http:Response {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -663,8 +663,8 @@ public function test303Status() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithHTTPs() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testRedirectWithHTTPs() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/httpsRedirect");
     if resp is http:Response {
         assertRedirectResponse(resp, "HTTPs Result:https://localhost:9104/redirect3/result");
@@ -676,8 +676,8 @@ public function testRedirectWithHTTPs() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithPOST() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testRedirectWithPOST() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/doPost");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
@@ -689,8 +689,8 @@ public function testRedirectWithPOST() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithHead() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testRedirectWithHead() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/doHead");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:No Proxy:HTTP_TEMPORARY_REDIRECT:http://localhost:9102/redirect2/echo");
@@ -702,8 +702,8 @@ public function testRedirectWithHead() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithExecute() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testRedirectWithExecute() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/doExecute");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
@@ -715,8 +715,8 @@ public function testRedirectWithExecute() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithPatch() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testRedirectWithPatch() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/doPatch");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
@@ -728,8 +728,8 @@ public function testRedirectWithPatch() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithDelete() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testRedirectWithDelete() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/doDelete");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
@@ -741,8 +741,8 @@ public function testRedirectWithDelete() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithOptions() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testRedirectWithOptions() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/doOptions");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:OPTIONS, HEAD:http://localhost:9102/redirect2/echo");
@@ -754,8 +754,8 @@ public function testRedirectWithOptions() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testWithHTTPs() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testWithHTTPs() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/doSecurePut");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Secure payload:No Proxy:http://localhost:9102/redirect2/echo");
@@ -767,8 +767,8 @@ public function testWithHTTPs() {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testMultipartRedirect() {
-    http:Client httpClient = checkpanic new("http://localhost:9103");
+public function testMultipartRedirect() returns error? {
+    http:Client httpClient = check new("http://localhost:9103");
     http:Response|error resp = httpClient->get("/testRedirectService/testMultipart");
     if resp is http:Response {
         assertRedirectResponse(resp, "{\"name\":\"wso2\"}:http://localhost:9102/redirect2/echo");

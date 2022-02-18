@@ -92,9 +92,9 @@ service /responseLimit on statusLineEP {
 }
 
 service /backend on responseLimitBackendEP {
-    resource function get statustest(http:Caller caller, http:Request req) {
+    resource function get statustest(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        string testType = checkpanic req.getHeader("x-test-type");
+        string testType = check req.getHeader("x-test-type");
         if testType == "error" {
             res.reasonPhrase = getStringLengthOf(1200);
         } else {
@@ -104,9 +104,9 @@ service /backend on responseLimitBackendEP {
         sendResponse(caller, res);
     }
 
-    resource function get headertest(http:Caller caller, http:Request req) {
+    resource function get headertest(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        string testType = checkpanic req.getHeader("x-test-type");
+        string testType = check req.getHeader("x-test-type");
         if testType == "error" {
             res.setHeader("x-header", getStringLengthOf(2048));
         } else {
@@ -116,9 +116,9 @@ service /backend on responseLimitBackendEP {
         sendResponse(caller, res);
     }
 
-    resource function get entitybodytest(http:Caller caller, http:Request req) {
+    resource function get entitybodytest(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        string testType = checkpanic req.getHeader("x-test-type");
+        string testType = check req.getHeader("x-test-type");
         if testType == "error" {
             res.setTextPayload(getStringLengthOf(2048));
         } else {
@@ -127,9 +127,9 @@ service /backend on responseLimitBackendEP {
         sendResponse(caller, res);
     }
 
-    resource function get headertest2(http:Caller caller, http:Request req) {
+    resource function get headertest2(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        string testType = checkpanic req.getHeader("x-test-type");
+        string testType = check req.getHeader("x-test-type");
         if testType == "error" {
             res.setHeader("x-header", getStringLengthOf(2048));
         } else {
@@ -185,11 +185,11 @@ function testInvalidStatusLineLength() {
 
 //Test when header size is less than the configured maxHeaderSize threshold
 @test:Config {}
-function testValidHeaderLengthOfResponse() {
+function testValidHeaderLengthOfResponse() returns error? {
     http:Response|error response = limitTestClient->get("/responseLimit/header", {[X_TEST_TYPE]:[SUCCESS]});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(X_HEADER), "Validated");
+        assertHeaderValue(check response.getHeader(X_HEADER), "Validated");
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -242,11 +242,11 @@ function testInvalidEntityBodyLength() {
 
 //Test when header size is less than the configured maxHeaderSize threshold in http2 client but the backend sends http 1.1 response
 @test:Config {}
-function testValidHeaderLengthWithHttp2Client() {
+function testValidHeaderLengthWithHttp2Client() returns error? {
     http:Response|error response = limitTestClient->get("/responseLimit/http2", {[X_TEST_TYPE]:[SUCCESS]});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(X_HEADER), "Validated");
+        assertHeaderValue(check response.getHeader(X_HEADER), "Validated");
         assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

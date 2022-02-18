@@ -99,8 +99,8 @@ final http:Client testTypicalBackendTimeoutClient = check new("http://localhost:
 @test:Config {
     dataProvider:responseDataProvider
 }
-function testTypicalBackendTimeout(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testTypicalBackendTimeoutClient, "/cb/typical", dataFeed);
+function testTypicalBackendTimeout(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(testTypicalBackendTimeoutClient, "/cb/typical", dataFeed);
 }
 
 function responseDataProvider() returns DataFeed[][] {

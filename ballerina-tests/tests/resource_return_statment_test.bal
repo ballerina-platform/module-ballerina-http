@@ -345,8 +345,8 @@ service http:Service /mytest on resourceReturnTestEP {
         }
     }
 
-    resource function get test28(http:Request req) returns string {
-        string header = checkpanic req.getHeader("filePath");
+    resource function get test28(http:Request req) returns string|error {
+        string header = check req.getHeader("filePath");
         return header;
     }
 
@@ -366,8 +366,8 @@ service http:Service /mytest on resourceReturnTestEP {
         return;
     }
 
-    resource function get test32(http:Caller caller) {
-        checkpanic caller->respond("Hello"); // log error
+    resource function get test32(http:Caller caller) returns error? {
+        check caller->respond("Hello"); // log error
     }
 
     resource function get test33() returns http:Ok {
@@ -381,11 +381,11 @@ service http:Service /mytest on resourceReturnTestEP {
 }
 
 @test:Config {}
-public function testRespondAndReturnNil() {
+public function testRespondAndReturnNil() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test1");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "hello");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -393,11 +393,11 @@ public function testRespondAndReturnNil() {
 }
 
 @test:Config {}
-public function testReturnString() {
+public function testReturnString() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test2");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "world");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -405,11 +405,11 @@ public function testReturnString() {
 }
 
 @test:Config {}
-public function testReturnStringWithMediaType() {
+public function testReturnStringWithMediaType() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test2a");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN + "+id");
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN + "+id");
         assertTextPayload(resp.getTextPayload(), "world");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -417,11 +417,11 @@ public function testReturnStringWithMediaType() {
 }
 
 @test:Config {}
-public function testReturnJson() {
+public function testReturnJson() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test3");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {hello: "world"});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -429,11 +429,11 @@ public function testReturnJson() {
 }
 
 @test:Config {}
-public function testReturnJsonWithMediaType() {
+public function testReturnJsonWithMediaType() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test3a");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON + "+123");
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON + "+123");
         assertJsonPayload(resp.getJsonPayload(), {hello: "world"});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -441,11 +441,11 @@ public function testReturnJsonWithMediaType() {
 }
 
 @test:Config {}
-public function testReturnXml() {
+public function testReturnXml() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test4");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), "text/xml");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), "text/xml");
         test:assertEquals(resp.getXmlPayload(), xml `<book>Hello World</book>`, msg = "Mismatched xml payload");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -453,11 +453,11 @@ public function testReturnXml() {
 }
 
 @test:Config {}
-public function testReturnByte() {
+public function testReturnByte() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test5");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), mime:APPLICATION_OCTET_STREAM);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), mime:APPLICATION_OCTET_STREAM);
         var blobValue = resp.getBinaryPayload();
         if blobValue is byte[] {
             test:assertEquals(strings:fromBytes(blobValue), "Sample Text", msg = "Payload mismatched");
@@ -470,12 +470,12 @@ public function testReturnByte() {
 }
 
 @test:Config {}
-public function testReturnResponse() {
+public function testReturnResponse() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test6");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        test:assertEquals(checkpanic resp.getHeader("x-test"), "header");
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        test:assertEquals(check resp.getHeader("x-test"), "header");
         assertTextPayload(resp.getTextPayload(), "Hello");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -483,11 +483,11 @@ public function testReturnResponse() {
 }
 
 @test:Config {}
-public function testReturnInt() {
+public function testReturnInt() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test7");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), 32);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -495,11 +495,11 @@ public function testReturnInt() {
 }
 
 @test:Config {}
-public function testReturnIntWithMediaType() {
+public function testReturnIntWithMediaType() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test7a");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "56");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -507,11 +507,11 @@ public function testReturnIntWithMediaType() {
 }
 
 @test:Config {}
-public function testReturnFloat() {
+public function testReturnFloat() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test8");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 3.2456);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -519,11 +519,11 @@ public function testReturnFloat() {
 }
 
 @test:Config {}
-public function testReturnDecimal() {
+public function testReturnDecimal() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test9");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         decimal dValue = 3.2;
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), dValue);
     } else {
@@ -532,11 +532,11 @@ public function testReturnDecimal() {
 }
 
 @test:Config {}
-public function testReturnBoolean() {
+public function testReturnBoolean() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test10");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), true);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -544,11 +544,11 @@ public function testReturnBoolean() {
 }
 
 @test:Config {}
-public function testReturnError() {
+public function testReturnError() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test11");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "Don't panic. This is to test the error!");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -556,12 +556,12 @@ public function testReturnError() {
 }
 
 @test:Config {}
-public function testReturnStatusCodeRecord() {
+public function testReturnStatusCodeRecord() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test12");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON + "+id");
-        test:assertEquals(checkpanic resp.getHeader("xtest"), "Elle");
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON + "+id");
+        test:assertEquals(check resp.getHeader("xtest"), "Elle");
         assertJsonPayload(resp.getJsonPayload(), {hello: "World"});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -569,12 +569,12 @@ public function testReturnStatusCodeRecord() {
 }
 
 @test:Config {}
-public function testReturnStatusCodeRecordWithMediaType() {
+public function testReturnStatusCodeRecordWithMediaType() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test13");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON + "+id");
-        test:assertEquals(checkpanic resp.getHeader("xtest"), "Elle");
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON + "+id");
+        test:assertEquals(check resp.getHeader("xtest"), "Elle");
         assertJsonPayload(resp.getJsonPayload(), {hello: "World"});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -582,13 +582,13 @@ public function testReturnStatusCodeRecordWithMediaType() {
 }
 
 @test:Config {}
-public function testReturnStatusCodeRecordWithArrayOfHeaders() {
+public function testReturnStatusCodeRecordWithArrayOfHeaders() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test14");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        test:assertEquals(checkpanic resp.getHeader("xtest"), "Go");
-        test:assertEquals(checkpanic resp.getHeader("ytest"), "foo");
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        test:assertEquals(check resp.getHeader("xtest"), "Go");
+        test:assertEquals(check resp.getHeader("ytest"), "foo");
         assertTextPayload(resp.getTextPayload(), "hello world");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -596,12 +596,12 @@ public function testReturnStatusCodeRecordWithArrayOfHeaders() {
 }
 
 @test:Config {}
-public function testReturnInlineRecord() {
+public function testReturnInlineRecord() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test15");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), "application/person+json");
-        test:assertEquals(checkpanic resp.getHeader("X-Server"), "myServer");
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), "application/person+json");
+        test:assertEquals(check resp.getHeader("X-Server"), "myServer");
         assertJsonPayload(resp.getJsonPayload(), {age:1, name:"Joe"});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -609,11 +609,11 @@ public function testReturnInlineRecord() {
 }
 
 @test:Config {}
-public function testReturnStringArr() {
+public function testReturnStringArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test16");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), ["Abc", "Xyz"]);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -621,11 +621,11 @@ public function testReturnStringArr() {
 }
 
 @test:Config {}
-public function testReturnJsonAsString() {
+public function testReturnJsonAsString() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test17");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "{\"name\":\"Monica\", \"age\":10}");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -633,11 +633,11 @@ public function testReturnJsonAsString() {
 }
 
 @test:Config {}
-public function testReturnRecordArr() {
+public function testReturnRecordArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test18");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{"name":"Monica","age":10},{"name":"Chandler","age":15}]);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -645,11 +645,11 @@ public function testReturnRecordArr() {
 }
 
 @test:Config {}
-public function testReturnTable() {
+public function testReturnTable() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test19");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), [{"id":1, "name":"John", "salary":300.5},
             {"id":2, "name":"Bella", "salary":500.5}]);
     } else {
@@ -658,11 +658,11 @@ public function testReturnTable() {
 }
 
 @test:Config {}
-public function testReturnMapOfInt() {
+public function testReturnMapOfInt() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test20");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {"sam":50, "jon":60} );
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -670,11 +670,11 @@ public function testReturnMapOfInt() {
 }
 
 @test:Config {}
-public function testReturnMapOfJson() {
+public function testReturnMapOfJson() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test21");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {"sam":{"hello":"world"},"jon":{"no":56}});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -682,11 +682,11 @@ public function testReturnMapOfJson() {
 }
 
 @test:Config {}
-public function testReturnMapOfJsonArr() {
+public function testReturnMapOfJsonArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test22");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{"sam":{"hello":"world"},"jon":{"no":56}},
             {"sam":{"hello":"world"},"jon":{"no":56}}]);
     } else {
@@ -695,11 +695,11 @@ public function testReturnMapOfJsonArr() {
 }
 
 @test:Config {}
-public function testReturnTableArr() {
+public function testReturnTableArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test23");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), [[{"id":1, "name":"John", "salary":300.5},
             {"id":2, "name":"Bella", "salary":500.5}], [{"id":1, "name":"John", "salary":300.5},
             {"id":2, "name":"Bella", "salary":500.5}]] );
@@ -709,11 +709,11 @@ public function testReturnTableArr() {
 }
 
 @test:Config {}
-public function testReturnXmlArr() {
+public function testReturnXmlArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test24");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), ["<book>Hello World</book>","<book>Hello World</book>"]);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -721,11 +721,11 @@ public function testReturnXmlArr() {
 }
 
 @test:Config {}
-public function testReturnMapOfXml() {
+public function testReturnMapOfXml() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test25");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {"sam":"<book>Hello World</book>","jon":"<book>Hello World</book>"});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -733,12 +733,12 @@ public function testReturnMapOfXml() {
 }
 
 @test:Config {}
-public function testReturnMultipleTypes() {
+public function testReturnMultipleTypes() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test26/gone");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 410, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        test:assertEquals(checkpanic resp.getHeader("xtest"), "Go");
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        test:assertEquals(check resp.getHeader("xtest"), "Go");
         assertTextPayload(resp.getTextPayload(), "hello world");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -747,7 +747,7 @@ public function testReturnMultipleTypes() {
     resp = resourceReturnTestClient->get("/mytest/test26/response");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {jh:"hello"});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -756,7 +756,7 @@ public function testReturnMultipleTypes() {
     resp = resourceReturnTestClient->get("/mytest/test26/nothing");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), "application/custom+json");
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), "application/custom+json");
         assertTextPayload(resp.getTextPayload(), "hello");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -1058,11 +1058,11 @@ public function testCheckPanicErrorAfterResponse() {
 }
 
 @test:Config {}
-public function testContentTypeHeaderInHeaderField() {
+public function testContentTypeHeaderInHeaderField() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test33");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), "text/html;charset=UTF-8");
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), "text/html;charset=UTF-8");
         assertTextPayload(resp.getTextPayload(), "<h1>HI</h1>");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());

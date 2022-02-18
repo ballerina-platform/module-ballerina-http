@@ -27,7 +27,7 @@ final http:Client clientEP1 = check new("http://localhost:" + reuseRequestTestPo
 
 service /reuseObj on reuseRequestListenerEP {
 
-    resource function get request_without_entity(http:Caller caller, http:Request clientRequest) {
+    resource function get request_without_entity(http:Caller caller, http:Request clientRequest) returns error? {
         string firstVal = "";
         string secondVal = "";
 
@@ -56,10 +56,10 @@ service /reuseObj on reuseRequestListenerEP {
         }
         http:Response testResponse = new;
         testResponse.setPayload(firstVal + secondVal);
-        checkpanic caller->respond(testResponse);
+        check caller->respond(testResponse);
     }
 
-    resource function get request_with_empty_entity(http:Caller caller, http:Request clientRequest) {
+    resource function get request_with_empty_entity(http:Caller caller, http:Request clientRequest) returns error? {
         http:Request clientReq = new;
         mime:Entity entity = new;
         clientReq.setEntity(entity);
@@ -92,10 +92,10 @@ service /reuseObj on reuseRequestListenerEP {
         }
         http:Response testResponse = new;
         testResponse.setPayload(firstVal + secondVal);
-        checkpanic caller->respond(testResponse);
+        check caller->respond(testResponse);
     }
 
-    resource function get two_request_same_entity(http:Caller caller, http:Request clientRequest) {
+    resource function get two_request_same_entity(http:Caller caller, http:Request clientRequest) returns error? {
         http:Request clientReq = new;
         clientReq.setHeader("test1", "value1");
         http:Request newRequest = new;
@@ -134,10 +134,10 @@ service /reuseObj on reuseRequestListenerEP {
             log:printError(entity.message(), 'error = entity);
         }
         testResponse.setTextPayload(firstVal + secondVal);
-        checkpanic caller->respond(testResponse);
+        check caller->respond(testResponse);
     }
 
-    resource function get request_with_datasource(http:Caller caller, http:Request clientRequest) {
+    resource function get request_with_datasource(http:Caller caller, http:Request clientRequest) returns error? {
         http:Request clientReq = new;
         clientReq.setTextPayload("String datasource");
 
@@ -168,7 +168,7 @@ service /reuseObj on reuseRequestListenerEP {
         }
         http:Response testResponse = new;
         testResponse.setPayload(firstVal + secondVal);
-        checkpanic caller->respond(testResponse);
+        check caller->respond(testResponse);
     }
 
     // TODO: Enable after the I/O revamp
@@ -202,7 +202,7 @@ service /reuseObj on reuseRequestListenerEP {
     //             }
 
     //             testResponse.setTextPayload(firstVal + secondVal);
-    //             checkpanic caller->respond(testResponse);
+    //             check caller->respond(testResponse);
     //         } else {
     //             log:printError(firstResponse.message(), 'error = firstResponse);
     //         }
@@ -211,7 +211,7 @@ service /reuseObj on reuseRequestListenerEP {
     //     }
     // }
 
-    resource function post request_with_byteStream(http:Caller caller, http:Request clientRequest) {
+    resource function post request_with_byteStream(http:Caller caller, http:Request clientRequest) returns error? {
         http:Request clientReq = new;
         var byteStream = clientRequest.getByteStream();
         if byteStream is stream<byte[], io:Error?> {
@@ -241,7 +241,7 @@ service /reuseObj on reuseRequestListenerEP {
                 }
 
                 testResponse.setTextPayload(firstVal + secondVal);
-                checkpanic caller->respond(testResponse);
+                check caller->respond(testResponse);
             } else {
                 log:printError(firstResponse.message(), 'error = firstResponse);
             }
@@ -253,19 +253,19 @@ service /reuseObj on reuseRequestListenerEP {
 
 service /testService_2 on reuseRequestListenerEP {
 
-    resource function get .(http:Caller caller, http:Request clientRequest) {
+    resource function get .(http:Caller caller, http:Request clientRequest) returns error? {
         http:Response response = new;
         response.setTextPayload("Hello from GET!");
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 
-    resource function post datasource(http:Caller caller, http:Request clientRequest) {
+    resource function post datasource(http:Caller caller, http:Request clientRequest) returns error? {
         http:Response response = new;
         response.setTextPayload("Hello from POST!");
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 
-    resource function post consumeChannel(http:Caller caller, http:Request clientRequest) {
+    resource function post consumeChannel(http:Caller caller, http:Request clientRequest) returns error? {
         http:Response response = new;
         var stringPayload = clientRequest.getTextPayload();
         if stringPayload is string {
@@ -273,16 +273,16 @@ service /testService_2 on reuseRequestListenerEP {
         } else  {
             response.setPayload(stringPayload.message());
         }
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 }
 
 @test:Config {}
-function reuseRequestWithoutEntity() {
+function reuseRequestWithoutEntity() returns error? {
     http:Response|error response = reuseRequestClient->get("/reuseObj/request_without_entity");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -290,11 +290,11 @@ function reuseRequestWithoutEntity() {
 }
 
 @test:Config {}
-function reuseRequestWithEmptyEntity() {
+function reuseRequestWithEmptyEntity() returns error? {
     http:Response|error response = reuseRequestClient->get("/reuseObj/request_with_empty_entity");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -302,11 +302,11 @@ function reuseRequestWithEmptyEntity() {
 }
 
 @test:Config {}
-function twoRequestsSameEntity() {
+function twoRequestsSameEntity() returns error? {
     http:Response|error response = reuseRequestClient->get("/reuseObj/two_request_same_entity");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from GET!Hello from GET!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -314,11 +314,11 @@ function twoRequestsSameEntity() {
 }
 
 @test:Config {}
-function sameRequestWithADatasource() {
+function sameRequestWithADatasource() returns error? {
     http:Response|error response = reuseRequestClient->get("/reuseObj/request_with_datasource");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!Hello from POST!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -327,11 +327,11 @@ function sameRequestWithADatasource() {
 
 // TODO: Enable after the I/O revamp
 @test:Config {enable:false}
-function sameRequestWithByteChannel() {
+function sameRequestWithByteChannel() returns error? {
     http:Response|error response = reuseRequestClient->post("/reuseObj/request_with_bytechannel", "Hello from POST!");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!No content");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -339,11 +339,11 @@ function sameRequestWithByteChannel() {
 }
 
 @test:Config {}
-function sameRequestWithByteStream() {
+function sameRequestWithByteStream() returns error? {
     http:Response|error response = reuseRequestClient->post("/reuseObj/request_with_byteStream", "Hello from POST!");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello from POST!No content");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

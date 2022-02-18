@@ -33,45 +33,45 @@ final http:Client utdClient3 = check new("http://localhost:" + uriTemplateDefaul
 }
 service /serviceName on utdtestEP {
 
-    resource function get test1 (http:Caller caller, http:Request req) {
+    resource function get test1 (http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"dispatched to service name"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service "/" on utdtestEP {
 
-    resource function 'default test1(http:Caller caller, http:Request req) {
+    resource function 'default test1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"dispatched to empty service name"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     // proxy
-    resource function 'default [string... s](http:Caller caller, http:Request req) {
+    resource function 'default [string... s](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"dispatched to a proxy service"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /serviceWithNoAnnotation on utdtestEP {
 
-    resource function 'default test1(http:Caller caller, http:Request req) {
+    resource function 'default test1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"dispatched to a service without an annotation"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service on utdmockEP1 {
-    resource function 'default testResource(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({"echo":"dispatched to the service that neither has an explicitly defined basepath nor a name"});
+    resource function 'default testResource(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({"echo":"dispatched to the service that neither has an explicitly defined basepath nor a name"});
     }
 }
 
@@ -79,8 +79,8 @@ service on utdmockEP1 {
     compression: {enable: http:COMPRESSION_AUTO}
 }
 service on utdmockEP2 {
-    resource function 'default testResource(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("dispatched to the service that doesn't have a name but has a config without a basepath");
+    resource function 'default testResource(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("dispatched to the service that doesn't have a name but has a config without a basepath");
     }
 }
 

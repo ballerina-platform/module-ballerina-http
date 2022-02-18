@@ -28,45 +28,45 @@ final http:Client h2WithoutPriorKnowledge = check new("http://localhost:9112", {
 
 service /priorKnowledge on priorEp1 {
 
-    resource function get 'on(http:Caller caller, http:Request req) {
+    resource function get 'on(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = h2WithPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is enabled");
         if response is http:Response {
-            checkpanic caller->respond(response);
+            check caller->respond(response);
         } else {
-            checkpanic caller->respond("Error in client post with prior knowledge on");
+            check caller->respond("Error in client post with prior knowledge on");
         }
     }
 
-    resource function get off(http:Caller caller, http:Request req) {
+    resource function get off(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = h2WithoutPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is disabled");
         if response is http:Response {
-            checkpanic caller->respond(response);
+            check caller->respond(response);
         } else {
-            checkpanic caller->respond("Error in client post with prior knowledge off");
+            check caller->respond("Error in client post with prior knowledge off");
         }
     }
 }
 
 service /priorKnowledgeTestBackEnd on priorEp2 {
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         string outboundResponse = "";
         if req.hasHeader(http:CONNECTION) && req.hasHeader(http:UPGRADE) {
-            string[] connHeaders = checkpanic req.getHeaders(http:CONNECTION);
+            string[] connHeaders = check req.getHeaders(http:CONNECTION);
             outboundResponse = connHeaders[1];
-            outboundResponse = outboundResponse + "--" + checkpanic req.getHeader(http:UPGRADE);
+            outboundResponse = outboundResponse + "--" + check req.getHeader(http:UPGRADE);
         } else {
             outboundResponse = "Connection and upgrade headers are not present";
         }
 
-        outboundResponse = outboundResponse + "--" + checkpanic req.getTextPayload();
-        checkpanic caller->respond(outboundResponse);
+        outboundResponse = outboundResponse + "--" + check req.getTextPayload();
+        check caller->respond(outboundResponse);
     }
 }
 
 @test:Config {}
-public function testPriorKnowledgeOn() {
-    final http:Client clientEP = checkpanic new("http://localhost:9111");
+public function testPriorKnowledgeOn() returns error? {
+    final http:Client clientEP = check new("http://localhost:9111");
     http:Response|error resp = clientEP->get("/priorKnowledge/on");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Connection and upgrade headers are not present--Prior knowledge is enabled");
@@ -76,8 +76,8 @@ public function testPriorKnowledgeOn() {
 }
 
 @test:Config {}
-public function testPriorKnowledgeOff() {
-    final http:Client clientEP = checkpanic new("http://localhost:9111");
+public function testPriorKnowledgeOff() returns error? {
+    final http:Client clientEP = check new("http://localhost:9111");
     http:Response|error resp = clientEP->get("/priorKnowledge/off");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "HTTP2-Settings,upgrade--h2c--Prior knowledge is disabled");

@@ -25,106 +25,106 @@ final http:Client utmClient = check new("http://localhost:" + uriTemplateMatchin
 
 service /hello on utmTestEP {
 
-    resource function get echo2(http:Caller caller, http:Request req) {
+    resource function get echo2(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo5":"echo5"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo2/[string abc](http:Caller caller, http:Request req) {
+    resource function get echo2/[string abc](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo3":abc};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo2/[string abc]/bar(http:Caller caller, http:Request req) {
+    resource function get echo2/[string abc]/bar(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"first":abc, "echo4":"echo4"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo2/literal\.id(http:Caller caller) {
+    resource function get echo2/literal\.id(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo6":"literal invoked"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo2/[string zz]/foo(http:Caller caller) {
+    resource function get echo2/[string zz]/foo(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo6":"specific path invoked"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo2/[string... s](http:Caller caller, http:Request req) {
+    resource function get echo2/[string... s](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo5":"any"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo3/[string abc](http:Caller caller, http:Request req) {
+    resource function get echo3/[string abc](http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? foo = params["foo"];
         json responseJson = {"first":abc, "second":(foo is string[] ? foo[0] : "go"), "echo9":"echo9"};
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? foo = params["foo"];
         json responseJson = {"third":(foo is string[] ? foo[0] : "go"), "echo10":"echo10"};
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default echo11(http:Caller caller, http:Request req) {
+    resource function 'default echo11(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? foo = params["foo"];
         json responseJson = {"third":(foo is string[] ? foo[0] : ""), "echo11":"echo11"};
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo12/[string abc]/bar(http:Caller caller) {
+    resource function get echo12/[string abc]/bar(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo12":abc};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo125(http:Caller caller, http:Request req) {
+    resource function get echo125(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? bar = params["foo"];
         json responseJson = {"echo125":(bar is string[] ? bar[0] : "")};
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get paramNeg(http:Caller caller, http:Request req) {
+    resource function get paramNeg(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? bar = params["foo"] ?: [""];
         json responseJson = {"echo125":(bar is string[] ? bar[0] : "")};
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo13(http:Caller caller, http:Request req) {
+    resource function get echo13(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? barStr = params["foo"];
         var result = langint:fromString(barStr is string[] ? barStr[0] : "0");
@@ -133,10 +133,10 @@ service /hello on utmTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo14(http:Caller caller, http:Request req) {
+    resource function get echo14(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? barStr = params["foo"];
         var result = langfloat:fromString(barStr is string[] ? barStr[0] : "0.0");
@@ -145,10 +145,10 @@ service /hello on utmTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo15(http:Caller caller, http:Request req) {
+    resource function get echo15(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? barStr = params["foo"];
         string val = barStr is string[] ? barStr[0] : "";
@@ -161,10 +161,10 @@ service /hello on utmTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo155(http:Caller caller, http:Request req) {
+    resource function get echo155(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? foo = params["foo"];
         string[]? bar = params["bar"];
@@ -176,10 +176,10 @@ service /hello on utmTestEP {
                                 "name4":name4};
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo156/[string key](http:Caller caller, http:Request req) {
+    resource function get echo156/[string key](http:Caller caller, http:Request req) returns error? {
         map<string[]> paramMap = req.getQueryParams();
         string[] valueArray = req.getQueryParamValues(key) ?: ["array not found"];
         string value = req.getQueryParamValue(key) ?: "value not found";
@@ -189,7 +189,7 @@ service /hello on utmTestEP {
         string mapVal2 = paramVals2 is string[] ? paramVals2[0] : "";
         json responseJson = {"map":mapVal , "array":valueArray[0], "value":value,
                                 "map_":mapVal2, "array_":valueArray[1] };
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 
     resource function post so2(http:Caller caller, http:Request req) {
@@ -198,70 +198,70 @@ service /hello on utmTestEP {
 
 service /hello/world on utmTestEP {
 
-    resource function get echo2(http:Caller caller) {
+    resource function get echo2(http:Caller caller) returns error? {
         json responseJson = {"echo1":"echo1"};
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo2/[string... s](http:Caller caller) {
+    resource function get echo2/[string... s](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo2":"echo2"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo2/foo/bar(http:Caller caller) {
+    resource function get echo2/foo/bar(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {"echo3":"echo3"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service on utmTestEP {
-    resource function 'default echo1(http:Caller caller, http:Request req) {
+    resource function 'default echo1(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? foo = params["foo"];
         json responseJson = {"third":(foo is string[] ? foo[0] : ""), "echo33":"echo1"};
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /echo44 on utmTestEP {
 
-    resource function 'default echo2(http:Caller caller, http:Request req) {
+    resource function 'default echo2(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"first":"zzz"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default echo1(http:Caller caller, http:Request req) {
+    resource function 'default echo1(http:Caller caller, http:Request req) returns error? {
         map<string[]> params = req.getQueryParams();
         string[]? foo = params["foo"];
         json responseJson = {"first":(foo is string[] ? foo[0] : ""), "echo44":"echo1"};
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get echo2(http:Caller caller, http:Request req) {
+    resource function get echo2(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"first":"bar"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /echo55 on utmTestEP {
 
-    resource function 'default foo/bar(http:Caller caller, http:Request req) {
+    resource function 'default foo/bar(http:Caller caller, http:Request req) returns error? {
         json responseJson = {"echo55":"echo55"};
         map<string[]> params = req.getQueryParams();
         string[]? foo = params["foo"];
@@ -271,86 +271,87 @@ service /echo55 on utmTestEP {
 
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default [string... s](http:Caller caller, http:Request req) {
+    resource function 'default [string... s](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo55":"default"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default foo/[string... s](http:Caller caller, http:Request req) {
+    resource function 'default foo/[string... s](http:Caller caller, http:Request req) returns error? {
         json responseJson = {"echo55":"/foo/*"};
         http:Response res = new;
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /echo69 on utmTestEP {
-    resource function 'default a/[string... a](http:Caller caller, http:Request req) {
+    resource function 'default a/[string... a](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo66":req.extraPathInfo};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default a(http:Caller caller, http:Request req) {
+    resource function 'default a(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         if req.extraPathInfo == "" {
             req.extraPathInfo = "empty";
         }
         json responseJson = {"echo66":req.extraPathInfo};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /wildcard on utmTestEP {
 
-    resource function post [string id](http:Caller caller, http:Request req) {
+    resource function post [string id](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {message:"Path Params Resource is invoked."};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default [string... wildcardResource](http:Caller caller) {
+    resource function 'default [string... wildcardResource](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {message:"Wildcard Params Resource is invoked."};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default go/[string aaa]/[string bbb]/[string ccc](http:Caller caller) {
+    resource function 'default go/[string aaa]/[string bbb]/[string ccc](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {aaa:aaa, bbb:bbb, ccc:ccc};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default go/[string xxx]/[string yyy](http:Caller caller) {
+    resource function 'default go/[string xxx]/[string yyy](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {xxx:xxx, yyy:yyy};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default Go(http:Caller caller) {
+    resource function 'default Go(http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {value:"capitalized"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default twisted/[string age]/[string name](http:Caller caller) {
+    resource function 'default twisted/[string age]/[string name](http:Caller caller) returns error? {
         json responseJson = { Name:name, Age:age };
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 
-    resource function 'default 'type/[int age]/[string name]/[boolean status]/[float weight](http:Caller caller) {
+    resource function 'default 'type/[int age]/[string name]/[boolean status]/[float weight](http:Caller caller)
+            returns error? {
         int balAge = age + 1;
         float balWeight = weight + 2.95;
         string balName = name + " false";
@@ -358,46 +359,46 @@ service /wildcard on utmTestEP {
             balName = name;
         }
         json responseJson = { Name:name, Age:balAge, Weight:balWeight, Status:status, Lang: balName};
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 }
 
 service /encodedUri on utmTestEP {
-    resource function 'default test/[string aaa]/[string bbb]/[string ccc](http:Caller caller) {
+    resource function 'default test/[string aaa]/[string bbb]/[string ccc](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {aaa:aaa, bbb:bbb, ccc:ccc};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /restParam on utmTestEP {
-    resource function 'default 'int/[int... aaa](http:Caller caller) {
+    resource function 'default 'int/[int... aaa](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {aaa:aaa};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default 'bool/[boolean... aaa](http:Caller caller) {
+    resource function 'default 'bool/[boolean... aaa](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {aaa:aaa};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function 'default 'float/[float... aaa](http:Caller caller) {
+    resource function 'default 'float/[float... aaa](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {aaa:aaa};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-     resource function 'default 'decimal/[decimal... aaa](http:Caller caller) {
+     resource function 'default 'decimal/[decimal... aaa](http:Caller caller) returns error? {
          http:Response res = new;
          json responseJson = {aaa:aaa};
          res.setJsonPayload(responseJson);
-         checkpanic caller->respond(res);
+         check caller->respond(res);
      }
 }
 

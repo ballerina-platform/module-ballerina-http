@@ -25,11 +25,11 @@ final http:Client httpServerFieldClient = check new("http://localhost:" + httpSe
 
 service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         var payload = req.getTextPayload();
         http:Response resp = new;
         if payload is string {
-            checkpanic caller->respond(payload);
+            check caller->respond(payload);
         } else {
             resp.statusCode = 500;
             resp.setPayload(payload.message());

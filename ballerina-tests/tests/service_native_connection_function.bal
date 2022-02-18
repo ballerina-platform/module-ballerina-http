@@ -22,19 +22,19 @@ final http:Client connectionNativeClient = check new("http://localhost:" + conne
 
 service /connectionNativeHello on connectionNativeTestEP {
     
-    resource function get redirect(http:Caller caller, http:Request req) {
+    resource function get redirect(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->redirect(res, http:REDIRECT_MOVED_PERMANENTLY_301, ["location1"]);
+        check caller->redirect(res, http:REDIRECT_MOVED_PERMANENTLY_301, ["location1"]);
     }
 }
 
 //Test whether the headers and status codes are set correctly
 @test:Config {}
-function testRedirect() {
+function testRedirect() returns error? {
     http:Response|error response = connectionNativeClient->get("/connectionNativeHello/redirect");
     if response is http:Response {
         test:assertEquals(response.statusCode, 301, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader("Location"), "location1");
+        assertHeaderValue(check response.getHeader("Location"), "location1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

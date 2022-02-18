@@ -26,7 +26,7 @@ final http:Client nyseEP2 = check new("http://localhost:" + httpRoutingTestPort.
 
 service /contentBasedRouting on httpRoutingListenerEP {
 
-    resource function post .(http:Caller conn, http:Request req) {
+    resource function post .(http:Caller conn, http:Request req) returns error? {
         string nyseString = "nyse";
         var jsonMsg = req.getJsonPayload();
         string nameString = "";
@@ -41,20 +41,20 @@ service /contentBasedRouting on httpRoutingListenerEP {
         if nameString == nyseString {
             http:Response|error result = nyseEP2 -> post("/stocks", clientRequest);
             if result is http:Response {
-                checkpanic conn->respond(result);
+                check conn->respond(result);
             } else  {
                 clientResponse.statusCode = 500;
                 clientResponse.setPayload("Error sending request");
-                checkpanic conn->respond(clientResponse);
+                check conn->respond(clientResponse);
             }
         } else {
             http:Response|error result = nasdaqEP -> post("/stocks", clientRequest);
             if result is http:Response {
-                checkpanic conn->respond(result);
+                check conn->respond(result);
             } else {
                 clientResponse.statusCode = 500;
                 clientResponse.setPayload("Error sending request");
-                checkpanic conn->respond(clientResponse);
+                check conn->respond(clientResponse);
             }
         }
     }
@@ -62,29 +62,29 @@ service /contentBasedRouting on httpRoutingListenerEP {
 
 service /headerBasedRouting on httpRoutingListenerEP {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         string nyseString = "nyse";
-        var nameString = checkpanic req.getHeader("name");
+        var nameString = check req.getHeader("name");
 
         http:Request clientRequest = new;
         http:Response clientResponse = new;
         if nameString == nyseString {
             http:Response|error result = nyseEP2 -> post("/stocks", clientRequest);
             if result is http:Response {
-                checkpanic caller->respond(result);
+                check caller->respond(result);
             } else {
                 clientResponse.statusCode = 500;
                 clientResponse.setPayload("Error sending request");
-                checkpanic caller->respond(clientResponse);
+                check caller->respond(clientResponse);
             }
         } else {
             http:Response|error result = nasdaqEP -> post("/stocks", clientRequest);
             if result is http:Response {
-                checkpanic caller->respond(result);
+                check caller->respond(result);
             } else {
                 clientResponse.statusCode = 500;
                 clientResponse.setPayload("Error sending request");
-                checkpanic caller->respond(clientResponse);
+                check caller->respond(clientResponse);
             }
         }
     }
@@ -92,21 +92,21 @@ service /headerBasedRouting on httpRoutingListenerEP {
 
 service /nasdaqStocks on httpRoutingListenerEP {
 
-    resource function post stocks(http:Caller caller, http:Request req) {
+    resource function post stocks(http:Caller caller, http:Request req) returns error? {
         json payload = {"exchange":"nasdaq", "name":"IBM", "value":"127.50"};
         http:Response res = new;
         res.setJsonPayload(payload);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /nyseStocks on httpRoutingListenerEP {
 
-    resource function post stocks(http:Caller caller, http:Request req) {
+    resource function post stocks(http:Caller caller, http:Request req) returns error? {
         json payload = {"exchange":"nyse", "name":"IBM", "value":"127.50"};
         http:Response res = new;
         res.setJsonPayload(payload);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -117,11 +117,11 @@ json responseNasdaqMessage = {exchange:"nasdaq", name:"IBM", value:"127.50"};
 
 //Test Content base routing sample
 @test:Config {}
-function testContentBaseRouting() {
+function testContentBaseRouting() returns error? {
     http:Response|error response = httpRoutingClient->post("/contentBasedRouting", requestNyseMessage);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNyseMessage);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -130,7 +130,7 @@ function testContentBaseRouting() {
     response = httpRoutingClient->post("/contentBasedRouting", requestNasdaqMessage);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNasdaqMessage);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -139,11 +139,11 @@ function testContentBaseRouting() {
 
 //Test Header base routing sample
 @test:Config {}
-function testHeaderBaseRouting() {
+function testHeaderBaseRouting() returns error? {
     http:Response|error response = httpRoutingClient->get("/headerBasedRouting", {"name":"nyse"});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNyseMessage);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -152,7 +152,7 @@ function testHeaderBaseRouting() {
     response = httpRoutingClient->get("/headerBasedRouting", {"name":"nasdaq"});
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), responseNasdaqMessage);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -51,9 +51,8 @@ service /keepAliveTest on keepAliveListenerEP {
         http:Response res4 = check http_1_1_never->post("/keepAliveTest2", { "name": "Ballerina" });
 
         http:Response[] resArr = [res1, res2, res3, res4];
-        string result = processResponse("http_1_1", resArr);
-        checkpanic caller->respond(result);
-        return;
+        string result = check processResponse("http_1_1", resArr);
+        check caller->respond(result);
     }
 
     resource function 'default h1_0(http:Caller caller, http:Request req) returns error? {
@@ -63,32 +62,31 @@ service /keepAliveTest on keepAliveListenerEP {
         http:Response res4 = check http_1_0_never->post("/keepAliveTest2", { "name": "Ballerina" });
 
         http:Response[] resArr = [res1, res2, res3, res4];
-        string result = processResponse("http_1_0", resArr);
-        checkpanic caller->respond(result);
-        return;
+        string result = check processResponse("http_1_0", resArr);
+        check caller->respond(result);
     }
 }
 
 service /keepAliveTest2 on keepAliveListenerEP {
 
-    resource function 'default .(http:Caller caller, http:Request req) {
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
         string value;
         if req.hasHeader("connection") {
-            value = checkpanic req.getHeader("connection");
+            value = check req.getHeader("connection");
             if req.hasHeader("keep-alive") {
-                value += "--" + checkpanic req.getHeader("keep-alive");
+                value += "--" + check req.getHeader("keep-alive");
             }
         } else {
             value = "No connection header found";
         }
-        checkpanic caller->respond(value);
+        check caller->respond(value);
     }
 }
 
-function processResponse(string protocol, http:Response[] responseArr) returns string {
+function processResponse(string protocol, http:Response[] responseArr) returns string|error {
     string returnValue = protocol;
     foreach var response in responseArr {
-       string payload = checkpanic response.getTextPayload();
+       string payload = check response.getTextPayload();
        returnValue +=  "--" + payload;
     }
     return returnValue;
@@ -96,11 +94,11 @@ function processResponse(string protocol, http:Response[] responseArr) returns s
 
 //Test keep-alive with HTTP clients.
 @test:Config {}
-function testWithHttp_1_1() {
+function testWithHttp_1_1() returns error? {
     http:Response|error response = keepAliveClient->get("/keepAliveTest/h1_1");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "http_1_1--keep-alive--keep-alive--keep-alive--close");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -108,11 +106,11 @@ function testWithHttp_1_1() {
 }
 
 @test:Config {}
-function testWithHttp_1_0() {
+function testWithHttp_1_0() returns error? {
     http:Response|error response = keepAliveClient->get("/keepAliveTest/h1_0");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "http_1_0--close--close--keep-alive--close");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
