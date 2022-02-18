@@ -37,7 +37,7 @@ service /hello on acceptEncodingListenerEP {
         http:Response res = new;
         json payload = {};
         boolean hasHeader = req.hasHeader(ACCEPT_ENCODING);
-        if (hasHeader) {
+        if hasHeader {
             payload = {acceptEncoding: check req.getHeader(ACCEPT_ENCODING)};
         } else {
             payload = {acceptEncoding:"Accept-Encoding header not present."};

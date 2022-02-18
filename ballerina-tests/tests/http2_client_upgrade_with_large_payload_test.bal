@@ -26,7 +26,6 @@ service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
         json jsonPayload = check request.getJsonPayload();
         response.setPayload(jsonPayload);
         check caller->respond(response);
-        return;
     }
 
     resource function get initial(http:Caller caller, http:Request request) returns error? {
