@@ -21,7 +21,7 @@ import ballerina/http;
 @test:Config {}
 function testSingleHeaderValue() {
     var result = http:parseHeader(TEXT_PLAIN);
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, TEXT_PLAIN, msg = "Found unexpected output");
@@ -33,7 +33,7 @@ function testSingleHeaderValue() {
 @test:Config {}
 function testSingleHeaderValueWithParam() {
     var result = http:parseHeader(TEXT_PLAIN + ";a=2;b=0.9");
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, TEXT_PLAIN, msg = "Found unexpected output");
@@ -46,7 +46,7 @@ function testSingleHeaderValueWithParam() {
 @test:Config {}
 function testMultipleHeaderValue() {
     var result = http:parseHeader(TEXT_PLAIN + " , " + APPLICATION_FORM);
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, TEXT_PLAIN, msg = "Found unexpected output");
@@ -60,7 +60,7 @@ function testMultipleHeaderValue() {
 @test:Config {}
 function testWithExtraSpaceInBetweenParams() {
     var result = http:parseHeader(APPLICATION_JSON + " ; a = 2 ;    b  =    0.9");
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, APPLICATION_JSON, msg = "Found unexpected output");
@@ -73,7 +73,7 @@ function testWithExtraSpaceInBetweenParams() {
 @test:Config {}
 function testHeaderValueEndingWithSemiColon() {
     var result = http:parseHeader(APPLICATION_XML + ";");
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, APPLICATION_XML, msg = "Found unexpected output");
@@ -85,7 +85,7 @@ function testHeaderValueEndingWithSemiColon() {
 @test:Config {}
 function testWithEmptyValue() {
     var result = http:parseHeader("");
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, "", msg = "Found unexpected output");
@@ -97,7 +97,7 @@ function testWithEmptyValue() {
 @test:Config {}
 function testValueWithOptionalParam() {
     var result = http:parseHeader(TEXT_PLAIN + ";a, " + APPLICATION_XML);
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, TEXT_PLAIN, msg = "Found unexpected output");
@@ -109,7 +109,7 @@ function testValueWithOptionalParam() {
 @test:Config {}
 function testMultipleValuesWithMultipleParams() {
     var result = http:parseHeader(TEXT_PLAIN + ";a=\"hello\", " + APPLICATION_XML + ";a=2;b=0.9");
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, TEXT_PLAIN, msg = "Found unexpected output");
@@ -123,7 +123,7 @@ function testMultipleValuesWithMultipleParams() {
 @test:Config {}
 function testCacheControlHeader() {
     var result = http:parseHeader(" must-revalidate,public,max-age=15");
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, "must-revalidate", msg = "Found unexpected output");
@@ -140,7 +140,7 @@ function testLinkHeader() {
     string linkHeader = "<https://api.github.com/repositories/73930305/stargazers?page=2>; rel=\"next\", "
                         + "<https://api.github.com/repositories/73930305/stargazers?page=98>; rel=\"last\"";
     var result = http:parseHeader(linkHeader);
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, "<https://api.github.com/repositories/73930305/stargazers?page=2>", msg = "Found unexpected output");
@@ -154,7 +154,7 @@ function testLinkHeader() {
 @test:Config {}
 function testEmptyValue() {
     var result = http:parseHeader("");
-    if (result is error) {
+    if result is error {
         test:assertFail(msg = "Found unexpected output type: " + result.message());
     } else {
         test:assertEquals(result[0].value, "", msg = "Found unexpected output");
@@ -168,7 +168,7 @@ function testEmptyValue() {
 @test:Config {}
 function testWithMissingValue() {
     var result = http:parseHeader(";a = 2");
-    if (result is error) {
+    if result is error {
         test:assertEquals(result.message(),
             "failed to parse: error InvalidHeaderValueError (\"invalid header value: ;a = 2\")",
             msg = "Found unexpected output");
@@ -181,7 +181,7 @@ function testWithMissingValue() {
 @test:Config {}
 function testInvalidParams1() {
     var result = http:parseHeader(TEXT_PLAIN + ";a = ");
-    if (result is error) {
+    if result is error {
         test:assertEquals(result.message(),
             "failed to parse: error InvalidHeaderParamError (\"invalid header parameter: a =\")",
             msg = "Found unexpected output");
@@ -194,7 +194,7 @@ function testInvalidParams1() {
 @test:Config {}
 function testInvalidParams2() {
     var result = http:parseHeader(TEXT_PLAIN + "; = ");
-    if (result is error) {
+    if result is error {
         test:assertEquals(result.message(),
             "failed to parse: error InvalidHeaderParamError (\"invalid header parameter: =\")",
             msg = "Found unexpected output");
@@ -207,7 +207,7 @@ function testInvalidParams2() {
 @test:Config {}
 function testInvalidParams3() {
     var result = http:parseHeader(TEXT_PLAIN + "; = 2");
-    if (result is error) {
+    if result is error {
         test:assertEquals(result.message(),
             "failed to parse: error InvalidHeaderParamError (\"invalid header parameter: = 2\")",
             msg = "Found unexpected output");

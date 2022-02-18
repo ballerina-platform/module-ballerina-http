@@ -60,7 +60,7 @@ public isolated class RequestContext {
     public isolated function remove(string key) {
         lock {
             value:Cloneable|isolated object {} err = trap self.attributes.remove(key);
-            if (err is error) {
+            if err is error {
                 panic err;
             }
         }

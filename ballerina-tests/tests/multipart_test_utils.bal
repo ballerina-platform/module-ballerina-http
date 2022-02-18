@@ -20,7 +20,7 @@ import ballerina/test;
 
 public function assertMultipartResponse(http:Response response, string expected) {
     var body = response.getTextPayload();
-    if (body is string) {
+    if body is string {
         test:assertEquals(body, expected, msg = errorMessage);
     } else {
         test:assertFail(msg = errorMessage + body.message());
@@ -59,9 +59,9 @@ function createNestedPartRequest() returns mime:Entity[] {
 function handleNestedParts(mime:Entity parentPart) returns string {
     string content = "";
     string contentTypeOfParent = parentPart.getContentType();
-    if (contentTypeOfParent.startsWith("multipart/")) {
+    if contentTypeOfParent.startsWith("multipart/") {
         var childParts = parentPart.getBodyParts();
-        if (childParts is mime:Entity[]) {
+        if childParts is mime:Entity[] {
             int i = 0;
             while (i < childParts.length()) {
                 mime:Entity childPart = childParts[i];

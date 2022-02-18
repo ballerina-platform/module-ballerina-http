@@ -25,11 +25,11 @@ final http:Client httpServerFieldClient = check new("http://localhost:" + httpSe
 
 service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         var payload = req.getTextPayload();
         http:Response resp = new;
-        if (payload is string) {
-            checkpanic caller->respond(payload);
+        if payload is string {
+            check caller->respond(payload);
         } else {
             resp.statusCode = 500;
             resp.setPayload(payload.message());
@@ -46,7 +46,7 @@ service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
 @test:Config {}
 function testHeaderServerFromSuccessResponse() {
     http:Response|error response = httpServerFieldClient->post("/httpServerFieldEcho1", "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
     } else {
@@ -61,7 +61,7 @@ function testSetServerHeaderManuallyFromSuccessResponse() {
     req.setHeader(SERVER, "JMS");
     req.setTextPayload("{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
     http:Response|error response = httpServerFieldClient->post("/httpServerFieldEcho1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
     } else {
@@ -73,7 +73,7 @@ function testSetServerHeaderManuallyFromSuccessResponse() {
 @test:Config {}
 function testHeaderServerFromUnSuccessResponse() {
     http:Response|error response = httpServerFieldClient->get("/httpServerFieldEcho1");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
     } else {
@@ -87,7 +87,7 @@ function testHeaderServerFromUnSuccessResponse1() {
     http:Request req = new;
     req.setTextPayload("{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
     http:Response|error response = httpServerFieldClient->post("/ec/ho", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
     } else {
@@ -102,7 +102,7 @@ function testDefaultHeaderServerFromSuccessResponse() {
     string requestMessage = "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}";
     req.setTextPayload(requestMessage);
     http:Response|error response = echoServiceClient->post("/echoServiceTest1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
     } else {
@@ -114,7 +114,7 @@ function testDefaultHeaderServerFromSuccessResponse() {
 @test:Config {}
 function testDefaultHeaderServerFromUnSuccessResponse() {
     http:Response|error response = echoServiceClient->get("/echoServiceTest1");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
     } else {
@@ -129,7 +129,7 @@ function testDefaultHeaderServerFromUnSuccessResponse1() {
     string requestMessage = "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}";
     req.setTextPayload(requestMessage);
     http:Response|error response = echoServiceClient->post("/ec/ho", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
     } else {

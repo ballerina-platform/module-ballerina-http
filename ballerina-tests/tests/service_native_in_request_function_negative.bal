@@ -31,7 +31,7 @@ function negativeTestGetContentLength() {
 function negativeTestGetHeader() {
     http:Request req = new;
     string|error header = req.getHeader("Content-Type");
-    if (header is error) {
+    if header is error {
         test:assertEquals(header.message(), "Http header does not exist");
     }
 }
@@ -41,7 +41,7 @@ function negativeTestGetHeader() {
 function negativeTestGetHeaders() {
     http:Request req = new;
     string[]|error header = req.getHeaders("Content-Type");
-    if (header is error) {
+    if header is error {
         test:assertEquals(header.message(), "Http header does not exist");
     }
 }

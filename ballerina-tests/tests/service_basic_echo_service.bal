@@ -37,15 +37,15 @@ isolated function getGlobalValue() returns string {
 
 service /echo on serviceTestEP {
 
-    resource function get message(http:Caller caller, http:Request req) {
+    resource function get message(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get message_worker(http:Caller caller, http:Request req) {
+    resource function get message_worker(http:Caller caller, http:Request req) returns error? {
         //worker w1 {
             http:Response res = new;
-            checkpanic caller->respond(res);
+            check caller->respond(res);
         //}
         //worker w2 {
         //    int x = 0;
@@ -53,7 +53,7 @@ service /echo on serviceTestEP {
         //}
     }
 
-    resource function post setString(http:Caller caller, http:Request req) {
+    resource function post setString(http:Caller caller, http:Request req) returns error? {
         string payloadData = "";
         var payload = req.getTextPayload();
         if (payload is error) {
@@ -62,32 +62,32 @@ service /echo on serviceTestEP {
             payloadData = payload;
         }
         setGlobalValue(payloadData);
-        checkpanic caller->respond(payloadData);
+        check caller->respond(payloadData);
         return;
     }
 
-    resource function get getString(http:Caller caller, http:Request req) {
+    resource function get getString(http:Caller caller, http:Request req) returns error? {
         lock {
             http:Response res = new;
             res.setTextPayload(getGlobalValue());
-            checkpanic caller->respond(res);
+            check caller->respond(res);
             return;
         }
     }
 
-    resource function get removeHeaders(http:Caller caller, http:Request req) {
+    resource function get removeHeaders(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setHeader("header1", "wso2");
         res.setHeader("header2", "ballerina");
         res.setHeader("header3", "hello");
         res.removeAllHeaders();
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     resource function get testEmptyResourceBody(http:Caller caller, http:Request req) {
     }
 
-    resource function post getFormParams(http:Caller caller, http:Request req) {
+    resource function post getFormParams(http:Caller caller, http:Request req) returns error? {
         var params = req.getFormParams();
         http:Response res = new;
         if (params is map<string>) {
@@ -115,7 +115,7 @@ service /echo on serviceTestEP {
                 res.setPayload(errMsg is string ?  errMsg : "Error in parsing form params");
             }
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     resource function post formData(http:Request request) returns string|error {
@@ -131,10 +131,10 @@ service /echo on serviceTestEP {
         return payload;
     }
 
-    resource function patch modify(http:Caller caller, http:Request req) {
+    resource function patch modify(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.statusCode = 204;
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     resource function post parseJSON(http:Caller caller, http:Request req) returns error? {
@@ -142,8 +142,7 @@ service /echo on serviceTestEP {
         http:Response res = new;
         res.setPayload(payload);
         res.statusCode = 200;
-        checkpanic caller->respond(res);
-        return;
+        check caller->respond(res);
     }
 }
 
@@ -151,16 +150,16 @@ service /echo on serviceTestEP {
 service /hello on serviceTestEP {
 
     @http:ResourceConfig {}
-    resource function 'default echo(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("Uninitialized configs");
+    resource function 'default echo(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("Uninitialized configs");
     }
 
-    resource function 'default testFunctionCall(http:Caller caller, http:Request req) {
+    resource function 'default testFunctionCall(http:Caller caller, http:Request req) returns error? {
         string str;
         lock {
             str = self.nonRemoteFunctionCall();
         }
-        checkpanic caller->respond(str);
+        check caller->respond(str);
     }
 
     isolated function nonRemoteFunctionCall() returns string {
@@ -171,7 +170,7 @@ service /hello on serviceTestEP {
 @test:Config {}
 function testServiceDispatching() {
     http:Response|error response = stClient->get("/echo/message");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -181,7 +180,7 @@ function testServiceDispatching() {
 @test:Config {}
 function testMostSpecificBasePathIdentificationWithDuplicatedPath() {
     http:Response|error response = stClient->get("/echo/message/echo/message");
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(),
                 "no matching resource found for path : /echo/message/echo/message , method : GET");
     } else {
@@ -192,7 +191,7 @@ function testMostSpecificBasePathIdentificationWithDuplicatedPath() {
 @test:Config {}
 function testMostSpecificBasePathIdentificationWithUnmatchedBasePath() {
     http:Response|error response = stClient->get("/abcd/message/echo/message");
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(),
                 "no matching service found for path : /abcd/message/echo/message");
     } else {
@@ -203,7 +202,7 @@ function testMostSpecificBasePathIdentificationWithUnmatchedBasePath() {
 @test:Config {}
 function testServiceDispatchingWithWorker() {
     http:Response|error response = stClient->get("/echo/message_worker");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -213,7 +212,7 @@ function testServiceDispatchingWithWorker() {
 @test:Config {}
 function testServiceAvailabilityCheck() {
     http:Response|error response = stClient->get("/foo/message");
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(),
                 "no matching service found for path : /foo/message");
     } else {
@@ -224,7 +223,7 @@ function testServiceAvailabilityCheck() {
 @test:Config {}
 function testResourceAvailabilityCheck() {
     http:Response|error response = stClient->get("/echo/bar");
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(),
                 "no matching resource found for path : /echo/bar , method : GET");
     } else {
@@ -238,7 +237,7 @@ function testSetString() {
     req.setTextPayload("hello");
     req.setHeader(mime:CONTENT_TYPE, mime:TEXT_PLAIN);
     http:Response|error response = stClient->post("/echo/setString", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "hello");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -248,7 +247,7 @@ function testSetString() {
 @test:Config {dependsOn : [testSetString]}
 function testGetString() {
     http:Response|error response = stClient->get("/echo/getString");
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "hello");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -258,7 +257,7 @@ function testGetString() {
 @test:Config {}
 function testRemoveHeadersNativeFunction() {
     http:Response|error response = stClient->get("/echo/removeHeaders");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertFalse(response.hasHeader("header1"));
         test:assertFalse(response.hasHeader("header2"));
         test:assertFalse(response.hasHeader("header3"));
@@ -273,7 +272,7 @@ function testGetFormParamsNativeFunction() {
     req.setTextPayload("firstName=WSO2&team=BalDance");
     req.setHeader(mime:CONTENT_TYPE, mime:APPLICATION_FORM_URLENCODED);
     http:Response|error response = stClient->post("/echo/getFormParams", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "Name", "WSO2");
         assertJsonValue(response.getJsonPayload(), "Team", "BalDance");
     } else {
@@ -287,7 +286,7 @@ function testGetFormParamsForUndefinedKey() {
     req.setTextPayload("firstName=WSO2&company=BalDance");
     req.setHeader(mime:CONTENT_TYPE, mime:APPLICATION_FORM_URLENCODED);
     http:Response|error response = stClient->post("/echo/getFormParams", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "Team", "");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -300,7 +299,7 @@ function testGetFormParamsEmptyResponseMsgPayload() {
     req.setTextPayload("");
     req.setHeader(mime:CONTENT_TYPE, mime:APPLICATION_FORM_URLENCODED);
     http:Response|error response = stClient->post("/echo/getFormParams", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "Error occurred while extracting text data from entity");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -313,7 +312,7 @@ function testGetFormParamsWithUnsupportedMediaType() {
     req.setTextPayload("firstName=WSO2&company=BalDance");
     req.setHeader(mime:CONTENT_TYPE, mime:APPLICATION_JSON);
     http:Response|error response = stClient->post("/echo/getFormParams", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "Invalid content type : expected 'application/x-www-form-urlencoded'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -326,7 +325,7 @@ function testGetFormParamsWithDifferentMediaTypeMutations() {
     req.setTextPayload("firstName=WSO2&company=BalDance");
     req.setHeader(mime:CONTENT_TYPE, mime:APPLICATION_FORM_URLENCODED + "; charset=UTF-8");
     http:Response|error response = stClient->post("/echo/getFormParams", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {Name:"WSO2", Team:""});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -336,7 +335,7 @@ function testGetFormParamsWithDifferentMediaTypeMutations() {
     newReq.setTextPayload("firstName=WSO2&company=BalDance");
     newReq.setHeader(mime:CONTENT_TYPE, "Application/x-www-Form-urlencoded; ");
     response = stClient->post("/echo/getFormParams", newReq);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {Name:"WSO2", Team:""});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -348,7 +347,7 @@ function testGetFormParamsWithoutContentType() {
     http:Request req = new;
     req.setTextPayload("firstName=WSO2&company=BalDance");
     http:Response|error response = stClient->post("/echo/getFormParams", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "Invalid content type : expected 'application/x-www-form-urlencoded'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -358,7 +357,7 @@ function testGetFormParamsWithoutContentType() {
 @test:Config {}
 function testPATCHMethodWithBody() {
     http:Response|error response = stClient->patch("/echo/modify", "WSO2");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -368,7 +367,7 @@ function testPATCHMethodWithBody() {
 @test:Config {}
 function testUninitializedAnnotations() {
     http:Response|error response = stClient->get("/hello/echo");
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "Uninitialized configs");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -378,7 +377,7 @@ function testUninitializedAnnotations() {
 @test:Config {}
 function testNonRemoteFunctionInvocation() {
     http:Response|error response = stClient->get("/hello/testFunctionCall");
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "Non remote function invoked");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -390,7 +389,7 @@ function testErrorReturn() {
     http:Request req = new;
     req.setTextPayload("name:WSO2eam:ballerina");
     http:Response|error response = stClient->post("/echo/parseJSON", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
             "Error occurred while retrieving the json payload from the request");

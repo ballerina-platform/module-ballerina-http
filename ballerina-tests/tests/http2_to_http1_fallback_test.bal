@@ -31,23 +31,23 @@ listener http:Listener serviceEndpointWithSSL = new(9105, {
 
 service /helloWorldWithoutSSL on serviceEndpointWithoutSSL {
 
-    resource function get .(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("Version: " + req.httpVersion);
+    resource function get .(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("Version: " + req.httpVersion);
     }
 }
 
 service /helloWorldWithSSL on serviceEndpointWithSSL {
 
-    resource function get .(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("Version: " + req.httpVersion);
+    resource function get .(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("Version: " + req.httpVersion);
     }
 }
 
 @test:Config {}
-public function testFallback() {
-    http:Client clientEP = checkpanic new("http://localhost:9101");
+public function testFallback() returns error? {
+    http:Client clientEP = check new("http://localhost:9101");
     http:Response|error resp = clientEP->get("/helloWorldWithoutSSL");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -55,8 +55,8 @@ public function testFallback() {
 }
 
 @test:Config {}
-public function testFallbackWithSSL() {
-    http:Client clientEP = checkpanic new("https://localhost:9105", {
+public function testFallbackWithSSL() returns error? {
+    http:Client clientEP = check new("https://localhost:9105", {
         secureSocket: {
             cert: {
                 path: "tests/certsandkeys/ballerinaTruststore.p12",
@@ -65,7 +65,7 @@ public function testFallbackWithSSL() {
         }
     });
     http:Response|error resp = clientEP->get("/helloWorldWithSSL");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());

@@ -22,83 +22,83 @@ final http:Client compressionClient = check new("http://localhost:" + Compressio
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_AUTO}}
 service /autoCompress on compressionTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {contentTypes:["text/plain"]}}
 service /autoCompressWithContentType on compressionTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_ALWAYS}}
 service /alwaysCompress on compressionTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_ALWAYS, contentTypes:["text/plain","Application/Json"]}}
 service /alwaysCompressWithContentType on compressionTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setJsonPayload({ test: "testValue" }, "application/json");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_NEVER}}
 service /neverCompress on compressionTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_NEVER, contentTypes:["text/plain","application/xml"]}}
 service /neverCompressWithContentType on compressionTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_NEVER}}
 service /userOverridenValue on compressionTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
         res.setHeader("content-encoding", "deflate");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {contentTypes:["text/plain"]}}
 service /autoCompressWithInCompatibleContentType on compressionTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setJsonPayload({ test: "testValue" }, "application/json");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_ALWAYS, contentTypes:[]}}
 service /alwaysCompressWithEmptyContentType on compressionTestEP {
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("Hello World!!!");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -107,7 +107,7 @@ service /alwaysCompressWithEmptyContentType on compressionTestEP {
 @test:Config {}
 function testAutoCompress() {
     http:Response|error response = compressionClient->get("/autoCompress");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the identity which means no compression " +
                         "should be done to the response");
@@ -121,7 +121,7 @@ function testAutoCompress() {
 @test:Config {}
 function testAutoCompressWithAcceptEncoding() {
     http:Response|error response = compressionClient->get("/autoCompress", {[ACCEPT_ENCODING]:[ENCODING_GZIP]});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
                         "be used for compression from the backend");
@@ -135,7 +135,7 @@ function testAutoCompressWithAcceptEncoding() {
 @test:Config {}
 function testAutoCompressWithContentTypes() {
     http:Response|error response = compressionClient->get("/autoCompressWithContentType");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be null and the identity which means no compression " +
                                   "should be done to the response");
@@ -148,10 +148,10 @@ function testAutoCompressWithContentTypes() {
 //The response here means the one that should be sent to transport, not to end user.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testAlwaysCompress() {
+function testAlwaysCompress() returns error? {
     http:Response|error response = compressionClient->get("/alwaysCompress");
-    if (response is http:Response) {
-        test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP, 
+    if response is http:Response {
+        test:assertEquals(check response.getHeader(CONTENT_ENCODING), ENCODING_GZIP,
             msg = "The content-encoding header should be gzip.");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -166,7 +166,7 @@ function testAlwaysCompressWithAcceptEncoding() {
     req.setTextPayload("hello");
     req.setHeader(ACCEPT_ENCODING, ENCODING_DEFLATE);
     http:Response|error response = compressionClient->post("/alwaysCompress", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertFalse(response.hasHeader(CONTENT_ENCODING), 
             msg = "The content-encoding header should be set to null and the transport will use the original" +
                         "Accept-Encoding value for compression.");
@@ -179,10 +179,10 @@ function testAlwaysCompressWithAcceptEncoding() {
 //The response here means the one that should be sent to transport, not to end user.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testAlwaysCompressWithContentTypes() {
+function testAlwaysCompressWithContentTypes() returns error? {
     http:Response|error response = compressionClient->get("/alwaysCompressWithContentType");
-    if (response is http:Response) {
-        test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP, 
+    if response is http:Response {
+        test:assertEquals(check response.getHeader(CONTENT_ENCODING), ENCODING_GZIP,
             msg = "The content-encoding header should be gzip.");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -193,10 +193,10 @@ function testAlwaysCompressWithContentTypes() {
 //The response here means the one that should be sent to transport, not to end user.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testNeverCompress() {
+function testNeverCompress() returns error? {
     http:Response|error response = compressionClient->get("/neverCompress");
-    if (response is http:Response) {
-        test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY, 
+    if response is http:Response {
+        test:assertEquals(check response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY,
             msg = "The content-encoding header of the response that was sent " +
                         "to transport should be set to identity.");
     } else {
@@ -208,13 +208,13 @@ function testNeverCompress() {
 //The response here means the one that should be sent to transport, not to end user.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testNeverCompressWithAcceptEncoding() {
+function testNeverCompressWithAcceptEncoding() returns error? {
     http:Request req = new;
     req.setTextPayload("hello");
     req.setHeader(ACCEPT_ENCODING, ENCODING_GZIP);
     http:Response|error response = compressionClient->post("/userOverridenValue", req);
-    if (response is http:Response) {
-        test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE, 
+    if response is http:Response {
+        test:assertEquals(check response.getHeader(CONTENT_ENCODING), ENCODING_DEFLATE,
             msg = "The content-encoding header of the response that was sent " +
                         "to transport should be set to identity.");
     } else {
@@ -226,10 +226,10 @@ function testNeverCompressWithAcceptEncoding() {
 //The response here means the one that should be sent to transport, not to end user.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testNeverCompressWithContentTypes() {
+function testNeverCompressWithContentTypes() returns error? {
     http:Response|error response = compressionClient->get("/neverCompressWithContentType");
-    if (response is http:Response) {
-        test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY, 
+    if response is http:Response {
+        test:assertEquals(check response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY,
             msg = "The content-encoding header of the response that was sent to transport should be set to identity.");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -240,10 +240,10 @@ function testNeverCompressWithContentTypes() {
 //The response here means the one that should be sent to transport, not to end user.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testAutoCompressWithIncompatibleContentTypes() {
+function testAutoCompressWithIncompatibleContentTypes() returns error? {
     http:Response|error response = compressionClient->get("/autoCompressWithInCompatibleContentType");
-    if (response is http:Response) {
-        test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY, 
+    if response is http:Response {
+        test:assertEquals(check response.getHeader(CONTENT_ENCODING), HTTP_TRANSFER_ENCODING_IDENTITY,
             msg = "The content-encoding header of the response that was sent to transport should be set to identity.");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -254,10 +254,10 @@ function testAutoCompressWithIncompatibleContentTypes() {
 //The response here means the one that should be sent to transport, not to end user.
 // disabled due to https://github.com/ballerina-platform/ballerina-lang/issues/25428
 @test:Config {enable: false}
-function testAlwaysCompressWithEmptyContentTypes() {
+function testAlwaysCompressWithEmptyContentTypes() returns error? {
     http:Response|error response = compressionClient->get("/alwaysCompressWithEmptyContentType");
-    if (response is http:Response) {
-        test:assertEquals(checkpanic response.getHeader(CONTENT_ENCODING), ENCODING_GZIP, 
+    if response is http:Response {
+        test:assertEquals(check response.getHeader(CONTENT_ENCODING), ENCODING_GZIP,
             msg = "The content-encoding header should be gzip.");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

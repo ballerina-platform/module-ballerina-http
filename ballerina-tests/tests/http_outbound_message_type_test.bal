@@ -24,11 +24,11 @@ final http:Client outRequestClient = check new("http://localhost:" + outRequestT
 type CustomerTable table<map<json>>;
 
 @test:Config {}
-public function testSendingNil() {
+public function testSendingNil() returns error? {
     http:Response|error resp = outRequestClient->post("/mytest/nil", ());
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        test:assertEquals(checkpanic resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "0");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -36,12 +36,12 @@ public function testSendingNil() {
 }
 
 @test:Config {}
-public function testSendingInt() {
+public function testSendingInt() returns error? {
     int val = 139;
     http:Response|error resp = outRequestClient->post("/mytest/json", val);
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), 139);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -49,12 +49,12 @@ public function testSendingInt() {
 }
 
 @test:Config {}
-public function testSendingFloat() {
+public function testSendingFloat() returns error? {
     float val = 1.39;
     http:Response|error resp = outRequestClient->post("/mytest/json", val);
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 1.39);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -62,12 +62,12 @@ public function testSendingFloat() {
 }
 
 @test:Config {}
-public function testSendingDecimal() {
+public function testSendingDecimal() returns error? {
     decimal val = 1.3;
     http:Response|error resp = outRequestClient->post("/mytest/json", val);
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 1.3);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -75,12 +75,12 @@ public function testSendingDecimal() {
 }
 
 @test:Config {}
-public function testSendingBoolean() {
+public function testSendingBoolean() returns error? {
     boolean val = true;
     http:Response|error resp = outRequestClient->post("/mytest/json", val);
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), true);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -88,12 +88,12 @@ public function testSendingBoolean() {
 }
 
 @test:Config {}
-public function testSendingMap() {
+public function testSendingMap() returns error? {
     map<int> val = {sam: 50, jhon: 60};
     http:Response|error resp = outRequestClient->post("/mytest/json", val);
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {sam: 50, jhon: 60});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -101,13 +101,13 @@ public function testSendingMap() {
 }
 
 @test:Config {}
-public function testSendingMapArray() {
+public function testSendingMapArray() returns error? {
     map<json> jj = {sam: {hello:"world"}, jhon: {no:56}};
     map<json>[] val = [jj,jj];
     http:Response|error resp = outRequestClient->post("/mytest/json", val);
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), val);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -115,15 +115,15 @@ public function testSendingMapArray() {
 }
 
 @test:Config {}
-public function testSendingTable() {
+public function testSendingTable() returns error? {
     CustomerTable customerTab = table [
         {id: 13 , fname: "Dan", lname: "Bing"},
         {id: 23 , fname: "Hay" , lname: "Kelsey"}
     ];
     http:Response|error resp = outRequestClient->post("/mytest/json", customerTab);
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{id: 13 , fname: "Dan", lname: "Bing"},
             {id: 23 , fname: "Hay" , lname: "Kelsey"}]);
     } else {
@@ -132,15 +132,15 @@ public function testSendingTable() {
 }
 
 @test:Config {}
-public function testSendingTableArray() {
+public function testSendingTableArray() returns error? {
     CustomerTable customerTab = table [
         {id: 13 , fname: "Dan", lname: "Bing"}
     ];
     CustomerTable[] customerTabArr = [customerTab, customerTab];
     http:Response|error resp = outRequestClient->post("/mytest/json", customerTabArr);
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [[{id: 13 , fname: "Dan", lname: "Bing"}],
             [{id: 13 , fname: "Dan", lname: "Bing"}]]);
     } else {
@@ -288,53 +288,53 @@ service /mytest on outRequestTypeTestEP {
         return req.getHeader("Content-Length");
     }
 
-    resource function get nil(http:Caller caller) {
-        checkpanic caller->respond(());
+    resource function get nil(http:Caller caller) returns error? {
+        check caller->respond(());
     }
 
-    resource function get 'int(http:Caller caller) {
+    resource function get 'int(http:Caller caller) returns error? {
         int val = 1395767;
-        checkpanic caller->respond(val);
+        check caller->respond(val);
     }
 
-    resource function get 'float(http:Caller caller) {
+    resource function get 'float(http:Caller caller) returns error? {
         float val = 13.95767;
-        checkpanic caller->respond(val);
+        check caller->respond(val);
     }
 
-    resource function get 'decimal(http:Caller caller) {
+    resource function get 'decimal(http:Caller caller) returns error? {
         decimal val = 6.7;
-        checkpanic caller->respond(val);
+        check caller->respond(val);
     }
 
-    resource function get bool(http:Caller caller) {
+    resource function get bool(http:Caller caller) returns error? {
         boolean val = true;
-        checkpanic caller->respond(val);
+        check caller->respond(val);
     }
 
-    resource function get 'map(http:Caller caller) {
+    resource function get 'map(http:Caller caller) returns error? {
         map<string> val = {line1: "a", line2: "b"};
-        checkpanic caller->respond(val);
+        check caller->respond(val);
     }
 
-    resource function get mapArr(http:Caller caller) {
+    resource function get mapArr(http:Caller caller) returns error? {
         map<string>[] val = [{line1: "a", line2: "b"}, {line3: "c", line4: "d"}];
-        checkpanic caller->respond(val);
+        check caller->respond(val);
     }
 
-    resource function get 'table(http:Caller caller) {
+    resource function get 'table(http:Caller caller) returns error? {
         table<map<string>> val = table [
             {fname: "John", lname: "Wick"},
             {fname: "Robert", lname: "Downey"}
         ];
-        checkpanic caller->respond(val);
+        check caller->respond(val);
     }
 
-    resource function get tableArr(http:Caller caller) {
+    resource function get tableArr(http:Caller caller) returns error? {
         table<map<string>> val1 = table [{fname: "John", lname: "Wick"}];
         table<map<json>> val2 = table [{name: 23, lname: {a:"go"}}];
         table<map<json>>[] val = [val1, val2];
-        checkpanic caller->respond(val);
+        check caller->respond(val);
     }
 
     resource function get openRecord(http:Caller caller) returns error? {
@@ -372,22 +372,22 @@ service /mytest on outRequestTypeTestEP {
 }
 
 @test:Config {}
-public function testGettingNil() {
+public function testGettingNil() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/nil");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_LENGTH), "0");
+        assertHeaderValue(check resp.getHeader(CONTENT_LENGTH), "0");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
 
 @test:Config {}
-public function testGettingInt() {
+public function testGettingInt() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/int");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), 1395767);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -395,11 +395,11 @@ public function testGettingInt() {
 }
 
 @test:Config {}
-public function testGettingFloat() {
+public function testGettingFloat() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/float");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 13.95767);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -407,11 +407,11 @@ public function testGettingFloat() {
 }
 
 @test:Config {}
-public function testGettingDecimal() {
+public function testGettingDecimal() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/decimal");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(resp.getJsonPayload(), 6.7);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -419,11 +419,11 @@ public function testGettingDecimal() {
 }
 
 @test:Config {}
-public function testGettingBoolean() {
+public function testGettingBoolean() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/bool");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), true);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -431,11 +431,11 @@ public function testGettingBoolean() {
 }
 
 @test:Config {}
-public function testGettingMap() {
+public function testGettingMap() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/map");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {line1: "a", line2: "b"});
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -443,11 +443,11 @@ public function testGettingMap() {
 }
 
 @test:Config {}
-public function testGettingMapArray() {
+public function testGettingMapArray() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/mapArr");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{line1: "a", line2: "b"}, {line3: "c", line4: "d"}]);
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -455,11 +455,11 @@ public function testGettingMapArray() {
 }
 
 @test:Config {}
-public function testGettingTable() {
+public function testGettingTable() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/table");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{fname: "John", lname: "Wick"},
             {fname: "Robert", lname: "Downey"}]);
     } else {
@@ -468,11 +468,11 @@ public function testGettingTable() {
 }
 
 @test:Config {}
-public function testGettingTableArray() {
+public function testGettingTableArray() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/tableArr");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [[{fname: "John", lname: "Wick"}],
             [{name: 23, lname: {a:"go"}}]]);
     } else {
@@ -484,7 +484,7 @@ public function testGettingTableArray() {
 @test:Config {}
 public function testGettingOpenRecord() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/openRecord");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]});
@@ -497,7 +497,7 @@ public function testGettingOpenRecord() returns error? {
 @test:Config {}
 public function testGettingOpenRecordArray() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/openRecordArr");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},
@@ -511,7 +511,7 @@ public function testGettingOpenRecordArray() returns error? {
 @test:Config {}
 public function testGettingClosedRecord() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/closedRecord");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), {"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]});
@@ -524,7 +524,7 @@ public function testGettingClosedRecord() returns error? {
 @test:Config {}
 public function testGettingClosedRecordArray() returns error? {
     http:Response|error resp = outRequestClient->get("/mytest/closedRecordArr");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check resp.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(resp.getJsonPayload(), [{"name":"ballerina","aa":"<book>Hello World</book>","bb":[97,98,99]},

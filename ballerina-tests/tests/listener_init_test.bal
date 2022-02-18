@@ -27,7 +27,7 @@ public function testEmptyKeystore() {
                                 }
                            }
                        });
-    if (testListener is http:Listener) {
+    if testListener is http:Listener {
         test:assertFail(msg = "Found unexpected output: Expected an keystore file not found error" );
     } else {
         test:assertEquals(testListener.message(), "KeyStore file location must be provided for secure connection");

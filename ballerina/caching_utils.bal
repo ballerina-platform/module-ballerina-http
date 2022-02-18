@@ -18,14 +18,12 @@ import ballerina/log;
 import ballerina/time;
 
 isolated function isNoCacheSet(RequestCacheControl? reqCC, ResponseCacheControl? resCC) returns boolean {
-    if (reqCC is RequestCacheControl && reqCC.noCache) {
+    if reqCC is RequestCacheControl && reqCC.noCache {
         return true;
     }
-
-    if (resCC is ResponseCacheControl && resCC.noCache) {
+    if resCC is ResponseCacheControl && resCC.noCache {
         return true;
     }
-
     return false;
 }
 
@@ -49,11 +47,11 @@ isolated function updateResponse(Response cachedResponse, Response validationRes
 
 isolated function retain2xxWarnings(Response cachedResponse) {
     string[]|error warningHeaders = cachedResponse.getHeaders(WARNING);
-    if (warningHeaders is string[]) {
+    if warningHeaders is string[] {
         cachedResponse.removeHeader(WARNING);
         // TODO: Need to handle this in a better way using regex when the required regex APIs are there
         foreach var warningHeader in warningHeaders {
-            if (warningHeader.indexOf("214") is int || warningHeader.indexOf("299") is int) {
+            if warningHeader.indexOf("214") is int || warningHeader.indexOf("299") is int {
                 log:printDebug("Adding warning header: " + warningHeader);
                 cachedResponse.addHeader(WARNING, warningHeader);
                 continue;
@@ -71,7 +69,7 @@ isolated function replaceHeaders(Response cachedResponse, Response validationRes
     foreach var headerName in headerNames {
         cachedResponse.removeHeader(headerName);
         string[]|error headerValues = validationResponse.getHeaders(headerName);
-        if (headerValues is string[]) {
+        if headerValues is string[] {
             foreach var value in headerValues {
                 cachedResponse.addHeader(headerName, value);
             }

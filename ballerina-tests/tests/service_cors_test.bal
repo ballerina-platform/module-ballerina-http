@@ -38,18 +38,18 @@ service /hello1 on corsConfigEP {
             allowHeaders:["X-Content-Type-Options", "X-PINGOTHER"]
         }
     }
-    resource function post test1(http:Caller caller, http:Request req) {
+    resource function post test1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"resCors"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get test2(http:Caller caller, http:Request req) {
+    resource function get test2(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"serCors"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     @http:ResourceConfig {
@@ -58,11 +58,11 @@ service /hello1 on corsConfigEP {
             allowCredentials:true
         }
     }
-    resource function post test3(http:Caller caller, http:Request req) {
+    resource function post test3(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"moreOrigins"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     @http:ResourceConfig {
@@ -72,11 +72,11 @@ service /hello1 on corsConfigEP {
             allowCredentials:true
         }
     }
-    resource function put test4(http:Caller caller, http:Request req) {
+    resource function put test4(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"moreOrigins"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -88,11 +88,11 @@ service /hello2 on corsConfigEP {
             exposeHeaders:["X-Content-Type-Options", "X-PINGOTHER"]
         }
     }
-    resource function post test1(http:Caller caller, http:Request req) {
+    resource function post test1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"resOnlyCors"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     @http:ResourceConfig {
@@ -102,11 +102,11 @@ service /hello2 on corsConfigEP {
             exposeHeaders:["X-Content-Type-Options", "X-PINGOTHER"]
         }
     }
-    resource function put test2(http:Caller caller, http:Request req) {
+    resource function put test2(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"optionsOnly"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -121,28 +121,28 @@ service /hello2 on corsConfigEP {
 }
 service /hello3 on corsConfigEP {
 
-    resource function put info1(http:Caller caller, http:Request req) {
+    resource function put info1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"cors"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /echo4 on corsConfigEP {
 
-    resource function post info1(http:Caller caller, http:Request req) {
+    resource function post info1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"noCors"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function options info2(http:Caller caller, http:Request req) {
+    resource function options info2(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"noCorsOPTIONS"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     @http:ResourceConfig {
@@ -153,11 +153,11 @@ service /echo4 on corsConfigEP {
             exposeHeaders:["X-Content-Type-Options", "X-PINGOTHER"]
         }
     }
-    resource function post info3(http:Caller caller, http:Request req) {
+    resource function post info3(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"resourceDefaults"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -169,24 +169,24 @@ service /echo4 on corsConfigEP {
 }
 service /hello5 on corsConfigEP {
 
-    resource function post info1(http:Caller caller, http:Request req) {
+    resource function post info1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"serviceDefaults"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 //Test for CORS override at two levels for simple requests
 @test:Config {}
-function testSimpleReqServiceResourceCorsOverride() {
+function testSimpleReqServiceResourceCorsOverride() returns error? {
     http:Request req = new;
     req.setTextPayload("Hello there");
     req.setHeader(ORIGIN, "http://www.wso2.com");
     http:Response|error response = corsClient->post("/hello1/test1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "resCors");
-        assertHeaderValue(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2.com");
+        assertHeaderValue(check response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2.com");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -194,12 +194,12 @@ function testSimpleReqServiceResourceCorsOverride() {
 
 //Test for simple request service CORS
 @test:Config {}
-function testSimpleReqServiceCors() {
+function testSimpleReqServiceCors() returns error? {
     http:Response|error response = corsClient->get("/hello1/test2", {[ORIGIN]:"http://www.hello.com"});
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "serCors");
-        assertHeaderValue(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.hello.com");
-        assertHeaderValue(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
+        assertHeaderValue(check response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.hello.com");
+        assertHeaderValue(check response.getHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -207,16 +207,16 @@ function testSimpleReqServiceCors() {
 
 //Test for resource only CORS declaration
 @test:Config {}
-function testSimpleReqResourceOnlyCors() {
+function testSimpleReqResourceOnlyCors() returns error? {
     http:Request req = new;
     req.setTextPayload("hello");
     req.setHeader(ORIGIN, "http://www.hello.com");
     http:Response|error response = corsClient->post("/hello2/test1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "resOnlyCors");
-        assertHeaderValue(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.hello.com");
+        assertHeaderValue(check response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.hello.com");
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS));
-        assertHeaderValue(checkpanic response.getHeader(ACCESS_CONTROL_EXPOSE_HEADERS), "X-Content-Type-Options, X-PINGOTHER");
+        assertHeaderValue(check response.getHeader(ACCESS_CONTROL_EXPOSE_HEADERS), "X-Content-Type-Options, X-PINGOTHER");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -224,14 +224,14 @@ function testSimpleReqResourceOnlyCors() {
 
 //Test simple request with multiple origins
 @test:Config {}
-function testSimpleReqMultipleOrigins() {
+function testSimpleReqMultipleOrigins() returns error? {
     http:Request req = new;
     req.setTextPayload("Hello there");
     req.setHeader(ORIGIN, "http://www.wso2.com http://www.amazon.com");
     http:Response|error response = corsClient->post("/hello1/test3", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "moreOrigins");
-        assertHeaderValue(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2.com http://www.amazon.com");
+        assertHeaderValue(check response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2.com http://www.amazon.com");
         test:assertTrue(response.hasHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS));
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -245,7 +245,7 @@ function testSimpleReqInvalidOrigin() {
     req.setTextPayload("Hello there");
     req.setHeader(ORIGIN, "www.wso2.com");
     http:Response|error response = corsClient->post("/hello1/test1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "resCors");
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_ORIGIN));
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS));
@@ -261,7 +261,7 @@ function testSimpleReqWithNullOrigin() {
     req.setTextPayload("Hello there");
     req.setHeader(ORIGIN, "");
     http:Response|error response = corsClient->post("/hello1/test1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "resCors");
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_ORIGIN));
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS));
@@ -272,14 +272,14 @@ function testSimpleReqWithNullOrigin() {
 
 //Test for values with extra white spaces
 @test:Config {}
-function testSimpleReqwithExtraWS() {
+function testSimpleReqwithExtraWS() returns error? {
     http:Request req = new;
     req.setTextPayload("hello");
     req.setHeader(ORIGIN, "http://www.facebook.com");
     http:Response|error response = corsClient->post("/hello2/test1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "resOnlyCors");
-        assertHeaderValue(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.facebook.com");
+        assertHeaderValue(check response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.facebook.com");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -294,7 +294,7 @@ function testPreFlightReqServiceResourceCorsOverride() {
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         assertEqualsCorsResponse(response, 204, "http://www.wso2.com", "true", "X-PINGOTHER", HTTP_METHOD_POST, "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -303,15 +303,15 @@ function testPreFlightReqServiceResourceCorsOverride() {
 
 //Test preflight without origin header considered as a normal options request
 @test:Config {}
-function testPreFlightReqwithNoOrigin() {
+function testPreFlightReqwithNoOrigin() returns error? {
     var headers = {
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_POST], 
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
+        test:assertEquals(check response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -319,15 +319,15 @@ function testPreFlightReqwithNoOrigin() {
 
 //Test preflight without Request Method header considered as a normal options request
 @test:Config {}
-function testPreFlightReqwithNoMethod() {
+function testPreFlightReqwithNoMethod() returns error? {
     var headers = {
         [ORIGIN]:"http://www.wso2.com",
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
+        test:assertEquals(check response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -335,16 +335,16 @@ function testPreFlightReqwithNoMethod() {
 
 //Test preflight with unavailable HTTP method breaks the success criteria hence considered as a normal options request
 @test:Config {}
-function testPreFlightReqwithUnavailableMethod() {
+function testPreFlightReqwithUnavailableMethod() returns error? {
     var headers = {
         [ORIGIN]:"http://www.wso2.com", 
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_PUT], 
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
+        test:assertEquals(check response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -359,7 +359,7 @@ function testPreFlightReqwithHeadMethod() {
         [ACCESS_CONTROL_REQUEST_HEADERS]:"CORELATION_ID"
     };
     http:Response|error response = corsClient->options("/hello1/test2", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "CORELATION_ID", HTTP_METHOD_HEAD, "1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -368,16 +368,16 @@ function testPreFlightReqwithHeadMethod() {
 
 //Test preflight for invalid headers
 @test:Config {}
-function testPreFlightReqwithInvalidHeaders() {
+function testPreFlightReqwithInvalidHeaders() returns error? {
     var headers = {
         [ORIGIN]:"http://www.wso2.com", 
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_POST], 
         [ACCESS_CONTROL_REQUEST_HEADERS]:"WSO2"
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
+        test:assertEquals(check response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -385,19 +385,19 @@ function testPreFlightReqwithInvalidHeaders() {
 
 //Test preflight without headers
 @test:Config {}
-function testPreFlightReqwithNoHeaders() {
+function testPreFlightReqwithNoHeaders() returns error? {
     var headers = {
         [ORIGIN]:"http://www.wso2.com", 
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_POST]
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204);
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2.com");
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2.com");
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_HEADERS));
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_METHODS), HTTP_METHOD_POST);
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_MAX_AGE), "-1");
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_ALLOW_METHODS), HTTP_METHOD_POST);
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_MAX_AGE), "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -405,16 +405,16 @@ function testPreFlightReqwithNoHeaders() {
 
 //Test preflight with method restriction at service level
 @test:Config {}
-function testPreFlightReqwithRestrictedMethodsServiceLevel() {
+function testPreFlightReqwithRestrictedMethodsServiceLevel() returns error? {
     var headers = {
         [ORIGIN]:"http://www.m3.com", 
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_POST], 
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/hello3/info1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(checkpanic response.getHeader(ALLOW), "PUT, OPTIONS", msg = "Found unexpected Header");
+        test:assertEquals(check response.getHeader(ALLOW), "PUT, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -422,16 +422,16 @@ function testPreFlightReqwithRestrictedMethodsServiceLevel() {
 
 //Test preflight with method restriction at resource level
 @test:Config {}
-function testPreFlightReqwithRestrictedMethodsResourceLevel() {
+function testPreFlightReqwithRestrictedMethodsResourceLevel() returns error? {
     var headers = {
         [ORIGIN]:"http://www.bbc.com", 
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_DELETE], 
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/hello2/test2", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(checkpanic response.getHeader(ALLOW), "PUT, OPTIONS", msg = "Found unexpected Header");
+        test:assertEquals(check response.getHeader(ALLOW), "PUT, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -446,7 +446,7 @@ function testPreFlightReqwithAllowedMethod() {
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/hello3/info1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", HTTP_METHOD_PUT, "1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -455,20 +455,20 @@ function testPreFlightReqwithAllowedMethod() {
 
 //Test preflight with missing headers at resource level
 @test:Config {}
-function testPreFlightReqwithMissingHeadersAtResourceLevel() {
+function testPreFlightReqwithMissingHeadersAtResourceLevel() returns error? {
     var headers = {
         [ORIGIN]:"http://www.bbc.com", 
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_PUT], 
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/hello2/test2", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204);
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.bbc.com");
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.bbc.com");
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS));
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_HEADERS), "X-PINGOTHER");
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_METHODS), HTTP_METHOD_PUT);
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_MAX_AGE), "-1");
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_ALLOW_HEADERS), "X-PINGOTHER");
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_ALLOW_METHODS), HTTP_METHOD_PUT);
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_MAX_AGE), "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -476,15 +476,15 @@ function testPreFlightReqwithMissingHeadersAtResourceLevel() {
 
 //Test preflight without CORS headers
 @test:Config {}
-function testPreFlightReqNoCorsResource() {
+function testPreFlightReqNoCorsResource() returns error? {
     var headers = {
         [ORIGIN]:"http://www.wso2.com", 
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_POST]
     };
     http:Response|error response = corsClient->options("/echo4/info1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
+        test:assertEquals(check response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -494,7 +494,7 @@ function testPreFlightReqNoCorsResource() {
 @test:Config {}
 function testSimpleOPTIONSReq() {
     http:Response|error response = corsClient->options("/echo4/info2", {[ORIGIN]:"http://www.wso2.com"});
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "noCorsOPTIONS");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -503,15 +503,15 @@ function testSimpleOPTIONSReq() {
 
 //Test for case insensitive origin
 @test:Config {}
-function testPreFlightReqwithCaseInsensitiveOrigin() {
+function testPreFlightReqwithCaseInsensitiveOrigin() returns error? {
     var headers = {
         [ORIGIN]:"http://www.Wso2.com", 
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_POST]
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(checkpanic response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
+        test:assertEquals(check response.getHeader(ALLOW), "POST, OPTIONS", msg = "Found unexpected Header");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -526,7 +526,7 @@ function testPreFlightReqwithCaseInsensitiveHeader() {
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-pingOTHER"
     };
     http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         assertEqualsCorsResponse(response, 204, "http://www.wso2.com", "true", "X-pingOTHER", HTTP_METHOD_POST, "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -535,20 +535,20 @@ function testPreFlightReqwithCaseInsensitiveHeader() {
 
 //Test for serviceLevel wildcard/default CORS configs
 @test:Config {}
-function testPreFlightReqwithWildCardServiceConfigs() {
+function testPreFlightReqwithWildCardServiceConfigs() returns error? {
     var headers = {
         [ORIGIN]:"http://www.wso2Ballerina.com", 
         [ACCESS_CONTROL_REQUEST_METHOD]:[HTTP_METHOD_POST], 
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/hello5/info1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 204);
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2Ballerina.com");
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_ALLOW_ORIGIN), "http://www.wso2Ballerina.com");
         test:assertFalse(response.hasHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS));
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_HEADERS), "X-PINGOTHER");
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_ALLOW_METHODS), HTTP_METHOD_POST);
-        test:assertEquals(checkpanic response.getHeader(ACCESS_CONTROL_MAX_AGE), "-1");
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_ALLOW_HEADERS), "X-PINGOTHER");
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_ALLOW_METHODS), HTTP_METHOD_POST);
+        test:assertEquals(check response.getHeader(ACCESS_CONTROL_MAX_AGE), "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -563,7 +563,7 @@ function testPreFlightReqwithWildCardResourceConfigs() {
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PINGOTHER"
     };
     http:Response|error response = corsClient->options("/echo4/info3", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         assertEqualsCorsResponse(response, 204, "http://www.wso2Ballerina456.com", "true", "X-PINGOTHER", "POST", "-1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -579,7 +579,7 @@ function testPreFlightReqwithWildCardResourceConfigsOverride() {
         [ACCESS_CONTROL_REQUEST_HEADERS]:"X-PONGOTHER"
     };
     http:Response|error response = corsClient->options("/hello1/test4", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         assertEqualsCorsResponse(response, 204, "http://www.wso2Ballerina123.com", "true", "X-PONGOTHER",
             HTTP_METHOD_PUT, "-1");
     } else {

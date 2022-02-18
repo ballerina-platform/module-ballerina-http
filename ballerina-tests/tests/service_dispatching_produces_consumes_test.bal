@@ -25,37 +25,37 @@ service /echo66 on pcEP {
     @http:ResourceConfig {
         consumes: ["application/xml"]
     }
-    resource function post test1(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ msg: "wso2" });
+    resource function post test1(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ msg: "wso2" });
     }
 
     @http:ResourceConfig {
         produces: ["text/xml", "application/xml "]
     }
-    resource function get test2(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ msg: "wso22" });
+    resource function get test2(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ msg: "wso22" });
     }
 
     @http:ResourceConfig {
         consumes: ["application/xhtml+xml", "text/plain", "text/json"],
         produces: ["text/css", "application/json"]
     }
-    resource function post test3(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ msg: "wso222" });
+    resource function post test3(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ msg: "wso222" });
     }
 
     @http:ResourceConfig {
         consumes: ["appliCation/XML"],
         produces: ["Application/JsON"]
     }
-    resource function post test4(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ msg: "wso222" });
+    resource function post test4(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ msg: "wso222" });
     }
 }
 
 service /echo67 on pcEP {
-    resource function 'default echo1(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({ echo33: "echo1" });
+    resource function 'default echo1(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({ echo33: "echo1" });
     }
 }
 
@@ -66,7 +66,7 @@ function testConsumesAnnotation() {
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, "application/xml; charset=ISO-8859-4");
     http:Response|error response = pcClient->post("/echo66/test1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "msg", "wso2");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -80,7 +80,7 @@ function testIncorrectConsumesAnnotation() {
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, "compileResult/json");
     http:Response|error response = pcClient->post("/echo66/test1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 415, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -94,7 +94,7 @@ function testBogusConsumesAnnotation() {
     req.setTextPayload("Test");
     req.setHeader(mime:CONTENT_TYPE, ",:vhjv");
     http:Response|error response = pcClient->post("/echo66/test1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 415, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -105,7 +105,7 @@ function testBogusConsumesAnnotation() {
 @test:Config {}
 function testProducesAnnotation() {
     http:Response|error response = pcClient->get("/echo66/test2", {[mime:CONTENT_TYPE]:["text/xml;q=0.3, multipart/*;Level=1;q=0.7"]});
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -116,7 +116,7 @@ function testProducesAnnotation() {
 @test:Config {}
 function testProducesAnnotationWithNoHeaders() {
     http:Response|error response = pcClient->get("/echo66/test2");
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -127,7 +127,7 @@ function testProducesAnnotationWithNoHeaders() {
 @test:Config {}
 function testProducesAnnotationWithWildCard() {
     http:Response|error response = pcClient->get("/echo66/test2", {"Accept":["*/*, text/html;Level=1;q=0.7"]});
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -138,7 +138,7 @@ function testProducesAnnotationWithWildCard() {
 @test:Config {}
 function testProducesAnnotationWithSubTypeWildCard() {
     http:Response|error response = pcClient->get("/echo66/test2", {"Accept":["text/*;q=0.3, text/html;Level=1;q=0.7"]});
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "msg", "wso22");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -149,7 +149,7 @@ function testProducesAnnotationWithSubTypeWildCard() {
 @test:Config {}
 function testIncorrectProducesAnnotation() {
     http:Response|error response = pcClient->get("/echo66/test2", {"Accept":["multipart/*;q=0.3, text/html;Level=1;q=0.7"]});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -160,7 +160,7 @@ function testIncorrectProducesAnnotation() {
 @test:Config {}
 function testBogusProducesAnnotation() {
     http:Response|error response = pcClient->get("/echo66/test2", {"Accept":":,;,v567br"});
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -175,7 +175,7 @@ function testProducesConsumeAnnotation() {
     req.setHeader(mime:CONTENT_TYPE, "text/plain; charset=ISO-8859-4");
     req.setHeader("Accept", "text/*;q=0.3, text/html;Level=1;q=0.7");
     http:Response|error response = pcClient->post("/echo66/test3", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "msg", "wso222");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -190,7 +190,7 @@ function testIncorrectProducesConsumeAnnotation() {
     req.setHeader(mime:CONTENT_TYPE, "text/plain ; charset=ISO-8859-4");
     req.setHeader("Accept", "compileResult/xml, text/html");
     http:Response|error response = pcClient->post("/echo66/test3", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 406, msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -203,7 +203,7 @@ function testWithoutProducesConsumeAnnotation() {
     map<string> headers = {[mime:CONTENT_TYPE]:"text/plain; charset=ISO-8859-4", 
         "Accept":"text/*;q=0.3, text/html;Level=1;q=0.7"};
     http:Response|error response = pcClient->get("/echo67/echo1", headers);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo33", "echo1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -219,7 +219,7 @@ function testCaseInSensitivityOfProduceAndConsume() {
     req.setHeader(mime:CONTENT_TYPE, "application/xml; charset=ISO-8859-4");
     req.setHeader("Accept", "application/json");
     http:Response|error response = pcClient->post("/echo66/test4", req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "msg", "wso222");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -47,17 +47,17 @@ final http:Client echoHttpsServiceClient = check new("https://localhost:" + echo
 
 service /echoServiceTest1 on echoServiceTestListenerEP {
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         var payload = req.getTextPayload();
         http:Response resp = new;
-        if (payload is string) {
-            checkpanic caller->respond( payload);
+        if payload is string {
+            check caller->respond( payload);
         } else {
             resp.statusCode = 500;
             resp.setPayload( payload.message());
             log:printError("Failed to retrieve payload from request: " + payload.message());
             var responseError = caller->respond(resp);
-            if (responseError is error) {
+            if responseError is error {
                 log:printError("Error sending response", 'error = responseError);
             }
         }
@@ -66,32 +66,32 @@ service /echoServiceTest1 on echoServiceTestListenerEP {
 
 service /echoServiceTest1One on echoServiceTestListenerEP, echoHttpsServiceTestListenerEP {
 
-    resource function post abc(http:Caller caller, http:Request req) {
+    resource function post abc(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("hello world");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /echoServiceTest1 on echoHttpsServiceTestListenerEP {
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("hello world");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 //Test echo service sample test case invoking base path
 @test:Config {}
-function testEchoServiceByBasePath() {
+function testEchoServiceByBasePath() returns error? {
     http:Request req = new;
     string requestMessage = "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}";
     req.setTextPayload(requestMessage);
     http:Response|error response = echoServiceClient->post("/echoServiceTest1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), requestMessage);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -100,13 +100,13 @@ function testEchoServiceByBasePath() {
 
 //Test echo service sample test case invoking base path
 @test:Config {}
-function testEchoServiceWithDynamicPortShared() {
+function testEchoServiceWithDynamicPortShared() returns error? {
     http:Request req = new;
     req.setJsonPayload({key:"value"});
     http:Response|error response = echoServiceClient->post("/echoServiceTest1One/abc", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -115,13 +115,13 @@ function testEchoServiceWithDynamicPortShared() {
 
 //Test echo service with dynamic port and scheme https
 @test:Config {}
-function testEchoServiceWithDynamicPortHttpsByBasePath() {
+function testEchoServiceWithDynamicPortHttpsByBasePath() returns error? {
     http:Request req = new;
     req.setJsonPayload({key:"value"});
     http:Response|error response = echoHttpsServiceClient->post("/echoServiceTest1", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -130,13 +130,13 @@ function testEchoServiceWithDynamicPortHttpsByBasePath() {
 
 //Test echo service with dynamic port and scheme https with port shared
 @test:Config {}
-function testEchoServiceWithDynamicPortHttpsShared() {
+function testEchoServiceWithDynamicPortHttpsShared() returns error? {
     http:Request req = new;
     req.setJsonPayload({key:"value"});
     http:Response|error response = echoHttpsServiceClient->post("/echoServiceTest1One/abc", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hello world");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -52,7 +52,7 @@ service /errornous on new http:Listener(8090) {
         res.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
         res.setPayload("Internal error occurred while processing the request.");
         error? responseToCaller = caller->respond(res);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -65,8 +65,8 @@ final http:Client testRequestVolumeClient = check new("http://localhost:9310");
     groups: ["circuitBreakerRequestVolume"],
     dataProvider:requestVolumeResponseDataProvider 
 }
-function requestVolumeTest(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed);
+function requestVolumeTest(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed);
 }
 
 function requestVolumeResponseDataProvider() returns DataFeed[][] {

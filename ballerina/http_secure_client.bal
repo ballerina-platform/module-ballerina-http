@@ -31,7 +31,7 @@ public client isolated class HttpSecureClient {
     isolated function init(string url, ClientConfiguration config) returns ClientError? {
         self.clientAuthHandler = initClientAuthHandler(config);
         HttpClient|ClientError simpleClient = createClient(url, config);
-        if (simpleClient is HttpClient) {
+        if simpleClient is HttpClient {
             self.httpClient = simpleClient;
         } else {
             return simpleClient;
@@ -198,7 +198,7 @@ public client isolated class HttpSecureClient {
 # + return - Created secure HTTP client
 public isolated function createHttpSecureClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpSecureClient httpSecureClient;
-    if (config.auth is ClientAuthConfig) {
+    if config.auth is ClientAuthConfig {
         httpSecureClient = check new(url, config);
         return httpSecureClient;
     } else {
@@ -208,13 +208,13 @@ public isolated function createHttpSecureClient(string url, ClientConfiguration 
 
 // Enriches the request using the relevant client auth handler.
 isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req) returns Request|ClientError {
-    if (clientAuthHandler is ClientBasicAuthHandler) {
+    if clientAuthHandler is ClientBasicAuthHandler {
         return clientAuthHandler.enrich(req);
-    } else if (clientAuthHandler is ClientBearerTokenAuthHandler) {
+    } else if clientAuthHandler is ClientBearerTokenAuthHandler {
         return clientAuthHandler.enrich(req);
-    } else if (clientAuthHandler is ClientSelfSignedJwtAuthHandler) {
+    } else if clientAuthHandler is ClientSelfSignedJwtAuthHandler {
         return clientAuthHandler.enrich(req);
-    } else if (clientAuthHandler is ClientOAuth2Handler) {
+    } else if clientAuthHandler is ClientOAuth2Handler {
         return clientAuthHandler->enrich(req);
     } else {
         string errorMsg = "Invalid client auth-handler found. Expected one of http:ClientBasicAuthHandler|http:ClientBearerTokenAuthHandler|http:ClientSelfSignedJwtAuthHandler|http:ClientOAuth2Handler.";
@@ -226,13 +226,13 @@ isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req
 isolated function initClientAuthHandler(ClientConfiguration config) returns ClientAuthHandler {
     // The existence of auth configuration is already validated.
     ClientAuthConfig authConfig = <ClientAuthConfig>(config.auth);
-    if (authConfig is CredentialsConfig) {
+    if authConfig is CredentialsConfig {
         ClientBasicAuthHandler handler = new(authConfig);
         return handler;
-    } else if (authConfig is BearerTokenConfig) {
+    } else if authConfig is BearerTokenConfig {
         ClientBearerTokenAuthHandler handler = new(authConfig);
         return handler;
-    } else if (authConfig is JwtIssuerConfig) {
+    } else if authConfig is JwtIssuerConfig {
         ClientSelfSignedJwtAuthHandler handler = new(authConfig);
         return handler;
     } else {

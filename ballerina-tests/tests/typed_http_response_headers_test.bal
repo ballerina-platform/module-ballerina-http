@@ -102,8 +102,8 @@ service /test on typedHeadersTestEP {
 public function testStringTypedHeaders() returns error? {
     http:Response resp = check typedHeadersTestClient->get("/test/stringHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-    test:assertEquals(checkpanic resp.getHeader("requestId"), "123");
-    test:assertEquals(checkpanic resp.getHeaders("requestTypes"), ["HTTP/GET"]);
+    test:assertEquals(check resp.getHeader("requestId"), "123");
+    test:assertEquals(check resp.getHeaders("requestTypes"), ["HTTP/GET"]);
     assertTextPayload(resp.getTextPayload(), "Request is accepted by the server");
 }
 
@@ -111,8 +111,8 @@ public function testStringTypedHeaders() returns error? {
 public function testIntTypedHeaders() returns error? {
     http:Response resp = check typedHeadersTestClient->get("/test/intHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-    test:assertEquals(checkpanic resp.getHeader("requestId"), "123");
-    test:assertEquals(checkpanic resp.getHeaders("requestTypes"), [ "1", "2", "3" ]);
+    test:assertEquals(check resp.getHeader("requestId"), "123");
+    test:assertEquals(check resp.getHeaders("requestTypes"), [ "1", "2", "3" ]);
     assertTextPayload(resp.getTextPayload(), "Request is accepted by the server");
 }
 
@@ -120,8 +120,8 @@ public function testIntTypedHeaders() returns error? {
 public function testBooleanTypedHeaders() returns error? {
     http:Response resp = check typedHeadersTestClient->get("/test/booleanHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-    test:assertEquals(checkpanic resp.getHeader("isSuccess"), "true");
-    test:assertEquals(checkpanic resp.getHeaders("requestFlow"), [ "true", "false", "true", "true" ]);
+    test:assertEquals(check resp.getHeader("isSuccess"), "true");
+    test:assertEquals(check resp.getHeaders("requestFlow"), [ "true", "false", "true", "true" ]);
     assertTextPayload(resp.getTextPayload(), "Request is accepted by the server");
 }
 
@@ -129,8 +129,8 @@ public function testBooleanTypedHeaders() returns error? {
 public function testAdvancedHeaderTypes() returns error? {
     http:Response resp = check typedHeadersTestClient->get("/test/advancedHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-    test:assertEquals(checkpanic resp.getHeader("requestId"), "123");
-    test:assertEquals(checkpanic resp.getHeader("isSuccess"), "true");
-    test:assertEquals(checkpanic resp.getHeaders("requestTypes"), [ "HTTP/GET", "Headers/Advanced" ]);
+    test:assertEquals(check resp.getHeader("requestId"), "123");
+    test:assertEquals(check resp.getHeader("isSuccess"), "true");
+    test:assertEquals(check resp.getHeaders("requestTypes"), [ "HTTP/GET", "Headers/Advanced" ]);
     assertTextPayload(resp.getTextPayload(), "Request is accepted by the server");
 }

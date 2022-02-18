@@ -28,11 +28,11 @@ final http:Client expectContinueClient = check new("http://localhost:" + expectC
 service /'continue on expectContinueListenerEP1 {
 
     resource function 'default .(http:Caller caller, http:Request request) {
-        if (request.expects100Continue()) {
-            if (request.hasHeader("X-Status")) {
+        if request.expects100Continue() {
+            if request.hasHeader("X-Status") {
                 log:printInfo("Sending 100-Continue response");
                 var responseError = caller->continue();
-                if (responseError is error) {
+                if responseError is error {
                     log:printError("Error sending response", 'error = responseError);
                 }
             } else {
@@ -41,7 +41,7 @@ service /'continue on expectContinueListenerEP1 {
                 res.statusCode = 417;
                 res.setPayload("Do not send me any payload");
                 var responseError = caller->respond(res);
-                if (responseError is error) {
+                if responseError is error {
                     log:printError("Error sending response", 'error = responseError);
                 }
                 return;
@@ -51,9 +51,9 @@ service /'continue on expectContinueListenerEP1 {
         http:Response res = new;
         var result  = request.getTextPayload();
 
-        if (result is string) {
+        if result is string {
             var responseError = caller->respond(result);
-            if (responseError is error) {
+            if responseError is error {
                 log:printError("Error sending response", 'error = responseError);
             }
         } else {
@@ -61,7 +61,7 @@ service /'continue on expectContinueListenerEP1 {
             res.setPayload(result.message());
             log:printError("Failed to retrieve payload from request: " + result.message());
             var responseError = caller->respond(res);
-            if (responseError is error) {
+            if responseError is error {
                 log:printError("Error sending response", 'error = responseError);
             }
         }
@@ -70,13 +70,13 @@ service /'continue on expectContinueListenerEP1 {
     resource function post getFormParam(http:Caller caller, http:Request req) {
         string replyMsg = "Result =";
         var bodyParts = req.getBodyParts();
-        if (bodyParts is mime:Entity[]) {
+        if bodyParts is mime:Entity[] {
             int i = 0;
             while (i < bodyParts.length()) {
                 mime:Entity part = bodyParts[i];
                 mime:ContentDisposition contentDisposition = part.getContentDisposition();
                 var result = part.getText();
-                if (result is string) {
+                if result is string {
                     replyMsg += " Key:" + contentDisposition.name + " Value: " + result;
                 } else {
                     replyMsg += <string> " Key:" + contentDisposition.name + " Value: " + result.message();
@@ -84,7 +84,7 @@ service /'continue on expectContinueListenerEP1 {
                 i += 1;
             }
             var responseError = caller->respond(replyMsg);
-            if (responseError is error) {
+            if responseError is error {
                 log:printError(responseError.message(), 'error = responseError);
             }
         } else {
@@ -93,17 +93,17 @@ service /'continue on expectContinueListenerEP1 {
     }
 
     resource function 'default testPassthrough(http:Caller caller, http:Request req) {
-        if (req.expects100Continue()) {
+        if req.expects100Continue() {
             req.removeHeader("Expect");
             var responseError = caller->continue();
-            if (responseError is error) {
+            if responseError is error {
                 log:printError("Error sending response", 'error = responseError);
             }
         }
         http:Response|error res = expectContinueClient->forward("/backend/hello", req);
-        if (res is http:Response) {
+        if res is http:Response {
             var responseError = caller->respond(res);
-            if (responseError is error) {
+            if responseError is error {
                 log:printError("Error sending response", 'error = responseError);
             }
         } else {
@@ -116,13 +116,13 @@ service /backend on expectContinueListenerEP2 {
     resource function 'default hello(http:Caller caller, http:Request request) {
         http:Response response = new;
         var payload = request.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             response.setTextPayload(payload);
         } else {
             response.setTextPayload(payload.message());
         }
         var responseError = caller->respond(response);
-        if (responseError is error) {
+        if responseError is error {
             log:printError("Error sending response", 'error = responseError);
         }
     }
