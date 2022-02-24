@@ -115,7 +115,9 @@ public class HttpInterceptorResourceValidator {
     private static boolean isServiceType(TypeSymbol returnTypeSymbol) {
         Optional<String> optionalTypeName = returnTypeSymbol.getName();
         return optionalTypeName.filter(s -> s.equals(Constants.SERVICE) ||
-                                       s.equals(Constants.REQUEST_INTERCEPTOR)).isPresent();
+                                       s.equals(Constants.REQUEST_INTERCEPTOR) ||
+                                       s.equals(Constants.REQUEST_ERROR_INTERCEPTOR) ||
+                                       s.equals(Constants.RESPONSE_INTERCEPTOR)).isPresent();
     }
 
     private static void reportResourceAnnotationNotAllowed(SyntaxNodeAnalysisContext ctx, AnnotationNode node) {
