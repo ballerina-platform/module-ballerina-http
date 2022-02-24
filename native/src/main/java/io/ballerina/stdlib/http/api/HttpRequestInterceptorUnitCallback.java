@@ -28,12 +28,12 @@ import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 /**
- * {@code HttpInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina side when
- * an interceptor service is invoked.
+ * {@code HttpRequestInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
+ * side when a request interceptor service is invoked.
  *
  * @since SL Beta 4
  */
-public class HttpInterceptorUnitCallback implements Callback {
+public class HttpRequestInterceptorUnitCallback implements Callback {
     private final BObject caller;
     private final Runtime runtime;
     private final HttpCarbonMessage requestMessage;
@@ -41,8 +41,8 @@ public class HttpInterceptorUnitCallback implements Callback {
     private final BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener;
     private final BObject requestCtx;
 
-    HttpInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
-                                BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
+    HttpRequestInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
+                                       BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
         this.runtime = runtime;
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
@@ -67,7 +67,7 @@ public class HttpInterceptorUnitCallback implements Callback {
         if (error.getMessage().equals("Already responded by auth desugar.")) {
             return;
         }
-        if (alreadyResponded(error)) {
+        if (alreadyResponded()) {
             return;
         }
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
@@ -83,7 +83,7 @@ public class HttpInterceptorUnitCallback implements Callback {
         requestMessage.waitAndReleaseAllEntities();
     }
 
-    private boolean alreadyResponded(Object result) {
+    private boolean alreadyResponded() {
         try {
             HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
         } catch (BError e) {
@@ -103,12 +103,12 @@ public class HttpInterceptorUnitCallback implements Callback {
     }
 
     private void validateResponseAndProceed(Object result) {
-        int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
-        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
+        int interceptorId = (int) requestCtx.getNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX);
+        requestMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
         boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
 
-        if (alreadyResponded(result)) {
+        if (alreadyResponded()) {
             if (nextCalled) {
                 sendRequestToNextService();
             }

@@ -45,10 +45,12 @@ public class Constants {
     public static final String ERROR = "annotations:error";
     public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|error";
     public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
+    public static final String RESPONSE_INTERCEPTOR = "ResponseInterceptor";
     public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
     public static final String SERVICE = "Service";
     public static final String HTTP_REQUEST_INTERCEPTOR = "http:RequestInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "http:RequestErrorInterceptor";
+    public static final String HTTP_RESPONSE_INTERCEPTOR = "http:ResponseInterceptor";
     public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "http:NextService|error?";
     public static final String DEFAULT = "default";
     public static final String GET = "get";

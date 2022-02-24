@@ -77,17 +77,17 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
             // Executing interceptor services
             InterceptorResource interceptorResource;
-            int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX)
-                    == null ? 0 : (int)  inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
+            int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX)
+                    == null ? 0 : (int)  inboundMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX);
             while (interceptorServiceIndex < interceptorServicesRegistries.size()) {
                 HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
                         get(interceptorServiceIndex);
 
                 // Checking whether the interceptor service state matches the interceptor service registry type
                 if (!interceptorServicesRegistry.getServicesType().
-                                            equals(inboundMessage.getInterceptorServiceState())) {
+                                            equals(inboundMessage.getRequestInterceptorServiceState())) {
                     interceptorServiceIndex += 1;
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorServiceIndex);
+                    inboundMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorServiceIndex);
                     continue;
                 }
 
@@ -99,7 +99,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                         !inboundMessage.isAccessedInInterceptorService()) {
                     inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
                     inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorServiceIndex);
+                    inboundMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorServiceIndex);
                     //Removes inbound content listener since data binding waits for all contents to be received
                     //before executing its logic.
                     inboundMessage.removeInboundContentListener();
@@ -111,7 +111,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 // Checking whether the interceptor resource path matches the request path
                 if (interceptorResource != null) {
                     inboundMessage.removeProperty(HttpConstants.WAIT_FOR_FULL_REQUEST);
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorServiceIndex);
+                    inboundMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorServiceIndex);
                     inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
                     extractPropertiesAndStartInterceptorResourceExecution(inboundMessage, interceptorResource,
                             interceptorServicesRegistry);
@@ -120,7 +120,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             }
 
             if (inboundMessage.isInterceptorError()) {
-                HttpInterceptorUnitCallback callback = new HttpInterceptorUnitCallback(inboundMessage, null, this);
+                HttpRequestInterceptorUnitCallback callback = new HttpRequestInterceptorUnitCallback(inboundMessage,
+                                                        null, this);
                 callback.sendFailureResponse((BError) inboundMessage.getProperty
                                                                             (HttpConstants.INTERCEPTOR_SERVICE_ERROR));
             } else {
@@ -213,7 +214,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
         Runtime runtime = registry.getRuntime();
-        Callback callback = new HttpInterceptorUnitCallback(inboundMessage, runtime, this);
+        Callback callback = new HttpRequestInterceptorUnitCallback(inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
 

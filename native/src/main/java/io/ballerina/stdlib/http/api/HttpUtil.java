@@ -1790,6 +1790,9 @@ public class HttpUtil {
                 case HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR:
                     interceptorServiceType = HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR;
                     break;
+                case HttpConstants.HTTP_RESPONSE_INTERCEPTOR:
+                    interceptorServiceType = HttpConstants.HTTP_RESPONSE_INTERCEPTOR;
+                    break;
                 default:
                     break;
             }

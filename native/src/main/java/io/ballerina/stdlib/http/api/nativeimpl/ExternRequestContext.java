@@ -37,14 +37,20 @@ public class ExternRequestContext {
                 return HttpUtil.createHttpError("no next service to be returned",
                         HttpErrorType.GENERIC_LISTENER_ERROR);
             }
-            int interceptorId = (int) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX) + 1;
+            String nextInterceptorType = (String) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE);
             Object interceptorToReturn = mainService;
             Object interceptor;
+            int interceptorId;
+            if (nextInterceptorType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR)) {
+                interceptorId = (int) requestCtx.getNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX) + 1;
+            } else {
+                interceptorId = (int) requestCtx.getNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) + 1;
+            }
             requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, true);
             while (interceptorId < interceptors.size()) {
                 interceptor = interceptors.get(interceptorId);
                 String interceptorType = HttpUtil.getInterceptorServiceType((BObject) interceptor);
-                if (interceptorType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR)) {
+                if (interceptorType.equals(nextInterceptorType)) {
                     interceptorToReturn = interceptor;
                     break;
                 }
@@ -54,7 +60,7 @@ public class ExternRequestContext {
                 return HttpUtil.createHttpError("no next service to be returned",
                         HttpErrorType.GENERIC_LISTENER_ERROR);
             }
-            requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
+            requestCtx.addNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
             return interceptorToReturn;
         } else {
             return HttpUtil.createHttpError("request context object does not contain the configured " +

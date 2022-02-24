@@ -42,6 +42,7 @@ import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
 import io.ballerina.stdlib.http.api.service.signature.Parameter;
 import io.ballerina.stdlib.http.api.service.signature.PayloadParam;
 import io.ballerina.stdlib.http.api.service.signature.QueryParam;
+import io.ballerina.stdlib.http.api.service.signature.RemoteMethodParamHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.URIUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
@@ -250,6 +251,55 @@ public class HttpDispatcher {
         }
     }
 
+    public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response,
+                                                        HttpCarbonMessage httpCarbonMessage) {
+        BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
+        BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+        RemoteMethodParamHandler paramHandler = service.getRemoteMethodParamHandler();
+        int sigParamCount = paramHandler.getParamCount();
+        Object[] paramFeed = new Object[sigParamCount * 2];
+        for (Parameter param : paramHandler.getOtherParamList()) {
+            String typeName = param.getTypeName();
+            switch (typeName) {
+                case HttpConstants.REQUEST_CONTEXT:
+                    if (requestCtx == null) {
+                        requestCtx = createRequestContext(httpCarbonMessage);
+                    }
+                    if (service instanceof InterceptorService) {
+                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
+                    } else {
+                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, false);
+                    }
+                    int interceptorId = httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) == null
+                            ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
+                    requestCtx.addNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
+                    requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
+                                             HttpConstants.HTTP_RESPONSE_INTERCEPTOR);
+                    requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+                    int index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = requestCtx;
+                    paramFeed[index] = true;
+                    break;
+                case HttpConstants.STRUCT_GENERIC_ERROR:
+                    if (error == null) {
+                        error = createError();
+                    }
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = error;
+                    paramFeed[index] = true;
+                    break;
+                case HttpConstants.RESPONSE:
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = response;
+                    paramFeed[index] = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return paramFeed;
+    }
+
     public static Object[] getSignatureParameters(Resource resource, HttpCarbonMessage httpCarbonMessage,
                                                   BMap<BString, Object> endpointConfig) {
         BObject inRequest = null;
@@ -283,17 +333,19 @@ public class HttpDispatcher {
                     break;
                 case HttpConstants.REQUEST_CONTEXT:
                     if (requestCtx == null) {
-                        requestCtx = createRequestContext(httpCarbonMessage, endpointConfig);
+                        requestCtx = createRequestContext(httpCarbonMessage);
                     }
                     if (resource instanceof InterceptorResource) {
                         requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
                     } else {
                         requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, false);
                     }
-                    int interceptorId = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) == null
-                            ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) - 1;
-                    requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
+                    int interceptorId = httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) == null
+                            ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) - 1;
+                    requestCtx.addNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
                     requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+                    requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
+                                             HttpConstants.HTTP_REQUEST_INTERCEPTOR);
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;
@@ -494,7 +546,7 @@ public class HttpDispatcher {
         return httpCaller;
     }
 
-    static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, BMap<BString, Object> endpointConfig) {
+    static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
         BArray interceptors = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) instanceof BArray ?
                               (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) : null;
