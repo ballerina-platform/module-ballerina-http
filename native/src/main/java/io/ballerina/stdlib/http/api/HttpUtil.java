@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.types.TypeId;
@@ -551,11 +552,11 @@ public class HttpUtil {
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType) {
-        return createHttpError(errorType, message, null, null);
+        return createHttpError(errorType, message, null, ValueCreator.createMapValue());
     }
 
     public static BError createHttpError(String message, HttpErrorType errorType, BError cause) {
-        return createHttpError(errorType, message, cause, null);
+        return createHttpError(errorType, message, cause, ValueCreator.createMapValue());
     }
 
     public static BError createHttpError(HttpErrorType errorType, String message, BError cause,
