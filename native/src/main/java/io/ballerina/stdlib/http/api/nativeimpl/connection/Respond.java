@@ -202,7 +202,7 @@ public class Respond extends ConnectionAction {
                 String remoteMethod = "interceptResponse";
                 Runtime runtime = interceptorServicesRegistry.getRuntime();
                 Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj,
-                        inboundMessage);
+                        connectionObj, inboundMessage);
                 Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, connectionObj,
                                     outboundResponseObj, env, dataContext);
 

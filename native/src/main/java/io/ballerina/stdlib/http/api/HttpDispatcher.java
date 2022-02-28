@@ -251,7 +251,7 @@ public class HttpDispatcher {
         }
     }
 
-    public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response,
+    public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response, BObject caller,
                                                         HttpCarbonMessage httpCarbonMessage) {
         BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
@@ -291,6 +291,11 @@ public class HttpDispatcher {
                 case HttpConstants.RESPONSE:
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = response;
+                    paramFeed[index] = true;
+                    break;
+                case HttpConstants.CALLER:
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = caller;
                     paramFeed[index] = true;
                     break;
                 default:

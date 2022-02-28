@@ -22,9 +22,11 @@ public class RemoteMethodParamHandler {
     private NonRecurringParam responseParam = null;
     private NonRecurringParam requestContextParam = null;
     private NonRecurringParam interceptorErrorParam = null;
+    private NonRecurringParam callerParam = null;
 
     private static final String RES_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.RESPONSE;
     private static final String REQUEST_CONTEXT_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST_CONTEXT;
+    private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
 
     public RemoteMethodParamHandler(RemoteMethodType remoteMethod) {
         this.remoteMethod = remoteMethod;
@@ -62,6 +64,14 @@ public class RemoteMethodParamHandler {
                         getOtherParamList().add(this.responseParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" + RES_TYPE + "' parameter");
+                    }
+                    break;
+                case CALLER_TYPE:
+                    if (this.callerParam == null) {
+                        this.callerParam = new NonRecurringParam(index, HttpConstants.CALLER);
+                        getOtherParamList().add(this.callerParam);
+                    } else {
+                        throw HttpUtil.createHttpError("invalid multiple '" + CALLER_TYPE + "' parameter");
                     }
                     break;
                 default:
