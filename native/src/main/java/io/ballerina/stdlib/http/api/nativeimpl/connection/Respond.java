@@ -64,11 +64,16 @@ public class Respond extends ConnectionAction {
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
+        DataContext dataContext  = new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null));
+        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, dataContext);
+    }
+
+    public static Object nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
+                                                  DataContext dataContext) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        if (invokeResponseInterceptor(env, inboundRequestMsg, outboundResponseObj, connectionObj)) {
+        if (invokeResponseInterceptor(env, inboundRequestMsg, outboundResponseObj, connectionObj, dataContext)) {
             return null;
         }
-        DataContext dataContext = new DataContext(env, inboundRequestMsg);
         if (isDirtyResponse(outboundResponseObj)) {
             String errorMessage = "Couldn't complete the respond operation as the response has been already used.";
             HttpUtil.sendOutboundResponse(inboundRequestMsg, HttpUtil.createErrorMessage(errorMessage, 500));
@@ -164,7 +169,8 @@ public class Respond extends ConnectionAction {
     private Respond() {}
 
     public static boolean invokeResponseInterceptor(Environment env, HttpCarbonMessage inboundMessage,
-                                                  BObject outboundResponseObj, BObject connectionObj) {
+                                                    BObject outboundResponseObj, BObject connectionObj,
+                                                    DataContext dataContext) {
         List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries =
                 (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
         if (interceptorServicesRegistries.isEmpty()) {
@@ -198,7 +204,7 @@ public class Respond extends ConnectionAction {
                 Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj,
                         inboundMessage);
                 Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, connectionObj,
-                                    outboundResponseObj, env);
+                                    outboundResponseObj, env, dataContext);
 
                 if (serviceObj.getType().isIsolated() && serviceObj.getType().isIsolated(remoteMethod)) {
                     runtime.invokeMethodAsyncConcurrently(serviceObj, remoteMethod, null, null,

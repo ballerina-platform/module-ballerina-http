@@ -54,13 +54,24 @@ public class ExternRequestContext {
                     interceptorToReturn = interceptor;
                     break;
                 }
-                interceptorId += 1;
+                if (nextInterceptorType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR)) {
+                    interceptorId += 1;
+                } else {
+                    interceptorId -= 1;
+                }
             }
             if (interceptorId > interceptors.size()) {
                 return HttpUtil.createHttpError("no next service to be returned",
                         HttpErrorType.GENERIC_LISTENER_ERROR);
             }
-            requestCtx.addNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
+            if (interceptorId < 0) {
+                return null;
+            }
+            if (nextInterceptorType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR)) {
+                requestCtx.addNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
+            } else {
+                requestCtx.addNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
+            }
             return interceptorToReturn;
         } else {
             return HttpUtil.createHttpError("request context object does not contain the configured " +

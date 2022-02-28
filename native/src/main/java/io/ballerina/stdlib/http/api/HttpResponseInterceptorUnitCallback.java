@@ -38,16 +38,18 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     private final BObject response;
     private final Environment environment;
     private final BObject requestCtx;
+    private DataContext dataContext;
 
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
-    public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller,
-                                               BObject response, Environment env) {
+    public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
+                                               Environment env, DataContext dataContext) {
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         this.caller = caller;
         this.response = response;
         this.environment = env;
+        this.dataContext = dataContext;
     }
 
     @Override
@@ -86,7 +88,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     }
 
     private void sendResponseToNextService() {
-        Respond.nativeRespond(environment, caller, response);
+        Respond.nativeRespondWithDataCtx(environment, caller, response, dataContext);
     }
 
     private boolean alreadyResponded() {
