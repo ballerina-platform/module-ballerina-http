@@ -98,7 +98,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 if (HttpDispatcher.shouldDiffer(interceptorResource) &&
                         !inboundMessage.isAccessedInInterceptorService()) {
                     inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
+                    inboundMessage.setProperty(HttpConstants.REQ_INTERCEPTOR_SERVICE, true);
                     inboundMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorServiceIndex);
                     //Removes inbound content listener since data binding waits for all contents to be received
                     //before executing its logic.
@@ -112,7 +112,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 if (interceptorResource != null) {
                     inboundMessage.removeProperty(HttpConstants.WAIT_FOR_FULL_REQUEST);
                     inboundMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorServiceIndex);
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
+                    inboundMessage.setProperty(HttpConstants.REQ_INTERCEPTOR_SERVICE, true);
                     extractPropertiesAndStartInterceptorResourceExecution(inboundMessage, interceptorResource,
                             interceptorServicesRegistry);
                     return;
@@ -254,7 +254,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         }
         try {
             if (httpResource != null) {
-                inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE);
+                inboundMessage.removeProperty(HttpConstants.REQ_INTERCEPTOR_SERVICE);
                 extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
             }
         } catch (BallerinaConnectorException ex) {

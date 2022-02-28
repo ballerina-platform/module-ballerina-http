@@ -64,7 +64,13 @@ public class Respond extends ConnectionAction {
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
-        DataContext dataContext  = new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null));
+        HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
+        if (isRespondedFromResponseInterceptor(inboundRequestMsg)) {
+            inboundRequestMsg.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, 0);
+        }
+        DataContext dataContext = connectionObj.getNativeData(HttpConstants.DATA_CTX) == null ?
+                                  new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)) :
+                                  (DataContext) connectionObj.getNativeData(HttpConstants.DATA_CTX);
         return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, dataContext);
     }
 
@@ -198,6 +204,8 @@ public class Respond extends ConnectionAction {
 
                 interceptorServiceIndex -= 1;
                 inboundMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorServiceIndex);
+                inboundMessage.setProperty(HttpConstants.RES_INTERCEPTOR_SERVICE, true);
+                connectionObj.addNativeData(HttpConstants.DATA_CTX, dataContext);
                 BObject serviceObj = service.getBalService();
                 String remoteMethod = "interceptResponse";
                 Runtime runtime = interceptorServicesRegistry.getRuntime();
@@ -219,5 +227,9 @@ public class Respond extends ConnectionAction {
             }
         }
         return false;
+    }
+
+    private static boolean isRespondedFromResponseInterceptor(HttpCarbonMessage inboundMessage) {
+        return inboundMessage.getProperty(HttpConstants.RES_INTERCEPTOR_SERVICE) != null;
     }
 }

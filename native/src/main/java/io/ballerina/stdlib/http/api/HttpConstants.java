@@ -360,7 +360,8 @@ public class HttpConstants {
     public static final String REQUEST_CONTEXT_NEXT = "REQUEST_CONTEXT_NEXT";
     public static final String REQUEST_CONTEXT = "RequestContext";
     public static final String ENTITY_OBJ = "EntityObj";
-    public static final String INTERCEPTOR_SERVICE = "INTERCEPTOR_SERVICE";
+    public static final String REQ_INTERCEPTOR_SERVICE = "REQ_INTERCEPTOR_SERVICE";
+    public static final String RES_INTERCEPTOR_SERVICE = "RES_INTERCEPTOR_SERVICE";
     public static final String INTERCEPTOR_SERVICE_TYPE = "INTERCEPTOR_SERVICE_TYPE";
     public static final String REQUEST_INTERCEPTOR_INDEX = "REQUEST_INTERCEPTOR_INDEX";
     public static final String RESPONSE_INTERCEPTOR_INDEX = "RESPONSE_INTERCEPTOR_INDEX";
@@ -371,6 +372,7 @@ public class HttpConstants {
     public static final String HTTP_RESPONSE_INTERCEPTOR = "ResponseInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
     public static final String TARGET_SERVICE = "TARGET_SERVICE";
+    public static final String DATA_CTX = "DATA_CONTEXT";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;

@@ -266,9 +266,9 @@ public class HttpDispatcher {
                         requestCtx = createRequestContext(httpCarbonMessage);
                     }
                     if (service instanceof InterceptorService) {
-                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
+                        requestCtx.addNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE, true);
                     } else {
-                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, false);
+                        requestCtx.addNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE, false);
                     }
                     int interceptorId = httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) == null
                             ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
@@ -341,9 +341,9 @@ public class HttpDispatcher {
                         requestCtx = createRequestContext(httpCarbonMessage);
                     }
                     if (resource instanceof InterceptorResource) {
-                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
+                        requestCtx.addNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE, true);
                     } else {
-                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, false);
+                        requestCtx.addNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE, false);
                     }
                     int interceptorId = httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) == null
                             ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) - 1;

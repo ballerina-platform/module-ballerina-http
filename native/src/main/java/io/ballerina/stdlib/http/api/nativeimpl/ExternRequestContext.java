@@ -80,8 +80,8 @@ public class ExternRequestContext {
     }
 
     private static boolean isInterceptorService(BObject requestCtx) {
-        return requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE) != null &&
-                (boolean) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE);
+        return requestCtx.getNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE) != null &&
+                (boolean) requestCtx.getNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE);
     }
 
     private static BArray getInterceptors(BObject requestCtx) {

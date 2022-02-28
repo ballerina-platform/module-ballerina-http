@@ -668,7 +668,7 @@ public class HttpCarbonMessage {
     }
 
     public boolean isAccessedInInterceptorService() {
-        return this.getProperty(HttpConstants.INTERCEPTOR_SERVICE) != null ? true : false;
+        return this.getProperty(HttpConstants.REQ_INTERCEPTOR_SERVICE) != null ? true : false;
     }
 
     public boolean isInterceptorError() {
