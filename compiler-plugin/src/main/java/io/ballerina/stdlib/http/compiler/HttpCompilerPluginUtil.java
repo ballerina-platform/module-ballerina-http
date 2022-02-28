@@ -37,15 +37,15 @@ public class HttpCompilerPluginUtil {
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
     }
 
-    public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location, String argName,
-                                         HttpDiagnosticCodes httpDiagnosticCodes) {
+    public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
+                                        HttpDiagnosticCodes httpDiagnosticCodes, Object... argName) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
     }
 
-    public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location, String argName,
-                                         HttpDiagnosticCodes httpDiagnosticCodes,
-                                         List<DiagnosticProperty<?>> diagnosticProperties) {
+    public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
+                                        HttpDiagnosticCodes httpDiagnosticCodes,
+                                        List<DiagnosticProperty<?>> diagnosticProperties, String argName) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location, diagnosticProperties));
     }

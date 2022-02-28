@@ -75,6 +75,7 @@ public class CompilerPluginTest {
     private static final String HTTP_130 = "HTTP_130";
     private static final String HTTP_131 = "HTTP_131";
     private static final String HTTP_132 = "HTTP_132";
+    private static final String HTTP_134 = "HTTP_134";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -226,7 +227,7 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/http", HTTP_106);
         assertTrue(diagnosticResult, 2, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
         assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
-        assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_6", HTTP_106);
+        assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_7", HTTP_106);
     }
 
     @Test
@@ -485,5 +486,26 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 3, "invalid usage of cache annotation with return type : " +
                 "'error?'. Cache annotation only supports return types of anydata and SuccessStatusCodeResponse",
                 HTTP_130);
+    }
+
+    @Test
+    public void testInValidIntersectionTypeForResourceArgs() {
+        Package currentPackage = loadPackage("sample_package_23");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 6);
+        assertTrue(diagnosticResult, 0, "'readonly' intersection type is not allowed for parameter 'caller' of the " +
+                "type 'ballerina/http:", HTTP_134);
+        assertTrue(diagnosticResult, 0, ":Caller & readonly'", HTTP_134);
+        assertTrue(diagnosticResult, 1, "'readonly' intersection type is not allowed for parameter 'request' of the " +
+                "type 'ballerina/http:", HTTP_134);
+        assertTrue(diagnosticResult, 2, "'readonly' intersection type is not allowed for parameter 'headers' of the " +
+                "type 'ballerina/http:", HTTP_134);
+        assertTrue(diagnosticResult, 3, "'readonly' intersection type is not allowed for parameter 'entity' of the " +
+                "type 'ballerina/mime:", HTTP_134);
+        assertTrue(diagnosticResult, 3, ":Entity & readonly'", HTTP_134);
+        assertTrue(diagnosticResult, 4, "invalid type of header param 'host': expected 'string' or 'string[]'",
+                   HTTP_109);
+        assertTrue(diagnosticResult, 5, "invalid type of caller param 'host': expected 'http:Caller'", HTTP_111);
     }
 }
