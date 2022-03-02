@@ -102,4 +102,8 @@ public class HeaderParam {
     void setHeaderName(String headerName) {
         this.headerName = headerName;
     }
+
+    public Type getType() {
+        return type;
+    }
 }
