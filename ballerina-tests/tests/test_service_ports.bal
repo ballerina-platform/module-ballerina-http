@@ -159,6 +159,7 @@ const int requestInterceptorServiceConfigTestPort2 = 9609;
 const int clientFormUrlEncodedTestPort = 9610;
 const int typedHeadersTestPort = 9611;
 const int urlEncodedResponsesTestPort = 9612;
+const int defaultResponseInterceptorTestPort = 9613;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;

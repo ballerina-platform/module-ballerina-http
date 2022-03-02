@@ -85,6 +85,10 @@ public enum HttpDiagnosticCodes {
     HTTP_135("HTTP_135", "remote function is not allowed in %s", ERROR),
     HTTP_136("HTTP_136", "invalid remote function : '%s'. %s can have only 'interceptResponse' remote " +
             "function", ERROR),
+    HTTP_137("HTTP_137", "invalid multiple 'http:Response' parameter: '%s'", ERROR),
+    HTTP_138("HTTP_138", "invalid parameter type: '%s' in 'interceptResponse' remote method", ERROR),
+    HTTP_139("HTTP_139", "invalid interceptor remote method return type: expected '" +
+            ALLOWED_INTERCEPTOR_RETURN_UNION + "', but found '%s'", ERROR),
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
     HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),

@@ -47,7 +47,7 @@ public class HttpInterceptorResourceValidator {
             extractAndValidateMethodAndPath(ctx, member);
         }
         HttpResourceValidator.extractInputParamTypeAndValidate(ctx, member);
-        extractReturnTypeAndValidate(ctx, member);
+        extractReturnTypeAndValidate(ctx, member, HttpDiagnosticCodes.HTTP_126);
     }
 
     private static void extractAndValidateMethodAndPath(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
@@ -73,7 +73,8 @@ public class HttpInterceptorResourceValidator {
         }
     }
 
-    private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
+    public static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                                    HttpDiagnosticCodes httpDiagnosticCode) {
         Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
         if (returnTypeDescriptorNode.isEmpty()) {
             return;
@@ -87,11 +88,11 @@ public class HttpInterceptorResourceValidator {
         FunctionTypeSymbol functionTypeSymbol = ((FunctionSymbol) functionSymbol.get()).typeDescriptor();
         Optional<TypeSymbol> returnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
         returnTypeSymbol.ifPresent(typeSymbol -> validateReturnType(ctx, returnTypeNode, returnTypeStringValue,
-                typeSymbol));
+                typeSymbol, httpDiagnosticCode));
     }
 
-    private static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                           String returnTypeStringValue, TypeSymbol returnTypeSymbol) {
+    private static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
+                                           TypeSymbol returnTypeSymbol, HttpDiagnosticCodes httpDiagnosticCode) {
         if (isServiceType(returnTypeSymbol)) {
             return;
         }
@@ -101,14 +102,14 @@ public class HttpInterceptorResourceValidator {
         }
         if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor);
+            validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor, httpDiagnosticCode);
         } else if (kind == TypeDescKind.UNION) {
             List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
             for (TypeSymbol typeSymbol : typeSymbols) {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
+                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, httpDiagnosticCode);
             }
         } else {
-            reportInvalidReturnType(ctx, node, returnTypeStringValue);
+            reportInvalidReturnType(ctx, node, returnTypeStringValue, httpDiagnosticCode);
         }
     }
 
@@ -116,7 +117,6 @@ public class HttpInterceptorResourceValidator {
         Optional<String> optionalTypeName = returnTypeSymbol.getName();
         return optionalTypeName.filter(s -> s.equals(Constants.SERVICE) ||
                                        s.equals(Constants.REQUEST_INTERCEPTOR) ||
-                                       s.equals(Constants.REQUEST_ERROR_INTERCEPTOR) ||
                                        s.equals(Constants.RESPONSE_INTERCEPTOR)).isPresent();
     }
 
@@ -125,9 +125,9 @@ public class HttpInterceptorResourceValidator {
                                                 HttpDiagnosticCodes.HTTP_125);
     }
 
-    private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                                String returnType) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), returnType, HttpDiagnosticCodes.HTTP_126);
+    private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node, String returnType,
+                                                HttpDiagnosticCodes httpDiagnosticCode) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), returnType, httpDiagnosticCode);
     }
 
     private static void reportInvalidResourcePath(SyntaxNodeAnalysisContext ctx, Node node) {

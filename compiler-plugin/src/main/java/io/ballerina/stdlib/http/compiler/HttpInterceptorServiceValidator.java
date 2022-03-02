@@ -20,8 +20,13 @@ package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -35,9 +40,15 @@ import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.tools.diagnostics.Location;
 
 import java.util.List;
 import java.util.Optional;
+
+import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
 
 /**
  * Validates a Ballerina Http Interceptor Service.
@@ -143,8 +154,9 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                 reportResourceFunctionNotFound(ctx, type);
             }
         } else {
-            // TODO : Add remote method validation
-            if (remoteFunctionNode == null) {
+            if (remoteFunctionNode != null) {
+                validateRemoteMethod(ctx, remoteFunctionNode);
+            } else {
                 reportRemoteFunctionNotFound(ctx, type);
             }
         }
@@ -172,6 +184,103 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
 
     private static boolean isResourceSupported(String type) {
         return type.equals(Constants.REQUEST_INTERCEPTOR) || type.equals(Constants.REQUEST_ERROR_INTERCEPTOR);
+    }
+    private static void validateRemoteMethod(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
+        validateInputParamType(ctx, member);
+        HttpInterceptorResourceValidator.extractReturnTypeAndValidate(ctx, member, HttpDiagnosticCodes.HTTP_139);
+    }
+
+    private static void validateInputParamType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
+        boolean callerPresent = false;
+        boolean responsePresent = false;
+        boolean requestCtxPresent = false;
+        boolean errorPresent = false;
+        Optional<Symbol> remoteMethodSymbolOptional = ctx.semanticModel().symbol(member);
+        Location paramLocation = member.location();
+        if (remoteMethodSymbolOptional.isEmpty()) {
+            return;
+        }
+        Optional<List<ParameterSymbol>> parametersOptional =
+                ((MethodSymbol) remoteMethodSymbolOptional.get()).typeDescriptor().params();
+        if (parametersOptional.isEmpty()) {
+            return;
+        }
+        for (ParameterSymbol param : parametersOptional.get()) {
+            String paramType = param.typeDescriptor().signature();
+            Optional<Location> paramLocationOptional = param.getLocation();
+            if (!paramLocationOptional.isEmpty()) {
+                paramLocation = paramLocationOptional.get();
+            }
+            Optional<String> nameOptional = param.getName();
+            String paramName = nameOptional.isEmpty() ? "" : nameOptional.get();
+
+            TypeDescKind kind = param.typeDescriptor().typeKind();
+            TypeSymbol typeSymbol = param.typeDescriptor();
+            if (kind == TypeDescKind.TYPE_REFERENCE) {
+                TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+                TypeDescKind typeDescKind = typeDescriptor.typeKind();
+                if (typeDescKind == TypeDescKind.OBJECT) {
+                    Optional<ModuleSymbol> moduleSymbolOptional = typeDescriptor.getModule();
+                    if (moduleSymbolOptional.isEmpty()) {
+                        reportInvalidParameterType(ctx, paramLocation, paramType);
+                        continue;
+                    }
+                    Optional<String> nameSymbolOptional = moduleSymbolOptional.get().getName();
+                    if (nameSymbolOptional.isEmpty()) {
+                        reportInvalidParameterType(ctx, paramLocation, paramType);
+                        continue;
+                    }
+                    if (!HTTP.equals(nameSymbolOptional.get())) {
+                        reportInvalidParameterType(ctx, paramLocation, paramType);
+                        continue;
+                    }
+
+                    Optional<String> typeNameOptional = typeDescriptor.getName();
+                    if (typeNameOptional.isEmpty()) {
+                        reportInvalidParameterType(ctx, paramLocation, paramType);
+                        continue;
+                    }
+                    switch (typeNameOptional.get()) {
+                        case CALLER_OBJ_NAME:
+                            callerPresent = isObjectPresent(ctx, paramLocation, callerPresent, paramName,
+                                    HttpDiagnosticCodes.HTTP_115);
+                            break;
+                        case RESPONSE_OBJ_NAME:
+                            responsePresent = isObjectPresent(ctx, paramLocation, responsePresent, paramName,
+                                    HttpDiagnosticCodes.HTTP_137);
+                            break;
+                        case REQUEST_CONTEXT_OBJ_NAME:
+                            requestCtxPresent = isObjectPresent(ctx, paramLocation, requestCtxPresent, paramName,
+                                    HttpDiagnosticCodes.HTTP_121);
+                            break;
+                        default:
+                            reportInvalidParameterType(ctx, paramLocation, paramType);
+                            break;
+                    }
+                } else {
+                    reportInvalidParameterType(ctx, paramLocation, paramType);
+                }
+            } else if (kind == TypeDescKind.ERROR) {
+                errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
+                        HttpDiagnosticCodes.HTTP_122);
+            } else {
+                reportInvalidParameterType(ctx, paramLocation, paramType);
+            }
+            continue;
+        }
+    }
+
+    private static boolean isObjectPresent(SyntaxNodeAnalysisContext ctx, Location location,
+                                           boolean objectPresent, String paramName, HttpDiagnosticCodes code) {
+        if (objectPresent) {
+            HttpCompilerPluginUtil.updateDiagnostic(ctx, location, paramName, code);
+        }
+        return true;
+    }
+
+    private static void reportInvalidParameterType(SyntaxNodeAnalysisContext ctx, Location location,
+                                                   String typeName) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, typeName, HttpDiagnosticCodes.HTTP_138);
     }
 
     private static void reportMultipleReferencesFound(SyntaxNodeAnalysisContext ctx, TypeReferenceNode node) {

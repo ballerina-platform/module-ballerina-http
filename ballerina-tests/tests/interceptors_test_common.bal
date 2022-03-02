@@ -298,3 +298,56 @@ string largePayload = "WSO2 was founded by Sanjiva Weerawarana, Paul Fremantle a
     "re-absorbed into its parent company. Historically, WSO2 has had a close connection to the Apache community, with " +
     "a significant portion of their products based on or contributing to the Apache product stack.[26] Likewise, many of " +
     "WSO2's top leadership have contributed to Apache projects. In 2013, WSO2 donated its Stratos project to Apache. ";
+
+service class DefaultResponseInterceptor {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
+       res.setHeader("default-response-interceptor", "true");
+       ctx.set("last-interceptor", "default-response-interceptor");
+       return ctx.next();
+    }
+}
+
+service class ResponseInterceptorCallerRespond {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:Caller caller, http:Response res) returns error? {
+        res.setHeader("last-interceptor", "response-interceptor-caller-respond");
+        res.setTextPayload("Response from caller inside response interceptor");
+        check caller->respond(res);
+    }
+}
+
+service class ResponseInterceptorCallerRespondContinue {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Caller caller, http:Response res) returns http:NextService|error? {
+        res.setHeader("last-interceptor", "response-interceptor-caller-respond");
+        res.setTextPayload("Response from caller inside response interceptor");
+        check caller->respond(res);
+        return ctx.next();
+    }
+}
+
+service class ResponseInterceptorReturnsError {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns error {
+       res.setHeader("response-interceptor-error", "true");
+       ctx.set("last-interceptor", "response-interceptor-error");
+       return error("Response interceptor returns an error");
+    }
+}
+
+service class LastResponseInterceptor {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
+       string|error val = ctx.get("last-interceptor").ensureType(string);
+       string header = val is string ? val : "last-response-interceptor";
+       res.setHeader("last-response-interceptor", "true");
+       res.setHeader("last-interceptor", header);
+       return ctx.next();
+    }
+}
