@@ -89,8 +89,8 @@ public enum HttpDiagnosticCodes {
     HTTP_138("HTTP_138", "invalid parameter type: '%s' in 'interceptResponse' remote method", ERROR),
     HTTP_139("HTTP_139", "invalid interceptor remote method return type: expected '" +
             ALLOWED_INTERCEPTOR_RETURN_UNION + "', but found '%s'", ERROR),
-    HTTP_140("HTTP_14o", "invalid remote method return type in response interceptor : can not use " +
-            "'http:Caller' and return '%s' from 'interceptResponse' method : expected 'error' or nil", ERROR),
+    HTTP_140("HTTP_140", "invalid interceptor remote method return type: can not use 'http:Caller' " +
+            "and return '%s' from 'interceptResponse' method : expected 'error' or nil", ERROR),
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
     HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),
