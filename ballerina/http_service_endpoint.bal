@@ -167,7 +167,7 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
-    Interceptor[]? interceptors = ();
+    Interceptor[] interceptors?;
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.

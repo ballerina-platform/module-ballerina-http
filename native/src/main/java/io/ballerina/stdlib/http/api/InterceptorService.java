@@ -40,10 +40,10 @@ import java.util.List;
  */
 public class InterceptorService implements Service {
 
-    private BObject balService;
+    private final BObject balService;
     private InterceptorResource interceptorResource;
     private List<String> allAllowedMethods;
-    private String basePath;
+    private final String basePath;
     private URITemplate<Resource, HttpCarbonMessage> uriTemplate;
     private String hostName;
     private String serviceType;
@@ -130,8 +130,8 @@ public class InterceptorService implements Service {
         InterceptorService interceptorService = new InterceptorService(service, basePath);
         interceptorService.setServiceType(serviceType);
         interceptorService.setHostName(HttpConstants.DEFAULT_HOST);
-        if (serviceType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR) ||
-                serviceType.equals(HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR)) {
+        if (serviceType.equals(HttpConstants.REQUEST_INTERCEPTOR) ||
+                serviceType.equals(HttpConstants.REQUEST_ERROR_INTERCEPTOR)) {
             processInterceptorResource(interceptorService, fromListener);
             interceptorService.setAllAllowedMethods(DispatcherUtil.getInterceptorResourceMethods(
                     interceptorService));

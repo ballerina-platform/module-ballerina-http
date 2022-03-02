@@ -667,19 +667,19 @@ public class HttpCarbonMessage {
         }
     }
 
-    public boolean isAccessedInInterceptorService() {
-        return this.getProperty(HttpConstants.REQ_INTERCEPTOR_SERVICE) != null ? true : false;
+    public boolean isAccessedInNonInterceptorService() {
+        return this.getProperty(HttpConstants.INTERCEPTOR_SERVICE) == null;
     }
 
     public boolean isInterceptorError() {
-        return this.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR) != null ? true : false;
+        return this.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR) != null;
     }
 
     public String getRequestInterceptorServiceState() {
         if (isInterceptorError()) {
-            return HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR;
+            return HttpConstants.REQUEST_ERROR_INTERCEPTOR;
         }
-        return HttpConstants.HTTP_REQUEST_INTERCEPTOR;
+        return HttpConstants.REQUEST_INTERCEPTOR;
     }
 
     public Listener getListener() {

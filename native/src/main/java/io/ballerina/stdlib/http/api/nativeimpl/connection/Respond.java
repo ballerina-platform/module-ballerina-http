@@ -62,6 +62,7 @@ import static io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandl
 public class Respond extends ConnectionAction {
 
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
+    private static final String INTERCEPT_RESPONSE = "interceptResponse";
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
         DataContext dataContext = new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null));
@@ -169,7 +170,7 @@ public class Respond extends ConnectionAction {
     private Respond() {}
 
     public static boolean invokeResponseInterceptor(Environment env, HttpCarbonMessage inboundMessage,
-                                                    BObject outboundResponseObj, BObject connectionObj,
+                                                    BObject outboundResponseObj, BObject callerObj,
                                                     DataContext dataContext) {
         List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries =
                 (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
@@ -183,7 +184,7 @@ public class Respond extends ConnectionAction {
             HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
                     get(interceptorServiceIndex);
 
-            if (!interceptorServicesRegistry.getServicesType().equals(HttpConstants.HTTP_RESPONSE_INTERCEPTOR)) {
+            if (!interceptorServicesRegistry.getServicesType().equals(HttpConstants.RESPONSE_INTERCEPTOR)) {
                 interceptorServiceIndex -= 1;
                 inboundMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorServiceIndex);
                 continue;
@@ -193,31 +194,38 @@ public class Respond extends ConnectionAction {
                 InterceptorService service = HttpDispatcher.findInterceptorService(interceptorServicesRegistry,
                                              inboundMessage);
                 if (service == null) {
-                    throw new BallerinaConnectorException("no Service found to handle the service request");
+                    throw new BallerinaConnectorException("no Interceptor Service found to handle the response");
                 }
 
                 interceptorServiceIndex -= 1;
                 inboundMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorServiceIndex);
-                BObject serviceObj = service.getBalService();
-                String remoteMethod = "interceptResponse";
-                Runtime runtime = interceptorServicesRegistry.getRuntime();
-                Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj,
-                        connectionObj, inboundMessage);
-                Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, connectionObj,
-                                    outboundResponseObj, env, dataContext);
-
-                if (serviceObj.getType().isIsolated() && serviceObj.getType().isIsolated(remoteMethod)) {
-                    runtime.invokeMethodAsyncConcurrently(serviceObj, remoteMethod, null, null,
-                            callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
-                } else {
-                    runtime.invokeMethodAsyncSequentially(serviceObj, remoteMethod, null, null,
-                            callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
-                }
+                startInterceptResponseMethod(inboundMessage, outboundResponseObj, callerObj, service, env,
+                        interceptorServicesRegistry, dataContext);
                 return true;
             } catch (Exception e) {
                 throw new BallerinaConnectorException(e.getMessage());
             }
         }
         return false;
+    }
+
+    private static void startInterceptResponseMethod(HttpCarbonMessage inboundMessage, BObject outboundResponseObj,
+                                                     BObject callerObj, InterceptorService service, Environment env,
+                                                     HTTPInterceptorServicesRegistry interceptorServicesRegistry,
+                                                     DataContext dataContext) {
+        BObject serviceObj = service.getBalService();
+        Runtime runtime = interceptorServicesRegistry.getRuntime();
+        Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj, callerObj,
+                                   inboundMessage);
+        Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj,
+                outboundResponseObj, env, dataContext);
+
+        if (serviceObj.getType().isIsolated() && serviceObj.getType().isIsolated(INTERCEPT_RESPONSE)) {
+            runtime.invokeMethodAsyncConcurrently(serviceObj, INTERCEPT_RESPONSE, null, null,
+                    callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
+        } else {
+            runtime.invokeMethodAsyncSequentially(serviceObj, INTERCEPT_RESPONSE, null, null,
+                    callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
+        }
     }
 }

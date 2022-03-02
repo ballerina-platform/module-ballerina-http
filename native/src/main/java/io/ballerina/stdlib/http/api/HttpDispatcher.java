@@ -265,17 +265,7 @@ public class HttpDispatcher {
                     if (requestCtx == null) {
                         requestCtx = createRequestContext(httpCarbonMessage);
                     }
-                    if (service instanceof InterceptorService) {
-                        requestCtx.addNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE, true);
-                    } else {
-                        requestCtx.addNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE, false);
-                    }
-                    int interceptorId = httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) == null
-                            ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
-                    requestCtx.addNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
-                    requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
-                                             HttpConstants.HTTP_RESPONSE_INTERCEPTOR);
-                    requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+                    populatePropertiesForResponsePath(httpCarbonMessage, requestCtx);
                     int index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;
@@ -303,6 +293,16 @@ public class HttpDispatcher {
             }
         }
         return paramFeed;
+    }
+
+    private static void populatePropertiesForResponsePath(HttpCarbonMessage httpCarbonMessage, BObject requestCtx) {
+        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
+        int interceptorId = httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) == null
+                ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
+        requestCtx.addNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
+        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
+                                 HttpConstants.RESPONSE_INTERCEPTOR);
+        requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
     }
 
     public static Object[] getSignatureParameters(Resource resource, HttpCarbonMessage httpCarbonMessage,
@@ -340,17 +340,7 @@ public class HttpDispatcher {
                     if (requestCtx == null) {
                         requestCtx = createRequestContext(httpCarbonMessage);
                     }
-                    if (resource instanceof InterceptorResource) {
-                        requestCtx.addNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE, true);
-                    } else {
-                        requestCtx.addNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE, false);
-                    }
-                    int interceptorId = httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) == null
-                            ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) - 1;
-                    requestCtx.addNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
-                    requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
-                    requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
-                                             HttpConstants.HTTP_REQUEST_INTERCEPTOR);
+                    populatePropertiesForRequestPath(resource, httpCarbonMessage, requestCtx);
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;
@@ -397,6 +387,21 @@ public class HttpDispatcher {
             }
         }
         return paramFeed;
+    }
+
+    private static void populatePropertiesForRequestPath(Resource resource, HttpCarbonMessage httpCarbonMessage,
+                                                         BObject requestCtx) {
+        if (resource instanceof InterceptorResource) {
+            requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
+        } else {
+            requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, false);
+        }
+        int interceptorId = httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) == null
+                ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) - 1;
+        requestCtx.addNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
+        requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
+                                 HttpConstants.REQUEST_INTERCEPTOR);
     }
 
     private static void populateQueryParams(HttpCarbonMessage httpCarbonMessage, ParamHandler paramHandler,

@@ -29,8 +29,6 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 /**
  * {@code HttpResponseInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
  * side when a response interceptor service is invoked.
- *
- * @since SL Beta 4
  */
 public class HttpResponseInterceptorUnitCallback implements Callback {
     private final HttpCarbonMessage requestMessage;
@@ -38,7 +36,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     private final BObject response;
     private final Environment environment;
     private final BObject requestCtx;
-    private DataContext dataContext;
+    private final DataContext dataContext;
 
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
@@ -104,12 +102,8 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         int interceptorId = (int) requestCtx.getNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
         requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
-        boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
 
         if (alreadyResponded()) {
-            if (nextCalled) {
-                sendResponseToNextService();
-            }
             return;
         }
 

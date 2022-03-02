@@ -32,7 +32,7 @@ public type HttpServiceConfig record {|
     ListenerAuthConfig[] auth?;
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
-    Interceptor[]? interceptors = ();
+    Interceptor[] interceptors?;
 |};
 
 # Configurations for CORS support.

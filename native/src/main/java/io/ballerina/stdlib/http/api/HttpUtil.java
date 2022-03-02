@@ -1784,14 +1784,14 @@ public class HttpUtil {
         List<TypeId> typeIdList = objectType.getTypeIdSet().getIds();
         for (TypeId typeId : typeIdList) {
             switch (typeId.getName()) {
-                case HttpConstants.HTTP_REQUEST_INTERCEPTOR:
-                    interceptorServiceType = HttpConstants.HTTP_REQUEST_INTERCEPTOR;
+                case HttpConstants.REQUEST_INTERCEPTOR:
+                    interceptorServiceType = HttpConstants.REQUEST_INTERCEPTOR;
                     break;
-                case HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR:
-                    interceptorServiceType = HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR;
+                case HttpConstants.REQUEST_ERROR_INTERCEPTOR:
+                    interceptorServiceType = HttpConstants.REQUEST_ERROR_INTERCEPTOR;
                     break;
-                case HttpConstants.HTTP_RESPONSE_INTERCEPTOR:
-                    interceptorServiceType = HttpConstants.HTTP_RESPONSE_INTERCEPTOR;
+                case HttpConstants.RESPONSE_INTERCEPTOR:
+                    interceptorServiceType = HttpConstants.RESPONSE_INTERCEPTOR;
                     break;
                 default:
                     break;

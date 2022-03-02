@@ -319,17 +319,6 @@ service class ResponseInterceptorCallerRespond {
     }
 }
 
-service class ResponseInterceptorCallerRespondContinue {
-    *http:ResponseInterceptor;
-
-    remote function interceptResponse(http:RequestContext ctx, http:Caller caller, http:Response res) returns http:NextService|error? {
-        res.setHeader("last-interceptor", "response-interceptor-caller-respond");
-        res.setTextPayload("Response from caller inside response interceptor");
-        check caller->respond(res);
-        return ctx.next();
-    }
-}
-
 service class ResponseInterceptorReturnsError {
     *http:ResponseInterceptor;
 

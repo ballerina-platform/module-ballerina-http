@@ -80,7 +80,7 @@ class HttpResourceValidator {
         extractResourceAnnotationAndValidate(ctx, member);
         extractInputParamTypeAndValidate(ctx, member);
         extractReturnTypeAndValidate(ctx, member);
-        validateHttpCallerUsage(ctx, member);
+        HttpCompilerPluginUtil.validateHttpCallerUsage(ctx, member, HttpDiagnosticCodes.HTTP_118);
     }
 
     private static void extractResourceAnnotationAndValidate(SyntaxNodeAnalysisContext ctx,
@@ -544,7 +544,7 @@ class HttpResourceValidator {
             return;
         }
         Node returnTypeNode = returnTypeDescriptorNode.get().type();
-        String returnTypeStringValue = getReturnTypeDescription(returnTypeDescriptorNode.get());
+        String returnTypeStringValue = HttpCompilerPluginUtil.getReturnTypeDescription(returnTypeDescriptorNode.get());
         Optional<Symbol> functionSymbol = ctx.semanticModel().symbol(member);
         if (functionSymbol.isEmpty()) {
             return;
@@ -712,61 +712,13 @@ class HttpResourceValidator {
         return expectedType.equals(typeName.get());
     }
 
-    public static void validateHttpCallerUsage(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
-        Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
-        Optional<ReturnTypeDescriptorNode> returnTypeDescOpt = member.functionSignature().returnTypeDesc();
-        if (resourceMethodSymbolOptional.isEmpty() || returnTypeDescOpt.isEmpty()) {
-            return;
-        }
-        String returnTypeDescription = getReturnTypeDescription(returnTypeDescOpt.get());
-        Location returnTypeLocation = returnTypeDescOpt.get().type().location();
-        ResourceMethodSymbol resourceMethod = (ResourceMethodSymbol) resourceMethodSymbolOptional.get();
-        FunctionTypeSymbol typeDescriptor = resourceMethod.typeDescriptor();
-        Optional<List<ParameterSymbol>> parameterOptional = typeDescriptor.params();
-        boolean isCallerPresent = parameterOptional.isPresent() &&
-                parameterOptional.get().stream().anyMatch(HttpResourceValidator::isHttpCaller);
-        if (!isCallerPresent) {
-            return;
-        }
-        Optional<TypeSymbol> returnTypeDescriptorOpt = typeDescriptor.returnTypeDescriptor();
-        if (returnTypeDescriptorOpt.isEmpty()) {
-            return;
-        }
-        TypeSymbol typeSymbol = returnTypeDescriptorOpt.get();
-        if (isValidReturnTypeWithCaller(typeSymbol)) {
-            return;
-        }
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, returnTypeLocation, returnTypeDescription,
-                                                HttpDiagnosticCodes.HTTP_118);
-    }
-
-    private static boolean isHttpCaller(ParameterSymbol param) {
+    public static boolean isHttpCaller(ParameterSymbol param) {
         TypeDescKind typeDescKind = param.typeDescriptor().typeKind();
         if (TypeDescKind.TYPE_REFERENCE.equals(typeDescKind)) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
             return isHttpModuleType(CALLER_OBJ_NAME, typeDescriptor);
         }
         return false;
-    }
-
-    public static String getReturnTypeDescription(ReturnTypeDescriptorNode returnTypeDescriptorNode) {
-        return returnTypeDescriptorNode.type().toString().split(" ")[0];
-    }
-
-    private static boolean isValidReturnTypeWithCaller(TypeSymbol returnTypeDescriptor) {
-        TypeDescKind typeKind = returnTypeDescriptor.typeKind();
-        if (TypeDescKind.UNION.equals(typeKind)) {
-            return ((UnionTypeSymbol) returnTypeDescriptor)
-                    .memberTypeDescriptors().stream()
-                    .map(HttpResourceValidator::isValidReturnTypeWithCaller)
-                    .reduce(true, (a , b) -> a && b);
-        } else if (TypeDescKind.TYPE_REFERENCE.equals(typeKind)) {
-            TypeSymbol typeRef = ((TypeReferenceTypeSymbol) returnTypeDescriptor).typeDescriptor();
-            TypeDescKind typeRefKind = typeRef.typeKind();
-            return TypeDescKind.ERROR.equals(typeRefKind) || TypeDescKind.NIL.equals(typeRefKind);
-        } else {
-            return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
-        }
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,

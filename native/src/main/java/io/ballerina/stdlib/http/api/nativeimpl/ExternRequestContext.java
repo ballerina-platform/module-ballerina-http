@@ -29,7 +29,6 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 public class ExternRequestContext {
     public static Object next(BObject requestCtx) {
         BArray interceptors = getInterceptors(requestCtx);
-        Object mainService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
         if (interceptors != null) {
             if (!isInterceptorService(requestCtx)) {
                 // TODO : After introducing response interceptors, calling ctx.next() should return "illegal function
@@ -37,51 +36,64 @@ public class ExternRequestContext {
                 return HttpUtil.createHttpError("no next service to be returned",
                         HttpErrorType.GENERIC_LISTENER_ERROR);
             }
-            String nextInterceptorType = (String) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE);
-            Object interceptorToReturn = mainService;
-            Object interceptor;
-            int interceptorId;
-            if (nextInterceptorType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR)) {
-                interceptorId = (int) requestCtx.getNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX) + 1;
-            } else {
-                interceptorId = (int) requestCtx.getNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) + 1;
-            }
             requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, true);
-            while (interceptorId < interceptors.size()) {
-                interceptor = interceptors.get(interceptorId);
-                String interceptorType = HttpUtil.getInterceptorServiceType((BObject) interceptor);
-                if (interceptorType.equals(nextInterceptorType)) {
-                    interceptorToReturn = interceptor;
-                    break;
-                }
-                if (nextInterceptorType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR)) {
-                    interceptorId += 1;
-                } else {
-                    interceptorId -= 1;
-                }
-            }
-            if (interceptorId > interceptors.size()) {
-                return HttpUtil.createHttpError("no next service to be returned",
-                        HttpErrorType.GENERIC_LISTENER_ERROR);
-            }
-            if (interceptorId < 0) {
-                return null;
-            }
-            if (nextInterceptorType.equals(HttpConstants.HTTP_REQUEST_INTERCEPTOR)) {
-                requestCtx.addNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
-            } else {
-                requestCtx.addNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
-            }
-            return interceptorToReturn;
+            return getNextInterceptor(requestCtx, interceptors);
         } else {
             return HttpUtil.createHttpError("request context object does not contain the configured " +
                     "interceptors", HttpErrorType.GENERIC_LISTENER_ERROR);
         }
     }
 
+    private static Object getNextInterceptor(BObject requestCtx, BArray interceptors) {
+        String requiredInterceptorType = (String) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE);
+        Object interceptorToReturn = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
+        int interceptorIndex = getInterceptorIndex(requestCtx, requiredInterceptorType);
+        Object interceptor;
+        while (interceptorIndex < interceptors.size()) {
+            interceptor = interceptors.get(interceptorIndex);
+            String interceptorType = HttpUtil.getInterceptorServiceType((BObject) interceptor);
+            if (interceptorType.equals(requiredInterceptorType)) {
+                interceptorToReturn = interceptor;
+                break;
+            }
+            if (requiredInterceptorType.equals(HttpConstants.REQUEST_INTERCEPTOR)) {
+                interceptorIndex += 1;
+            } else {
+                interceptorIndex -= 1;
+            }
+        }
+        if (interceptorIndex > interceptors.size()) {
+            return HttpUtil.createHttpError("no next service to be returned",
+                    HttpErrorType.GENERIC_LISTENER_ERROR);
+        }
+        if (interceptorIndex < 0) {
+            return null;
+        }
+        updateInterceptorIndex(requestCtx, requiredInterceptorType, interceptorIndex);
+        return interceptorToReturn;
+    }
+
+    private static int getInterceptorIndex(BObject requestCtx, String nextInterceptorType) {
+        int interceptorIndex;
+        if (nextInterceptorType.equals(HttpConstants.REQUEST_INTERCEPTOR)) {
+            interceptorIndex = (int) requestCtx.getNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX) + 1;
+        } else {
+            interceptorIndex = (int) requestCtx.getNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) + 1;
+        }
+        return interceptorIndex;
+    }
+
+    private static void updateInterceptorIndex(BObject requestCtx, String nextInterceptorType, int interceptorId) {
+        if (nextInterceptorType.equals(HttpConstants.REQUEST_INTERCEPTOR)) {
+            requestCtx.addNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
+        } else {
+            requestCtx.addNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
+        }
+    }
+
     private static boolean isInterceptorService(BObject requestCtx) {
-        return requestCtx.getNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE) != null &&
-                (boolean) requestCtx.getNativeData(HttpConstants.REQ_INTERCEPTOR_SERVICE);
+        return requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE) != null &&
+                (boolean) requestCtx.getNativeData(HttpConstants.INTERCEPTOR_SERVICE);
     }
 
     private static BArray getInterceptors(BObject requestCtx) {

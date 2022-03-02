@@ -17,8 +17,8 @@ import static io.ballerina.stdlib.http.api.HttpConstants.PROTOCOL_HTTP;
 public class RemoteMethodParamHandler {
 
     private final Type[] paramTypes;
-    private RemoteMethodType remoteMethod;
-    private List<Parameter> otherParamList = new ArrayList<>();
+    private final RemoteMethodType remoteMethod;
+    private final List<Parameter> otherParamList = new ArrayList<>();
     private NonRecurringParam responseParam = null;
     private NonRecurringParam requestContextParam = null;
     private NonRecurringParam interceptorErrorParam = null;
