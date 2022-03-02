@@ -1,5 +1,5 @@
 /*
-*  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+*  Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 *
 *  WSO2 Inc. licenses this file to you under the Apache License,
 *  Version 2.0 (the "License"); you may not use this file except
@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
+import org.ballerinalang.langlib.value.CloneReadOnly;
 
 import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
 import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
@@ -48,11 +49,11 @@ public class ParamUtils {
     private static final ArrayType MAP_ARR = TypeCreator.createArrayType(MAP_TYPE);
 
     public static int updateFeed(Object[] paramFeed, Object paramValue, int index, boolean readonly) {
-//        if (readonly) {
-//            paramFeed[index++] = CloneReadOnly.cloneReadOnly(paramValue.);
-//        } else {
+        if (readonly) {
+            paramFeed[index++] = CloneReadOnly.cloneReadOnly(paramValue);
+        } else {
             paramFeed[index++] = paramValue;
-//        }
+        }
         return index;
     }
 
