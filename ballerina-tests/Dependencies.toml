@@ -94,7 +94,8 @@ dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "mime"},
-	{org = "ballerina", name = "test"}
+	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "url"}
 ]
 modules = [
 	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests"}
@@ -313,6 +314,9 @@ version = "2.2.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "url", moduleName = "url"}
 ]
 
 
