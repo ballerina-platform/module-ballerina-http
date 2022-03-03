@@ -135,6 +135,15 @@ service class ResponseInterceptor6 {
     }
 }
 
+service class ResponseInterceptor7 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Caller caller) returns http:NextService|error? {
+        check caller->respond("greetings");
+        return ctx.next();
+    }
+}
+
 // Negative Cases
 
 service class InterceptorService7 {
@@ -252,7 +261,7 @@ service class RequestErrorInterceptorService1 {
     }
 }
 
-service class ResponseInterceptor7 {
+service class ResponseInterceptor8 {
     *http:ResponseInterceptor;
 
     resource function post [string... path](http:Caller caller, http:Request req) returns error? {
@@ -261,7 +270,7 @@ service class ResponseInterceptor7 {
     }
 }
 
-service class ResponseInterceptor8 {
+service class ResponseInterceptor9 {
     *http:ResponseInterceptor;
 
     remote function returnResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
@@ -270,7 +279,7 @@ service class ResponseInterceptor8 {
     }
 }
 
-service class ResponseInterceptor9 {
+service class ResponseInterceptor10 {
     *http:ResponseInterceptor;
 
     remote function interceptResponse(http:RequestContext ctx, http:Response res1, http:Response res2) returns http:NextService|error? {
@@ -279,7 +288,7 @@ service class ResponseInterceptor9 {
     }
 }
 
-service class ResponseInterceptor10 {
+service class ResponseInterceptor11 {
     *http:ResponseInterceptor;
 
     remote function interceptResponse(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
@@ -287,7 +296,7 @@ service class ResponseInterceptor10 {
     }
 }
 
-service class ResponseInterceptor11 {
+service class ResponseInterceptor12 {
     *http:ResponseInterceptor;
 
     remote function interceptResponse(http:RequestContext ctx, string payload) returns http:NextService|error? {
@@ -295,19 +304,10 @@ service class ResponseInterceptor11 {
     }
 }
 
-service class ResponseInterceptor12 {
+service class ResponseInterceptor13 {
     *http:ResponseInterceptor;
 
     remote function interceptResponse() returns string {
         return "greetings";
-    }
-}
-
-service class ResponseInterceptor13 {
-    *http:ResponseInterceptor;
-
-    remote function interceptResponse(http:RequestContext ctx, http:Caller caller) returns http:NextService|error? {
-        check caller->respond("greetings");
-        return ctx.next();
     }
 }

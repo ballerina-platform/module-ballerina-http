@@ -188,7 +188,6 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     private static void validateRemoteMethod(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
         validateInputParamType(ctx, member);
         HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, member, HttpDiagnosticCodes.HTTP_139);
-        HttpCompilerPluginUtil.validateHttpCallerUsage(ctx, member, HttpDiagnosticCodes.HTTP_140);
     }
 
     private static void validateInputParamType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {

@@ -391,7 +391,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_19");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 25);
+        Assert.assertEquals(diagnosticResult.errorCount(), 24);
         assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
                 "'http:RequestErrorInterceptor'", CompilerPluginTestConstants.HTTP_123);
         assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
@@ -439,9 +439,6 @@ public class CompilerPluginTest {
                 CompilerPluginTestConstants.HTTP_138);
         assertError(diagnosticResult, 23, "invalid interceptor remote method return type: expected " +
                 "'http:NextService|error?', but found 'string'", CompilerPluginTestConstants.HTTP_139);
-        assertError(diagnosticResult, 24, "invalid interceptor remote method return type: can not use 'http:Caller'" +
-                " and return 'http:NextService|error?' from 'interceptResponse' method : expected 'error' or nil",
-                CompilerPluginTestConstants.HTTP_140);
     }
 
     @Test

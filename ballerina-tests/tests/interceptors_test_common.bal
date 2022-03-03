@@ -319,6 +319,27 @@ service class ResponseInterceptorCallerRespond {
     }
 }
 
+service class ResponseInterceptorCallerRespondNext {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:Caller caller, http:Response res, http:RequestContext ctx) returns http:NextService|error? {
+        res.setHeader("last-interceptor", "response-interceptor-caller-respond");
+        res.setTextPayload("Response from caller inside response interceptor");
+        check caller->respond(res);
+        return ctx.next();
+    }
+}
+
+service class ResponseInterceptorReturnCallerRespond {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:Caller caller, http:Response res) returns error? {
+        res.setHeader("last-interceptor", "response-interceptor-caller-respond");
+        res.setTextPayload("Response from caller inside response interceptor");
+        return caller->respond(res);
+    }
+}
+
 service class ResponseInterceptorReturnsError {
     *http:ResponseInterceptor;
 
