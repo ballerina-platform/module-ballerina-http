@@ -20,7 +20,7 @@ import ballerina/io;
 import ballerina/url;
 import ballerina/lang.'string as strings;
 
-type Person record {|
+type ReadonlyPerson record {|
     string name;
     int age;
 |};
@@ -121,9 +121,9 @@ service /readonlyHeader on readonlyParamEP {
 }
 
 service /readonlyPayload on readonlyParamEP {
-    resource function post ofRecord(@http:Payload readonly & Person person) returns json {
-        Person name = person;
-        if name is readonly & Person {
+    resource function post ofRecord(@http:Payload readonly & ReadonlyPerson person) returns json {
+        ReadonlyPerson name = person;
+        if name is readonly & ReadonlyPerson {
             io:println("status: readonly");
             return { status : "readonly", value : name };
         } else {
@@ -177,9 +177,9 @@ service /readonlyPayload on readonlyParamEP {
         }
     }
 
-    resource function post ofRecArray(@http:Payload readonly & Person[] person) returns json {
-        Person[] name = person;
-        if name is readonly & Person[] {
+    resource function post ofRecArray(@http:Payload readonly & ReadonlyPerson[] person) returns json {
+        ReadonlyPerson[] name = person;
+        if name is readonly & ReadonlyPerson[] {
             io:println("status: readonly");
             return { status : "readonly", value : name };
         } else {

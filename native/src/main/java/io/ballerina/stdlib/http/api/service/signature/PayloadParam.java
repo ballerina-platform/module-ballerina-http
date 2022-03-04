@@ -334,8 +334,4 @@ public class PayloadParam implements Parameter {
         EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
         return bjson;
     }
-
-    public boolean isReadonly() {
-        return readonly;
-    }
 }
