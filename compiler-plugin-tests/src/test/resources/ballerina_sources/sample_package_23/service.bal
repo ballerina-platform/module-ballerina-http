@@ -17,6 +17,13 @@
 import ballerina/http;
 import ballerina/mime;
 
+type Person record {|
+    readonly int id;
+    string name;
+|};
+
+type PersonTable table<Person> key(id);
+
 service http:Service on new http:Listener(9090) {
 
     resource function get withCaller(readonly & http:Caller caller) returns string { //not allowed
@@ -62,4 +69,48 @@ service http:Service on new http:Listener(9090) {
     resource function get withCallerInfoWithUnion(@http:CallerInfo readonly & http:Caller? host) returns error? { //not allowed
         return;
     }
+
+    resource function get returnReadonlyJson() returns readonly & json { // allowed
+        return "done";
+    }
+
+    resource function get returnReadonlyOk() returns readonly & http:Ok { // allowed
+        http:Ok ok = {};
+        return ok.cloneReadOnly();
+    }
+
+    resource function get returnReadonlyUnion() returns readonly & map<json>[]|string[] { // allowed
+        map<json> jj = {sam: {hello:"world"}, jon: {no:56}};
+        return [jj,jj].cloneReadOnly();
+    }
+
+    resource function get returnReadonlyMap() returns readonly & map<json> { // allowed
+        map<json> jj = {sam: {hello:"world"}, jon: {no:56}};
+        return jj.cloneReadOnly();
+    }
+
+    resource function get returnReadonlyTableArr() returns readonly & PersonTable[] { // allowed
+        PersonTable tbPerson = table [
+            {id: 1, name: "John"},
+            {id: 2, name: "Bella"}
+        ];
+        return [tbPerson, tbPerson].cloneReadOnly();
+    }
+
+    resource function get returnReadonlyRecordArr() returns readonly & Person[] { // allowed
+        return [{id:123, name: "john"}, {id:124, name: "khan"}].cloneReadOnly();
+    }
+
+    // Currently following give error reported in https://github.com/ballerina-platform/ballerina-lang/issues/35332
+    // Once it's fixed, uncomment the following case
+    //resource function get returnReadonlyInlineRecord() returns readonly & record {|*http:Created; Person body;|} {
+    //    Person person = {id:123, name: "john"};
+    //    return {
+    //        mediaType: "application/person+json",
+    //        headers: {
+    //            "X-Server": "myServer"
+    //        },
+    //        body: person
+    //    }.cloneReadOnly();
+    //}
 }

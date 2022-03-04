@@ -614,7 +614,10 @@ class HttpResourceValidator {
         if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
             return;
         }
-        if (kind == TypeDescKind.UNION) {
+        if (kind == TypeDescKind.INTERSECTION) {
+            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) returnTypeSymbol).effectiveTypeDescriptor();
+            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
+        } else if (kind == TypeDescKind.UNION) {
             List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
             for (TypeSymbol typeSymbol : typeSymbols) {
                 validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
@@ -655,7 +658,10 @@ class HttpResourceValidator {
         if (isBasicTypeDesc(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
             return;
         }
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
+        if (kind == TypeDescKind.INTERSECTION) {
+            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) memberTypeDescriptor).effectiveTypeDescriptor();
+            validateArrayElementType(ctx, node, typeStringValue, typeSymbol);
+        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
             if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
@@ -777,7 +783,7 @@ class HttpResourceValidator {
     }
 
     public static String getReturnTypeDescription(ReturnTypeDescriptorNode returnTypeDescriptorNode) {
-        return returnTypeDescriptorNode.type().toString().split(" ")[0];
+        return returnTypeDescriptorNode.type().toString().trim();
     }
 
     private static boolean isValidReturnTypeWithCaller(TypeSymbol returnTypeDescriptor) {
