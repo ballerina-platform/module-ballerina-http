@@ -20,8 +20,10 @@ package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
+import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.List;
 
@@ -38,6 +40,7 @@ public class HeaderParam {
     private int index;
     private Type type;
     private String headerName;
+    private boolean readonly;
 
     HeaderParam(String token) {
         this.token = token;
@@ -47,12 +50,12 @@ public class HeaderParam {
         this.type = type;
         this.typeTag = type.getTag();
         this.index = index;
-        validateHeaderParamType();
+        validateHeaderParamType(this.type);
     }
 
-    private void validateHeaderParamType() {
-        if (this.type instanceof UnionType) {
-            List<Type> memberTypes = ((UnionType) this.type).getMemberTypes();
+    private void validateHeaderParamType(Type paramType) {
+        if (paramType instanceof UnionType) {
+            List<Type> memberTypes = ((UnionType) paramType).getMemberTypes();
             this.nilable = true;
             for (Type type : memberTypes) {
                 if (type.getTag() == TypeTags.NULL_TAG) {
@@ -61,8 +64,29 @@ public class HeaderParam {
                 validateBasicType(type);
                 break;
             }
+        } else if (paramType instanceof IntersectionType) {
+            // Assumes that the only intersection type is readonly
+            List<Type> memberTypes = ((IntersectionType) paramType).getConstituentTypes();
+            int size = memberTypes.size();
+            if (size > 2) {
+                throw HttpUtil.createHttpError(
+                        "invalid header param type '" + paramType.getName() +
+                                "': only readonly intersection is allowed");
+            }
+            this.readonly = true;
+            for (Type type : memberTypes) {
+                if (type.getTag() == TypeTags.READONLY_TAG) {
+                    continue;
+                }
+                if (type.getTag() == TypeTags.UNION_TAG) {
+                    validateHeaderParamType(type);
+                    return;
+                }
+                validateBasicType(type);
+                break;
+            }
         } else {
-            validateBasicType(this.type);
+            validateBasicType(paramType);
         }
     }
 
@@ -71,6 +95,7 @@ public class HeaderParam {
         if (isValidBasicType(type.getTag()) || (type.getTag() == TypeTags.ARRAY_TAG && isValidBasicType(
                 ((ArrayType) type).getElementType().getTag()))) {
             // Assign element type as the type of header param
+            this.type = type;
             this.typeTag = type.getTag();
         }
     }
@@ -96,14 +121,14 @@ public class HeaderParam {
     }
 
     public String getHeaderName() {
-        return headerName;
+        return this.headerName;
     }
 
     void setHeaderName(String headerName) {
         this.headerName = headerName;
     }
 
-    public Type getType() {
-        return type;
+    public boolean isReadonly() {
+        return this.readonly;
     }
 }

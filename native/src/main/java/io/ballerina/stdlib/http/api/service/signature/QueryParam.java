@@ -27,7 +27,6 @@ import io.ballerina.runtime.api.types.Type;
  */
 public class QueryParam {
 
-    private final int typeTag;
     private final String token;
     private final boolean nilable;
     private final boolean readonly;
@@ -36,7 +35,6 @@ public class QueryParam {
 
     QueryParam(Type type, String token, int index, boolean nilable, boolean readonly) {
         this.type = type;
-        this.typeTag = type.getTag();
         this.token = token;
         this.index = index;
         this.nilable = nilable;
@@ -45,10 +43,6 @@ public class QueryParam {
 
     public String getToken() {
         return this.token;
-    }
-
-    public int getTypeTag() {
-        return this.typeTag;
     }
 
     public boolean isNilable() {

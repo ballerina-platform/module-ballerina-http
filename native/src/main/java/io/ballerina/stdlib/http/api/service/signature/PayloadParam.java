@@ -32,6 +32,7 @@ import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BRefValue;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
@@ -39,7 +40,6 @@ import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
-import org.ballerinalang.langlib.value.CloneReadOnly;
 import org.ballerinalang.langlib.value.CloneWithType;
 
 import java.io.IOException;
@@ -65,6 +65,7 @@ public class PayloadParam implements Parameter {
     private int index;
     private Type type;
     private final String token;
+    private boolean readonly;
     private final List<String> mediaTypes = new ArrayList<>();
     private static final MapType STRING_MAP = TypeCreator.createMapType(PredefinedTypes.TYPE_STRING);
 
@@ -75,6 +76,7 @@ public class PayloadParam implements Parameter {
     public void init(Type type, int index) {
         this.type = type;
         this.index = index;
+        validatePayloadParam(type);
     }
 
     @Override
@@ -98,6 +100,29 @@ public class PayloadParam implements Parameter {
         return mediaTypes;
     }
 
+    private void validatePayloadParam(Type parameterType) {
+        if (parameterType instanceof IntersectionType) {
+            // Assumes that the only intersection type is readonly
+            List<Type> memberTypes = ((IntersectionType) parameterType).getConstituentTypes();
+            int size = memberTypes.size();
+            if (size > 2) {
+                throw HttpUtil.createHttpError(
+                        "invalid payload param type '" + parameterType.getName() +
+                                "': only readonly intersection is allowed");
+            }
+            this.readonly = true;
+            for (Type type : memberTypes) {
+                if (type.getTag() == TypeTags.READONLY_TAG) {
+                    continue;
+                }
+                this.type = type;
+                break;
+            }
+        } else {
+            this.type = parameterType;
+        }
+    }
+
     public void populateFeed(BObject inRequest, HttpCarbonMessage httpCarbonMessage, Object[] paramFeed) {
         BObject inRequestEntity = (BObject) inRequest.get(REQUEST_ENTITY_FIELD);
         HttpUtil.populateEntityBody(inRequest, inRequestEntity, true, true);
@@ -107,107 +132,130 @@ public class PayloadParam implements Parameter {
         // Check if datasource is already available from interceptor service read
         // TODO : Validate the dataSource type with payload type and populate
         if (dataSource != null) {
-            try {
-                switch (payloadType.getTag()) {
-                    case ARRAY_TAG:
-                        if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
-                            paramFeed[index++] = dataSource;
-                        } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
-                            paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
-                        } else {
-                            throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
-                                                                          ((ArrayType) payloadType).getElementType()
-                                                                                  .getName());
-                        }
-                        break;
-                    case TypeTags.RECORD_TYPE_TAG:
-                        paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
-                        break;
-                    default:
-                        paramFeed[index++] = dataSource;
-                }
-            } catch (BError ex) {
-                httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw new BallerinaConnectorException("data binding failed: " + ex.toString());
-            }
-            paramFeed[index] = true;
+            index = populateFeedWithAlreadyBuiltPayload(httpCarbonMessage, paramFeed, inRequestEntity, index,
+                                                        payloadType, dataSource);
         } else {
-            try {
-                index = populateParamFeed(paramFeed, inRequestEntity, index, payloadType);
-                paramFeed[index] = true;
-                // Set the entity obj in case it is read by an interceptor
-                httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
-            } catch (BError | IOException ex) {
-                httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw new BallerinaConnectorException("data binding failed: " + ex.toString());
-            }
+            index = populateFeedWithFreshPayload(httpCarbonMessage, paramFeed, inRequestEntity, index, payloadType);
         }
+        paramFeed[index] = true;
     }
 
-    private static int populateParamFeed(Object[] paramFeed, BObject inRequestEntity, int index, Type payloadType)
-            throws IOException {
-        switch (payloadType.getTag()) {
-            case STRING_TAG:
-                BString stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
-                EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
-                paramFeed[index++] = stringDataSource;
-                break;
-            case MAP_TAG:
-                Type constrainedType = ((MapType) payloadType).getConstrainedType();
-                if (constrainedType.getTag() != STRING_TAG) {
-                    throw ErrorCreator.createError(StringUtils.fromString(
-                            "invalid map constrained type. Expected: 'map<string>'"));
-                }
-                stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
-                EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
-                paramFeed[index++] = getFormParamMap(stringDataSource);
-                break;
-            case TypeTags.JSON_TAG:
-                Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
-                EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
-                paramFeed[index++] = bjson;
-                break;
-            case TypeTags.XML_TAG:
-                BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
-                EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
-                paramFeed[index++] = bxml;
-                break;
-            case ARRAY_TAG:
-                Type elementType = ((ArrayType) payloadType).getElementType();
-                if (elementType.getTag() == TypeTags.BYTE_TAG) {
-                    BArray blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
-                    EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
-                    paramFeed[index++] = blobDataSource;
-                } else if (elementType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+    private int populateFeedWithAlreadyBuiltPayload(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed,
+                                                    BObject inRequestEntity, int index,
+                                                    Type payloadType, Object dataSource) {
+        try {
+            switch (payloadType.getTag()) {
+                case ARRAY_TAG:
+                    if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                        paramFeed[index++] = dataSource;
+                    } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
+                        paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
+                    } else {
+                        throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
+                                                                      ((ArrayType) payloadType).getElementType()
+                                                                              .getName());
+                    }
+                    break;
+                case TypeTags.RECORD_TYPE_TAG:
                     paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
-                } else if (elementType.getTag() == TypeTags.INTERSECTION_TAG) {
-                    // Assumes that only the byte[] and record[] are supported and intersected with readonly
-                    paramFeed[index++] = getCloneReadOnlyValue(getRecordEntity(inRequestEntity, payloadType));
-                } else {
-                    throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
-                                                                  elementType.getName());
-                }
-                break;
-            case TypeTags.RECORD_TYPE_TAG:
-                paramFeed[index++] = getRecordEntity(inRequestEntity, payloadType);
-                break;
-            case TypeTags.INTERSECTION_TAG:
-                // Assumes that only intersected with readonly
-                Type pureType = ((IntersectionType) payloadType).getEffectiveType();
-                index = populateParamFeed(paramFeed, inRequestEntity, index, pureType);
-                paramFeed[index - 1] = getCloneReadOnlyValue(paramFeed[index - 1]);
-                break;
-            default:
-                //Do nothing
+                    break;
+                default:
+                    paramFeed[index++] = dataSource;
+            }
+        } catch (BError ex) {
+            httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+            throw new BallerinaConnectorException("data binding failed: " + ex.toString());
         }
         return index;
     }
 
-    private static Object getCloneReadOnlyValue(Object bValue) {
-        return CloneReadOnly.cloneReadOnly(bValue);
+    private int populateFeedWithFreshPayload(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed,
+                                             BObject inRequestEntity, int index, Type payloadType) {
+        try {
+            switch (payloadType.getTag()) {
+                case STRING_TAG:
+                    BString stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
+                    EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
+                    paramFeed[index++] = stringDataSource;
+                    break;
+                case MAP_TAG:
+                    Type constrainedType = ((MapType) payloadType).getConstrainedType();
+                    if (constrainedType.getTag() != STRING_TAG) {
+                        throw ErrorCreator.createError(StringUtils.fromString(
+                                "invalid map constrained type. Expected: 'map<string>'"));
+                    }
+                    stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
+                    EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
+                    BMap<BString, Object> formParamMap = getFormParamMap(stringDataSource);
+                    if (this.readonly) {
+                        formParamMap.freezeDirect();
+                    }
+                    paramFeed[index++] = formParamMap;
+                    break;
+                case TypeTags.JSON_TAG:
+                    Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
+                    EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
+                    if (this.readonly && bjson instanceof BRefValue) {
+                        ((BRefValue) bjson).freezeDirect();
+                    }
+                    paramFeed[index++] = bjson;
+                    break;
+                case TypeTags.XML_TAG:
+                    BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
+                    EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
+                    if (this.readonly) {
+                        bxml.freezeDirect();
+                    }
+                    paramFeed[index++] = bxml;
+                    break;
+                case ARRAY_TAG:
+                    Type elementType = ((ArrayType) payloadType).getElementType();
+                    if (elementType.getTag() == TypeTags.BYTE_TAG) {
+                        BArray blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
+                        EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
+                        if (this.readonly) {
+                            blobDataSource.freezeDirect();
+                        }
+                        paramFeed[index++] = blobDataSource;
+                    } else if (elementType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                        Object recordEntity = getRecordEntity(inRequestEntity, payloadType);
+                        if (this.readonly && recordEntity instanceof BRefValue) {
+                            ((BRefValue) recordEntity).freezeDirect();
+                        }
+                        paramFeed[index++] = recordEntity;
+                    } else {
+                        throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
+                                                                      elementType.getName());
+                    }
+                    break;
+                case TypeTags.RECORD_TYPE_TAG:
+                    Object recordEntity = getRecordEntity(inRequestEntity, payloadType);
+                    if (this.readonly && recordEntity instanceof BRefValue) {
+                        ((BRefValue) recordEntity).freezeDirect();
+                    }
+                    paramFeed[index++] = recordEntity;
+                    break;
+//            case TypeTags.INTERSECTION_TAG:
+//                // Assumes that only intersected with readonly
+//                Type pureType = ((IntersectionType) payloadType).getEffectiveType();
+//                index = populateParamFeed(paramFeed, inRequestEntity, index, pureType);
+//                paramFeed[index - 1] = getCloneReadOnlyValue(paramFeed[index - 1]);
+//                break;
+                default:
+                    //Do nothing
+            }
+//            return index;
+//            index = populateParamFeed(paramFeed, inRequestEntity, index, payloadType);
+            // Set the entity obj in case it is read by an interceptor
+            httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
+            return index;
+        } catch (BError | IOException ex) {
+            httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+            throw new BallerinaConnectorException("data binding failed: " + ex.toString());
+        }
     }
 
-    private static Object getFormParamMap(Object stringDataSource) {
+    private static BMap<BString, Object> getFormParamMap(Object stringDataSource) {
         try {
             String formData = ((BString) stringDataSource).getValue();
             BMap<BString, Object> formParamsMap = ValueCreator.createMapValue(STRING_MAP);
@@ -285,5 +333,9 @@ public class PayloadParam implements Parameter {
         Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
         EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
         return bjson;
+    }
+
+    public boolean isReadonly() {
+        return readonly;
     }
 }

@@ -38,7 +38,6 @@ import java.util.List;
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
-import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.updateFeed;
 
 /**
  * {@code {@link AllQueryParams }} holds all the query parameters in the resource signature.
@@ -105,7 +104,6 @@ public class AllQueryParams implements Parameter {
                     paramFeed[index++] = paramMap;
                 } else {
                     Object param = castParam(paramType.getTag(), queryValueArr.getBString(0).getValue());
-                    index = updateFeed(paramFeed, param, index, queryParam.isReadonly());
                     paramFeed[index++] = param;
                 }
                 paramFeed[index] = true;

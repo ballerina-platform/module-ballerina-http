@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -90,14 +91,14 @@ public class AllHeaderParams implements Parameter {
                     throw new BallerinaConnectorException("no header value found for '" + token + "'");
                 }
             }
-            boolean readOnlyType = headerParam.getType().isReadOnly();
             if (headerParam.getTypeTag() == ARRAY_TAG) {
-                String[] headerArray = headerValues.toArray(new String[0]);
-                index = ParamUtils.updateFeed(paramFeed, StringUtils.fromStringArray(headerArray), index,
-                                              readOnlyType);
+                BArray bArray = StringUtils.fromStringArray(headerValues.toArray(new String[0]));
+                if (headerParam.isReadonly()) {
+                    bArray.freezeDirect();
+                }
+                paramFeed[index++] = bArray;
             } else {
-                index = ParamUtils.updateFeed(paramFeed, StringUtils.fromString(headerValues.get(0)), index,
-                                              readOnlyType);
+                paramFeed[index++] = StringUtils.fromString(headerValues.get(0));
             }
             paramFeed[index] = true;
         }
