@@ -18,10 +18,26 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
+import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.creators.TypeCreator;
+import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.JsonUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpConstants;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
+import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 
 /**
  * {@code {@link AllQueryParams }} holds all the query parameters in the resource signature.
@@ -30,7 +46,8 @@ import java.util.List;
  */
 public class AllQueryParams implements Parameter {
 
-    private List<QueryParam> allQueryParams = new ArrayList<>();
+    private final List<QueryParam> allQueryParams = new ArrayList<>();
+    private static final MapType MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
 
     @Override
     public String getTypeName() {
@@ -47,5 +64,52 @@ public class AllQueryParams implements Parameter {
 
     public List<QueryParam> getAllQueryParams() {
         return this.allQueryParams;
+    }
+
+    public void populateFeed(HttpCarbonMessage httpCarbonMessage, ParamHandler paramHandler, Object[] paramFeed,
+                             boolean treatNilableAsOptional) {
+        BMap<BString, Object> urlQueryParams = paramHandler
+                .getQueryParams(httpCarbonMessage.getProperty(HttpConstants.RAW_QUERY_STR));
+        for (QueryParam queryParam : this.getAllQueryParams()) {
+            String token = queryParam.getToken();
+            int index = queryParam.getIndex();
+            boolean queryExist = urlQueryParams.containsKey(StringUtils.fromString(token));
+            Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
+            if (queryValue == null) {
+                if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
+                    paramFeed[index++] = null;
+                    paramFeed[index] = true;
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no query param value found for '" + token + "'");
+                }
+            }
+            try {
+                BArray queryValueArr = (BArray) queryValue;
+                Type paramType = queryParam.getType();
+                if (paramType.getTag() == ARRAY_TAG) {
+                    int elementTypeTag = ((ArrayType) paramType).getElementType().getTag();
+                    BArray paramArray = ParamUtils.castParamArray(elementTypeTag, queryValueArr.getStringArray());
+                    if (queryParam.isReadonly()) {
+                        paramArray.freezeDirect();
+                    }
+                    paramFeed[index++] = paramArray;
+                } else if (paramType.getTag() == MAP_TAG) {
+                    Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
+                    BMap<BString, ?> paramMap =  JsonUtils.convertJSONToMap(json, MAP_TYPE);
+                    if (queryParam.isReadonly()) {
+                        paramMap.freezeDirect();
+                    }
+                    paramFeed[index++] = paramMap;
+                } else {
+                    Object param = castParam(paramType.getTag(), queryValueArr.getBString(0).getValue());
+                    paramFeed[index++] = param;
+                }
+                paramFeed[index] = true;
+            } catch (Exception ex) {
+                throw new BallerinaConnectorException("Error in casting query param : " + ex.getMessage());
+            }
+        }
     }
 }
