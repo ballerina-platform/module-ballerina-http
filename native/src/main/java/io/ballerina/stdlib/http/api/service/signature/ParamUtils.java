@@ -15,6 +15,7 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
+
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.PredefinedTypes;
@@ -26,7 +27,6 @@ import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
-import org.ballerinalang.langlib.value.CloneReadOnly;
 
 import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
 import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
@@ -47,15 +47,6 @@ public class ParamUtils {
     private static final ArrayType BOOLEAN_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
     private static final ArrayType DECIMAL_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
     private static final ArrayType MAP_ARR = TypeCreator.createArrayType(MAP_TYPE);
-
-    public static int updateFeed(Object[] paramFeed, Object paramValue, int index, boolean readonly) {
-        if (readonly) {
-            paramFeed[index++] = CloneReadOnly.cloneReadOnly(paramValue);
-        } else {
-            paramFeed[index++] = paramValue;
-        }
-        return index;
-    }
 
     public static Object castParam(int targetParamTypeTag, String argValue) {
         switch (targetParamTypeTag) {

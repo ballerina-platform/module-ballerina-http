@@ -235,18 +235,9 @@ public class PayloadParam implements Parameter {
                     }
                     paramFeed[index++] = recordEntity;
                     break;
-//            case TypeTags.INTERSECTION_TAG:
-//                // Assumes that only intersected with readonly
-//                Type pureType = ((IntersectionType) payloadType).getEffectiveType();
-//                index = populateParamFeed(paramFeed, inRequestEntity, index, pureType);
-//                paramFeed[index - 1] = getCloneReadOnlyValue(paramFeed[index - 1]);
-//                break;
                 default:
                     //Do nothing
             }
-//            return index;
-//            index = populateParamFeed(paramFeed, inRequestEntity, index, payloadType);
-            // Set the entity obj in case it is read by an interceptor
             httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
             return index;
         } catch (BError | IOException ex) {

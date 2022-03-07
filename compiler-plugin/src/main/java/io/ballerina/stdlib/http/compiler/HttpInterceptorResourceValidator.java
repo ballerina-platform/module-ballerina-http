@@ -87,7 +87,7 @@ public class HttpInterceptorResourceValidator {
         FunctionTypeSymbol functionTypeSymbol = ((FunctionSymbol) functionSymbol.get()).typeDescriptor();
         Optional<TypeSymbol> returnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
         returnTypeSymbol.ifPresent(typeSymbol -> validateReturnType(ctx, returnTypeNode, returnTypeStringValue,
-                typeSymbol));
+                                                                    typeSymbol));
     }
 
     private static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node,
@@ -114,14 +114,13 @@ public class HttpInterceptorResourceValidator {
 
     private static boolean isServiceType(TypeSymbol returnTypeSymbol) {
         Optional<String> optionalTypeName = returnTypeSymbol.getName();
-        return optionalTypeName.filter(s -> s.equals(Constants.SERVICE) ||
-                                       s.equals(Constants.REQUEST_INTERCEPTOR)).isPresent();
+        return optionalTypeName.filter(typeName -> typeName.equals(Constants.SERVICE) ||
+                typeName.equals(Constants.REQUEST_INTERCEPTOR)).isPresent();
     }
 
     private static void reportResourceAnnotationNotAllowed(SyntaxNodeAnalysisContext ctx, AnnotationNode node) {
         HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_125,
-                                                node.annotReference().toString()
-        );
+                                                node.annotReference().toString());
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
@@ -135,7 +134,6 @@ public class HttpInterceptorResourceValidator {
 
     private static void reportInvalidResourceMethod(SyntaxNodeAnalysisContext ctx, IdentifierToken identifierToken) {
         HttpCompilerPluginUtil.updateDiagnostic(ctx, identifierToken.location(), HttpDiagnosticCodes.HTTP_128,
-                                                identifierToken.toString().strip()
-        );
+                                                identifierToken.toString().strip());
     }
 }

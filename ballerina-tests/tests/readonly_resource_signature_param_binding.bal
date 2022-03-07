@@ -16,7 +16,6 @@
 
 import ballerina/test;
 import ballerina/http;
-import ballerina/io;
 import ballerina/url;
 import ballerina/lang.'string as strings;
 
@@ -32,10 +31,8 @@ service /readonlyQuery on readonlyParamEP {
     resource function get ofStringArr(readonly & string[] person) returns json {
         string[] name = person;
         if name is readonly & string[] {
-            io:println("status: readonly");
             return { status : "readonly", value : name[1] };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name[1] };
         }
     }
@@ -43,10 +40,8 @@ service /readonlyQuery on readonlyParamEP {
     resource function get ofStringNilableArr(readonly & string[]? person) returns json {
         string[]? name = person;
         if name is readonly & string[] {
-            io:println("status: readonly");
             return { status : "readonly", value : name[1] };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : "Invalid value" };
         }
     }
@@ -54,10 +49,8 @@ service /readonlyQuery on readonlyParamEP {
     resource function get ofIntArr(readonly & int[] person) returns json {
         int[] name = person;
         if name is readonly & int[] {
-            io:println("status: readonly");
             return { status : "readonly", value : name[1] };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name[1] };
         }
     }
@@ -65,10 +58,8 @@ service /readonlyQuery on readonlyParamEP {
     resource function get ofMapJson(readonly & map<json> person) returns json {
         map<json> name = person;
         if name is readonly & map<json> {
-            io:println("status: readonly");
             return { status : "readonly", value : name };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name };
         }
     }
@@ -76,10 +67,8 @@ service /readonlyQuery on readonlyParamEP {
     resource function get ofMapJsonArr(readonly & map<json>[] person) returns json {
         map<json>[] name = person;
         if name is readonly & map<json>[] {
-            io:println("status: readonly");
             return { status : "readonly", value : name };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name };
         }
     }
@@ -87,10 +76,8 @@ service /readonlyQuery on readonlyParamEP {
     resource function get ofMapJsonArrNilable(readonly & map<json>[]? person) returns json {
         map<json>[]? name = person;
         if name is readonly & map<json>[] {
-            io:println("status: readonly");
             return { status : "readonly", value : name };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name };
         }
     }
@@ -100,10 +87,8 @@ service /readonlyHeader on readonlyParamEP {
     resource function get ofStringArr(@http:Header readonly & string[] person) returns json {
         string[] name = person;
         if name is readonly & string[] {
-            io:println("status: readonly");
             return { status : "readonly", value : name[1] };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name[1] };
         }
     }
@@ -111,10 +96,8 @@ service /readonlyHeader on readonlyParamEP {
     resource function get ofStringArrNilable(@http:Header readonly & string[]? person) returns json {
         string[]? name = person;
         if name is readonly & string[] {
-            io:println("status: readonly");
             return { status : "readonly", value : name[1] };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : "invalid value" };
         }
     }
@@ -124,10 +107,8 @@ service /readonlyPayload on readonlyParamEP {
     resource function post ofRecord(@http:Payload readonly & ReadonlyPerson person) returns json {
         ReadonlyPerson name = person;
         if name is readonly & ReadonlyPerson {
-            io:println("status: readonly");
             return { status : "readonly", value : name };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name };
         }
     }
@@ -135,10 +116,8 @@ service /readonlyPayload on readonlyParamEP {
     resource function post ofJson(@http:Payload readonly & json person) returns json {
         json name = person;
         if name is readonly & json {
-            io:println("status: readonly");
             return { status : "readonly", value : name };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name };
         }
     }
@@ -146,10 +125,8 @@ service /readonlyPayload on readonlyParamEP {
     resource function post ofMapString(@http:Payload readonly & map<string> person) returns json {
         map<string> name = person;
         if name is readonly & map<string> {
-            io:println("status: readonly");
             return { status : "readonly", value : name };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name };
         }
     }
@@ -157,10 +134,8 @@ service /readonlyPayload on readonlyParamEP {
     resource function post ofXml(@http:Payload readonly & xml person) returns json {
         xml name = person;
         if name is readonly & xml {
-            io:println("status: readonly");
             return { status : "readonly", value : "xml" };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : "invalid value" };
         }
     }
@@ -168,11 +143,9 @@ service /readonlyPayload on readonlyParamEP {
     resource function post ofByteArr(@http:Payload readonly & byte[] person) returns json|error {
         byte[] name = person;
         if name is readonly & byte[] {
-            io:println("status: readonly");
             string value = check strings:fromBytes(person);
             return { status : "readonly", value : value };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : "invalid value" };
         }
     }
@@ -180,10 +153,8 @@ service /readonlyPayload on readonlyParamEP {
     resource function post ofRecArray(@http:Payload readonly & ReadonlyPerson[] person) returns json {
         ReadonlyPerson[] name = person;
         if name is readonly & ReadonlyPerson[] {
-            io:println("status: readonly");
             return { status : "readonly", value : name };
         } else {
-            io:println("status: non-readonly");
             return { status : "non-readonly", value : name };
         }
     }
