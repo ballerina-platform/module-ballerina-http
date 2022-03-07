@@ -80,10 +80,10 @@ public enum HttpDiagnosticCodes {
             "Cache annotation only supports return types of anydata and SuccessStatusCodeResponse", ERROR),
     HTTP_131("HTTP_131", "invalid usage of payload annotation with return type : '%s'", ERROR),
     HTTP_132("HTTP_132", "%s must have a resource method", ERROR),
-    HTTP_133("HTTP_133", "%s must have the remote method : 'interceptResponse'", ERROR),
+    HTTP_133("HTTP_133", "%s must have the remote method : '%s'", ERROR),
     HTTP_134("HTTP_134", "resource function is not allowed in %s", ERROR),
     HTTP_135("HTTP_135", "remote function is not allowed in %s", ERROR),
-    HTTP_136("HTTP_136", "invalid remote function : '%s'. %s can have only 'interceptResponse' remote " +
+    HTTP_136("HTTP_136", "invalid remote function : '%s'. %s can have only '%s' remote " +
             "function", ERROR),
     HTTP_137("HTTP_137", "invalid multiple 'http:Response' parameter: '%s'", ERROR),
     HTTP_138("HTTP_138", "invalid parameter type: '%s' in 'interceptResponse' remote method", ERROR),

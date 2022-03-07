@@ -107,6 +107,15 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                             reportMultipleReferencesFound(ctx, (TypeReferenceNode) member);
                             return;
                         }
+                    case Constants.HTTP_RESPONSE_ERROR_INTERCEPTOR:
+                        if (interceptorType == null) {
+                            interceptorType = Constants.RESPONSE_ERROR_INTERCEPTOR;
+                            break;
+                        } else {
+                            reportMultipleReferencesFound(ctx, (TypeReferenceNode) member);
+                            return;
+                        }
+
                 }
             }
         }
@@ -128,22 +137,13 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                     resourceFunctionNode = (FunctionDefinitionNode) member;
                 } else {
                     reportMultipleResourceFunctionsFound(ctx, (FunctionDefinitionNode) member);
-                    return;
                 }
             } else if (member instanceof FunctionDefinitionNode &&
                     isRemoteFunction(ctx, (FunctionDefinitionNode) member)) {
-                if (!String.valueOf(((FunctionDefinitionNode) member).functionName()).equals("interceptResponse")) {
-                    reportInvalidRemoteFunction(ctx, member,
-                            String.valueOf(((FunctionDefinitionNode) member).functionName()), type);
-                }
-                if (isResourceSupported(type)) {
-                    reportRemoteFunctionNotAllowed(ctx, member, type);
-                }
-                if (remoteFunctionNode == null) {
-                    remoteFunctionNode = (FunctionDefinitionNode) member;
-                } else {
-                    reportMultipleResourceFunctionsFound(ctx, (FunctionDefinitionNode) member);
-                    return;
+                if (isValidRemoteFunctionName(ctx, type, member)) {
+                    if (remoteFunctionNode == null) {
+                        remoteFunctionNode = (FunctionDefinitionNode) member;
+                    }
                 }
             }
         }
@@ -155,9 +155,32 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
             }
         } else {
             if (remoteFunctionNode != null) {
-                validateRemoteMethod(ctx, remoteFunctionNode);
+                validateRemoteMethod(ctx, remoteFunctionNode, type);
             } else {
                 reportRemoteFunctionNotFound(ctx, type);
+            }
+        }
+    }
+
+    private static boolean isValidRemoteFunctionName(SyntaxNodeAnalysisContext ctx, String type, Node member) {
+        if (isResourceSupported(type)) {
+            reportRemoteFunctionNotAllowed(ctx, member, type);
+            return false;
+        } else {
+            String remoteFunctionName = String.valueOf(((FunctionDefinitionNode) member).functionName());
+            if (isResponseErrorInterceptor(type)) {
+                if (!remoteFunctionName.equals(Constants.INTERCEPT_RESPONSE_ERROR)) {
+                    reportInvalidRemoteFunction(ctx, member, remoteFunctionName, type,
+                            Constants.INTERCEPT_RESPONSE_ERROR);
+                    return false;
+                } else {
+                    return true;
+                }
+            } else if (!remoteFunctionName.equals(Constants.INTERCEPT_RESPONSE)) {
+                reportInvalidRemoteFunction(ctx, member, remoteFunctionName, type, Constants.INTERCEPT_RESPONSE);
+                return false;
+            } else {
+                return true;
             }
         }
     }
@@ -178,6 +201,10 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         return isRemoteFunction(getMethodSymbol(context, functionDefinitionNode));
     }
 
+    private static boolean isResponseErrorInterceptor(String type) {
+        return type.equals(Constants.RESPONSE_ERROR_INTERCEPTOR);
+    }
+
     public static boolean isRemoteFunction(MethodSymbol methodSymbol) {
         return methodSymbol.qualifiers().contains(Qualifier.REMOTE);
     }
@@ -185,12 +212,14 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     private static boolean isResourceSupported(String type) {
         return type.equals(Constants.REQUEST_INTERCEPTOR) || type.equals(Constants.REQUEST_ERROR_INTERCEPTOR);
     }
-    private static void validateRemoteMethod(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
-        validateInputParamType(ctx, member);
+    private static void validateRemoteMethod(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                             String type) {
+        validateInputParamType(ctx, member, type);
         HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, member, HttpDiagnosticCodes.HTTP_139);
     }
 
-    private static void validateInputParamType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
+    private static void validateInputParamType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                               String type) {
         boolean callerPresent = false;
         boolean responsePresent = false;
         boolean requestCtxPresent = false;
@@ -261,8 +290,12 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                     reportInvalidParameterType(ctx, paramLocation, paramType);
                 }
             } else if (kind == TypeDescKind.ERROR) {
-                errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
-                        HttpDiagnosticCodes.HTTP_122);
+                if (isResponseErrorInterceptor(type)) {
+                    errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
+                            HttpDiagnosticCodes.HTTP_122);
+                } else {
+                    reportInvalidParameterType(ctx, paramLocation, paramType);
+                }
             } else {
                 reportInvalidParameterType(ctx, paramLocation, paramType);
             }
@@ -300,7 +333,11 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     }
 
     private static void reportRemoteFunctionNotFound(SyntaxNodeAnalysisContext ctx, String type) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, ctx.node().location(), type, HttpDiagnosticCodes.HTTP_133);
+        String requiredFunctionName = isResponseErrorInterceptor(type) ? Constants.INTERCEPT_RESPONSE_ERROR :
+                Constants.INTERCEPT_RESPONSE;
+        DiagnosticInfo diagnosticInfo = HttpCompilerPluginUtil.getDiagnosticInfo(HttpDiagnosticCodes.HTTP_133,
+                type, requiredFunctionName);
+        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, ctx.node().location()));
     }
 
     private static void reportResourceFunctionNotAllowed(SyntaxNodeAnalysisContext ctx, Node node, String type) {
@@ -312,9 +349,9 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     }
 
     private static void reportInvalidRemoteFunction(SyntaxNodeAnalysisContext ctx, Node node, String functionName,
-                                                    String interceptorType) {
+                                                    String interceptorType, String requiredFunctionName) {
         DiagnosticInfo diagnosticInfo = HttpCompilerPluginUtil.getDiagnosticInfo(HttpDiagnosticCodes.HTTP_136,
-                                        functionName, interceptorType);
+                                        functionName, interceptorType, requiredFunctionName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
     }
 }

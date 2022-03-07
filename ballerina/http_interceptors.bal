@@ -29,7 +29,12 @@ public type RequestErrorInterceptor distinct service object {
 
 };
 
+# The HTTP response error interceptor service object type
+public type ResponseErrorInterceptor distinct service object {
+
+};
+
 # The return type of an interceptor service function
 public type NextService RequestInterceptor|ResponseInterceptor|Service;
 
-public type Interceptor RequestInterceptor|ResponseInterceptor|RequestErrorInterceptor;
+public type Interceptor RequestInterceptor|ResponseInterceptor|RequestErrorInterceptor|ResponseErrorInterceptor;
