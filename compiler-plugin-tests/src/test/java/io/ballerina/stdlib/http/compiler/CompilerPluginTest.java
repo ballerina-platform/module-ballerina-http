@@ -419,7 +419,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_19");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 25);
+        Assert.assertEquals(diagnosticResult.errorCount(), 27);
         assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
                 "'http:RequestErrorInterceptor'", CompilerPluginTestConstants.HTTP_123);
         assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
@@ -474,6 +474,10 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 24, "invalid interceptor remote method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'http:Client'",
                 CompilerPluginTestConstants.HTTP_141);
+        assertError(diagnosticResult, 25, "return type annotation is not supported in interceptor service",
+                CompilerPluginTestConstants.HTTP_142);
+        assertError(diagnosticResult, 26, "return type annotation is not supported in interceptor service",
+                CompilerPluginTestConstants.HTTP_142);
     }
 
     @Test

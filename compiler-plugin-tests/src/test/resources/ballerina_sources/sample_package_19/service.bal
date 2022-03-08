@@ -322,3 +322,19 @@ service class ResponseInterceptor13 {
         return httpClient;
     }
 }
+
+service class ResponseInterceptor14 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse() returns @http:Payload string {
+        return "hello";
+    }
+}
+
+service class RequestInterceptor2 {
+    *http:RequestInterceptor;
+
+    resource function post [string... path]() returns @http:Cache string {
+        return "hello";
+    }
+}

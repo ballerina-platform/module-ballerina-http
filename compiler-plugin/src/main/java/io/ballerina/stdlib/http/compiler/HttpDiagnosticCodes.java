@@ -91,7 +91,7 @@ public enum HttpDiagnosticCodes {
     HTTP_140("HTTP_140", "invalid parameter type: '%s' in 'interceptResponse' remote method", ERROR),
     HTTP_141("HTTP_141", "invalid interceptor remote method return type: expected '" +
             ALLOWED_INTERCEPTOR_RETURN_UNION + "', but found '%s'", ERROR),
-    HTTP_142("HTTP_142", "return type annotations are not allowed in interceptors", ERROR),
+    HTTP_142("HTTP_142", "return type annotation is not supported in interceptor service", ERROR),
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
     HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),
