@@ -108,7 +108,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     }
 
     private void validateResponseAndProceed(Object result) {
-        int interceptorId = (int) requestCtx.getNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX);
+        int interceptorId = getRequestInterceptorId();
         requestMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
         boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
@@ -215,5 +215,10 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         runtime.invokeMethodAsyncSequentially(
                 caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+    }
+
+    private int getRequestInterceptorId() {
+        return Math.max((int) requestCtx.getNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX),
+                (int) requestMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX));
     }
 }
