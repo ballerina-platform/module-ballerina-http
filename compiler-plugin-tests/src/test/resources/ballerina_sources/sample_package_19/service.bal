@@ -63,7 +63,7 @@ service class InterceptorService3 {
 service class InterceptorService4 {
     *http:RequestInterceptor;
 
-    resource function get [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) returns error{
+    resource function get [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) returns error {
         return error("new error");
     }
 }
@@ -82,6 +82,15 @@ service class InterceptorService6 {
 
     resource function post [string... path](string q1, int q2, @http:Payload string payload, @http:Header string foo, http:Caller caller) returns error? {
         check caller->respond(payload);
+    }
+}
+
+service class RequestInterceptor1 {
+    *http:RequestInterceptor;
+
+    resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns string {
+        req.setTextPayload("interceptor");
+        return "HelloWorld";
     }
 }
 
@@ -186,9 +195,10 @@ service class InterceptorService10 {
 service class InterceptorService11 {
     *http:RequestInterceptor;
 
-    resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns string {
-        req.setTextPayload("interceptor");
-        return "HelloWorld";
+    resource function get greeting() returns error[] {
+        error e1 = error http:ListenerError("hello1");
+        error e2 = error http:ListenerError("hello2");
+        return [e1, e2];
     }
 }
 
@@ -307,7 +317,8 @@ service class ResponseInterceptor12 {
 service class ResponseInterceptor13 {
     *http:ResponseInterceptor;
 
-    remote function interceptResponse() returns string {
-        return "greetings";
+    remote function interceptResponse() returns http:Client {
+        http:Client httpClient = checkpanic new("path");
+        return httpClient;
     }
 }

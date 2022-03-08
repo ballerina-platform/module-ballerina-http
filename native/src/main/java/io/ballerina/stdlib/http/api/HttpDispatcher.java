@@ -298,7 +298,7 @@ public class HttpDispatcher {
     private static void populatePropertiesForResponsePath(HttpCarbonMessage httpCarbonMessage, BObject requestCtx) {
         requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
         int interceptorId = httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) == null
-                ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
+                ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) + 1;
         requestCtx.addNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
         requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
                                  HttpConstants.RESPONSE_INTERCEPTOR);

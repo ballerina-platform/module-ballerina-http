@@ -53,7 +53,8 @@ public class Constants {
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "http:RequestErrorInterceptor";
     public static final String HTTP_RESPONSE_INTERCEPTOR = "http:ResponseInterceptor";
     public static final String HTTP_RESPONSE_ERROR_INTERCEPTOR = "http:ResponseErrorInterceptor";
-    public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "http:NextService|error?";
+    public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|" +
+                                                                  "http:NextService|error?";
     public static final String DEFAULT = "default";
     public static final String GET = "get";
     public static final String HEAD = "head";

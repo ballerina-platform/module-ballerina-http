@@ -370,8 +370,10 @@ public class HttpConstants {
     public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
     public static final String RESPONSE_INTERCEPTOR = "ResponseInterceptor";
     public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
+    public static final String RESPONSE_ERROR_INTERCEPTOR = "ResponseErrorInterceptor";
     public static final String TARGET_SERVICE = "TARGET_SERVICE";
     public static final String INTERCEPT_RESPONSE = "interceptResponse";
+    public static final String INTERCEPT_RESPONSE_ERROR = "interceptResponseError";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;

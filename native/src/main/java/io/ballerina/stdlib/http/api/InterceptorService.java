@@ -156,7 +156,8 @@ public class InterceptorService implements Service {
                 .getRemoteMethods();
         if (remoteMethods.length == 1) {
             RemoteMethodType remoteMethod = remoteMethods[0];
-            if (remoteMethod.getName().equals("interceptResponse")) {
+            if (remoteMethod.getName().equals(HttpConstants.INTERCEPT_RESPONSE) ||
+                    remoteMethod.getName().equals(HttpConstants.INTERCEPT_RESPONSE_ERROR)) {
                 interceptorService.setRemoteMethodParamHandler(remoteMethod);
             }
         }

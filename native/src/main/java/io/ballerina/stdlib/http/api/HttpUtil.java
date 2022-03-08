@@ -370,10 +370,12 @@ public class HttpUtil {
         HttpUtil.addCorsHeaders(inboundRequestMsg, outboundResponseMsg);
         HttpUtil.enrichOutboundMessage(outboundResponseMsg, outboundResponseObj);
         Service httpService = (Service) connectionObj.getNativeData(HttpConstants.HTTP_SERVICE);
-        HttpUtil.setCompressionHeaders(httpService.getCompressionConfig(), inboundRequestMsg, outboundResponseMsg);
-        HttpUtil.setChunkingHeader(httpService.getChunkingConfig(), outboundResponseMsg);
-        if (httpService.getMediaTypeSubtypePrefix() != null) {
-            HttpUtil.setMediaTypeSubtypePrefix(httpService.getMediaTypeSubtypePrefix(), outboundResponseMsg);
+        if (httpService != null) {
+            HttpUtil.setCompressionHeaders(httpService.getCompressionConfig(), inboundRequestMsg, outboundResponseMsg);
+            HttpUtil.setChunkingHeader(httpService.getChunkingConfig(), outboundResponseMsg);
+            if (httpService.getMediaTypeSubtypePrefix() != null) {
+                HttpUtil.setMediaTypeSubtypePrefix(httpService.getMediaTypeSubtypePrefix(), outboundResponseMsg);
+            }
         }
     }
 
@@ -456,7 +458,7 @@ public class HttpUtil {
         PipeliningHandler.sendPipelinedResponse(requestMessage, createErrorMessage(errorMsg, statusCode));
     }
 
-    static void handleFailure(HttpCarbonMessage requestMessage, BError error, Boolean printStackTrace) {
+    public static void handleFailure(HttpCarbonMessage requestMessage, BError error, Boolean printStackTrace) {
         String errorMsg = getErrorMessage(error);
         int statusCode = getStatusCode(requestMessage, errorMsg);
         if (printStackTrace) {
@@ -481,6 +483,13 @@ public class HttpUtil {
             return HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
         }
         return carbonStatusCode;
+    }
+
+    public static BError createError(Exception ex) {
+        if (ex.getMessage() != null) {
+            return ErrorCreator.createError(ex);
+        }
+        return ErrorCreator.createError(StringUtils.fromString(""));
     }
 
     public static HttpCarbonMessage createErrorMessage(String payload, int statusCode) {
@@ -1792,6 +1801,9 @@ public class HttpUtil {
                     break;
                 case HttpConstants.RESPONSE_INTERCEPTOR:
                     interceptorServiceType = HttpConstants.RESPONSE_INTERCEPTOR;
+                    break;
+                case HttpConstants.RESPONSE_ERROR_INTERCEPTOR:
+                    interceptorServiceType = HttpConstants.RESPONSE_ERROR_INTERCEPTOR;
                     break;
                 default:
                     break;

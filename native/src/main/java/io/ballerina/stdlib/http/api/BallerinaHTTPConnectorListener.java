@@ -20,7 +20,6 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
-import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
@@ -81,15 +80,18 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
             if (inboundMessage.isInterceptorError()) {
                 HttpRequestInterceptorUnitCallback callback = new HttpRequestInterceptorUnitCallback(inboundMessage,
-                                                        null, this);
-                callback.sendFailureResponse((BError) inboundMessage.getProperty
+                                                              httpServicesRegistry.getRuntime(), this);
+                callback.sendFailureResponseToInterceptors(inboundMessage.getProperty
                                                                             (HttpConstants.INTERCEPTOR_SERVICE_ERROR));
             } else {
                 executeMainResourceOnMessage(inboundMessage);
             }
         } catch (Exception ex) {
-            HttpUtil.handleFailure(inboundMessage, ex.getMessage());
-            inboundMessage.waitAndReleaseAllEntities();
+            // inboundMessage.waitAndReleaseAllEntities();
+            HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
+                                                httpServicesRegistry.getRuntime(), null, null);
+            callback.sendFailureResponseToInterceptors(HttpUtil.createError(ex), false);
+            // HttpUtil.handleFailure(inboundMessage, ex.getMessage());
         }
     }
 
@@ -169,7 +171,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         }
         Runtime runtime = httpServicesRegistry.getRuntime();
         Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource.getReturnMediaType(),
-                                                         httpResource.getResponseCacheConfig());
+                            httpResource.getResponseCacheConfig());
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
         if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
@@ -264,8 +266,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
             }
         } catch (BallerinaConnectorException ex) {
-            HttpUtil.handleFailure(inboundMessage, ex.getMessage());
-            inboundMessage.waitAndReleaseAllEntities();
+            // HttpUtil.handleFailure(inboundMessage, ex.getMessage());
+            // inboundMessage.waitAndReleaseAllEntities();
+            HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
+                                                httpServicesRegistry.getRuntime(), null, null);
+            callback.sendFailureResponseToInterceptors(HttpUtil.createError(ex), false);
         }
     }
 

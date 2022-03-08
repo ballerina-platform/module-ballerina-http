@@ -19,10 +19,14 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.connection.Respond;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
@@ -37,17 +41,19 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     private final Environment environment;
     private final BObject requestCtx;
     private final DataContext dataContext;
+    private final Runtime runtime;
 
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
-                                               Environment env, DataContext dataContext) {
+                                               Environment env, DataContext dataContext, Runtime runtime) {
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         this.caller = caller;
         this.response = response;
         this.environment = env;
         this.dataContext = dataContext;
+        this.runtime = runtime;
     }
 
     @Override
@@ -67,7 +73,8 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         if (error.getMessage().equals("Already responded by auth desugar.")) {
             return;
         }
-        sendFailureResponse(error);
+        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
+        sendResponseToNextService();
     }
 
     public void sendFailureResponse(BError error) {
@@ -108,11 +115,26 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         }
 
         if (result == null) {
-            requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, 0);
+            requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, -1);
             sendResponseToNextService();
             return;
         }
 
+        if (isServiceType(result)) {
+            validateServiceReturnType(result, interceptorId, interceptors);
+        } else {
+            returnResponse(result);
+        }
+    }
+
+    private boolean isServiceType(Object result) {
+        if (result instanceof BObject) {
+            return ((BObject) result).getType() instanceof ServiceType;
+        }
+        return false;
+    }
+
+    private void validateServiceReturnType(Object result, int interceptorId, BArray interceptors) {
         if (interceptors != null) {
             if (interceptorId < interceptors.size()) {
                 Object interceptor = interceptors.get(interceptorId);
@@ -125,5 +147,30 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
                 }
             }
         }
+    }
+
+    private void returnResponse(Object result) {
+        Object[] paramFeed = new Object[6];
+        paramFeed[0] = result;
+        paramFeed[1] = true;
+        paramFeed[2] = null;
+        paramFeed[3] = true;
+        paramFeed[4] = null;
+        paramFeed[5] = true;
+
+        Callback returnCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                printStacktraceIfError(result);
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                sendFailureResponse(result);
+            }
+        };
+        runtime.invokeMethodAsyncSequentially(
+                caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 }

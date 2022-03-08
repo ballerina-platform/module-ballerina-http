@@ -431,7 +431,8 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 4, "invalid interceptor resource method: expected default " +
                 "resource method: 'default', but found 'get'", CompilerPluginTestConstants.HTTP_128);
         assertError(diagnosticResult, 5, "invalid interceptor resource method return type: expected " +
-                "'http:NextService|error?', but found 'string'", CompilerPluginTestConstants.HTTP_126);
+                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'error[]'",
+                CompilerPluginTestConstants.HTTP_126);
         assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions",
                 CompilerPluginTestConstants.HTTP_124);
         assertError(diagnosticResult, 7, "invalid annotation 'http:ResourceConfig': annotations" +
@@ -469,7 +470,8 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 23, "invalid parameter type: 'string' in 'interceptResponse' remote method",
                 CompilerPluginTestConstants.HTTP_138);
         assertError(diagnosticResult, 24, "invalid interceptor remote method return type: expected " +
-                "'http:NextService|error?', but found 'string'", CompilerPluginTestConstants.HTTP_139);
+                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'http:Client'",
+                CompilerPluginTestConstants.HTTP_139);
     }
 
     @Test

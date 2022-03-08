@@ -62,10 +62,13 @@ import static io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandl
 public class Respond extends ConnectionAction {
 
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
-    private static final String INTERCEPT_RESPONSE = "interceptResponse";
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
-        DataContext dataContext = new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null));
+        HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
+        if (inboundRequestMsg.isInterceptorError()) {
+            updateStatusCode(inboundRequestMsg, outboundResponseObj);
+        }
+        DataContext dataContext = new DataContext(env, inboundRequestMsg);
         return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, dataContext);
     }
 
@@ -179,12 +182,13 @@ public class Respond extends ConnectionAction {
         }
         int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX)
                 == null ? interceptorServicesRegistries.size() - 1
-                : (int)  inboundMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) - 1;
+                : (int)  inboundMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
         while (interceptorServiceIndex >= 0) {
             HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
                     get(interceptorServiceIndex);
 
-            if (!interceptorServicesRegistry.getServicesType().equals(HttpConstants.RESPONSE_INTERCEPTOR)) {
+            if (!interceptorServicesRegistry.getServicesType().equals(
+                    inboundMessage.getResponseInterceptorServiceState())) {
                 interceptorServiceIndex -= 1;
                 inboundMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorServiceIndex);
                 continue;
@@ -206,6 +210,11 @@ public class Respond extends ConnectionAction {
                 throw new BallerinaConnectorException(e.getMessage());
             }
         }
+        if (inboundMessage.isInterceptorError()) {
+            HttpResponseInterceptorUnitCallback callback = new HttpResponseInterceptorUnitCallback(inboundMessage,
+                    callerObj, outboundResponseObj, env, dataContext, null);
+            callback.sendFailureResponse((BError) inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR));
+        }
         return false;
     }
 
@@ -218,14 +227,24 @@ public class Respond extends ConnectionAction {
         Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj, callerObj,
                                    inboundMessage);
         Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj,
-                outboundResponseObj, env, dataContext);
+                outboundResponseObj, env, dataContext, runtime);
 
-        if (serviceObj.getType().isIsolated() && serviceObj.getType().isIsolated(INTERCEPT_RESPONSE)) {
-            runtime.invokeMethodAsyncConcurrently(serviceObj, INTERCEPT_RESPONSE, null, null,
+        inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+        String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)
+                            ? HttpConstants.INTERCEPT_RESPONSE_ERROR : HttpConstants.INTERCEPT_RESPONSE;
+
+        if (serviceObj.getType().isIsolated() && serviceObj.getType().isIsolated(methodName)) {
+            runtime.invokeMethodAsyncConcurrently(serviceObj, methodName, null, null,
                     callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
         } else {
-            runtime.invokeMethodAsyncSequentially(serviceObj, INTERCEPT_RESPONSE, null, null,
+            runtime.invokeMethodAsyncSequentially(serviceObj, methodName, null, null,
                     callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
         }
+    }
+
+    private static void updateStatusCode(HttpCarbonMessage requestMsg, BObject outboundResponseObj) {
+        int statusCode = requestMsg.getHttpStatusCode() != null ? requestMsg.getHttpStatusCode() :
+                         HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
+        outboundResponseObj.set(RESPONSE_STATUS_CODE_FIELD, statusCode);
     }
 }

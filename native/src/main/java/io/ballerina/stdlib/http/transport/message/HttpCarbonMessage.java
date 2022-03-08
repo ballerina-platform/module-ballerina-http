@@ -682,6 +682,13 @@ public class HttpCarbonMessage {
         return HttpConstants.REQUEST_INTERCEPTOR;
     }
 
+    public String getResponseInterceptorServiceState() {
+        if (isInterceptorError()) {
+            return HttpConstants.RESPONSE_ERROR_INTERCEPTOR;
+        }
+        return HttpConstants.RESPONSE_INTERCEPTOR;
+    }
+
     public Listener getListener() {
         return this.contentObservable.getListener();
     }

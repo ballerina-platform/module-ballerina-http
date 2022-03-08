@@ -49,7 +49,7 @@ public class ExternRequestContext {
         Object interceptorToReturn = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
         int interceptorIndex = getInterceptorIndex(requestCtx, requiredInterceptorType);
         Object interceptor;
-        while (interceptorIndex < interceptors.size()) {
+        while (0 <= interceptorIndex && interceptorIndex < interceptors.size()) {
             interceptor = interceptors.get(interceptorIndex);
             String interceptorType = HttpUtil.getInterceptorServiceType((BObject) interceptor);
             if (interceptorType.equals(requiredInterceptorType)) {
@@ -78,7 +78,7 @@ public class ExternRequestContext {
         if (nextInterceptorType.equals(HttpConstants.REQUEST_INTERCEPTOR)) {
             interceptorIndex = (int) requestCtx.getNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX) + 1;
         } else {
-            interceptorIndex = (int) requestCtx.getNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) + 1;
+            interceptorIndex = (int) requestCtx.getNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) - 1;
         }
         return interceptorIndex;
     }

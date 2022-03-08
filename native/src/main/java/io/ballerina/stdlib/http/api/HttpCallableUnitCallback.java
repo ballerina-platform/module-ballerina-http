@@ -47,10 +47,19 @@ public class HttpCallableUnitCallback implements Callback {
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType,
                              BMap cacheConfig) {
         this.requestMessage = requestMessage;
-        this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
+        this.caller = getCaller(requestMessage);
         this.runtime = runtime;
         this.returnMediaType = returnMediaType;
         this.cacheConfig = cacheConfig;
+    }
+
+    private BObject getCaller(HttpCarbonMessage requestMessage) {
+        BObject caller = requestMessage.getProperty(HttpConstants.CALLER) == null ?
+                         ValueCreatorUtils.createCallerObject(requestMessage) :
+                         (BObject) requestMessage.getProperty(HttpConstants.CALLER);
+        caller.addNativeData(HttpConstants.TRANSPORT_MESSAGE, requestMessage);
+        requestMessage.setProperty(HttpConstants.CALLER, caller);
+        return caller;
     }
 
     @Override
@@ -62,6 +71,10 @@ public class HttpCallableUnitCallback implements Callback {
         }
         printStacktraceIfError(result);
 
+        returnResponse(result);
+    }
+
+    private void returnResponse(Object result) {
         Object[] paramFeed = new Object[6];
         paramFeed[0] = result;
         paramFeed[1] = true;
@@ -108,10 +121,22 @@ public class HttpCallableUnitCallback implements Callback {
         if (alreadyResponded(error)) {
             return;
         }
-        sendFailureResponse(error);
+        sendFailureResponseToInterceptors(error, true);
     }
 
-    private void sendFailureResponse(BError error) {
+    public void sendFailureResponseToInterceptors(BError error, boolean printError) {
+        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
+        if (runtime != null) {
+            if (printError) {
+                error.printStackTrace();
+            }
+            returnResponse(error);
+        } else {
+            sendFailureResponse(error);
+        }
+    }
+
+    public void sendFailureResponse(BError error) {
         stopObserverContext();
         HttpUtil.handleFailure(requestMessage, error, true);
     }

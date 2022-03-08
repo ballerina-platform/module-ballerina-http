@@ -28,7 +28,6 @@ import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -54,7 +53,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
@@ -69,7 +67,6 @@ import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYP
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
-import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
 
 /**
  * Validates a ballerina http resource.
@@ -86,9 +83,7 @@ class HttpResourceValidator {
     private static void extractResourceAnnotationAndValidate(SyntaxNodeAnalysisContext ctx,
                                                              FunctionDefinitionNode member) {
         Optional<MetadataNode> metadataNodeOptional = member.metadata();
-        if (metadataNodeOptional.isEmpty()) {
-            return;
-        } else {
+        if (metadataNodeOptional.isPresent()) {
             NodeList<AnnotationNode> annotations = metadataNodeOptional.get().annotations();
             for (AnnotationNode annotation : annotations) {
                 Node annotReference = annotation.annotReference();
@@ -128,7 +123,7 @@ class HttpResourceValidator {
             paramIndex++;
             String paramType = param.typeDescriptor().signature();
             Optional<Location> paramLocationOptional = param.getLocation();
-            if (!paramLocationOptional.isEmpty()) {
+            if (paramLocationOptional.isPresent()) {
                 paramLocation = paramLocationOptional.get();
             }
             Optional<String> nameOptional = param.getName();
@@ -324,7 +319,8 @@ class HttpResourceValidator {
                                 continue;
                             } else if (elementKind == TypeDescKind.TYPE_REFERENCE) {
                                 TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) arrTypeSymbol).typeDescriptor();
-                                TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
+                                TypeDescKind typeDescKind = HttpCompilerPluginUtil.retrieveEffectiveTypeDesc(
+                                                                typeDescriptor);
                                 if (typeDescKind == TypeDescKind.RECORD) {
                                     continue;
                                 }
@@ -332,7 +328,8 @@ class HttpResourceValidator {
                         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
                             TypeSymbol typeDescriptor =
                                     ((TypeReferenceTypeSymbol) paramTypeDescriptor).typeDescriptor();
-                            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
+                            TypeDescKind typeDescKind = HttpCompilerPluginUtil.retrieveEffectiveTypeDesc(
+                                                            typeDescriptor);
                             if (typeDescKind == TypeDescKind.RECORD) {
                                 continue;
                             }
@@ -554,7 +551,8 @@ class HttpResourceValidator {
         if (returnTypeSymbol.isEmpty()) {
             return;
         }
-        validateReturnType(ctx, returnTypeNode, returnTypeStringValue, returnTypeSymbol.get());
+        HttpCompilerPluginUtil.validateReturnType(ctx, returnTypeNode, returnTypeStringValue, returnTypeSymbol.get(),
+                                                  HttpDiagnosticCodes.HTTP_102, false);
         validateAnnotationsAndEnableCodeActions(ctx, returnTypeNode, returnTypeSymbol.get(), returnTypeStringValue,
                                                 returnTypeDescriptorNode.get());
     }
@@ -595,65 +593,6 @@ class HttpResourceValidator {
         }
     }
 
-    private static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
-                                           TypeSymbol returnTypeSymbol) {
-        TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
-            return;
-        }
-        if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
-            for (TypeSymbol typeSymbol : typeSymbols) {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
-            }
-        } else if (kind == TypeDescKind.ARRAY) {
-            TypeSymbol memberTypeDescriptor = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor();
-            validateArrayElementType(ctx, node, returnTypeStringValue, memberTypeDescriptor);
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind == TypeDescKind.OBJECT) {
-                if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
-                    reportInvalidReturnType(ctx, node, returnTypeStringValue);
-                }
-            } else if (typeDescKind == TypeDescKind.TABLE) {
-                validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor);
-            } else if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.ERROR) {
-                reportInvalidReturnType(ctx, node, returnTypeStringValue);
-            }
-        } else if (kind == TypeDescKind.MAP) {
-            TypeSymbol typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParam();
-            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
-        } else if (kind == TypeDescKind.TABLE) {
-            TypeSymbol typeSymbol = ((TableTypeSymbol) returnTypeSymbol).rowTypeParameter();
-            if (typeSymbol == null) {
-                reportInvalidReturnType(ctx, node, returnTypeStringValue);
-            } else {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
-            }
-        } else {
-            reportInvalidReturnType(ctx, node, returnTypeStringValue);
-        }
-    }
-
-    private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, Node node, String typeStringValue,
-                                                    TypeSymbol memberTypeDescriptor) {
-        TypeDescKind kind = memberTypeDescriptor.typeKind();
-        if (isBasicTypeDesc(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
-            return;
-        }
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
-                    typeDescKind != TypeDescKind.TABLE) {
-                reportInvalidReturnType(ctx, node, typeStringValue);
-            }
-        } else {
-            reportInvalidReturnType(ctx, node, typeStringValue);
-        }
-    }
-
     private static void enableConfigureReturnMediaTypeCodeAction(SyntaxNodeAnalysisContext ctx, Node node) {
         HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_103);
     }
@@ -675,55 +614,19 @@ class HttpResourceValidator {
             }
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind == TypeDescKind.ERROR) {
-                return false;
-            }
+            TypeDescKind typeDescKind = HttpCompilerPluginUtil.retrieveEffectiveTypeDesc(typeDescriptor);
+            return typeDescKind != TypeDescKind.ERROR;
         }
         return true;
-    }
-
-    private static TypeDescKind retrieveEffectiveTypeDesc(TypeSymbol descriptor) {
-        TypeDescKind typeDescKind = descriptor.typeKind();
-        if (typeDescKind == TypeDescKind.INTERSECTION) {
-            return ((IntersectionTypeSymbol) descriptor).effectiveTypeDescriptor().typeKind();
-        }
-        return typeDescKind;
-    }
-
-    private static boolean isBasicTypeDesc(TypeDescKind kind) {
-        return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
-                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.JSON ||
-                kind == TypeDescKind.XML || kind == TypeDescKind.RECORD || kind == TypeDescKind.BYTE;
-    }
-
-    private static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {
-        Optional<ModuleSymbol> module = typeDescriptor.getModule();
-        if (module.isEmpty()) {
-            return false;
-        }
-        if (!BALLERINA.equals(module.get().id().orgName()) || !HTTP.equals(module.get().getName().get())) {
-            return false;
-        }
-        Optional<String> typeName = typeDescriptor.getName();
-        if (typeName.isEmpty()) {
-            return false;
-        }
-        return expectedType.equals(typeName.get());
     }
 
     public static boolean isHttpCaller(ParameterSymbol param) {
         TypeDescKind typeDescKind = param.typeDescriptor().typeKind();
         if (TypeDescKind.TYPE_REFERENCE.equals(typeDescKind)) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
-            return isHttpModuleType(CALLER_OBJ_NAME, typeDescriptor);
+            return HttpCompilerPluginUtil.isHttpModuleType(CALLER_OBJ_NAME, typeDescriptor);
         }
         return false;
-    }
-
-    private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                                String returnType) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), returnType, HttpDiagnosticCodes.HTTP_102);
     }
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,

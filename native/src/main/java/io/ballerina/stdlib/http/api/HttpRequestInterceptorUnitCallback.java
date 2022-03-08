@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
@@ -74,7 +75,11 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
     }
 
-    public void sendFailureResponse(BError error) {
+    public void sendFailureResponseToInterceptors(Object error) {
+        returnResponse(error);
+    }
+
+    private void sendFailureResponse(BError error) {
         cleanupRequestAndContext();
         HttpUtil.handleFailure(requestMessage, error, false);
     }
@@ -124,6 +129,21 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
             return;
         }
 
+        if (isServiceType(result)) {
+            validateServiceReturnType(result, interceptorId, interceptors);
+        } else {
+            returnResponse(result);
+        }
+    }
+
+    private boolean isServiceType(Object result) {
+        if (result instanceof BObject) {
+            return ((BObject) result).getType() instanceof ServiceType;
+        }
+        return false;
+    }
+
+    private void validateServiceReturnType(Object result, int interceptorId, BArray interceptors) {
         if (interceptors != null) {
             if (interceptorId < interceptors.size()) {
                 Object interceptor = interceptors.get(interceptorId);
@@ -150,6 +170,31 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     private void returnEmptyResponse() {
         Object[] paramFeed = new Object[6];
         paramFeed[0] = null;
+        paramFeed[1] = true;
+        paramFeed[2] = null;
+        paramFeed[3] = true;
+        paramFeed[4] = null;
+        paramFeed[5] = true;
+
+        Callback returnCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                printStacktraceIfError(result);
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                sendFailureResponse(result);
+            }
+        };
+        runtime.invokeMethodAsyncSequentially(
+                caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+    }
+
+    private void returnResponse(Object result) {
+        Object[] paramFeed = new Object[6];
+        paramFeed[0] = result;
         paramFeed[1] = true;
         paramFeed[2] = null;
         paramFeed[3] = true;
