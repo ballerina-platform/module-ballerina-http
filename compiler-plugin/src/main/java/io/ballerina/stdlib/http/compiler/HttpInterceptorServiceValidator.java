@@ -317,8 +317,8 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     }
 
     private static void reportMultipleReferencesFound(SyntaxNodeAnalysisContext ctx, TypeReferenceNode node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), node.typeName().toString(),
-                                                HttpDiagnosticCodes.HTTP_123);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_123,
+                                                node.typeName().toString());
     }
 
     private static void reportMultipleResourceFunctionsFound(SyntaxNodeAnalysisContext ctx,
@@ -329,7 +329,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     }
 
     private static void reportResourceFunctionNotFound(SyntaxNodeAnalysisContext ctx, String type) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, ctx.node().location(), type, HttpDiagnosticCodes.HTTP_132);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, ctx.node().location(), HttpDiagnosticCodes.HTTP_132, type);
     }
 
     private static void reportRemoteFunctionNotFound(SyntaxNodeAnalysisContext ctx, String type) {

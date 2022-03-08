@@ -207,7 +207,7 @@ public class CompilerPluginTest {
                 CompilerPluginTestConstants.HTTP_106);
         assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'ballerina/mime",
                 CompilerPluginTestConstants.HTTP_106);
-        assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_6",
+        assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_7",
                 CompilerPluginTestConstants.HTTP_106);
     }
 
@@ -510,5 +510,27 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 3, "invalid usage of cache annotation with return type : " +
                 "'error?'. Cache annotation only supports return types of anydata and SuccessStatusCodeResponse",
                 CompilerPluginTestConstants.HTTP_130);
+    }
+
+    @Test
+    public void testInValidIntersectionTypeForResourceArgs() {
+        Package currentPackage = loadPackage("sample_package_23");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 6);
+        assertTrue(diagnosticResult, 0, "'readonly' intersection type is not allowed for parameter 'caller' of the " +
+                "type 'ballerina/http:", CompilerPluginTestConstants.HTTP_134);
+        assertTrue(diagnosticResult, 0, ":Caller & readonly'", CompilerPluginTestConstants.HTTP_134);
+        assertTrue(diagnosticResult, 1, "'readonly' intersection type is not allowed for parameter 'request' of the " +
+                "type 'ballerina/http:", CompilerPluginTestConstants.HTTP_134);
+        assertTrue(diagnosticResult, 2, "'readonly' intersection type is not allowed for parameter 'headers' of the " +
+                "type 'ballerina/http:", CompilerPluginTestConstants.HTTP_134);
+        assertTrue(diagnosticResult, 3, "'readonly' intersection type is not allowed for parameter 'entity' of the " +
+                "type 'ballerina/mime:", CompilerPluginTestConstants.HTTP_134);
+        assertTrue(diagnosticResult, 3, ":Entity & readonly'", CompilerPluginTestConstants.HTTP_134);
+        assertTrue(diagnosticResult, 4, "invalid type of header param 'host': expected 'string' or 'string[]'",
+                CompilerPluginTestConstants.HTTP_109);
+        assertTrue(diagnosticResult, 5, "invalid type of caller param 'host': expected 'http:Caller'",
+                CompilerPluginTestConstants.HTTP_111);
     }
 }

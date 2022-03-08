@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - [Add code-actions to generate payload and header parameter templates](https://github.com/ballerina-platform/ballerina-standard-library/issues/2642)
 - [Add code-actions to add content-type and cache configuration for response](https://github.com/ballerina-platform/ballerina-standard-library/issues/2662)
+- [Allow readonly intersection type for resource signature params and return type](https://github.com/ballerina-platform/ballerina-standard-library/issues/2610)
 
 ## [2.2.0] - 2022-02-01
 

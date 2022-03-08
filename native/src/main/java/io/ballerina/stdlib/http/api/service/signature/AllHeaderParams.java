@@ -18,10 +18,17 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpConstants;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.netty.handler.codec.http.HttpHeaders;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 
 /**
  * {@code {@link AllHeaderParams }} holds all the header parameters in the resource signature.
@@ -30,7 +37,7 @@ import java.util.List;
  */
 public class AllHeaderParams implements Parameter {
 
-    private List<HeaderParam> allHeaderParams = new ArrayList<>();
+    private final List<HeaderParam> allHeaderParams = new ArrayList<>();
 
     @Override
     public String getTypeName() {
@@ -57,4 +64,44 @@ public class AllHeaderParams implements Parameter {
         }
         return null;
     }
+
+    public void populateFeed(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed, boolean treatNilableAsOptional) {
+        HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
+        for (HeaderParam headerParam : this.getAllHeaderParams()) {
+            String token = headerParam.getHeaderName();
+            int index = headerParam.getIndex();
+            List<String> headerValues = httpHeaders.getAll(token);
+            if (headerValues.isEmpty()) {
+                if (headerParam.isNilable() && treatNilableAsOptional) {
+                    paramFeed[index++] = null;
+                    paramFeed[index] = true;
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no header value found for '" + token + "'");
+                }
+            }
+            if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
+                if (headerParam.isNilable()) {
+                    paramFeed[index++] = null;
+                    paramFeed[index] = true;
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no header value found for '" + token + "'");
+                }
+            }
+            if (headerParam.getTypeTag() == ARRAY_TAG) {
+                BArray bArray = StringUtils.fromStringArray(headerValues.toArray(new String[0]));
+                if (headerParam.isReadonly()) {
+                    bArray.freezeDirect();
+                }
+                paramFeed[index++] = bArray;
+            } else {
+                paramFeed[index++] = StringUtils.fromString(headerValues.get(0));
+            }
+            paramFeed[index] = true;
+        }
+    }
+
 }

@@ -53,8 +53,11 @@ public type OutboundResponseError distinct ListenerError;
 # Represents a generic listener error.
 public type GenericListenerError distinct ListenerError;
 
-# Defines the Auth error types that returned from listener.
+# Defines the auth error types that returned from listener.
 public type ListenerAuthError distinct ListenerError;
+
+# Defines the auth-desugar error types that returned from listener.
+type DesugarAuthError distinct ListenerAuthError;
 
 # Defines the client error types that returned while sending outbound request.
 public type OutboundRequestError distinct ClientError;

@@ -142,7 +142,6 @@ isolated http:Service multipleAnnot2 = service object {
     }
 };
 
-
 # Album represents data about a record album.
 type Album readonly & record {|
     string id;
@@ -180,51 +179,6 @@ service / on dataBindingEP {
         // Add the new album to the table.
         albums.add(album);
         return album;
-    }
-}
-
-service /intersection on dataBindingEP {
-    resource function post ofString(@http:Payload readonly & string name) returns readonly & string {
-        return name;
-    }
-
-    resource function post ofJson(@http:Payload readonly & json person) returns json {
-        json|error val1 = person.name;
-        json|error val2 = person.team;
-        json name = val1 is json ? val1 : ();
-        json team = val2 is json ? val2 : ();
-        return { Key: name, Team: team };
-    }
-
-    resource function post ofMapString(@http:Payload readonly & map<string> person) returns json {
-        string? a = person["name"];
-        string? b = person["team"];
-        json responseJson = { "1": a, "2": b};
-        return responseJson;
-    }
-
-    resource function post ofXml(@http:Payload readonly & xml album) returns readonly & xml {
-        return album;
-    }
-
-    resource function post ofByteArr(http:Caller caller, @http:Payload readonly & byte[] person) returns error? {
-        http:Response res = new;
-        var name = strings:fromBytes(person);
-        if (name is string) {
-            res.setJsonPayload({ Key: name });
-        } else {
-            res.setTextPayload("Error occurred while byte array to string conversion");
-            res.statusCode = 500;
-        }
-        check caller->respond(res);
-    }
-
-    resource function post ofRecArray(http:Caller caller, @http:Payload readonly & Person[] persons) returns error? {
-        check caller->respond(persons);
-    }
-
-    resource function post ofReadonlyRecArray(http:Caller caller, @http:Payload Album[] albums) returns error? {
-        check caller->respond(albums);
     }
 }
 
@@ -599,90 +553,6 @@ function testDatabindingWithReadOnlyRecordsAddAlbum() returns error? {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(response.getJsonPayload(), newAlbum);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testDatabindingWithIntersectionTypeString() {
-    http:Response|error response = dataBindingClient->post("/intersection/ofString", "newAlbum");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "newAlbum");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testDatabindingWithIntersectionTypeJson() {
-    json j = {name:"WSO2", team:"ballerina"};
-    http:Response|error response = dataBindingClient->post("/intersection/ofJson", j);
-    if response is http:Response {
-        assertJsonValue(response.getJsonPayload(), "Key", "WSO2");
-        assertJsonValue(response.getJsonPayload(), "Team", "ballerina");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testDatabindingWithIntersectionTypeMapString() {
-    http:Request req = new;
-    req.setTextPayload("name=hello%20go&team=ba%20%23ller%20%40na", contentType = "application/x-www-form-urlencoded");
-    http:Response|error response = dataBindingClient->post("/intersection/ofMapString", req);
-    if response is http:Response {
-        assertJsonPayload(response.getJsonPayload(), {"1":"hello go","2":"ba #ller @na"});
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testDatabindingWithIntersectionTypeXml() {
-    xml content = xml `<name>WSO2</name>`;
-    http:Response|error response = dataBindingClient->post("/intersection/ofXml", content);
-    if response is http:Response {
-        assertXmlPayload(response.getXmlPayload(), content);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testDatabindingWithIntersectionTypeByteArr() {
-    http:Request req = new;
-    req.setBinaryPayload("WSO2".toBytes());
-    http:Response|error response = dataBindingClient->post("/intersection/ofByteArr", req);
-    if response is http:Response {
-        assertJsonValue(response.getJsonPayload(), "Key", "WSO2");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testDatabindingWithIntersectionTypeRecordArr() {
-    json[] j = [{name:"wso2",age:12}, {name:"ballerina",age:3}];
-    http:Response|error response = dataBindingClient->post("/intersection/ofRecArray", j);
-    if response is http:Response {
-        json expected = [{name:"wso2",age:12}, {name:"ballerina",age:3}];
-        assertJsonPayload(response.getJsonPayload(), expected);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testDatabindingWithIntersectionTypeofReadonlyRecArray() {
-    json[] j = [{"id":"4", "title":"Blackout", "artist":"Scorpions", "price":27.99},
-                {"id":"5", "title":"Blackout2", "artist":"Scorpions", "price":23.99}];
-    http:Response|error response = dataBindingClient->post("/intersection/ofReadonlyRecArray", j);
-    if response is http:Response {
-        json expected = [{"id":"4", "title":"Blackout", "artist":"Scorpions", "price":27.99},
-                        {"id":"5", "title":"Blackout2", "artist":"Scorpions", "price":23.99}];
-        assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

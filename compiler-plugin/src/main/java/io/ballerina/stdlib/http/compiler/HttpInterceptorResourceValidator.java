@@ -65,16 +65,16 @@ public class HttpInterceptorResourceValidator {
     }
 
     private static void reportResourceAnnotationNotAllowed(SyntaxNodeAnalysisContext ctx, AnnotationNode node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), node.annotReference().toString(),
-                                                HttpDiagnosticCodes.HTTP_125);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_125,
+                                                node.annotReference().toString());
     }
 
     private static void reportInvalidResourcePath(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), node.toString(), HttpDiagnosticCodes.HTTP_127);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_127, node.toString());
     }
 
     private static void reportInvalidResourceMethod(SyntaxNodeAnalysisContext ctx, IdentifierToken identifierToken) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, identifierToken.location(), identifierToken.toString().strip(),
-                                                HttpDiagnosticCodes.HTTP_128);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, identifierToken.location(), HttpDiagnosticCodes.HTTP_128,
+                                                identifierToken.toString().strip());
     }
 }
