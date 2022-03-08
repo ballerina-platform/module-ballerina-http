@@ -446,32 +446,34 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 11, "RequestErrorInterceptor must have a resource method",
                 CompilerPluginTestConstants.HTTP_132);
         assertError(diagnosticResult, 12, "ResponseInterceptor must have the remote method : 'interceptResponse'",
-                CompilerPluginTestConstants.HTTP_133);
-        assertError(diagnosticResult, 13, "remote function is not allowed in RequestInterceptor",
                 CompilerPluginTestConstants.HTTP_135);
+        assertError(diagnosticResult, 13, "remote function is not allowed in RequestInterceptor",
+                CompilerPluginTestConstants.HTTP_137);
         assertError(diagnosticResult, 14, "RequestInterceptor must have a resource method",
                 CompilerPluginTestConstants.HTTP_132);
         assertError(diagnosticResult, 15, "remote function is not allowed in RequestErrorInterceptor",
-                CompilerPluginTestConstants.HTTP_135);
+                CompilerPluginTestConstants.HTTP_137);
         assertError(diagnosticResult, 16, "RequestErrorInterceptor must have a resource method",
                 CompilerPluginTestConstants.HTTP_132);
         assertError(diagnosticResult, 17, "resource function is not allowed in ResponseInterceptor",
-                CompilerPluginTestConstants.HTTP_134);
+                CompilerPluginTestConstants.HTTP_136);
         assertError(diagnosticResult, 18, "ResponseInterceptor must have the remote method : 'interceptResponse'",
-                CompilerPluginTestConstants.HTTP_133);
+                CompilerPluginTestConstants.HTTP_135);
         assertError(diagnosticResult, 19, "invalid remote function : 'returnResponse'. ResponseInterceptor " +
-                "can have only 'interceptResponse' remote function", CompilerPluginTestConstants.HTTP_136);
+                "can have only 'interceptResponse' remote function", CompilerPluginTestConstants.HTTP_138);
         assertError(diagnosticResult, 20, "ResponseInterceptor must have the remote method : 'interceptResponse'",
-                CompilerPluginTestConstants.HTTP_133);
+                CompilerPluginTestConstants.HTTP_135);
         assertError(diagnosticResult, 21, "invalid multiple 'http:Response' parameter: 'res2'",
-                CompilerPluginTestConstants.HTTP_137);
-        assertError(diagnosticResult, 22, "invalid parameter type: 'ballerina/http:2.2.1:Request' in " +
-                "'interceptResponse' remote method", CompilerPluginTestConstants.HTTP_138);
+                CompilerPluginTestConstants.HTTP_139);
+        assertTrue(diagnosticResult, 22, "invalid parameter type: 'ballerina/http:",
+                CompilerPluginTestConstants.HTTP_140);
+        assertTrue(diagnosticResult, 22, ":Request' in 'interceptResponse' remote method",
+                CompilerPluginTestConstants.HTTP_140);
         assertError(diagnosticResult, 23, "invalid parameter type: 'string' in 'interceptResponse' remote method",
-                CompilerPluginTestConstants.HTTP_138);
+                CompilerPluginTestConstants.HTTP_140);
         assertError(diagnosticResult, 24, "invalid interceptor remote method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'http:Client'",
-                CompilerPluginTestConstants.HTTP_139);
+                CompilerPluginTestConstants.HTTP_141);
     }
 
     @Test

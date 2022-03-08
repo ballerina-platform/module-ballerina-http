@@ -43,4 +43,6 @@ public class CompilerPluginTestConstants {
     public static final String HTTP_137 = "HTTP_137";
     public static final String HTTP_138 = "HTTP_138";
     public static final String HTTP_139 = "HTTP_139";
+    public static final String HTTP_140 = "HTTP_140";
+    public static final String HTTP_141 = "HTTP_141";
 }

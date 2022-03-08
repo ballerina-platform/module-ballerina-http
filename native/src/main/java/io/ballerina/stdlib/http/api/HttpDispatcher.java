@@ -33,6 +33,7 @@ import io.ballerina.stdlib.http.api.service.signature.NonRecurringParam;
 import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
 import io.ballerina.stdlib.http.api.service.signature.Parameter;
 import io.ballerina.stdlib.http.api.service.signature.PayloadParam;
+import io.ballerina.stdlib.http.api.service.signature.RemoteMethodParamHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.URIUtil;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -372,68 +373,6 @@ public class HttpDispatcher {
         requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
         requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
                                  HttpConstants.REQUEST_INTERCEPTOR);
-    }
-
-    private static Object castParam(int targetParamTypeTag, String argValue) {
-        switch (targetParamTypeTag) {
-            case INT_TAG:
-                return Long.parseLong(argValue);
-            case FLOAT_TAG:
-                return Double.parseDouble(argValue);
-            case BOOLEAN_TAG:
-                return Boolean.parseBoolean(argValue);
-            case DECIMAL_TAG:
-                return ValueCreator.createDecimalValue(argValue);
-            case MAP_TAG:
-                Object json = JsonUtils.parse(argValue);
-                return JsonUtils.convertJSONToMap(json, MAP_TYPE);
-            default:
-                return StringUtils.fromString(argValue);
-        }
-    }
-
-    private static Object castParamArray(int targetElementTypeTag, String[] argValueArr) {
-        if (targetElementTypeTag == INT_TAG) {
-            return getBArray(argValueArr, INT_ARR, targetElementTypeTag);
-        } else if (targetElementTypeTag == FLOAT_TAG) {
-            return getBArray(argValueArr, FLOAT_ARR, targetElementTypeTag);
-        } else if (targetElementTypeTag == BOOLEAN_TAG) {
-            return getBArray(argValueArr, BOOLEAN_ARR, targetElementTypeTag);
-        } else if (targetElementTypeTag == DECIMAL_TAG) {
-            return getBArray(argValueArr, DECIMAL_ARR, targetElementTypeTag);
-        } else if (targetElementTypeTag == MAP_TAG) {
-            return getBArray(argValueArr, MAP_ARR, targetElementTypeTag);
-        } else {
-            return StringUtils.fromStringArray(argValueArr);
-        }
-    }
-
-    private static BArray getBArray(String[] valueArray, ArrayType arrayType, int elementTypeTag) {
-        BArray arrayValue = ValueCreator.createArrayValue(arrayType);
-        int index = 0;
-        for (String element : valueArray) {
-            switch (elementTypeTag) {
-                case INT_TAG:
-                    arrayValue.add(index++, Long.parseLong(element));
-                    break;
-                case FLOAT_TAG:
-                    arrayValue.add(index++, Double.parseDouble(element));
-                    break;
-                case BOOLEAN_TAG:
-                    arrayValue.add(index++, Boolean.parseBoolean(element));
-                    break;
-                case DECIMAL_TAG:
-                    arrayValue.add(index++, ValueCreator.createDecimalValue(element));
-                    break;
-                case MAP_TAG:
-                    Object json = JsonUtils.parse(element);
-                    arrayValue.add(index++, JsonUtils.convertJSONToMap(json, MAP_TYPE));
-                    break;
-                default:
-                    throw new BallerinaConnectorException("Illegal state error: unexpected param type");
-            }
-        }
-        return arrayValue;
     }
 
     private static BObject createRequest(HttpCarbonMessage httpCarbonMessage, BObject entityObj) {

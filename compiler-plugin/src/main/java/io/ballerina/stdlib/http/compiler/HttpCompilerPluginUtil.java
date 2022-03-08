@@ -23,9 +23,7 @@ import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
-import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
-import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
@@ -79,50 +77,6 @@ public class HttpCompilerPluginUtil {
                 diagnostic.getSeverity());
     }
 
-    public static void validateHttpCallerUsage(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
-                                               HttpDiagnosticCodes diagnosticCode) {
-        Optional<Symbol> methodSymbolOptional = ctx.semanticModel().symbol(member);
-        Optional<ReturnTypeDescriptorNode> returnTypeDescOpt = member.functionSignature().returnTypeDesc();
-        if (methodSymbolOptional.isEmpty() || returnTypeDescOpt.isEmpty()) {
-            return;
-        }
-        String returnTypeDescription = getReturnTypeDescription(returnTypeDescOpt.get());
-        Location returnTypeLocation = returnTypeDescOpt.get().type().location();
-        MethodSymbol method = (MethodSymbol) methodSymbolOptional.get();
-        FunctionTypeSymbol typeDescriptor = method.typeDescriptor();
-        Optional<List<ParameterSymbol>> parameterOptional = typeDescriptor.params();
-        boolean isCallerPresent = parameterOptional.isPresent() &&
-                parameterOptional.get().stream().anyMatch(HttpResourceValidator::isHttpCaller);
-        if (!isCallerPresent) {
-            return;
-        }
-        Optional<TypeSymbol> returnTypeDescriptorOpt = typeDescriptor.returnTypeDescriptor();
-        if (returnTypeDescriptorOpt.isEmpty()) {
-            return;
-        }
-        TypeSymbol typeSymbol = returnTypeDescriptorOpt.get();
-        if (isValidReturnTypeWithCaller(typeSymbol)) {
-            return;
-        }
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, returnTypeLocation, returnTypeDescription, diagnosticCode);
-    }
-
-    private static boolean isValidReturnTypeWithCaller(TypeSymbol returnTypeDescriptor) {
-        TypeDescKind typeKind = returnTypeDescriptor.typeKind();
-        if (TypeDescKind.UNION.equals(typeKind)) {
-            return ((UnionTypeSymbol) returnTypeDescriptor)
-                    .memberTypeDescriptors().stream()
-                    .map(HttpCompilerPluginUtil::isValidReturnTypeWithCaller)
-                    .reduce(true, (a , b) -> a && b);
-        } else if (TypeDescKind.TYPE_REFERENCE.equals(typeKind)) {
-            TypeSymbol typeRef = ((TypeReferenceTypeSymbol) returnTypeDescriptor).typeDescriptor();
-            TypeDescKind typeRefKind = typeRef.typeKind();
-            return TypeDescKind.ERROR.equals(typeRefKind) || TypeDescKind.NIL.equals(typeRefKind);
-        } else {
-            return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
-        }
-    }
-
     public static String getReturnTypeDescription(ReturnTypeDescriptorNode returnTypeDescriptorNode) {
         return returnTypeDescriptorNode.type().toString().split(" ")[0];
     }
@@ -162,7 +116,10 @@ public class HttpCompilerPluginUtil {
         if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
             return;
         }
-        if (kind == TypeDescKind.UNION) {
+        if (kind == TypeDescKind.INTERSECTION) {
+            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) returnTypeSymbol).effectiveTypeDescriptor();
+            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
+        } else if (kind == TypeDescKind.UNION) {
             List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
             for (TypeSymbol typeSymbol : typeSymbols) {
                 validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
@@ -199,9 +156,9 @@ public class HttpCompilerPluginUtil {
 
     private static boolean isServiceType(TypeSymbol returnTypeSymbol) {
         Optional<String> optionalTypeName = returnTypeSymbol.getName();
-        return optionalTypeName.filter(s -> s.equals(Constants.SERVICE) ||
-                s.equals(Constants.REQUEST_INTERCEPTOR) ||
-                s.equals(Constants.RESPONSE_INTERCEPTOR)).isPresent();
+        return optionalTypeName.filter(typeName -> typeName.equals(Constants.SERVICE) ||
+                typeName.equals(Constants.REQUEST_INTERCEPTOR) ||
+                typeName.equals(Constants.RESPONSE_INTERCEPTOR)).isPresent();
     }
 
     private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, Node node, String typeStringValue,
@@ -210,7 +167,10 @@ public class HttpCompilerPluginUtil {
         if (isBasicTypeDesc(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
             return;
         }
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
+        if (kind == TypeDescKind.INTERSECTION) {
+            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) memberTypeDescriptor).effectiveTypeDescriptor();
+            validateArrayElementType(ctx, node, typeStringValue, typeSymbol, diagnosticCode);
+        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
             if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
@@ -253,10 +213,10 @@ public class HttpCompilerPluginUtil {
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
                                                 String returnType, HttpDiagnosticCodes diagnosticCode) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), returnType, diagnosticCode);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), diagnosticCode, returnType);
     }
 
     private static void reportReturnTypeAnnotationsAreNotAllowed(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_140);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_142);
     }
 }
