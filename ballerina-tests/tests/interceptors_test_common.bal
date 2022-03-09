@@ -21,8 +21,8 @@ service class DefaultRequestInterceptor {
     *http:RequestInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-       req.setHeader("default-interceptor", "true");
-       ctx.set("last-interceptor", "default-interceptor");
+       req.setHeader("default-request-interceptor", "true");
+       ctx.set("last-interceptor", "default-request-interceptor");
        return ctx.next();
     }
 }
@@ -77,9 +77,9 @@ service class RequestInterceptorSetPayload {
     *http:RequestInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-       req.setHeader("interceptor-setpayload", "true");
+       req.setHeader("request-interceptor-setpayload", "true");
        req.setTextPayload("Text payload from interceptor");
-       ctx.set("last-interceptor", "interceptor-setpayload");
+       ctx.set("last-interceptor", "request-interceptor-setpayload");
        return ctx.next();
     }
 }
@@ -129,13 +129,27 @@ service class LastRequestInterceptor {
     }
 }
 
+service class RequestInterceptorReturnsResponse {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, @http:Payload string payload) returns http:Response {
+       http:Response res = new;
+       string|error val = ctx.get("last-interceptor").ensureType(string);
+       string header = val is string ? val : "request-interceptor-returns-response";
+       res.setHeader("request-interceptor-returns-response", "true");
+       res.setHeader("last-interceptor", header);
+       res.setTextPayload("Response from Interceptor : " + payload);
+       return res;
+    }
+}
+
 service class DefaultRequestErrorInterceptor {
     *http:RequestErrorInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
-       req.setHeader("default-error-interceptor", "true");
+       req.setHeader("default-request-error-interceptor", "true");
        req.setTextPayload(err.message());
-       ctx.set("last-interceptor", "default-error-interceptor");
+       ctx.set("last-interceptor", "default-request-error-interceptor");
        return ctx.next();
     }
 }
@@ -309,6 +323,17 @@ service class DefaultResponseInterceptor {
     }
 }
 
+service class ResponseInterceptorSetPayload {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
+       res.setHeader("response-interceptor-setpayload", "true");
+       res.setTextPayload("Text payload from interceptor");
+       ctx.set("last-interceptor", "response-interceptor-setpayload");
+       return ctx.next();
+    }
+}
+
 service class ResponseInterceptorCallerRespond {
     *http:ResponseInterceptor;
 
@@ -358,6 +383,30 @@ service class LastResponseInterceptor {
        string header = val is string ? val : "last-response-interceptor";
        res.setHeader("last-response-interceptor", "true");
        res.setHeader("last-interceptor", header);
+       return ctx.next();
+    }
+}
+
+service class ResponseInterceptorReturnsResponse {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:Response {
+       res.setHeader("response-interceptor-returns-response", "true");
+       ctx.set("last-interceptor", "response-interceptor-returns-response");
+       string|error payloadVal = res.getTextPayload();
+       string payload = payloadVal is string ? payloadVal : "";
+       res.setTextPayload("Response from Interceptor : " + payload);
+       return res;
+    }
+}
+
+service class DefaultResponseErrorInterceptor {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptResponseError(http:RequestContext ctx, http:Response res, error err) returns http:NextService|error? {
+       res.setHeader("default-response-error-interceptor", "true");
+       res.setTextPayload(err.message());
+       ctx.set("last-interceptor", "default-response-error-interceptor");
        return ctx.next();
     }
 }

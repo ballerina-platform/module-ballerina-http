@@ -83,7 +83,7 @@ service / on requestInterceptorNegativeServerEP3 {
 @test:Config{}
 function testRequestInterceptorNegative3() returns error? {
     http:Response res = check requestInterceptorNegativeClientEP3->get("/");
-    assertHeaderValue(check res.getHeader("last-interceptor"), "default-interceptor");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-request-interceptor");
     assertTextPayload(check res.getTextPayload(), "no next service to be returned");
 }
 

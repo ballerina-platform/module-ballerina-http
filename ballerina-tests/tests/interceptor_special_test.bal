@@ -51,7 +51,7 @@ service / on requestInterceptorDataBindingServerEP1 {
         http:Response res = new();
         res.setTextPayload(check req.getTextPayload());
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
-        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("default-request-interceptor", check req.getHeader("default-request-interceptor"));
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
         check caller->respond(res);
     }
@@ -82,7 +82,7 @@ function testRequestInterceptorDataBinding() returns error? {
     http:Response res = check requestInterceptorDataBindingClientEP1->post("/", req);
     assertTextPayload(check res.getTextPayload(), "Request from requestInterceptorDataBindingClient");
     assertHeaderValue(check res.getHeader("last-interceptor"), "databinding-interceptor");
-    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 
     res = check requestInterceptorDataBindingClientEP2->post("/", req);
@@ -105,7 +105,7 @@ function testRequestInterceptorDataBindingWithLargePayload() returns error? {
     http:Response res = check requestInterceptorDataBindingClientEP1->post("/", req);
     assertTextPayload(check res.getTextPayload(), payload);
     assertHeaderValue(check res.getHeader("last-interceptor"), "databinding-interceptor");
-    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 
     res = check requestInterceptorDataBindingClientEP2->post("/", req);
@@ -144,7 +144,7 @@ service / on requestInterceptorSkipServerEP {
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
-        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("default-request-interceptor", check req.getHeader("default-request-interceptor"));
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
         check caller->respond(res);
     }
@@ -154,7 +154,7 @@ service / on requestInterceptorSkipServerEP {
 function testRequestInterceptorSkip() returns error? {
     http:Response res = check requestInterceptorSkipClientEP->get("/");
     assertHeaderValue(check res.getHeader("last-interceptor"), "skip-interceptor");
-    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
@@ -303,7 +303,7 @@ service / on requestInterceptorWithQueryParamServerEP {
     resource function 'default get(string q1, int q2, http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
-        res.setHeader("default-interceptor", check req.getHeader("default-interceptor"));
+        res.setHeader("default-request-interceptor", check req.getHeader("default-request-interceptor"));
         res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
         res.setHeader("q1", check req.getHeader("q1"));
         res.setHeader("request-interceptor-query-param", check req.getHeader("request-interceptor-query-param"));
@@ -316,7 +316,7 @@ service / on requestInterceptorWithQueryParamServerEP {
 function testRequestInterceptorWithQueryParam() returns error? {
     http:Response res = check requestInterceptorWithQueryParamClientEP->get("/get?q1=val&q2=6");
     assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-query-param");
-    assertHeaderValue(check res.getHeader("default-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("request-interceptor-query-param"), "true");
     assertHeaderValue(check res.getHeader("q1"), "val");

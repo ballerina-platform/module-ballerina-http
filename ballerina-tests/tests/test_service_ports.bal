@@ -161,6 +161,11 @@ const int typedHeadersTestPort = 9611;
 const int urlEncodedResponsesTestPort = 9612;
 const int readonlyQueryTestPort = 9613;
 const int defaultResponseInterceptorTestPort = 9614;
+const int responseInterceptorReturnsErrorTestPort = 9615;
+const int responseErrorInterceptorTestPort = 9616;
+const int responseInterceptorSetPayloadTestPort = 9617;
+const int requestInterceptorReturnsResponseTestPort = 9618;
+const int responseInterceptorReturnsResponseTestPort = 9619;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;
