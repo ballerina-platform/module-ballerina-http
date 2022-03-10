@@ -109,13 +109,16 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         int interceptorId = getResponseInterceptorId();
         requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
+        boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
 
         if (alreadyResponded()) {
             return;
         }
 
         if (result == null) {
-            requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, -1);
+            if (!nextCalled) {
+                requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, -1);
+            }
             sendResponseToNextService();
             return;
         }
@@ -128,10 +131,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     }
 
     private boolean isServiceType(Object result) {
-        if (result instanceof BObject) {
-            return ((BObject) result).getType() instanceof ServiceType;
-        }
-        return false;
+        return result instanceof BObject && ((BObject) result).getType() instanceof ServiceType;
     }
 
     private void validateServiceReturnType(Object result, int interceptorId, BArray interceptors) {

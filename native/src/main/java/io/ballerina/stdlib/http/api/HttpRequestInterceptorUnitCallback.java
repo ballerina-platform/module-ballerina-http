@@ -137,10 +137,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     }
 
     private boolean isServiceType(Object result) {
-        if (result instanceof BObject) {
-            return ((BObject) result).getType() instanceof ServiceType;
-        }
-        return false;
+        return result instanceof BObject && ((BObject) result).getType() instanceof ServiceType;
     }
 
     private void validateServiceReturnType(Object result, int interceptorId, BArray interceptors) {
