@@ -182,6 +182,13 @@ public isolated client class Caller {
         }
         return nativeRespond(self, response);
     }
+
+    private isolated function returnErrorResponse(error err, int? statusCode) returns ListenerError? {
+        Response response = new;
+        response.statusCode = statusCode is () ? STATUS_INTERNAL_SERVER_ERROR : statusCode;
+        response.setTextPayload(err.message());
+        return nativeRespond(self, response);
+    }
 }
 
 isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false)

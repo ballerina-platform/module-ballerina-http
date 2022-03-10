@@ -169,7 +169,6 @@ function testResponseErrorInterceptor() returns error? {
     http:Response res = check responseErrorInterceptorClientEP->get("/");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
-    assertHeaderValue(check res.getHeader("response-interceptor-error"), "true");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
 }
 

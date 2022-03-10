@@ -74,7 +74,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
             return;
         }
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        sendResponseToNextService();
+        returnErrorResponse(error);
     }
 
     public void sendFailureResponse(BError error) {
@@ -109,16 +109,13 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         int interceptorId = getResponseInterceptorId();
         requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
-        boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
 
         if (alreadyResponded()) {
             return;
         }
 
         if (result == null) {
-            if (!nextCalled) {
-                requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, -1);
-            }
+            requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, -1);
             sendResponseToNextService();
             return;
         }
@@ -177,5 +174,28 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     private int getResponseInterceptorId() {
         return Math.min((int) requestCtx.getNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX),
                         (int) requestMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX));
+    }
+
+    public void returnErrorResponse(BError error) {
+        Object[] paramFeed = new Object[4];
+        paramFeed[0] = error;
+        paramFeed[1] = true;
+        paramFeed[2] = requestMessage.getHttpStatusCode() != null ? requestMessage.getHttpStatusCode() : null;
+        paramFeed[3] = true;
+
+        Callback returnCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                printStacktraceIfError(result);
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                sendFailureResponse(result);
+            }
+        };
+        runtime.invokeMethodAsyncSequentially(
+                caller, "returnErrorResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 }

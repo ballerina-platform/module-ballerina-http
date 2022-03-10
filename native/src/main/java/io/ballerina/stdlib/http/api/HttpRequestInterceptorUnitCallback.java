@@ -75,8 +75,27 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
     }
 
-    public void sendFailureResponseToInterceptors(Object error) {
-        returnResponse(error);
+    public void returnErrorResponse(Object error) {
+        Object[] paramFeed = new Object[4];
+        paramFeed[0] = error;
+        paramFeed[1] = true;
+        paramFeed[2] = requestMessage.getHttpStatusCode() != null ? requestMessage.getHttpStatusCode() : null;
+        paramFeed[3] = true;
+
+        Callback returnCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                printStacktraceIfError(result);
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                sendFailureResponse(result);
+            }
+        };
+        runtime.invokeMethodAsyncSequentially(
+                caller, "returnErrorResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
     private void sendFailureResponse(BError error) {
@@ -121,11 +140,11 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         }
 
         if (result == null) {
+            returnResponse(null);
             if (nextCalled) {
                 sendRequestToNextService();
                 return;
             }
-            returnEmptyResponse();
             return;
         }
 
@@ -162,31 +181,6 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
                 }
             }
         }
-    }
-
-    private void returnEmptyResponse() {
-        Object[] paramFeed = new Object[6];
-        paramFeed[0] = null;
-        paramFeed[1] = true;
-        paramFeed[2] = null;
-        paramFeed[3] = true;
-        paramFeed[4] = null;
-        paramFeed[5] = true;
-
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                printStacktraceIfError(result);
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
-                sendFailureResponse(result);
-            }
-        };
-        runtime.invokeMethodAsyncSequentially(
-                caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
     private void returnResponse(Object result) {

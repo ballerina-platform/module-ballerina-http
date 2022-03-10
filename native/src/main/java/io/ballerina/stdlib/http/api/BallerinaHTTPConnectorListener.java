@@ -81,17 +81,14 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             if (inboundMessage.isInterceptorError()) {
                 HttpRequestInterceptorUnitCallback callback = new HttpRequestInterceptorUnitCallback(inboundMessage,
                                                               httpServicesRegistry.getRuntime(), this);
-                callback.sendFailureResponseToInterceptors(inboundMessage.getProperty
-                                                                            (HttpConstants.INTERCEPTOR_SERVICE_ERROR));
+                callback.returnErrorResponse(inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR));
             } else {
                 executeMainResourceOnMessage(inboundMessage);
             }
         } catch (Exception ex) {
-            // inboundMessage.waitAndReleaseAllEntities();
             HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
                                                 httpServicesRegistry.getRuntime(), null, null);
             callback.sendFailureResponseToInterceptors(HttpUtil.createError(ex), false);
-            // HttpUtil.handleFailure(inboundMessage, ex.getMessage());
         }
     }
 
@@ -266,8 +263,6 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
             }
         } catch (BallerinaConnectorException ex) {
-            // HttpUtil.handleFailure(inboundMessage, ex.getMessage());
-            // inboundMessage.waitAndReleaseAllEntities();
             HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
                                                 httpServicesRegistry.getRuntime(), null, null);
             callback.sendFailureResponseToInterceptors(HttpUtil.createError(ex), false);

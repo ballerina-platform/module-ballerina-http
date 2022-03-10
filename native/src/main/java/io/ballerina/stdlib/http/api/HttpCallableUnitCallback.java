@@ -100,6 +100,30 @@ public class HttpCallableUnitCallback implements Callback {
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
+    private void returnErrorResponse(BError error) {
+        Object[] paramFeed = new Object[4];
+        paramFeed[0] = error;
+        paramFeed[1] = true;
+        paramFeed[2] = requestMessage.getHttpStatusCode() != null ? requestMessage.getHttpStatusCode() : null;
+        paramFeed[3] = true;
+
+        Callback returnCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                stopObserverContext();
+                printStacktraceIfError(result);
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                sendFailureResponse(result);
+            }
+        };
+        runtime.invokeMethodAsyncSequentially(
+                caller, "returnErrorResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+    }
+
     private void stopObserverContext() {
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = (ObserverContext) requestMessage
@@ -129,7 +153,7 @@ public class HttpCallableUnitCallback implements Callback {
         if (printError) {
             error.printStackTrace();
         }
-        returnResponse(error);
+        returnErrorResponse(error);
     }
 
     public void sendFailureResponse(BError error) {
