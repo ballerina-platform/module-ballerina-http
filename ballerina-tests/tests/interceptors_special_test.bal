@@ -231,12 +231,12 @@ listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(req
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespondContinue(), new LastRequestInterceptor()]
 });
 
-string message = "Greetings from client";
+string message1 = "Greetings from client1";
 
 service / on requestInterceptorCallerRespondContinueServerEP {
 
     resource function 'default .() returns string {
-        message = "Hello from main service";
+        message1 = "Hello from main service";
         return "Response from resource - test";
     }
 }
@@ -247,7 +247,7 @@ function testRequestInterceptorCallerRespondContinue() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-caller-respond");
     assertTextPayload(check res.getTextPayload(), "Response from caller inside interceptor");
     runtime:sleep(5);
-    test:assertEquals(message, "Hello from main service");
+    test:assertEquals(message1, "Hello from main service");
 }
 
 final http:Client responseInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + responseInterceptorCallerRespondContinueTestPort.toString());
@@ -272,6 +272,30 @@ function testResponseInterceptorCallerRespondContinue() returns error? {
     assertHeaderValue(check res.getHeader("response-interceptor-caller-respond-continue"), "true");
     assertTextPayload(check res.getTextPayload(), "Response from caller inside response interceptor");
 }
+
+// final http:Client requestInterceptorCtxNextClientEP = check new("http://localhost:" + requestInterceptorCtxNextTestPort.toString());
+
+// listener http:Listener requestInterceptorCtxNextServerEP = new(requestInterceptorCtxNextTestPort, config = {
+//     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCtxNext(), new LastRequestInterceptor()]
+// });
+
+// string message2 = "Greetings from client2";
+
+// service / on requestInterceptorCtxNextServerEP {
+
+//     resource function 'default .() returns string {
+//         message2 = "Hello from main service";
+//         return "Response from resource - test";
+//     }
+// }
+
+// @test:Config{}
+// function testRequestInterceptorCtxNext() returns error? {
+//     http:Response res = check requestInterceptorCtxNextClientEP->get("/");
+//     test:assertEquals(res.statusCode, 202);
+//     runtime:sleep(5);
+//     test:assertEquals(message2, "Hello from main service");
+// }
 
 final http:Client requestInterceptorStringPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorStringPayloadBindingTestPort.toString());
 

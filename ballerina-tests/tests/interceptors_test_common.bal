@@ -225,6 +225,19 @@ service class RequestInterceptorSkip {
     }
 }
 
+service class RequestInterceptorCtxNext {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns error? {
+       req.setHeader("request-interceptor-ctx-next", "true");
+       ctx.set("last-interceptor", "request-interceptor-ctx-next");
+       http:NextService|error? nextService = ctx.next();
+       if (nextService is error) {
+           return nextService;
+       }
+    }
+}
+
 service class RequestInterceptorWithQueryParam {
     *http:RequestInterceptor;
 
