@@ -166,6 +166,10 @@ const int responseErrorInterceptorTestPort = 9616;
 const int responseInterceptorSetPayloadTestPort = 9617;
 const int requestInterceptorReturnsResponseTestPort = 9618;
 const int responseInterceptorReturnsResponseTestPort = 9619;
+const int responseInterceptorWithCallerRespondTestPort = 9620;
+const int responseInterceptorCallerRespondContinueTestPort = 9621;
+const int responseInterceptorWithoutCtxNextTestPort = 9622;
+const int responseInterceptorSkipTestPort = 9623;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;

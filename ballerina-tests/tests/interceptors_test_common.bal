@@ -334,34 +334,34 @@ service class ResponseInterceptorSetPayload {
     }
 }
 
+service class ResponseInterceptorWithoutCtxNext {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) {
+       res.setHeader("response-interceptor-without-ctx-next", "true");
+       res.setHeader("last-interceptor", "response-interceptor-without-ctx-next");
+       res.setTextPayload("Response from response interceptor");
+    }
+}
+
 service class ResponseInterceptorCallerRespond {
     *http:ResponseInterceptor;
 
     remote function interceptResponse(http:Caller caller, http:Response res) returns error? {
-        res.setHeader("last-interceptor", "response-interceptor-caller-respond");
+        res.setHeader("response-interceptor-caller-respond", "true");
         res.setTextPayload("Response from caller inside response interceptor");
         check caller->respond(res);
     }
 }
 
-service class ResponseInterceptorCallerRespondNext {
+service class ResponseInterceptorCallerRespondContinue {
     *http:ResponseInterceptor;
 
     remote function interceptResponse(http:Caller caller, http:Response res, http:RequestContext ctx) returns http:NextService|error? {
-        res.setHeader("last-interceptor", "response-interceptor-caller-respond");
+        res.setHeader("response-interceptor-caller-respond-continue", "true");
         res.setTextPayload("Response from caller inside response interceptor");
         check caller->respond(res);
         return ctx.next();
-    }
-}
-
-service class ResponseInterceptorReturnCallerRespond {
-    *http:ResponseInterceptor;
-
-    remote function interceptResponse(http:Caller caller, http:Response res) returns error? {
-        res.setHeader("last-interceptor", "response-interceptor-caller-respond");
-        res.setTextPayload("Response from caller inside response interceptor");
-        return caller->respond(res);
     }
 }
 
@@ -372,6 +372,20 @@ service class ResponseInterceptorReturnsError {
        res.setHeader("response-interceptor-error", "true");
        ctx.set("last-interceptor", "response-interceptor-error");
        return error("Response interceptor returns an error");
+    }
+}
+
+service class ResponseInterceptorSkip {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
+       res.setHeader("skip-interceptor", "true");
+       ctx.set("last-interceptor", "skip-interceptor");
+       http:NextService|error? nextService = ctx.next();
+       if (nextService is error) {
+           return nextService;
+       }
+       return ctx.next();
     }
 }
 
