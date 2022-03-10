@@ -126,14 +126,10 @@ public class HttpCallableUnitCallback implements Callback {
 
     public void sendFailureResponseToInterceptors(BError error, boolean printError) {
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        if (runtime != null) {
-            if (printError) {
-                error.printStackTrace();
-            }
-            returnResponse(error);
-        } else {
-            sendFailureResponse(error);
+        if (printError) {
+            error.printStackTrace();
         }
+        returnResponse(error);
     }
 
     public void sendFailureResponse(BError error) {

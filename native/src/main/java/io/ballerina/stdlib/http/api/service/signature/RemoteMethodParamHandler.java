@@ -3,7 +3,6 @@ package io.ballerina.stdlib.http.api.service.signature;
 import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.stdlib.http.api.HttpConstants;
-import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +18,6 @@ public class RemoteMethodParamHandler {
     private final Type[] paramTypes;
     private final RemoteMethodType remoteMethod;
     private final List<Parameter> otherParamList = new ArrayList<>();
-    private NonRecurringParam responseParam = null;
-    private NonRecurringParam requestContextParam = null;
-    private NonRecurringParam interceptorErrorParam = null;
-    private NonRecurringParam callerParam = null;
 
     private static final String RES_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.RESPONSE;
     private static final String REQUEST_CONTEXT_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST_CONTEXT;
@@ -40,43 +35,24 @@ public class RemoteMethodParamHandler {
             String typeName = parameterType.toString();
             switch (typeName) {
                 case REQUEST_CONTEXT_TYPE:
-                    if (this.requestContextParam == null) {
-                        this.requestContextParam = new NonRecurringParam(index, HttpConstants.REQUEST_CONTEXT);
-                        getOtherParamList().add(this.requestContextParam);
-                    } else {
-                        throw HttpUtil.createHttpError("invalid multiple '" + REQUEST_CONTEXT_TYPE
-                                + "' parameter");
-                    }
+                    NonRecurringParam requestContextParam = new NonRecurringParam(index, HttpConstants.REQUEST_CONTEXT);
+                    getOtherParamList().add(requestContextParam);
                     break;
                 case HttpConstants.STRUCT_GENERIC_ERROR:
-                    if (this.interceptorErrorParam == null) {
-                        this.interceptorErrorParam = new NonRecurringParam(index,
-                                HttpConstants.STRUCT_GENERIC_ERROR);
-                        getOtherParamList().add(this.interceptorErrorParam);
-                    } else {
-                        throw HttpUtil.createHttpError("invalid multiple '" +
-                                HttpConstants.STRUCT_GENERIC_ERROR + "' parameter");
-                    }
+                    NonRecurringParam interceptorErrorParam = new NonRecurringParam(index,
+                                                                                    HttpConstants.STRUCT_GENERIC_ERROR);
+                    getOtherParamList().add(interceptorErrorParam);
                     break;
                 case RES_TYPE:
-                    if (this.responseParam == null) {
-                        this.responseParam = new NonRecurringParam(index, HttpConstants.RESPONSE);
-                        getOtherParamList().add(this.responseParam);
-                    } else {
-                        throw HttpUtil.createHttpError("invalid multiple '" + RES_TYPE + "' parameter");
-                    }
+                    NonRecurringParam responseParam = new NonRecurringParam(index, HttpConstants.RESPONSE);
+                    getOtherParamList().add(responseParam);
                     break;
                 case CALLER_TYPE:
-                    if (this.callerParam == null) {
-                        this.callerParam = new NonRecurringParam(index, HttpConstants.CALLER);
-                        getOtherParamList().add(this.callerParam);
-                    } else {
-                        throw HttpUtil.createHttpError("invalid multiple '" + CALLER_TYPE + "' parameter");
-                    }
+                    NonRecurringParam callerParam = new NonRecurringParam(index, HttpConstants.CALLER);
+                    getOtherParamList().add(callerParam);
                     break;
                 default:
-                    throw  HttpUtil.createHttpError("unsupported signature parameter type : '" +
-                            typeName + "'");
+                    break;
             }
         }
     }
