@@ -84,7 +84,7 @@ function testDefaultResponseInterceptor() returns error? {
 final http:Client requestInterceptorReturnsErrorClientEP = check new("http://localhost:" + requestInterceptorReturnsErrorTestPort.toString());
 
 listener http:Listener requestInterceptorReturnsErrorServerEP = new(requestInterceptorReturnsErrorTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorPanicsError(), new LastRequestInterceptor()]
+    interceptors : [new LastResponseInterceptor(), new DefaultRequestInterceptor(), new DefaultResponseInterceptor(), new RequestInterceptorPanicsError(), new LastRequestInterceptor()]
 });
 
 service / on requestInterceptorReturnsErrorServerEP {
@@ -131,6 +131,7 @@ service / on requestErrorInterceptorServerEP {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
+        res.setTextPayload(check req.getTextPayload());
         string default_interceptor_header = req.hasHeader("default-request-interceptor") ? "true" : "false";
         res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
         res.setHeader("default-request-interceptor", default_interceptor_header);
@@ -144,6 +145,8 @@ service / on requestErrorInterceptorServerEP {
 @test:Config{}
 function testRequestErrorInterceptor() returns error? {
     http:Response res = check requestErrorInterceptorClientEP->get("/");
+    test:assertEquals(res.statusCode, 200);
+    assertTextPayload(check res.getTextPayload(), "Request interceptor returns an error");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-request-error-interceptor");
     assertHeaderValue(check res.getHeader("default-request-interceptor"), "false");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
@@ -154,10 +157,23 @@ function testRequestErrorInterceptor() returns error? {
 final http:Client responseErrorInterceptorClientEP = check new("http://localhost:" + responseErrorInterceptorTestPort.toString());
 
 listener http:Listener responseErrorInterceptorServerEP = new(responseErrorInterceptorTestPort, config = {
-    interceptors : [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(), new ResponseInterceptorPanicsError()]
+    interceptors : [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor()]
 });
 
-service / on responseErrorInterceptorServerEP {
+@http:ServiceConfig{
+    interceptors: [new ResponseInterceptorPanicsError()]
+}
+service /responseError on responseErrorInterceptorServerEP {
+
+    resource function 'default .() returns string {
+        return "Response from resource - test";
+    }
+}
+
+@http:ServiceConfig{
+    interceptors: [new RequestInterceptorPanicsError(), new DefaultRequestInterceptor(), new LastRequestInterceptor()]
+}
+service /requestError on responseErrorInterceptorServerEP {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -166,7 +182,16 @@ service / on responseErrorInterceptorServerEP {
 
 @test:Config{}
 function testResponseErrorInterceptor() returns error? {
-    http:Response res = check responseErrorInterceptorClientEP->get("/");
+    http:Response res = check responseErrorInterceptorClientEP->get("/responseError");
+    test:assertEquals(res.statusCode, 200);
+    assertTextPayload(check res.getTextPayload(), "Response interceptor returns an error");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+
+    res = check responseErrorInterceptorClientEP->get("/requestError");
+    test:assertEquals(res.statusCode, 200);
+    assertTextPayload(check res.getTextPayload(), "Request interceptor returns an error");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
@@ -197,7 +222,7 @@ function testRequestInterceptorSetPayload() returns error? {
     req.setHeader("interceptor", "databinding-interceptor");
     req.setTextPayload("Request from Client");
     http:Response res = check requestInterceptorSetPayloadClientEP->post("/", req);
-    assertTextPayload(check res.getTextPayload(), "Text payload from interceptor");
+    assertTextPayload(check res.getTextPayload(), "Text payload from request interceptor");
     assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-setpayload");
     assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
@@ -224,7 +249,7 @@ function testResponseInterceptorSetPayload() returns error? {
     http:Request req = new();
     req.setTextPayload("Request from Client");
     http:Response res = check responseInterceptorSetPayloadClientEP->post("/", req);
-    assertTextPayload(check res.getTextPayload(), "Text payload from interceptor");
+    assertTextPayload(check res.getTextPayload(), "Text payload from response interceptor");
     assertHeaderValue(check res.getHeader("last-interceptor"), "response-interceptor-setpayload");
     assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");

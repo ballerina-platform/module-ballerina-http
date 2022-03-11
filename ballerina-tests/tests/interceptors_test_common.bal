@@ -78,7 +78,7 @@ service class RequestInterceptorSetPayload {
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("request-interceptor-setpayload", "true");
-       req.setTextPayload("Text payload from interceptor");
+       req.setTextPayload("Text payload from request interceptor");
        ctx.set("last-interceptor", "request-interceptor-setpayload");
        return ctx.next();
     }
@@ -89,7 +89,7 @@ service class RequestInterceptorCallerRespond {
 
     resource function 'default [string... path](http:Caller caller, http:Request request) returns error? {
         http:Response res = new();
-        res.setHeader("last-interceptor", "request-interceptor-caller-respond");
+        res.setHeader("request-interceptor-caller-respond", "true");
         res.setTextPayload("Response from caller inside interceptor");
         check caller->respond(res);
     }
@@ -341,7 +341,7 @@ service class ResponseInterceptorSetPayload {
 
     remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
        res.setHeader("response-interceptor-setpayload", "true");
-       res.setTextPayload("Text payload from interceptor");
+       res.setTextPayload("Text payload from response interceptor");
        ctx.set("last-interceptor", "response-interceptor-setpayload");
        return ctx.next();
     }
@@ -402,6 +402,25 @@ service class ResponseInterceptorSkip {
     }
 }
 
+service class ResponseInterceptorWithVariable {
+    *http:ResponseInterceptor;
+    string name;
+
+    function init(string name) {
+        self.name = name;
+    }
+
+    function getName() returns string {
+        return self.name;
+    }
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
+       res.setHeader(self.getName(), "true");
+       ctx.set("last-interceptor", self.getName());
+       return ctx.next();
+    }
+}
+
 service class LastResponseInterceptor {
     *http:ResponseInterceptor;
 
@@ -431,6 +450,7 @@ service class DefaultResponseErrorInterceptor {
     *http:ResponseErrorInterceptor;
 
     remote function interceptResponseError(http:RequestContext ctx, http:Response res, error err) returns http:NextService|error? {
+       res.statusCode = 200;
        res.setHeader("default-response-error-interceptor", "true");
        res.setTextPayload(err.message());
        ctx.set("last-interceptor", "default-response-error-interceptor");

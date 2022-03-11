@@ -22,7 +22,7 @@ import ballerina/lang.'string as strings;
 final http:Client requestInterceptorWithCallerRespondClientEP = check new("http://localhost:" + requestInterceptorWithCallerRespondTestPort.toString());
 
 listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespond(), new LastRequestInterceptor()]
+    interceptors : [new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCallerRespond(), new LastRequestInterceptor(), new DefaultResponseInterceptor()]
 });
 
 service / on requestInterceptorWithCallerRespondServerEP {
@@ -35,7 +35,10 @@ service / on requestInterceptorWithCallerRespondServerEP {
 @test:Config{}
 function testRequestInterceptorWithCallerRespond() returns error? {
     http:Response res = check requestInterceptorWithCallerRespondClientEP->get("/");
-    assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-caller-respond");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("request-interceptor-caller-respond"), "true");
     assertTextPayload(check res.getTextPayload(), "Response from caller inside interceptor");
 }
 
