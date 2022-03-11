@@ -84,7 +84,7 @@ function testDefaultResponseInterceptor() returns error? {
 final http:Client requestInterceptorReturnsErrorClientEP = check new("http://localhost:" + requestInterceptorReturnsErrorTestPort.toString());
 
 listener http:Listener requestInterceptorReturnsErrorServerEP = new(requestInterceptorReturnsErrorTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorReturnsError(), new LastRequestInterceptor()]
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorPanicsError(), new LastRequestInterceptor()]
 });
 
 service / on requestInterceptorReturnsErrorServerEP {
@@ -104,7 +104,7 @@ function testRequestInterceptorReturnsError() returns error? {
 final http:Client responseInterceptorReturnsErrorClientEP = check new("http://localhost:" + responseInterceptorReturnsErrorTestPort.toString());
 
 listener http:Listener responseInterceptorReturnsErrorServerEP = new(responseInterceptorReturnsErrorTestPort, config = {
-    interceptors : [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()]
+    interceptors : [new LastResponseInterceptor(), new ResponseInterceptorPanicsError(), new DefaultResponseInterceptor()]
 });
 
 service / on responseInterceptorReturnsErrorServerEP {
@@ -124,7 +124,7 @@ function testResponseInterceptorReturnsError() returns error? {
 final http:Client requestErrorInterceptorClientEP = check new("http://localhost:" + requestErrorInterceptorTestPort.toString());
 
 listener http:Listener requestErrorInterceptorServerEP = new(requestErrorInterceptorTestPort, config = {
-    interceptors : [new RequestInterceptorReturnsError(), new DefaultRequestInterceptor(), new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()]
+    interceptors : [new RequestInterceptorPanicsError(), new DefaultRequestInterceptor(), new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()]
 });
 
 service / on requestErrorInterceptorServerEP {
@@ -154,7 +154,7 @@ function testRequestErrorInterceptor() returns error? {
 final http:Client responseErrorInterceptorClientEP = check new("http://localhost:" + responseErrorInterceptorTestPort.toString());
 
 listener http:Listener responseErrorInterceptorServerEP = new(responseErrorInterceptorTestPort, config = {
-    interceptors : [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(), new ResponseInterceptorReturnsError()]
+    interceptors : [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(), new ResponseInterceptorPanicsError()]
 });
 
 service / on responseErrorInterceptorServerEP {

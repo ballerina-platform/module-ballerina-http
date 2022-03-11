@@ -54,11 +54,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     @Override
     public void notifySuccess(Object result) {
         printStacktraceIfError(result);
-        if (result instanceof BError) {
-            notifyFailure((BError) result);
-        } else {
-            validateResponseAndProceed(result);
-        }
+        validateResponseAndProceed(result);
     }
 
     @Override
