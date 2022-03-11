@@ -84,7 +84,10 @@ function testDefaultResponseInterceptor() returns error? {
 final http:Client requestInterceptorReturnsErrorClientEP = check new("http://localhost:" + requestInterceptorReturnsErrorTestPort.toString());
 
 listener http:Listener requestInterceptorReturnsErrorServerEP = new(requestInterceptorReturnsErrorTestPort, config = {
-    interceptors : [new LastResponseInterceptor(), new DefaultRequestInterceptor(), new DefaultResponseInterceptor(), new RequestInterceptorPanicsError(), new LastRequestInterceptor()]
+    interceptors : [
+        new LastResponseInterceptor(), new DefaultRequestInterceptor(), new DefaultResponseInterceptor(), 
+        new RequestInterceptorPanicsError(), new LastRequestInterceptor()
+    ]
 });
 
 service / on requestInterceptorReturnsErrorServerEP {
@@ -124,7 +127,10 @@ function testResponseInterceptorReturnsError() returns error? {
 final http:Client requestErrorInterceptorClientEP = check new("http://localhost:" + requestErrorInterceptorTestPort.toString());
 
 listener http:Listener requestErrorInterceptorServerEP = new(requestErrorInterceptorTestPort, config = {
-    interceptors : [new RequestInterceptorPanicsError(), new DefaultRequestInterceptor(), new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()]
+    interceptors : [
+        new RequestInterceptorPanicsError(), new DefaultRequestInterceptor(), new DefaultRequestErrorInterceptor(), 
+        new LastRequestInterceptor()
+    ]
 });
 
 service / on requestErrorInterceptorServerEP {
@@ -305,7 +311,10 @@ function testResponseInterceptorReturnsResponse() returns error? {
 final http:Client requestInterceptorHttpVerbClientEP = check new("http://localhost:" + requestInterceptorHttpVerbTestPort.toString());
 
 listener http:Listener requestInterceptorHttpVerbServerEP = new(requestInterceptorHttpVerbTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptor(), new PostRequestInterceptor(), new LastRequestInterceptor()]
+    interceptors : [
+        new DefaultRequestInterceptor(), new GetRequestInterceptor(), new PostRequestInterceptor(), 
+        new LastRequestInterceptor()
+    ]
 });
 
 service / on requestInterceptorHttpVerbServerEP {

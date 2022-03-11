@@ -20,8 +20,10 @@
 // final http:Client noServiceRegisteredClientEP = check new("http://localhost:" + noServiceRegisteredTestPort.toString());
 
 // listener http:Listener noServiceRegisteredServerEP = new(noServiceRegisteredTestPort, config = {
-//     interceptors : [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(), 
-//                     new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()]
+//     interceptors : [
+//         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(), 
+//         new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
+//     ]
 // });
 
 // @test:Config{}
@@ -37,8 +39,10 @@
 // final http:Client serviceErrorHandlingClientEP = check new("http://localhost:" + serviceErrorHandlingTestPort.toString());
 
 // listener http:Listener serviceErrorHandlingServerEP = new(serviceErrorHandlingTestPort, config = {
-//     interceptors : [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(), 
-//                     new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()]
+//     interceptors : [
+//         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(), 
+//         new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
+//     ]
 // });
 
 // service /foo on serviceErrorHandlingServerEP {

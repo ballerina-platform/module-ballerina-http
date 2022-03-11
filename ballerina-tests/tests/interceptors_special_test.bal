@@ -22,7 +22,10 @@ import ballerina/lang.'string as strings;
 final http:Client requestInterceptorWithCallerRespondClientEP = check new("http://localhost:" + requestInterceptorWithCallerRespondTestPort.toString());
 
 listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, config = {
-    interceptors : [new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCallerRespond(), new LastRequestInterceptor(), new DefaultResponseInterceptor()]
+    interceptors : [
+        new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCallerRespond(), 
+        new LastRequestInterceptor(), new DefaultResponseInterceptor()
+    ]
 });
 
 service / on requestInterceptorWithCallerRespondServerEP {
@@ -209,7 +212,10 @@ function testRequestInterceptorSkip() returns error? {
 // final http:Client responseInterceptorSkipClientEP = check new("http://localhost:" + responseInterceptorSkipTestPort.toString());
 
 // listener http:Listener responseInterceptorSkipServerEP = new(responseInterceptorSkipTestPort, config = {
-//     interceptors : [new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new ResponseInterceptorSkip(), new DefaultResponseInterceptor()]
+//     interceptors : [
+//         new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new ResponseInterceptorSkip(), 
+//         new DefaultResponseInterceptor()
+//     ]
 // });
 
 // service / on responseInterceptorSkipServerEP {

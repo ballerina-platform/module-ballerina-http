@@ -20,11 +20,17 @@ import ballerina/test;
 final http:Client requestInterceptorServiceConfigClientEP1 = check new("http://localhost:" + requestInterceptorServiceConfigTestPort1.toString());
 
 listener http:Listener requestInterceptorServiceConfigServerEP1 = new(requestInterceptorServiceConfigTestPort1, config = {
-    interceptors : [new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorWithVariable("request-interceptor-listener"), new ResponseInterceptorWithVariable("response-interceptor-listener"), new DefaultResponseInterceptor()]
+    interceptors: [
+        new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorWithVariable("request-interceptor-listener"), 
+        new ResponseInterceptorWithVariable("response-interceptor-listener"), new DefaultResponseInterceptor()
+    ]
 });
 
 @http:ServiceConfig {
-    interceptors : [new RequestInterceptorWithVariable("request-interceptor-service-foo"), new LastRequestInterceptor(), new ResponseInterceptorWithVariable("response-interceptor-service-foo")]
+    interceptors : [
+        new RequestInterceptorWithVariable("request-interceptor-service-foo"), new LastRequestInterceptor(), 
+        new ResponseInterceptorWithVariable("response-interceptor-service-foo")
+    ]
 }
 service /foo on requestInterceptorServiceConfigServerEP1 {
 
@@ -40,8 +46,10 @@ service /foo on requestInterceptorServiceConfigServerEP1 {
 }
 
 @http:ServiceConfig {
-    interceptors : [new RequestInterceptorPanicsError(), new DefaultRequestErrorInterceptor(), new RequestInterceptorWithVariable("request-interceptor-service-bar"), new LastRequestInterceptor(), 
-                    new ResponseInterceptorWithVariable("response-interceptor-service-bar"), new DefaultResponseErrorInterceptor()]
+    interceptors : [
+        new RequestInterceptorPanicsError(), new DefaultRequestErrorInterceptor(), new RequestInterceptorWithVariable("request-interceptor-service-bar"), 
+        new LastRequestInterceptor(), new ResponseInterceptorWithVariable("response-interceptor-service-bar"), new DefaultResponseErrorInterceptor()
+    ]
 }
 service /bar on requestInterceptorServiceConfigServerEP1 {
 
@@ -108,7 +116,10 @@ final http:Client requestInterceptorServiceConfigClientEP2 = check new("http://l
 listener http:Listener requestInterceptorServiceConfigServerEP2 = new(requestInterceptorServiceConfigTestPort2);
 
 @http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSetPayload(), new LastResponseInterceptor(), new ResponseInterceptorWithVariable("response-interceptor-service-foo"), new RequestInterceptorWithVariable("request-interceptor-service-foo"), new LastRequestInterceptor(), new DefaultResponseInterceptor()]
+    interceptors : [
+        new DefaultRequestInterceptor(), new RequestInterceptorSetPayload(), new LastResponseInterceptor(), new ResponseInterceptorWithVariable("response-interceptor-service-foo"), 
+        new RequestInterceptorWithVariable("request-interceptor-service-foo"), new LastRequestInterceptor(), new DefaultResponseInterceptor()
+    ]
 }
 service /foo on requestInterceptorServiceConfigServerEP2 {
 
@@ -125,7 +136,10 @@ service /foo on requestInterceptorServiceConfigServerEP2 {
 }
 
 @http:ServiceConfig {
-    interceptors : [new LastResponseInterceptor(), new ResponseInterceptorWithVariable("response-interceptor-service-bar"), new RequestInterceptorWithVariable("request-interceptor-service-bar"), new LastRequestInterceptor(), new ResponseInterceptorSetPayload()]
+    interceptors : [
+        new LastResponseInterceptor(), new ResponseInterceptorWithVariable("response-interceptor-service-bar"), 
+        new RequestInterceptorWithVariable("request-interceptor-service-bar"), new LastRequestInterceptor(), new ResponseInterceptorSetPayload()
+    ]
 }
 service /bar on requestInterceptorServiceConfigServerEP2 {
 
