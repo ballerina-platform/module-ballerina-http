@@ -66,7 +66,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     public void notifyFailure(BError error) { // handles panic and check_panic
         // This check is added to release the failure path since there is an authn/authz failure and responded
         // with 401/403 internally.
-        if (error.getMessage().equals("Already responded by auth desugar.")) {
+        if (error.getType().getName().equals(HttpErrorType.DESUGAR_AUTH_ERROR.getErrorName())) {
             return;
         }
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
