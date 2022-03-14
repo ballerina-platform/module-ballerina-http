@@ -45,28 +45,28 @@ function testRequestInterceptorWithCallerRespond() returns error? {
     assertTextPayload(check res.getTextPayload(), "Response from caller inside interceptor");
 }
 
-// final http:Client responseInterceptorWithCallerRespondClientEP = check new("http://localhost:" + responseInterceptorWithCallerRespondTestPort.toString());
+final http:Client responseInterceptorWithCallerRespondClientEP = check new("http://localhost:" + responseInterceptorWithCallerRespondTestPort.toString());
 
-// listener http:Listener responseInterceptorWithCallerRespondServerEP = new(responseInterceptorWithCallerRespondTestPort, config = {
-//     interceptors : [new LastResponseInterceptor(), new ResponseInterceptorCallerRespond(), new DefaultResponseInterceptor()]
-// });
+listener http:Listener responseInterceptorWithCallerRespondServerEP = new(responseInterceptorWithCallerRespondTestPort, config = {
+    interceptors : [new LastResponseInterceptor(), new ResponseInterceptorCallerRespond(), new DefaultResponseInterceptor()]
+});
 
-// service / on responseInterceptorWithCallerRespondServerEP {
+service / on responseInterceptorWithCallerRespondServerEP {
 
-//     resource function 'default test() returns string {
-//         return "Response from resource - test";
-//     }
-// }
+    resource function 'default test() returns string {
+        return "Response from resource - test";
+    }
+}
 
-// @test:Config{}
-// function testResponseInterceptorWithCallerRespond() returns error? {
-//     http:Response res = check responseInterceptorWithCallerRespondClientEP->get("/test");
-//     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-interceptor");
-//     assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
-//     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
-//     assertHeaderValue(check res.getHeader("response-interceptor-caller-respond"), "true");
-//     assertTextPayload(check res.getTextPayload(), "Response from caller inside response interceptor");
-// }
+@test:Config{}
+function testResponseInterceptorWithCallerRespond() returns error? {
+    http:Response res = check responseInterceptorWithCallerRespondClientEP->get("/test");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("response-interceptor-caller-respond"), "true");
+    assertTextPayload(check res.getTextPayload(), "Response from caller inside response interceptor");
+}
 
 final http:Client requestInterceptorDataBindingClientEP1 = check new("http://localhost:" + requestInterceptorDataBindingTestPort1.toString());
 
@@ -162,27 +162,27 @@ function testRequestInterceptorWithoutCtxNext() returns error? {
     test:assertEquals(res.statusCode, 202);
 }
 
-// final http:Client responseInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + responseInterceptorWithoutCtxNextTestPort.toString());
+final http:Client responseInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + responseInterceptorWithoutCtxNextTestPort.toString());
 
-// listener http:Listener responseInterceptorWithoutCtxNextServerEP = new(responseInterceptorWithoutCtxNextTestPort, config = {
-//     interceptors : [new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new DefaultResponseInterceptor()]
-// });
+listener http:Listener responseInterceptorWithoutCtxNextServerEP = new(responseInterceptorWithoutCtxNextTestPort, config = {
+    interceptors : [new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new DefaultResponseInterceptor()]
+});
 
-// service / on responseInterceptorWithoutCtxNextServerEP {
+service / on responseInterceptorWithoutCtxNextServerEP {
 
-//     resource function 'default .() returns string {
-//         return "Response from resource - test";
-//     }
-// }
+    resource function 'default .() returns string {
+        return "Response from resource - test";
+    }
+}
 
-// @test:Config{}
-// function testResponseInterceptorWithoutCtxNext() returns error? {
-//     http:Response res = check responseInterceptorWithoutCtxNextClientEP->get("/");
-//     assertHeaderValue(check res.getHeader("last-interceptor"), "response-interceptor-without-ctx-next");
-//     assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
-//     assertHeaderValue(check res.getHeader("response-interceptor-without-ctx-next"), "true");
-//     assertTextPayload(check res.getTextPayload(), "Response from response interceptor");
-// }
+@test:Config{}
+function testResponseInterceptorWithoutCtxNext() returns error? {
+    http:Response res = check responseInterceptorWithoutCtxNextClientEP->get("/");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "response-interceptor-without-ctx-next");
+    assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("response-interceptor-without-ctx-next"), "true");
+    assertTextPayload(check res.getTextPayload(), "Response from response interceptor");
+}
 
 final http:Client requestInterceptorSkipClientEP = check new("http://localhost:" + requestInterceptorSkipTestPort.toString());
 
@@ -209,30 +209,30 @@ function testRequestInterceptorSkip() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
-// final http:Client responseInterceptorSkipClientEP = check new("http://localhost:" + responseInterceptorSkipTestPort.toString());
+final http:Client responseInterceptorSkipClientEP = check new("http://localhost:" + responseInterceptorSkipTestPort.toString());
 
-// listener http:Listener responseInterceptorSkipServerEP = new(responseInterceptorSkipTestPort, config = {
-//     interceptors : [
-//         new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new ResponseInterceptorSkip(), 
-//         new DefaultResponseInterceptor()
-//     ]
-// });
+listener http:Listener responseInterceptorSkipServerEP = new(responseInterceptorSkipTestPort, config = {
+    interceptors : [
+        new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new ResponseInterceptorSkip(), 
+        new DefaultResponseInterceptor()
+    ]
+});
 
-// service / on responseInterceptorSkipServerEP {
+service / on responseInterceptorSkipServerEP {
 
-//     resource function 'default .() returns string {
-//         return "Response from resource - test";
-//     }
-// }
+    resource function 'default .() returns string {
+        return "Response from resource - test";
+    }
+}
 
-// @test:Config{}
-// function testResponseInterceptorSkip() returns error? {
-//     http:Response res = check responseInterceptorSkipClientEP->get("/");
-//     assertHeaderValue(check res.getHeader("last-interceptor"), "skip-interceptor");
-//     assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
-//     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
-//     assertHeaderValue(check res.getHeader("skip-interceptor"), "true");
-// }
+@test:Config{}
+function testResponseInterceptorSkip() returns error? {
+    http:Response res = check responseInterceptorSkipClientEP->get("/");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "skip-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("skip-interceptor"), "true");
+}
 
 final http:Client requestInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + requestInterceptorCallerRespondContinueTestPort.toString());
 
@@ -240,12 +240,14 @@ listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(req
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespondContinue(), new LastRequestInterceptor()]
 });
 
-string message1 = "Greetings from client1";
+isolated string message1 = "Greetings from client1";
 
 service / on requestInterceptorCallerRespondContinueServerEP {
 
     resource function 'default .() returns string {
-        message1 = "Hello from main service";
+        lock {
+            message1 = "Hello from main service";
+        }
         return "Response from resource - test";
     }
 }
@@ -256,7 +258,9 @@ function testRequestInterceptorCallerRespondContinue() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-caller-respond");
     assertTextPayload(check res.getTextPayload(), "Response from caller inside interceptor");
     runtime:sleep(5);
-    test:assertEquals(message1, "Hello from main service");
+    lock {
+        test:assertEquals(message1, "Hello from main service");
+    }
 }
 
 final http:Client responseInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + responseInterceptorCallerRespondContinueTestPort.toString());
@@ -282,29 +286,33 @@ function testResponseInterceptorCallerRespondContinue() returns error? {
     assertTextPayload(check res.getTextPayload(), "Response from caller inside response interceptor");
 }
 
-// final http:Client requestInterceptorCtxNextClientEP = check new("http://localhost:" + requestInterceptorCtxNextTestPort.toString());
+final http:Client requestInterceptorCtxNextClientEP = check new("http://localhost:" + requestInterceptorCtxNextTestPort.toString());
 
-// listener http:Listener requestInterceptorCtxNextServerEP = new(requestInterceptorCtxNextTestPort, config = {
-//     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCtxNext(), new LastRequestInterceptor()]
-// });
+listener http:Listener requestInterceptorCtxNextServerEP = new(requestInterceptorCtxNextTestPort, config = {
+    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCtxNext(), new LastRequestInterceptor()]
+});
 
-// string message2 = "Greetings from client2";
+isolated string message2 = "Greetings from client2";
 
-// service / on requestInterceptorCtxNextServerEP {
+service / on requestInterceptorCtxNextServerEP {
 
-//     resource function 'default .() returns string {
-//         message2 = "Hello from main service";
-//         return "Response from resource - test";
-//     }
-// }
+    resource function 'default .() returns string {
+        lock{
+            message2 = "Hello from main service";
+        }
+        return "Response from resource - test";
+    }
+}
 
-// @test:Config{}
-// function testRequestInterceptorCtxNext() returns error? {
-//     http:Response res = check requestInterceptorCtxNextClientEP->get("/");
-//     test:assertEquals(res.statusCode, 202);
-//     runtime:sleep(5);
-//     test:assertEquals(message2, "Hello from main service");
-// }
+@test:Config{}
+function testRequestInterceptorCtxNext() returns error? {
+    http:Response res = check requestInterceptorCtxNextClientEP->get("/");
+    test:assertEquals(res.statusCode, 202);
+    runtime:sleep(5);
+    lock{
+        test:assertEquals(message2, "Hello from main service");
+    }
+}
 
 final http:Client requestInterceptorStringPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorStringPayloadBindingTestPort.toString());
 

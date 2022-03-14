@@ -252,7 +252,7 @@ service class RequestInterceptorWithQueryParam {
 
 service class RequestInterceptorWithVariable {
     *http:RequestInterceptor;
-    string name;
+    final string name;
 
     function init(string name) {
         self.name = name;
@@ -404,7 +404,7 @@ service class ResponseInterceptorSkip {
 
 service class ResponseInterceptorWithVariable {
     *http:ResponseInterceptor;
-    string name;
+    final string name;
 
     function init(string name) {
         self.name = name;
