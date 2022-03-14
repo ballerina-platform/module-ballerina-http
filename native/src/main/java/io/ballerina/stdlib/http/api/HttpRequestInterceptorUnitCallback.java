@@ -133,9 +133,17 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
 
         if (isServiceType(result)) {
             validateServiceReturnType(result, interceptorId, interceptors);
+        } else if (isServiceError(result)) {
+            requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, result);
+            returnErrorResponse(result);
         } else {
             returnResponse(result);
         }
+    }
+
+    private boolean isServiceError(Object result) {
+        return requestCtx.getNativeData(HttpConstants.TARGET_SERVICE) instanceof BError &&
+                result.equals(requestCtx.getNativeData(HttpConstants.TARGET_SERVICE));
     }
 
     private boolean isServiceType(Object result) {

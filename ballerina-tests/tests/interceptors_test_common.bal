@@ -450,7 +450,9 @@ service class DefaultResponseErrorInterceptor {
     *http:ResponseErrorInterceptor;
 
     remote function interceptResponseError(http:RequestContext ctx, http:Response res, error err) returns http:NextService|error? {
-       res.statusCode = 200;
+       if (res.statusCode == 500) {
+           res.statusCode = 200;
+       }
        res.setHeader("default-response-error-interceptor", "true");
        res.setTextPayload(err.message());
        ctx.set("last-interceptor", "default-response-error-interceptor");
