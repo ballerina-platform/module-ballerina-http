@@ -78,20 +78,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         paramFeed[2] = requestMessage.getHttpStatusCode() != null ? requestMessage.getHttpStatusCode() : null;
         paramFeed[3] = true;
 
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                printStacktraceIfError(result);
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
-                sendFailureResponse(result);
-            }
-        };
-        runtime.invokeMethodAsyncSequentially(
-                caller, "returnErrorResponse", null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        invokeBalMethod(paramFeed, "returnErrorResponse");
     }
 
     private void sendFailureResponse(BError error) {
@@ -188,6 +175,10 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         paramFeed[4] = null;
         paramFeed[5] = true;
 
+        invokeBalMethod(paramFeed, "returnResponse");
+    }
+
+    private void invokeBalMethod(Object[] paramFeed, String methodName) {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
@@ -200,7 +191,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
             }
         };
         runtime.invokeMethodAsyncSequentially(
-                caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 

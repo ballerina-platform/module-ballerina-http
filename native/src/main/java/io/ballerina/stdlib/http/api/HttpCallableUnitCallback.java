@@ -83,21 +83,7 @@ public class HttpCallableUnitCallback implements Callback {
         paramFeed[4] = cacheConfig;
         paramFeed[5] = true;
 
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                stopObserverContext();
-                printStacktraceIfError(result);
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
-                sendFailureResponse(result);
-            }
-        };
-        runtime.invokeMethodAsyncSequentially(
-                caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        invokeBalMethod(paramFeed, "returnResponse");
     }
 
     private void returnErrorResponse(BError error) {
@@ -107,6 +93,10 @@ public class HttpCallableUnitCallback implements Callback {
         paramFeed[2] = requestMessage.getHttpStatusCode() != null ? requestMessage.getHttpStatusCode() : null;
         paramFeed[3] = true;
 
+        invokeBalMethod(paramFeed, "returnErrorResponse");
+    }
+
+    private void invokeBalMethod(Object[] paramFeed, String methodName) {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
@@ -120,7 +110,7 @@ public class HttpCallableUnitCallback implements Callback {
             }
         };
         runtime.invokeMethodAsyncSequentially(
-                caller, "returnErrorResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
