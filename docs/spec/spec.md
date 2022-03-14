@@ -84,13 +84,13 @@ The conforming implementation of the specification is released and included in t
             * 8.1.1.2. [Next method](#8112-next-method)
             * 8.1.1.3. [Return to respond](#8113-return-to-respond)
         * 8.1.2. [Response interceptor](#812-response-interceptor)
-            * 8.1.2.1. [Return to respond](#8113-return-to-respond)
+            * 8.1.2.1. [Return to respond](#8121-return-to-respond)
         * 8.1.3. [Request error interceptor and response error interceptor](#813-request-error-interceptor-and-response-error-interceptor)
-        * 8.1.4. [Engaging interceptor](#813-engaging-interceptors)
-            * 8.1.4.1. [Service level](#8131-service-level)
-            * 8.1.4.2. [Listener level](#8132-listener-level)
-            * 8.1.4.3. [Execution order of interceptors](#8133-execution-order-of-interceptors)
-        * 8.1.5. [Data binding](#814-data-binding)
+        * 8.1.4. [Engaging interceptor](#814-engaging-interceptors)
+            * 8.1.4.1. [Service level](#8141-service-level)
+            * 8.1.4.2. [Listener level](#8142-listener-level)
+            * 8.1.4.3. [Execution order of interceptors](#8143-execution-order-of-interceptors)
+        * 8.1.5. [Data binding](#815-data-binding)
      * 8.2. [Error handling](#82-error-handling)
         * 8.2.1. [Trace log](#821-trace-log)
         * 8.2.2. [Access log](#822-access-log)
@@ -1666,8 +1666,8 @@ In the case of an error returned within an error interceptor, again execution ju
 However, if there is no error interceptor to jump to, the internal error response is returned just like in a normal 
 interceptors.
 
-#### 8.1.3 Engaging Interceptors
-##### 8.1.3.1 Service Level
+#### 8.1.4 Engaging Interceptors
+##### 8.1.4.1 Service Level
 Interceptors could get engaged at service level. One reason for this is that users may want to engage two different 
 interceptor chains for each service even though it is attached to the same Listener. At the service level resource 
 function paths are relative to the service base path.
@@ -1677,14 +1677,14 @@ function paths are relative to the service base path.
 }
 ```
 
-##### 8.1.3.2 Listener Level
+##### 8.1.4.2 Listener Level
 Interceptors could get engaged at Listener level as well. At the listener level resource function paths are 
 relative to the /.
 ```ballerina
 listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: [requestInterceptor, responseInterceptor]});
 ```
 
-##### 8.1.3.3 Execution Order of Interceptors
+##### 8.1.4.3 Execution Order of Interceptors
 
 ![img.png](_resources/img.png)
 In the above example blue dashed box represents the `RequestErrorInterceptor` and blue boxes simply represent the 
@@ -1702,7 +1702,7 @@ ListenerLevel : RequestInterceptors -> ServiceLevel : RequestInterceptors -> Tar
 ServiceLevel : ResponseInterceptors -> ListenerLevel : ResponseInterceptors
 ```
 
-#### 8.1.4 Data Binding
+#### 8.1.5 Data Binding
 `RequestInterceptor` methods support data binding. Which means users can directly access the payload, headers and query
 parameters. In order to get hold of the headers and the payload, users must use @http:Payload and @http:Headers.
 
