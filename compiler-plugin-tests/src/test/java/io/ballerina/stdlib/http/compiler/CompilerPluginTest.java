@@ -33,7 +33,46 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.*;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_101;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_102;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_103;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_104;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_106;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_107;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_108;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_109;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_110;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_111;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_112;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_113;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_114;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_115;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_116;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_117;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_118;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_119;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_120;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_121;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_122;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_123;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_124;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_125;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_126;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_127;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_128;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_129;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_130;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_131;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_132;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_134;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_135;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_136;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_137;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_138;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_139;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_140;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_141;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_142;
 
 /**
  * This class includes tests for Ballerina Http compiler plugin.
