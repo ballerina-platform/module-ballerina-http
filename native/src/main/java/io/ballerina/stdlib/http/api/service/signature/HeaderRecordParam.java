@@ -19,7 +19,6 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
@@ -29,9 +28,9 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 import java.util.List;
 
 /**
- * {@code {@link HeaderRecordParam }} represents a inbound request header parameter details.
+ * {@code {@link HeaderRecordParam }} represents a inbound request header record parameter details.
  *
- * @since sl-alpha3
+ * @since sl-update1
  */
 public class HeaderRecordParam extends HeaderParam {
     private final List<String> keys;
@@ -42,7 +41,7 @@ public class HeaderRecordParam extends HeaderParam {
         super(token);
         this.type = type;
         this.keys = keys;
-        this.fields = fields;
+        this.fields = fields.clone();
     }
 
     public RecordType getType() {
@@ -100,15 +99,6 @@ public class HeaderRecordParam extends HeaderParam {
                 }
             }
             return paramType;
-        }
-
-        // Note the validation is only done for the non-object header params. i.e for the string, string[] types
-        private void validateBasicType(Type type) {
-            if (isValidBasicType(type.getTag()) || (type.getTag() == TypeTags.ARRAY_TAG && isValidBasicType(
-                    ((ArrayType) type).getElementType().getTag()))) {
-                // Assign element type as the type of header param
-                this.type = type;
-            }
         }
 
         boolean isValidBasicType(int typeTag) {

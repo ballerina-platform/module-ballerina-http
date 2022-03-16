@@ -77,13 +77,13 @@ service /headerparamservice on HeaderBindingEP {
     }
 }
 
-public type RateLimitHeaders record {|
+type RateLimitHeaders record {|
     string x\-rate\-limit\-id;
     int? x\-rate\-limit\-remaining;
     string[]? x\-rate\-limit\-types;
 |};
 
-public type PureTypeHeaders record {|
+type PureTypeHeaders record {|
     string sid;
     int iid;
     float fid;
@@ -96,7 +96,7 @@ public type PureTypeHeaders record {|
     boolean[] baid;
 |};
 
-public type NilableTypeHeaders record {|
+type NilableTypeHeaders record {|
     string? sid;
     int? iid;
     float? fid;
