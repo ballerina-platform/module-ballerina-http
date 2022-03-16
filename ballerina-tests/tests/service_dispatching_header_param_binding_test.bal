@@ -27,19 +27,19 @@ service /headerparamservice on HeaderBindingEP {
         return responseJson;
     }
 
-    resource function post q1/[string go](@http:Header string[] foo, @http:Payload string a, string b) 
+    resource function post q1/[string go](@http:Header string[] foo, @http:Payload string a, string b)
             returns json {
         json responseJson = { xType: foo, path: go, payload:a, page: b};
         return responseJson;
     }
 
-    resource function get q2(@http:Header {name:"x-Type" } string foo, @http:Header { name:"x-Type" } string[] bar) 
+    resource function get q2(@http:Header {name:"x-Type" } string foo, @http:Header { name:"x-Type" } string[] bar)
             returns json {
         json responseJson = { firstValue: foo, allValue: bar};
         return responseJson;
     }
 
-    resource function get q3(@http:Header string? foo, http:Request req, @http:Header string[]? bar, 
+    resource function get q3(@http:Header string? foo, http:Request req, @http:Header string[]? bar,
             http:Headers headerObj) returns json|error {
         string[] err = ["bar header not found"];
         string header1 = foo ?: "foo header not found";
@@ -77,6 +77,86 @@ service /headerparamservice on HeaderBindingEP {
     }
 }
 
+public type RateLimitHeaders record {|
+    string x\-rate\-limit\-id;
+    int? x\-rate\-limit\-remaining;
+    string[]? x\-rate\-limit\-types;
+|};
+
+public type PureTypeHeaders record {|
+    string sid;
+    int iid;
+    float fid;
+    decimal did;
+    boolean bid;
+    string[] said;
+    int[] iaid;
+    float[] faid;
+    decimal[] daid;
+    boolean[] baid;
+|};
+
+public type NilableTypeHeaders record {|
+    string? sid;
+    int? iid;
+    float? fid;
+    decimal? did;
+    boolean? bid;
+    string[]? said;
+    int[]? iaid;
+    float[]? faid;
+    decimal[]? daid;
+    boolean[]? baid;
+|};
+
+service /headerRecord on HeaderBindingEP {
+    resource function get rateLimitHeaders(@http:Header RateLimitHeaders rateLimitHeaders) returns json {
+        return {
+            header1 : rateLimitHeaders.x\-rate\-limit\-id,
+            header2 : rateLimitHeaders.x\-rate\-limit\-remaining,
+            header3 : rateLimitHeaders.x\-rate\-limit\-types
+        };
+    }
+
+    resource function post ofStringOfPost(@http:Header RateLimitHeaders rateLimitHeaders) returns json {
+        return {
+            header1 : rateLimitHeaders.x\-rate\-limit\-id,
+            header2 : rateLimitHeaders.x\-rate\-limit\-remaining,
+            header3 : rateLimitHeaders.x\-rate\-limit\-types
+        };
+    }
+
+    resource function get ofPureTypeHeaders(@http:Header PureTypeHeaders headers) returns json {
+        return {
+            header1 : headers.sid,
+            header2 : headers.iid,
+            header3 : headers.fid,
+            header4 : headers.did,
+            header5 : headers.bid,
+            header6 : headers.said,
+            header7 : headers.iaid,
+            header8 : headers.faid,
+            header9 : headers.daid,
+            header10 : headers.baid
+        };
+    }
+
+    resource function get ofNilableTypeHeaders(@http:Header NilableTypeHeaders headers) returns json {
+        return {
+            header1 : headers.sid,
+            header2 : headers.iid,
+            header3 : headers.fid,
+            header4 : headers.did,
+            header5 : headers.bid,
+            header6 : headers.said,
+            header7 : headers.iaid,
+            header8 : headers.faid,
+            header9 : headers.daid,
+            header10 : headers.baid
+        };
+    }
+}
+
 @test:Config {}
 function testHeaderTokenBinding() {
     http:Response|error response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56", {"foo":"Ballerina"});
@@ -85,7 +165,7 @@ function testHeaderTokenBinding() {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    
+
     response = headerBindingClient->get("/headerparamservice?foo=bal&bar=12", {"foo":"WSO2"});
     if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {value1:"WSO2", value2:12});
@@ -157,7 +237,7 @@ function testHeaderBindingArrayAndString() {
 
 @test:Config {}
 function testNilableHeaderBinding() {
-    var headers1 = {"X-Type":["Hello", "Hello"], "bar":["Write", "Language"], "Foo":"World", "baaz":"All", 
+    var headers1 = {"X-Type":["Hello", "Hello"], "bar":["Write", "Language"], "Foo":"World", "baaz":"All",
             "baz":"Ballerina"};
     http:Response|error response = headerBindingClient->get("/headerparamservice/q3", headers1);
     if response is http:Response {
@@ -192,7 +272,7 @@ function testHeaderObjectBinding() {
         "bar":"Language"};
     http:Response|error response = headerBindingClient->get("/headerparamservice/q4", headers);
     if response is http:Response {
-        json expected = { val1: "World", val2: "Write", val3: true, val4: ["All", "Ballerina"], 
+        json expected = { val1: "World", val2: "Write", val3: true, val4: ["All", "Ballerina"],
                                 val5: ["bar", "baz", "connection", "daz", "Foo", "host", "X-Type"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
@@ -202,7 +282,7 @@ function testHeaderObjectBinding() {
     var headers2 = {"X-Type":["Hello", "Hello"], "bar":"Language"};
     response = headerBindingClient->get("/headerparamservice/q4", headers2);
     if response is http:Response {
-        json expected = { val1: "foo header not found", val2: "Http header does not exist", val3: false, 
+        json expected = { val1: "foo header not found", val2: "Http header does not exist", val3: false,
                                 val4: ["Http header does not exist"],  val5: ["bar", "connection", "host", "X-Type"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
@@ -228,4 +308,120 @@ function testHeaderBindingWithNoHeaderValue() {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+}
+
+@test:Config {}
+function testHeaderRecordParam() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/rateLimitHeaders", { "x-rate-limit-id" : "dwqfec",
+        "x-rate-limit-remaining" : "23", "x-rate-limit-types" : ["weweq", "fefw"]});
+    assertJsonValue(response, "header1", "dwqfec");
+    assertJsonValue(response, "header2", 23);
+    assertJsonValue(response, "header3", ["weweq", "fefw"]);
+}
+
+@test:Config {}
+function testHeaderRecordParamWithPost() returns error? {
+    http:Request req = new;
+    req.setHeader("x-rate-limit-id", "dwqfec");
+    req.setHeader("x-rate-limit-remaining", "23");
+    req.setHeader("x-rate-limit-types",  "weweq");
+    req.addHeader("x-rate-limit-types",  "fefw");
+    json response = check headerBindingClient->post("/headerRecord/ofStringOfPost", req);
+    assertJsonValue(response, "header1", "dwqfec");
+    assertJsonValue(response, "header2", 23);
+    assertJsonValue(response, "header3", ["weweq", "fefw"]);
+}
+
+@test:Config {}
+function testHeaderRecordParamOfPureTypeHeaders() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/ofPureTypeHeaders",
+        {
+            "sid" : "dwqfec",
+            "iid" : "23",
+            "fid" : "2.892",
+            "did" : "2.8",
+            "bid" : "true",
+            "said" : ["dwqfec", "fnefbw"],
+            "iaid" : ["23", "56"],
+            "faid" : ["2.892", "3.564"],
+            "daid" : ["2.8", "3.4"],
+            "baid" : ["true", "false"]
+        });
+    assertJsonValue(response, "header1", "dwqfec");
+    assertJsonValue(response, "header2", 23);
+    assertJsonValue(response, "header3", 2.892d);
+    assertJsonValue(response, "header4", 2.8d);
+    assertJsonValue(response, "header5", true);
+    assertJsonValue(response, "header6", ["dwqfec", "fnefbw"]);
+    assertJsonValue(response, "header7", [23, 56]);
+    assertJsonValue(response, "header8", [2.892d, 3.564d]);
+    assertJsonValue(response, "header9", [2.8d, 3.4d]);
+    assertJsonValue(response, "header10", [true, false]);
+}
+
+@test:Config {}
+function testHeaderRecordParamOfPureTypeHeadersNegative() returns error? {
+    json|error response = headerBindingClient->get("/headerRecord/ofPureTypeHeaders",
+        {
+            "sid" : "dwqfec",
+            "iid" : "23",
+            "fid" : "2.892"
+        });
+    if response is http:ClientRequestError {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        test:assertEquals(response.detail().body, "no header value found for 'did'", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testHeaderRecordParamOfNilableTypeHeaders() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/ofNilableTypeHeaders",
+        {
+            "sid" : "dwqfec",
+            "did" : "2.8",
+            "fid" : "2.892",
+            "bid" : "true",
+            "iid" : "23",
+            "said" : ["dwqfec", "fnefbw"],
+            "iaid" : ["23", "56"],
+            "faid" : ["2.892", "3.564"],
+            "daid" : ["2.8", "3.4"],
+            "baid" : ["true", "false"]
+        });
+    assertJsonValue(response, "header1", "dwqfec");
+    assertJsonValue(response, "header2", 23);
+    assertJsonValue(response, "header3", 2.892d);
+    assertJsonValue(response, "header4", 2.8d);
+    assertJsonValue(response, "header5", true);
+    assertJsonValue(response, "header6", ["dwqfec", "fnefbw"]);
+    assertJsonValue(response, "header7", [23, 56]);
+    assertJsonValue(response, "header8", [2.892d, 3.564d]);
+    assertJsonValue(response, "header9", [2.8d, 3.4d]);
+    assertJsonValue(response, "header10", [true, false]);
+}
+
+@test:Config {}
+function testHeaderRecordParamOfNilableTypeHeadersWithMissingFields() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/ofNilableTypeHeaders",
+        {
+            "sid" : "dwqfec",
+            "fid" : "2.892",
+            "bid" : "true",
+            "iaid" : ["23", "56"],
+            "faid" : ["2.892", "3.564"],
+            "daid" : ["2.8", "3.4"]
+        });
+    assertJsonValue(response, "header1", "dwqfec");
+    assertJsonValue(response, "header2", null);
+    assertJsonValue(response, "header3", 2.892d);
+    assertJsonValue(response, "header4", null);
+    assertJsonValue(response, "header5", true);
+    assertJsonValue(response, "header6", null);
+    assertJsonValue(response, "header7", [23, 56]);
+    assertJsonValue(response, "header8", [2.892d, 3.564d]);
+    assertJsonValue(response, "header9", [2.8d, 3.4d]);
+    assertJsonValue(response, "header10", null);
 }

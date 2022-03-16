@@ -18,8 +18,14 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -29,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
 
 /**
  * {@code {@link AllHeaderParams }} holds all the header parameters in the resource signature.
@@ -68,8 +76,15 @@ public class AllHeaderParams implements Parameter {
     public void populateFeed(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed, boolean treatNilableAsOptional) {
         HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
         for (HeaderParam headerParam : this.getAllHeaderParams()) {
-            String token = headerParam.getHeaderName();
             int index = headerParam.getIndex();
+            if (headerParam.isRecord()) {
+                BMap<BString, Object> recordValue = processHeaderRecord(headerParam, httpHeaders,
+                                                                        treatNilableAsOptional, httpCarbonMessage);
+                paramFeed[index++] = recordValue;
+                paramFeed[index] = true;
+                continue;
+            }
+            String token = headerParam.getHeaderName();
             List<String> headerValues = httpHeaders.getAll(token);
             if (headerValues.isEmpty()) {
                 if (headerParam.isNilable() && treatNilableAsOptional) {
@@ -104,4 +119,50 @@ public class AllHeaderParams implements Parameter {
         }
     }
 
+    private BMap<BString, Object> processHeaderRecord(HeaderParam headerParam, HttpHeaders httpHeaders,
+                                                      boolean treatNilableAsOptional,
+                                                      HttpCarbonMessage httpCarbonMessage) {
+        HeaderRecordParam headerRecordParam = headerParam.getRecordParam();
+        RecordType recordType = headerRecordParam.getType();
+        BMap<BString, Object> recordValue = ValueCreator.createRecordValue(recordType);
+        List<String> keys = headerRecordParam.getKeys();
+        int i = 0;
+        for (String key : keys) {
+            HeaderRecordParam.FieldParam field = headerRecordParam.getField(i++);
+            List<String> headerValues = httpHeaders.getAll(key);
+            Type fieldType = field.getType();
+            if (headerValues.isEmpty()) {
+                if (field.isNilable() && treatNilableAsOptional) {
+                    recordValue.put(StringUtils.fromString(key), null);
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no header value found for '" + key + "'");
+                }
+            }
+            if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
+                if (field.isNilable()) {
+                    recordValue.put(StringUtils.fromString(key), null);
+                    continue;
+                } else {
+                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                    throw new BallerinaConnectorException("no header value found for '" + key + "'");
+                }
+            }
+            if (fieldType.getTag() == ARRAY_TAG) {
+                int elementTypeTag = ((ArrayType) fieldType).getElementType().getTag();
+                BArray paramArray = castParamArray(elementTypeTag, headerValues.toArray(new String[0]));
+                if (field.isReadonly()) {
+                    paramArray.freezeDirect();
+                }
+                recordValue.put(StringUtils.fromString(key), paramArray);
+            } else {
+                recordValue.put(StringUtils.fromString(key), castParam(fieldType.getTag(), headerValues.get(0)));
+            }
+        }
+        if (headerParam.isReadonly()) {
+            recordValue.freezeDirect();
+        }
+        return recordValue;
+    }
 }

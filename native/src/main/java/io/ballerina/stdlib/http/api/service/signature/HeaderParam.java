@@ -20,12 +20,16 @@ package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.IntersectionType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * {@code {@link HeaderParam }} represents a inbound request header parameter details.
@@ -41,6 +45,7 @@ public class HeaderParam {
     private Type type;
     private String headerName;
     private boolean readonly;
+    private HeaderRecordParam recordParam;
 
     HeaderParam(String token) {
         this.token = token;
@@ -85,6 +90,21 @@ public class HeaderParam {
                 validateBasicType(type);
                 break;
             }
+        } else if (paramType instanceof RecordType) {
+            this.type = paramType;
+            this.typeTag = paramType.getTag();
+            Map<String, Field> recordFields = ((RecordType) paramType).getFields();
+            List<String> keys = new ArrayList<>();
+            HeaderRecordParam.FieldParam[] fields = new HeaderRecordParam.FieldParam[recordFields.size()];
+            int i = 0;
+            for (Map.Entry<String, Field> field : recordFields.entrySet()) {
+                keys.add(field.getKey());
+                Field fieldValue = field.getValue();
+                fields[i++] = new HeaderRecordParam.FieldParam(fieldValue.getFieldType(),
+                                                               fieldValue.getFieldType().isReadOnly(),
+                                                               fieldValue.getFieldType().isNilable());
+            }
+            this.recordParam = new HeaderRecordParam(this.token, this.type, keys, fields);
         } else {
             validateBasicType(paramType);
         }
@@ -100,7 +120,7 @@ public class HeaderParam {
         }
     }
 
-    private boolean isValidBasicType(int typeTag) {
+    boolean isValidBasicType(int typeTag) {
         return typeTag == TypeTags.STRING_TAG;
     }
 
@@ -130,5 +150,13 @@ public class HeaderParam {
 
     public boolean isReadonly() {
         return this.readonly;
+    }
+
+    public HeaderRecordParam getRecordParam() {
+        return this.recordParam;
+    }
+
+    public boolean isRecord() {
+        return getRecordParam() != null;
     }
 }
