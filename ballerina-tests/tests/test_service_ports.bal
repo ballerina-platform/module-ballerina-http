@@ -156,7 +156,8 @@ const int responseInterceptorSkipTestPort = 9606;
 const int requestInterceptorCtxNextTestPort = 9607;
 const int serviceErrorHandlingTestPort = 9608;
 const int noServiceRegisteredTestPort = 9609;
-const int interceptorBasicTestsPort = 9610;
+const int interceptorBasicTestsPort1 = 9610;
+const int interceptorBasicTestsPort2 = 9611;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;
