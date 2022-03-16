@@ -78,7 +78,7 @@ public class HttpCompilerPluginUtil {
     }
 
     public static String getReturnTypeDescription(ReturnTypeDescriptorNode returnTypeDescriptorNode) {
-        return returnTypeDescriptorNode.type().toString().split(" ")[0];
+        return returnTypeDescriptorNode.type().toString().trim();
     }
 
     public static void extractInterceptorReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx,

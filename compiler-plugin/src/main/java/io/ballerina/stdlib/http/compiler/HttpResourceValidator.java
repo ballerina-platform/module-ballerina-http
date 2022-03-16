@@ -68,6 +68,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYP
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.retrieveEffectiveTypeDesc;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 
 /**
  * Validates a ballerina http resource.
@@ -335,8 +337,7 @@ class HttpResourceValidator {
                                 continue;
                             } else if (elementKind == TypeDescKind.TYPE_REFERENCE) {
                                 TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) arrTypeSymbol).typeDescriptor();
-                                TypeDescKind typeDescKind = HttpCompilerPluginUtil.retrieveEffectiveTypeDesc(
-                                                                typeDescriptor);
+                                TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
                                 if (typeDescKind == TypeDescKind.RECORD) {
                                     continue;
                                 }
@@ -344,8 +345,7 @@ class HttpResourceValidator {
                         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
                             TypeSymbol typeDescriptor =
                                     ((TypeReferenceTypeSymbol) paramTypeDescriptor).typeDescriptor();
-                            TypeDescKind typeDescKind = HttpCompilerPluginUtil.retrieveEffectiveTypeDesc(
-                                                            typeDescriptor);
+                            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
                             if (typeDescKind == TypeDescKind.RECORD) {
                                 continue;
                             }
@@ -394,7 +394,7 @@ class HttpResourceValidator {
                                 String callerTypeName = typeNameOptional.get();
                                 if (CALLER_OBJ_NAME.equals(callerTypeName)) {
                                     if (callerPresent) {
-                                        HttpCompilerPluginUtil.updateDiagnostic(ctx, paramLocation,
+                                        updateDiagnostic(ctx, paramLocation,
                                                                                 HttpDiagnosticCodes.HTTP_115, paramName
                                         );
                                     } else {
@@ -476,12 +476,12 @@ class HttpResourceValidator {
     private static void enableAddPayloadParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location,
                                                         String methodName) {
         if (!methodName.equals(GET) && !methodName.equals(HEAD) && !methodName.equals(OPTIONS)) {
-            HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_101);
+            updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_101);
         }
     }
 
     private static void enableAddHeaderParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_102);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_102);
     }
 
     private static void validatePayloadAnnotationUsage(SyntaxNodeAnalysisContext ctx, Location location,
@@ -494,7 +494,7 @@ class HttpResourceValidator {
     private static boolean isObjectPresent(SyntaxNodeAnalysisContext ctx, Location location,
                                            boolean objectPresent, String paramName, HttpDiagnosticCodes code) {
         if (objectPresent) {
-            HttpCompilerPluginUtil.updateDiagnostic(ctx, location, code, paramName);
+            updateDiagnostic(ctx, location, code, paramName);
         }
         return true;
     }
@@ -609,11 +609,11 @@ class HttpResourceValidator {
     }
 
     private static void enableConfigureReturnMediaTypeCodeAction(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_103);
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_103);
     }
 
     private static void enableResponseCacheConfigCodeAction(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_104);
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_104);
     }
 
     private static boolean checkForSupportedReturnTypes(TypeSymbol returnTypeSymbol) {
@@ -629,7 +629,7 @@ class HttpResourceValidator {
             }
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            TypeDescKind typeDescKind = HttpCompilerPluginUtil.retrieveEffectiveTypeDesc(typeDescriptor);
+            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
             return typeDescKind != TypeDescKind.ERROR;
         }
         return true;
@@ -674,7 +674,7 @@ class HttpResourceValidator {
         if (isValidReturnTypeWithCaller(typeSymbol)) {
             return;
         }
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, returnTypeLocation, HttpDiagnosticCodes.HTTP_118,
+        updateDiagnostic(ctx, returnTypeLocation, HttpDiagnosticCodes.HTTP_118,
                                                 returnTypeDescription
         );
     }
@@ -710,83 +710,83 @@ class HttpResourceValidator {
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                         String annotName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_103, annotName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_103, annotName);
     }
 
     private static void reportInvalidParameterAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                          String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_104, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_104, paramName);
     }
 
     private static void reportInvalidParameter(SyntaxNodeAnalysisContext ctx, Location location,
                                                String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_105, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_105, paramName);
     }
 
     private static void reportInvalidParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                    String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_106, typeName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_106, typeName);
     }
 
     private static void reportInvalidPayloadParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                           String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_107, typeName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_107, typeName);
     }
 
     private static void reportInvalidMultipleAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                         String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_108, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_108, paramName);
     }
 
     private static void reportInvalidHeaderParameterType(SyntaxNodeAnalysisContext ctx, Location location, 
                                                          String paramName, ParameterSymbol parameterSymbol) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_109,
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_109,
                                                 List.of(new BSymbolicProperty(parameterSymbol)), paramName
         );
     }
 
     private static void reportInvalidUnionHeaderType(SyntaxNodeAnalysisContext ctx, Location location,
                                                      String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_110, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_110, paramName);
     }
 
     private static void reportInvalidCallerParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                          String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_111, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_111, paramName);
     }
 
     private static void reportInvalidQueryParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                         String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_112, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_112, paramName);
     }
 
     private static void reportInvalidUnionQueryType(SyntaxNodeAnalysisContext ctx, Location location,
                                                     String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_113, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_113, paramName);
     }
 
     private static void reportInCompatibleCallerInfoType(SyntaxNodeAnalysisContext ctx, PositionalArgumentNode node,
                                                          String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_114, paramName);
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_114, paramName);
     }
 
     private static void reportInvalidUsageOfPayloadAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                               String name, HttpDiagnosticCodes code) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, code, name);
+        updateDiagnostic(ctx, location, code, name);
     }
 
     private static void reportInvalidUsageOfCacheAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                             String returnType) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_130, returnType);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_130, returnType);
     }
 
     private static void reportInvalidIntersectionType(SyntaxNodeAnalysisContext ctx, Location location,
                                                       String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_133, typeName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_133, typeName);
     }
 
     private static void reportInvalidIntersectionObjectType(SyntaxNodeAnalysisContext ctx, Location location,
                                                       String paramName, String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_134, paramName, typeName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_134, paramName, typeName);
     }
 }

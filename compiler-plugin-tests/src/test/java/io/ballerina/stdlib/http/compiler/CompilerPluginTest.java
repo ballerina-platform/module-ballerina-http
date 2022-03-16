@@ -33,6 +33,8 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.*;
+
 /**
  * This class includes tests for Ballerina Http compiler plugin.
  */
@@ -84,7 +86,7 @@ public class CompilerPluginTest {
         diagnosticResult.diagnostics().forEach(result -> {
             if (result.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)) {
                 Assert.assertEquals(result.diagnosticInfo().messageFormat(), REMOTE_METHODS_NOT_ALLOWED);
-                Assert.assertEquals(result.diagnosticInfo().code(), CompilerPluginTestConstants.HTTP_101);
+                Assert.assertEquals(result.diagnosticInfo().code(), HTTP_101);
             }
         });
     }
@@ -94,15 +96,15 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_2");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 3);
+        Assert.assertEquals(diagnosticResult.errorCount(), 4);
         assertError(diagnosticResult, 0, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'http:Client'",
-                CompilerPluginTestConstants.HTTP_102);
+                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'http:Client'", HTTP_102);
         assertError(diagnosticResult, 1, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'error[]'",
-                CompilerPluginTestConstants.HTTP_102);
+                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'error[]'", HTTP_102);
         assertError(diagnosticResult, 2, "invalid resource method return type: expected 'anydata|http:Response" +
-                "|http:StatusCodeRecord|error', but found 'map<http:Client>'", CompilerPluginTestConstants.HTTP_102);
+                "|http:StatusCodeRecord|error', but found 'map<http:Client>'", HTTP_102);
+        assertError(diagnosticResult, 3, "invalid resource method return type: expected " +
+                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'readonly & error[]'", HTTP_102);
     }
 
     @Test
@@ -112,7 +114,7 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         assertError(diagnosticResult, 0, "invalid resource method annotation type: expected 'http:ResourceConfig', " +
-                "but found 'test:Config '", CompilerPluginTestConstants.HTTP_103);
+                "but found 'test:Config '", HTTP_103);
     }
 
     @Test
@@ -122,28 +124,22 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 11);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'",
-                CompilerPluginTestConstants.HTTP_108);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
-                "resource : 'get'. Use an accessor that supports entity body", CompilerPluginTestConstants.HTTP_129);
+                "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 2, "invalid usage of payload annotation for a non entity body " +
-                "resource : 'head'. Use an accessor that supports entity body", CompilerPluginTestConstants.HTTP_129);
+                "resource : 'head'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 3, "invalid usage of payload annotation for a non entity body resource" +
-                " : 'options'. Use an accessor that supports entity body", CompilerPluginTestConstants.HTTP_129);
-        assertError(diagnosticResult, 4, "invalid payload parameter type: 'json[]'",
-                CompilerPluginTestConstants.HTTP_107);
+                " : 'options'. Use an accessor that supports entity body", HTTP_129);
+        assertError(diagnosticResult, 4, "invalid payload parameter type: 'json[]'", HTTP_107);
         assertError(diagnosticResult, 5, "invalid annotation type on param 'a': expected one of the following types: " +
-                "'http:Payload', 'http:CallerInfo', 'http:Headers'", CompilerPluginTestConstants.HTTP_104);
+                "'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_104);
         assertError(diagnosticResult, 6, "invalid resource parameter type: " +
-                "'table<http_test/sample_4:0.1.0:Person> key(id)'", CompilerPluginTestConstants.HTTP_106);
-        assertError(diagnosticResult, 7, "invalid payload parameter type: 'map<int>'",
-                CompilerPluginTestConstants.HTTP_107);
-        assertError(diagnosticResult, 8, "invalid payload parameter type: 'string[]'",
-                CompilerPluginTestConstants.HTTP_107);
-        assertError(diagnosticResult, 9, "invalid payload parameter type: 'xml[]'",
-                CompilerPluginTestConstants.HTTP_107);
-        assertError(diagnosticResult, 10, "invalid payload parameter type: 'map<string>[]'",
-                CompilerPluginTestConstants.HTTP_107);
+                "'table<http_test/sample_4:0.1.0:Person> key(id)'", HTTP_106);
+        assertError(diagnosticResult, 7, "invalid payload parameter type: 'map<int>'", HTTP_107);
+        assertError(diagnosticResult, 8, "invalid payload parameter type: 'string[]'", HTTP_107);
+        assertError(diagnosticResult, 9, "invalid payload parameter type: 'xml[]'", HTTP_107);
+        assertError(diagnosticResult, 10, "invalid payload parameter type: 'map<string>[]'", HTTP_107);
     }
 
     @Test
@@ -153,24 +149,19 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 7);
         assertError(diagnosticResult, 0, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    CompilerPluginTestConstants.HTTP_109);
+                    HTTP_109);
         assertError(diagnosticResult, 1, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                   "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'",
-                   CompilerPluginTestConstants.HTTP_108);
+                   "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
         assertError(diagnosticResult, 2, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    CompilerPluginTestConstants.HTTP_109);
-        assertError(diagnosticResult, 3,
-                    "invalid union type of header param 'abc': a string or an array of a string can only be union " +
-                            "with '()'. Eg: string|() or string[]|()",
-                    CompilerPluginTestConstants.HTTP_110);
+                    HTTP_109);
+        assertError(diagnosticResult, 3, "invalid union type of header param 'abc': a string or an array " +
+                        "of a string can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
         assertError(diagnosticResult, 4, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    CompilerPluginTestConstants.HTTP_109);
-        assertError(diagnosticResult, 5,
-                    "invalid union type of header param 'abc': a string or an array of a string can only be union " +
-                            "with '()'. Eg: string|() or string[]|()",
-                    CompilerPluginTestConstants.HTTP_110);
+                    HTTP_109);
+        assertError(diagnosticResult, 5, "invalid union type of header param 'abc': a string or an array" +
+                " of a string can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
         assertError(diagnosticResult, 6, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    CompilerPluginTestConstants.HTTP_109);
+                    HTTP_109);
     }
 
     @Test
@@ -181,15 +172,14 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnosticResult.errorCount(), 5);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
                 "and return 'string' from a resource : expected 'error' or nil";
-        assertTrue(diagnosticResult, 0, expectedMsg, CompilerPluginTestConstants.HTTP_118);
+        assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
         assertError(diagnosticResult, 1, "invalid type of caller param 'abc': expected 'http:Caller'",
-                CompilerPluginTestConstants.HTTP_111);
+                HTTP_111);
         assertError(diagnosticResult, 2, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'",
-                CompilerPluginTestConstants.HTTP_108);
-        assertTrue(diagnosticResult, 3, expectedMsg, CompilerPluginTestConstants.HTTP_118);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
+        assertTrue(diagnosticResult, 3, expectedMsg, HTTP_118);
         assertError(diagnosticResult, 4, "invalid type of caller param 'abc': expected 'http:Caller'",
-                CompilerPluginTestConstants.HTTP_111);
+                HTTP_111);
     }
 
     @Test
@@ -200,15 +190,11 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnosticResult.errorCount(), 5);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
                 "and return 'string' from a resource : expected 'error' or nil";
-        assertTrue(diagnosticResult, 0, expectedMsg, CompilerPluginTestConstants.HTTP_118);
-        assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/http",
-                CompilerPluginTestConstants.HTTP_106);
-        assertTrue(diagnosticResult, 2, "invalid resource parameter type: 'ballerina/mime",
-                CompilerPluginTestConstants.HTTP_106);
-        assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'ballerina/mime",
-                CompilerPluginTestConstants.HTTP_106);
-        assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_7",
-                CompilerPluginTestConstants.HTTP_106);
+        assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
+        assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/http", HTTP_106);
+        assertTrue(diagnosticResult, 2, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
+        assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
+        assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_7", HTTP_106);
     }
 
     @Test
@@ -217,39 +203,37 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 12);
-        assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/mime",
-                CompilerPluginTestConstants.HTTP_106);
+        assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
         assertError(diagnosticResult, 1, "invalid union type of query param 'a': 'string', 'int', " +
                 "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
-                "'()'. Eg: string? or int[]?", CompilerPluginTestConstants.HTTP_113);
+                "'()'. Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 2, "invalid union type of query param 'b': 'string', 'int', " +
                 "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
-                "'()'. Eg: string? or int[]?", CompilerPluginTestConstants.HTTP_113);
+                "'()'. Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 3, "invalid union type of query param 'c': 'string', 'int', " +
                 "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
-                "'()'. Eg: string? or int[]?", CompilerPluginTestConstants.HTTP_113);
+                "'()'. Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 4, "invalid type of query param 'd': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
-                CompilerPluginTestConstants.HTTP_112);
+                HTTP_112);
         assertTrue(diagnosticResult, 5, "invalid resource parameter type: 'json'",
-                CompilerPluginTestConstants.HTTP_106);
+                HTTP_106);
         assertError(diagnosticResult, 6, "invalid type of query param 'aa': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
-                CompilerPluginTestConstants.HTTP_112);
+                HTTP_112);
         assertError(diagnosticResult, 7, "invalid type of query param 'a': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
-                CompilerPluginTestConstants.HTTP_112);
+                HTTP_112);
         assertError(diagnosticResult, 8, "invalid type of query param 'b': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
-                CompilerPluginTestConstants.HTTP_112);
+                HTTP_112);
         assertError(diagnosticResult, 9, "invalid type of query param 'c': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
-                CompilerPluginTestConstants.HTTP_112);
+                HTTP_112);
         assertError(diagnosticResult, 10, "invalid type of query param 'd': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
-                CompilerPluginTestConstants.HTTP_112);
-        assertTrue(diagnosticResult, 11, "invalid resource parameter type: 'xml'",
-                CompilerPluginTestConstants.HTTP_106);
+                HTTP_112);
+        assertTrue(diagnosticResult, 11, "invalid resource parameter type: 'xml'", HTTP_106);
     }
 
     @Test
@@ -258,8 +242,8 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
-        diagnosticResult.diagnostics().stream().filter(err -> err.diagnosticInfo().code().contains(
-                CompilerPluginTestConstants.HTTP_106)).map(err -> err.diagnosticInfo().messageFormat().contains(
+        diagnosticResult.diagnostics().stream().filter(err -> err.diagnosticInfo().code().contains(HTTP_106)).map(
+                err -> err.diagnosticInfo().messageFormat().contains(
                         "invalid resource parameter type: 'ballerina/http")).forEach(Assert::assertTrue);
     }
 
@@ -270,19 +254,18 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 7);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
-                "'int' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'int' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
-                "'decimal' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'decimal' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 2, "incompatible respond method argument type : expected " +
-                "'Person' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 3, "incompatible respond method argument type : expected " +
-                "'string' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
-        assertError(diagnosticResult, 4, "invalid multiple 'http:Caller' parameter: 'xyz'",
-                CompilerPluginTestConstants.HTTP_115);
+                "'string' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 4, "invalid multiple 'http:Caller' parameter: 'xyz'", HTTP_115);
         assertError(diagnosticResult, 5, "incompatible respond method argument type : expected " +
-                "'Person' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 6, "incompatible respond method argument type : expected " +
-                "'Person' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
     }
 
     @Test
@@ -292,25 +275,25 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 10);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
-                "'http:Response' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'http:Response' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
-                "'Xml' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'Xml' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 2, "incompatible respond method argument type : expected " +
-                "'json' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'json' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 3, "incompatible respond method argument type : expected " +
-                "'ByteArr' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'ByteArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 4, "incompatible respond method argument type : expected " +
-                "'MapJson' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'MapJson' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 5, "incompatible respond method argument type : expected " +
-                "'PersonTable' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'PersonTable' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 6, "incompatible respond method argument type : expected " +
-                "'MapJsonArr' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'MapJsonArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 7, "incompatible respond method argument type : expected " +
-                "'PersonTableArr' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'PersonTableArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 8, "incompatible respond method argument type : expected " +
-                "'EntityArr' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'EntityArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 9, "incompatible respond method argument type : expected " +
-                "'ByteStream' according to the 'http:CallerInfo' annotation", CompilerPluginTestConstants.HTTP_114);
+                "'ByteStream' according to the 'http:CallerInfo' annotation", HTTP_114);
     }
 
     @Test
@@ -319,18 +302,12 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 6);
-        assertTrue(diagnosticResult, 0, "invalid multiple 'http:Caller' parameter: 'xyz'",
-                CompilerPluginTestConstants.HTTP_115);
-        assertTrue(diagnosticResult, 1, "invalid multiple 'http:Headers' parameter: 'noo'",
-                CompilerPluginTestConstants.HTTP_117);
-        assertTrue(diagnosticResult, 2, "invalid multiple 'http:Request' parameter: 'aaa'",
-                CompilerPluginTestConstants.HTTP_116);
-        assertTrue(diagnosticResult, 3, "invalid multiple 'http:Caller' parameter: 'ccc'",
-                CompilerPluginTestConstants.HTTP_115);
-        assertTrue(diagnosticResult, 4, "invalid multiple 'http:Request' parameter: 'fwdw'",
-                CompilerPluginTestConstants.HTTP_116);
-        assertTrue(diagnosticResult, 5, "invalid multiple 'http:Headers' parameter: 'ccc'",
-                CompilerPluginTestConstants.HTTP_117);
+        assertTrue(diagnosticResult, 0, "invalid multiple 'http:Caller' parameter: 'xyz'", HTTP_115);
+        assertTrue(diagnosticResult, 1, "invalid multiple 'http:Headers' parameter: 'noo'", HTTP_117);
+        assertTrue(diagnosticResult, 2, "invalid multiple 'http:Request' parameter: 'aaa'", HTTP_116);
+        assertTrue(diagnosticResult, 3, "invalid multiple 'http:Caller' parameter: 'ccc'", HTTP_115);
+        assertTrue(diagnosticResult, 4, "invalid multiple 'http:Request' parameter: 'fwdw'", HTTP_116);
+        assertTrue(diagnosticResult, 5, "invalid multiple 'http:Headers' parameter: 'ccc'", HTTP_117);
     }
 
     @Test
@@ -341,7 +318,7 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
                 "and return 'http:BadRequest?' from a resource : expected 'error' or nil";
-        assertTrue(diagnosticResult, 0, expectedMsg, CompilerPluginTestConstants.HTTP_118);
+        assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
     }
 
     @Test
@@ -351,12 +328,11 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 4);
         assertError(diagnosticResult, 0, "invalid media-type subtype prefix: subtype prefix should not " +
-                "have suffix 'suffix'", CompilerPluginTestConstants.HTTP_119);
+                "have suffix 'suffix'", HTTP_119);
         assertError(diagnosticResult, 1, "invalid media-type subtype prefix: subtype prefix should not " +
-                "have suffix 'suffix1 + suffix2'", CompilerPluginTestConstants.HTTP_119);
-        assertError(diagnosticResult, 2, "invalid media-type subtype '+suffix'", CompilerPluginTestConstants.HTTP_120);
-        assertError(diagnosticResult, 3, "invalid media-type subtype 'vnd.prefix.subtype+'",
-                CompilerPluginTestConstants.HTTP_120);
+                "have suffix 'suffix1 + suffix2'", HTTP_119);
+        assertError(diagnosticResult, 2, "invalid media-type subtype '+suffix'", HTTP_120);
+        assertError(diagnosticResult, 3, "invalid media-type subtype 'vnd.prefix.subtype+'", HTTP_120);
     }
 
     @Test
@@ -400,8 +376,7 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
-        assertError(diagnosticResult, 0, "invalid multiple 'http:RequestContext' parameter: 'bcd'",
-                CompilerPluginTestConstants.HTTP_121);
+        assertError(diagnosticResult, 0, "invalid multiple 'http:RequestContext' parameter: 'bcd'", HTTP_121);
     }
 
     @Test
@@ -410,8 +385,7 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
-        assertError(diagnosticResult, 0, "invalid multiple 'error' parameter: 'bcd'",
-                CompilerPluginTestConstants.HTTP_122);
+        assertError(diagnosticResult, 0, "invalid multiple 'error' parameter: 'bcd'", HTTP_122);
     }
 
     @Test
@@ -421,63 +395,52 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 27);
         assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
-                "'http:RequestErrorInterceptor'", CompilerPluginTestConstants.HTTP_123);
+                "'http:RequestErrorInterceptor'", HTTP_123);
         assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
-                " path: '[string... path]', but found 'foo'", CompilerPluginTestConstants.HTTP_127);
+                " path: '[string... path]', but found 'foo'", HTTP_127);
         assertError(diagnosticResult, 2, "invalid interceptor resource method: expected default " +
-                "resource method: 'default', but found 'get'", CompilerPluginTestConstants.HTTP_128);
+                "resource method: 'default', but found 'get'", HTTP_128);
         assertError(diagnosticResult, 3, "invalid interceptor resource path: expected default resource" +
-                " path: '[string... path]', but found 'foo'", CompilerPluginTestConstants.HTTP_127);
+                " path: '[string... path]', but found 'foo'", HTTP_127);
         assertError(diagnosticResult, 4, "invalid interceptor resource method: expected default " +
-                "resource method: 'default', but found 'get'", CompilerPluginTestConstants.HTTP_128);
+                "resource method: 'default', but found 'get'", HTTP_128);
         assertError(diagnosticResult, 5, "invalid interceptor resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'error[]'",
-                CompilerPluginTestConstants.HTTP_126);
-        assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions",
-                CompilerPluginTestConstants.HTTP_124);
+                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'error[]'", HTTP_126);
+        assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions", HTTP_124);
         assertError(diagnosticResult, 7, "invalid annotation 'http:ResourceConfig': annotations" +
-                " are not supported for interceptor resource functions", CompilerPluginTestConstants.HTTP_125);
+                " are not supported for interceptor resource functions", HTTP_125);
         assertError(diagnosticResult, 8, "invalid interceptor resource path: expected default resource" +
-                " path: '[string... path]', but found '[string path]'", CompilerPluginTestConstants.HTTP_127);
+                " path: '[string... path]', but found '[string path]'", HTTP_127);
         assertError(diagnosticResult, 9, "invalid usage of payload annotation for a non entity body " +
-                "resource : 'get'. Use an accessor that supports entity body", CompilerPluginTestConstants.HTTP_129);
-        assertError(diagnosticResult, 10, "RequestInterceptor must have a resource method",
-                CompilerPluginTestConstants.HTTP_132);
-        assertError(diagnosticResult, 11, "RequestErrorInterceptor must have a resource method",
-                CompilerPluginTestConstants.HTTP_132);
+                "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
+        assertError(diagnosticResult, 10, "RequestInterceptor must have a resource method", HTTP_132);
+        assertError(diagnosticResult, 11, "RequestErrorInterceptor must have a resource method", HTTP_132);
         assertError(diagnosticResult, 12, "ResponseInterceptor must have the remote method : 'interceptResponse'",
-                CompilerPluginTestConstants.HTTP_135);
-        assertError(diagnosticResult, 13, "remote function is not allowed in RequestInterceptor",
-                CompilerPluginTestConstants.HTTP_137);
-        assertError(diagnosticResult, 14, "RequestInterceptor must have a resource method",
-                CompilerPluginTestConstants.HTTP_132);
+                HTTP_135);
+        assertError(diagnosticResult, 13, "remote function is not allowed in RequestInterceptor", HTTP_137);
+        assertError(diagnosticResult, 14, "RequestInterceptor must have a resource method", HTTP_132);
         assertError(diagnosticResult, 15, "remote function is not allowed in RequestErrorInterceptor",
-                CompilerPluginTestConstants.HTTP_137);
-        assertError(diagnosticResult, 16, "RequestErrorInterceptor must have a resource method",
-                CompilerPluginTestConstants.HTTP_132);
+                HTTP_137);
+        assertError(diagnosticResult, 16, "RequestErrorInterceptor must have a resource method", HTTP_132);
         assertError(diagnosticResult, 17, "resource function is not allowed in ResponseInterceptor",
-                CompilerPluginTestConstants.HTTP_136);
+                HTTP_136);
         assertError(diagnosticResult, 18, "ResponseInterceptor must have the remote method : 'interceptResponse'",
-                CompilerPluginTestConstants.HTTP_135);
+                HTTP_135);
         assertError(diagnosticResult, 19, "invalid remote function : 'returnResponse'. ResponseInterceptor " +
-                "can have only 'interceptResponse' remote function", CompilerPluginTestConstants.HTTP_138);
+                "can have only 'interceptResponse' remote function", HTTP_138);
         assertError(diagnosticResult, 20, "ResponseInterceptor must have the remote method : 'interceptResponse'",
-                CompilerPluginTestConstants.HTTP_135);
-        assertError(diagnosticResult, 21, "invalid multiple 'http:Response' parameter: 'res2'",
-                CompilerPluginTestConstants.HTTP_139);
-        assertTrue(diagnosticResult, 22, "invalid parameter type: 'ballerina/http:",
-                CompilerPluginTestConstants.HTTP_140);
-        assertTrue(diagnosticResult, 22, ":Request' in 'interceptResponse' remote method",
-                CompilerPluginTestConstants.HTTP_140);
+                HTTP_135);
+        assertError(diagnosticResult, 21, "invalid multiple 'http:Response' parameter: 'res2'", HTTP_139);
+        assertTrue(diagnosticResult, 22, "invalid parameter type: 'ballerina/http:", HTTP_140);
+        assertTrue(diagnosticResult, 22, ":Request' in 'interceptResponse' remote method", HTTP_140);
         assertError(diagnosticResult, 23, "invalid parameter type: 'string' in 'interceptResponse' remote method",
-                CompilerPluginTestConstants.HTTP_140);
+                HTTP_140);
         assertError(diagnosticResult, 24, "invalid interceptor remote method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'http:Client'",
-                CompilerPluginTestConstants.HTTP_141);
+                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'http:Client'", HTTP_141);
         assertError(diagnosticResult, 25, "return type annotation is not supported in interceptor service",
-                CompilerPluginTestConstants.HTTP_142);
+                HTTP_142);
         assertError(diagnosticResult, 26, "return type annotation is not supported in interceptor service",
-                CompilerPluginTestConstants.HTTP_142);
+                HTTP_142);
     }
 
     @Test
@@ -508,14 +471,14 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnosticResult.errorCount(), 4);
         assertError(diagnosticResult, 0, "invalid usage of cache annotation with return type : " +
                 "'error'. Cache annotation only supports return types of anydata and SuccessStatusCodeResponse",
-                CompilerPluginTestConstants.HTTP_130);
+                HTTP_130);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation with return type : " +
-                "'error'", CompilerPluginTestConstants.HTTP_131);
+                "'error'", HTTP_131);
         assertError(diagnosticResult, 2, "invalid usage of payload annotation with return type : " +
-                "'error?'", CompilerPluginTestConstants.HTTP_131);
+                "'error?'", HTTP_131);
         assertError(diagnosticResult, 3, "invalid usage of cache annotation with return type : " +
                 "'error?'. Cache annotation only supports return types of anydata and SuccessStatusCodeResponse",
-                CompilerPluginTestConstants.HTTP_130);
+                HTTP_130);
     }
 
     @Test
@@ -525,18 +488,18 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 6);
         assertTrue(diagnosticResult, 0, "'readonly' intersection type is not allowed for parameter 'caller' of the " +
-                "type 'ballerina/http:", CompilerPluginTestConstants.HTTP_134);
-        assertTrue(diagnosticResult, 0, ":Caller & readonly'", CompilerPluginTestConstants.HTTP_134);
+                "type 'ballerina/http:", HTTP_134);
+        assertTrue(diagnosticResult, 0, ":Caller & readonly'", HTTP_134);
         assertTrue(diagnosticResult, 1, "'readonly' intersection type is not allowed for parameter 'request' of the " +
-                "type 'ballerina/http:", CompilerPluginTestConstants.HTTP_134);
+                "type 'ballerina/http:", HTTP_134);
         assertTrue(diagnosticResult, 2, "'readonly' intersection type is not allowed for parameter 'headers' of the " +
-                "type 'ballerina/http:", CompilerPluginTestConstants.HTTP_134);
+                "type 'ballerina/http:", HTTP_134);
         assertTrue(diagnosticResult, 3, "'readonly' intersection type is not allowed for parameter 'entity' of the " +
-                "type 'ballerina/mime:", CompilerPluginTestConstants.HTTP_134);
-        assertTrue(diagnosticResult, 3, ":Entity & readonly'", CompilerPluginTestConstants.HTTP_134);
+                "type 'ballerina/mime:", HTTP_134);
+        assertTrue(diagnosticResult, 3, ":Entity & readonly'", HTTP_134);
         assertTrue(diagnosticResult, 4, "invalid type of header param 'host': expected 'string' or 'string[]'",
-                CompilerPluginTestConstants.HTTP_109);
+                HTTP_109);
         assertTrue(diagnosticResult, 5, "invalid type of caller param 'host': expected 'http:Caller'",
-                CompilerPluginTestConstants.HTTP_111);
+                HTTP_111);
     }
 }

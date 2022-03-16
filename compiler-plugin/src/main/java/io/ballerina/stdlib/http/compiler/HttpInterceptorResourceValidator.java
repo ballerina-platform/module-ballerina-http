@@ -28,6 +28,8 @@ import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
+
 /**
  * Validates a ballerina http interceptor resource.
  */
@@ -65,16 +67,16 @@ public class HttpInterceptorResourceValidator {
     }
 
     private static void reportResourceAnnotationNotAllowed(SyntaxNodeAnalysisContext ctx, AnnotationNode node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_125,
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_125,
                                                 node.annotReference().toString());
     }
 
     private static void reportInvalidResourcePath(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_127, node.toString());
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_127, node.toString());
     }
 
     private static void reportInvalidResourceMethod(SyntaxNodeAnalysisContext ctx, IdentifierToken identifierToken) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, identifierToken.location(), HttpDiagnosticCodes.HTTP_128,
+        updateDiagnostic(ctx, identifierToken.location(), HttpDiagnosticCodes.HTTP_128,
                                                 identifierToken.toString().strip());
     }
 }
