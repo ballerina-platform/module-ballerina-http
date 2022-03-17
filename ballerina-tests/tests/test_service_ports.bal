@@ -158,6 +158,7 @@ const int serviceErrorHandlingTestPort = 9608;
 const int noServiceRegisteredTestPort = 9609;
 const int interceptorBasicTestsPort1 = 9610;
 const int interceptorBasicTestsPort2 = 9611;
+const int interceptorBasicTestsPort3 = 9612;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;
