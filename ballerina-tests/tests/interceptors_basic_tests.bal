@@ -99,10 +99,13 @@ function testRequestInterceptorReturnsError() returns error? {
     assertTextPayload(check res.getTextPayload(), "Request interceptor returns an error");
 }
 
-@http:ServiceConfig {
+final http:Client responseInterceptorReturnsErrorTestClientEP = check new("http://localhost:" + responseInterceptorReturnsErrorTestPort.toString());
+
+listener http:Listener responseInterceptorReturnsErrorTestServerEP = new(responseInterceptorReturnsErrorTestPort, config = {
     interceptors : [new LastResponseInterceptor(), new ResponseInterceptorPanicsError(), new DefaultResponseInterceptor()]
-}
-service /responseInterceptorReturnsError on interceptorsBasicTestsServerEP1 {
+});
+
+service / on responseInterceptorReturnsErrorTestServerEP {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -111,7 +114,7 @@ service /responseInterceptorReturnsError on interceptorsBasicTestsServerEP1 {
 
 @test:Config{}
 function testResponseInterceptorReturnsError() returns error? {
-    http:Response res = check interceptorsBasicTestsClientEP1->get("/responseInterceptorReturnsError");
+    http:Response res = check responseInterceptorReturnsErrorTestClientEP->get("/");
     test:assertEquals(res.statusCode, 500);
     assertTextPayload(check res.getTextPayload(), "Response interceptor returns an error");
 }
