@@ -47,12 +47,21 @@ listener http:Listener serviceErrorHandlingServerEP = new(serviceErrorHandlingTe
 
 service /foo on serviceErrorHandlingServerEP {
 
-    resource function get bar(@http:Header string header) returns string {
+    resource function get bar1(@http:Header string header) returns string {
+        return header;
+    }
+
+    resource function get bar2(http:Request req) returns string|error {
+        string header = check req.getHeader("header");
         return header;
     }
 
     resource function post baz(@http:Payload Person person) returns Person {
         return person;
+    }
+
+    resource function get 'error() returns error {
+        return error("Error from resource");
     }
 }
 
@@ -78,9 +87,16 @@ function testNoMatchingResourceFound() returns error? {
 
 @test:Config{}
 function testHeaderNotFound() returns error? {
-    http:Response res = check serviceErrorHandlingClientEP->get("/foo/bar");
+    http:Response res = check serviceErrorHandlingClientEP->get("/foo/bar1");
     test:assertEquals(res.statusCode, 400);
     assertTextPayload(res.getTextPayload(), "no header value found for 'header'");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+
+    res = check serviceErrorHandlingClientEP->get("/foo/bar2");
+    test:assertEquals(res.statusCode, 500);
+    assertTextPayload(res.getTextPayload(), "Http header does not exist");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
@@ -101,6 +117,16 @@ function testDataBindingFailed() returns error? {
     http:Response res = check serviceErrorHandlingClientEP->post("/foo/baz", "HelloWorld");
     test:assertEquals(res.statusCode, 400);
     assertTrueTextPayload(res.getTextPayload(), "data binding failed");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+}
+
+@test:Config{}
+function testResourceReturnsError() returns error? {
+    http:Response res = check serviceErrorHandlingClientEP->get("/foo/error");
+    test:assertEquals(res.statusCode, 500);
+    assertTrueTextPayload(res.getTextPayload(), "Error from resource");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");

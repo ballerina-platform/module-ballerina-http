@@ -64,12 +64,8 @@ public class Respond extends ConnectionAction {
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
-        HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        if (inboundRequestMsg.isInterceptorError()) {
-            updateStatusCode(inboundRequestMsg, outboundResponseObj);
-        }
-        DataContext dataContext = new DataContext(env, inboundRequestMsg);
-        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, dataContext);
+        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
+                                        new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)));
     }
 
     public static Object nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
@@ -240,11 +236,5 @@ public class Respond extends ConnectionAction {
             runtime.invokeMethodAsyncSequentially(serviceObj, methodName, null, null,
                     callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
         }
-    }
-
-    private static void updateStatusCode(HttpCarbonMessage requestMsg, BObject outboundResponseObj) {
-        int statusCode = requestMsg.getHttpStatusCode() != null ? requestMsg.getHttpStatusCode() :
-                         HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
-        outboundResponseObj.set(RESPONSE_STATUS_CODE_FIELD, statusCode);
     }
 }

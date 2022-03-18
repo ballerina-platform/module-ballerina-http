@@ -107,13 +107,13 @@ service class RequestInterceptorCallerRespondContinue {
     }
 }
 
-service class RequestInterceptorPanicsError {
+service class RequestInterceptorReturnsError {
     *http:RequestInterceptor;
 
-    resource function 'default [string... path](http:RequestContext ctx, http:Request req) {
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns error {
        req.setHeader("request-interceptor-error", "true");
        ctx.set("last-interceptor", "request-interceptor-error");
-       panic error("Request interceptor returns an error");
+       return error("Request interceptor returns an error");
     }
 }
 
@@ -378,13 +378,13 @@ service class ResponseInterceptorCallerRespondContinue {
     }
 }
 
-service class ResponseInterceptorPanicsError {
+service class ResponseInterceptorReturnsError {
     *http:ResponseInterceptor;
 
-    remote function interceptResponse(http:RequestContext ctx, http:Response res) {
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns error {
        res.setHeader("response-interceptor-error", "true");
        ctx.set("last-interceptor", "response-interceptor-error");
-       panic error("Response interceptor returns an error");
+       return error("Response interceptor returns an error");
     }
 }
 
@@ -450,9 +450,6 @@ service class DefaultResponseErrorInterceptor {
     *http:ResponseErrorInterceptor;
 
     remote function interceptResponseError(http:RequestContext ctx, http:Response res, error err) returns http:NextService|error? {
-       if (res.statusCode == 500) {
-           res.statusCode = 200;
-       }
        res.setHeader("default-response-error-interceptor", "true");
        res.setTextPayload(err.message());
        ctx.set("last-interceptor", "default-response-error-interceptor");

@@ -58,7 +58,10 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
 
     @Override
     public void notifySuccess(Object result) {
-        printStacktraceIfError(result);
+        if (result instanceof BError) {
+            invokeErrorInterceptors((BError) result, true);
+            return;
+        }
         validateResponseAndProceed(result);
     }
 
@@ -69,7 +72,14 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         if (error.getType().getName().equals(HttpErrorType.DESUGAR_AUTH_ERROR.getErrorName())) {
             return;
         }
+        invokeErrorInterceptors(error, false);
+    }
+
+    private void invokeErrorInterceptors(BError error, boolean printError) {
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
+        if (printError) {
+            error.printStackTrace();
+        }
         returnErrorResponse(error);
     }
 
@@ -160,11 +170,13 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     }
 
     public void returnErrorResponse(BError error) {
-        Object[] paramFeed = new Object[4];
+        Object[] paramFeed = new Object[6];
         paramFeed[0] = error;
         paramFeed[1] = true;
-        paramFeed[2] = requestMessage.getHttpStatusCode() != null ? requestMessage.getHttpStatusCode() : null;
+        paramFeed[2] = null;
         paramFeed[3] = true;
+        paramFeed[4] = requestMessage.getHttpStatusCode();
+        paramFeed[5] = true;
 
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }

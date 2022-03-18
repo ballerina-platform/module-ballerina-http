@@ -47,7 +47,7 @@ service /foo on requestInterceptorServiceConfigServerEP1 {
 
 @http:ServiceConfig {
     interceptors : [
-        new RequestInterceptorPanicsError(), new DefaultRequestErrorInterceptor(), new RequestInterceptorWithVariable("request-interceptor-service-bar"), 
+        new RequestInterceptorReturnsError(), new DefaultRequestErrorInterceptor(), new RequestInterceptorWithVariable("request-interceptor-service-bar"), 
         new LastRequestInterceptor(), new ResponseInterceptorWithVariable("response-interceptor-service-bar"), new DefaultResponseErrorInterceptor()
     ]
 }

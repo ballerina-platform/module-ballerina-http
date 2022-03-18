@@ -88,7 +88,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         } catch (Exception ex) {
             HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
                                                 httpServicesRegistry.getRuntime(), null, null);
-            callback.sendFailureResponseToInterceptors(HttpUtil.createError(ex), false);
+            callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
         }
     }
 
@@ -264,7 +264,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         } catch (BallerinaConnectorException ex) {
             HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
                                                 httpServicesRegistry.getRuntime(), null, null);
-            callback.sendFailureResponseToInterceptors(HttpUtil.createError(ex), false);
+            callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
         }
     }
 

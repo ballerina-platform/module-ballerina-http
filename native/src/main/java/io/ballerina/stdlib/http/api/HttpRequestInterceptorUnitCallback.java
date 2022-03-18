@@ -53,7 +53,10 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
 
     @Override
     public void notifySuccess(Object result) {
-        printStacktraceIfError(result);
+        if (result instanceof BError) {
+            invokeErrorInterceptors((BError) result, true);
+            return;
+        }
         validateResponseAndProceed(result);
     }
 
@@ -67,16 +70,25 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         if (alreadyResponded()) {
             return;
         }
+        invokeErrorInterceptors(error, false);
+    }
+
+    private void invokeErrorInterceptors(BError error, boolean printError) {
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        ballerinaHTTPConnectorListener.onMessage(requestMessage);
+        if (printError) {
+            error.printStackTrace();
+        }
+        ballerinaHTTPConnectorListener.onMessage(requestMessage);;
     }
 
     public void returnErrorResponse(Object error) {
-        Object[] paramFeed = new Object[4];
+        Object[] paramFeed = new Object[6];
         paramFeed[0] = error;
         paramFeed[1] = true;
-        paramFeed[2] = requestMessage.getHttpStatusCode() != null ? requestMessage.getHttpStatusCode() : null;
+        paramFeed[2] = null;
         paramFeed[3] = true;
+        paramFeed[4] = requestMessage.getHttpStatusCode();
+        paramFeed[5] = true;
 
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
@@ -133,17 +145,9 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
 
         if (isServiceType(result)) {
             validateServiceReturnType(result, interceptorId, interceptors);
-        } else if (isServiceError(result)) {
-            requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, result);
-            returnErrorResponse(result);
         } else {
             returnResponse(result);
         }
-    }
-
-    private boolean isServiceError(Object result) {
-        return requestCtx.getNativeData(HttpConstants.TARGET_SERVICE) instanceof BError &&
-                result.equals(requestCtx.getNativeData(HttpConstants.TARGET_SERVICE));
     }
 
     private boolean isServiceType(Object result) {

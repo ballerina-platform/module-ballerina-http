@@ -69,8 +69,10 @@ public class HttpCallableUnitCallback implements Callback {
             stopObserverContext();
             return;
         }
-        printStacktraceIfError(result);
-
+        if (result instanceof BError) {
+            invokeErrorInterceptors((BError) result, true);
+            return;
+        }
         returnResponse(result);
     }
 
@@ -87,11 +89,13 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     private void returnErrorResponse(BError error) {
-        Object[] paramFeed = new Object[4];
+        Object[] paramFeed = new Object[6];
         paramFeed[0] = error;
         paramFeed[1] = true;
-        paramFeed[2] = requestMessage.getHttpStatusCode() != null ? requestMessage.getHttpStatusCode() : null;
+        paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[3] = true;
+        paramFeed[4] = requestMessage.getHttpStatusCode();
+        paramFeed[5] = true;
 
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
@@ -135,10 +139,10 @@ public class HttpCallableUnitCallback implements Callback {
         if (alreadyResponded(error)) {
             return;
         }
-        sendFailureResponseToInterceptors(error, true);
+        invokeErrorInterceptors(error, true);
     }
 
-    public void sendFailureResponseToInterceptors(BError error, boolean printError) {
+    public void invokeErrorInterceptors(BError error, boolean printError) {
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
         if (printError) {
             error.printStackTrace();
