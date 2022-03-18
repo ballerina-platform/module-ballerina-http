@@ -25,6 +25,9 @@ public function main(string label, string output_csv_path) returns error? {
         httpVersion = "2.0",
         http2Settings = {
             http2PriorKnowledge: true
+        },
+        secureSocket = {
+            enable: false
         }
     );
     int sentCount = 0;
