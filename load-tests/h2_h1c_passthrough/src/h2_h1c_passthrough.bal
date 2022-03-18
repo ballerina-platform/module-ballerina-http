@@ -30,7 +30,7 @@ listener http:Listener securedEP = new(9090, {
 final http:Client nettyEP = check new("http://netty:8688");
 
 service /passthrough on securedEP {
-    resource function post .(http:Caller caller, http:Request clientRequest) returns http:Response|error {
+    resource function post .(http:Request clientRequest) returns http:Response|error {
         http:Response response = check nettyEP->forward("/service/EchoService", clientRequest);
         return response;
     }
