@@ -224,7 +224,9 @@ public class HttpDispatcher {
 
     public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response, BObject caller,
                                                         HttpCarbonMessage httpCarbonMessage) {
-        BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
+        BObject requestCtx = httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT) != null ? (BObject)
+                httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT) : createRequestContext(httpCarbonMessage);
+        populatePropertiesForResponsePath(httpCarbonMessage, requestCtx);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         RemoteMethodParamHandler paramHandler = service.getRemoteMethodParamHandler();
         int sigParamCount = paramHandler.getParamCount();
@@ -233,10 +235,6 @@ public class HttpDispatcher {
             String typeName = param.getTypeName();
             switch (typeName) {
                 case HttpConstants.REQUEST_CONTEXT:
-                    if (requestCtx == null) {
-                        requestCtx = createRequestContext(httpCarbonMessage);
-                    }
-                    populatePropertiesForResponsePath(httpCarbonMessage, requestCtx);
                     int index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;
@@ -280,7 +278,9 @@ public class HttpDispatcher {
                                                   BMap<BString, Object> endpointConfig) {
         BObject inRequest = null;
         // Getting the same caller, request context and entity object to pass through interceptor services
-        BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
+        BObject requestCtx = httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT) != null ? (BObject)
+                httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT) : createRequestContext(httpCarbonMessage);
+        populatePropertiesForRequestPath(resource, httpCarbonMessage, requestCtx);
         BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         BObject httpCaller = getCaller(resource, httpCarbonMessage, endpointConfig);
@@ -308,10 +308,6 @@ public class HttpDispatcher {
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.REQUEST_CONTEXT:
-                    if (requestCtx == null) {
-                        requestCtx = createRequestContext(httpCarbonMessage);
-                    }
-                    populatePropertiesForRequestPath(resource, httpCarbonMessage, requestCtx);
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;
