@@ -338,3 +338,11 @@ service class RequestInterceptor2 {
         return "hello";
     }
 }
+
+service class ResponseErrorInterceptorService1 {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptResponseError(http:RequestContext ctx) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
