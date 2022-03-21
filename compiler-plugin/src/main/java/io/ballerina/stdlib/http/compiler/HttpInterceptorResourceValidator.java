@@ -36,11 +36,15 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDia
 public class HttpInterceptorResourceValidator {
     public static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, String type) {
         checkResourceAnnotation(ctx, member);
-        if (type.equals(Constants.REQUEST_ERROR_INTERCEPTOR)) {
+        if (isRequestErrorInterceptor(type)) {
             extractAndValidateMethodAndPath(ctx, member);
         }
-        HttpResourceValidator.extractInputParamTypeAndValidate(ctx, member);
+        HttpResourceValidator.extractInputParamTypeAndValidate(ctx, member, isRequestErrorInterceptor(type));
         HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, member, HttpDiagnosticCodes.HTTP_126);
+    }
+
+    private static boolean isRequestErrorInterceptor(String type) {
+        return type.equals(Constants.REQUEST_ERROR_INTERCEPTOR);
     }
 
     private static void extractAndValidateMethodAndPath(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {

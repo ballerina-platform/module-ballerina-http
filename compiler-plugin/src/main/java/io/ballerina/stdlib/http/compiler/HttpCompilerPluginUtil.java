@@ -219,4 +219,8 @@ public class HttpCompilerPluginUtil {
     private static void reportReturnTypeAnnotationsAreNotAllowed(SyntaxNodeAnalysisContext ctx, Node node) {
         HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_142);
     }
+
+    public static void reportMissingParameterError(SyntaxNodeAnalysisContext ctx, Location location, String method) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_143, method);
+    }
 }

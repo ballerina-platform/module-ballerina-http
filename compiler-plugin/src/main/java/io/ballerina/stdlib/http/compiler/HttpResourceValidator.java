@@ -78,7 +78,7 @@ class HttpResourceValidator {
 
     static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
         extractResourceAnnotationAndValidate(ctx, member);
-        extractInputParamTypeAndValidate(ctx, member);
+        extractInputParamTypeAndValidate(ctx, member, false);
         extractReturnTypeAndValidate(ctx, member);
         validateHttpCallerUsage(ctx, member);
     }
@@ -103,7 +103,8 @@ class HttpResourceValidator {
         }
     }
 
-    public static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
+    public static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                                        boolean isErrorInterceptor) {
         boolean callerPresent = false;
         boolean requestPresent = false;
         boolean requestCtxPresent = false;
@@ -464,6 +465,9 @@ class HttpResourceValidator {
                         break;
                 }
             }
+        }
+        if (isErrorInterceptor && !errorPresent) {
+            HttpCompilerPluginUtil.reportMissingParameterError(ctx, member.location(), Constants.RESOURCE_KEYWORD);
         }
         if (resourceMethodOptional.isPresent() && !payloadAnnotationPresent) {
             enableAddPayloadParamCodeAction(ctx, member.functionSignature().location(), resourceMethodOptional.get());

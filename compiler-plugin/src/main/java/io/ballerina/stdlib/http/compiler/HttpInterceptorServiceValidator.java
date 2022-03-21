@@ -289,17 +289,16 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                 } else {
                     reportInvalidParameterType(ctx, paramLocation, paramType);
                 }
-            } else if (kind == TypeDescKind.ERROR) {
-                if (isResponseErrorInterceptor(type)) {
-                    errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
+            } else if (isResponseErrorInterceptor(type) && kind == TypeDescKind.ERROR) {
+                errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
                             HttpDiagnosticCodes.HTTP_122);
-                } else {
-                    reportInvalidParameterType(ctx, paramLocation, paramType);
-                }
             } else {
                 reportInvalidParameterType(ctx, paramLocation, paramType);
             }
             continue;
+        }
+        if (isResponseErrorInterceptor(type) && !errorPresent) {
+            HttpCompilerPluginUtil.reportMissingParameterError(ctx, member.location(), Constants.REMOTE_KEYWORD);
         }
     }
 

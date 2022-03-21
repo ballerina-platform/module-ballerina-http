@@ -26,6 +26,7 @@ public class Constants {
     public static final String HTTP = "http";
     public static final String SERVICE_KEYWORD = "service";
     public static final String REMOTE_KEYWORD = "remote";
+    public static final String RESOURCE_KEYWORD = "resource";
     public static final String RESPONSE_OBJ_NAME = "Response";
     public static final String CALLER_OBJ_NAME = "Caller";
     public static final String REQUEST_OBJ_NAME = "Request";
