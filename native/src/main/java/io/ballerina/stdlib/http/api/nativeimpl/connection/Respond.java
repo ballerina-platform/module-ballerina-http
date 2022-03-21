@@ -176,9 +176,7 @@ public class Respond extends ConnectionAction {
         if (interceptorServicesRegistries.isEmpty()) {
             return false;
         }
-        int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX)
-                == null ? interceptorServicesRegistries.size() - 1
-                : (int)  inboundMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
+        int interceptorServiceIndex = getResponseInterceptorIndex(inboundMessage, interceptorServicesRegistries.size());
         while (interceptorServiceIndex >= 0) {
             HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
                     get(interceptorServiceIndex);
@@ -212,6 +210,16 @@ public class Respond extends ConnectionAction {
             callback.sendFailureResponse((BError) inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR));
         }
         return false;
+    }
+
+    private static int getResponseInterceptorIndex(HttpCarbonMessage inboundMessage, int interceptorsCount) {
+        if (inboundMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) != null) {
+            return (int) inboundMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
+        } else if (inboundMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) != null) {
+            return (int) inboundMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) - 1;
+        } else {
+            return interceptorsCount - 1;
+        }
     }
 
     private static void startInterceptResponseMethod(HttpCarbonMessage inboundMessage, BObject outboundResponseObj,

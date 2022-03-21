@@ -23,8 +23,8 @@ final http:Client requestInterceptorWithCallerRespondClientEP = check new("http:
 
 listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, config = {
     interceptors : [
-        new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCallerRespond(), 
-        new LastRequestInterceptor(), new DefaultResponseInterceptor()
+        new DefaultRequestInterceptor(), new LastResponseInterceptor(), new DefaultResponseInterceptor(),
+        new RequestInterceptorCallerRespond(), new LastRequestInterceptor()
     ]
 });
 
