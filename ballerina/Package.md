@@ -1,4 +1,4 @@
-## Package Overview
+## Package overview
 
 This package provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It
 facilitates two types of network entry points as the `Client` and `Listener`.
@@ -99,11 +99,11 @@ built-in support for basic authentication, JWT authentication, and OAuth2 authen
 In addition to that, supports both the HTTP/1.1 and HTTP2 protocols and connection keep-alive, content
 chunking, HTTP caching, data compression/decompression, payload binding, and authorization can be highlighted as the features of a `Service`.
 
-## Report Issues
+## Report issues
 
 To report bugs, request new features, start new discussions, view project boards, etc., go to the [Ballerina standard library parent repository](https://github.com/ballerina-platform/ballerina-standard-library).
 
-## Useful Links
+## Useful links
 
 - Chat live with us via our [Slack channel](https://ballerina.io/community/slack/).
 - Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
