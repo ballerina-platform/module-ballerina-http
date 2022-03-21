@@ -17,7 +17,7 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client typedHeadersTestClient = check new("http://localhost:" + typedHeadersTestPort.toString());
+final http:Client typedHeadersTestClient = check new("http://localhost:" + generalPort.toString());
 
 type StringHeaders record {|
     string requestId;

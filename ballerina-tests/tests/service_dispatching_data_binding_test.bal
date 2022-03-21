@@ -20,7 +20,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-final http:Client dataBindingClient = check new("http://localhost:" + databindingTest.toString());
+final http:Client dataBindingClient = check new("http://localhost:" + generalPort.toString());
 
 type Person record {|
     string name;

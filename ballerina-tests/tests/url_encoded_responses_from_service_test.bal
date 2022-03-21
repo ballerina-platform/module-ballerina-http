@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/mime;
 import ballerina/test;
 
-final http:Client urlEncodedResponsesTestClient = check new("http://localhost:" + urlEncodedResponsesTestPort.toString());
+final http:Client urlEncodedResponsesTestClient = check new("http://localhost:" + generalPort.toString());
 
 type AcceptedResponse record {|
     *http:Accepted;

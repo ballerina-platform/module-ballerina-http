@@ -17,7 +17,7 @@
 import ballerina/test;
 import ballerina/http;
 
-final http:Client matrixClient = check new("http://localhost:" + uriMatrixParamMatchingTest.toString());
+final http:Client matrixClient = check new("http://localhost:" + generalPort.toString());
 
 service /hello on generalListener {
 

@@ -18,7 +18,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-final http:Client pcClient = check new("http://localhost:" + producesConsumesTest.toString());
+final http:Client pcClient = check new("http://localhost:" + generalPort.toString());
 
 service /echo66 on generalListener {
     @http:ResourceConfig {

@@ -315,7 +315,7 @@ service /entityService on generalListener {
     }
 }
 
-final http:Client entityClient = check new("http://localhost:" + entityTest.toString());
+final http:Client entityClient = check new("http://localhost:" + generalPort.toString());
 
 // Test addHeader function within a service
 @test:Config {
