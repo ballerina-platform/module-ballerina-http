@@ -18,10 +18,9 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener pcEP = new(producesConsumesTest);
 final http:Client pcClient = check new("http://localhost:" + producesConsumesTest.toString());
 
-service /echo66 on pcEP {
+service /echo66 on generalListener {
     @http:ResourceConfig {
         consumes: ["application/xml"]
     }
@@ -53,7 +52,7 @@ service /echo66 on pcEP {
     }
 }
 
-service /echo67 on pcEP {
+service /echo67 on generalListener {
     resource function 'default echo1(http:Caller caller, http:Request req) returns error? {
         check caller->respond({ echo33: "echo1" });
     }

@@ -14,11 +14,26 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/http;
+
+listener http:Listener generalListener = new(requestTest);
+
+listener http:Listener generalHTTP2Listener = new http:Listener(http2GeneralPort, {httpVersion: "2.0"});
+listener http:Listener HTTP2BackendListener = new http:Listener(http2BackendPort, {httpVersion: "2.0"});
+
 const int requestTest = 9000;
-const int requestTest2 = 9093;
-const int databindingTest = 9001;
-const int producesConsumesTest = 9002;
-const int uriMatrixParamMatchingTest = 9003;
+const int requestTest2 = 9000;
+const int databindingTest = 9000;
+const int producesConsumesTest = 9000;
+const int uriMatrixParamMatchingTest = 9000;
+const int urlEncodedResponsesTestPort = 9000;
+const int typedHeadersTestPort = 9000;
+const int entityTest = 9000;
+const int mimeTest = 9000;
+
+const int http2GeneralPort = 9100;
+const int http2BackendPort = 9101;
+
 const int uriTemplateTest1 = 9004;
 const int uriTemplateTest2 = 9005;
 const int uriTemplateDefaultTest1 = 9006;
@@ -36,8 +51,6 @@ const int serviceEndpointTest = 9016;
 const int parseHeaderTest = 9017;
 const int multipartRequestTest = 9018;
 const int responseTest = 9094;
-const int entityTest = 9097;
-const int mimeTest = 9096;
 const int proxyTest1 = 9019;
 const int proxyTest2 = 9020;
 const int streamTest1 = 9021;
@@ -157,8 +170,6 @@ const int requestInterceptorWithQueryParamTestPort = 9607;
 const int requestInterceptorServiceConfigTestPort1 = 9608;
 const int requestInterceptorServiceConfigTestPort2 = 9609;
 const int clientFormUrlEncodedTestPort = 9610;
-const int typedHeadersTestPort = 9611;
-const int urlEncodedResponsesTestPort = 9612;
 const int readonlyQueryTestPort = 9613;
 
 //HTTP2

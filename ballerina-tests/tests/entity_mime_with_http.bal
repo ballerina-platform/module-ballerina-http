@@ -19,9 +19,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener mimeEP = new(mimeTest);
-
-service /test on mimeEP {
+service /mimeTest on generalListener {
 
     // TODO: Enable after the I/O revamp
     // resource function post largepayload(http:Caller caller, http:Request request) {
@@ -166,7 +164,7 @@ final http:Client mimeClient = check new("http://localhost:" + mimeTest.toString
 function testAccessingPayloadFromEntity() {
     string key = "lang";
     string value = "ballerina";
-    string path = "/test/getPayloadFromEntity";
+    string path = "/mimeTest/getPayloadFromEntity";
     string jsonString = "{\"" + key + "\":\"" + value + "\"}";
     http:Request req = new;
     req.setTextPayload(jsonString);
@@ -182,7 +180,7 @@ function testAccessingPayloadFromEntity() {
 function testStreamResponseSerialize() {
     string key = "lang";
     string value = "ballerina";
-    string path = "/test/largepayload";
+    string path = "/mimeTest/largepayload";
     json jsonString = {[key]:value};
     http:Request req = new;
     req.setJsonPayload(jsonString);
