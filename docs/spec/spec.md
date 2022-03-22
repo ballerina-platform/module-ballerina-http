@@ -80,7 +80,7 @@ The conforming implementation of the specification is released and included in t
 8. [Interceptor and error handling](#8-interceptor-and-error-handling)
     * 8.1. [Interceptor](#81-interceptor)
         * 8.1.1. [Request interceptor](#811-request-interceptor)
-            * 8.1.1.1. [Request context](#8111-requestcontext)
+            * 8.1.1.1. [Request context](#8111-request-context)
             * 8.1.1.2. [Next method](#8112-next-method)
             * 8.1.1.3. [Return to respond](#8113-return-to-respond)
         * 8.1.2. [Response interceptor](#812-response-interceptor)
@@ -1496,7 +1496,7 @@ parseHeader(string headerValue) returns HeaderValue[]|ClientError  {
 }
 ```
 
-## 8. Interceptor and Error handling
+## 8. Interceptor and error handling
 ### 8.1 Interceptor
 Interceptor enhances the HTTP package with interceptors. Interceptors typically do small units of work such as logging, header 
 manipulation, state publishing, etc., before resources are invoked. The ability to execute some common logic for all 
@@ -1544,7 +1544,7 @@ service class RequestInterceptor {
 }
 ```
 
-##### 8.1.1.1 RequestContext  
+##### 8.1.1.1 Request context  
 Following is the rough definition of the interceptor context.
 ```ballerina
 public isolated class RequestContext {
@@ -1579,7 +1579,7 @@ public isolated class RequestContext {
 }
 ```
 
-##### 8.1.1.2 next() Method  
+##### 8.1.1.2 next() method  
 However, there is an addition when it comes to `RequestContext`. A new method namely, `next()` is introduced to control 
 the execution flow. Users must invoke `next()` method in order to trigger the next interceptor in the pipeline. Then 
 the reference of the retrieved interceptor must be returned from the resource function. Pipeline use this reference to
@@ -1594,7 +1594,7 @@ mentioned above `RequestInterceptor` additionally could return the `NextService|
 does not translate into HTTP response. 
 
 When a `RequestInterceptor` responded with a response, the response interceptor pipeline will get executed immediately.
-In case of an internal error, interceptor pipeline execution jumps to the nearest `RequestErrorInterceptor` or 
+In case of an error, interceptor pipeline execution jumps to the nearest `RequestErrorInterceptor` or 
 `ResponseErrorInterceptor` in the pipeline. These error interceptors are special kinds of interceptor which could be 
 used to handle errors, and they are not necessarily the last interceptor in the pipeline, they can be anywhere in the 
 chain. However, in the case of there is no error interceptors in the pipeline, pipeline returns the internal error 
@@ -1624,7 +1624,7 @@ The remote function : `interceptResposne()` allows returning values other than `
 continue the response interceptor pipeline with the returned response object and calling `RequestContext.next()` is
 redundant in this case.
 
-In case of an internal error, interceptor pipeline execution jumps to the nearest `ResponseErrorInterceptor` in the 
+In case of an error, interceptor pipeline execution jumps to the nearest `ResponseErrorInterceptor` in the 
 pipeline. . However, in the case of there is no `ResponseInterceptor` in the pipeline, pipeline returns the internal 
 error response to the client.
 
@@ -1666,8 +1666,8 @@ In the case of an error returned within an error interceptor, again execution ju
 However, if there is no error interceptor to jump to, the internal error response is returned just like in a normal 
 interceptors.
 
-#### 8.1.4 Engaging Interceptors
-##### 8.1.4.1 Service Level
+#### 8.1.4 Engaging interceptors
+##### 8.1.4.1 Service level
 Interceptors could get engaged at service level. One reason for this is that users may want to engage two different 
 interceptor chains for each service even though it is attached to the same Listener. At the service level resource 
 function paths are relative to the service base path.
@@ -1677,14 +1677,14 @@ function paths are relative to the service base path.
 }
 ```
 
-##### 8.1.4.2 Listener Level
+##### 8.1.4.2 Listener level
 Interceptors could get engaged at Listener level as well. At the listener level resource function paths are 
 relative to the /.
 ```ballerina
 listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: [requestInterceptor, responseInterceptor]});
 ```
 
-##### 8.1.4.3 Execution Order of Interceptors
+##### 8.1.4.3 Execution order of interceptors
 
 ![img.png](_resources/img.png)
 In the above example blue dashed box represents the `RequestErrorInterceptor` and blue boxes simply represent the 
@@ -1713,7 +1713,7 @@ ServiceLevel : ResponseInterceptors -> ListenerLevel : ResponseInterceptors
 Execution of interceptors does not dependent on the existence of the end service i.e. the interceptors are executed in the
 relevant order even though the end service does not exist.
 
-#### 8.1.5 Data Binding
+#### 8.1.5 Data binding
 `RequestInterceptor` methods support data binding. Which means users can directly access the payload, headers and query
 parameters. In order to get hold of the headers and the payload, users must use @http:Payload and @http:Headers.
 
