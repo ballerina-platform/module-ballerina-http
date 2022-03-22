@@ -78,7 +78,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         if (printError) {
             error.printStackTrace();
         }
-        ballerinaHTTPConnectorListener.onMessage(requestMessage);;
+        ballerinaHTTPConnectorListener.onMessage(requestMessage);
     }
 
     public void returnErrorResponse(Object error) {

@@ -1528,8 +1528,7 @@ public class HttpUtil {
             BObject interceptorService = interceptorServices.get(i);
             HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
             servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerInterceptorService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH,
-                                                        true);
+            servicesRegistry.registerInterceptorService(interceptorService, HttpConstants.DEFAULT_BASE_PATH, true);
             servicesRegistry.setRuntime(runtime);
         }
     }

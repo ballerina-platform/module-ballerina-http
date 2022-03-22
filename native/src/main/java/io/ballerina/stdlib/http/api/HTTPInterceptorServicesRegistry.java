@@ -82,11 +82,10 @@ public class HTTPInterceptorServicesRegistry {
     /**
      * Register a service into the map.
      *
-     * @param runtime  ballerina runtime instance.
      * @param service  requested serviceInfo to be registered.
      * @param basePath absolute resource path of the service
      */
-    public void registerInterceptorService(Runtime runtime, BObject service, String basePath, boolean fromListener) {
+    public void registerInterceptorService(BObject service, String basePath, boolean fromListener) {
         InterceptorService httpInterceptorService = InterceptorService.buildHttpService(service, basePath,
                 this.getServicesType(), fromListener);
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
