@@ -453,3 +453,55 @@ function testRequestInterceptorWithQueryParam() returns error? {
     assertHeaderValue(check res.getHeader("q1"), "val");
     assertHeaderValue(check res.getHeader("q2"), "6");
 }
+
+final http:Client interceptorReturnsStatusClientEP = check new("http://localhost:" + interceptorReturnsStatusTestPort.toString());
+
+listener http:Listener interceptorReturnsStatusServerEP = check new(interceptorReturnsStatusTestPort);
+
+@http:ServiceConfig {
+    interceptors: [new RequestInterceptorReturnsStatusCodeResponse()]
+}
+service /request on interceptorReturnsStatusServerEP {
+
+    resource function get .() returns string {
+        return "Response from main resource";
+    }
+}
+
+@http:ServiceConfig {
+    interceptors: [new ResponseInterceptorReturnsStatusCodeResponse()]
+}
+service /response on interceptorReturnsStatusServerEP {
+
+    resource function get .(string? header) returns http:Response {
+        http:Response res = new;
+        if header is string {
+            res.setHeader("header", "true");
+        }
+        return res;
+    }
+}
+
+@test:Config{}
+function testRequestInterceptorReturnsStatus() returns error? {
+    http:Response res = check interceptorReturnsStatusClientEP->get("/request");
+    test:assertEquals(res.statusCode, 404);
+    assertTextPayload(res.getTextPayload(), "Header not found in request");
+
+    res = check interceptorReturnsStatusClientEP->get("/request", {"header" : "true"});
+    test:assertEquals(res.statusCode, 200);
+    assertTextPayload(res.getTextPayload(), "Response from Request Interceptor");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-returns-status");
+}
+
+@test:Config{}
+function testResponseInterceptorReturnsStatus() returns error? {
+    http:Response res = check interceptorReturnsStatusClientEP->get("/response");
+    test:assertEquals(res.statusCode, 404);
+    assertTextPayload(res.getTextPayload(), "Header not found in response");
+
+    res = check interceptorReturnsStatusClientEP->get("/response?header=true");
+    test:assertEquals(res.statusCode, 200);
+    assertTextPayload(res.getTextPayload(), "Response from Response Interceptor");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "response-interceptor-returns-status");
+}

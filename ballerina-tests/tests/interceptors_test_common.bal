@@ -87,7 +87,7 @@ service class RequestInterceptorSetPayload {
 service class RequestInterceptorCallerRespond {
     *http:RequestInterceptor;
 
-    resource function 'default [string... path](http:Caller caller, http:Request request) returns error? {
+    resource function 'default [string... path](http:Caller caller) returns error? {
         http:Response res = new();
         res.setHeader("request-interceptor-caller-respond", "true");
         res.setTextPayload("Response from caller inside interceptor");
@@ -98,7 +98,7 @@ service class RequestInterceptorCallerRespond {
 service class RequestInterceptorCallerRespondContinue {
     *http:RequestInterceptor;
 
-    resource function 'default [string... path](http:RequestContext ctx, http:Caller caller, http:Request request) returns http:NextService|error? {
+    resource function 'default [string... path](http:RequestContext ctx, http:Caller caller) returns http:NextService|error? {
         http:Response res = new();
         res.setHeader("last-interceptor", "request-interceptor-caller-respond");
         res.setTextPayload("Response from caller inside interceptor");
@@ -143,10 +143,32 @@ service class RequestInterceptorReturnsResponse {
     }
 }
 
+service class RequestInterceptorReturnsStatusCodeResponse {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:Request req) returns http:NotFound|http:Ok {
+       boolean isHeaderPresent = req.getHeader("header") is string ? true : false;
+       if isHeaderPresent {
+           http:Ok ok = {
+               body: "Response from Request Interceptor",
+               headers: {
+                   "last-interceptor" : "request-interceptor-returns-status"
+               }
+           };
+           return ok;
+       } else {
+           http:NotFound nf = {
+               body: "Header not found in request"
+           };
+           return nf;
+       }
+    }
+}
+
 service class DefaultRequestErrorInterceptor {
     *http:RequestErrorInterceptor;
 
-    resource function 'default [string... path](http:RequestContext ctx, http:Request req, error err) returns http:NextService|error? {
+    resource function 'default [string... path](error err, http:RequestContext ctx, http:Request req) returns http:NextService|error? {
        req.setHeader("default-request-error-interceptor", "true");
        req.setTextPayload(err.message());
        ctx.set("last-interceptor", "default-request-error-interceptor");
@@ -350,7 +372,7 @@ service class ResponseInterceptorSetPayload {
 service class ResponseInterceptorWithoutCtxNext {
     *http:ResponseInterceptor;
 
-    remote function interceptResponse(http:RequestContext ctx, http:Response res) {
+    remote function interceptResponse(http:Response res) {
        res.setHeader("response-interceptor-without-ctx-next", "true");
        res.setHeader("last-interceptor", "response-interceptor-without-ctx-next");
        res.setTextPayload("Response from response interceptor");
@@ -395,7 +417,7 @@ service class ResponseInterceptorSkip {
        res.setHeader("skip-interceptor", "true");
        ctx.set("last-interceptor", "skip-interceptor");
        http:NextService|error? nextService = ctx.next();
-       if (nextService is error) {
+       if nextService is error {
            return nextService;
        }
        return ctx.next();
@@ -446,10 +468,32 @@ service class ResponseInterceptorReturnsResponse {
     }
 }
 
+service class ResponseInterceptorReturnsStatusCodeResponse {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:Response res) returns http:NotFound|http:Ok {
+       boolean isHeaderPresent = res.getHeader("header") is string ? true : false;
+       if isHeaderPresent {
+           http:Ok ok = {
+               body: "Response from Response Interceptor",
+               headers: {
+                   "last-interceptor" : "response-interceptor-returns-status"
+               }
+           };
+           return ok;
+       } else {
+           http:NotFound nf = {
+               body: "Header not found in response"
+           };
+           return nf;
+       }
+    }
+}
+
 service class DefaultResponseErrorInterceptor {
     *http:ResponseErrorInterceptor;
 
-    remote function interceptResponseError(http:RequestContext ctx, http:Response res, error err) returns http:NextService|error? {
+    remote function interceptResponseError(error err, http:RequestContext ctx, http:Response res) returns http:NextService|error? {
        res.setHeader("default-response-error-interceptor", "true");
        res.setTextPayload(err.message());
        ctx.set("last-interceptor", "default-response-error-interceptor");
