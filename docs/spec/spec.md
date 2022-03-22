@@ -1689,18 +1689,29 @@ listener http:Listener echoListener = new http:Listener(9090, config = {intercep
 ![img.png](_resources/img.png)
 In the above example blue dashed box represents the `RequestErrorInterceptor` and blue boxes simply represent the 
 `RequestInterceptors`, whereas green dashed box represents the `ResponseErrorInterceptor` and green boxes simply represent the 
-`ResponseInterceptors`. The new execution orders is as follows,
+`ResponseInterceptors`. 
+
+`ResponseInterceptors` are executed in the opposite direction of `RequestInterceptors` i.e. `RequestInterceptors`
+are executed head to tail whereas `ResponseInterceptors` are executed tail to head. The new execution order is as follows, 
+assuming that there are no error occurred in the pipeline :
 ```
-RequestInterceptor/RequestErrorInterceptor: 1, 2, 4, 5
-ResponseInterceptor/ResponseErrorInterceptor: 5, 3, 0
+RequestInterceptor  : 1, 2, 4
+ResponseInterceptor : 5, 3
 ```
 
-The execution order when interceptors are engaged at both service and listener levels is as follows;
+However, if the user decides to respond at 4 and terminate the cycle, only the `ResponseInterceptor` at 3 gets executed.
+Also, when the `RequestInterceptor` at 2 returns an error, the execution jumps from 2 to 6 as the nearest Error Interceptor
+is at 6. The same goes to the response path.
+
+The execution order when interceptors are engaged at both service and listener levels is as follows:
 
 ```
 ListenerLevel : RequestInterceptors -> ServiceLevel : RequestInterceptors -> TargetService -> 
 ServiceLevel : ResponseInterceptors -> ListenerLevel : ResponseInterceptors
 ```
+
+Execution of interceptors does not dependent on the existence of the end service i.e. the interceptors are executed in the
+relevant order even though the end service does not exist.
 
 #### 8.1.5 Data Binding
 `RequestInterceptor` methods support data binding. Which means users can directly access the payload, headers and query
