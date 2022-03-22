@@ -224,8 +224,7 @@ public class HttpDispatcher {
 
     public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response, BObject caller,
                                                         HttpCarbonMessage httpCarbonMessage) {
-        BObject requestCtx = httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT) != null ? (BObject)
-                httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT) : createRequestContext(httpCarbonMessage);
+        BObject requestCtx = getRequestCtx(httpCarbonMessage);
         populatePropertiesForResponsePath(httpCarbonMessage, requestCtx);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         RemoteMethodParamHandler paramHandler = service.getRemoteMethodParamHandler();
@@ -278,8 +277,7 @@ public class HttpDispatcher {
                                                   BMap<BString, Object> endpointConfig) {
         BObject inRequest = null;
         // Getting the same caller, request context and entity object to pass through interceptor services
-        BObject requestCtx = httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT) != null ? (BObject)
-                httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT) : createRequestContext(httpCarbonMessage);
+        BObject requestCtx = getRequestCtx(httpCarbonMessage);
         populatePropertiesForRequestPath(resource, httpCarbonMessage, requestCtx);
         BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
@@ -354,6 +352,11 @@ public class HttpDispatcher {
             }
         }
         return paramFeed;
+    }
+
+    private static BObject getRequestCtx(HttpCarbonMessage httpCarbonMessage) {
+        BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
+        return requestCtx != null ? requestCtx : createRequestContext(httpCarbonMessage);
     }
 
     private static void populatePropertiesForRequestPath(Resource resource, HttpCarbonMessage httpCarbonMessage,

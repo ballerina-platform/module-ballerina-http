@@ -1710,7 +1710,7 @@ ListenerLevel : RequestInterceptors -> ServiceLevel : RequestInterceptors -> Tar
 ServiceLevel : ResponseInterceptors -> ListenerLevel : ResponseInterceptors
 ```
 
-Execution of interceptors does not dependent on the existence of the end service i.e. the interceptors are executed in the
+Execution of interceptors does not depend on the existence of the end service i.e. the interceptors are executed in the
 relevant order even though the end service does not exist.
 
 #### 8.1.5 Data binding
