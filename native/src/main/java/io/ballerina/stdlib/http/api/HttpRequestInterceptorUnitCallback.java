@@ -73,7 +73,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         invokeErrorInterceptors(error, false);
     }
 
-    private void invokeErrorInterceptors(BError error, boolean printError) {
+    public void invokeErrorInterceptors(BError error, boolean printError) {
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
         if (printError) {
             error.printStackTrace();
@@ -82,6 +82,8 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     }
 
     public void returnErrorResponse(Object error) {
+        cleanupRequestMessage();
+
         Object[] paramFeed = new Object[6];
         paramFeed[0] = error;
         paramFeed[1] = true;
@@ -93,12 +95,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
 
-    private void sendFailureResponse(BError error) {
-        cleanupRequestAndContext();
-        HttpUtil.handleFailure(requestMessage, error, false);
-    }
-
-    private void cleanupRequestAndContext() {
+    private void cleanupRequestMessage() {
         requestMessage.waitAndReleaseAllEntities();
     }
 
@@ -163,7 +160,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
                 } else {
                     BError err = HttpUtil.createHttpError("next interceptor service did not match " +
                             "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
-                    sendFailureResponse(err);
+                    invokeErrorInterceptors(err, true);
                 }
             } else {
                 Object targetService = requestCtx.getNativeData(HttpConstants.TARGET_SERVICE);
@@ -172,7 +169,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
                 } else {
                     BError err = HttpUtil.createHttpError("target service did not match with the configuration",
                             HttpErrorType.GENERIC_LISTENER_ERROR);
-                    sendFailureResponse(err);
+                    invokeErrorInterceptors(err, true);
                 }
             }
         }
@@ -199,7 +196,8 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
 
             @Override
             public void notifyFailure(BError result) {
-                sendFailureResponse(result);
+                cleanupRequestMessage();
+                HttpUtil.handleFailure(requestMessage, result, false);
             }
         };
         runtime.invokeMethodAsyncSequentially(
