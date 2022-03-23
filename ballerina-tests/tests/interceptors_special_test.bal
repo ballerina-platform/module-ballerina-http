@@ -71,7 +71,7 @@ function testResponseInterceptorWithCallerRespond() returns error? {
 final http:Client requestInterceptorDataBindingClientEP1 = check new("http://localhost:" + requestInterceptorDataBindingTestPort1.toString());
 
 listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInterceptorDataBindingTestPort1, config = {
-    interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
+    interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg(), new LastRequestInterceptor()]
 });
 
 service / on requestInterceptorDataBindingServerEP1 {
@@ -113,6 +113,14 @@ function testRequestInterceptorDataBinding() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "databinding-interceptor");
     assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+
+    res = check requestInterceptorDataBindingClientEP1->post("/", "payload");
+    test:assertEquals(res.statusCode, 200);
+    assertTextPayload(res.getTextPayload(), "no header value found for 'interceptor'");
+
+    res = check requestInterceptorDataBindingClientEP1->get("/");
+    test:assertEquals(res.statusCode, 200);
+    assertTrueTextPayload(res.getTextPayload(), "data binding failed");
 
     res = check requestInterceptorDataBindingClientEP2->post("/", req);
     assertTextPayload(check res.getTextPayload(), "Request from requestInterceptorDataBindingClient");
@@ -504,4 +512,92 @@ function testResponseInterceptorReturnsStatus() returns error? {
     test:assertEquals(res.statusCode, 200);
     assertTextPayload(res.getTextPayload(), "Response from Response Interceptor");
     assertHeaderValue(check res.getHeader("last-interceptor"), "response-interceptor-returns-status");
+}
+
+final http:Client interceptorExecutionOrderClientEP = check new("http://localhost:" + interceptorExecutionOrderTestPort.toString());
+
+listener http:Listener interceptorExecutionOrderServerEP = check new(interceptorExecutionOrderTestPort, config = {
+    interceptors: [
+        new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCheckHeader("listener-header"), 
+        new ResponseInterceptorWithVariable("listener-response"), new RequestInterceptorWithVariable("listener-request")
+    ]
+});
+
+service / on interceptorExecutionOrderServerEP {
+
+    resource function get .(http:Request req) returns http:Response|error {
+        http:Response res = new;
+        foreach string reqHeader in req.getHeaderNames() {
+            res.setHeader(reqHeader, check req.getHeader(reqHeader));
+        }
+        res.setTextPayload("Response from main resource");
+        return res;
+    }
+}
+
+@http:ServiceConfig {
+    interceptors: [
+        new ResponseInterceptorWithVariable("service-response"), new RequestInterceptorCheckHeader("service-header"),
+        new RequestInterceptorWithVariable("service-request"), new LastRequestInterceptor(), new DefaultResponseInterceptor()
+    ]
+}
+service /test on interceptorExecutionOrderServerEP {
+
+    resource function get .(http:Request req) returns http:Response|error {
+        http:Response res = new;
+        foreach string reqHeader in req.getHeaderNames() {
+            res.setHeader(reqHeader, check req.getHeader(reqHeader));
+        }
+        res.setTextPayload("Response from main resource");
+        return res;
+    }
+}
+
+@test:Config{}
+function testInterceptorExecutionOrder() returns error? {
+    http:Response res = check interceptorExecutionOrderClientEP->get("/");
+    test:assertEquals(res.statusCode, 404);
+    assertTextPayload(res.getTextPayload(), "Header : listener-header not found");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-check-header");
+    test:assertFalse(res.hasHeader("listener-request"));
+    test:assertFalse(res.hasHeader("listener-response"));
+
+    res = check interceptorExecutionOrderClientEP->get("/", {"listener-header" : "true"});
+    test:assertEquals(res.statusCode, 200);
+    assertTextPayload(res.getTextPayload(), "Response from main resource");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "listener-response");
+    assertHeaderValue(check res.getHeader("listener-response"), "true");
+    assertHeaderValue(check res.getHeader("listener-request"), "true");
+
+    res = check interceptorExecutionOrderClientEP->get("/test");
+    test:assertEquals(res.statusCode, 404);
+    assertTextPayload(res.getTextPayload(), "Header : listener-header not found");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "request-interceptor-check-header");
+    test:assertFalse(res.hasHeader("listener-request"));
+    test:assertFalse(res.hasHeader("listener-response"));
+    test:assertFalse(res.hasHeader("service-response"));
+    test:assertFalse(res.hasHeader("service-request"));
+    test:assertFalse(res.hasHeader("last-request-interceptor"));
+    test:assertFalse(res.hasHeader("default-response-interceptor"));
+
+    res = check interceptorExecutionOrderClientEP->get("/test", {"listener-header" : "true"});
+    test:assertEquals(res.statusCode, 404);
+    assertTextPayload(res.getTextPayload(), "Header : service-header not found");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "listener-response");
+    assertHeaderValue(check res.getHeader("service-response"), "true");
+    assertHeaderValue(check res.getHeader("listener-response"), "true");
+    assertHeaderValue(check res.getHeader("listener-request"), "true");
+    test:assertFalse(res.hasHeader("service-request"));
+    test:assertFalse(res.hasHeader("last-request-interceptor"));
+    test:assertFalse(res.hasHeader("default-response-interceptor"));
+
+    res = check interceptorExecutionOrderClientEP->get("/test", {"listener-header" : "true", "service-header" : "true"});
+    test:assertEquals(res.statusCode, 200);
+    assertHeaderValue(check res.getHeader("last-interceptor"), "listener-response");
+    assertHeaderValue(check res.getHeader("service-response"), "true");
+    assertHeaderValue(check res.getHeader("listener-response"), "true");
+    assertHeaderValue(check res.getHeader("listener-request"), "true");
+    assertHeaderValue(check res.getHeader("service-request"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
 }
