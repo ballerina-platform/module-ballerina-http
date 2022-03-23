@@ -17,8 +17,6 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener serviceEndpointWithoutSSL = new(9101, { httpVersion: "2.0" });
-
 listener http:Listener serviceEndpointWithSSL = new(9105, {
     httpVersion: "2.0",
     secureSocket: {
@@ -29,7 +27,7 @@ listener http:Listener serviceEndpointWithSSL = new(9105, {
     }
 });
 
-service /helloWorldWithoutSSL on serviceEndpointWithoutSSL {
+service /helloWorldWithoutSSL on generalHTTP2Listener {
 
     resource function get .(http:Caller caller, http:Request req) returns error? {
         check caller->respond("Version: " + req.httpVersion);
@@ -45,7 +43,7 @@ service /helloWorldWithSSL on serviceEndpointWithSSL {
 
 @test:Config {}
 public function testFallback() returns error? {
-    http:Client clientEP = check new("http://localhost:9101");
+    http:Client clientEP = check new("http://localhost:9100");
     http:Response|error resp = clientEP->get("/helloWorldWithoutSSL");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");

@@ -301,9 +301,7 @@ function testSetHeaderAfterStringPayloadResponse() returns error? {
     return;
 }
 
-listener http:Listener entityEP = new(entityTest);
-
-service /test on entityEP {
+service /entityService on generalListener {
 
     resource function post jsonTest(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
@@ -317,14 +315,14 @@ service /test on entityEP {
     }
 }
 
-final http:Client entityClient = check new("http://localhost:" + entityTest.toString());
+final http:Client entityClient = check new("http://localhost:" + generalPort.toString());
 
 // Test addHeader function within a service
 @test:Config {
     groups: ["disabledOnWindows"]
 }
 function jsonTest() {
-    string path = "/test/jsonTest";
+    string path = "/entityService/jsonTest";
     http:Request request = new;
     request.setHeader("content-type", "application/json");
     request.setPayload({test: "菜鸟驿站"});

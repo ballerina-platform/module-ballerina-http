@@ -26,7 +26,7 @@ final http:Client priorKnowclientEP1 = check new("http://localhost:9100", { http
 final http:Client priorKnowclientEP2 = check new("http://localhost:9100", { httpVersion: "2.0",
                                     http2Settings: { http2PriorKnowledge: true } });
 
-service /multiparts on new http:Listener(9100, { httpVersion: "2.0" }) {
+service /multiparts on generalHTTP2Listener {
 
     resource function post decode(http:Caller caller, http:Request request) {
         http:Response response = new;

@@ -17,9 +17,9 @@
 import ballerina/http;
 import ballerina/test;
 
-service /initiatingService on new http:Listener(9107) {
+service /initiatingService on generalListener {
     resource function get initiatingResource(http:Caller caller, http:Request request) returns error? {
-        http:Client forwadingClient = check new("http://localhost:9108",
+        http:Client forwadingClient = check new("http://localhost:9100",
                                        {forwarded: "enable", httpVersion: "2.0",
                                         http2Settings: { http2PriorKnowledge: true }});
         http:Response responseFromForwardBackend = check forwadingClient->execute("GET", "/forwardedBackend/forwardedResource", request);
@@ -27,7 +27,7 @@ service /initiatingService on new http:Listener(9107) {
     }
 }
 
-service /forwardedBackend on new http:Listener(9108, {httpVersion: "2.0"}) {
+service /forwardedBackend on generalHTTP2Listener {
     resource function get forwardedResource(http:Caller caller, http:Request request) returns error? {
         string header = check request.getHeader("forwarded");
         http:Response response = new();
@@ -39,7 +39,7 @@ service /forwardedBackend on new http:Listener(9108, {httpVersion: "2.0"}) {
 
 @test:Config {}
 public function testForwardHeader() returns error? {
-    http:Client clientEP = check new("http://localhost:9107");
+    http:Client clientEP = check new("http://localhost:9000");
     http:Response|error resp = clientEP->get("/initiatingService/initiatingResource");
     if resp is http:Response {
         assertHeaderValue(check resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");
