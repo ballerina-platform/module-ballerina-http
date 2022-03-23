@@ -41,10 +41,13 @@ public enum HttpDiagnosticCodes {
     HTTP_106("HTTP_106", "invalid resource parameter type: '%s'", ERROR),
     HTTP_107("HTTP_107", "invalid payload parameter type: '%s'", ERROR),
     HTTP_108("HTTP_108", "invalid multiple resource parameter annotations for '%s'" +
-            ": expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", ERROR),
-    HTTP_109("HTTP_109", "invalid type of header param '%s': expected 'string' or 'string[]'", ERROR),
-    HTTP_110("HTTP_110", "invalid union type of header param '%s': a string or an array of a string can " +
-            "only be union with '()'. Eg: string|() or string[]|()", ERROR),
+            ": expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", ERROR),
+    HTTP_109("HTTP_109", "invalid type of header param '%s': One of the following types is expected: " +
+            "'string','int','float','decimal','boolean', an array of the above types or a record which consists of " +
+            "the above types", ERROR),
+    HTTP_110("HTTP_110", "invalid union type of header param '%s': one of the 'string','int','float'," +
+            "'decimal','boolean' types, an array of the above types or a record which consists of the above types can" +
+            " only be union with '()'. Eg: string|() or string[]|()", ERROR),
     HTTP_111("HTTP_111", "invalid type of caller param '%s': expected 'http:Caller'", ERROR),
     HTTP_112("HTTP_112", "invalid type of query param '%s': expected one of the 'string', 'int', 'float', " +
             "'boolean', 'decimal', 'map<json>' types or the array types of them", ERROR),
@@ -82,6 +85,9 @@ public enum HttpDiagnosticCodes {
     HTTP_132("HTTP_132", "%s must have a resource method", ERROR),
     HTTP_133("HTTP_133", "invalid intersection type : '%s'. Only readonly type is allowed", ERROR),
     HTTP_134("HTTP_134", "'readonly' intersection type is not allowed for parameter '%s' of the type '%s'", ERROR),
+    HTTP_135("HTTP_135", "rest fields are not allowed for header binding records. Use 'http:Headers' type to access " +
+            "all headers", ERROR),
+
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
     HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),

@@ -76,6 +76,7 @@ public class CompilerPluginTest {
     private static final String HTTP_131 = "HTTP_131";
     private static final String HTTP_132 = "HTTP_132";
     private static final String HTTP_134 = "HTTP_134";
+    private static final String HTTP_135 = "HTTP_135";
 
     private static final String REMOTE_METHODS_NOT_ALLOWED = "remote methods are not allowed in http:Service";
 
@@ -154,7 +155,7 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 11);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
                 "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 2, "invalid usage of payload annotation for a non entity body " +
@@ -177,26 +178,40 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 7);
-        assertError(diagnosticResult, 0, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_109);
-        assertError(diagnosticResult, 1, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
-        assertError(diagnosticResult, 2, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_109);
-        assertError(diagnosticResult, 3,
-                    "invalid union type of header param 'abc': a string or an array of a string can only be union " +
-                            "with '()'. Eg: string|() or string[]|()",
-                    HTTP_110);
-        assertError(diagnosticResult, 4, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_109);
-        assertError(diagnosticResult, 5,
-                    "invalid union type of header param 'abc': a string or an array of a string can only be union " +
-                            "with '()'. Eg: string|() or string[]|()",
-                    HTTP_110);
-        assertError(diagnosticResult, 6,
-                "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                HTTP_109);
+        Assert.assertEquals(diagnosticResult.errorCount(), 12);
+        assertError(diagnosticResult, 0, "invalid union type of header param 'xRate': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of the" +
+                " above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 1, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 2, "invalid union type of header param 'abc': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of " +
+                "the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 3, "invalid union type of header param 'abc': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
+                "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 4, "rest fields are not allowed for header binding records. Use " +
+                "'http:Headers' type to access all headers", HTTP_135);
+        assertError(diagnosticResult, 5, "rest fields are not allowed for header binding records. Use " +
+                "'http:Headers' type to access all headers", HTTP_135);
+        assertError(diagnosticResult, 6, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 7, "invalid multiple resource parameter annotations for 'abc': expected one of " +
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
+        assertError(diagnosticResult, 8, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 9, "invalid union type of header param 'abc': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
+                "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 10, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 11, "invalid union type of header param 'abc': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
+                "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
     }
 
     @Test
@@ -210,7 +225,7 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
         assertError(diagnosticResult, 1, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_111);
         assertError(diagnosticResult, 2, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
         assertTrue(diagnosticResult, 3, expectedMsg, HTTP_118);
         assertError(diagnosticResult, 4, "invalid type of caller param 'abc': expected 'http:Caller'", HTTP_111);
     }
@@ -504,8 +519,9 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 3, "'readonly' intersection type is not allowed for parameter 'entity' of the " +
                 "type 'ballerina/mime:", HTTP_134);
         assertTrue(diagnosticResult, 3, ":Entity & readonly'", HTTP_134);
-        assertTrue(diagnosticResult, 4, "invalid type of header param 'host': expected 'string' or 'string[]'",
-                   HTTP_109);
+        assertTrue(diagnosticResult, 4, "invalid type of header param 'host': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
         assertTrue(diagnosticResult, 5, "invalid type of caller param 'host': expected 'http:Caller'", HTTP_111);
     }
 }
