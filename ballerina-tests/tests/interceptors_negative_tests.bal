@@ -17,34 +17,38 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client requestInterceptorNegativeClientEP1 = check new("http://localhost:" + requestInterceptorNegativeTestPort1.toString());
+final http:Client interceptorNegativeClientEP1 = check new("http://localhost:" + interceptorNegativeTestPort1.toString());
 
-listener http:Listener requestInterceptorNegativeServerEP1 = new(requestInterceptorNegativeTestPort1, config = {
+listener http:Listener interceptorNegativeServerEP1 = new(interceptorNegativeTestPort1, config = {
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative1(), new LastRequestInterceptor()]
 });
 
-service / on requestInterceptorNegativeServerEP1 {
+@test:Config{}
+function testRequestInterceptorNegative1() returns error? {
+    http:Response res = check interceptorNegativeClientEP1->get("/");
+    test:assertEquals(res.statusCode, 500);
+    assertTextPayload(check res.getTextPayload(), "request context object does not contain the configured interceptors");
+}
 
+final http:Client interceptorNegativeClientEP2 = check new("http://localhost:" + interceptorNegativeTestPort.toString());
+
+listener http:Listener interceptorNegativeServerEP2 = new(interceptorNegativeTestPort, config = {
+    interceptors : [new DefaultRequestInterceptor()]
+});
+
+@http:ServiceConfig {
+    interceptors: [new RequestInterceptorNegative2(), new LastRequestInterceptor()]
+}
+service /request on interceptorNegativeServerEP2 {
     resource function 'default .() returns string {
         return "Response from resource - test";
     }
 }
 
-@test:Config{}
-function testRequestInterceptorNegative1() returns error? {
-    http:Response res = check requestInterceptorNegativeClientEP1->get("/");
-    test:assertEquals(res.statusCode, 500);
-    assertTextPayload(check res.getTextPayload(), "request context object does not contain the configured interceptors");
+@http:ServiceConfig {
+    interceptors: [new ResponseInterceptorNegative1(), new LastRequestInterceptor(), new DefaultResponseInterceptor()]
 }
-
-final http:Client requestInterceptorNegativeClientEP2 = check new("http://localhost:" + requestInterceptorNegativeTestPort2.toString());
-
-listener http:Listener requestInterceptorNegativeServerEP2 = new(requestInterceptorNegativeTestPort2, config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative2(), new LastRequestInterceptor()]
-});
-
-service / on requestInterceptorNegativeServerEP2 {
-
+service /response on interceptorNegativeServerEP2 {
     resource function 'default .() returns string {
         return "Response from resource - test";
     }
@@ -52,18 +56,25 @@ service / on requestInterceptorNegativeServerEP2 {
 
 @test:Config{}
 function testRequestInterceptorNegative2() returns error? {
-    http:Response res = check requestInterceptorNegativeClientEP2->get("/");
+    http:Response res = check interceptorNegativeClientEP2->get("/request");
     test:assertEquals(res.statusCode, 500);
     assertTextPayload(check res.getTextPayload(), "next interceptor service did not match with the configuration");
 }
 
-final http:Client requestInterceptorNegativeClientEP3 = check new("http://localhost:" + requestInterceptorNegativeTestPort3.toString());
+@test:Config{}
+function testResponseInterceptorNegative1() returns error? {
+    http:Response res = check interceptorNegativeClientEP2->get("/response");
+    test:assertEquals(res.statusCode, 500);
+    assertTextPayload(check res.getTextPayload(), "next interceptor service did not match with the configuration");
+}
 
-listener http:Listener requestInterceptorNegativeServerEP3 = new(requestInterceptorNegativeTestPort3, config = {
+final http:Client interceptorNegativeClientEP3 = check new("http://localhost:" + interceptorNegativeTestPort3.toString());
+
+listener http:Listener interceptorNegativeServerEP3 = new(interceptorNegativeTestPort3, config = {
     interceptors : [new DefaultRequestInterceptor()]
 });
 
-service / on requestInterceptorNegativeServerEP3 {
+service / on interceptorNegativeServerEP3 {
 
     resource function 'default .(http:RequestContext ctx, http:Caller caller) returns error? {
        string|error val = ctx.get("last-interceptor").ensureType(string);
@@ -82,18 +93,18 @@ service / on requestInterceptorNegativeServerEP3 {
 
 @test:Config{}
 function testRequestInterceptorNegative3() returns error? {
-    http:Response res = check requestInterceptorNegativeClientEP3->get("/");
+    http:Response res = check interceptorNegativeClientEP3->get("/");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-request-interceptor");
     assertTextPayload(check res.getTextPayload(), "no next service to be returned");
 }
 
-final http:Client requestInterceptorNegativeClientEP4 = check new("http://localhost:" + requestInterceptorNegativeTestPort4.toString());
+final http:Client interceptorNegativeClientEP4 = check new("http://localhost:" + interceptorNegativeTestPort4.toString());
 
-listener http:Listener requestInterceptorNegativeServerEP4 = new(requestInterceptorNegativeTestPort4, config = {
+listener http:Listener interceptorNegativeServerEP4 = new(interceptorNegativeTestPort4, config = {
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSkip()]
 });
 
-service / on requestInterceptorNegativeServerEP4 {
+service / on interceptorNegativeServerEP4 {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -102,18 +113,18 @@ service / on requestInterceptorNegativeServerEP4 {
 
 @test:Config{}
 function testRequestInterceptorNegative4() returns error? {
-    http:Response res = check requestInterceptorNegativeClientEP4->get("/");
+    http:Response res = check interceptorNegativeClientEP4->get("/");
     test:assertEquals(res.statusCode, 500);
     assertTextPayload(check res.getTextPayload(), "no next service to be returned");
 }
 
-final http:Client requestInterceptorNegativeClientEP5 = check new("http://localhost:" + requestInterceptorNegativeTestPort5.toString());
+final http:Client interceptorNegativeClientEP5 = check new("http://localhost:" + interceptorNegativeTestPort5.toString());
 
-listener http:Listener requestInterceptorNegativeServerEP5 = new(requestInterceptorNegativeTestPort5, config = {
+listener http:Listener interceptorNegativeServerEP5 = new(interceptorNegativeTestPort5, config = {
     interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg()]
 });
 
-service /hello on requestInterceptorNegativeServerEP5 {
+service /hello on interceptorNegativeServerEP5 {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -122,17 +133,17 @@ service /hello on requestInterceptorNegativeServerEP5 {
 
 @test:Config{}
 function testRequestInterceptorNegative5() returns error? {
-    http:Response res = check requestInterceptorNegativeClientEP5->get("/");
+    http:Response res = check interceptorNegativeClientEP5->get("/");
     assertTextPayload(check res.getTextPayload(), "no matching service found for path : /");
 }
 
-final http:Client requestInterceptorNegativeClientEP6 = check new("http://localhost:" + requestInterceptorNegativeTestPort6.toString());
+final http:Client interceptorNegativeClientEP6 = check new("http://localhost:" + interceptorNegativeTestPort6.toString());
 
-listener http:Listener requestInterceptorNegativeServerEP6 = new(requestInterceptorNegativeTestPort6, config = {
+listener http:Listener interceptorNegativeServerEP6 = new(interceptorNegativeTestPort6, config = {
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative3()]
 });
 
-service / on requestInterceptorNegativeServerEP6 {
+service / on interceptorNegativeServerEP6 {
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -141,7 +152,7 @@ service / on requestInterceptorNegativeServerEP6 {
 
 @test:Config{}
 function testRequestInterceptorNegative6() returns error? {
-    http:Response res = check requestInterceptorNegativeClientEP6->get("/");
+    http:Response res = check interceptorNegativeClientEP6->get("/");
     test:assertEquals(res.statusCode, 500);
     assertTextPayload(check res.getTextPayload(), "target service did not match with the configuration");
 }

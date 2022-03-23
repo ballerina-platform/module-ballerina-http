@@ -536,3 +536,11 @@ service class DefaultResponseErrorInterceptor {
        return ctx.next();
     }
 }
+
+service class ResponseInterceptorNegative1 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:Response res) returns http:ResponseInterceptor {
+       return new DefaultResponseInterceptor();
+    }
+}
