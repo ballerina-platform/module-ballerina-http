@@ -141,12 +141,12 @@ const int requestInterceptorWithoutCtxNextTestPort = 9586;
 const int requestInterceptorBasePathTestPort = 9587;
 const int getRequestInterceptorBasePathTestPort = 9588;
 const int requestInterceptorSkipTestPort = 9589;
-const int interceptorNegativeTestPort1 = 9590;
-const int interceptorNegativeTestPort = 9591;
-const int interceptorNegativeTestPort3 = 9592;
-const int interceptorNegativeTestPort4 = 9593;
-const int interceptorNegativeTestPort5 = 9594;
-const int interceptorNegativeTestPort6 = 9595;
+const int requestInterceptorNegativeTestPort1 = 9590;
+const int requestInterceptorNegativeTestPort2 = 9591;
+const int requestInterceptorNegativeTestPort3 = 9592;
+const int requestInterceptorNegativeTestPort4 = 9593;
+const int requestInterceptorNegativeTestPort5 = 9594;
+const int requestInterceptorNegativeTestPort6 = 9595;
 const int requestInterceptorCallerRespondContinueTestPort = 9596;
 const int requestInterceptorStringPayloadBindingTestPort = 9597;
 const int requestInterceptorRecordPayloadBindingTestPort = 9598;
@@ -172,6 +172,7 @@ const int interceptorBasicTestsPort3 = 9617;
 const int responseInterceptorReturnsErrorTestPort = 9618;
 const int interceptorReturnsStatusTestPort = 9619;
 const int interceptorExecutionOrderTestPort = 9620;
+const int responseInterceptorNegativeTestPort1 = 9621;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;
