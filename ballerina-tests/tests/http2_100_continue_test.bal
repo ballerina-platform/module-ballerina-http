@@ -16,10 +16,9 @@
 
 import ballerina/http;
 import ballerina/log;
-import ballerina/io;
 import ballerina/test;
 
-final http:Client h2Client = check new("http://localhost:9127", {
+final http:Client h2Client = check new("http://localhost:9100", {
     httpVersion: "2.0",
     http2Settings: {
         http2PriorKnowledge: true
@@ -27,7 +26,7 @@ final http:Client h2Client = check new("http://localhost:9127", {
     timeout: 300
 });
 
-service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
+service /http2Continue on generalHTTP2Listener {
 
     resource function post abnormalResource(http:Caller caller, http:Request request) {
         error? result = caller->continue();
@@ -51,8 +50,7 @@ service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
 service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
 
     resource function get initial(http:Caller caller, http:Request req) returns error? {
-        io:println("test100ContinueResource");
-        http:Response|error response = h2Client->post("/helloWorld/abnormalResource", "100 continue response should be ignored by this client");
+        http:Response|error response = h2Client->post("/http2Continue/abnormalResource", "100 continue response should be ignored by this client");
         if response is http:Response {
             check caller->respond(response);
         } else {

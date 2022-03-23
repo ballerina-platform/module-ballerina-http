@@ -18,8 +18,7 @@ import ballerina/http;
 import ballerina/mime;
 import ballerina/test;
 
-listener http:Listener urlEncodedResponsesTestEP = new(urlEncodedResponsesTestPort);
-final http:Client urlEncodedResponsesTestClient = check new("http://localhost:" + urlEncodedResponsesTestPort.toString());
+final http:Client urlEncodedResponsesTestClient = check new("http://localhost:" + generalPort.toString());
 
 type AcceptedResponse record {|
     *http:Accepted;
@@ -57,7 +56,7 @@ final map<string> & readonly serverErrorResponseBody = {
     "key4": "value4"
 };
 
-service /test on urlEncodedResponsesTestEP {
+service /urlEncodedResponses on generalListener {
     resource function get accepted() returns AcceptedResponse {
         return {
             body: acceptedResponseBody
@@ -105,7 +104,7 @@ service /test on urlEncodedResponsesTestEP {
 
 @test:Config {}
 public function testUrlEncodedAcceptedResponse() returns error? {
-    http:Response resp = check urlEncodedResponsesTestClient->get("/test/accepted");
+    http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/accepted");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
     check assertUrlEncodedPayload(payload, acceptedResponseBody);
@@ -113,7 +112,7 @@ public function testUrlEncodedAcceptedResponse() returns error? {
 
 @test:Config {}
 public function testUrlEncodedAcceptedResponseWithInlineAcceptedBody() returns error? {
-    http:Response resp = check urlEncodedResponsesTestClient->get("/test/acceptedWithInlinePayload");
+    http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/acceptedWithInlinePayload");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
     check assertUrlEncodedPayload(payload, acceptedResponseBody);
@@ -121,7 +120,7 @@ public function testUrlEncodedAcceptedResponseWithInlineAcceptedBody() returns e
 
 @test:Config {}
 public function testUrlEncodedWithDirectReturn() returns error? {
-    http:Response resp = check urlEncodedResponsesTestClient->get("/test/directReturn");
+    http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/directReturn");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
     check assertUrlEncodedPayload(payload, acceptedResponseBody);
@@ -129,7 +128,7 @@ public function testUrlEncodedWithDirectReturn() returns error? {
 
 @test:Config {}
 public function testUrlEncodedClientErrorResponse() returns error? {
-    http:Response resp = check urlEncodedResponsesTestClient->get("/test/clientError");
+    http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/clientError");
     test:assertEquals(resp.statusCode, 400, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
     check assertUrlEncodedPayload(payload, clientErrorResponseBody);
@@ -137,7 +136,7 @@ public function testUrlEncodedClientErrorResponse() returns error? {
 
 @test:Config {}
 public function testUrlEncodedServerErrorResponse() returns error? {
-    http:Response resp = check urlEncodedResponsesTestClient->get("/test/serverError");
+    http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/serverError");
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
     check assertUrlEncodedPayload(payload, serverErrorResponseBody);
@@ -145,7 +144,7 @@ public function testUrlEncodedServerErrorResponse() returns error? {
 
 @test:Config {}
 public function testAcceptedWithStringPayload() returns error? {
-    http:Response resp = check urlEncodedResponsesTestClient->get("/test/acceptedWithStringPayload");
+    http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/acceptedWithStringPayload");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     test:assertEquals(resp.getContentType(), mime:APPLICATION_FORM_URLENCODED);
     string payload = check resp.getTextPayload();
