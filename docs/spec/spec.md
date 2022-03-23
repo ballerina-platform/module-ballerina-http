@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2022/02/07  
+_Updated_: 2022/03/14  
 _Edition_: Swan Lake  
 _Issue_: [#572](https://github.com/ballerina-platform/ballerina-standard-library/issues/572)
 
@@ -67,9 +67,9 @@ The conforming implementation of the specification is released and included in t
     * 4.3. [Payload annotation](#43-payload-annotation)
         * 4.3.1. [Payload binding parameter](#431-payload-binding-parameter)
         * 4.3.2. [Anydata return value info](#432-anydata-return-value-info)
-    * 4.4. [Callerinfo annotation](#44-callerinfo-annotation)
+    * 4.4. [CallerInfo annotation](#44-callerinfo-annotation)
     * 4.5. [Header annotation](#45-header-annotation)
-    * 4.6. [Cache config annotation](#46-cache-config-annotation)
+    * 4.6. [Cache annotation](#46-cache-annotation)
 5. [url-parameters](#5-url-parameters)
     * 5.1. [Path](#51-path)
     * 5.2. [Query](#52-query)
@@ -80,16 +80,17 @@ The conforming implementation of the specification is released and included in t
 8. [Interceptor and error handling](#8-interceptor-and-error-handling)
     * 8.1. [Interceptor](#81-interceptor)
         * 8.1.1. [Request interceptor](#811-request-interceptor)
-            * 8.1.1.1. [Request context](#8111-requestcontext)
+            * 8.1.1.1. [Request context](#8111-request-context)
             * 8.1.1.2. [Next method](#8112-next-method)
-            * 8.1.1.3. [Returning error](#8113-returning-error)
-        * 8.1.2. [Request error interceptor](#812-request-error-interceptor)
-        * 8.1.3. [Engaging interceptor](#813-engaging-interceptors)
-            * 8.1.3.1. [Service level](#8131-service-level)
-            * 8.1.3.2. [Listener level](#8132-listener-level)
-            * 8.1.3.3. [Execution order of interceptors](#8133-execution-order-of-interceptors)
-        * 8.1.4. [Data binding](#814-data-binding)
-        * 8.1.5. [Return to respond](#815-return-to-respond)
+            * 8.1.1.3. [Return to respond](#8113-return-to-respond)
+        * 8.1.2. [Response interceptor](#812-response-interceptor)
+            * 8.1.2.1. [Return to respond](#8121-return-to-respond)
+        * 8.1.3. [Request error interceptor and response error interceptor](#813-request-error-interceptor-and-response-error-interceptor)
+        * 8.1.4. [Engaging interceptor](#814-engaging-interceptors)
+            * 8.1.4.1. [Service level](#8141-service-level)
+            * 8.1.4.2. [Listener level](#8142-listener-level)
+            * 8.1.4.3. [Execution order of interceptors](#8143-execution-order-of-interceptors)
+        * 8.1.5. [Data binding](#815-data-binding)
      * 8.2. [Error handling](#82-error-handling)
         * 8.2.1. [Trace log](#821-trace-log)
         * 8.2.2. [Access log](#822-access-log)
@@ -129,7 +130,7 @@ Ballerina language provides first-class support for writing network-oriented pro
 
 The HTTP standard library is designed to work with HTTP protocol. It includes high-level abstractions such as `http:Request`, `http:Response`, `http:Service`, and `http:Client` which allow users to produce and consume HTTP API. Further, developers can use this library to build other libraries. The standard libraries such as GraphQL, Websub, and WebSubHub use this library internally.
 
-In addition to functional requirements, this library deals with non functional requirements such as security, observability, and resiliency. Each requirement is discussed in detail in the coming sections.
+In addition to functional requirements, this library deals with nonfunctional requirements such as security, observability, and resiliency. Each requirement is discussed in detail in the coming sections.
 
 ## 2. Components
 ### 2.1. Listener
@@ -194,7 +195,7 @@ validate the services.
 
 The base path is considered during the request dispatching to discover the service. Identifiers and string literals
 are allowed to be stated as base path and it should be started with `/`. The base path is optional and it will be 
-default to `/` when not defined. If the base path contains any special characters, those should be escaped or defined
+defaulted to `/` when not defined. If the base path contains any special characters, those should be escaped or defined
 as string literals
 
 ```ballerina
@@ -351,7 +352,7 @@ resource function 'default [string... s]() {
 ```
 
 #### 2.3.4. Signature parameters
-The resource function can have the following parameters in the signature. There are no any mandatory params or any 
+The resource function can have the following parameters in the signature. There are not any mandatory params or any 
 particular order. But it’s a good practice to keep the optional param at the end.
 
 ```ballerina
@@ -372,7 +373,7 @@ In addition to that, the caller has certain meta information related to remote a
 protocol. This parameter is not compulsory and not ordered.
 
 
-The callerInfo annotation associated with the `Caller` is to denote the response type.
+The CallerInfo annotation associated with the `Caller` is to denote the response type.
 It will ensure that the resource function responds with the right type and provides static type information about 
 the response type that can be used to generate OpenAPI.
 
@@ -386,14 +387,14 @@ mime:Entity[]|stream<byte[], io:Error?>|()
 
 Based on the payload types respective header value is added as the `Content-type` of the `http:Response`.
 
- Type|Content Type
----|---
-() | -
-string | text/plain
-xml | application/xml
-byte[], stream<byte[], io:Error?> | application/octet-stream
-int, float, decimal, boolean | application/json
-map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json
+| Type                                                                  | Content Type             |
+|-----------------------------------------------------------------------|--------------------------|
+| ()                                                                    | -                        |
+| string                                                                | text/plain               |
+| xml                                                                   | application/xml          |
+| byte[], stream<byte[], io:Error?>                                     | application/octet-stream |
+| int, float, decimal, boolean                                          | application/json         |
+| map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
 
 The HTTP compiler extension checks the argument of the `respond()` method if the matching payload type is passed as
 denoted in the CallerInfo annotation
@@ -585,7 +586,7 @@ resource function get hello3(http:Headers headers) {
 }
 ```
 
-The header consists of header name and values. Sometimes user may sent header without value(`foo:`). In such 
+The header consists of header name and values. Sometimes user may send header without value(`foo:`). In such 
 situations, when the header param type is nilable, the values returns nil and same happened when the complete header is 
 not present in the request. In order to avoid the missing detail, a service level configuration has introduced naming 
 `treatNilableAsOptional`
@@ -669,15 +670,15 @@ resource function get test() returns @http:Payload {mediaType:"text/id+plain"} s
 
 Based on the return types respective header value is added as the `Content-type` of the `http:Response`. 
 
-Type|Content Type
----|---
-() | -
-string | text/plain
-xml | application/xml
-byte[]| application/octet-stream
-int, float, decimal, boolean | application/json
-map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json
-http:StatusCodeResponse | application/json
+| Type                                                                  | Content Type             |
+|-----------------------------------------------------------------------|--------------------------|
+| ()                                                                    | -                        |
+| string                                                                | text/plain               |
+| xml                                                                   | application/xml          |
+| byte[]                                                                | application/octet-stream |
+| int, float, decimal, boolean                                          | application/json         |
+| map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
+| http:StatusCodeResponse                                               | application/json         |
 
 #### 2.3.4.1. Status Code Response
 
@@ -700,7 +701,7 @@ resource function put person(string name) returns record {|*http:Created; Person
 }
 ```
 
-Following is the `http:Ok` definition. Likewise all the status codes are provided.
+Following is the `http:Ok` definition. Likewise, all the status codes are provided.
 
 ```ballerina
 public type Ok record {
@@ -1040,14 +1041,14 @@ public type RequestMessage Request|string|xml|json|byte[]|int|float|decimal|bool
 
 Based on the payload types respective header value is added as the `Content-type` of the `http:Request`.
 
-Type|Content Type
----|---
-() | -
-string | text/plain
-xml | application/xml
-byte[], stream<byte[], io:Error?> | application/octet-stream
-int, float, decimal, boolean | application/json
-map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json
+| Type                                                                  | Content Type             |
+|-----------------------------------------------------------------------|--------------------------|
+| ()                                                                    | -                        |
+| string                                                                | text/plain               |
+| xml                                                                   | application/xml          |
+| byte[], stream<byte[], io:Error?>                                     | application/octet-stream |
+| int, float, decimal, boolean                                          | application/json         |
+| map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
 
 The header map and the mediaType param are optional for entity body remote functions.
 
@@ -1090,7 +1091,7 @@ string response = check httpClient->post("/some/endpoint",
 
 ###### 2.4.2.2 Non Entity body methods
 
-GET, HEAD, OPTIONS methods are considered as non entity body methods. These remote functions does not contains 
+GET, HEAD, OPTIONS methods are considered as non entity body methods. These remote functions do not contain 
 RequestMessage, but the header map an optional param.
 
 
@@ -1213,7 +1214,7 @@ Ballerina dispatching logic is implemented to uniquely identify a resource based
 
 The ballerina dispatcher considers the absolute-resource-path of the service as the base path and the resource 
 function name as the path of the resource function for the URI path match.
-Ballerina dispatching logic depends on the HTTP method of the request in addition to the URI. Therefore matching only 
+Ballerina dispatching logic depends on the HTTP method of the request in addition to the URI. Therefore, matching only 
 the request path will not be sufficient. Once the dispatcher finds a resource, it checks for the method compatibility 
 as well. The accessor name of the resource describes the HTTP method where the name of the remote function implicitly 
 describes its respective method
@@ -1257,7 +1258,7 @@ public type HttpServiceConfig record {|
     ListenerAuthConfig[] auth?;
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
-    (RequestInterceptor|RequestErrorInterceptor)[]? interceptors = ();
+    Interceptor[] interceptors?;
 |};
 
 @http:ServiceConfig {
@@ -1324,7 +1325,7 @@ Otherwise the dispatching moves forward.
 The same annotation can be used to specify the MIME type return value when a particular resource function returns 
 one of the anydata typed values. In this way users can override the default MIME type which the service type has 
 defined based on the requirement. Users can define the potential response payload content type as the mediaType 
-to perform some pre-runtime validations in addition to the compile time validations as same as produces resource 
+to perform some pre-runtime validations in addition to the compile-time validations as same as produces resource 
 config field.
 
 ```ballerina
@@ -1334,26 +1335,26 @@ resource function post hello() returns @http:Payload{mediaType:"application/xml"
 ```
 
 During the runtime, the request accept header is matched against the mediaType field value to validate. If the 
-validation fails, the listener returns an error response with the status code of 406 Not Acceptable. Otherwise the 
+validation fails, the listener returns an error response with the status code of 406 Not Acceptable. Otherwise, the 
 dispatching moves forward.
 
 The annotation is not mandatory, so if the media type info is not defined, the following table describes the default 
 MIME types assigned to each anydata type.
 
-Declared return type | MIME type
----|---
-() | (no body)
-xml | application/xml
-string | text/plain
-byte[] | application/octet-stream
-map\<json\>, table\<map\<json\>\>, (map\<json\>|table\<map\<json\>\>)[] | application/json
-int, float, decimal, boolean | application/json
+| Declared return type                                                            | MIME type                |
+|---------------------------------------------------------------------------------|--------------------------|
+| ()                                                                              | (no body)                |
+| xml                                                                             | application/xml          |
+| string                                                                          | text/plain               |
+| byte[]                                                                          | application/octet-stream |
+| map\<json\>, table\<map\<json\>\>, (map\<json\> &#124; table\<map\<json\>\>)[]) | application/json         |
+| int, float, decimal, boolean                                                    | application/json         |
 
 If anything comes other than above return types will be default to `application/json`.
 
 ### 4.4. CallerInfo annotation
 
-The callerInfo annotation associated with the `Caller` is to denote the response type.
+The CallerInfo annotation associated with the `Caller` is to denote the response type.
 It will ensure that the resource function responds with the right type and provides static type information about
 the response type that can be used to generate OpenAPI.
 
@@ -1412,7 +1413,7 @@ resource function get cachingBackEnd(http:Request req) returns @http:Cache{maxAg
 ## 5. URL parameters
 ### 5.1. Path
 Path params are specified in the resource name itself. Path params can be specified in the types of string, int, 
-boolean, decimal and float. During the request runtime the respective path segment is matched and casted into param 
+boolean, decimal and float. During the request runtime the respective path segment is matched and cast into param 
 type. Users can access it within the resource function, and it is very useful when designing APIs with dynamically 
 changing path segments.
 
@@ -1495,10 +1496,10 @@ parseHeader(string headerValue) returns HeaderValue[]|ClientError  {
 }
 ```
 
-## 8. Interceptor and Error handling
+## 8. Interceptor and error handling
 ### 8.1 Interceptor
 Interceptor enhances the HTTP package with interceptors. Interceptors typically do small units of work such as logging, header 
-manipulation, state publishing, etc, before resources are invoked. The ability to execute some common logic for all 
+manipulation, state publishing, etc., before resources are invoked. The ability to execute some common logic for all 
 the inbound requests and outbound responses has proven to be highly useful. It typically includes some small unit of 
 work such as the below.
  - Logging
@@ -1508,44 +1509,42 @@ work such as the below.
  - Validating
  - Securing
 
-Interceptors are designed for both request and response flows. Currently, only the Request interceptor has implemented.
+Interceptors are designed for both request and response flows.
 
 #### 8.1.1 Request interceptor
-Following is an example of RequestInterceptor written in Ballerina swan-lake. RequestInterceptor can only have one 
+Following is an example of `RequestInterceptor` written in Ballerina swan-lake. `RequestInterceptor` can only have one 
 resource function.
 
 ```ballerina
 service class RequestInterceptor {
    *http:RequestInterceptor;
  
-   resource function 'default [string… path](http:RequestContext ctx, http:Caller caller,
-                       http:Request req) returns error? {
-       request.setHeader("X-requestHeader", "RequestInterceptor");
+   resource function 'default [string… path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("X-requestHeader", "RequestInterceptor");
        ctx.next();
    }
 }
 ```
 
 Since interceptors work with network activities, it must be either a remote or resource function. In this case resource 
-functions are used for RequestInterceptor as it gives more flexibility. With resource functions interceptors can be engaged 
+functions are used for `RequestInterceptor` as it gives more flexibility. With resource functions interceptors can be engaged 
 based on HTTP method and path.
 
-For instance consider a scenario where there are two resources; one on path foo whereas the other on path bar. If the 
-user writes a interceptor as follows, it would only get hit when the request is directed to foo resource.
+For instance consider a scenario where there are two resources: one on path `foo` whereas the other on path `bar`. If the 
+user writes an interceptor as follows, it would only get hit when the request is directed to `foo` resource.
 
 ```ballerina
 service class RequestInterceptor {
    *http:RequestInterceptor;
  
-   resource function 'default foo(http:RequestContext ctx, http:Caller caller,
-                       http:Request req) returns error? {
-       request.setHeader("X-requestHeader", "RequestInterceptor");
+   resource function 'default foo(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("X-requestHeader", "RequestInterceptor");
        ctx.next();
    }
 }
 ```
 
-##### 8.1.1.1 RequestContext  
+##### 8.1.1.1 Request context  
 Following is the rough definition of the interceptor context.
 ```ballerina
 public isolated class RequestContext {
@@ -1580,45 +1579,95 @@ public isolated class RequestContext {
 }
 ```
 
-##### 8.1.1.2 next() Method  
-However, there is an addition when it comes to RequestContext. A new method namely, next() is introduced to control 
-the execution flow. Users must invoke next() method in order to trigger the next interceptor in the pipeline. 
+##### 8.1.1.2 next() method  
+However, there is an addition when it comes to `RequestContext`. A new method namely, `next()` is introduced to control 
+the execution flow. Users must invoke `next()` method in order to trigger the next interceptor in the pipeline. Then 
+the reference of the retrieved interceptor must be returned from the resource function. Pipeline use this reference to
+execute the next interceptor. 
+
 Previously, this was controlled by returning a boolean value which is quite cryptic and confusing.
 
-Moreover, invoking next() method results in immediately executing the next interceptor in the pipeline. Which means 
-whatever below the next() method will only get executed after the completion of execution of the next Interceptor.
+##### 8.1.1.3 Return to respond
+There is a key difference between interceptors and the final service. Resources in the final service allow returning 
+values which in turn results in HTTP responses. The same can be done inside the `RequestInterceptors`. However, as 
+mentioned above `RequestInterceptor` additionally could return the `NextService|error?` to continue the pipeline which
+does not translate into HTTP response. 
 
-If the users forget to call next() and don't respond either, the request will be left hanging.
+When a `RequestInterceptor` responded with a response, the response interceptor pipeline will get executed immediately.
+In case of an error, interceptor pipeline execution jumps to the nearest `RequestErrorInterceptor` or 
+`ResponseErrorInterceptor` in the pipeline. These error interceptors are special kinds of interceptor which could be 
+used to handle errors, and they are not necessarily the last interceptor in the pipeline, they can be anywhere in the 
+chain. However, in the case of there is no error interceptors in the pipeline, pipeline returns the internal error 
+response to the client similar to any HTTP service resource.
 
-##### 8.1.1.3 Returning error?
-Resource functions can return NextService|error?. They can return only error? when using the Caller.
-Also, in case of an error, interceptor pipeline execution jumps to the nearest RequestErrorInterceptor in the 
-pipeline. This RequestErrorInterceptor is not necessarily the last interceptor in the pipeline, it can be anywhere 
-in the chain.
+#### 8.1.2 Response interceptor
 
-#### 8.1.2 Request error interceptor
-As mentioned above this is a special kind of interceptor designed to handle errors. These interceptors can  
+Following is an example of `ResponseInterceptor` written in Ballerina swan-lake. `ResponseInterceptor` can only have one
+remote function : `interceptResponse()`.
+
+```ballerina
+service class ResponseInterceptor {
+   *http:ResponseInterceptor;
+ 
+   remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
+       res.setHeader("X-responseHeader", "ResponseInterceptor");
+       ctx.next();
+   }
+}
+```
+
+`ResponseInterceptor` is different from `RequestInterceptor`. Since it has nothing to do with HTTP methods and paths, 
+remote function is used instead of resource function.
+
+##### 8.1.2.1 Return to respond
+The remote function : `interceptResposne()` allows returning values other than `NextService|error?`. Anyway this will
+continue the response interceptor pipeline with the returned response object and calling `RequestContext.next()` is
+redundant in this case.
+
+In case of an error, interceptor pipeline execution jumps to the nearest `ResponseErrorInterceptor` in the 
+pipeline. . However, in the case of there is no `ResponseInterceptor` in the pipeline, pipeline returns the internal 
+error response to the client.
+
+#### 8.1.3 Request error interceptor and response error interceptor 
+As mentioned above, these are special kinds of interceptor designed to handle errors. These interceptors can  
 be placed anywhere in the request or response interceptor chain. The framework automatically adds default 
-RequestErrorInterceptor and ResponseErrorInterceptor which basically prints the error 
-message to the console.
+`RequestErrorInterceptor` and `ResponseErrorInterceptor` which basically prints the error message to the console.
 
 Users can override these interceptors by defining their own ones as follows. Users don’t have to specifically engage 
 these interceptors as they only have fixed positions and they are always executed. The only additional argument in this 
-case is error err.
+case is error `err`.
 
 ```ballerina
 service class RequestErrorInterceptor {
    *http:RequestErrorInterceptor;
  
    remote function 'default [string… path](http:RequestContext ctx, http:Caller caller,
-                       http:Request req, error err) returns error? {
+                       http:Request req, error err) returns http:NextService|error? {
        // deal with the error
    }
 }
 ```
 
-#### 8.1.3 Engaging Interceptors
-##### 8.1.3.1 Service Level
+The same works for `ResponseErrorInterceptor`, the difference is it has a remote function : `interceptResponseError()`
+and deals with response object.
+
+```ballerina
+service class ResponseErrorInterceptor {
+   *http:ResponseErrorInterceptor;
+ 
+   remote function interceptResponseError(http:RequestContext ctx, http:Response res, error err) 
+                       returns http:NextService|error? {
+       // deal with the error
+   }
+}
+```
+
+In the case of an error returned within an error interceptor, again execution jumps to the nearest error interceptor. 
+However, if there is no error interceptor to jump to, the internal error response is returned just like in a normal 
+interceptors.
+
+#### 8.1.4 Engaging interceptors
+##### 8.1.4.1 Service level
 Interceptors could get engaged at service level. One reason for this is that users may want to engage two different 
 interceptor chains for each service even though it is attached to the same Listener. At the service level resource 
 function paths are relative to the service base path.
@@ -1628,41 +1677,45 @@ function paths are relative to the service base path.
 }
 ```
 
-##### 8.1.3.2 Listener Level
+##### 8.1.4.2 Listener level
 Interceptors could get engaged at Listener level as well. At the listener level resource function paths are 
 relative to the /.
 ```ballerina
 listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: [requestInterceptor, responseInterceptor]});
 ```
 
-##### 8.1.3.3 Execution Order of Interceptors
+##### 8.1.4.3 Execution order of interceptors
 
-![img.png](resources/img.png)
-In the above example blue dashed box represents the RequestErrorInterceptor and blue boxes simply represent the 
-RequestInterceptors whereas green dashed box represents the ResponseErrorInterceptor(TBA) and green boxes simply represent the 
-ResponseInterceptors. The new execution orders is as follows,
+![img.png](_resources/img.png)
+In the above example blue dashed box represents the `RequestErrorInterceptor` and blue boxes simply represent the 
+`RequestInterceptors`, whereas green dashed box represents the `ResponseErrorInterceptor` and green boxes simply represent the 
+`ResponseInterceptors`. 
+
+`ResponseInterceptors` are executed in the opposite direction of `RequestInterceptors` i.e. `RequestInterceptors`
+are executed head to tail whereas `ResponseInterceptors` are executed tail to head. The new execution order is as follows, 
+assuming that there are no error occurred in the pipeline :
 ```
-RequestInterceptor/RequestErrorInterceptor: 1, 2, 4, 5
-ResponseInterceptor/ResponseErrorInterceptor: 5, 3, 0
+RequestInterceptor  : 1, 2, 4
+ResponseInterceptor : 5, 3
 ```
 
-The execution order when interceptors are engaged at both service and listener levels is as follows;
+However, if the user decides to respond at 4 and terminate the cycle, only the `ResponseInterceptor` at 3 gets executed.
+Also, when the `RequestInterceptor` at 2 returns an error, the execution jumps from 2 to 6 as the nearest Error Interceptor
+is at 6. The same goes to the response path.
+
+The execution order when interceptors are engaged at both service and listener levels is as follows:
 
 ```
 ListenerLevel : RequestInterceptors -> ServiceLevel : RequestInterceptors -> TargetService -> 
 ServiceLevel : ResponseInterceptors -> ListenerLevel : ResponseInterceptors
 ```
 
-#### 8.1.4 Data Binding
-Both requestInterceptor and responseInterceptor methods support data binding. Which means users can directly access the 
-payload, headers and query parameters. In order to get hold of the headers and the payload, users must use 
-@http:Payload and @http:Headers.
+Execution of interceptors does not depend on the existence of the end service i.e. the interceptors are executed in the
+relevant order even though the end service does not exist.
 
-
-#### 8.1.5 Return to Respond
-There is a key difference between interceptors and Resources. HTTP resources allow returning values which in turn 
-results in HTTP responses. But interceptors do not support this behavior. Because unlike resources interceptors do not 
-sit at the edge. Therefore, it results in complications when implementing the next() method.
+#### 8.1.5 Data binding
+`RequestInterceptor` methods support data binding. Which means users can directly access the payload, headers and query
+parameters. In order to get hold of the headers and the payload, users must use @http:Payload and @http:Headers.
 
 ### 8.2 Error handling
 ### 8.2.1 Trace log

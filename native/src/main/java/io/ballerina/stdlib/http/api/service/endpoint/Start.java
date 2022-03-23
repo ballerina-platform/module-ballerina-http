@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.api.service.endpoint;
 
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -39,19 +40,19 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SERVICE_ENDPOINT_CONFIG
  * @since 0.966
  */
 public class Start extends AbstractHttpNativeFunction {
-    public static Object start(BObject listener) {
+    public static Object start(Environment env, BObject listener) {
         if (!isConnectorStarted(listener)) {
-            return startServerConnector(listener);
+            return startServerConnector(env, listener);
         }
         return null;
     }
 
-    private static Object startServerConnector(BObject serviceEndpoint) {
+    private static Object startServerConnector(Environment env, BObject serviceEndpoint) {
         // TODO : Move this to `register` after this issue is fixed
         //  https://github.com/ballerina-platform/ballerina-lang/issues/33594
         // Get and populate interceptor services
         HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
-        Runtime runtime = httpServicesRegistry.getRuntime();
+        Runtime runtime = getRuntime(env, httpServicesRegistry);
         try {
             HttpUtil.populateInterceptorServicesFromListener(serviceEndpoint, runtime);
             HttpUtil.populateInterceptorServicesFromService(serviceEndpoint, httpServicesRegistry);
@@ -81,6 +82,16 @@ public class Start extends AbstractHttpNativeFunction {
 
         serviceEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, true);
         return null;
+    }
+
+    private static Runtime getRuntime(Environment env, HTTPServicesRegistry httpServicesRegistry) {
+        if (httpServicesRegistry.getRuntime() != null) {
+            return httpServicesRegistry.getRuntime();
+        } else {
+            Runtime runtime = env.getRuntime();
+            httpServicesRegistry.setRuntime(runtime);
+            return runtime;
+        }
     }
 
     private Start() {}

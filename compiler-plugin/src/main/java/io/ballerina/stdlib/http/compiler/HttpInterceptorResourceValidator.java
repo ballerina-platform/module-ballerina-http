@@ -18,24 +18,17 @@
 
 package io.ballerina.stdlib.http.compiler;
 
-import io.ballerina.compiler.api.symbols.FunctionSymbol;
-import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
-import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
-import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 
-import java.util.List;
 import java.util.Optional;
+
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 
 /**
  * Validates a ballerina http interceptor resource.
@@ -43,11 +36,15 @@ import java.util.Optional;
 public class HttpInterceptorResourceValidator {
     public static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, String type) {
         checkResourceAnnotation(ctx, member);
-        if (type.equals(Constants.REQUEST_ERROR_INTERCEPTOR)) {
+        if (isRequestErrorInterceptor(type)) {
             extractAndValidateMethodAndPath(ctx, member);
         }
-        HttpResourceValidator.extractInputParamTypeAndValidate(ctx, member);
-        extractReturnTypeAndValidate(ctx, member);
+        HttpResourceValidator.extractInputParamTypeAndValidate(ctx, member, isRequestErrorInterceptor(type));
+        HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, member, HttpDiagnosticCodes.HTTP_126);
+    }
+
+    private static boolean isRequestErrorInterceptor(String type) {
+        return type.equals(Constants.REQUEST_ERROR_INTERCEPTOR);
     }
 
     private static void extractAndValidateMethodAndPath(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
@@ -73,67 +70,17 @@ public class HttpInterceptorResourceValidator {
         }
     }
 
-    private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
-        Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
-        if (returnTypeDescriptorNode.isEmpty()) {
-            return;
-        }
-        Node returnTypeNode = returnTypeDescriptorNode.get().type();
-        String returnTypeStringValue = HttpResourceValidator.getReturnTypeDescription(returnTypeDescriptorNode.get());
-        Optional<Symbol> functionSymbol = ctx.semanticModel().symbol(member);
-        if (functionSymbol.isEmpty()) {
-            return;
-        }
-        FunctionTypeSymbol functionTypeSymbol = ((FunctionSymbol) functionSymbol.get()).typeDescriptor();
-        Optional<TypeSymbol> returnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
-        returnTypeSymbol.ifPresent(typeSymbol -> validateReturnType(ctx, returnTypeNode, returnTypeStringValue,
-                                                                    typeSymbol));
-    }
-
-    private static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                           String returnTypeStringValue, TypeSymbol returnTypeSymbol) {
-        if (isServiceType(returnTypeSymbol)) {
-            return;
-        }
-        TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
-            return;
-        }
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor);
-        } else if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
-            for (TypeSymbol typeSymbol : typeSymbols) {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
-            }
-        } else {
-            reportInvalidReturnType(ctx, node, returnTypeStringValue);
-        }
-    }
-
-    private static boolean isServiceType(TypeSymbol returnTypeSymbol) {
-        Optional<String> optionalTypeName = returnTypeSymbol.getName();
-        return optionalTypeName.filter(typeName -> typeName.equals(Constants.SERVICE) ||
-                typeName.equals(Constants.REQUEST_INTERCEPTOR)).isPresent();
-    }
-
     private static void reportResourceAnnotationNotAllowed(SyntaxNodeAnalysisContext ctx, AnnotationNode node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_125,
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_125,
                                                 node.annotReference().toString());
     }
 
-    private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                                String returnType) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_126, returnType);
-    }
-
     private static void reportInvalidResourcePath(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_127, node.toString());
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_127, node.toString());
     }
 
     private static void reportInvalidResourceMethod(SyntaxNodeAnalysisContext ctx, IdentifierToken identifierToken) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, identifierToken.location(), HttpDiagnosticCodes.HTTP_128,
+        updateDiagnostic(ctx, identifierToken.location(), HttpDiagnosticCodes.HTTP_128,
                                                 identifierToken.toString().strip());
     }
 }

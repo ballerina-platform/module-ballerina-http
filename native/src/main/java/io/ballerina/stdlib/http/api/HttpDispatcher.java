@@ -33,6 +33,7 @@ import io.ballerina.stdlib.http.api.service.signature.NonRecurringParam;
 import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
 import io.ballerina.stdlib.http.api.service.signature.Parameter;
 import io.ballerina.stdlib.http.api.service.signature.PayloadParam;
+import io.ballerina.stdlib.http.api.service.signature.RemoteMethodParamHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.URIUtil;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -221,11 +222,63 @@ public class HttpDispatcher {
         }
     }
 
+    public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response, BObject caller,
+                                                        HttpCarbonMessage httpCarbonMessage) {
+        BObject requestCtx = getRequestCtx(httpCarbonMessage);
+        populatePropertiesForResponsePath(httpCarbonMessage, requestCtx);
+        BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+        RemoteMethodParamHandler paramHandler = service.getRemoteMethodParamHandler();
+        int sigParamCount = paramHandler.getParamCount();
+        Object[] paramFeed = new Object[sigParamCount * 2];
+        for (Parameter param : paramHandler.getOtherParamList()) {
+            String typeName = param.getTypeName();
+            switch (typeName) {
+                case HttpConstants.REQUEST_CONTEXT:
+                    int index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = requestCtx;
+                    paramFeed[index] = true;
+                    break;
+                case HttpConstants.STRUCT_GENERIC_ERROR:
+                    if (error == null) {
+                        error = createError();
+                    }
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = error;
+                    paramFeed[index] = true;
+                    break;
+                case HttpConstants.RESPONSE:
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = response;
+                    paramFeed[index] = true;
+                    break;
+                case HttpConstants.CALLER:
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = caller;
+                    paramFeed[index] = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return paramFeed;
+    }
+
+    private static void populatePropertiesForResponsePath(HttpCarbonMessage httpCarbonMessage, BObject requestCtx) {
+        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
+        int interceptorId = httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) == null
+                ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) + 1;
+        requestCtx.addNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
+        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
+                                 HttpConstants.RESPONSE_INTERCEPTOR);
+        requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+    }
+
     public static Object[] getSignatureParameters(Resource resource, HttpCarbonMessage httpCarbonMessage,
                                                   BMap<BString, Object> endpointConfig) {
         BObject inRequest = null;
         // Getting the same caller, request context and entity object to pass through interceptor services
-        BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
+        BObject requestCtx = getRequestCtx(httpCarbonMessage);
+        populatePropertiesForRequestPath(resource, httpCarbonMessage, requestCtx);
         BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         BObject httpCaller = getCaller(resource, httpCarbonMessage, endpointConfig);
@@ -253,18 +306,6 @@ public class HttpDispatcher {
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.REQUEST_CONTEXT:
-                    if (requestCtx == null) {
-                        requestCtx = createRequestContext(httpCarbonMessage, endpointConfig);
-                    }
-                    if (resource instanceof InterceptorResource) {
-                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
-                    } else {
-                        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, false);
-                    }
-                    int interceptorId = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) == null
-                            ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX) - 1;
-                    requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorId);
-                    requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
                     index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
                     paramFeed[index] = true;
@@ -313,6 +354,26 @@ public class HttpDispatcher {
         return paramFeed;
     }
 
+    private static BObject getRequestCtx(HttpCarbonMessage httpCarbonMessage) {
+        BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
+        return requestCtx != null ? requestCtx : createRequestContext(httpCarbonMessage);
+    }
+
+    private static void populatePropertiesForRequestPath(Resource resource, HttpCarbonMessage httpCarbonMessage,
+                                                         BObject requestCtx) {
+        if (resource instanceof InterceptorResource) {
+            requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, true);
+        } else {
+            requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE, false);
+        }
+        int interceptorId = httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) == null
+                ? 0 : (int) httpCarbonMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) - 1;
+        requestCtx.addNativeData(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorId);
+        requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
+        requestCtx.addNativeData(HttpConstants.INTERCEPTOR_SERVICE_TYPE,
+                                 HttpConstants.REQUEST_INTERCEPTOR);
+    }
+
     private static BObject createRequest(HttpCarbonMessage httpCarbonMessage, BObject entityObj) {
         BObject inRequest = ValueCreatorUtils.createRequestObject();
         // Reuse the entity object in case it is consumed by an interceptor
@@ -332,13 +393,13 @@ public class HttpDispatcher {
         return httpCaller;
     }
 
-    static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, BMap<BString, Object> endpointConfig) {
+    static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
         BArray interceptors = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) instanceof BArray ?
-                (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) : null;
+                              (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) : null;
         requestContext.addNativeData(HttpConstants.INTERCEPTORS, interceptors);
         requestContext.addNativeData(HttpConstants.TARGET_SERVICE, httpCarbonMessage.getProperty(
-                HttpConstants.TARGET_SERVICE));
+                                     HttpConstants.TARGET_SERVICE));
         requestContext.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
         httpCarbonMessage.setProperty(HttpConstants.REQUEST_CONTEXT, requestContext);
         return requestContext;
