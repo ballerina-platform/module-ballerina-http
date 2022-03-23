@@ -59,6 +59,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     @Override
     public void notifySuccess(Object result) {
         if (result instanceof BError) {
+            requestMessage.setHttpStatusCode(500);
             invokeErrorInterceptors((BError) result, true);
             return;
         }
@@ -141,6 +142,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
                 } else {
                     BError err = HttpUtil.createHttpError("next interceptor service did not match " +
                             "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
+                    requestMessage.setHttpStatusCode(500);
                     invokeErrorInterceptors(err, true);
                 }
             }

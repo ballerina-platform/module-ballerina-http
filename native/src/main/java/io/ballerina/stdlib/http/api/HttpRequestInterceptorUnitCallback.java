@@ -54,6 +54,9 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     @Override
     public void notifySuccess(Object result) {
         if (result instanceof BError) {
+            if (!result.equals(requestCtx.getNativeData(HttpConstants.TARGET_SERVICE))) {
+                requestMessage.setHttpStatusCode(500);
+            }
             invokeErrorInterceptors((BError) result, true);
             return;
         }
@@ -160,6 +163,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
                 } else {
                     BError err = HttpUtil.createHttpError("next interceptor service did not match " +
                             "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
+                    requestMessage.setHttpStatusCode(500);
                     invokeErrorInterceptors(err, true);
                 }
             } else {
@@ -169,6 +173,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
                 } else {
                     BError err = HttpUtil.createHttpError("target service did not match with the configuration",
                             HttpErrorType.GENERIC_LISTENER_ERROR);
+                    requestMessage.setHttpStatusCode(500);
                     invokeErrorInterceptors(err, true);
                 }
             }
