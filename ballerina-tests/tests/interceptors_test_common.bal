@@ -165,6 +165,32 @@ service class RequestInterceptorReturnsStatusCodeResponse {
     }
 }
 
+service class RequestInterceptorCheckHeader {
+    *http:RequestInterceptor;
+    final string headerName;
+
+    function init(string headerName) {
+        self.headerName = headerName;
+    }
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:Response|http:NextService|error? {
+       req.setHeader("request-interceptor-check-header", "true");
+       ctx.set("last-interceptor", "request-interceptor-check-header");
+       boolean isHeaderPresent = req.getHeader(self.headerName) is string ? true : false;
+       if isHeaderPresent {
+           return ctx.next();
+       } else {
+           http:Response res = new;
+           foreach string reqHeader in req.getHeaderNames() {
+               res.setHeader(reqHeader, check req.getHeader(reqHeader));
+           }
+           res.statusCode = 404;
+           res.setTextPayload("Header : " + self.headerName + " not found");
+           return res;
+       }
+    }
+}
+
 service class DefaultRequestErrorInterceptor {
     *http:RequestErrorInterceptor;
 
@@ -179,8 +205,18 @@ service class DefaultRequestErrorInterceptor {
 service class RequestErrorInterceptorReturnsErrorMsg {
     *http:RequestErrorInterceptor;
 
-    resource function 'default [string... path](error err, http:Caller caller) returns error? {
-       check caller->respond(err.message());
+    resource function 'default [string... path](error err) returns string {
+       return err.message();
+    }
+}
+
+service class RequestErrorInterceptorReturnsError {
+    *http:RequestErrorInterceptor;
+
+    resource function 'default [string... path](error err, http:RequestContext ctx, http:Request req) returns error {
+       req.setHeader("request-error-interceptor-error", "true");
+       ctx.set("last-interceptor", "request-error-interceptor-error");
+       return error("Request error interceptor returns an error");
     }
 }
 

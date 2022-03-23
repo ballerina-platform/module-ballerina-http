@@ -50,7 +50,7 @@ function testDefaultRequestInterceptor() returns error? {
 }
 
 @http:ServiceConfig {
-    interceptors : [new LastResponseInterceptor(), new DefaultResponseInterceptor()]
+    interceptors : [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor()]
 }
 service /defaultResponseInterceptor on interceptorsBasicTestsServerEP1 {
 
@@ -129,7 +129,7 @@ listener http:Listener interceptorsBasicTestsServerEP2 = new(interceptorBasicTes
         new LastRequestInterceptor()
     ]
 }
-service /requestErrorInterceptor on interceptorsBasicTestsServerEP2 {
+service /requestErrorInterceptor1 on interceptorsBasicTestsServerEP2 {
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -144,15 +144,50 @@ service /requestErrorInterceptor on interceptorsBasicTestsServerEP2 {
     }
 }
 
+@http:ServiceConfig {
+    interceptors : [
+        new RequestInterceptorReturnsError(), new RequestErrorInterceptorReturnsError(), new DefaultRequestInterceptor(), 
+        new DefaultRequestErrorInterceptor(), new LastRequestInterceptor()
+    ]
+}
+service /requestErrorInterceptor2 on interceptorsBasicTestsServerEP2 {
+
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setTextPayload(check req.getTextPayload());
+        string default_interceptor_header = req.hasHeader("default-request-interceptor") ? "true" : "false";
+        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
+        res.setHeader("default-request-interceptor", default_interceptor_header);
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        res.setHeader("request-interceptor-error", check req.getHeader("request-interceptor-error"));
+        res.setHeader("request-error-interceptor-error", check req.getHeader("request-error-interceptor-error"));
+        res.setHeader("default-request-error-interceptor", check req.getHeader("default-request-error-interceptor"));
+        check caller->respond(res);
+    }
+}
+
 @test:Config{}
-function testRequestErrorInterceptor() returns error? {
-    http:Response res = check interceptorsBasicTestsClientEP2->get("/requestErrorInterceptor");
+function testRequestErrorInterceptor1() returns error? {
+    http:Response res = check interceptorsBasicTestsClientEP2->get("/requestErrorInterceptor1");
     test:assertEquals(res.statusCode, 200);
     assertTextPayload(check res.getTextPayload(), "Request interceptor returns an error");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-request-error-interceptor");
     assertHeaderValue(check res.getHeader("default-request-interceptor"), "false");
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("request-interceptor-error"), "true");
+    assertHeaderValue(check res.getHeader("default-request-error-interceptor"), "true");
+}
+
+@test:Config{}
+function testRequestErrorInterceptor2() returns error? {
+    http:Response res = check interceptorsBasicTestsClientEP2->get("/requestErrorInterceptor2");
+    test:assertEquals(res.statusCode, 200);
+    assertTextPayload(check res.getTextPayload(), "Request error interceptor returns an error");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-request-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-request-interceptor"), "false");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("request-interceptor-error"), "true");
+    assertHeaderValue(check res.getHeader("request-error-interceptor-error"), "true");
     assertHeaderValue(check res.getHeader("default-request-error-interceptor"), "true");
 }
 

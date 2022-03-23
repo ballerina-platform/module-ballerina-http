@@ -84,12 +84,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     }
 
     public void sendFailureResponse(BError error) {
-        cleanupResponseAndContext();
         HttpUtil.handleFailure(requestMessage, error, false);
-    }
-
-    private void cleanupResponseAndContext() {
-        requestMessage.waitAndReleaseAllEntities();
     }
 
     private void printStacktraceIfError(Object result) {
@@ -146,7 +141,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
                 } else {
                     BError err = HttpUtil.createHttpError("next interceptor service did not match " +
                             "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
-                    sendFailureResponse(err);
+                    invokeErrorInterceptors(err, true);
                 }
             }
         }
