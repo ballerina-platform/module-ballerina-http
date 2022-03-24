@@ -452,10 +452,9 @@ class HttpResourceValidator {
             case ARRAY:
                 TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) paramTypeDescriptor).memberTypeDescriptor();
                 TypeDescKind arrElementKind = arrTypeSymbol.typeKind();
-                // TODO add test cases here
                 checkAllowedHeaderParamTypes(ctx, paramLocation, param, paramName, arrElementKind);
                 break;
-            case UNION: // TODO check intersection here
+            case UNION:
                 List<TypeSymbol> symbolList = ((UnionTypeSymbol) paramTypeDescriptor).memberTypeDescriptors();
                 int size = symbolList.size();
                 if (size > 2) {
@@ -528,8 +527,7 @@ class HttpResourceValidator {
             TypeSymbol paramTypeDescriptor = value.typeDescriptor();
             String typeName = paramTypeDescriptor.signature();
             TypeDescKind typeDescKind = paramTypeDescriptor.typeKind();
-            if (typeDescKind == TypeDescKind.INTERSECTION) { // TODO check union
-                //TODO remove this cast
+            if (typeDescKind == TypeDescKind.INTERSECTION) {
                 paramTypeDescriptor = getEffectiveTypeFromReadonlyIntersection((ParameterSymbol) value);
                 if (paramTypeDescriptor == null) {
                     reportInvalidIntersectionType(ctx, paramLocation, typeName);
