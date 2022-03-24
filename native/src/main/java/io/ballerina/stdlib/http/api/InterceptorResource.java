@@ -19,16 +19,12 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
-import io.ballerina.runtime.api.utils.StringUtils;
-import io.ballerina.runtime.api.values.BString;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 
 /**
@@ -38,10 +34,6 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
  */
 public class InterceptorResource implements Resource {
 
-    private static final BString HTTP_RESOURCE_CONFIG =
-            StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
-    private static final String RETURN_ANNOT_PREFIX = "$returns$";
-
     private MethodType balResource;
     private List<String> methods;
     private String path;
@@ -50,12 +42,10 @@ public class InterceptorResource implements Resource {
     private String wildcardToken;
     private int pathParamCount;
     private boolean treatNilableAsOptional = true;
-    private String resourceType = HttpConstants.HTTP_NORMAL;
 
     protected InterceptorResource(MethodType resource, InterceptorService parentService, boolean fromListener) {
         this.balResource = resource;
         this.parentService = parentService;
-        this.setResourceType(parentService.getServiceType());
         if (balResource instanceof ResourceMethodType) {
             this.validateAndPopulateResourcePath(fromListener);
             this.validateAndPopulateMethod();
@@ -153,14 +143,6 @@ public class InterceptorResource implements Resource {
     @Override
     public boolean isTreatNilableAsOptional() {
         return treatNilableAsOptional;
-    }
-
-    public void setResourceType(String resourceType) {
-        this.resourceType = resourceType;
-    }
-
-    public String getResourceType() {
-        return this.resourceType;
     }
 
     public static InterceptorResource buildInterceptorResource(MethodType resource, InterceptorService

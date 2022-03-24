@@ -30,7 +30,6 @@ import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -58,7 +57,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
@@ -73,7 +71,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYP
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
-import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.retrieveEffectiveTypeDesc;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 
 /**
  * Validates a ballerina http resource.
@@ -82,7 +81,7 @@ class HttpResourceValidator {
 
     static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
         extractResourceAnnotationAndValidate(ctx, member);
-        extractInputParamTypeAndValidate(ctx, member);
+        extractInputParamTypeAndValidate(ctx, member, false);
         extractReturnTypeAndValidate(ctx, member);
         validateHttpCallerUsage(ctx, member);
     }
@@ -107,7 +106,8 @@ class HttpResourceValidator {
         }
     }
 
-    public static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
+    public static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                                        boolean isErrorInterceptor) {
         boolean callerPresent = false;
         boolean requestPresent = false;
         boolean requestCtxPresent = false;
@@ -398,7 +398,7 @@ class HttpResourceValidator {
                                 String callerTypeName = typeNameOptional.get();
                                 if (CALLER_OBJ_NAME.equals(callerTypeName)) {
                                     if (callerPresent) {
-                                        HttpCompilerPluginUtil.updateDiagnostic(ctx, paramLocation,
+                                        updateDiagnostic(ctx, paramLocation,
                                                                                 HttpDiagnosticCodes.HTTP_115, paramName
                                         );
                                     } else {
@@ -431,6 +431,9 @@ class HttpResourceValidator {
                         break;
                 }
             }
+        }
+        if (isErrorInterceptor && !errorPresent) {
+            HttpCompilerPluginUtil.reportMissingParameterError(ctx, member.location(), Constants.RESOURCE_KEYWORD);
         }
         if (resourceMethodOptional.isPresent() && !payloadAnnotationPresent) {
             enableAddPayloadParamCodeAction(ctx, member.functionSignature().location(), resourceMethodOptional.get());
@@ -545,12 +548,12 @@ class HttpResourceValidator {
     private static void enableAddPayloadParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location,
                                                         String methodName) {
         if (!methodName.equals(GET) && !methodName.equals(HEAD) && !methodName.equals(OPTIONS)) {
-            HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_101);
+            updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_101);
         }
     }
 
     private static void enableAddHeaderParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_102);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_102);
     }
 
     private static void validatePayloadAnnotationUsage(SyntaxNodeAnalysisContext ctx, Location location,
@@ -563,7 +566,7 @@ class HttpResourceValidator {
     private static boolean isObjectPresent(SyntaxNodeAnalysisContext ctx, Location location,
                                            boolean objectPresent, String paramName, HttpDiagnosticCodes code) {
         if (objectPresent) {
-            HttpCompilerPluginUtil.updateDiagnostic(ctx, location, code, paramName);
+            updateDiagnostic(ctx, location, code, paramName);
         }
         return true;
     }
@@ -625,7 +628,7 @@ class HttpResourceValidator {
             return;
         }
         Node returnTypeNode = returnTypeDescriptorNode.get().type();
-        String returnTypeStringValue = getReturnTypeDescription(returnTypeDescriptorNode.get());
+        String returnTypeStringValue = HttpCompilerPluginUtil.getReturnTypeDescription(returnTypeDescriptorNode.get());
         Optional<Symbol> functionSymbol = ctx.semanticModel().symbol(member);
         if (functionSymbol.isEmpty()) {
             return;
@@ -635,7 +638,8 @@ class HttpResourceValidator {
         if (returnTypeSymbol.isEmpty()) {
             return;
         }
-        validateReturnType(ctx, returnTypeNode, returnTypeStringValue, returnTypeSymbol.get());
+        HttpCompilerPluginUtil.validateReturnType(ctx, returnTypeNode, returnTypeStringValue, returnTypeSymbol.get(),
+                                                  HttpDiagnosticCodes.HTTP_102, false);
         validateAnnotationsAndEnableCodeActions(ctx, returnTypeNode, returnTypeSymbol.get(), returnTypeStringValue,
                                                 returnTypeDescriptorNode.get());
     }
@@ -676,77 +680,12 @@ class HttpResourceValidator {
         }
     }
 
-    private static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
-                                           TypeSymbol returnTypeSymbol) {
-        TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
-            return;
-        }
-        if (kind == TypeDescKind.INTERSECTION) {
-            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) returnTypeSymbol).effectiveTypeDescriptor();
-            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
-        } else if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
-            for (TypeSymbol typeSymbol : typeSymbols) {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
-            }
-        } else if (kind == TypeDescKind.ARRAY) {
-            TypeSymbol memberTypeDescriptor = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor();
-            validateArrayElementType(ctx, node, returnTypeStringValue, memberTypeDescriptor);
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind == TypeDescKind.OBJECT) {
-                if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
-                    reportInvalidReturnType(ctx, node, returnTypeStringValue);
-                }
-            } else if (typeDescKind == TypeDescKind.TABLE) {
-                validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor);
-            } else if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.ERROR) {
-                reportInvalidReturnType(ctx, node, returnTypeStringValue);
-            }
-        } else if (kind == TypeDescKind.MAP) {
-            TypeSymbol typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParam();
-            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
-        } else if (kind == TypeDescKind.TABLE) {
-            TypeSymbol typeSymbol = ((TableTypeSymbol) returnTypeSymbol).rowTypeParameter();
-            if (typeSymbol == null) {
-                reportInvalidReturnType(ctx, node, returnTypeStringValue);
-            } else {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol);
-            }
-        } else {
-            reportInvalidReturnType(ctx, node, returnTypeStringValue);
-        }
-    }
-
-    private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, Node node, String typeStringValue,
-                                                    TypeSymbol memberTypeDescriptor) {
-        TypeDescKind kind = memberTypeDescriptor.typeKind();
-        if (isBasicTypeDesc(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
-            return;
-        }
-        if (kind == TypeDescKind.INTERSECTION) {
-            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) memberTypeDescriptor).effectiveTypeDescriptor();
-            validateArrayElementType(ctx, node, typeStringValue, typeSymbol);
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
-                    typeDescKind != TypeDescKind.TABLE) {
-                reportInvalidReturnType(ctx, node, typeStringValue);
-            }
-        } else {
-            reportInvalidReturnType(ctx, node, typeStringValue);
-        }
-    }
-
     private static void enableConfigureReturnMediaTypeCodeAction(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_103);
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_103);
     }
 
     private static void enableResponseCacheConfigCodeAction(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_104);
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_104);
     }
 
     private static boolean checkForSupportedReturnTypes(TypeSymbol returnTypeSymbol) {
@@ -768,14 +707,6 @@ class HttpResourceValidator {
         return true;
     }
 
-    private static TypeDescKind retrieveEffectiveTypeDesc(TypeSymbol descriptor) {
-        TypeDescKind typeDescKind = descriptor.typeKind();
-        if (typeDescKind == TypeDescKind.INTERSECTION) {
-            return ((IntersectionTypeSymbol) descriptor).effectiveTypeDescriptor().typeKind();
-        }
-        return typeDescKind;
-    }
-
     private static TypeSymbol getEffectiveTypeFromReadonlyIntersection(ParameterSymbol param) {
         IntersectionTypeSymbol intersectionTypeSymbol = (IntersectionTypeSymbol) param.typeDescriptor();
         List<TypeSymbol> effectiveTypes = new ArrayList<>();
@@ -789,27 +720,6 @@ class HttpResourceValidator {
             return effectiveTypes.get(0);
         }
         return null;
-    }
-
-    private static boolean isBasicTypeDesc(TypeDescKind kind) {
-        return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
-                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.JSON ||
-                kind == TypeDescKind.XML || kind == TypeDescKind.RECORD || kind == TypeDescKind.BYTE;
-    }
-
-    private static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {
-        Optional<ModuleSymbol> module = typeDescriptor.getModule();
-        if (module.isEmpty()) {
-            return false;
-        }
-        if (!BALLERINA.equals(module.get().id().orgName()) || !HTTP.equals(module.get().getName().get())) {
-            return false;
-        }
-        Optional<String> typeName = typeDescriptor.getName();
-        if (typeName.isEmpty()) {
-            return false;
-        }
-        return expectedType.equals(typeName.get());
     }
 
     public static void validateHttpCallerUsage(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
@@ -836,16 +746,16 @@ class HttpResourceValidator {
         if (isValidReturnTypeWithCaller(typeSymbol)) {
             return;
         }
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, returnTypeLocation, HttpDiagnosticCodes.HTTP_118,
+        updateDiagnostic(ctx, returnTypeLocation, HttpDiagnosticCodes.HTTP_118,
                                                 returnTypeDescription
         );
     }
 
-    private static boolean isHttpCaller(ParameterSymbol param) {
+    public static boolean isHttpCaller(ParameterSymbol param) {
         TypeDescKind typeDescKind = param.typeDescriptor().typeKind();
         if (TypeDescKind.TYPE_REFERENCE.equals(typeDescKind)) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) param.typeDescriptor()).typeDescriptor();
-            return isHttpModuleType(CALLER_OBJ_NAME, typeDescriptor);
+            return HttpCompilerPluginUtil.isHttpModuleType(CALLER_OBJ_NAME, typeDescriptor);
         }
         return false;
     }
@@ -870,39 +780,34 @@ class HttpResourceValidator {
         }
     }
 
-    private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                                String returnType) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_102, returnType);
-    }
-
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                         String annotName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_103, annotName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_103, annotName);
     }
 
     private static void reportInvalidParameterAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                          String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_104, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_104, paramName);
     }
 
     private static void reportInvalidParameter(SyntaxNodeAnalysisContext ctx, Location location,
                                                String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_105, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_105, paramName);
     }
 
     private static void reportInvalidParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                    String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_106, typeName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_106, typeName);
     }
 
     private static void reportInvalidPayloadParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                           String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_107, typeName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_107, typeName);
     }
 
     private static void reportInvalidMultipleAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                         String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_108, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_108, paramName);
     }
 
     private static void reportInvalidHeaderParameterType(SyntaxNodeAnalysisContext ctx, Location location, 
@@ -914,42 +819,42 @@ class HttpResourceValidator {
 
     private static void reportInvalidUnionHeaderType(SyntaxNodeAnalysisContext ctx, Location location,
                                                      String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_110, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_110, paramName);
     }
 
     private static void reportInvalidCallerParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                          String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_111, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_111, paramName);
     }
 
     private static void reportInvalidQueryParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                         String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_112, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_112, paramName);
     }
 
     private static void reportInvalidUnionQueryType(SyntaxNodeAnalysisContext ctx, Location location,
                                                     String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_113, paramName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_113, paramName);
     }
 
     private static void reportInCompatibleCallerInfoType(SyntaxNodeAnalysisContext ctx, PositionalArgumentNode node,
                                                          String paramName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_114, paramName);
+        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_114, paramName);
     }
 
     private static void reportInvalidUsageOfPayloadAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                               String name, HttpDiagnosticCodes code) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, code, name);
+        updateDiagnostic(ctx, location, code, name);
     }
 
     private static void reportInvalidUsageOfCacheAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
                                                             String returnType) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_130, returnType);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_130, returnType);
     }
 
     private static void reportInvalidIntersectionType(SyntaxNodeAnalysisContext ctx, Location location,
                                                       String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_133, typeName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_133, typeName);
     }
 
     private static void reportInvalidIntersectionObjectType(SyntaxNodeAnalysisContext ctx, Location location,
@@ -958,6 +863,6 @@ class HttpResourceValidator {
     }
 
     private static void reportInvalidHeaderRecordRestFieldType(SyntaxNodeAnalysisContext ctx, Location location) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_135);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_144);
     }
 }

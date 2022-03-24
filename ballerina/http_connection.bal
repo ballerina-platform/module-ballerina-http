@@ -119,7 +119,7 @@ public isolated client class Caller {
         return nativeGetRemoteHostName(self);
     }
 
-    private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType,
+    private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType,
         HttpCacheConfig? cacheConfig) returns ListenerError? {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
@@ -135,18 +135,6 @@ public isolated client class Caller {
             } else {
                 Accepted AcceptedResponse = {};
                 response = createStatusCodeResponse(AcceptedResponse);
-            }
-        } else if message is error {
-            if message is ApplicationResponseError {
-                InternalServerError err = {
-                    headers: message.detail().headers,
-                    body: message.detail().body
-                };
-                response = createStatusCodeResponse(err, returnMediaType);
-                response.statusCode = message.detail().statusCode;
-            } else {
-                response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
-                response.setTextPayload(message.message());
             }
         } else if message is StatusCodeResponse {
             if message is SuccessStatusCodeResponse {
@@ -179,6 +167,22 @@ public isolated client class Caller {
             if cacheConfig.setLastModified {
                 response.setLastModified();
             }
+        }
+        return nativeRespond(self, response);
+    }
+
+    private isolated function returnErrorResponse(error errorResponse, string? returnMediaType, int? statusCode) returns ListenerError? {
+        Response response = new;
+        if errorResponse is ApplicationResponseError {
+            InternalServerError err = {
+                headers: errorResponse.detail().headers,
+                body: errorResponse.detail().body
+            };
+            response = createStatusCodeResponse(err, returnMediaType);
+            response.statusCode = errorResponse.detail().statusCode;
+        } else {
+            response.statusCode = statusCode is () ? STATUS_INTERNAL_SERVER_ERROR : statusCode;
+            response.setTextPayload(errorResponse.message());
         }
         return nativeRespond(self, response);
     }
