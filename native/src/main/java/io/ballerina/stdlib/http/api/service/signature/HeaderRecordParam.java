@@ -57,20 +57,19 @@ public class HeaderRecordParam extends HeaderParam {
     }
 
     static class FieldParam {
-        private Type type;
-        private boolean readonly;
-        private boolean nilable;
+        private final Type type;
+        private final boolean readonly;
+        private final boolean nilable;
 
-        public FieldParam(Type fieldType, boolean readonly, boolean nilable) {
+        public FieldParam(Type fieldType) {
             this.type = getEffectiveType(fieldType);
-            this.readonly = readonly;
-            this.nilable = nilable;
+            this.readonly = fieldType.isReadOnly();
+            this.nilable = fieldType.isNilable();
         }
 
         Type getEffectiveType(Type paramType) {
             if (paramType instanceof UnionType) {
                 List<Type> memberTypes = ((UnionType) paramType).getMemberTypes();
-                this.nilable = true;
                 for (Type type : memberTypes) {
                     if (type.getTag() == TypeTags.NULL_TAG) {
                         continue;
@@ -86,24 +85,17 @@ public class HeaderRecordParam extends HeaderParam {
                             "invalid header param type '" + paramType.getName() +
                                     "': only readonly intersection is allowed");
                 }
-                this.readonly = true;
                 for (Type type : memberTypes) {
                     if (type.getTag() == TypeTags.READONLY_TAG) {
                         continue;
                     }
                     if (type.getTag() == TypeTags.UNION_TAG) {
-                        getEffectiveType(type);
-                        return type;
+                        return getEffectiveType(type);
                     }
                     return type;
                 }
             }
             return paramType;
-        }
-
-        boolean isValidBasicType(int typeTag) {
-            return typeTag == TypeTags.STRING_TAG || typeTag == TypeTags.INT_TAG || typeTag == TypeTags.BOOLEAN_TAG ||
-                    typeTag == TypeTags.DECIMAL_TAG || typeTag == TypeTags.FLOAT_TAG;
         }
 
         public Type getType() {

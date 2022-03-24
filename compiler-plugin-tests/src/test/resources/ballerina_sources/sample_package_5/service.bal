@@ -26,6 +26,10 @@ type TestRecord record {|
     string[]|string xRate;
 |};
 
+type NestedRecord record {|
+    RateLimitHeaders xRate;
+|};
+
 service http:Service on new http:Listener(9090) {
 
     resource function get headerString(@http:Header {name: "x-type"} string abc) returns string {
@@ -130,6 +134,10 @@ service http:Service on new http:Listener(9090) {
     }
 
     resource function get headerErr7(@http:Header {name: "x-type"} int[] abc) returns string {
+        return "done"; //error
+    }
+
+    resource function get headerRecordWithRecordField(@http:Header NestedRecord abc) returns string {
         return "done"; //error
     }
 }

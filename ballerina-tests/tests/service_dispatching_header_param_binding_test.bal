@@ -109,6 +109,13 @@ type NilableTypeHeaders record {|
     boolean[]? baid;
 |};
 
+type ReadonlyTypeHeaders record {|
+    readonly & string[] sid;
+    readonly & int[]? iid;
+    readonly & string[]? said;
+    readonly & int[] iaid;
+|};
+
 service /headerRecord on HeaderBindingEP {
     resource function get rateLimitHeaders(@http:Header RateLimitHeaders rateLimitHeaders) returns json {
         return {
@@ -124,6 +131,24 @@ service /headerRecord on HeaderBindingEP {
             header2 : rateLimitHeaders.x\-rate\-limit\-remaining,
             header3 : rateLimitHeaders.x\-rate\-limit\-types
         };
+    }
+
+    resource function get rateLimitHeadersNilableRecord(@http:Header RateLimitHeaders? rateLimitHeaders) returns json {
+        RateLimitHeaders? headers = rateLimitHeaders;
+        if headers is RateLimitHeaders {
+            return { status : "non-nil", value : headers.x\-rate\-limit\-id };
+        } else {
+            return { status : "nil" };
+        }
+    }
+
+    resource function get rateLimitHeadersReadOnly(@http:Header readonly & RateLimitHeaders rateLimitHeaders) returns json {
+        RateLimitHeaders headers = rateLimitHeaders;
+        if headers is readonly & RateLimitHeaders {
+            return { status : "readonly", value : headers.x\-rate\-limit\-id };
+        } else {
+            return { status : "non-readonly", value : headers.x\-rate\-limit\-id };
+        }
     }
 
     resource function get ofPureTypeHeaders(@http:Header PureTypeHeaders headers) returns json {
@@ -154,6 +179,99 @@ service /headerRecord on HeaderBindingEP {
             header9 : headers.daid,
             header10 : headers.baid
         };
+    }
+
+    resource function get ofReadonlyHeaders(@http:Header ReadonlyTypeHeaders rateLimitHeaders) returns json {
+        string[] stringId = rateLimitHeaders.sid;
+        json j1;
+        if stringId is readonly & string[] {
+            j1 = { status : "readonly", value : stringId };
+        } else {
+            j1 = { status : "non-readonly", value : stringId };
+        }
+
+        int[]? intId = rateLimitHeaders.iid;
+        json j2;
+        if intId is readonly & int[]? {
+            j2 = { status : "readonly", value : intId };
+        } else {
+            j2 = { status : "non-readonly", value : intId };
+        }
+
+        string[]? stringArrId = rateLimitHeaders.said;
+        json j3;
+        if stringArrId is readonly & string[]? {
+            j3 = { status : "readonly", value : stringArrId };
+        } else {
+            j3 = { status : "non-readonly", value : stringArrId };
+        }
+
+        int[] intArrId = rateLimitHeaders.iaid;
+        json j4;
+        if intArrId is readonly & int[] {
+            j4 = { status : "readonly", value : intArrId };
+        } else {
+            j4 = { status : "non-readonly", value : intArrId };
+        }
+
+        return { header1 : j1, header2 : j2, header3 : j3, header4 : j4 };
+    }
+
+    resource function get ofOtherPureHeaders(@http:Header int iid, @http:Header float fid,
+            @http:Header decimal did,  @http:Header boolean bid,  @http:Header int[] iaid, @http:Header float[] faid,
+            @http:Header decimal[] daid, @http:Header boolean[] baid) returns json {
+        return { header1 : iid, header2 : fid, header3 : did, header4 : bid, header5 : iaid, header6 : faid,
+            header7 : daid, header8 : baid };
+    }
+
+    resource function get ofOtherNilableHeaders(@http:Header int? iid, @http:Header float? fid,
+            @http:Header decimal? did, @http:Header boolean? bid, @http:Header int[]? iaid,
+            @http:Header float[]? faid, @http:Header decimal[]? daid, @http:Header boolean[]? baid) returns json {
+        json j1 = iid is int ? iid : "no header iid";
+        json j2 = fid is float ? fid : "no header fid";
+        json j3 = did is decimal ? did : "no header did";
+        json j4 = bid is boolean ? bid : "no header bid";
+        json j5 = iaid is int[] ? iaid : "no header iaid";
+        json j6 = faid is float[] ? faid : "no header faid";
+        json j7 = daid is decimal[] ? daid : "no header daid";
+        json j8 = baid is boolean[] ? baid : "no header baid";
+
+        return { header1 : j1, header2 : j2, header3 : j3, header4 : j4, header5 : j5, header6 : j6, header7 : j7,
+                header8 : j8 };
+    }
+
+    resource function get ofOtherHeaderTypesWithReadonly(@http:Header readonly & int[] iaid,
+            @http:Header readonly & float[]? faid, @http:Header readonly & decimal[]? daid,
+            @http:Header readonly & boolean[] baid) returns json {
+        int[] intId = iaid;
+        json j1;
+        if intId is readonly & int[] {
+            j1 = { status : "readonly", value : intId };
+        } else {
+            j1 = { status : "non-readonly", value : intId };
+        }
+        boolean[] booleanId = baid;
+        json j2;
+        if booleanId is readonly & boolean[] {
+            j2 = { status : "readonly", value : booleanId };
+        } else {
+            j2 = { status : "non-readonly", value : booleanId };
+        }
+        float[]? floatId = faid;
+        json j3;
+        if floatId is readonly & float[] {
+            j3 = { status : "readonly", value : floatId };
+        } else {
+            j3 = { status : "non-readonly", value : "nil float" };
+        }
+        decimal[]? decimalId = daid;
+        json j4;
+        if decimalId is readonly & decimal[] {
+            j4 = { status : "readonly", value : decimalId };
+        } else {
+            j4 = { status : "non-readonly", value : "nil decimal" };
+        }
+        return { header1 : j1, header2 : j2, header3 : j3, header4 : j4};
     }
 }
 
@@ -424,4 +542,122 @@ function testHeaderRecordParamOfNilableTypeHeadersWithMissingFields() returns er
     assertJsonValue(response, "header8", [2.892d, 3.564d]);
     assertJsonValue(response, "header9", [2.8d, 3.4d]);
     assertJsonValue(response, "header10", null);
+}
+
+@test:Config {}
+function testReadonlyTypeWithHeaderRecord() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/rateLimitHeadersReadOnly",
+        { "x-rate-limit-id" : "dwqfec", "x-rate-limit-remaining" : "23", "x-rate-limit-types" : ["weweq", "fefw"]});
+    assertJsonValue(response, "status", "readonly");
+    assertJsonValue(response, "value", "dwqfec");
+}
+
+@test:Config {}
+function testNilableHeaderRecordSuccess() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/rateLimitHeadersNilableRecord",
+        { "x-rate-limit-id" : "dwqfec", "x-rate-limit-remaining" : "23", "x-rate-limit-types" : ["weweq", "fefw"]});
+    assertJsonValue(response, "status", "non-nil");
+    assertJsonValue(response, "value", "dwqfec");
+}
+
+@test:Config {}
+function testNilableHeaderRecordNegative() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/rateLimitHeadersNilableRecord",
+        {"x-rate-limit-types" : ["weweq", "fefw"]});
+    assertJsonValue(response, "status", "nil");
+}
+
+@test:Config {}
+function testReadonlyHeaderRecordParam() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/ofReadonlyHeaders",
+        {
+            "sid" : ["dwqfec"],
+            "iid" : ["345"],
+            "said" : ["fewnvw", "ceq"],
+            "iaid" : ["23", "56"]
+        });
+    assertJsonValue(response, "header1", { status : "readonly", value : ["dwqfec"] });
+    assertJsonValue(response, "header2", { status : "readonly", value : [345] });
+    assertJsonValue(response, "header3", { status : "readonly", value : ["fewnvw", "ceq"] });
+    assertJsonValue(response, "header4", { status : "readonly", value : [23, 56] });
+}
+
+@test:Config {}
+function testHeaderRecordOfPureTypeHeaders() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/ofOtherPureHeaders",
+        {
+            "sid" : "dwqfec",
+            "did" : "2.8",
+            "fid" : "2.892",
+            "bid" : "true",
+            "iid" : "23",
+            "said" : ["dwqfec", "fnefbw"],
+            "iaid" : ["23", "56"],
+            "faid" : ["2.892", "3.564"],
+            "daid" : ["2.8", "3.4"],
+            "baid" : ["true", "false"]
+        });
+    assertJsonValue(response, "header1", 23);
+    assertJsonValue(response, "header2", 2.892d);
+    assertJsonValue(response, "header3", 2.8d);
+    assertJsonValue(response, "header4", true);
+    assertJsonValue(response, "header5", [23, 56]);
+    assertJsonValue(response, "header6", [2.892d, 3.564d]);
+    assertJsonValue(response, "header7", [2.8d, 3.4d]);
+    assertJsonValue(response, "header8", [true, false]);
+}
+
+@test:Config {}
+function testHeaderRecordOfPureTypeHeadersNegative() {
+    json|error response = headerBindingClient->get("/headerRecord/ofOtherPureHeaders",
+        {
+            "sid" : "dwqfec",
+            "fid" : "2.892",
+            "iid" : "23",
+            "iaid" : ["23", "56"],
+            "daid" : ["2.8", "3.4"]
+        });
+    if response is http:ClientRequestError {
+        test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
+        assertErrorHeaderValue(response.detail().headers[CONTENT_TYPE], TEXT_PLAIN);
+        test:assertEquals(response.detail().body, "no header value found for 'did'", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testHeaderParamOfNilableTypeHeaders() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders",
+        {
+            "sid" : "dwqfec",
+            "fid" : "2.892",
+            "iid" : "23",
+            "iaid" : ["23", "56"],
+            "daid" : ["2.8", "3.4"],
+            "baid" : ["true", "false"]
+        });
+    assertJsonValue(response, "header1", 23);
+    assertJsonValue(response, "header2", 2.892d);
+    assertJsonValue(response, "header3", "no header did");
+    assertJsonValue(response, "header4", "no header bid");
+    assertJsonValue(response, "header5", [23, 56]);
+    assertJsonValue(response, "header6", "no header faid");
+    assertJsonValue(response, "header7", [2.8d, 3.4d]);
+    assertJsonValue(response, "header8", [true, false]);
+}
+
+@test:Config {}
+function testReadonlyHeaderParams() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/ofOtherHeaderTypesWithReadonly",
+        {
+            "said" : ["dwqfec", "fnefbw"],
+            "iaid" : ["23", "56"],
+            "daid" : ["2.8", "3.4"],
+            "baid" : ["true", "false"]
+        });
+    assertJsonValue(response, "header1", { status : "readonly", value : [23, 56] });
+    assertJsonValue(response, "header2", { status : "readonly", value : [true, false] });
+    assertJsonValue(response, "header3", { status : "non-readonly", value : "nil float" });
+    assertJsonValue(response, "header4", { status : "readonly", value : [2.8d, 3.4d] });
 }

@@ -106,14 +106,16 @@ public class AllHeaderParams implements Parameter {
                     throw new BallerinaConnectorException("no header value found for '" + token + "'");
                 }
             }
-            if (headerParam.getTypeTag() == ARRAY_TAG) {
-                BArray bArray = StringUtils.fromStringArray(headerValues.toArray(new String[0]));
+            int typeTag = headerParam.getType().getTag();
+            if (typeTag == ARRAY_TAG) {
+                int elementTypeTag = ((ArrayType) headerParam.getType()).getElementType().getTag();
+                BArray bArray = castParamArray(elementTypeTag, headerValues.toArray(new String[0]));
                 if (headerParam.isReadonly()) {
                     bArray.freezeDirect();
                 }
                 paramFeed[index++] = bArray;
             } else {
-                paramFeed[index++] = StringUtils.fromString(headerValues.get(0));
+                paramFeed[index++] = castParam(typeTag, headerValues.get(0));
             }
             paramFeed[index] = true;
         }
@@ -135,6 +137,8 @@ public class AllHeaderParams implements Parameter {
                 if (field.isNilable() && treatNilableAsOptional) {
                     recordValue.put(StringUtils.fromString(key), null);
                     continue;
+                } else if (headerParam.isNilable()) {
+                    return null;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
                     throw new BallerinaConnectorException("no header value found for '" + key + "'");
@@ -144,6 +148,8 @@ public class AllHeaderParams implements Parameter {
                 if (field.isNilable()) {
                     recordValue.put(StringUtils.fromString(key), null);
                     continue;
+                } else if (headerParam.isNilable()) {
+                    return null;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
                     throw new BallerinaConnectorException("no header value found for '" + key + "'");
