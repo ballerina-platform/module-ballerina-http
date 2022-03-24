@@ -172,6 +172,7 @@ const int interceptorBasicTestsPort3 = 9617;
 const int responseInterceptorReturnsErrorTestPort = 9618;
 const int interceptorReturnsStatusTestPort = 9619;
 const int interceptorExecutionOrderTestPort = 9620;
+const int responseInterceptorNegativeTestPort1 = 9621;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;

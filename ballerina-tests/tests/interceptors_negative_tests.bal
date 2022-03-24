@@ -23,13 +23,6 @@ listener http:Listener requestInterceptorNegativeServerEP1 = new(requestIntercep
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative1(), new LastRequestInterceptor()]
 });
 
-service / on requestInterceptorNegativeServerEP1 {
-
-    resource function 'default .() returns string {
-        return "Response from resource - test";
-    }
-}
-
 @test:Config{}
 function testRequestInterceptorNegative1() returns error? {
     http:Response res = check requestInterceptorNegativeClientEP1->get("/");
@@ -144,4 +137,26 @@ function testRequestInterceptorNegative6() returns error? {
     http:Response res = check requestInterceptorNegativeClientEP6->get("/");
     test:assertEquals(res.statusCode, 500);
     assertTextPayload(check res.getTextPayload(), "target service did not match with the configuration");
+}
+
+final http:Client responseInterceptorNegativeClientEP1 = check new("http://localhost:" + responseInterceptorNegativeTestPort1.toString());
+
+listener http:Listener responseInterceptorNegativeServerEP1 = new(responseInterceptorNegativeTestPort1, config = {
+    interceptors : [
+        new DefaultRequestInterceptor(), new ResponseInterceptorNegative1(), new LastRequestInterceptor(), 
+        new DefaultResponseInterceptor()
+    ]
+});
+
+service / on responseInterceptorNegativeServerEP1 {
+    resource function 'default .() returns string {
+        return "Response from resource - test";
+    }
+}
+
+@test:Config{}
+function testResponseInterceptorNegative1() returns error? {
+    http:Response res = check responseInterceptorNegativeClientEP1->get("/");
+    test:assertEquals(res.statusCode, 500);
+    assertTextPayload(check res.getTextPayload(), "next interceptor service did not match with the configuration");
 }
