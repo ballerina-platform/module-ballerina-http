@@ -761,7 +761,7 @@ class HttpResourceValidator {
     }
 
     public static String getReturnTypeDescription(ReturnTypeDescriptorNode returnTypeDescriptorNode) {
-           return returnTypeDescriptorNode.type().toString().trim();
+        return returnTypeDescriptorNode.type().toString().trim();
     }
 
     private static boolean isValidReturnTypeWithCaller(TypeSymbol returnTypeDescriptor) {
@@ -810,11 +810,10 @@ class HttpResourceValidator {
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_108, paramName);
     }
 
-    private static void reportInvalidHeaderParameterType(SyntaxNodeAnalysisContext ctx, Location location, 
+    private static void reportInvalidHeaderParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                          String paramName, Symbol parameterSymbol) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_109,
-                                                List.of(new BSymbolicProperty(parameterSymbol)), paramName
-        );
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_109, List.of(new BSymbolicProperty(parameterSymbol))
+                , paramName);
     }
 
     private static void reportInvalidUnionHeaderType(SyntaxNodeAnalysisContext ctx, Location location,
@@ -859,10 +858,10 @@ class HttpResourceValidator {
 
     private static void reportInvalidIntersectionObjectType(SyntaxNodeAnalysisContext ctx, Location location,
                                                             String paramName, String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_134, paramName, typeName);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_134, paramName, typeName);
     }
 
     private static void reportInvalidHeaderRecordRestFieldType(SyntaxNodeAnalysisContext ctx, Location location) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_144);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_144);
     }
 }
