@@ -16,7 +16,7 @@
 
 import ballerina/io;
 import ballerina/time;
-// import ballerina/lang.runtime;
+import ballerina/lang.runtime;
 import ballerina/log;
 import ballerina/http;
 
@@ -36,29 +36,20 @@ public function main(string label, string output_csv_path) returns error? {
     time:Utc startedTime = time:utcNow();
     time:Utc expiryTime = time:utcAddSeconds(startedTime, 600);
     json payload = {event: "event"};
-    // while time:utcDiffSeconds(expiryTime, time:utcNow()) > 0D {
-    //     json|error response = loadTestClient->post("", payload);
-    //     sentCount += 1;
-    //     if response is error {
-    //         errorCount += 1;
-    //     }
-    //     if response is json {
-    //         receivedCount += 1;
-    //     }
-    //     runtime:sleep(0.1);
-    // }
-    json|error response = loadTestClient->post("", payload);
-    sentCount += 1;
-    if response is error {
-        errorCount += 1;
-        log:printError("Error occurred", 'error = response);
-    } else {
-        receivedCount += 1;
-        log:printInfo("Received response", response = response);
+    while time:utcDiffSeconds(expiryTime, time:utcNow()) > 0D {
+        json|error response = loadTestClient->post("", payload);
+        sentCount += 1;
+        if response is error {
+            errorCount += 1;
+        } else {
+            receivedCount += 1;
+        }
+        runtime:sleep(0.1);
     }
     decimal time = time:utcDiffSeconds(time:utcNow(), startedTime);
     log:printInfo("Test summary: ", sent = sentCount, received = receivedCount, errors = errorCount, duration = time);
-    any[] results = [label, sentCount, <float>time/<float>receivedCount, 0, 0, 0, 0, 0, 0, <float>errorCount/<float>sentCount, 
+    float average = receivedCount == 0 ? 0 : <float>time / <float>receivedCount;
+    any[] results = [label, sentCount, average, 0, 0, 0, 0, 0, 0, <float>errorCount/<float>sentCount, 
         <float>receivedCount/<float>time, 0, 0, time:utcNow()[0], 0, 1];
     check writeResultsToCsv(results, output_csv_path);
 
