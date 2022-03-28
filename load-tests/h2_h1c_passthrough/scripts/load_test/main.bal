@@ -41,15 +41,15 @@ public function main(string label, string output_csv_path) returns error? {
         sentCount += 1;
         if response is error {
             errorCount += 1;
-        }
-        if response == payload {
+        } else {
             receivedCount += 1;
         }
         runtime:sleep(0.1);
     }
     decimal time = time:utcDiffSeconds(time:utcNow(), startedTime);
     log:printInfo("Test summary: ", sent = sentCount, received = receivedCount, errors = errorCount, duration = time);
-    any[] results = [label, sentCount, <float>time/<float>receivedCount, 0, 0, 0, 0, 0, 0, <float>errorCount/<float>sentCount, 
+    float average = receivedCount == 0 ? 0 : <float>time / <float>receivedCount;
+    any[] results = [label, sentCount, average, 0, 0, 0, 0, 0, 0, <float>errorCount/<float>sentCount, 
         <float>receivedCount/<float>time, 0, 0, time:utcNow()[0], 0, 1];
     check writeResultsToCsv(results, output_csv_path);
 
