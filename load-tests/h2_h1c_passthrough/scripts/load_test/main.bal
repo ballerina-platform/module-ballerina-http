@@ -21,7 +21,7 @@ import ballerina/log;
 import ballerina/http;
 
 public function main(string label, string output_csv_path) returns error? {
-    http:Client loadTestClient = check new ("https://bal.perf.test:443/passthrough",
+    http:Client loadTestClient = check new ("https://h2-h1c-passthro-svc.default.svc.cluster.local:9090/passthrough",
         httpVersion = "2.0",
         http2Settings = {
             http2PriorKnowledge: true
@@ -40,8 +40,10 @@ public function main(string label, string output_csv_path) returns error? {
         json|error response = loadTestClient->post("", payload);
         sentCount += 1;
         if response is error {
+            log:printError("Error received: ", errorMessage = response.message(), 'error = response);
             errorCount += 1;
         } else {
+            log:printInfo("Response received: ", payload = response);
             receivedCount += 1;
         }
         runtime:sleep(0.1);
