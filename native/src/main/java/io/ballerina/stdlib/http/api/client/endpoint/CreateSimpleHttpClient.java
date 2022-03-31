@@ -38,6 +38,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP2_PRIOR_KNOWLEDGE;
 import static io.ballerina.stdlib.http.api.HttpUtil.getConnectionManager;
 import static io.ballerina.stdlib.http.api.HttpUtil.populateSenderConfigurations;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
+import static java.lang.System.err;
 
 /**
  * Initialization of client endpoint.
@@ -55,7 +56,17 @@ public class CreateSimpleHttpClient {
             if (!urlString.strip().isEmpty()) {
                 String[] urlStrings = urlString.split(HttpConstants.SCHEME_SEPARATOR, 2);
                 if (urlStrings.length == 1) {
-                    urlStrings = new String[]{HttpConstants.HTTP_SCHEME, urlStrings[0]};
+                    if (isClientSecurityConfigured(clientEndpointConfig)) {
+                        urlStrings = new String[]{HttpConstants.HTTPS_SCHEME, urlStrings[0]};
+                    } else {
+                        urlStrings = new String[]{HttpConstants.HTTP_SCHEME, urlStrings[0]};
+                    }
+                } else {
+                    if (urlStrings[0].equals(HttpConstants.HTTP_SCHEME) &&
+                            isClientSecurityConfigured(clientEndpointConfig)) {
+                        err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX +
+                                HttpConstants.HTTPS_RECOMMENDATION_ERROR);
+                    }
                 }
                 urlStrings[1] = urlStrings[1].replaceAll(HttpConstants.DOUBLE_SLASH, HttpConstants.SINGLE_SLASH);
                 urlString = urlStrings[0] + HttpConstants.SCHEME_SEPARATOR + urlStrings[1];
@@ -124,6 +135,11 @@ public class CreateSimpleHttpClient {
         } catch (Exception ex) {
             return HttpUtil.createHttpError(ex.getMessage(), HttpErrorType.GENERIC_CLIENT_ERROR);
         }
+    }
+
+    private static boolean isClientSecurityConfigured(BMap<BString, Object> clientEndpointConfig) {
+        return clientEndpointConfig.get(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET) != null ||
+                clientEndpointConfig.get(HttpConstants.CLIENT_EP_AUTH) != null;
     }
 
     private CreateSimpleHttpClient() {
