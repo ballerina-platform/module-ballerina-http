@@ -453,6 +453,11 @@ public class HttpUtil {
         return responseFuture;
     }
 
+    public static void handleFailure(HttpCarbonMessage requestMessage, String errorMsg) {
+        int statusCode = getStatusCode(requestMessage, errorMsg);
+        PipeliningHandler.sendPipelinedResponse(requestMessage, createErrorMessage(errorMsg, statusCode));
+    }
+
     public static void handleFailure(HttpCarbonMessage requestMessage, BError error, Boolean printStackTrace) {
         String errorMsg = getErrorMessage(error);
         int statusCode = getStatusCode(requestMessage, errorMsg);
