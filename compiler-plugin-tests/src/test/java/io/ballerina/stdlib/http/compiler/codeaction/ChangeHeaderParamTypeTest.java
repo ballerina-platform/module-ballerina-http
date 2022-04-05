@@ -57,7 +57,7 @@ public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
 
     private CodeActionInfo getChangeHeaderParamToStringCodeAction() {
         LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
-                LinePosition.from(20, 52));
+                LinePosition.from(20, 53));
         CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
         CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string'", List.of(locationArg));
         codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING");
@@ -66,7 +66,7 @@ public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
 
     private CodeActionInfo getChangeHeaderParamToStringArrayCodeAction() {
         LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
-                LinePosition.from(20, 52));
+                LinePosition.from(20, 53));
         CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
         CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string[]'", List.of(locationArg));
         codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING_ARRAY");
