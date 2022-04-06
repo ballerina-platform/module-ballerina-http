@@ -76,6 +76,9 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.incubator.codec.http3.Http3Exception;
+import io.netty.incubator.codec.http3.Http3Headers;
+import io.netty.incubator.codec.http3.Http3HeadersFrame;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
@@ -306,6 +309,20 @@ public class Util {
         if (trailerHeaderValue != null) {
             httpRequest.headers().add(TRAILER.toString(), trailerHeaderValue.toString());
         }
+        return httpRequest;
+    }
+
+    public static HttpRequest createHttpRequestFromHttp3Headers(Http3HeadersFrame http3Headers, long streamId)
+            throws Http3Exception {
+        String method = Constants.HTTP_GET_METHOD;
+
+        String path = Constants.DEFAULT_BASE_PATH;
+
+        HttpVersion version = new HttpVersion(Constants.HTTP_VERSION_3_0, true);
+
+        // Construct new HTTP Carbon Request
+        HttpRequest httpRequest = new DefaultHttpRequest(version, HttpMethod.valueOf(method), path);
+
         return httpRequest;
     }
 

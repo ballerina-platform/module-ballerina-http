@@ -28,6 +28,9 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
+import io.netty.incubator.codec.http3.Http3;
+import io.netty.incubator.codec.quic.QuicSslContext;
+import io.netty.incubator.codec.quic.QuicSslContextBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -273,6 +276,21 @@ public class SSLHandlerFactory {
         if (sessionTimeout > 0) {
             sslCtx.sessionContext().setSessionTimeout(sessionTimeout);
         }
+
+        return sslCtx;
+    }
+
+    /**
+     * This method will provide netty ssl context which supports HTTP3
+     * */
+    public QuicSslContext createHttp3TLSContextForServer() throws SSLException { //changedd
+        createSSLContextFromKeystores(true);
+        String keyPassword = sslConfig.getServerKeyPassword();
+
+        QuicSslContextBuilder serverSslContextBuilder = QuicSslContextBuilder.forServer(this.getKeyManagerFactory(),keyPassword)
+                .trustManager(this.getTrustStoreFactory());
+        serverSslContextBuilder.applicationProtocols("h3-29", "h3-30", "h3-31", "h3-32", "h3");
+        QuicSslContext sslCtx = serverSslContextBuilder.build();
 
         return sslCtx;
     }

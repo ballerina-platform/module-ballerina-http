@@ -54,6 +54,10 @@ dependencies {
     implementation group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:"${nettyTcnativeVersion}"
     implementation group: 'io.netty', name: 'netty-tcnative-classes', version:"${nettyTcnativeVersion}"
 
+    implementation name: 'netty-incubator-codec-http3-0.0.11.Final'
+    implementation name: 'codec'
+
+
     implementation group: 'org.wso2.eclipse.osgi', name: 'org.eclipse.osgi', version:"${wso2EclipseOsgiVersion}"
     implementation group: 'commons-pool.wso2', name: 'commons-pool', version:"${wso2CommonsPoolVersion}"
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}"
@@ -143,6 +147,9 @@ publishing {
                 username = System.getenv("publishUser")
                 password = System.getenv("publishPAT")
             }
+        }
+        flatDir {
+            dirs 'libs'
         }
     }
 }

@@ -40,6 +40,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.handler.ssl.SslContext;
+import io.netty.incubator.codec.http3.Http3;
+import io.netty.incubator.codec.quic.QuicSslContext;
+import io.netty.incubator.codec.quic.QuicSslContextBuilder;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
@@ -60,6 +64,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
     private final EventLoopGroup clientGroup;
+    private final NioEventLoopGroup group;
     private EventExecutorGroup pipeliningGroup;
 
     private final ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -68,47 +73,89 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         bossGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
         workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
         clientGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
+        group = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
     }
 
     public DefaultHttpWsConnectorFactory(int serverSocketThreads, int childSocketThreads, int clientThreads) {
         bossGroup = new NioEventLoopGroup(serverSocketThreads);
         workerGroup = new NioEventLoopGroup(childSocketThreads);
         clientGroup = new NioEventLoopGroup(clientThreads);
+        group = new NioEventLoopGroup(serverSocketThreads);
+
     }
 
     @Override
     public ServerConnector createServerConnector(ServerBootstrapConfiguration serverBootstrapConfiguration,
             ListenerConfiguration listenerConfig) {
-        ServerConnectorBootstrap serverConnectorBootstrap = new ServerConnectorBootstrap(allChannels);
-        serverConnectorBootstrap.addSocketConfiguration(serverBootstrapConfiguration);
-        SSLConfig sslConfig = listenerConfig.getListenerSSLConfig();
-        serverConnectorBootstrap.addSecurity(sslConfig);
-        if (sslConfig != null) {
-            setSslContext(serverConnectorBootstrap, sslConfig, listenerConfig);
-        }
-        serverConnectorBootstrap.addIdleTimeout(listenerConfig.getSocketIdleTimeout());
-        if (Constants.HTTP_2_0.equals(listenerConfig.getVersion())) {
-            serverConnectorBootstrap.setHttp2Enabled(true);
-        }
-        serverConnectorBootstrap.addHttpTraceLogHandler(listenerConfig.isHttpTraceLogEnabled());
-        serverConnectorBootstrap.addHttpAccessLogHandler(listenerConfig.isHttpAccessLogEnabled());
-        serverConnectorBootstrap.addThreadPools(bossGroup, workerGroup);
-        serverConnectorBootstrap.addHeaderAndEntitySizeValidation(listenerConfig.getMsgSizeValidationConfig());
-        serverConnectorBootstrap.addChunkingBehaviour(listenerConfig.getChunkConfig());
-        serverConnectorBootstrap.addKeepAliveBehaviour(listenerConfig.getKeepAliveConfig());
-        serverConnectorBootstrap.addServerHeader(listenerConfig.getServerHeader());
 
-        serverConnectorBootstrap.setPipeliningEnabled(listenerConfig.isPipeliningEnabled());
-        serverConnectorBootstrap.setWebSocketCompressionEnabled(listenerConfig.isWebSocketCompressionEnabled());
-        serverConnectorBootstrap.setPipeliningLimit(listenerConfig.getPipeliningLimit());
+        ServerConnectorBootstrap serverConnectorBootstrap;
 
+        if("3.0".equals(listenerConfig.getVersion())){
+            QuicSslContext sslctx = null;
+
+            SSLConfig sslConfig = listenerConfig.getListenerSSLConfig();
+            if (sslConfig != null) {
+                sslctx = createHttp3SslContext(sslConfig);
+            }
+
+            serverConnectorBootstrap = new ServerConnectorBootstrap(allChannels,sslctx);
+            serverConnectorBootstrap.addHttp3SocketConfiguration(serverBootstrapConfiguration);
+            serverConnectorBootstrap.http3AddSecurity(sslConfig);
+
+            serverConnectorBootstrap.http3AddIdleTimeout(listenerConfig.getSocketIdleTimeout());
+
+            serverConnectorBootstrap.addHttp3ThreadPools(group);
+            serverConnectorBootstrap.addHttp3KeepAliveBehaviour(listenerConfig.getKeepAliveConfig());
+
+        }else{
+            serverConnectorBootstrap = new ServerConnectorBootstrap(allChannels);
+            serverConnectorBootstrap.addSocketConfiguration(serverBootstrapConfiguration);
+            SSLConfig sslConfig = listenerConfig.getListenerSSLConfig();
+            serverConnectorBootstrap.addSecurity(sslConfig);
+
+            if (sslConfig != null) {
+                setSslContext(serverConnectorBootstrap, sslConfig, listenerConfig);
+            }
+            serverConnectorBootstrap.addIdleTimeout(listenerConfig.getSocketIdleTimeout());
+
+            if (Constants.HTTP_2_0.equals(listenerConfig.getVersion())) {
+                serverConnectorBootstrap.setHttp2Enabled(true);
+            }
+            serverConnectorBootstrap.addHttpTraceLogHandler(listenerConfig.isHttpTraceLogEnabled());
+            serverConnectorBootstrap.addHttpAccessLogHandler(listenerConfig.isHttpAccessLogEnabled());
+            serverConnectorBootstrap.addThreadPools(bossGroup, workerGroup);
+            serverConnectorBootstrap.addHeaderAndEntitySizeValidation(listenerConfig.getMsgSizeValidationConfig());
+            serverConnectorBootstrap.addChunkingBehaviour(listenerConfig.getChunkConfig());
+            serverConnectorBootstrap.addKeepAliveBehaviour(listenerConfig.getKeepAliveConfig());
+            serverConnectorBootstrap.addServerHeader(listenerConfig.getServerHeader());
+
+            serverConnectorBootstrap.setPipeliningEnabled(listenerConfig.isPipeliningEnabled());
+            serverConnectorBootstrap.setWebSocketCompressionEnabled(listenerConfig.isWebSocketCompressionEnabled());
+            serverConnectorBootstrap.setPipeliningLimit(listenerConfig.getPipeliningLimit());
+        }
         if (listenerConfig.isPipeliningEnabled()) {
             pipeliningGroup = new DefaultEventExecutorGroup(PIPELINING_THREAD_COUNT, new DefaultThreadFactory(
                     PIPELINING_THREAD_POOL_NAME));
-            serverConnectorBootstrap.setPipeliningThreadGroup(pipeliningGroup);
+            if("3.0".equals(listenerConfig.getVersion())) { //changedd
+                serverConnectorBootstrap.setHttp3PipeliningThreadGroup(pipeliningGroup);
+            }else{
+                serverConnectorBootstrap.setPipeliningThreadGroup(pipeliningGroup);
+            }
         }
+        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort(),listenerConfig.getVersion()); //changedd
+    }
 
-        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort());
+    private QuicSslContext createHttp3SslContext(SSLConfig sslConfig) {
+        QuicSslContext sslContext;
+        try {
+            SSLHandlerFactory sslHandlerFactory = new SSLHandlerFactory(sslConfig);
+            sslContext = sslHandlerFactory.createHttp3TLSContextForServer();
+
+        } catch (SSLException e) {
+            throw new RuntimeException("Failed to create ssl context from given certs and key", e);
+        }
+        return sslContext;
+
     }
 
     private void setSslContext(ServerConnectorBootstrap serverConnectorBootstrap, SSLConfig sslConfig,
