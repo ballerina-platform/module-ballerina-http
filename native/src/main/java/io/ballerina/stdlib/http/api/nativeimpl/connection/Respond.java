@@ -65,9 +65,9 @@ public class Respond extends ConnectionAction {
 
     public static Object nativeRespondError(Environment env, BObject connectionObj, BObject outboundResponseObj,
                                             BError error) {
-        HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        inboundRequestMsg.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        return nativeRespond(env, connectionObj, outboundResponseObj);
+        HttpCarbonMessage inboundRequest = HttpUtil.getCarbonMsg(connectionObj, null);
+        inboundRequest.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
+        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, new DataContext(env, inboundRequest));
     }
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
