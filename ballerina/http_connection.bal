@@ -160,7 +160,7 @@ public isolated client class Caller {
             }
             cacheCompatibleType = true;
         } else {
-            string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response|error";
+            string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response";
             panic error ListenerError(errorMsg);
         }
         if cacheCompatibleType && (cacheConfig is HttpCacheConfig) {
@@ -187,7 +187,7 @@ public isolated client class Caller {
             response.statusCode = statusCode is () ? STATUS_INTERNAL_SERVER_ERROR : statusCode;
             response.setTextPayload(errorResponse.message());
         }
-        return nativeRespond(self, response);
+        return nativeRespondError(self, response, errorResponse);
     }
 }
 
@@ -315,6 +315,11 @@ isolated function setJsonPayload(Response response, anydata payload, boolean set
         response.setETag(result);
     }
 }
+
+isolated function nativeRespondError(Caller caller, Response response, error err) returns ListenerError? = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.connection.Respond",
+    name: "nativeRespondError"
+} external;
 
 isolated function nativeRespond(Caller caller, Response response) returns ListenerError? = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.connection.Respond",
